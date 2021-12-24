@@ -3,6 +3,9 @@
     "presubmit": [
         {
             "name": "ImsMediaNativeTests"
+        },
+        {
+            "name": "ImsMediaJavaUnitTests"
         }
     ],
 
@@ -10,6 +13,9 @@
     "postsubmit": [
         {
             "name": "ImsMediaNativeTests"
+        },
+        {
+            "name": "ImsMediaJavaUnitTests"
         }
     ],
 
@@ -17,6 +23,9 @@
     "ImsMedia-alltests": [
         {
             "name": "ImsMediaNativeTests"
+        },
+        {
+            "name": "ImsMediaJavaUnitTests"
         }
     ]
 }
