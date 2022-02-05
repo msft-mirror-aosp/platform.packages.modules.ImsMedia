@@ -1,0 +1,27 @@
+<resources>
+  <string name="app_name">IMS Media Testing App</string>
+  <string name="ip_prefix">IP: </string>
+  <string name="public_ip_prefix">Public IP: </string>
+  <string name="mac_address_prefix">SSID: </string>
+  <string name="allow_calls">Allow Calls </string>
+  <string name="my_device">My Device</string>
+  <string name="other_device">Other Device</string>
+  <string name="connect_button_text">Connect</string>
+  <string name="open_port_button_text">Open Ports</string>
+  <string name="port_number_placeholder">port number</string>
+  <string name="ip_address_placeholder">ip address</string>
+  <string name="port_closed">Port: null</string>
+  <string name="rtp_reception_port_placeholder">RTP Port: %s</string>
+  <string name="rtcp_reception_port_placeholder">RTCP Port: %s</string>
+  <string name="reception_port_placeholder">Port: %s</string>
+  <string name="local_ip_placeholder">Local IP: %s</string>
+  <string name="ssid_placeholder">SSID: %s</string>
+  <string name="settings">Settings</string>
+  <string name="home">home</string>
+  <string name="videoCodecSettings">Video Codec Settings</string>
+  <string name="audioCodecSettings">Audio Codec Settings</string>
+  <string name="evsBandwidths">EVS Bandwidths</string>
+  <string name="save">SAVE</string>
+  <string name="connectionDetailsLabel">Connection Details</string>
+  <string name="connect">CONNECT</string>
+</resources>

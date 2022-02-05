@@ -1,0 +1,29 @@
+package {
+    default_applicable_licenses: ["Android-Apache-2.0"],
+}
+
+android_app {
+    name: "ImsMediaTestingApp",
+    manifest: "AndroidManifest.xml",
+    resource_dirs: ["src/main/res"],
+    min_sdk_version: "current",
+    srcs: [
+        "src/**/*.java",
+    ],
+    libs: [
+        "android-support-annotations",
+    ],
+    static_libs: [
+        "com.google.android.material_material",
+    	  "androidx.test.rules",
+    	  "androidx.test.core",
+    	  "androidx.test.ext.junit"
+    ],
+    owner: "google",
+    platform_apis: true,
+    privileged: true,
+    certificate: "platform",
+    optimize: {
+        enabled: true,
+    },
+}

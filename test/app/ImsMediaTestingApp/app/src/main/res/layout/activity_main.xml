@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".MainActivity">
+
+  <TextView
+      android:id="@+id/my_device_label"
+      android:textStyle="bold"
+      android:layout_width="150dp"
+      android:layout_height="wrap_content"
+      android:layout_marginTop="15dp"
+      android:layout_marginStart="15dp"
+      android:layout_alignParentStart="true"
+      android:text="@string/my_device"
+      android:textAlignment="center" />
+
+  <TextView
+      android:id="@+id/connectionDetailsLabel"
+      android:textStyle="bold"
+      android:layout_width="150dp"
+      android:layout_height="wrap_content"
+      android:layout_marginTop="15dp"
+      android:layout_marginEnd="15dp"
+      android:layout_alignParentEnd="true"
+      android:text="@string/connectionDetailsLabel"
+      android:textAlignment="center" />
+
+  <TextView
+      android:id="@+id/ipAddress"
+      android:layout_width="150dp"
+      android:layout_height="wrap_content"
+      android:layout_marginTop="15dp"
+      android:layout_marginStart="15dp"
+      android:layout_alignParentStart="true"
+      android:layout_below="@+id/my_device_label"
+      android:layout_centerInParent="true"
+      android:text="@string/ip_prefix"
+      android:textAlignment="center" />
+
+  <TextView
+      android:id="@+id/otherIpAddress"
+      android:layout_width="150dp"
+      android:layout_height="wrap_content"
+      android:layout_marginTop="15dp"
+      android:layout_marginEnd="15dp"
+      android:layout_alignParentEnd="true"
+      android:layout_below="@+id/connectionDetailsLabel"
+      android:layout_centerInParent="true"
+      android:text="@string/ip_prefix"
+      android:textAlignment="center" />
+
+  <TextView
+      android:id="@+id/receptionPort"
+      android:layout_width="150dp"
+      android:layout_height="wrap_content"
+      android:layout_marginTop="15dp"
+      android:layout_marginStart="15dp"
+      android:layout_alignParentStart="true"
+      android:layout_below="@+id/ipAddress"
+      android:layout_centerInParent="true"
+      android:text="@string/port_closed"
+      android:textAlignment="center" />
+
+  <TextView
+      android:id="@+id/otherHandshakePort"
+      android:layout_width="150dp"
+      android:layout_height="wrap_content"
+      android:layout_marginTop="15dp"
+      android:layout_marginEnd="15dp"
+      android:layout_alignParentEnd="true"
+      android:layout_below="@+id/otherIpAddress"
+      android:layout_centerInParent="true"
+      android:text="@string/port_closed"
+      android:textAlignment="center" />
+
+  <TextView
+      android:id="@+id/rtpReceptionPort"
+      android:layout_width="150dp"
+      android:layout_height="wrap_content"
+      android:layout_marginTop="15dp"
+      android:layout_marginStart="15dp"
+      android:layout_alignParentStart="true"
+      android:layout_below="@+id/receptionPort"
+      android:layout_centerInParent="true"
+      android:text="@string/port_closed"
+      android:textAlignment="center" />
+
+  <TextView
+      android:id="@+id/rtcpReceptionPort"
+      android:layout_width="150dp"
+      android:layout_height="wrap_content"
+      android:layout_marginTop="15dp"
+      android:layout_marginStart="15dp"
+      android:layout_alignParentStart="true"
+      android:layout_below="@+id/rtpReceptionPort"
+      android:layout_centerInParent="true"
+      android:text="@string/port_closed"
+      android:textAlignment="center" />
+
+  <Button
+      android:id="@+id/clientButton"
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content"
+      android:layout_marginTop="20dp"
+      android:layout_marginStart="15dp"
+      android:layout_below="@+id/rtcpReceptionPort"
+      android:layout_centerHorizontal="true"
+      android:backgroundTint="@drawable/selected_green"
+      android:onClick="onClickClientButton"
+      android:text="@string/open_port_button_text"
+      android:textColor="@color/black" />
+
+  <Button
+      android:id="@+id/connectButton"
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content"
+      android:layout_marginTop="20dp"
+      android:layout_marginStart="15dp"
+      android:layout_below="@+id/clientButton"
+      android:layout_centerHorizontal="true"
+      android:backgroundTint="@drawable/selected_green"
+      android:text="@string/connect"
+      android:textColor="@color/black" />
+
+</RelativeLayout>

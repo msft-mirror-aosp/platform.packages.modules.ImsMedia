@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".SettingsActivity">
+
+
+    <TextView
+        android:id="@+id/other_device_label"
+        android:textStyle="bold"
+        android:layout_width="150dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="15dp"
+        android:layout_marginStart="15dp"
+        android:text="@string/other_device"
+        android:textAlignment="center" />
+
+    <EditText
+        android:id="@+id/other_device_ip"
+        android:layout_width="150dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="15dp"
+        android:layout_below="@+id/other_device_label"
+        android:ems="15"
+        android:hint="@string/ip_address_placeholder"
+        android:importantForAutofill="no"
+        android:inputType="phone"
+        android:minHeight="48dp"
+        android:textAlignment="center" />
+
+    <EditText
+        android:id="@+id/port_number"
+        android:layout_width="150dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="15dp"
+        android:layout_marginStart="15dp"
+        android:layout_below="@+id/other_device_ip"
+        android:ems="5"
+        android:hint="@string/port_number_placeholder"
+        android:importantForAutofill="no"
+        android:inputType="phone"
+        android:textAlignment="center" />
+
+    <TextView
+        android:id="@+id/audioCodecTitle"
+        android:textStyle="bold"
+        android:layout_width="150dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="30dp"
+        android:layout_marginStart="15dp"
+        android:layout_below="@id/port_number"
+        android:text="@string/audioCodecSettings"
+        android:textAlignment="center" />
+
+    <TextView
+        android:id="@+id/evsBandwidthTitle"
+        android:textStyle="bold"
+        android:layout_width="150dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="30dp"
+        android:layout_below="@id/port_number"
+        android:layout_alignStart="@id/evsBandwidthsList"
+        android:text="@string/evsBandwidths"
+        android:textAlignment="center" />
+
+    <ListView
+        android:id="@+id/audioCodecList"
+        android:layout_width="150dp"
+        android:layout_height="200dp"
+        android:layout_marginTop="10dp"
+        android:layout_marginStart="15dp"
+        android:layout_below="@id/audioCodecTitle"
+        android:background="@drawable/row_background_selector"
+        android:choiceMode="multipleChoice"
+        android:fadeScrollbars="false" />
+
+    <ListView
+        android:id="@+id/evsBandwidthsList"
+        android:layout_width="215dp"
+        android:layout_height="200dp"
+        android:layout_marginStart="15dp"
+        android:layout_alignTop="@id/audioCodecList"
+        android:layout_toEndOf="@id/audioCodecList"
+        android:background="@drawable/row_background_selector"
+        android:choiceMode="multipleChoice"
+        android:fadeScrollbars="false"
+        android:saveEnabled="true"
+        android:visibility="visible"/>
+
+    <TextView
+        android:id="@+id/videoCodecTitle"
+        android:textStyle="bold"
+        android:layout_width="150dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="30dp"
+        android:layout_marginStart="15dp"
+        android:layout_below="@id/audioCodecList"
+        android:text="@string/videoCodecSettings"
+        android:textAlignment="center" />
+
+    <ListView
+        android:id="@+id/videoCodecList"
+        android:layout_width="150dp"
+        android:layout_height="200dp"
+        android:layout_marginTop="10dp"
+        android:layout_marginEnd="15dp"
+        android:layout_below="@id/videoCodecTitle"
+        android:layout_marginStart="15dp"
+        android:choiceMode="multipleChoice" />
+
+    <Button
+        android:id="@+id/sendPacket"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="15dp"
+        android:layout_marginEnd="15dp"
+        android:layout_below="@+id/videoCodecList"
+        android:layout_centerHorizontal="true"
+        android:background="@color/teal_700"
+        android:onClick="saveSettings"
+        android:text="@string/save" />
+
+
+</RelativeLayout>
