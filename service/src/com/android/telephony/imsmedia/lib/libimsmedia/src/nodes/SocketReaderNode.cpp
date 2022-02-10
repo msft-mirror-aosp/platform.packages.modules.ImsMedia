@@ -1,0 +1,123 @@
+/**
+ * Copyright (C) 2022 The Android Open Source Project
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+#include <SocketReaderNode.h>
+#include <ImsMediaTrace.h>
+
+SocketReaderNode::SocketReaderNode() : mLocalFd(0) {
+}
+
+SocketReaderNode::~SocketReaderNode() {
+}
+
+void SocketReaderNode::OnReceiveEnabled() {
+    int nLen = mSocket->ReceiveFrom(mBuffer, 1500);
+    if (nLen > 0) {
+        IMLOGD_PACKET1(IM_PACKET_LOG_SOCKET,
+            "[OnReceiveEnabled] read %d bytes", nLen);
+        SendDataToRearNode(MEDIASUBTYPE_UNDEFINED, (uint8_t*)mBuffer, nLen, 0, 0, 0);
+    }
+}
+
+BaseNode* SocketReaderNode::GetInstance() {
+    return new SocketReaderNode();
+}
+
+void SocketReaderNode::ReleaseInstance(BaseNode* pNode) {
+    delete (SocketReaderNode*)pNode;
+}
+
+BaseNodeID SocketReaderNode::GetNodeID() {
+    return BaseNodeID::NODEID_SOCKETREADER;
+}
+
+ImsMediaResult SocketReaderNode::Start() {
+    IMLOGD0("[Start]");
+    mSocket = ISocket::GetInstance(mLocalPort, mPeerIP, mPeerPort);
+
+    if (mSocket == NULL) {
+        IMLOGE0("[Start] can't create socket instance");
+        mbSocketOpened = false;
+        return IMS_MEDIA_ERROR_UNKNOWN;
+    }
+
+    //set socket local/peer address here
+    mSocket->SetLocalEndpoint(mLocalIP, mLocalPort);
+    mSocket->SetPeerEndpoint(mPeerIP, mPeerPort);
+
+    if (mSocket->Open(mLocalFd) != true) {
+        IMLOGE0("[Start] can't open socket");
+        mbSocketOpened = false;
+        return IMS_MEDIA_ERROR_UNKNOWN;
+    }
+
+    if (mSocket->Listen(this) != true) {
+        IMLOGE0("[Start] can't listen socket");
+        mbSocketOpened = false;
+        return IMS_MEDIA_ERROR_UNKNOWN;
+    }
+
+    memset(mBuffer, 0, sizeof(mBuffer));
+    mbSocketOpened = true;
+    mNodeState = NODESTATE_RUNNING;
+    return IMS_MEDIA_OK;
+}
+
+void SocketReaderNode::Stop() {
+    IMLOGD0("[Stop]");
+    if (mSocket != NULL) {
+        mSocket->Listen(NULL);
+        mSocket->Close(SOCKET_MODE_RX);
+        ISocket::ReleaseInstance(mSocket);
+        mSocket = NULL;
+        mbSocketOpened = false;
+    }
+    mNodeState = NODESTATE_STOPPED;
+}
+
+bool SocketReaderNode::IsRunTime() {
+    return true;
+}
+
+bool SocketReaderNode::IsSourceNode() {
+    return true;
+}
+
+void SocketReaderNode::OnDataFromFrontNode(ImsMediaSubType subtype,
+    uint8_t* pData, uint32_t nDataSize, uint32_t nTimestamp, bool bMark, uint32_t nSeqNum,
+    ImsMediaSubType nDataType) {
+    (void)nDataType;
+
+    IMLOGD_PACKET3(IM_PACKET_LOG_SOCKET,
+        "[OnDataFromFrontNode] type[%d], subtype[%d] before sendto %d bytes",
+        mMediaType, subtype, nDataSize);
+
+    if (bMark == true) {
+        IMLOGD_PACKET2(IM_PACKET_LOG_SOCKET,
+            "[OnDataFromFrontNode] TS[%d], SeqNum[%d]",
+            nTimestamp, nSeqNum);
+    }
+
+    if (mSocket == NULL) {
+        return;
+    }
+
+    mSocket->SendTo(pData, nDataSize);
+}
+
+void SocketReaderNode::SetLocalFd(int fd) {
+    mLocalFd = fd;
+}

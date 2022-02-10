@@ -1,0 +1,113 @@
+/**
+ * Copyright (C) 2022 The Android Open Source Project
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+#include <SocketWriterNode.h>
+#include <ImsMediaTrace.h>
+
+SocketWriterNode::SocketWriterNode() {
+    mSocket = NULL;
+    mbSocketOpened = false;
+    mDisableSocket = false;
+}
+
+SocketWriterNode::~SocketWriterNode() {
+    if (mSocket != NULL) {
+        Stop();
+    }
+}
+
+BaseNode* SocketWriterNode::GetInstance() {
+    return new SocketWriterNode();
+}
+
+void SocketWriterNode::ReleaseInstance(BaseNode* pNode) {
+    delete (SocketWriterNode*)pNode;
+}
+
+BaseNodeID SocketWriterNode::GetNodeID() {
+    return BaseNodeID::NODEID_SOCKETWRITER;
+}
+
+ImsMediaResult SocketWriterNode::Start() {
+    IMLOGD0("[Start]");
+    mSocket = ISocket::GetInstance(mLocalPort, mPeerIP, mPeerPort);
+
+    if (mSocket == NULL) {
+        IMLOGE0("[Start] can't create socket instance");
+        mbSocketOpened = false;
+        return IMS_MEDIA_ERROR_UNKNOWN;
+    }
+
+    //set local/peer address here
+    mSocket->SetLocalEndpoint(mLocalIP, mLocalPort);
+    mSocket->SetPeerEndpoint(mPeerIP, mPeerPort);
+
+    if (mSocket->Open(mLocalFd) == false) {
+        IMLOGE0("[Start] can't open socket");
+        mbSocketOpened = false;
+        return IMS_MEDIA_ERROR_UNKNOWN;
+    }
+
+    mbSocketOpened = true;
+    mNodeState = NODESTATE_RUNNING;
+    return IMS_MEDIA_OK;
+}
+
+void SocketWriterNode::Stop() {
+    IMLOGD0("[Stop]");
+    if (mSocket != NULL) {
+        mSocket->Close(SOCKET_MODE_TX);
+        ISocket::ReleaseInstance(mSocket);
+        mSocket = NULL;
+        mbSocketOpened = false;
+    }
+    mNodeState = NODESTATE_STOPPED;
+}
+
+bool SocketWriterNode::IsRunTime() {
+    return true;
+}
+
+bool SocketWriterNode::IsSourceNode() {
+    return true;
+}
+
+void SocketWriterNode::OnDataFromFrontNode(ImsMediaSubType subtype,
+    uint8_t* pData, uint32_t nDataSize, uint32_t nTimestamp, bool bMark, uint32_t nSeqNum,
+    ImsMediaSubType nDataType) {
+    (void)nDataType;
+    (void)bMark;
+
+    if (mDisableSocket == true
+        && subtype != MEDIASUBTYPE_RTCPPACKET_BYE) {
+        IMLOGW3("[OnDataFromFrontNode] mediatype[%d] subtype[%d] socket is disabled, bytes[%d]",
+            mMediaType, subtype, nDataSize);
+    }
+
+    IMLOGD_PACKET3(IM_PACKET_LOG_SOCKET,
+        "[OnDataFromFrontNode] TS[%d], SeqNum[%u], size[%u]",
+        nTimestamp, nSeqNum, nDataSize);
+
+    if (mSocket == NULL) {
+        return;
+    }
+
+    mSocket->SendTo(pData, nDataSize);
+}
+
+void SocketWriterNode::SetLocalFd(int fd) {
+    mLocalFd = fd;
+}

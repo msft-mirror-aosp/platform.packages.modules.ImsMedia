@@ -1,0 +1,59 @@
+cc_library_headers {
+    name: "librtp_headers",
+    export_include_dirs: [
+        "core/hdr",
+        "porting/android",
+        "utility/hdr",
+    ],
+}
+
+cc_defaults {
+    name: "librtp_defaults",
+    defaults: [
+    ],
+    cflags: [
+        "-DRTP_TRACE_ENABLE",
+        "-DRTP_DEBUG_ENABLE",
+    ],
+    header_libs: [
+        "librtp_headers",
+    ],
+}
+
+cc_library_static {
+    name: "librtpprotocol",
+    defaults: [
+        "librtp_defaults",
+    ],
+    srcs: [
+        "core/src/RtpActiveSessionDb.cpp",
+        "core/src/RtpHeader.cpp",
+        "core/src/RtpPacket.cpp",
+        "core/src/RtpPayloadInfo.cpp",
+        "core/src/RtpReceiverInfo.cpp",
+        "core/src/RtpSession.cpp",
+        "core/src/RtpStack.cpp",
+        "core/src/RtpStackProfile.cpp",
+        "core/src/RtpStackUtil.cpp",
+        "core/src/RtpTimerInfo.cpp",
+        "core/src/RtcpAppPacket.cpp",
+        "core/src/RtcpByePacket.cpp",
+        "core/src/RtcpChunk.cpp",
+        "core/src/RtcpConfigInfo.cpp",
+        "core/src/RtcpFbPacket.cpp",
+        "core/src/RtcpHeader.cpp",
+        "core/src/RtcpPacket.cpp",
+        "core/src/RtcpReportBlock.cpp",
+        "core/src/RtcpRrPacket.cpp",
+        "core/src/RtcpSdesPacket.cpp",
+        "core/src/RtcpSrPacket.cpp",
+        "core/src/RtcpXrPacket.cpp",
+        "porting/android/RtpOsUtil.cpp",
+        "porting/android/rtp_pf_memory.cpp",
+        "porting/android/RtpTimer.cpp",
+        "utility/src/RtpBuffer.cpp",
+        "utility/src/RtpList.cpp",
+        "utility/src/RtpString.cpp",
+        "utility/src/rtp_trace.cpp",
+    ],
+}

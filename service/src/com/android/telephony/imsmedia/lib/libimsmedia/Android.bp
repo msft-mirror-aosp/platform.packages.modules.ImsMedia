@@ -1,0 +1,115 @@
+
+cc_library_headers {
+    name: "libimsmedia_interface",
+    export_include_dirs: [
+        "include/interface",
+    ],
+}
+
+cc_library_headers {
+    name: "libimsmedia_header",
+    export_include_dirs: [
+        "include",
+        "include/nodes",
+        "include/utils",
+        "rtpservice",
+        "rtpservice/rtpstack/core/hdr",
+        "rtpservice/rtpstack/porting/android",
+        "rtpservice/rtpstack/utility/hdr",
+    ],
+
+}
+
+cc_library_headers {
+    name: "libimsmedia_voice_header",
+    export_include_dirs: [
+        "include",
+        "include/voice",
+        "include/voice/nodes",
+        "include/voice/android",
+    ],
+}
+
+cc_defaults {
+    name: "libimsmedia_shared_defaults",
+    cflags: [
+    ],
+    header_libs: [
+    ],
+    include_dirs: [
+        "frameworks/native/include",
+        "frameworks/native/libs/binder/include/binder",
+        "frameworks/av/media",
+        "frameworks/av/media/libmedia/include",
+        "frameworks/av/media/libaudioclient/include",
+        "frameworks/av/media/libstagefright/include",
+        "frameworks/av/media/libstagefright/foundation/include",
+        "frameworks/av/drm/libmediadrm/interface",
+    ],
+}
+
+cc_defaults {
+    name: "libimsmedia_voice_defaults",
+    cflags: [
+    ],
+    header_libs: [
+        "libimsmedia_voice_header"
+    ],
+    include_dirs: [
+        "frameworks/native/include",
+        "frameworks/native/libs/binder/include/binder",
+        "frameworks/av/media",
+        "frameworks/av/media/libmedia/include",
+        "frameworks/av/media/libaudioclient/include",
+        "frameworks/av/media/libstagefright/include",
+        "frameworks/av/media/libstagefright/foundation/include",
+        "frameworks/av/drm/libmediadrm/interface",
+    ],
+}
+
+cc_library_static {
+    name: "libimsmedia",
+    defaults: [
+        "librtp_defaults",
+        "libimsmedia_shared_defaults",
+        "libimsmedia_voice_defaults"
+    ],
+    cflags: [
+    ],
+    srcs: [
+        "android/telephony/imsmedia/*.cpp",
+        "src/**/*.cpp",
+        "rtpservice/*.cpp"
+    ],
+    exclude_srcs: [
+    ],
+    header_libs: [
+        "libimsmedia_header",
+        "libimsmedia_interface",
+    ],
+    include_dirs: [
+    ],
+    local_include_dirs: [
+        "include",
+    ],
+    static_libs: [
+        "libRtpService",
+        "librtpprotocol",
+    ],
+    shared_libs: [
+        "libimsmedia_config",
+        "libandroid_runtime",
+        "libbinder",
+        "libaudioclient",
+        "libcutils",
+        "liblog",
+        "libutils",
+        "libmedia",
+        "libmedia_omx",
+        "libaudioclient",
+        "libaudioclient_aidl_conversion",
+        "libstagefright",
+        "libstagefright_foundation",
+        "framework-permission-aidl-cpp",
+    ],
+}

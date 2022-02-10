@@ -1,0 +1,156 @@
+/**
+ * Copyright (C) 2022 The Android Open Source Project
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+#ifndef Rtp_SESSION_H
+#define Rtp_SESSION_H
+
+#include <ImsMediaHal.h>
+#include <ImsMediaDefine.h>
+#include <RtpService.h>
+#include <list>
+#include <atomic>
+#include <stdint.h>
+#include <mutex>
+
+/*!
+ * @class       IRtpEncoderListener
+ */
+class IRtpEncoderListener
+{
+public:
+    IRtpEncoderListener() {}
+    virtual ~IRtpEncoderListener() {}
+    virtual void OnRtpPacket(unsigned char *pData, uint32_t wLen) = 0;
+};
+
+/*!
+ * @class        IRtcpEncoderListener
+ */
+class IRtcpEncoderListener
+{
+public:
+    IRtcpEncoderListener() {}
+    virtual ~IRtcpEncoderListener() {}
+    virtual void OnRtcpPacket(unsigned char *pData, uint32_t wLen) = 0;
+};
+
+/*!
+ * @class        IRtpDecoderListener
+ */
+class IRtpDecoderListener
+{
+public:
+    IRtpDecoderListener() {}
+    virtual ~IRtpDecoderListener() {}
+    virtual void OnMediaDataInd(unsigned char *pData, uint32_t nDataSize, uint32_t nTimestamp,
+        bool bMark, uint16_t nSeqNum, uint32_t nPayloadType, uint32_t nSSRC, bool bExtension,
+        uint16_t nExtensionData) = 0;
+};
+
+/*!
+ * @class        IRtcpDecoderListener
+ */
+class IRtcpDecoderListener
+{
+public:
+    IRtcpDecoderListener() {}
+    virtual ~IRtcpDecoderListener() {}
+    virtual void OnRtcpInd(tRtpSvc_IndicationFromStack eIndType, void *pMsg) = 0;
+    virtual void OnNumReceivedPacket(int32_t nNumRtpPacket,
+        uint32_t nNumRtcpSRPacket, uint32_t nNumRtcpRRPacket) = 0;
+};
+
+/*!
+ * @class        IRtpSession
+ */
+class IRtpSession : public RtpServiceListener
+{
+public:
+    static IRtpSession* GetInstance(ImsMediaType eMediaType,
+        const RtpAddress local, const RtpAddress peer);
+    static void ReleaseInstance(IRtpSession* pSession);
+    IRtpSession(ImsMediaType eMediaType, const RtpAddress local, const RtpAddress peer);
+    ~IRtpSession();
+    IRtpSession(const IRtpSession &obj);
+    IRtpSession &operator=(const IRtpSession &obj);
+    bool operator==(const IRtpSession &obj2);
+    bool isSameInstance(ImsMediaType eMediaType, const RtpAddress local, const RtpAddress peer);
+    void SetRtpEncoderListener(IRtpEncoderListener *pRtpEncoderListener);
+    void SetRtpDecoderListener(IRtpDecoderListener *pRtpDecoderListener);
+    void SetRtcpEncoderListener(IRtcpEncoderListener *pRtcpEncoderListener);
+    void SetRtcpDecoderListener(IRtcpDecoderListener *pRtcpDecoderListener);
+    void SetRtpPayloadParam(const ImsMediaHal::RtpSessionParams &pRtpInfo);
+    void SetRtcpInterval(int32_t nInterval);
+    void StartRtp();
+    void StopRtp();
+    void StartRtcp(bool bSendRtcpBye = false);
+    void StopRtcp();
+    bool SendRtpPacket(uint32_t nPayloadType, uint8_t *pData, uint32_t nDataSize,
+        uint32_t nTimestamp, bool bMark, uint32_t nTimeDiff,
+        bool bExtension, std::shared_ptr<ImsMediaHal::RtpHeaderExtension> pExtensionInfo);
+    bool ProcRtpPacket(uint8_t *pData, uint32_t nDataSize);
+    bool ProcRtcpPacket(uint8_t *pData, uint32_t nDataSize);
+    void OnTimer();
+    void SendRtcpXr(uint8_t *pPayload, uint32_t nSize, uint32_t nRttdOffset);
+    ImsMediaType getMediaType();
+    void increaseRefCounter();
+    void decreaseRefCounter();
+    uint32_t getRefCounter();
+    // receive Rtp packet, send it to rtp tx node
+    virtual int OnRtpPacket(unsigned char *pData, RtpSvc_Length wLen);
+    // receive Rtcp packet, send it to rtcp node
+    virtual int OnRtcpPacket(unsigned char *pData, RtpSvc_Length wLen);
+    // indication from stack
+    virtual void OnPeerInd(tRtpSvc_IndicationFromStack eIndType, void *pMsg);
+
+private:
+    static std::list<IRtpSession*> mListRtpSession;
+    ImsMediaType mMediaType;
+    RTPSESSIONID mRtpSessionId;
+    std::atomic<int32_t> mRefCount;
+    RtpAddress mLocalAddress;
+    RtpAddress mPeerAddress;
+    // Listene*r
+    IRtpEncoderListener *mRtpEncoderListener;
+    IRtpDecoderListener *mRtpDecoderListener;
+    IRtcpEncoderListener *mRtcpEncoderListener;
+    IRtcpDecoderListener *mRtcpDecoderListener;
+    // Rtp configure
+    uint32_t mLocalRtpSsrc;
+    uint32_t mPeerRtpSsrc;
+    bool mEnableRtcpTx;
+    bool mEnableDTMF;
+    uint32_t mDtmfPayloadType;
+    // internal use
+    uint32_t mPrevTimestamp;
+    uint32_t mRtpStarted;
+    uint32_t mRtcpStarted;
+    uint32_t mNumRtpProcPacket;  // received packet
+    uint32_t mNumRtcpProcPacket; // received packet
+    uint32_t mNumRtpPacket;      // received packet
+    uint32_t mNumSRPacket;       // received packet
+    uint32_t mNumRRPacket;       // received packet
+    uint32_t mNumRtpDataToSend;
+    uint32_t mNumRtpPacketSent;
+    uint32_t mNumRtcpPacketSent;
+    uint32_t mSamplingRate;
+    int32_t mRttd;
+    std::mutex mutexDecoder;
+    std::mutex mutexEncoder;
+    std::mutex mutexRtpSession;
+};
+
+#endif

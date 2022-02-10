@@ -1,0 +1,37 @@
+package {
+    default_applicable_licenses: ["Android-Apache-2.0"],
+}
+
+cc_library_static {
+    name: "libimsmediajni",
+    defaults: [
+        "libimsmedia_voice_defaults",
+    ],
+    header_libs: [
+        "libimsmedia_header",
+        "libimsmedia_interface",
+    ],
+    srcs: [
+        "libimsmediajni.cpp",
+        "MediaManagerFactory.cpp",
+    ],
+    include_dirs: [
+        "frameworks/base/core/jni"
+    ],
+    static_libs: [
+        "libimsmedia",
+    ],
+    shared_libs: [
+        "libimsmedia_config",
+        "libbinder",
+        "libcutils",
+        "libgui",
+        "liblog",
+        "libnativehelper",
+        "libutils",
+        "libandroid_runtime",
+        "framework-permission-aidl-cpp",
+        "libaudioclient",
+        "libaudioclient_aidl_conversion",
+    ],
+}

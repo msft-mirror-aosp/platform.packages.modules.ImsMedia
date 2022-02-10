@@ -1,0 +1,32 @@
+cc_library_headers {
+    name: "libimsmedia_config_headers",
+    export_include_dirs: [
+        "android/telephony/imsmedia",
+    ],
+}
+
+cc_defaults {
+    name: "libimsmedia_config_defaults",
+    header_libs: [
+        "libimsmedia_config_headers",
+    ],
+    local_include_dirs: [
+        "android/telephony/imsmedia",
+    ],
+    export_header_lib_headers: [
+        "libimsmedia_config_headers",
+    ],
+    srcs: [
+        "android/telephony/imsmedia/RtpConfig.cpp",
+        "android/telephony/imsmedia/MediaQualityThreshold.cpp",
+    ],
+}
+
+cc_library {
+    name: "libimsmedia_config",
+    defaults: ["libimsmedia_config_defaults"],
+    shared_libs: [
+        "libbinder",
+        "libutils",
+    ],
+}
