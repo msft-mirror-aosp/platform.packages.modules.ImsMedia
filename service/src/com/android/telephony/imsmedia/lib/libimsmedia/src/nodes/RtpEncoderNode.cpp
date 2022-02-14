@@ -89,7 +89,7 @@ ImsMediaResult RtpEncoderNode::Start() {
     //test
     ImsMediaHal::RtpSessionParams params;
     params.pTimeMillis = 20;
-    params.maxPtimeMillis = 240;
+    params.maxPtimeMillis = static_cast<char>(240);
     params.maxMtuBytes = 1500;
     params.dscp = 0;
     params.dtmfParams.payloadTypeNumber = 100;

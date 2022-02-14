@@ -28,7 +28,7 @@
 #ifndef _RTP_SERVICE_TYPES_H_
 #define _RTP_SERVICE_TYPES_H_
 
-#include <rtp_pf_datatypes.h>
+#include <RtpPfDatatypes.h>
 
 typedef void*    RTPSESSIONID;
 

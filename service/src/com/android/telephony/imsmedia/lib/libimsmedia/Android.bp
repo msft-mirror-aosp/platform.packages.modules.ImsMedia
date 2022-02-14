@@ -13,9 +13,6 @@ cc_library_headers {
         "include/nodes",
         "include/utils",
         "rtpservice",
-        "rtpservice/rtpstack/core/hdr",
-        "rtpservice/rtpstack/porting/android",
-        "rtpservice/rtpstack/utility/hdr",
     ],
 
 }
@@ -77,15 +74,14 @@ cc_library_static {
     cflags: [
     ],
     srcs: [
-        "android/telephony/imsmedia/*.cpp",
         "src/**/*.cpp",
-        "rtpservice/*.cpp"
     ],
     exclude_srcs: [
     ],
     header_libs: [
         "libimsmedia_header",
         "libimsmedia_interface",
+        "libimsmedia_config_headers",
     ],
     include_dirs: [
     ],
@@ -93,7 +89,7 @@ cc_library_static {
         "include",
     ],
     static_libs: [
-        "libRtpService",
+        "librtpservice",
         "librtpprotocol",
     ],
     shared_libs: [

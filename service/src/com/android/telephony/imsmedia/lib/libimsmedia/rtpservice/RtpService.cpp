@@ -16,12 +16,12 @@
 
 #include <RtpService.h>
 #include <RtpString.h>
-#include <rtp_global.h>
+#include <RtpGlobal.h>
 #include <RtpImpl.h>
 #include <rtp_pf_memory.h>
 #include <RtpStack.h>
 #include <rtp_trace.h>
-#include <rtp_error.h>
+#include <RtpError.h>
 #include <stdio.h>
 
 RtpStack *g_pobjRtpStack = RTP_NULL;

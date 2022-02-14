@@ -1,6 +1,6 @@
 
 cc_library_static {
-    name: "libRtpService",
+    name: "librtpservice",
     defaults: [
     ],
     cflags: [
@@ -12,10 +12,6 @@ cc_library_static {
         "RtpService.cpp",
     ],
     header_libs: [
-    ],
-    local_include_dirs: [
-        "rtpstack/core/hdr",
-        "rtpstack/porting/android",
-        "rtpstack/utility/hdr",
+        "librtp_headers",
     ],
 }

@@ -23,7 +23,7 @@
 
 #include <IRtpAppInterface.h>
 #include <RtpBuffer.h>
-#include <rtp_global.h>
+#include <RtpGlobal.h>
 
 class IRtpAppInterface;
 

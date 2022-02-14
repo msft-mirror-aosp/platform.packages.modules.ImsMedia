@@ -10,6 +10,7 @@ cc_library_static {
     header_libs: [
         "libimsmedia_header",
         "libimsmedia_interface",
+        "libimsmedia_config_headers",
     ],
     srcs: [
         "libimsmediajni.cpp",
