@@ -19,51 +19,21 @@
 #include <rtp_trace.h>
 #include <rtp_pf_memory.h>
 
-eRtp_Bool Rtp_ReleaseReportBlk(IN RtpDt_Void **ppObj)
-{
-    RtcpReportBlock *pobjRBElm = RTP_NULL;
-    pobjRBElm = RTP_STATIC_CAST(RtcpReportBlock*,*ppObj);
-    delete pobjRBElm;
-    return eRTP_SUCCESS;
-}
-
-eRtp_Bool Rtp_CompareReportBlkElm(IN RtpDt_Void *pvNode1,
-                                     IN RtpDt_Void *pvNode2)
-{
-    if((RTP_STATIC_CAST(RtcpReportBlock *,pvNode1))->getSsrc() != RTP_NULL
-        && (RTP_STATIC_CAST(RtcpReportBlock *,pvNode2))->getSsrc() != RTP_NULL)
-    {
-        if((RTP_STATIC_CAST(RtcpReportBlock *,pvNode1))->getSsrc() ==
-            (RTP_STATIC_CAST(RtcpReportBlock *,pvNode2))->getSsrc())
-            return eRTP_TRUE;
-        else
-            return eRTP_FALSE;
-    }
-    else
-       return eRTP_FALSE;
-}
 
 RtcpRrPacket::RtcpRrPacket():
-                        m_pobjExt(RTP_NULL)
+    m_objReportBlkList(std::list<RtcpReportBlock *>()),
+    m_pobjExt(RTP_NULL)
 {
-    //initialize the report block list
-
-    m_objReportBlk.InitList(Rtp_ReleaseReportBlk,
-                            Rtp_CompareReportBlkElm);
 }
 
 RtcpRrPacket::~RtcpRrPacket()
 {
-    RtpDt_UInt16 usSize = RTP_ZERO;
-    RtpDt_UInt16 usError = RTP_ZERO;
-
-    //m_objReportBlk
-    m_objReportBlk.GetSize(&usSize, &usError);
-    for(RtpDt_UInt16 usCount = RTP_ZERO;usCount < usSize;
-        usCount = usCount + RTP_ONE)
+    //m_objReportBlkList
+    for(auto&pobjReptBlk:m_objReportBlkList)
     {
-        m_objReportBlk.DeleteAtPos(RTP_ZERO, &usError);
+        delete pobjReptBlk;
     }
+    m_objReportBlkList.clear();
 
     //m_pobjExt
     if(m_pobjExt != RTP_NULL)
@@ -75,8 +45,7 @@ RtcpRrPacket::~RtcpRrPacket()
 
 RtpDt_Void RtcpRrPacket::addReportBlkElm(IN RtcpReportBlock* pobjReptBlk)
 {
-    RtpDt_UInt16 usTmpError = RTP_ZERO;
-    m_objReportBlk.Append(pobjReptBlk, &usTmpError);
+    m_objReportBlkList.push_back(pobjReptBlk);
 }
 
 RtcpHeader* RtcpRrPacket::getRtcpHdrInfo()
@@ -84,9 +53,9 @@ RtcpHeader* RtcpRrPacket::getRtcpHdrInfo()
     return &m_objRtcpHdr;
 }
 
-RtpList* RtcpRrPacket::getReportBlkList()
+std::list<RtcpReportBlock *>& RtcpRrPacket::getReportBlkList()
 {
-    return &m_objReportBlk;
+    return m_objReportBlkList;
 }
 
 RtpBuffer* RtcpRrPacket::getExtHdrInfo()
@@ -118,7 +87,6 @@ eRTP_STATUS_CODE RtcpRrPacket::decodeRrPacket(IN RtpDt_UChar* pucRrBuf,
     RtpDt_UInt16 usRepBlkLen = usRrLen - usProfExtLen;
     while(usRepBlkLen >= RTP_24)
     {
-        RtpDt_UInt16    usError;
         RtcpReportBlock *pobjRptBlk = new RtcpReportBlock();
         if(pobjRptBlk == RTP_NULL)
         {
@@ -129,7 +97,7 @@ eRTP_STATUS_CODE RtcpRrPacket::decodeRrPacket(IN RtpDt_UChar* pucRrBuf,
         pobjRptBlk->decodeReportBlk(pucRrBuf);
         pucRrBuf = pucRrBuf + RTP_24;
         usRepBlkLen = usRepBlkLen - RTP_24;
-        m_objReportBlk.Append(pobjRptBlk, &usError);
+        addReportBlkElm(pobjRptBlk);
     }
 
     //profile specific extensions
@@ -170,18 +138,9 @@ eRTP_STATUS_CODE RtcpRrPacket::formRrPacket(OUT RtpBuffer* pobjRtcpPktBuf,
         pobjRtcpPktBuf->setLength(uiRepBlkPos);
     }
 
-    RtpDt_UInt16 usSize = RTP_ZERO;
-    RtpDt_UInt16 usError = RTP_ZERO;
-
-    //m_objReportBlk
-    m_objReportBlk.GetSize(&usSize, &usError);
-    for(RtpDt_UInt32 uiCount = RTP_ZERO;uiCount < usSize;
-        uiCount = uiCount + RTP_ONE)
+    //m_objReportBlkList
+    for(auto&pobjRepBlk:m_objReportBlkList)
     {
-        RtpDt_Void    *pvElement = RTP_NULL;
-        RtcpReportBlock *pobjRepBlk = RTP_NULL;
-        m_objReportBlk.GetElement(uiCount,&pvElement, &usError);
-        pobjRepBlk = RTP_STATIC_CAST(RtcpReportBlock*,pvElement);
         pobjRepBlk->formReportBlk(pobjRtcpPktBuf);
     }//for
 

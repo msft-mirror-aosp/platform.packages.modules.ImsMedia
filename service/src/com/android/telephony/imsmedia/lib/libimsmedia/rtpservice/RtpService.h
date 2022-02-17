@@ -1,11 +1,3 @@
-/** \addtogroup  RTP_Stack
- *  @{
- */
-
-/**
-* @brief Integration layer for RTP Protocol stack integration with MMPF (IRtpSession)
-*/
-
 /**
  * Copyright (C) 2022 The Android Open Source Project
  *
@@ -21,6 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+/** \addtogroup  RTP_Stack
+ *  @{
+ */
+
+/**
+* @brief Integration layer for RTP Protocol stack integration with ImsMedia (IRtpSession)
+*/
 
 #ifndef __RTP_SERVICE_H_
 #define __RTP_SERVICE_H_
@@ -115,7 +115,7 @@ GLOBAL eRtp_Bool IMS_RtpSvc_DeleteSession(IN RTPSESSIONID hRtpSession);
  * This API is should be called by the application to RTP encode and send the media
  * buffer to peer device.
  *
- * @param pobjMmpfSesion MMPF session which will be used for sending the packet to
+ * @param pobjIRtpSession media session Listener which will be used for sending the packet to
  * network nodes after RTP encoding.
  *
  * @param hRtpSession A session handled associated with the media stream.
@@ -128,7 +128,7 @@ GLOBAL eRtp_Bool IMS_RtpSvc_DeleteSession(IN RTPSESSIONID hRtpSession);
  * payload-type number, Flag to use Previous RTP time-stamp (Ex: used in case of DTMF),
  * time difference since last media packet/buffer.
  */
-GLOBAL eRtp_Bool IMS_RtpSvc_SendRtpPacket(IN RtpServiceListener* pobjMmpfSesion,
+GLOBAL eRtp_Bool IMS_RtpSvc_SendRtpPacket(IN RtpServiceListener* pobjIRtpSession,
                                             IN RTPSESSIONID hRtpSession,
                                             IN RtpDt_Char *pBuffer,
                                             IN RtpDt_UInt16 wBufferLength,
@@ -138,8 +138,8 @@ GLOBAL eRtp_Bool IMS_RtpSvc_SendRtpPacket(IN RtpServiceListener* pobjMmpfSesion,
  * This API processes the received RTP packet. Processed information is sent using
  * callback OnPeerInd.
  *
- * @param pobjIRtpSession MMPF session handle is used to call callback function and
- * pass extracted information back to MMPF
+ * @param pobjIRtpSession media session Listener used to call callback function and
+ * pass extracted information back to the caller
  *
  * @param hRtpSession A session handled associated with the media stream.
  *
@@ -217,7 +217,7 @@ GLOBAL eRtp_Bool IMS_RtpSvc_SendRtcpRtpFbPacket(IN RTPSESSIONID hRtpSession,
 /**
   * Method for sending RTCP Fb message.
   *
-  * @param hRtpSession     RtpSession
+  * @param hRtpSession      RtpSession
   * @param uiFbType         Feedback Type
   * @param pcBuff           FCI buffer
   * @param uiLen            FCI buffer length
@@ -232,15 +232,15 @@ GLOBAL eRtp_Bool IMS_RtpSvc_SendRtcpPayloadFbPacket(IN RTPSESSIONID hRtpSession,
 /**
  * Method for processing incoming RTCP packets.
  *
- * @param pobjMmpfSesion    MMPF session for sending processed info via callbacks
- * @param hRtpSession      RTP session handle
+ * @param pobjIRtpSession   Media session Listener for sending processed info via callbacks
+ * @param hRtpSession       RTP session handle
  * @param pMsg              Received RTCP packet buffer
  * @param wMsgLength        RTCp buffer length in bytes
  * @param pcIpAddr          Peer IP address
  * @param uiRtcpPort        RTCP Port number
  * @param uiDestSsrc        SSRC of the Source
  */
-GLOBAL eRtp_Bool IMS_RtpSvc_ProcRtcpPacket(IN RtpServiceListener* pobjMmpfSesion,
+GLOBAL eRtp_Bool IMS_RtpSvc_ProcRtcpPacket(IN RtpServiceListener* pobjIRtpSession,
                                              IN RTPSESSIONID hRtpSession,
                                              IN RtpDt_UChar * pMsg,
                                              IN RtpDt_UInt16 wMsgLength,

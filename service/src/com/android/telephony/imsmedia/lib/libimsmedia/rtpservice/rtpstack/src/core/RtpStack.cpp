@@ -20,54 +20,6 @@
 #include <rtp_trace.h>
 
 /*********************************************************
- * Function name        : Rtp_FreeRtpSessionDb
- * Description          : It deletes RtpSession object
- * Return type          : eRtp_Bool
- *                          eRTP_SUCCESS on success
- * Argument             : RtpDt_Void**: In
- *                          void pointer to pointer which refers RtpSession obj.
- * Preconditions        : None
- * Side Effects            : None
- ********************************************************/
-eRtp_Bool Rtp_FreeRtpSessionDb(IN RtpDt_Void **ppObj)
-{
-    RtpSession *pobjRtpSession = RTP_NULL;
-    eRTP_STATUS_CODE eDeleSesSta = RTP_SUCCESS;
-
-
-    pobjRtpSession = RTP_STATIC_CAST(RtpSession*,*ppObj);
-    eDeleSesSta = pobjRtpSession->deleteRtpSession();
-    if(eDeleSesSta != RTP_SUCCESS)
-    {
-        return eRTP_FAILURE;
-    }
-
-    return eRTP_SUCCESS;
-}
-
-
-/*********************************************************
- * Function name        : Rtp_CompareRtpSessionDb
- * Description          : It compares pvNode1 with pvNode2
- * Return type          : eRtp_Bool
- *                          eRTP_SUCCESS on success
- * Argument             : RtpDt_Void*: In
- *                          void pointer which refers RtpSession*
- * Argument                : RtpDt_Void*: In
- *                          void pointer which refers RtpSession*
- * Preconditions        : None
- * Side Effects            : None
- ********************************************************/
-eRtp_Bool Rtp_CompareRtpSessionDb(IN RtpDt_Void *pvNode1,
-                                     IN RtpDt_Void *pvNode2)
-{
-    if(pvNode1 == pvNode2)
-        return eRTP_TRUE;
-    else
-        return eRTP_FALSE;
-}
-
-/*********************************************************
  * Function name        : RtpStack
  * Description          : Constructor
  * Return type          : None
@@ -76,12 +28,9 @@ eRtp_Bool Rtp_CompareRtpSessionDb(IN RtpDt_Void *pvNode1,
  * Side Effects            : None
  ********************************************************/
 RtpStack::RtpStack():
-                m_pobjStackProfile(RTP_NULL)
+    m_objRtpSessionList(std::list<RtpSession *>()),
+    m_pobjStackProfile(RTP_NULL)
 {
-
-    m_objSessions.InitList(Rtp_FreeRtpSessionDb,
-        Rtp_CompareRtpSessionDb);
-
 }
 
 /*********************************************************
@@ -94,9 +43,6 @@ RtpStack::RtpStack():
  ********************************************************/
 RtpStack::~RtpStack()
 {
-    RtpDt_UInt16 usSize = RTP_ZERO;
-    RtpDt_UInt16 usError = RTP_ZERO;
-
 
     //clear stack profile
     if(m_pobjStackProfile != RTP_NULL)
@@ -105,12 +51,11 @@ RtpStack::~RtpStack()
     }
 
     //delete all RTP session objects.
-    m_objSessions.GetSize(&usSize, &usError);
-    for(RtpDt_UInt16 usCount = RTP_ZERO;usCount < usSize;
-        usCount = usCount + RTP_ONE)
+    for(auto&pobjRtpSession:m_objRtpSessionList)
     {
-        m_objSessions.DeleteAtPos(RTP_ZERO, &usError);
+        pobjRtpSession->deleteRtpSession();
     }
+    m_objRtpSessionList.clear();
 }
 
 /*********************************************************
@@ -125,9 +70,6 @@ RtpStack::~RtpStack()
  ********************************************************/
 RtpStack::RtpStack(IN RtpStackProfile* pobjStackProfile)
 {
-
-    m_objSessions.InitList(Rtp_FreeRtpSessionDb,
-        Rtp_CompareRtpSessionDb);
 
     m_pobjStackProfile = pobjStackProfile;
 
@@ -144,7 +86,6 @@ RtpStack::RtpStack(IN RtpStackProfile* pobjStackProfile)
  ********************************************************/
 RtpSession* RtpStack::createRtpSession()
 {
-    RtpDt_UInt16 usError = RTP_ZERO;
 
     RtpDt_UInt32 uiTermNum = m_pobjStackProfile->getTermNumber();
 
@@ -156,16 +97,8 @@ RtpSession* RtpStack::createRtpSession()
         return RTP_NULL;
     }
 
-    //add session into m_objSessions
-    m_objSessions.Append(pobjRtpSession,&usError);
-    if(eRTP_FAILURE == usError)
-    {
-        pobjRtpSession->deleteRtpSession();
-
-        RTP_TRACE_WARNING("createRtpSession: Error in adding pobjRtpSession to list...!",
-            RTP_ZERO,RTP_ZERO);
-        return RTP_NULL;
-    }
+    //add session into m_objRtpSessionList
+    m_objRtpSessionList.push_back(pobjRtpSession);
 
     //generate SSRC
     RtpDt_UInt32 uiSsrc = RtpStackUtil::generateNewSsrc(uiTermNum);
@@ -178,43 +111,22 @@ RtpSession* RtpStack::createRtpSession()
  * Function name        : isRtpSessionPresent
  * Description          : It checks Rtp session is present in RtpSession list.
  * Return type          : eRtp_Bool
- *                          eRTP_SUCCESS if RTP session present in the m_objSessions.
+ *                          eRTP_SUCCESS if RTP session present in the m_objRtpSessionList.
  * Argument             : RtpSession*: In
  *                          Rtp Session pointer
  * Argument                : RtpDt_UInt16* : Out
- *                          Rtp Session object position in m_objSessions
+ *                          Rtp Session object position in m_objRtpSessionList
  * Preconditions        : Rtp Stack shall be initialized.
  * Side Effects            : None
  ********************************************************/
-eRtp_Bool RtpStack::isRtpSessionPresent(IN RtpSession* pobjSession,
-                                            OUT RtpDt_UInt16 *pusPosition)
+eRtp_Bool RtpStack::isRtpSessionPresent(IN RtpSession* pobjSession)
 {
-    RtpDt_UInt16    usGetError = RTP_ZERO;
-    RtpDt_UInt16    usSize = RTP_ZERO;
-    RtpDt_UInt16 usPos = RTP_ZERO;
 
-
-    m_objSessions.GetSize(&usSize, &usGetError);
-    for(; usPos < usSize; usPos++)
+    for(auto&pobjRtpSesItem:m_objRtpSessionList)
     {
-        RtpDt_Void    *pvElement = RTP_NULL;
-        RtpSession *pobjRtpSesItem = RTP_NULL;
-
         //get Rtp Session from list
-        m_objSessions.GetElement(usPos, &pvElement, &usGetError);
-        if(usGetError == ERR_LIST_INV_INPUT)
-        {
-            RTP_TRACE_WARNING("Error in fetching the element from list...!",
-                RTP_ZERO,RTP_ZERO);
-            return eRTP_FAILURE;
-        }
-
-        //typecast to RtpSession
-        pobjRtpSesItem = RTP_STATIC_CAST(RtpSession*,pvElement);
-
         if(pobjRtpSesItem->compareRtpSessions(pobjSession) == eRTP_SUCCESS)
         {
-            *pusPosition = usPos;
             return eRTP_SUCCESS;
         }
     }
@@ -225,35 +137,30 @@ eRtp_Bool RtpStack::isRtpSessionPresent(IN RtpSession* pobjSession,
 
 /*********************************************************
  * Function name        : deleteRtpSession
- * Description          : It deletes Rtp session from m_objSessions
+ * Description          : It deletes Rtp session from m_objRtpSessionList
  * Return type          : eRTP_STATUS_CODE
- *                          RTP_SUCCESS, if RTP session deletes from m_objSessions
+ *                          RTP_SUCCESS, if RTP session deletes from m_objRtpSessionList
  * Argument             : RtpSession*: In
  *                          Rtp Session pointer
  * Preconditions        : Rtp Stack shall be initialized.
  * Side Effects            : None
  ********************************************************/
-eRTP_STATUS_CODE RtpStack::deleteRtpSession(IN RtpSession* pobjSession)
+eRTP_STATUS_CODE RtpStack::deleteRtpSession(IN RtpSession* pobjRtpSession)
 {
-    if(pobjSession == RTP_NULL)
+    if(pobjRtpSession == RTP_NULL)
     {
-        RTP_TRACE_WARNING("deleteRtpSession, pobjSession is NULL ...!",
+        RTP_TRACE_WARNING("deleteRtpSession, pobjRtpSession is NULL ...!",
                 RTP_ZERO,RTP_ZERO);
         return RTP_INVALID_PARAMS;
     }
 
     eRtp_Bool bisRtpSes = eRTP_SUCCESS;
-    RtpDt_UInt16 usPosition = RTP_ZERO;
-    bisRtpSes = isRtpSessionPresent(pobjSession, &usPosition);
+    bisRtpSes = isRtpSessionPresent(pobjRtpSession);
 
     if(bisRtpSes == eRTP_SUCCESS)
     {
-        RtpDt_UInt16 usError = RTP_ZERO;
-        m_objSessions.DeleteAtPos(usPosition, &usError);
-        if(usError == ERR_LIST_INV_INPUT)
-        {
-            return RTP_FAILURE;
-        }
+        pobjRtpSession->deleteRtpSession();
+        m_objRtpSessionList.remove(pobjRtpSession);
 
         return RTP_SUCCESS;
     }

@@ -235,7 +235,7 @@ class  RtpSession{
     /**
      * It iterates through the pobjCsrcList to find uiSsrc.
      */
-    eRtp_Bool findEntryInCsrcList(IN RtpList *pobjCsrcList,
+    eRtp_Bool findEntryInCsrcList(IN std::list<RtpDt_UInt32 *>& pobjCsrcList,
                                               IN RtpDt_UInt32 uiSsrc);
 
     /**
@@ -299,7 +299,7 @@ class  RtpSession{
     eRTP_STATUS_CODE formSrList(IN RtpDt_UInt32 uiSndrCount,
                                               OUT RtcpPacket *pobjRtcpPkt);
     /**
-     * It constructs RR packt list
+     * It constructs RR packet list
      */
     eRTP_STATUS_CODE formRrList(IN RtpDt_UInt32 uiSndrCount,
                                               OUT RtcpPacket *pobjRtcpPkt);

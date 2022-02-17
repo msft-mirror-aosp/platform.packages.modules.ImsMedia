@@ -24,7 +24,6 @@
 #include <RtpGlobal.h>
 #include <RtpBuffer.h>
 #include <RtcpHeader.h>
-#include <RtpList.h>
 
 
 typedef enum eRCTFBType

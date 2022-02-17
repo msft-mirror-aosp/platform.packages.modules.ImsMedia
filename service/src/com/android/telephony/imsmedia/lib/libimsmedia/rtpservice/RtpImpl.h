@@ -37,8 +37,6 @@ class RtpImpl : public IRtpAppInterface
 {
     private:
         RtpDt_Void* m_pvAppdata;
-        RtpDt_Void* m_pvMmpfSession;
-
 
     public:
         RtpImpl();

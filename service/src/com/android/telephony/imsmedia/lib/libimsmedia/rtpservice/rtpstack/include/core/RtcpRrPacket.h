@@ -24,9 +24,8 @@
 #include <RtpGlobal.h>
 #include <RtcpHeader.h>
 #include <RtpBuffer.h>
-#include <RtpList.h>
 #include <RtcpReportBlock.h>
-
+#include <list>
 
 /**
 * @class         rtcp_rr_packet
@@ -39,7 +38,7 @@ class RtcpRrPacket
         RtcpHeader m_objRtcpHdr;
 
         // List of RtcpReportBlock objects
-        RtpList m_objReportBlk;
+        std::list<RtcpReportBlock *> m_objReportBlkList;
 
         /**
          * Extension header buffer. This is encoded and given by app.
@@ -49,7 +48,7 @@ class RtcpRrPacket
         RtpBuffer* m_pobjExt;
 
         /**
-         * It adds RtcpReportBlock object to m_objReportBlk
+         * It adds RtcpReportBlock object to m_objReportBlkList
          */
         RtpDt_Void addReportBlkElm(IN RtcpReportBlock* pobjReptBlk);
 
@@ -65,9 +64,9 @@ class RtcpRrPacket
         RtcpHeader* getRtcpHdrInfo();
 
         /**
-         * get method for m_objReportBlk
+         * get method for m_objReportBlkList
          */
-        RtpList* getReportBlkList();
+        std::list<RtcpReportBlock *>& getReportBlkList();
 
         /**
          * get method for m_pobjExt

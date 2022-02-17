@@ -23,7 +23,6 @@
 
 RtpImpl::RtpImpl()
 {
-    m_pvMmpfSession = NULL;
 }
 
 RtpImpl::~RtpImpl()
@@ -64,12 +63,12 @@ eRtp_Bool RtpImpl::rtpMemberLeaveInd(IN eRTP_LEAVE_REASON eLeaveReason,
 eRtp_Bool RtpImpl::rtcpPacketSendInd(IN RtpBuffer* pobjRtcpBuf, IN RtpSession *pobjRtpSession)
 {
 
-    RtpServiceListener *pobjMmpfSesion = (RtpServiceListener*)getAppdata();
-    if(pobjMmpfSesion == RTP_NULL || pobjRtcpBuf == RTP_NULL || pobjRtpSession == RTP_NULL)
+    RtpServiceListener *pobjIRtpSession = (RtpServiceListener*)getAppdata();
+    if(pobjIRtpSession == RTP_NULL || pobjRtcpBuf == RTP_NULL || pobjRtpSession == RTP_NULL)
         return eRTP_FALSE;
 
     //dispatch to peer
-    if(pobjMmpfSesion->OnRtcpPacket(pobjRtcpBuf->getBuffer(),
+    if(pobjIRtpSession->OnRtcpPacket(pobjRtcpBuf->getBuffer(),
                                     pobjRtcpBuf->getLength()) == -1)
     {
         pobjRtcpBuf->setBufferInfo(RTP_ZERO,RTP_NULL);

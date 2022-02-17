@@ -15,54 +15,21 @@
  */
 
 #include <RtcpSdesPacket.h>
-#include <RtcpChunk.h>
 #include <rtp_trace.h>
 #include <rtp_pf_memory.h>
 
-eRtp_Bool Rtp_ReleaseSDesChunk(IN RtpDt_Void **ppObj)
+RtcpSdesPacket::RtcpSdesPacket():
+    m_objSdesChunkList(std::list<RtcpChunk *>())
 {
-    RtcpChunk *pobjChunkElm = RTP_NULL;
-    pobjChunkElm = RTP_STATIC_CAST(RtcpChunk*,*ppObj);
-    delete pobjChunkElm;
-    return eRTP_SUCCESS;
-}
-
-eRtp_Bool Rtp_CompareSDesChunk(IN RtpDt_Void *pvNode1,
-                                     IN RtpDt_Void *pvNode2)
-{
-    if((RTP_STATIC_CAST(RtcpChunk *,pvNode1))->getSsrc() != RTP_NULL
-        && (RTP_STATIC_CAST(RtcpChunk *,pvNode2))->getSsrc() != RTP_NULL)
-    {
-        if((RTP_STATIC_CAST(RtcpChunk *,pvNode1))->getSsrc() ==
-        (RTP_STATIC_CAST(RtcpChunk *,pvNode2))->getSsrc())
-            return eRTP_TRUE;
-        else
-            return eRTP_FALSE;
-    }
-    else
-       return eRTP_FALSE;
-}
-
-RtcpSdesPacket::RtcpSdesPacket()
-{
-    //initialize the SDES chunk list
-
-    m_objSdesChunk.InitList(Rtp_ReleaseSDesChunk,
-                            Rtp_CompareSDesChunk);
 }
 
 RtcpSdesPacket::~RtcpSdesPacket()
 {
-    RtpDt_UInt16 usSize = RTP_ZERO;
-    RtpDt_UInt16 usError = RTP_ZERO;
-
-    //m_objReportBlk
-    m_objSdesChunk.GetSize(&usSize, &usError);
-    for(RtpDt_UInt16 usCount = RTP_ZERO;usCount < usSize;
-        usCount = usCount + RTP_ONE)
+    for(auto&pobjSdesChunk:m_objSdesChunkList)
     {
-        m_objSdesChunk.DeleteAtPos(RTP_ZERO, &usError);
+        delete pobjSdesChunk;
     }
+    m_objSdesChunkList.clear();
 }
 
 RtcpHeader* RtcpSdesPacket::getRtcpHdrInfo()
@@ -70,9 +37,9 @@ RtcpHeader* RtcpSdesPacket::getRtcpHdrInfo()
     return &m_objRtcpHdr;
 }
 
-RtpList* RtcpSdesPacket::getSdesChunkList()
+std::list<RtcpChunk *>& RtcpSdesPacket::getSdesChunkList()
 {
-    return &m_objSdesChunk;
+    return m_objSdesChunkList;
 }
 
 eRTP_STATUS_CODE RtcpSdesPacket::decodeSdesPacket(IN RtpDt_UChar* pucSdesBuf,
@@ -106,23 +73,23 @@ eRTP_STATUS_CODE RtcpSdesPacket::decodeSdesPacket(IN RtpDt_UChar* pucSdesBuf,
     while((ucByteData > RTP_ZERO) && (usSdesLen > RTP_ZERO))
     {
 
-        RtcpChunk *pobjChunk = new RtcpChunk();
-        if(pobjChunk == RTP_NULL)
+        RtcpChunk *pobjRtcpChunk = new RtcpChunk();
+        if(pobjRtcpChunk == RTP_NULL)
         {
             RTP_TRACE_WARNING("decodeSdesPacket, new returned NULL...!",
                 RTP_ZERO,RTP_ZERO);
             return RTP_MEMORY_FAIL;
         }
 
-        RtpDt_UInt16    usError;
-        RtpDt_UInt16 usChunkSize = RTP_NULL;
-        eRTP_STATUS_CODE eChuStatus = RTP_FAILURE;
+        RtpDt_UInt16 usChunkSize = RTP_ZERO;
+        eRTP_STATUS_CODE eChunkStatus = RTP_FAILURE;
 
-        eChuStatus = pobjChunk->decodeRtcpChunk(pucSdesBuf, usChunkSize, pobjRtcpCfgInfo);
-        m_objSdesChunk.Append(pobjChunk, &usError);
-        if(eChuStatus != RTP_SUCCESS)
+        eChunkStatus = pobjRtcpChunk->decodeRtcpChunk(pucSdesBuf, usChunkSize,
+                                                        pobjRtcpCfgInfo);
+        m_objSdesChunkList.push_back(pobjRtcpChunk);
+        if(eChunkStatus != RTP_SUCCESS)
         {
-            return eChuStatus;
+            return eChunkStatus;
         }
 
         RtpDt_UInt32 uiPadLen = RTP_ZERO;
@@ -151,26 +118,17 @@ eRTP_STATUS_CODE RtcpSdesPacket::formSdesPacket(OUT RtpBuffer* pobjRtcpPktBuf)
     // SDES packet does not have SSRC in header.
     pobjRtcpPktBuf->setLength(uiCurPos);
 
-    //m_objSdesChunk
-    RtpDt_UInt16 usError = RTP_ZERO;
-    RtpDt_UInt16 usSize = RTP_ZERO;
-    m_objSdesChunk.GetSize(&usSize, &usError);
-
+    //m_objSdesChunkList
     RtpDt_UChar *pucBuffer =  RTP_NULL;
-    for(RtpDt_UInt32 uiCount = RTP_ZERO;uiCount < usSize;
-        uiCount = uiCount + RTP_ONE)
+    for(auto&pobjRtcpChunk:m_objSdesChunkList)
     {
-        RtpDt_Void    *pvElement = RTP_NULL;
-        RtcpChunk *pobjChunk = RTP_NULL;
-        eRTP_STATUS_CODE eChunkSta = RTP_FAILURE;
+        eRTP_STATUS_CODE eChunkStatus = RTP_FAILURE;
 
-        m_objSdesChunk.GetElement(uiCount,&pvElement, &usError);
-        pobjChunk = RTP_STATIC_CAST(RtcpChunk*,pvElement);
-        eChunkSta = pobjChunk->formRtcpChunk(pobjRtcpPktBuf);
+        eChunkStatus = pobjRtcpChunk->formRtcpChunk(pobjRtcpPktBuf);
 
-        if(eChunkSta != RTP_SUCCESS)
+        if(eChunkStatus != RTP_SUCCESS)
         {
-            return eChunkSta;
+            return eChunkStatus;
         }
 
         RtpDt_UInt32 uiSdesPktLen = RTP_ZERO;

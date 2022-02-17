@@ -24,9 +24,8 @@
 #include <RtpGlobal.h>
 #include <RtcpHeader.h>
 #include <RtpBuffer.h>
-#include <RtpList.h>
 #include <RtcpConfigInfo.h>
-
+#include <RtcpChunk.h>
 
 /**
 * @class    RtcpSdesPacket
@@ -39,7 +38,7 @@ class RtcpSdesPacket
         RtcpHeader m_objRtcpHdr;
 
         // List of SDES chunks (RtcpChunk)
-        RtpList m_objSdesChunk;
+        std::list<RtcpChunk *> m_objSdesChunkList;
 
     public:
 
@@ -53,9 +52,9 @@ class RtcpSdesPacket
         RtcpHeader* getRtcpHdrInfo();
 
         /**
-         * get method for m_objSdesChunk
+         * get method for m_objSdesChunkList
          */
-        RtpList* getSdesChunkList();
+        std::list<RtcpChunk *>& getSdesChunkList();
 
         /**
          * Decodes and stores the information of the RTCP SDES packet

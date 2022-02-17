@@ -29,9 +29,9 @@
 #define __RTP_STACK_H__
 
 #include <RtpGlobal.h>
-#include <RtpList.h>
 #include <RtpStackProfile.h>
 #include <RtpSession.h>
+#include <list>
 
 class RtpSession;
 
@@ -40,7 +40,7 @@ class RtpStack
     /**
     list of Rtp_Session currently active in the stack
     */
-    RtpList m_objSessions;
+    std::list<RtpSession *> m_objRtpSessionList;
     /**
     Profile for this stack
     */
@@ -83,8 +83,7 @@ public:
      */
     RtpDt_Void setStackProfile(IN RtpStackProfile* pobjStackProfile);
 
-    eRtp_Bool isRtpSessionPresent(IN RtpSession* pobjSession,
-                                            OUT RtpDt_UInt16 *pusPosition);
+    eRtp_Bool isRtpSessionPresent(IN RtpSession* pobjSession);
 };
 
 #endif    //__RTP_STACK_H__

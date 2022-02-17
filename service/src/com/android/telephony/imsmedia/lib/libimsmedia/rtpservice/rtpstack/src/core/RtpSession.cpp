@@ -856,9 +856,9 @@ eRTP_STATUS_CODE RtpSession::populateSrpacket(OUT RtcpSrPacket *pobjSrPkt,
 RtpDt_Void RtpSession::cleanUtlReceiverList()
 {
     //populate report blocks
-    for(auto&i:*m_pobjUtlRcvrList)
+    for(auto&pobjRcvrElm:*m_pobjUtlRcvrList)
     {
-        delete i;
+        delete pobjRcvrElm;
     }
     m_pobjUtlRcvrList->clear();
 }//cleanUtlReceiverList
@@ -868,7 +868,7 @@ eRTP_STATUS_CODE RtpSession::populateReportPacket(OUT RtcpRrPacket *pobjRrPkt,
                                                     IN RtpDt_UInt32 uiRecepCount)
 {
     RtcpHeader *pRtcpHdr = pobjRrPkt->getRtcpHdrInfo();
-    RtpList *pobjRepBlkLst = pobjRrPkt->getReportBlkList();
+    std::list<RtcpReportBlock *>& pobjRepBlkLst = pobjRrPkt->getReportBlkList();
 
     //get receiver list size
     if(bRrPkt == eRTP_TRUE)
@@ -894,7 +894,6 @@ eRTP_STATUS_CODE RtpSession::populateReportPacket(OUT RtcpRrPacket *pobjRrPkt,
         return RTP_MEMORY_FAIL;
     }
 
-    RtpDt_UInt16 usError = RTP_ZERO;
     RtpDt_UInt32 uiListPos = RTP_ZERO;
     RtpDt_UInt32 uiTmpRecpCount = RTP_ZERO;
     std::list<RtpReceiverInfo*>::iterator iter;
@@ -920,14 +919,7 @@ eRTP_STATUS_CODE RtpSession::populateReportPacket(OUT RtcpRrPacket *pobjRrPkt,
                 return RTP_MEMORY_FAIL;
             }
             pobjRcvrElm->populateReportBlock(pobjRepBlk);
-            pobjRepBlkLst->Append(pobjRepBlk, &usError);
-            if(usError == ERR_MALLOC_FAILED)
-            {
-                cleanUtlReceiverList();
-                delete m_pobjUtlRcvrList;
-                m_pobjUtlRcvrList = RTP_NULL;
-                return RTP_MEMORY_FAIL;
-            }
+            pobjRepBlkLst.push_back(pobjRepBlk);
             pobjRcvrElm->setSenderFlag(eRTP_FALSE);
             m_pobjUtlRcvrList->push_back(pobjRcvrElm);
             uiTmpRecpCount = uiTmpRecpCount + RTP_ONE;
@@ -1092,9 +1084,9 @@ eRTP_STATUS_CODE RtpSession::constructSdesPkt(IN_OUT RtcpPacket *pobjRtcpPkt)
         return RTP_MEMORY_FAIL;
     }
     RtcpHeader *pRtcpHdr = pobjSdesPkt->getRtcpHdrInfo();
-    RtpList *pobjSdesList = pobjSdesPkt->getSdesChunkList();
+    std::list<RtcpChunk *>& pobjSdesList = pobjSdesPkt->getSdesChunkList();
 
-    if(pRtcpHdr == RTP_NULL || pobjSdesList == RTP_NULL)
+    if(pRtcpHdr == RTP_NULL)
         return RTP_FAILURE;
 
     pobjRtcpPkt->setSdesPacketData(pobjSdesPkt);
@@ -1102,15 +1094,10 @@ eRTP_STATUS_CODE RtpSession::constructSdesPkt(IN_OUT RtcpPacket *pobjRtcpPkt)
     //populate SDES packet header.
     pRtcpHdr->populateRtcpHeader(RTP_ONE, RTCP_SDES, m_uiSsrc);
 
-    RtpDt_UInt16 usAppError = RTP_ZERO;
+    pobjSdesList.push_back(pobjChunk);
 
-    pobjSdesList->Append(pobjChunk, &usAppError);
-    if(usAppError == ERR_MALLOC_FAILED)
-    {
-        return RTP_MEMORY_FAIL;
-    }
     pobjChunk->setSsrc(m_uiSsrc);
-    RtpList *pobjChunkList = pobjChunk->getSdesItemList();
+    std::list<tRTCP_SDES_ITEM *>& pobjChunkList = pobjChunk->getSdesItemList();
 
 
     for(RtpDt_UInt32 uiCount = RTP_ZERO; uiCount < uiSdesItems; uiCount++)
@@ -1119,7 +1106,6 @@ eRTP_STATUS_CODE RtpSession::constructSdesPkt(IN_OUT RtcpPacket *pobjRtcpPkt)
 
         if(pstSdesItem && pstSdesItem->pValue != RTP_NULL)
         {
-            RtpDt_UInt16 usAppError = RTP_ZERO;
             tRTCP_SDES_ITEM *pstTmpSdesItem = new tRTCP_SDES_ITEM();
             if(pstTmpSdesItem == RTP_NULL)
             {
@@ -1137,11 +1123,7 @@ eRTP_STATUS_CODE RtpSession::constructSdesPkt(IN_OUT RtcpPacket *pobjRtcpPkt)
             pstTmpSdesItem->ucLength = pstSdesItem->ucLength;
             RtpPf_Memcpy(pucSdesBuf, pstSdesItem->pValue, pstSdesItem->ucLength);
             pstTmpSdesItem->pValue = pucSdesBuf;
-            pobjChunkList->Append(pstTmpSdesItem, &usAppError);
-            if(usAppError == ERR_MALLOC_FAILED)
-            {
-                return RTP_MEMORY_FAIL;
-            }
+            pobjChunkList.push_back(pstTmpSdesItem);
         }
     }
 
@@ -1374,9 +1356,10 @@ eRTP_STATUS_CODE RtpSession::deleteRtpSession()
         m_pTimerId = RTP_NULL;
     }
 
-    for(auto&i:*m_pobjRtpRcvrInfoList)
+    for(auto&pobjRcvrElm:*m_pobjRtpRcvrInfoList)
     {
-        m_pobjAppInterface->deleteRcvrInfo(i->getSsrc(),i->getIpAddr(),i->getPort());
+        m_pobjAppInterface->deleteRcvrInfo(pobjRcvrElm->getSsrc(),
+            pobjRcvrElm->getIpAddr(),pobjRcvrElm->getPort());
     }
 
     return RTP_SUCCESS;
@@ -1411,24 +1394,24 @@ RtpReceiverInfo* RtpSession::checkSsrcCollisionOnRcv(IN RtpBuffer* pobjRtpAddr,
         return RTP_NULL;
     }
 
-    for (auto&i:*m_pobjRtpRcvrInfoList)
+    for (auto&pobjRcvInfo:*m_pobjRtpRcvrInfoList)
     {
         RtpDt_UInt32 uiTmpSsrc = RTP_ZERO;
-        if(i == RTP_NULL) break;
+        if(pobjRcvInfo == RTP_NULL) break;
 
-        uiTmpSsrc = i->getSsrc();
+        uiTmpSsrc = pobjRcvInfo->getSsrc();
         if(uiTmpSsrc == uiRcvdSsrc)
         {
-            RtpBuffer *pobjTmpDestAddr = i->getIpAddr();
+            RtpBuffer *pobjTmpDestAddr = pobjRcvInfo->getIpAddr();
             RtpDt_UChar *pcDestAddr = pobjTmpDestAddr->getBuffer();
             RtpDt_UChar *pcRcvDestAddr = pobjRtpAddr->getBuffer();
-            RtpDt_UInt16 usTmpPort = i->getPort();
+            RtpDt_UInt16 usTmpPort = pobjRcvInfo->getPort();
             RtpDt_UInt32 uiRcvDestAddrLen = pobjRtpAddr->getLength();
 
-            if(i->getCsrcFlag() == eRTP_TRUE)
+            if(pobjRcvInfo->getCsrcFlag() == eRTP_TRUE)
             {
                 eResult = RTP_RCVD_CSRC_ENTRY;
-                return i;
+                return pobjRcvInfo;
             }
 
             if(usTmpPort != usPort)
@@ -1436,7 +1419,7 @@ RtpReceiverInfo* RtpSession::checkSsrcCollisionOnRcv(IN RtpBuffer* pobjRtpAddr,
                 RTP_TRACE_WARNING("checkSsrcCollisionOnRcv - Port ",
                     RTP_ZERO, RTP_ZERO);
                 eResult = RTP_REMOTE_SSRC_COLLISION;
-                return i;
+                return pobjRcvInfo;
             }
 
             if(pcDestAddr == RTP_NULL || pcRcvDestAddr == RTP_NULL)
@@ -1449,11 +1432,11 @@ RtpReceiverInfo* RtpSession::checkSsrcCollisionOnRcv(IN RtpBuffer* pobjRtpAddr,
                                 uiRcvDestAddrLen) != RTP_ZERO)
             {
                 eResult = RTP_REMOTE_SSRC_COLLISION;
-                return i;
+                return pobjRcvInfo;
             }
 
             eResult = RTP_OLD_SSRC_RCVD;
-            return i;
+            return pobjRcvInfo;
         }
     }
 
@@ -1462,28 +1445,12 @@ RtpReceiverInfo* RtpSession::checkSsrcCollisionOnRcv(IN RtpBuffer* pobjRtpAddr,
 }//checkSsrcCollisionOnRcv
 
 
-eRtp_Bool RtpSession::findEntryInCsrcList(IN RtpList *pobjCsrcList,
+eRtp_Bool RtpSession::findEntryInCsrcList(IN std::list<RtpDt_UInt32 *>& pobjCsrcList,
                                               IN RtpDt_UInt32 uiSsrc)
 {
-    RtpDt_UInt16    usGetError = RTP_ZERO;
-    RtpDt_UInt16    usSize = RTP_ZERO;
-
-    pobjCsrcList->GetSize(&usSize, &usGetError);
-    for(RtpDt_UInt16 usPos = RTP_ZERO; usPos < usSize;
-                                        usPos = usPos + RTP_ONE)
+    for(auto&puiTempSsrc:pobjCsrcList)
     {
-        RtpDt_Void    *pvElement = RTP_NULL;
-        RtpDt_UInt32 *puiTempSsrc = RTP_NULL;
-        RtpDt_UInt32 uiTempSsrc = RTP_ZERO;
-
-        pobjCsrcList->GetElement(usPos, &pvElement, &usGetError);
-        if(usGetError == ERR_LIST_INV_INPUT)
-        {
-            return eRTP_FALSE;
-        }
-        puiTempSsrc = RTP_STATIC_CAST(RtpDt_UInt32*,pvElement);
-        uiTempSsrc = *puiTempSsrc;
-        if(uiTempSsrc == uiSsrc)
+        if(*puiTempSsrc == uiSsrc)
         {
             return eRTP_TRUE;
         }
@@ -1494,9 +1461,9 @@ eRtp_Bool RtpSession::findEntryInCsrcList(IN RtpList *pobjCsrcList,
 
 eRtp_Bool RtpSession::findEntryInRcvrList(IN RtpDt_UInt32 uiSsrc)
 {
-    for (auto&i:*m_pobjRtpRcvrInfoList)
+    for (auto&pobjRcvInfo:*m_pobjRtpRcvrInfoList)
     {
-        if(i != RTP_NULL && i->getSsrc() == uiSsrc)
+        if(pobjRcvInfo != RTP_NULL && pobjRcvInfo->getSsrc() == uiSsrc)
         {
             return eRTP_TRUE;
         }
@@ -1508,20 +1475,17 @@ eRtp_Bool RtpSession::findEntryInRcvrList(IN RtpDt_UInt32 uiSsrc)
 eRTP_STATUS_CODE RtpSession::processCsrcList(IN RtpHeader *pobjRtpHeader,
                                           IN RtpDt_UChar ucCsrcCount)
 {
-    RtpDt_UInt16    usGetError = RTP_ZERO;
-
     eRtp_Bool bRcvrStatus = eRTP_FALSE;
+    RtpDt_UInt16 usPos = RTP_ZERO;
+    std::list<RtpDt_UInt32 *>& pobjCsrcList = pobjRtpHeader->getCsrcList();
 
-    RtpList *pobjCsrcList = pobjRtpHeader->getCsrcList();
-    for(RtpDt_UInt16 usPos = RTP_ZERO; usPos < ucCsrcCount;
-                                        usPos = usPos + RTP_ONE)
+    for(std::list<RtpDt_UInt32 *>::iterator listIterator = pobjCsrcList.begin();
+            (usPos < ucCsrcCount && listIterator != pobjCsrcList.end());
+            usPos = usPos + RTP_ONE)
     {
-        RtpDt_Void    *pvElement = RTP_NULL;
         RtpDt_UInt32 *puiTempSsrc = RTP_NULL;
 
-
-        pobjCsrcList->GetElement(usPos, &pvElement, &usGetError);
-        puiTempSsrc = RTP_STATIC_CAST(RtpDt_UInt32*,pvElement);
+        puiTempSsrc = (*listIterator);
         bRcvrStatus = findEntryInRcvrList(*puiTempSsrc);
         if(bRcvrStatus == eRTP_FALSE)
         {
@@ -1544,6 +1508,7 @@ eRTP_STATUS_CODE RtpSession::processCsrcList(IN RtpHeader *pobjRtpHeader,
             //add entry into receiver list.
             m_pobjRtpRcvrInfoList->push_back(pobjRcvInfo);
         }
+        ++listIterator;
     }
     return RTP_SUCCESS;
 }//processCsrcList
@@ -1602,8 +1567,7 @@ eRTP_STATUS_CODE RtpSession::processRcvdRtpPkt(
 
     if(ucCsrcCount > RTP_ZERO)
     {
-        RtpList *pobjCsrcList = RTP_NULL;
-        pobjCsrcList =  pobjRtpHeader->getCsrcList();
+        std::list<RtpDt_UInt32 *>& pobjCsrcList = pobjRtpHeader->getCsrcList();
         bCsrcStatus = findEntryInCsrcList(pobjCsrcList, m_uiSsrc);
     }
 
@@ -1963,11 +1927,13 @@ eRTP_STATUS_CODE RtpSession::processByePacket(IN RtcpByePacket *pobjByePkt,
 
     RtcpHeader    *pobjHdrInfo = pobjByePkt->getRtcpHdrInfo();
     RtpDt_UInt16 usNumSsrc = pobjHdrInfo->getRecepRepCnt();
-    RtpList    *pobjSsrcList = pobjByePkt->getSsrcList();
+    std::list<RtpDt_UInt32 *>& pobjSsrcList = pobjByePkt->getSsrcList();
+    RtpDt_UInt16 usPos = RTP_ZERO;
 
     //delete entry from receiver list
-    for(RtpDt_UInt16 usPos = RTP_ZERO; usPos < usNumSsrc;
-                                        usPos = usPos + RTP_ONE)
+    for(std::list<RtpDt_UInt32 *>::iterator listIterator = pobjSsrcList.begin();
+            (usPos < usNumSsrc && listIterator != pobjSsrcList.end());
+            usPos = usPos + RTP_ONE)
     {
         if(usPos == RTP_ZERO)
         {
@@ -1976,18 +1942,14 @@ eRTP_STATUS_CODE RtpSession::processByePacket(IN RtcpByePacket *pobjByePkt,
         }
         else
         {
-            RtpDt_Void    *pvElement = RTP_NULL;
             RtpDt_UInt32 *puiSsrc = RTP_NULL;
-            RtpDt_UInt16 usError = RTP_ZERO;
-
             //get element from list
-            pobjSsrcList->GetElement((usPos-RTP_ONE),&pvElement, &usError);
-            //typecast to RtpDt_UInt32*
-            puiSsrc = RTP_STATIC_CAST(RtpDt_UInt32*,pvElement);
+            puiSsrc = (*listIterator);
             if(puiSsrc != RTP_NULL)
             {
                 delEntryFromRcvrList(puiSsrc);
             }
+            ++listIterator;
         }
     }//for
 
@@ -2118,29 +2080,28 @@ eRTP_STATUS_CODE RtpSession::processRcvdRtcpPkt(
     m_objTimerInfo.updateAvgRtcpSize(uiRcvdPktSize);
 
     RtcpSrPacket* pobjSrPkt = RTP_NULL;
-    RtpDt_UInt16 usSize = RTP_ZERO;
-    RtpDt_UInt16 usError = RTP_ZERO;
+    std::list<RtcpSrPacket *>& pobjSrList = pobjRtcpPkt->getSrPacketList();
 
-    RtpList *pobjSrList = pobjRtcpPkt->getSrPacketList();
-    pobjSrList->GetSize(&usSize, &usError);
-
-    if(usSize > RTP_ZERO)
+    if(pobjSrList.size() > RTP_ZERO)
     {
-        RtpDt_Void    *pvElement = RTP_NULL;
-
         //get key material element from list.
-        pobjSrList->GetElement(RTP_ZERO, &pvElement, &usError);
-        //typecast to RtcpSrPacket
-        pobjSrPkt = RTP_STATIC_CAST(RtcpSrPacket*,pvElement);
+        pobjSrPkt = pobjSrList.front();
+
         RtcpRrPacket *pobjRRPkt = pobjSrPkt->getRrPktInfo();
         RtcpHeader *pobjRtcpHdr = pobjRRPkt->getRtcpHdrInfo();
         RtpDt_UInt32 uiRcvdSsrc = pobjRtcpHdr->getSsrc();
 
         //calculate RTTD
-        RtpList *pobjReportBlkList = pobjRRPkt->getReportBlkList();
-        pobjReportBlkList->GetElement(RTP_ZERO, &pvElement, &usError);
-        RtcpReportBlock *pobjReportBlk = RTP_STATIC_CAST(RtcpReportBlock*,pvElement);
-        calculateAndSetRTTD(currentTime,pobjReportBlk->getLastSR(),pobjReportBlk->getDelayLastSR());
+        std::list<RtcpReportBlock *>& pobjReportBlkList = pobjRRPkt->getReportBlkList();
+        if(pobjReportBlkList.size() > RTP_ZERO)
+        {
+            RtcpReportBlock *pobjReportBlk = pobjReportBlkList.front();
+            if(pobjReportBlk != RTP_NULL)
+            {
+                calculateAndSetRTTD(currentTime,pobjReportBlk->getLastSR(),
+                    pobjReportBlk->getDelayLastSR());
+            }
+        }
         //decrement rtcp port by one
         usPort = usPort - RTP_ONE;
         RtpReceiverInfo *pobjRcvInfo = processRtcpPkt(uiRcvdSsrc, pobjRtcpAddr, usPort);
@@ -2154,23 +2115,25 @@ eRTP_STATUS_CODE RtpSession::processRcvdRtcpPkt(
     }//RTCP SR
 
     //RTCP RR packet
-    RtcpRrPacket *pobjRrPkt = RTP_NULL;
-    RtpList *pobjRrList = pobjRtcpPkt->getRrPacketList();
-    pobjRrList->GetSize(&usSize, &usError);
-    if(usSize > RTP_ZERO)
-    {
-        RtpDt_Void    *pvElement = RTP_NULL;
+    std::list<RtcpRrPacket *>& pobjRrList = pobjRtcpPkt->getRrPacketList();
 
+    if(pobjRrList.size() > RTP_ZERO)
+    {
         //get key material element from list.
-        pobjRrList->GetElement(RTP_ZERO, &pvElement, &usError);
-        //typecast to RtcpSrPacket
-        pobjRrPkt = RTP_STATIC_CAST(RtcpRrPacket*,pvElement);
+        RtcpRrPacket *pobjRrPkt = pobjRrList.front();
 
         //calculate RTTD
-        RtpList *pobjReportBlkList = pobjRrPkt->getReportBlkList();
-        pobjReportBlkList->GetElement(RTP_ZERO, &pvElement, &usError);
-        RtcpReportBlock *pobjReportBlk = RTP_STATIC_CAST(RtcpReportBlock*,pvElement);
-        calculateAndSetRTTD(currentTime,pobjReportBlk->getLastSR(),pobjReportBlk->getDelayLastSR());
+        std::list<RtcpReportBlock *>& pobjReportBlkList = pobjRrPkt->getReportBlkList();
+        if(pobjReportBlkList.size() > RTP_ZERO)
+        {
+            RtcpReportBlock *pobjReportBlk = pobjReportBlkList.front();
+            if(pobjReportBlk != RTP_NULL)
+            {
+                calculateAndSetRTTD(currentTime,pobjReportBlk->getLastSR(),
+                    pobjReportBlk->getDelayLastSR());
+            }
+        }
+
         RtcpHeader *pobjRtcpHdr = pobjRrPkt->getRtcpHdrInfo();
         RtpDt_UInt32 uiRcvdSsrc = pobjRtcpHdr->getSsrc();
 
@@ -2390,10 +2353,11 @@ RtpDt_Double RtpSession::rtcp_interval(IN RtpDt_UInt16    usMembers)
 RtpDt_UInt32 RtpSession::getSenderCount()
 {
     RtpDt_UInt32 uiSenderCnt = RTP_ZERO;
-    for (auto&i:*m_pobjRtpRcvrInfoList)
+    for (auto&pobjRcvrElm:*m_pobjRtpRcvrInfoList)
     {
         //get key material element from list.
-        if(i != RTP_NULL && i->isSender() == eRTP_TRUE && i->getTotalRcvdRtpPkts() !=0)
+        if(pobjRcvrElm != RTP_NULL && pobjRcvrElm->isSender() == eRTP_TRUE
+            && pobjRcvrElm->getTotalRcvdRtpPkts() !=0)
         {
             uiSenderCnt = uiSenderCnt + RTP_ONE;
         }

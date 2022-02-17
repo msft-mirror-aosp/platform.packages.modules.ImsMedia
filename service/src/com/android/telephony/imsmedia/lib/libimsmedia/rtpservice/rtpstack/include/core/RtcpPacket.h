@@ -39,13 +39,13 @@ class RtcpPacket
 {
     private:
         // list of RtcpSrPacket
-        RtpList m_objSrPkt;
+        std::list<RtcpSrPacket *>  m_objSrPktList;
 
         // list of RtcpRrPacket
-        RtpList m_objRrPkt;
+        std::list<RtcpRrPacket *>  m_objRrPktList;
 
         // list of RtcpFbPacket
-        RtpList m_objFbPkt;
+        std::list<RtcpFbPacket *>  m_objFbPktList;
 
         // SDES packet information
         RtcpSdesPacket *m_pobjSdesPkt;
@@ -61,7 +61,7 @@ class RtcpPacket
         RtcpXrPacket *m_pobjRtcpXrPkt;
 
         /**
-         * It adds RtcpFbPacket pointer to m_objFbPkt
+         * It adds RtcpFbPacket pointer to m_objFbPktList
          */
         eRTP_STATUS_CODE addFbPacketData(IN RtcpFbPacket *pobjFbPkt);
 
@@ -71,19 +71,19 @@ class RtcpPacket
         ~RtcpPacket();
 
         /**
-         * get method for m_objSrPkt
+         * get method for m_objSrPktList
          */
-        RtpList* getSrPacketList();
+        std::list<RtcpSrPacket *>& getSrPacketList();
 
         /**
-         * get method for m_objRrPkt
+         * get method for m_objRrPktList
          */
-        RtpList* getRrPacketList();
+        std::list<RtcpRrPacket *>& getRrPacketList();
 
         /**
-         * get method for m_objFbPkt
+         * get method for m_objFbPktList
          */
-        RtpList* getFbPacketList();
+        std::list<RtcpFbPacket *>& getFbPacketList();
 
         /**
          * get method for m_pobjSdesPkt
@@ -126,12 +126,12 @@ class RtcpPacket
         RtpDt_Void setRtcpFbPktData(IN RtcpFbPacket* pobjRtcpFbData);
 
         /**
-         * It adds RtcpRrPacket pointer to m_objRrPkt
+         * It adds RtcpRrPacket pointer to m_objRrPktList
          */
         eRTP_STATUS_CODE addRrPacketData(IN RtcpRrPacket *pobjRrPkt);
 
         /**
-         * It adds RtcpSrPacket pointer to m_objSrPkt
+         * It adds RtcpSrPacket pointer to m_objSrPktList
          */
         eRTP_STATUS_CODE addSrPacketData(IN RtcpSrPacket *pobjSrPkt);
 

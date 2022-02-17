@@ -22,8 +22,8 @@
 #define __RTP_HEADER_H__
 
 #include <RtpGlobal.h>
-#include <RtpList.h>
 #include <RtpBuffer.h>
+#include <list>
 
 // It defines the RTP Header information.
 
@@ -62,7 +62,7 @@ class RtpHeader
         /**
          * It contains CSRC list.
          */
-        RtpList        m_objCsrcList;
+        std::list<RtpDt_UInt32 *> m_uiCsrcList;
 
         /**
          * m_ucMarker contains marker bit.
@@ -91,7 +91,7 @@ class RtpHeader
         RtpDt_UInt32    m_uiSsrc;
 
     /**
-     * add element to m_objCsrcList
+     * add element to m_uiCsrcList
      */
     eRtp_Bool addElmToCsrcList(IN RtpDt_UInt32 uiCsrc);
 
@@ -143,9 +143,9 @@ public:
     RtpDt_UChar getCsrcCount();
 
     /**
-     * get method for m_objCsrcList
+     * get method for m_uiCsrcList
      */
-    RtpList* getCsrcList();
+    std::list<RtpDt_UInt32 *>& getCsrcList();
 
     /**
      * set method for m_ucMarker

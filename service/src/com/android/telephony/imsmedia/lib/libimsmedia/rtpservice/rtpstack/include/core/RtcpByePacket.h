@@ -24,7 +24,7 @@
 #include <RtpGlobal.h>
 #include <RtpBuffer.h>
 #include <RtcpHeader.h>
-#include <RtpList.h>
+#include <list>
 
 /**
 * @class    RtcpByePacket
@@ -34,7 +34,7 @@ class RtcpByePacket
 {
     private:
         RtcpHeader m_objRtcpHdr;
-        RtpList m_objSsrcList;
+        std::list<RtpDt_UInt32 *> m_uiSsrcList;
         RtpBuffer *m_pReason;
 
     public:
@@ -47,9 +47,9 @@ class RtcpByePacket
         RtcpHeader* getRtcpHdrInfo();
 
         /**
-         * get method for m_objSsrcList
+         * get method for m_uiSsrcList
          */
-        RtpList* getSsrcList();
+        std::list<RtpDt_UInt32 *>& getSsrcList();
 
         /**
          * get method for m_pReason
