@@ -1,0 +1,49 @@
+cc_defaults {
+    name: "imsmedia_tests_defaults",
+    defaults: [
+        "librtp_defaults",
+        "libimsmedia_shared_defaults",
+        "libimsmedia_voice_defaults"
+    ],
+    test_suites: [
+        "device-tests"
+    ],
+    static_libs: [
+        "libgmock",
+        "libgtest_main",
+        "liblog",
+    ],
+    shared_libs: [
+        "libimsmedia",
+    ],
+    header_libs: [
+        "libimsmedia_header",
+        "libimsmedia_interface",
+        "libimsmedia_config_headers",
+    ],
+}
+
+cc_test {
+    name: "ImsMediaNativeTests",
+    defaults: [
+        "imsmedia_tests_defaults",
+    ],
+    srcs: [
+        "**/*.cpp",
+    ],
+    test_config: "imsmedia_tests.xml",
+    enabled: true,
+}
+
+cc_test {
+    name: "ImsMediaRtpProtocolNativeTests",
+    defaults: [
+        "imsmedia_tests_defaults",
+    ],
+    srcs: [
+        "service/src/com/android/telephony/imsmedia/lib/libimsmedia/rtpservice/**/*.cpp",
+    ],
+    test_config: "imsmediartpprotocol_tests.xml",
+    enabled: false,
+}
+

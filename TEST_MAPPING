@@ -1,0 +1,22 @@
+{
+    // For presubmit test group.
+    "presubmit": [
+        {
+            "name": "ImsMediaNativeTests"
+        }
+    ],
+
+    // For postsubmit test group.
+    "postsubmit": [
+        {
+            "name": "ImsMediaNativeTests"
+        }
+    ],
+
+    // For ImsMedia test group.
+    "ImsMedia-alltests": [
+        {
+            "name": "ImsMediaNativeTests"
+        }
+    ]
+}
