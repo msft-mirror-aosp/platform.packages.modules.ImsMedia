@@ -20,6 +20,7 @@
 #include <binder/Parcel.h>
 #include <binder/Parcelable.h>
 #include <binder/Status.h>
+#include <stdint.h>
 
 namespace android {
 
@@ -28,32 +29,35 @@ namespace telephony {
 namespace imsmedia {
 
 class MediaQualityThreshold : public Parcelable {
+public:
+    MediaQualityThreshold();
+    MediaQualityThreshold(Parcel& in);
+    virtual ~MediaQualityThreshold();
+    virtual status_t writeToParcel(Parcel* parcel) const;
+    virtual status_t readFromParcel(const Parcel* in);
+    int32_t getRtpInactivityTimerMillis();
+    int32_t getRtcpInactivityTimerMillis();
+    int32_t getRtpPacketLossDurationMillis();
+    int32_t getRtpPacketLossRate();
+    int32_t getJitterDurationMillis();
+    int32_t getRtpJitterMillis();
+
 private:
     /** Timer in milliseconds for monitoring RTP inactivity */
-    int mRtpInactivityTimerMillis;
+    int32_t mRtpInactivityTimerMillis;
     /** Timer in milliseconds for monitoring RTCP inactivity */
-    int mRtcpInactivityTimerMillis;
+    int32_t mRtcpInactivityTimerMillis;
     /** Duration in milliseconds for monitoring the RTP packet loss rate */
-    int mRtpPacketLossDurationMillis;
+    int32_t mRtpPacketLossDurationMillis;
     /**
      * Packet loss rate in percentage of (total number of packets lost) /
      * (total number of packets expected) during rtpPacketLossDurationMs
      */
-    int mRtpPacketLossRate;
+    int32_t mRtpPacketLossRate;
     /** Duration in milliseconds for monitoring the jitter for RTP traffic */
-    int mJitterDurationMillis;
+    int32_t mJitterDurationMillis;
     /** RTP jitter threshold in milliseconds */
-    int mRtpJitterMillis;
-
-public:
-    MediaQualityThreshold();
-    virtual ~MediaQualityThreshold();
-    MediaQualityThreshold(Parcel& in);\
-    MediaQualityThreshold(int rtpInactivityTimerMillis, int rtcpInactivityTimerMillis,
-            int rtpPacketLossDurationMillis, int rtpPacketLossRate,
-            int jitterDurationMillis, int rtpJitterMillis);
-    virtual status_t writeToParcel(Parcel* out) const;
-    virtual status_t readFromParcel(const Parcel* in);
+    int32_t mRtpJitterMillis;
 };
 
 }  // namespace imsmedia

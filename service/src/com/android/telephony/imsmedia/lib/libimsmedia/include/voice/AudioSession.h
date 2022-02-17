@@ -25,8 +25,6 @@
 #include <RtpConfig.h>
 #include <list>
 
-using namespace android::telephony::imsmedia;
-
 class AudioSession : public BaseSession
 {
 public:
@@ -36,8 +34,10 @@ public:
     virtual ImsMediaResult addGraph(RtpConfig* config);
     virtual ImsMediaResult confirmGraph(RtpConfig* config);
     virtual ImsMediaResult deleteGraph(RtpConfig* config);
-    //override
+    virtual void setMediaQualityThreshold(MediaQualityThreshold* threshold);
+    // BaseSessionCallback
     virtual void onEvent(ImsMediaEventType type, uint64_t param1, uint64_t param2);
+    // dtmf method
     void startDtmf(char digit, int volume, int duration);
     void stopDtmf();
 

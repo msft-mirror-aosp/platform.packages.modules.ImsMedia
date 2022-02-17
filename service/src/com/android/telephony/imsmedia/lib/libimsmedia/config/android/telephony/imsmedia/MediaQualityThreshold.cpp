@@ -17,11 +17,18 @@
 #include <MediaQualityThreshold.h>
 
 namespace android {
+
 namespace telephony {
+
 namespace imsmedia {
 
 MediaQualityThreshold::MediaQualityThreshold() {
-
+    mRtpInactivityTimerMillis = 0;
+    mRtcpInactivityTimerMillis = 0;
+    mRtpPacketLossDurationMillis = 0;
+    mRtpPacketLossRate = 0;
+    mJitterDurationMillis = 0;
+    mRtpJitterMillis = 0;
 }
 
 MediaQualityThreshold::~MediaQualityThreshold() {
@@ -37,50 +44,11 @@ MediaQualityThreshold::MediaQualityThreshold(Parcel& in) {
     mRtpJitterMillis = in.readInt32();
 }
 
-MediaQualityThreshold::MediaQualityThreshold(int rtpInactivityTimerMillis,
-        int rtcpInactivityTimerMillis, int rtpPacketLossDurationMillis, int rtpPacketLossRate,
-        int jitterDurationMillis, int rtpJitterMillis) {
-    mRtpInactivityTimerMillis = rtpInactivityTimerMillis;
-    mRtcpInactivityTimerMillis = rtcpInactivityTimerMillis;
-    mRtpPacketLossDurationMillis = rtpPacketLossDurationMillis;
-    mRtpPacketLossRate = rtpPacketLossRate;
-    mJitterDurationMillis = jitterDurationMillis;
-    mRtpJitterMillis = rtpJitterMillis;
-}
-
-status_t MediaQualityThreshold::writeToParcel(Parcel* out) const {
-    status_t err;
-    err = out->writeInt32(mRtpInactivityTimerMillis);
-    if (err != NO_ERROR) {
-        return err;
-    }
-
-    err = out->writeInt32(mRtcpInactivityTimerMillis);
-    if (err != NO_ERROR) {
-        return err;
-    }
-
-    err = out->writeInt32(mRtpPacketLossDurationMillis);
-    if (err != NO_ERROR) {
-        return err;
-    }
-
-    err = out->writeInt32(mRtpPacketLossRate);
-    if (err != NO_ERROR) {
-        return err;
-    }
-
-    err = out->writeInt32(mJitterDurationMillis);
-    if (err != NO_ERROR) {
-        return err;
-    }
-
-    err = out->writeInt32(mRtpJitterMillis);
-    if (err != NO_ERROR) {
-        return err;
-    }
+status_t MediaQualityThreshold::writeToParcel(Parcel* parcel) const {
+    (void)parcel;
     return NO_ERROR;
 }
+
 
 status_t MediaQualityThreshold::readFromParcel(const Parcel* in) {
     status_t err;
@@ -117,6 +85,32 @@ status_t MediaQualityThreshold::readFromParcel(const Parcel* in) {
     return NO_ERROR;
 }
 
+int32_t MediaQualityThreshold::getRtpInactivityTimerMillis() {
+    return mRtpInactivityTimerMillis;
 }
+
+int32_t MediaQualityThreshold::getRtcpInactivityTimerMillis() {
+    return mRtcpInactivityTimerMillis;
 }
+
+int32_t MediaQualityThreshold::getRtpPacketLossDurationMillis() {
+    return mRtpPacketLossDurationMillis;
 }
+
+int32_t MediaQualityThreshold::getRtpPacketLossRate() {
+    return mRtpPacketLossRate;
+}
+
+int32_t MediaQualityThreshold::getJitterDurationMillis() {
+    return mJitterDurationMillis;
+}
+
+int32_t MediaQualityThreshold::getRtpJitterMillis() {
+    return mRtpJitterMillis;
+}
+
+}  // namespace imsmedia
+
+}  // namespace telephony
+
+}  // namespace android

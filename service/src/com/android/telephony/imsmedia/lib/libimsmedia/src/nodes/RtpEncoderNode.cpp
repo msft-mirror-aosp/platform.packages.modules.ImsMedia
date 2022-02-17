@@ -291,7 +291,7 @@ void RtpEncoderNode::ProcessAudioData(ImsMediaSubType eSubType, uint8_t* pData, 
         mDTMFMode = false;
         mAudioMark = true;
     }
-    else if (eSubType == MEDIASUBTYPE_DTMFEVENT) {
+    else if (eSubType == MEDIASUBTYPE_DTMF_PAYLOAD) {
         if (mDTMFMode) {
             IMLOGD_PACKET2(IM_PACKET_LOG_RTP,
                 "[ProcessData] DTMF - nSize[%d], TS[%d]",

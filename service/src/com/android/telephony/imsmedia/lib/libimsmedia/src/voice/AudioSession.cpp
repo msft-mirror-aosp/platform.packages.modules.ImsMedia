@@ -158,8 +158,18 @@ ImsMediaResult AudioSession::deleteGraph(RtpConfig* config) {
     }
 
     IMLOGD1("[deleteGraph] mListGraphRtcp size[%d]", mListGraphRtcp.size());
-
     return IMS_MEDIA_OK;
+}
+
+void AudioSession::setMediaQualityThreshold(MediaQualityThreshold* threshold) {
+    IMLOGD0("[setMediaQualityThreshold]");
+    for (std::list<AudioStreamGraphRtpRx*>::iterator iter =
+        mListGraphRtpRx.begin(); iter != mListGraphRtpRx.end(); iter++) {
+        AudioStreamGraphRtpRx* graph = *iter;
+        if (graph->getState() == STATE_RUN) {
+            graph->setMediaQualityThreshold(*threshold);
+        }
+    }
 }
 
 void AudioSession::onEvent(ImsMediaEventType type, uint64_t param1, uint64_t param2) {
@@ -170,11 +180,21 @@ void AudioSession::onEvent(ImsMediaEventType type, uint64_t param1, uint64_t par
 }
 
 void AudioSession::startDtmf(char digit, int volume, int duration) {
-    (void)digit;
-    (void)volume;
-    (void)duration;
+    for (std::list<AudioStreamGraphRtpTx*>::iterator
+        iter = mListGraphRtpTx.begin(); iter != mListGraphRtpTx.end(); iter++) {
+        AudioStreamGraphRtpTx* graph = *iter;
+        if (graph->getState() == STATE_RUN) {
+            graph->startDtmf(digit, volume, duration);
+        }
+    }
 }
 
 void AudioSession::stopDtmf() {
-
+    for (std::list<AudioStreamGraphRtpTx*>::iterator
+        iter = mListGraphRtpTx.begin(); iter != mListGraphRtpTx.end(); iter++) {
+        AudioStreamGraphRtpTx* graph = *iter;
+        if (graph->getState() == STATE_RUN) {
+            graph->stopDtmf();
+        }
+    }
 }

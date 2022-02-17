@@ -17,22 +17,25 @@
 #include <AudioStreamGraphRtpTx.h>
 #include <ImsMediaNodeList.h>
 #include <ImsMediaVoiceNodeList.h>
+#include <ImsMediaTrace.h>
 #include <VoiceManager.h>
 #include <stdlib.h>
 #include <string.h>
 
 AudioStreamGraphRtpTx::AudioStreamGraphRtpTx(BaseSessionCallback* callback, int localFd)
     : BaseStreamGraph(callback, localFd) {
+    mConfig = NULL;
 }
 
 AudioStreamGraphRtpTx::~AudioStreamGraphRtpTx() {
+    if (mConfig) {
+        delete mConfig;
+    }
 }
 
 ImsMediaResult AudioStreamGraphRtpTx::createGraph(RtpConfig* config){
-    //copy the config
-    if (config != NULL) {
-        mConfig = std::make_shared<RtpConfig>(*config);
-    }
+    IMLOGD0("[createGraph]");
+    mConfig = new AudioConfig((AudioConfig*)config);
 
     BaseNode* pNodeSource = BaseNode::Load(BaseNodeID::NODEID_VOICESOURCE, mCallback);
     if (pNodeSource == NULL) return IMS_MEDIA_ERROR_UNKNOWN;
@@ -110,7 +113,31 @@ ImsMediaResult AudioStreamGraphRtpTx::createGraph(RtpConfig* config){
     return ImsMediaResult::IMS_MEDIA_OK;
 }
 
-ImsMediaResult AudioStreamGraphRtpTx::updateGraph(ImsMediaHal::RtpConfig* config) {
+ImsMediaResult AudioStreamGraphRtpTx::updateGraph(RtpConfig* config)  {
+    IMLOGD0("[updateGraph]");
     (void)config;
     return ImsMediaResult::IMS_MEDIA_OK;
+}
+
+bool AudioStreamGraphRtpTx::isSameConfig(RtpConfig* config) {
+    if (mConfig == NULL) return false;
+    //check compare
+    if (mConfig->getRemoteAddress().compare(config->getRemoteAddress()) != 0
+        && mConfig->getRemotePort() == config->getRemotePort()) {
+        return true;
+    }
+
+    return false;
+}
+
+void AudioStreamGraphRtpTx::startDtmf(char digit, int volume, int duration) {
+    IMLOGD0("[startDtmf]");
+    (void)digit;
+    (void)volume;
+    (void)duration;
+}
+
+void AudioStreamGraphRtpTx::stopDtmf() {
+    IMLOGD0("[stopDtmf]");
+
 }

@@ -136,7 +136,8 @@ bool DtmfEncoderNode::SendDTMFEvent(uint8_t nEvent) {
     // make and send DTMF packet
     for (nPeriod = mAudioFrameDuration; nPeriod < nDTMFDuration; nPeriod += mAudioFrameDuration) {
         nPayloadSize = MakeDTMFPayload(pbPayload, nSignal, false, mVolume, nPeriod);
-        SendDataToRearNode(MEDIASUBTYPE_DTMFEVENT, pbPayload, nPayloadSize, nTimestamp, bMarker, 0);
+        SendDataToRearNode(MEDIASUBTYPE_DTMF_PAYLOAD, pbPayload, nPayloadSize, nTimestamp,
+            bMarker, 0);
         nTimestamp += 20;
         bMarker = false;
     }
@@ -145,7 +146,8 @@ bool DtmfEncoderNode::SendDTMFEvent(uint8_t nEvent) {
     nPayloadSize = MakeDTMFPayload(pbPayload, nSignal, true, mVolume, nPeriod);
 
     for (nPeriod = 0; nPeriod <= nDTMFRetransmitDuration; nPeriod += mAudioFrameDuration) {
-        SendDataToRearNode(MEDIASUBTYPE_DTMFEVENT, pbPayload, nPayloadSize, nTimestamp, false, 0);
+        SendDataToRearNode(MEDIASUBTYPE_DTMF_PAYLOAD, pbPayload, nPayloadSize, nTimestamp,
+            false, 0);
         nTimestamp += 20;
     }
 

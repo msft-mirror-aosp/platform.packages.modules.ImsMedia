@@ -76,36 +76,55 @@ enum ImsMediaType {
 
 enum ImsMediaSubType {
     MEDIASUBTYPE_UNDEFINED,
-    MEDIASUBTYPE_RTPPAYLOAD, // rtp payload header + encoded bitstream
-    MEDIASUBTYPE_RTPPACKET, // rtp packet
-    MEDIASUBTYPE_RTCPPACKET, // rtcp packet
-    MEDIASUBTYPE_RTCPPACKET_BYE, // rtcp packet
-    MEDIASUBTYPE_RAWDATA, // raw yuv or pcm data
+    // rtp payload header + encoded bitstream
+    MEDIASUBTYPE_RTPPAYLOAD,
+    // rtp packet
+    MEDIASUBTYPE_RTPPACKET,
+    // rtcp packet
+    MEDIASUBTYPE_RTCPPACKET,
+    // rtcp packet
+    MEDIASUBTYPE_RTCPPACKET_BYE,
+    // raw yuv or pcm data
+    MEDIASUBTYPE_RAWDATA,
     MEDIASUBTYPE_RAWDATA_ROT90,
     MEDIASUBTYPE_RAWDATA_ROT90_FLIP,
     MEDIASUBTYPE_RAWDATA_ROT270,
     MEDIASUBTYPE_RAWDATA_CROP_ROT90,
-    MEDIASUBTYPE_RAWDATA_CROP_ROT90_FLIP = 10,
+    MEDIASUBTYPE_RAWDATA_CROP_ROT90_FLIP,
     MEDIASUBTYPE_RAWDATA_CROP_ROT270,
     MEDIASUBTYPE_RAWDATA_CROP,
+    // dtmf packet with start bit set
     MEDIASUBTYPE_DTMFSTART,
-    MEDIASUBTYPE_DTMFEVENT, // rtp payload for dtmf event
+    // dtmf payload
+    MEDIASUBTYPE_DTMF_PAYLOAD,
+    // dtmf packet with end bit set
     MEDIASUBTYPE_DTMFEND,
-    MEDIASUBTYPE_DTXSTART, // EVRC-B, 2011.3.8[MAX_RTP_CONFIGS]
-    MEDIASUBTYPE_BITSTREAM_H263, // encoded bitstream
-    MEDIASUBTYPE_BITSTREAM_MPEG4, // encoded bitstream
-    MEDIASUBTYPE_BITSTREAM_H264, // encoded bitstream
-    MEDIASUBTYPE_BITSTREAM_G711_PCMU = 20, // encoded bitstream
-    MEDIASUBTYPE_BITSTREAM_G711_PCMA, // encoded bitstream
+    // EVRC-B
+    MEDIASUBTYPE_DTXSTART,
+    // encoded bitstream of h.263 codec
+    MEDIASUBTYPE_BITSTREAM_H263,
+    // encoded bitstream of mpeg 4 codec
+    MEDIASUBTYPE_BITSTREAM_MPEG4,
+    // encoded bitstream of h.264 codec
+    MEDIASUBTYPE_BITSTREAM_H264,
+    // encoded bitstream of hevc codec
+    MEDIASUBTYPE_BITSTREAM_HEVC,
+    // encoded bitstream of pcmu
+    MEDIASUBTYPE_BITSTREAM_G711_PCMU,
+    // encoded bitstream of pcma
+    MEDIASUBTYPE_BITSTREAM_G711_PCMA,
     MEDIASUBTYPE_BITSTREAM_EVRC,
     MEDIASUBTYPE_BITSTREAM_EVRC_B,
     MEDIASUBTYPE_BITSTREAM_AMR_WB,
     MEDIASUBTYPE_BITSTREAM_AMR,
-    MEDIASUBTYPE_BITSTREAM_T140, // T140
-    MEDIASUBTYPE_BITSTREAM_T140_RED, // T140 Redendancy
-    MEDIASUBTYPE_PCM_DATA, // decoded pcm data
-    MEDIASUBTYPE_PCM_NO_DATA, // decoded pcm no data
-    MEDIASUBTYPE_NOT_READY, // Jitter Buffer GetData not ready
+    //rtt bitstream of t.140 format
+    MEDIASUBTYPE_BITSTREAM_T140,
+    //rtt bitstream of t.140 redundant format
+    MEDIASUBTYPE_BITSTREAM_T140_RED,
+    MEDIASUBTYPE_PCM_DATA,
+    MEDIASUBTYPE_PCM_NO_DATA,
+    // Jitter Buffer GetData not ready
+    MEDIASUBTYPE_NOT_READY,
     MEDIASUBTYPE_BITSTREAM_CODECCONFIG,
     MEDIASUBTYPE_MAX
 };
@@ -120,6 +139,7 @@ enum ImsMediaVoiceMsgRequest {
     START_DTMF,
     STOP_DTMF,
     SEND_HEADER_EXTENSION,
+    SET_MEDIA_QUALITY_THRESHOLD,
 };
 
 enum ImsMediaVoiceMsgResponse {
@@ -137,18 +157,13 @@ enum ImsMediaVoiceMsgResponse {
     MEDIA_QUALITY_CHANGED,
 };
 
-struct BaseEventParam {
-    RtpConfig mConfig;
-    BaseEventParam(RtpConfig config) : mConfig(config) {}
-};
-
-struct EventParamOpenSession : public BaseEventParam {
+struct EventParamOpenSession {
 public:
+    RtpConfig* mConfig;
     int rtpFd;
     int rtcpFd;
-    EventParamOpenSession(int rtp, int rtcp, RtpConfig config) : BaseEventParam(config) {
-        rtpFd = rtp;
-        rtcpFd = rtcp;
+    EventParamOpenSession(int rtp, int rtcp, RtpConfig* config)
+        : mConfig(config), rtpFd(rtp), rtcpFd(rtcp) {
     }
 };
 

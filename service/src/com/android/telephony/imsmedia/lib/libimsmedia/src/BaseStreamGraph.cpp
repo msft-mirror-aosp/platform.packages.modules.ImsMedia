@@ -18,7 +18,7 @@
 #include <BaseStreamGraph.h>
 
 BaseStreamGraph::BaseStreamGraph(BaseSessionCallback* callback, int localFd)
-    : mCallback(callback), mLocalFd(localFd), mConfig(NULL) {
+    : mCallback(callback), mLocalFd(localFd) {
     std::unique_ptr<StreamScheduler> scheduler(new StreamScheduler());
     mScheduler = std::move(scheduler);
 }
@@ -103,15 +103,4 @@ ImsMediaResult BaseStreamGraph::stopNodes() {
         IMLOGD0("[stopNodes] Stop node exit");
     }
     return IMS_MEDIA_OK;
-}
-
-bool BaseStreamGraph::isSameConfig(RtpConfig* config) {
-    if (mConfig == NULL) return false;
-    //check compare
-    if (mConfig->getRemoteAddress().compare(config->getRemoteAddress()) != 0
-        && mConfig->getRemotePort() == config->getRemotePort()) {
-        return true;
-    }
-
-    return false;
 }

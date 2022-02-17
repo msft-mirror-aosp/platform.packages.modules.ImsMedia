@@ -21,6 +21,8 @@
 #include <ImsMediaDefine.h>
 #include <BaseStreamGraph.h>
 #include <BaseNode.h>
+#include <RtpConfig.h>
+#include <AudioConfig.h>
 
 class AudioStreamGraphRtcp : public BaseStreamGraph
 {
@@ -28,10 +30,11 @@ public:
     AudioStreamGraphRtcp(BaseSessionCallback* callback, int localFd = 0);
     virtual ~AudioStreamGraphRtcp();
     virtual ImsMediaResult createGraph(RtpConfig* config);
-    virtual ImsMediaResult updateGraph(ImsMediaHal::RtpConfig* config);
+    virtual ImsMediaResult updateGraph(RtpConfig* config);
+    virtual bool isSameConfig(RtpConfig* config);
 
 private:
-    //int32_t mRefCount;
+    AudioConfig* mConfig;
 };
 
 #endif

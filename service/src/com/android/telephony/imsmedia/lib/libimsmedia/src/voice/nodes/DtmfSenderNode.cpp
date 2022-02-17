@@ -91,7 +91,7 @@ void DtmfSenderNode::ProcessData() {
 
         // send the first dtmf packet
         if (GetData(&subtype, &pData, &nDataSize, &nTimeStamp, &bMark, NULL, NULL)
-            && subtype == MEDIASUBTYPE_DTMFEVENT) {
+            && subtype == MEDIASUBTYPE_DTMF_PAYLOAD) {
             SendDataToRearNode(subtype, pData, nDataSize, nTimeStamp, bMark, 0);
 
             if (nDataSize >= 4) {

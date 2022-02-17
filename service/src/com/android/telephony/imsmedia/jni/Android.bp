@@ -2,7 +2,7 @@ package {
     default_applicable_licenses: ["Android-Apache-2.0"],
 }
 
-cc_library_static {
+cc_library_shared {
     name: "libimsmediajni",
     defaults: [
         "libimsmedia_voice_defaults",
@@ -19,11 +19,9 @@ cc_library_static {
     include_dirs: [
         "frameworks/base/core/jni"
     ],
-    static_libs: [
-        "libimsmedia",
-    ],
     shared_libs: [
         "libimsmedia_config",
+        "libimsmedia",
         "libbinder",
         "libcutils",
         "libgui",

@@ -20,6 +20,8 @@
 #include <binder/Parcel.h>
 #include <binder/Parcelable.h>
 #include <binder/Status.h>
+#include <RtcpConfig.h>
+#include <stdint.h>
 
 namespace android {
 
@@ -28,22 +30,42 @@ namespace telephony {
 namespace imsmedia {
 
 class RtpConfig : public Parcelable {
-private:
-    int mDirection;
-    String16 mRemoteAddress;
-    int mRemotePort;
-
 public:
+    enum MediaDirection {
+        MEDIA_DIRECTION_NO_FLOW,
+           MEDIA_DIRECTION_TRANSMIT_ONLY,
+           MEDIA_DIRECTION_RECEIVE_ONLY,
+           MEDIA_DIRECTION_TRANSMIT_RECEIVE,
+    };
+
     RtpConfig();
     RtpConfig(RtpConfig& config);
-    RtpConfig(int direction, String16& remoteAddress, int remotePort);
     virtual ~RtpConfig();
-    virtual status_t writeToParcel(Parcel* out) const;
+    virtual status_t writeToParcel(Parcel* parcel) const;
     virtual status_t readFromParcel(const Parcel* in);
-    int getMediaDirection();
-    void setMediaDirection(int direction);
+    int32_t getMediaDirection();
     String16 getRemoteAddress();
-    int getRemotePort();
+    int32_t getRemotePort();
+    RtcpConfig getRtcpConfig();
+    //QosSessionAttributes getQos();
+    int32_t getmaxMtuBytes();
+    int32_t getDscp();
+    int32_t getRxPayloadTypeNumber();
+    int32_t getTxPayloadTypeNumber();
+    int8_t getSamplingRateKHz();
+
+private:
+    int32_t direction;
+    int32_t accessNetwork;
+    String16 remoteAddress;
+    int32_t remotePort;
+    RtcpConfig rtcpConfig;
+    //QosSessionAttributes qos;
+    int32_t maxMtuBytes;
+    int32_t dscp;
+    int32_t rxPayloadTypeNumber;
+    int32_t txPayloadTypeNumber;
+    int8_t samplingRateKHz;
 };
 
 }  // namespace imsmedia

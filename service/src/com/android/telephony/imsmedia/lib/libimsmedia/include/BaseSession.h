@@ -19,9 +19,8 @@
 
 #include <BaseSessionCallback.h>
 #include <RtpConfig.h>
+#include <MediaQualityThreshold.h>
 #include <stdint.h>
-
-using namespace android::telephony::imsmedia;
 
 class BaseSession : public BaseSessionCallback {
 public:
@@ -31,7 +30,7 @@ public:
     void setLocalEndPoint(int rtpFd, int rtcpFd);
     int getLocalRtpFd();
     int getLocalRtcpFd();
-    //override
+    // BaseSessionCallback
     virtual void onEvent(ImsMediaEventType type, uint64_t param1, uint64_t param2);
 
 protected:
@@ -39,6 +38,7 @@ protected:
     virtual ImsMediaResult addGraph(RtpConfig* config) = 0;
     virtual ImsMediaResult confirmGraph(RtpConfig* config) = 0;
     virtual ImsMediaResult deleteGraph(RtpConfig* config) = 0;
+    virtual void setMediaQualityThreshold(MediaQualityThreshold* threshold) = 0;
 
     int mSessionId;
     int mRtpFd;

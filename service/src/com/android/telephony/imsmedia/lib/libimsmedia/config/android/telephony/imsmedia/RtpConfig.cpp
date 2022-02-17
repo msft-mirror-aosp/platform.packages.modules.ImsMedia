@@ -21,9 +21,9 @@ namespace telephony {
 namespace imsmedia {
 
 RtpConfig::RtpConfig()
-    : mDirection(0),
-    mRemoteAddress(),
-    mRemotePort(0) {
+    : direction(0),
+    remoteAddress(),
+    remotePort(0) {
 
 }
 
@@ -32,67 +32,73 @@ RtpConfig::~RtpConfig() {
 }
 
 RtpConfig::RtpConfig(RtpConfig& config) {
-    mDirection = config.mDirection;
-    mRemoteAddress = config.mRemoteAddress;
-    mRemotePort = config.mRemotePort;
+    direction = config.direction;
+    accessNetwork = config.accessNetwork;
+    remoteAddress = config.remoteAddress;
+    remotePort = config.remotePort;
+    rtcpConfig = config.rtcpConfig;
+    //QosSessionAttributes qos;
+    maxMtuBytes = config.maxMtuBytes;
+    dscp = config.dscp;
+    rxPayloadTypeNumber = config.rxPayloadTypeNumber;
+    txPayloadTypeNumber = config.txPayloadTypeNumber;
+    samplingRateKHz = config.samplingRateKHz;
 }
 
-RtpConfig::RtpConfig(int direction, String16& remoteAddress, int remotePort)
-    : mDirection(direction),
-    mRemoteAddress(remoteAddress),
-    mRemotePort(remotePort) {
-}
-
-int RtpConfig::getMediaDirection() {
-    return mDirection;
-}
-
-void RtpConfig::setMediaDirection(int direction) {
-    mDirection = direction;
-}
-
-String16 RtpConfig::getRemoteAddress() {
-    return mRemoteAddress;
-}
-
-int RtpConfig::getRemotePort() {
-    return mRemotePort;
-}
-
-status_t RtpConfig::writeToParcel(Parcel* out) const {
-    status_t err;
-    err = out->writeInt32(mDirection);
-    if (err != NO_ERROR) {
-        return err;
-    }
-
-    err = out->writeString16(mRemoteAddress);
-    if (err != NO_ERROR) {
-        return err;
-    }
-
-    err = out->writeInt32(mRemotePort);
-    if (err != NO_ERROR) {
-        return err;
-    }
-
+status_t RtpConfig::writeToParcel(Parcel* parcel) const {
+    (void)parcel;
     return NO_ERROR;
 }
 
 status_t RtpConfig::readFromParcel(const Parcel* in) {
     status_t err;
 
-    err = in->readInt32(&mDirection);
+    err = in->readInt32(&direction);
     if (err != NO_ERROR) {
         return err;
     }
 
-    err = in->readString16(&mRemoteAddress);
+    err = in->readInt32(&accessNetwork);
     if (err != NO_ERROR) {
         return err;
     }
 
-    err = in->readInt32(&mRemotePort);
+    err = in->readString16(&remoteAddress);
+    if (err != NO_ERROR) {
+        return err;
+    }
+
+    err = in->readInt32(&remotePort);
+    if (err != NO_ERROR) {
+        return err;
+    }
+
+    err = rtcpConfig.readFromParcel(in);
+    if (err != NO_ERROR) {
+        return err;
+    }
+
+    err = in->readInt32(&maxMtuBytes);
+    if (err != NO_ERROR) {
+        return err;
+    }
+
+    err = in->readInt32(&dscp);
+    if (err != NO_ERROR) {
+        return err;
+    }
+
+    err = in->readInt32(&rxPayloadTypeNumber);
+    if (err != NO_ERROR) {
+        return err;
+    }
+
+    err = in->readInt32(&txPayloadTypeNumber);
+    if (err != NO_ERROR) {
+        return err;
+    }
+
+    err = in->readByte(&samplingRateKHz);
     if (err != NO_ERROR) {
         return err;
     }
@@ -100,6 +106,45 @@ status_t RtpConfig::readFromParcel(const Parcel* in) {
     return NO_ERROR;
 }
 
+
+int32_t RtpConfig::getMediaDirection() {
+    return direction;
 }
+
+String16 RtpConfig::getRemoteAddress() {
+    return remoteAddress;
 }
+
+int32_t RtpConfig::getRemotePort() {
+    return remotePort;
 }
+
+RtcpConfig RtpConfig::getRtcpConfig() {
+    return rtcpConfig;
+}
+
+int32_t RtpConfig::getmaxMtuBytes() {
+    return maxMtuBytes;
+}
+
+int32_t RtpConfig::getDscp() {
+    return dscp;
+}
+
+int32_t RtpConfig::getRxPayloadTypeNumber() {
+    return rxPayloadTypeNumber;
+}
+
+int32_t RtpConfig::getTxPayloadTypeNumber() {
+    return txPayloadTypeNumber;
+}
+
+int8_t RtpConfig::getSamplingRateKHz() {
+    return samplingRateKHz;
+}
+
+}  // namespace imsmedia
+
+}  // namespace telephony
+
+}  // namespace android

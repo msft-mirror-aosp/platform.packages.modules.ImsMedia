@@ -50,28 +50,17 @@ cc_defaults {
     cflags: [
     ],
     header_libs: [
-        "libimsmedia_voice_header"
-    ],
-    include_dirs: [
-        "frameworks/native/include",
-        "frameworks/native/libs/binder/include/binder",
-        "frameworks/av/media",
-        "frameworks/av/media/libmedia/include",
-        "frameworks/av/media/libaudioclient/include",
-        "frameworks/av/media/libstagefright/include",
-        "frameworks/av/media/libstagefright/foundation/include",
-        "frameworks/av/drm/libmediadrm/interface",
+        "libimsmedia_voice_header",
+        "libimsmedia_config_headers",
     ],
 }
 
-cc_library_static {
+cc_library_shared {
     name: "libimsmedia",
     defaults: [
         "librtp_defaults",
         "libimsmedia_shared_defaults",
         "libimsmedia_voice_defaults"
-    ],
-    cflags: [
     ],
     srcs: [
         "src/**/*.cpp",

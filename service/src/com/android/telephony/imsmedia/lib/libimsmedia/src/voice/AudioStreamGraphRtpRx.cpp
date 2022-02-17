@@ -17,6 +17,7 @@
 #include <AudioStreamGraphRtpRx.h>
 #include <ImsMediaNodeList.h>
 #include <ImsMediaVoiceNodeList.h>
+#include <ImsMediaTrace.h>
 
 AudioStreamGraphRtpRx::AudioStreamGraphRtpRx(BaseSessionCallback* callback, int localFd)
     : BaseStreamGraph(callback, localFd) {
@@ -26,10 +27,8 @@ AudioStreamGraphRtpRx::~AudioStreamGraphRtpRx() {
 }
 
 ImsMediaResult AudioStreamGraphRtpRx::createGraph(RtpConfig* config) {
-    //copy the config
-    if (config != NULL) {
-        mConfig = std::make_shared<RtpConfig>(*config);
-    }
+    IMLOGD0("[createGraph]");
+    mConfig = new AudioConfig((AudioConfig*)config);
 
     BaseNode* pNodeSocketReader = BaseNode::Load(BaseNodeID::NODEID_SOCKETREADER, mCallback);
     if (pNodeSocketReader == NULL) return IMS_MEDIA_ERROR_UNKNOWN;
@@ -83,7 +82,24 @@ ImsMediaResult AudioStreamGraphRtpRx::createGraph(RtpConfig* config) {
     return ImsMediaResult::IMS_MEDIA_OK;
 }
 
-ImsMediaResult AudioStreamGraphRtpRx::updateGraph(ImsMediaHal::RtpConfig* config) {
+ImsMediaResult AudioStreamGraphRtpRx::updateGraph(RtpConfig* config) {
+    IMLOGD0("[updateGraph]");
     (void)config;
     return ImsMediaResult::IMS_MEDIA_OK;
+}
+
+void AudioStreamGraphRtpRx::setMediaQualityThreshold(const MediaQualityThreshold& threshold) {
+    IMLOGD0("[setMediaQualityThreshold]");
+    (void)threshold;
+}
+
+bool AudioStreamGraphRtpRx::isSameConfig(RtpConfig* config) {
+    if (mConfig == NULL) return false;
+    //check compare
+    if (mConfig->getRemoteAddress().compare(config->getRemoteAddress()) != 0
+        && mConfig->getRemotePort() == config->getRemotePort()) {
+        return true;
+    }
+
+    return false;
 }

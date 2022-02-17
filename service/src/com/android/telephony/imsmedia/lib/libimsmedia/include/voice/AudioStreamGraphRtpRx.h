@@ -20,6 +20,8 @@
 #include <ImsMediaDefine.h>
 #include <BaseStreamGraph.h>
 #include <BaseNode.h>
+#include <RtpConfig.h>
+#include <AudioConfig.h>
 
 class AudioStreamGraphRtpRx : public BaseStreamGraph
 {
@@ -27,7 +29,12 @@ public:
     AudioStreamGraphRtpRx(BaseSessionCallback* callback, int localFd = 0);
     virtual ~AudioStreamGraphRtpRx();
     virtual ImsMediaResult createGraph(RtpConfig* config);
-    virtual ImsMediaResult updateGraph(ImsMediaHal::RtpConfig* config);
+    virtual ImsMediaResult updateGraph(RtpConfig* config);
+    virtual void setMediaQualityThreshold(const MediaQualityThreshold& threshold);
+    virtual bool isSameConfig(RtpConfig* config);
+
+private:
+    AudioConfig* mConfig;
 };
 
 #endif

@@ -21,6 +21,7 @@
 #include <BaseStreamGraph.h>
 #include <BaseNode.h>
 #include <StreamScheduler.h>
+#include <AudioConfig.h>
 
 class AudioStreamGraphRtpTx : public BaseStreamGraph
 {
@@ -28,9 +29,13 @@ public:
     AudioStreamGraphRtpTx(BaseSessionCallback* callback, int localFd = 0);
     virtual ~AudioStreamGraphRtpTx();
     virtual ImsMediaResult createGraph(RtpConfig* config);
-    virtual ImsMediaResult updateGraph(ImsMediaHal::RtpConfig* config);
+    virtual ImsMediaResult updateGraph(RtpConfig* config);
+    virtual bool isSameConfig(RtpConfig* config);
+    void startDtmf(char digit, int volume, int duration);
+    void stopDtmf();
 
 private:
+    AudioConfig* mConfig;
     std::list<BaseNode*> mListDtmfNodes;
 };
 

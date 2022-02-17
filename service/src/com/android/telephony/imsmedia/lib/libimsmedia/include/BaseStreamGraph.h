@@ -22,9 +22,8 @@
 #include <BaseNode.h>
 #include <BaseSessionCallback.h>
 #include <RtpConfig.h>
+#include <MediaQualityThreshold.h>
 #include <list>
-
-using namespace android::telephony::imsmedia;
 
 /**
  * @class BaseStreamGraph
@@ -32,11 +31,14 @@ using namespace android::telephony::imsmedia;
 class BaseStreamGraph {
 protected:
     virtual ImsMediaResult createGraph(RtpConfig* config) = 0;
-    virtual ImsMediaResult updateGraph(ImsMediaHal::RtpConfig* config) = 0;
+    virtual ImsMediaResult updateGraph(RtpConfig* config) = 0;
     virtual void AddNode(BaseNode* pNode, bool bReverse = true);
     virtual void RemoveNode(BaseNode* pNode);
     virtual ImsMediaResult startNodes();
     virtual ImsMediaResult stopNodes();
+    virtual void setMediaQualityThreshold(const MediaQualityThreshold& threshold) {
+        (void)threshold;
+    }
 
 public:
     BaseStreamGraph(BaseSessionCallback* callback, int localFd = 0);
@@ -55,13 +57,12 @@ public:
     StreamState getState() {
         return mGraphState;
     }
-    bool isSameConfig(RtpConfig* config);
+    virtual bool isSameConfig(RtpConfig* config) = 0;
 
 protected:
     BaseSessionCallback* mCallback;
     int mLocalFd;
     StreamState mGraphState;
-    std::shared_ptr<RtpConfig> mConfig;
     std::list<BaseNode*> mListNodes;
     std::list<BaseNode*> mListNodeToStart;
     std::list<BaseNode*> mListNodeStarted;
