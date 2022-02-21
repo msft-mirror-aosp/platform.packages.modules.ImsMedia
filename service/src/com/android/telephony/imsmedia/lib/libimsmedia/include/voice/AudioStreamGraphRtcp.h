@@ -29,8 +29,8 @@ class AudioStreamGraphRtcp : public BaseStreamGraph
 public:
     AudioStreamGraphRtcp(BaseSessionCallback* callback, int localFd = 0);
     virtual ~AudioStreamGraphRtcp();
-    virtual ImsMediaResult createGraph(RtpConfig* config);
-    virtual ImsMediaResult updateGraph(RtpConfig* config);
+    virtual ImsMediaResult createGraph(void* config);
+    virtual ImsMediaResult updateGraph(void* config);
     virtual bool isSameConfig(RtpConfig* config);
 
 private:

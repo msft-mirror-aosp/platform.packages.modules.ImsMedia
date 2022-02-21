@@ -29,35 +29,47 @@ namespace telephony {
 
 namespace imsmedia {
 
+/** Native representation of android.telephony.imsmedia.RtpConfig */
 class RtpConfig : public Parcelable {
 public:
     enum MediaDirection {
         MEDIA_DIRECTION_NO_FLOW,
-           MEDIA_DIRECTION_TRANSMIT_ONLY,
-           MEDIA_DIRECTION_RECEIVE_ONLY,
-           MEDIA_DIRECTION_TRANSMIT_RECEIVE,
+        MEDIA_DIRECTION_TRANSMIT_ONLY,
+        MEDIA_DIRECTION_RECEIVE_ONLY,
+        MEDIA_DIRECTION_TRANSMIT_RECEIVE,
     };
 
     RtpConfig();
     RtpConfig(RtpConfig& config);
     virtual ~RtpConfig();
+    bool operator==(const RtpConfig &c2) const;
+    bool operator!=(const RtpConfig &c2) const;
     virtual status_t writeToParcel(Parcel* parcel) const;
     virtual status_t readFromParcel(const Parcel* in);
+    void setMediaDirection(int32_t direction);
     int32_t getMediaDirection();
-    String16 getRemoteAddress();
+    void setRemoteAddress(String8 address);
+    String8 getRemoteAddress();
+    void setRemotePort(int32_t port);
     int32_t getRemotePort();
+    void setRtcpConfig(const RtcpConfig& config);
     RtcpConfig getRtcpConfig();
     //QosSessionAttributes getQos();
+    void setMaxMtuBytes(int32_t mtu);
     int32_t getmaxMtuBytes();
+    void setDscp(int dscp);
     int32_t getDscp();
+    void setRxPayloadTypeNumber(int32_t num);
     int32_t getRxPayloadTypeNumber();
+    void setTxPayloadTypeNumber(int32_t num);
     int32_t getTxPayloadTypeNumber();
+    void setSamplingRateKHz(int8_t sample);
     int8_t getSamplingRateKHz();
 
-private:
+protected:
     int32_t direction;
     int32_t accessNetwork;
-    String16 remoteAddress;
+    String8 remoteAddress;
     int32_t remotePort;
     RtcpConfig rtcpConfig;
     //QosSessionAttributes qos;

@@ -89,9 +89,8 @@ void AudioRtpPayloadDecoderNode::OnDataFromFrontNode(ImsMediaSubType subtype,
     }
 }
 
-void AudioRtpPayloadDecoderNode::SetRtpSessionParams(ImsMediaHal::RtpSessionParams* params) {
-    mSessionParams = std::make_shared<ImsMediaHal::RtpSessionParams>();
-    memcpy(mSessionParams.get(), params, sizeof(ImsMediaHal::RtpSessionParams));
+void AudioRtpPayloadDecoderNode::SetConfig(void* config) {
+    (void)config;
 }
 
 void AudioRtpPayloadDecoderNode::SetCodec(eAudioCodecType eCodecType) {

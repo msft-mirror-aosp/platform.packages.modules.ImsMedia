@@ -72,9 +72,8 @@ bool IVoiceSourceNode::IsSourceNode() {
     return true;
 }
 
-void IVoiceSourceNode::SetRtpSessionParams(ImsMediaHal::RtpSessionParams* params) {
-    mSessionParams = std::make_shared<ImsMediaHal::RtpSessionParams>();
-    memcpy(mSessionParams.get(), params, sizeof(ImsMediaHal::RtpSessionParams));
+void IVoiceSourceNode::SetConfig(void* config) {
+    (void)config;
 }
 
 void IVoiceSourceNode::SetAttributeSource(android::content::AttributionSourceState& source) {

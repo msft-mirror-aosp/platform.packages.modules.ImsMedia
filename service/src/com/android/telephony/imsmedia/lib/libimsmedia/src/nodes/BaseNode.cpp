@@ -173,7 +173,19 @@ void BaseNode::ClearDataQueue() {
     mDataQueue.Clear();
 }
 
+void BaseNode::SetConfig(void* config) {
+    (void)config;
+    IMLOGE0("[SetConfig] Error - base method");
+}
+
+bool BaseNode::UpdateConfig(void* config) {
+    (void)config;
+    IMLOGE0("UpdateConfig] Error - base method");
+    return false;
+}
+
 void BaseNode::ProcessData() {
+    IMLOGE0("ProcessData] Error - base method");
 }
 
 const char* BaseNode::GetNodeName() {

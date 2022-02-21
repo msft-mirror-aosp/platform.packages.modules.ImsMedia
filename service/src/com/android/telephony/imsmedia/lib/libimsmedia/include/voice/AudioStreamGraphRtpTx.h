@@ -28,8 +28,8 @@ class AudioStreamGraphRtpTx : public BaseStreamGraph
 public:
     AudioStreamGraphRtpTx(BaseSessionCallback* callback, int localFd = 0);
     virtual ~AudioStreamGraphRtpTx();
-    virtual ImsMediaResult createGraph(RtpConfig* config);
-    virtual ImsMediaResult updateGraph(RtpConfig* config);
+    virtual ImsMediaResult createGraph(void* config);
+    virtual ImsMediaResult updateGraph(void* config);
     virtual bool isSameConfig(RtpConfig* config);
     void startDtmf(char digit, int volume, int duration);
     void stopDtmf();

@@ -39,7 +39,7 @@ public:
     virtual bool IsRunTime();
     virtual bool IsSourceNode();
     //ImsMediaResult ProcessCMR(uint32_t eNewAMRMode);
-    void SetRtpSessionParams(ImsMediaHal::RtpSessionParams* params);
+    virtual void SetConfig(void* config);
     void SetAttributeSource(android::content::AttributionSourceState& source);
     void SetCodec(eAudioCodecType eCodecType);
     void SetCodecMode(uint32_t mode);

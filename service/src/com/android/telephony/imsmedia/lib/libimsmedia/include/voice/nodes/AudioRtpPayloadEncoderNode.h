@@ -37,7 +37,7 @@ public:
     virtual void OnDataFromFrontNode(ImsMediaSubType subtype,
         uint8_t* pData, uint32_t nDataSize, uint32_t nTimestamp, bool bMark, uint32_t nSeqNum,
         ImsMediaSubType nDataType = ImsMediaSubType::MEDIASUBTYPE_UNDEFINED);
-    void SetRtpSessionParams(ImsMediaHal::RtpSessionParams* params);
+    virtual void SetConfig(void* config);
     void SetCodec(eAudioCodecType eCodecType);
     void SetPayloadMode(uint32_t mode);
     void SetPtime(uint32_t ptime);

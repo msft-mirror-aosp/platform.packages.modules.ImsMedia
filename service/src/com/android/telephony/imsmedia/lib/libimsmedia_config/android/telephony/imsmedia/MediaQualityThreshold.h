@@ -28,18 +28,28 @@ namespace telephony {
 
 namespace imsmedia {
 
+/** Native representation of android.telephony.imsmedia.MediaQualityThreshold */
 class MediaQualityThreshold : public Parcelable {
 public:
     MediaQualityThreshold();
     MediaQualityThreshold(Parcel& in);
     virtual ~MediaQualityThreshold();
+    MediaQualityThreshold& operator=(const MediaQualityThreshold& threshold);
+    bool operator==(const MediaQualityThreshold& threshold) const;
+    bool operator!=(const MediaQualityThreshold& threshold) const;
     virtual status_t writeToParcel(Parcel* parcel) const;
     virtual status_t readFromParcel(const Parcel* in);
+    void setRtpInactivityTimerMillis(int32_t time);
     int32_t getRtpInactivityTimerMillis();
+    void setRtcpInactivityTimerMillis(int32_t time);
     int32_t getRtcpInactivityTimerMillis();
+    void setRtpPacketLossDurationMillis(int32_t time);
     int32_t getRtpPacketLossDurationMillis();
+    void setRtpPacketLossRate(int32_t rate);
     int32_t getRtpPacketLossRate();
+    void setJitterDurationMillis(int32_t time);
     int32_t getJitterDurationMillis();
+    void setRtpJitterMillis(int32_t time);
     int32_t getRtpJitterMillis();
 
 private:

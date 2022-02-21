@@ -28,41 +28,74 @@ namespace telephony {
 
 namespace imsmedia {
 
+/** Native representation of android.telephony.imsmedia.EvsParams */
+
+/**
+ * The class represents EVS (Enhanced Voice Services) codec parameters.
+ */
 class EvsParams : public Parcelable {
 public:
     enum EvsMode {
+        /** 6.6 kbps for EVS AMR-WB IO */
         EVS_MODE_0,
+        /** 8.855 kbps for AMR-WB IO */
         EVS_MODE_1,
-        EVS_MODE_2,
-        EVS_MODE_3,
-        EVS_MODE_4,
-        EVS_MODE_5,
-        EVS_MODE_6,
-        EVS_MODE_7,
-        EVS_MODE_8,
-        EVS_MODE_9,
-        EVS_MODE_10,
-        EVS_MODE_11,
-        EVS_MODE_12,
-        EVS_MODE_13,
-        EVS_MODE_14,
-        EVS_MODE_15,
-        EVS_MODE_16,
-        EVS_MODE_17,
-        EVS_MODE_18,
-        EVS_MODE_19,
-        EVS_MODE_20,
+        /** 12.65 kbps for AMR-WB IO */
+        EVS_MODE_2 = 2,
+        /** 14.25 kbps for AMR-WB IO */
+        EVS_MODE_3 = 3,
+        /** 15.85 kbps for AMR-WB IO */
+        EVS_MODE_4 = 4,
+        /** 18.25 kbps for AMR-WB IO */
+        EVS_MODE_5 = 5,
+        /** 19.85 kbps for AMR-WB IO */
+        EVS_MODE_6 = 6,
+        /** 23.05 kbps for AMR-WB IO */
+        EVS_MODE_7 = 7,
+        /** 23.85 kbps for AMR-WB IO */
+        EVS_MODE_8 = 8,
+        /** 5.9 kbps for EVS primary */
+        EVS_MODE_9 = 9,
+        /** 7.2 kbps for EVS primary */
+        EVS_MODE_10 = 10,
+        /** 8.0 kbps for EVS primary */
+        EVS_MODE_11 = 11,
+        /** 9.6 kbps for EVS primary */
+        EVS_MODE_12 = 12,
+        /** 13.2 kbps for EVS primary */
+        EVS_MODE_13 = 13,
+        /** 16.4 kbps for EVS primary */
+        EVS_MODE_14 = 14,
+        /** 24.4 kbps for EVS primary */
+        EVS_MODE_15 = 15,
+        /** 32.0 kbps for EVS primary */
+        EVS_MODE_16 = 16,
+        /** 48.0 kbps for EVS primary */
+        EVS_MODE_17 = 17,
+        /** 64.0 kbps for EVS primary */
+        EVS_MODE_18 = 18,
+        /** 96.0 kbps for EVS primary */
+        EVS_MODE_19 = 19,
+        /** 128.0 kbps for EVS primary */
+        EVS_MODE_20 = 20,
     };
 
     EvsParams();
     EvsParams(EvsParams& params);
     virtual ~EvsParams();
+    EvsParams& operator=(const EvsParams& param);
+    bool operator==(const EvsParams& param) const;
+    bool operator!=(const EvsParams& param) const;
     virtual status_t writeToParcel(Parcel* parcel) const;
     virtual status_t readFromParcel(const Parcel* in);
+    void setEvsMode(int32_t mode);
     int32_t getEvsMode();
+    void setChannelAwareMode(int8_t mode);
     int8_t getChannelAwareMode();
+    void setUseHeaderFullOnlyOnTx(bool enable);
     bool getUseHeaderFullOnlyOnTx();
-    bool getMaxRedundancyMillis();
+    void setUseHeaderFullOnlyOnRx(bool enable);
+    bool getUseHeaderFullOnlyOnRx();
 
 private:
     /** mode-set: EVS codec mode to represent the bit rate */

@@ -21,7 +21,6 @@
 #include <StreamScheduler.h>
 #include <BaseNode.h>
 #include <BaseSessionCallback.h>
-#include <RtpConfig.h>
 #include <MediaQualityThreshold.h>
 #include <list>
 
@@ -30,8 +29,8 @@
  */
 class BaseStreamGraph {
 protected:
-    virtual ImsMediaResult createGraph(RtpConfig* config) = 0;
-    virtual ImsMediaResult updateGraph(RtpConfig* config) = 0;
+    virtual ImsMediaResult createGraph(void* config) = 0;
+    virtual ImsMediaResult updateGraph(void* config) = 0;
     virtual void AddNode(BaseNode* pNode, bool bReverse = true);
     virtual void RemoveNode(BaseNode* pNode);
     virtual ImsMediaResult startNodes();

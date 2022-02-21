@@ -33,9 +33,9 @@ AudioStreamGraphRtcp::~AudioStreamGraphRtcp() {
     }
 }
 
-ImsMediaResult AudioStreamGraphRtcp::createGraph(RtpConfig* config) {
+ImsMediaResult AudioStreamGraphRtcp::createGraph(void* config) {
     IMLOGD0("[createGraph]");
-    mConfig = new AudioConfig((AudioConfig*)config);
+    mConfig = new AudioConfig(reinterpret_cast<AudioConfig*>(config));
     BaseNode* pNodeRtcpEncoder = BaseNode::Load(BaseNodeID::NODEID_RTCPENCODER, mCallback);
     if (pNodeRtcpEncoder == NULL) return IMS_MEDIA_ERROR_UNKNOWN;
     pNodeRtcpEncoder->SetMediaType(IMS_MEDIA_AUDIO);
@@ -91,7 +91,7 @@ ImsMediaResult AudioStreamGraphRtcp::createGraph(RtpConfig* config) {
     return ImsMediaResult::IMS_MEDIA_OK;
 }
 
-ImsMediaResult AudioStreamGraphRtcp::updateGraph(RtpConfig* config)  {
+ImsMediaResult AudioStreamGraphRtcp::updateGraph(void* config)  {
     (void)config;
     //do it later
     return ImsMediaResult::IMS_MEDIA_OK;

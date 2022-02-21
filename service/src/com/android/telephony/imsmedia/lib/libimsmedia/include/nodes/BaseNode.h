@@ -27,7 +27,9 @@
 #define MAX_FRAME_IN_PACKET (MAX_AUDIO_PAYLOAD_SIZE - 1)/32
 
 enum BaseNodeState {
+    /* the state after stop method called normally*/
     NODESTATE_STOPPED,
+    /* the state after start without error*/
     NODESTATE_RUNNING,
 };
 
@@ -57,6 +59,8 @@ public:
     virtual void Stop() = 0;
     virtual bool IsRunTime() = 0;
     virtual bool IsSourceNode() = 0;
+    virtual void SetConfig(void* config);
+    virtual bool UpdateConfig(void* config);
     // Scheduler Interface
     virtual void ProcessData();
     const char* GetNodeName();

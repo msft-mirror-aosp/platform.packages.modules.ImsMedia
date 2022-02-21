@@ -82,9 +82,8 @@ bool IVoiceRendererNode::IsSourceNode() {
     return false;
 }
 
-void IVoiceRendererNode::SetRtpSessionParams(ImsMediaHal::RtpSessionParams* params) {
-    mSessionParams = std::make_shared<ImsMediaHal::RtpSessionParams>();
-    memcpy(mSessionParams.get(), params, sizeof(ImsMediaHal::RtpSessionParams));
+void IVoiceRendererNode::SetConfig(void* config) {
+    (void)config;
 }
 
 void IVoiceRendererNode::SetCodec(eAudioCodecType eCodecType) {

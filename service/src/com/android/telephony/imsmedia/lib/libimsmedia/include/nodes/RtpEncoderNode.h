@@ -30,15 +30,17 @@ private:
 public:
     static BaseNode* GetInstance();
     static void ReleaseInstance(BaseNode* pNode);
+    //BaseNode methods
     virtual BaseNodeID GetNodeID();
     virtual ImsMediaResult Start();
     virtual void Stop();
     virtual void ProcessData();
     virtual bool IsRunTime();
     virtual bool IsSourceNode();
-
+    virtual void SetConfig(void* config);
+    virtual bool UpdateConfig(void* config);
+    //IRtpEncoderListener method
     virtual void OnRtpPacket(unsigned char* pData, uint32_t nSize);
-    void SetRtpSessionParams(ImsMediaHal::RtpSessionParams* params);
     void SetLocalAddress(const RtpAddress address);
     void SetPeerAddress(const RtpAddress address);
 

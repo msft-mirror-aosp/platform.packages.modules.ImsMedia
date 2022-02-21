@@ -30,13 +30,19 @@ namespace telephony {
 
 namespace imsmedia {
 
+/** Native representation of android.telephony.imsmedia.AudioConfig */
 class AudioConfig : public RtpConfig {
 public:
     enum CodecType {
+        /** Adaptive Multi-Rate */
         CODEC_AMR,
+        /** Adaptive Multi-Rate Wide Band */
         CODEC_AMR_WB,
+        /** Enhanced Voice Services */
         CODEC_EVS,
+        /** G.711 A-law i.e. Pulse Code Modulation using A-law */
         CODEC_PCMA,
+        /** G.711 μ-law i.e. Pulse Code Modulation using μ-law */
         CODEC_PCMU,
     };
     enum EvsBandwidth {
@@ -51,20 +57,33 @@ public:
     AudioConfig(AudioConfig* config);
     AudioConfig(AudioConfig& config);
     virtual ~AudioConfig();
+    AudioConfig& operator=(const AudioConfig& config);
+    bool operator==(const AudioConfig &config) const;
+    bool operator!=(const AudioConfig &config) const;
     virtual status_t writeToParcel(Parcel* parcel) const;
     virtual status_t readFromParcel(const Parcel* in);
+    void setPtimeMillis(int8_t ptime);
     int8_t getPtimeMillis();
+    void setMaxPtimeMillis(int8_t maxPtime);
     int8_t getMaxPtimeMillis();
+    void setTxCodecModeRequest(int8_t cmr);
     int8_t getTxCodecModeRequest();
+    void setDtxEnabled(bool enable);
     bool getDtxEnabled();
+    void setCodecType(int32_t type);
     int32_t getCodecType();
+    void setEvsBandwidth(int32_t bandwidth);
     int32_t getEvsBandwidth();
+    void setDtmfPayloadTypeNumber(int32_t num);
     int32_t getDtmfPayloadTypeNumber();
+    void setDtmfsamplingRateKHz(int32_t sampling);
     int32_t getDtmfsamplingRateKHz();
+    void setAmrParams(const AmrParams& param);
     AmrParams getAmrParams();
+    void setEvsParams(const EvsParams& param);
     EvsParams getEvsParams();
 
-private:
+protected:
     int8_t pTimeMillis;
     int8_t maxPtimeMillis;
     int8_t txCodecModeRequest;

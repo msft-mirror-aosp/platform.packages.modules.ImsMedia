@@ -28,8 +28,8 @@ class AudioStreamGraphRtpRx : public BaseStreamGraph
 public:
     AudioStreamGraphRtpRx(BaseSessionCallback* callback, int localFd = 0);
     virtual ~AudioStreamGraphRtpRx();
-    virtual ImsMediaResult createGraph(RtpConfig* config);
-    virtual ImsMediaResult updateGraph(RtpConfig* config);
+    virtual ImsMediaResult createGraph(void* config);
+    virtual ImsMediaResult updateGraph(void* config);
     virtual void setMediaQualityThreshold(const MediaQualityThreshold& threshold);
     virtual bool isSameConfig(RtpConfig* config);
 

@@ -16,6 +16,7 @@
 
 #include <RtpDecoderNode.h>
 #include <ImsMediaTrace.h>
+#include <AudioConfig.h>
 
 RtpDecoderNode::RtpDecoderNode() {
     mRtpSession = NULL;
@@ -116,9 +117,28 @@ void RtpDecoderNode::OnMediaDataInd(unsigned char* pData, uint32_t nDataSize, ui
         nTimestamp, bMark, nSeqNum);
 }
 
-void RtpDecoderNode::SetRtpSessionParams(ImsMediaHal::RtpSessionParams* params) {
-    mSessionParams = std::make_shared<ImsMediaHal::RtpSessionParams>();
-    memcpy(mSessionParams.get(), params, sizeof(ImsMediaHal::RtpSessionParams));
+void RtpDecoderNode::SetConfig(void* config) {
+    IMLOGD0("[SetConfig]");
+
+    if (config == NULL) return;
+
+    AudioConfig *pConfig = reinterpret_cast<AudioConfig*>(config);
+
+    IMLOGD2("[SetConfig] peer Ip[%s], port[%d]", pConfig->getRemoteAddress().c_str(),
+        pConfig->getRemotePort());
+}
+
+bool RtpDecoderNode::UpdateConfig(void* config) {
+    IMLOGD0("UpdateConfig]");
+
+    if (config == NULL) return false;
+
+    AudioConfig *pConfig = reinterpret_cast<AudioConfig*>(config);
+
+    IMLOGD2("UpdateConfig] peer Ip[%s], port[%d]", pConfig->getRemoteAddress().c_str(),
+        pConfig->getRemotePort());
+
+    return false;
 }
 
 void RtpDecoderNode::SetLocalAddress(const RtpAddress address) {

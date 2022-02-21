@@ -44,7 +44,8 @@ public:
     virtual void OnMediaDataInd(unsigned char* pData, uint32_t nDataSize,
         uint32_t nTimestamp, bool bMark, uint16_t nSeqNum,
         uint32_t nPayloadType, uint32_t nSSRC, bool bExtension, uint16_t nExtensionData);
-    void SetRtpSessionParams(ImsMediaHal::RtpSessionParams* params);
+    virtual void SetConfig(void* config);
+    virtual bool UpdateConfig(void* config);
     void SetLocalAddress(const RtpAddress address);
     void SetPeerAddress(const RtpAddress address);
     void SetSamplingRate(const uint32_t data);

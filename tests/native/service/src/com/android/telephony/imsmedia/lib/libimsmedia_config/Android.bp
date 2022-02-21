@@ -1,0 +1,19 @@
+cc_test {
+    name: "ImsMediaNativeConfigTests",
+    srcs: [
+        "**/*.cpp",
+    ],
+    test_suites: [
+        "device-tests"
+    ],
+    shared_libs: [
+        "libimsmedia_config",
+        "libbinder",
+        "libutils",
+    ],
+    header_libs: [
+        "libimsmedia_config_headers"
+    ],
+    test_config: "imsmedia_config_tests.xml",
+    enabled: true,
+}

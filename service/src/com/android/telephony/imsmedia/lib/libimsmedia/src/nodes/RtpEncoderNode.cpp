@@ -17,6 +17,7 @@
 #include <RtpEncoderNode.h>
 #include <ImsMediaTimer.h>
 #include <ImsMediaTrace.h>
+#include <AudioConfig.h>
 #include <string.h>
 
 #ifdef DEBUG_JITTER_GEN_SIMULATION_DELAY
@@ -174,6 +175,30 @@ bool RtpEncoderNode::IsSourceNode() {
     return false;
 }
 
+void RtpEncoderNode::SetConfig(void* config) {
+    IMLOGD0("[SetConfig]");
+
+    if (config == NULL) return;
+
+    AudioConfig *pConfig = reinterpret_cast<AudioConfig*>(config);
+
+    IMLOGD2("[SetConfig] peer Ip[%s], port[%d]", pConfig->getRemoteAddress().c_str(),
+        pConfig->getRemotePort());
+}
+
+bool RtpEncoderNode::UpdateConfig(void* config) {
+    IMLOGD0("UpdateConfig]");
+
+    if (config == NULL) return false;
+
+    AudioConfig *pConfig = reinterpret_cast<AudioConfig*>(config);
+
+    IMLOGD2("UpdateConfig] peer Ip[%s], port[%d]", pConfig->getRemoteAddress().c_str(),
+        pConfig->getRemotePort());
+
+    return false;
+}
+
 //IRtpEncoderListener
 void RtpEncoderNode::OnRtpPacket(unsigned char* pData, uint32_t nSize) {
 #ifdef DEBUG_JITTER_GEN_SIMULATION_LOSS
@@ -260,11 +285,6 @@ void RtpEncoderNode::OnRtpPacket(unsigned char* pData, uint32_t nSize) {
     SendDataToRearNode(MEDIASUBTYPE_RTPPACKET, pData, nSize, 0, 0, 0);
 #endif
 #endif
-}
-
-void RtpEncoderNode::SetRtpSessionParams(ImsMediaHal::RtpSessionParams* params) {
-    mSessionParams = std::make_shared<ImsMediaHal::RtpSessionParams>();
-    memcpy(mSessionParams.get(), params, sizeof(ImsMediaHal::RtpSessionParams));
 }
 
 void RtpEncoderNode::SetLocalAddress(const RtpAddress address) {

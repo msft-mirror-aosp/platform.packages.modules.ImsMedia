@@ -26,9 +26,9 @@ AudioStreamGraphRtpRx::AudioStreamGraphRtpRx(BaseSessionCallback* callback, int 
 AudioStreamGraphRtpRx::~AudioStreamGraphRtpRx() {
 }
 
-ImsMediaResult AudioStreamGraphRtpRx::createGraph(RtpConfig* config) {
+ImsMediaResult AudioStreamGraphRtpRx::createGraph(void* config) {
     IMLOGD0("[createGraph]");
-    mConfig = new AudioConfig((AudioConfig*)config);
+    mConfig = new AudioConfig(reinterpret_cast<AudioConfig*>(config));
 
     BaseNode* pNodeSocketReader = BaseNode::Load(BaseNodeID::NODEID_SOCKETREADER, mCallback);
     if (pNodeSocketReader == NULL) return IMS_MEDIA_ERROR_UNKNOWN;
@@ -82,7 +82,7 @@ ImsMediaResult AudioStreamGraphRtpRx::createGraph(RtpConfig* config) {
     return ImsMediaResult::IMS_MEDIA_OK;
 }
 
-ImsMediaResult AudioStreamGraphRtpRx::updateGraph(RtpConfig* config) {
+ImsMediaResult AudioStreamGraphRtpRx::updateGraph(void* config) {
     IMLOGD0("[updateGraph]");
     (void)config;
     return ImsMediaResult::IMS_MEDIA_OK;

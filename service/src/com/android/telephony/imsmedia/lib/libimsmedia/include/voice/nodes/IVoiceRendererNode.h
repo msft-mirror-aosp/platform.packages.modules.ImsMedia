@@ -41,7 +41,7 @@ public:
     virtual void Stop();
     virtual bool IsRunTime();
     virtual bool IsSourceNode();
-    void SetRtpSessionParams(ImsMediaHal::RtpSessionParams* params);
+    virtual void SetConfig(void* config);
     void SetCodec(eAudioCodecType eCodecType);
     void SetCodecMode(uint32_t mode);
     virtual void* run();

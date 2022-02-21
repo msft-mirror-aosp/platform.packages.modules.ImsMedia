@@ -28,27 +28,47 @@ namespace telephony {
 
 namespace imsmedia {
 
+/** Native representation of android.telephony.imsmedia.AmrParams */
+
+/**
+ * The class represents AMR (Adaptive Multi-Rate) codec parameters.
+ */
 class AmrParams : public Parcelable {
 public:
     enum AmrMode {
+        /** 4.75 kbps for AMR / 6.6 kbps for AMR-WB */
         AMR_MODE_0,
+        /** 5.15 kbps for AMR / 8.855 kbps for AMR-WB */
         AMR_MODE_1,
+        /** 5.9 kbps for AMR / 12.65 kbps for AMR-WB */
         AMR_MODE_2,
+        /** 6.7 kbps for AMR / 14.25 kbps for AMR-WB */
         AMR_MODE_3,
+        /** 7.4 kbps for AMR / 15.85 kbps for AMR-WB */
         AMR_MODE_4,
+        /** 7.95 kbps for AMR / 18.25 kbps for AMR-WB */
         AMR_MODE_5,
+        /** 10.2 kbps for AMR / 19.85 kbps for AMR-WB */
         AMR_MODE_6,
+        /** 12.2 kbps for AMR / 23.05 kbps for AMR-WB */
         AMR_MODE_7,
+        /** Silence frame for AMR / 23.85 kbps for AMR-WB */
         AMR_MODE_8,
     };
 
     AmrParams();
-    AmrParams(AmrParams& config);
+    AmrParams(AmrParams& param);
     virtual ~AmrParams();
+    AmrParams& operator=(const AmrParams& param);
+    bool operator==(const AmrParams& param) const;
+    bool operator!=(const AmrParams& param) const;
     virtual status_t writeToParcel(Parcel* parcel) const;
     virtual status_t readFromParcel(const Parcel* in);
+    void setAmrMode(int32_t mode);
     int32_t getAmrMode();
+    void setOctetAligned(bool enable);
     bool getOctetAligned();
+    void setMaxRedundancyMillis(int32_t value);
     int32_t getMaxRedundancyMillis();
 
 private:

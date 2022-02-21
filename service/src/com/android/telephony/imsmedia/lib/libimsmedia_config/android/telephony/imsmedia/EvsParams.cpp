@@ -22,13 +22,16 @@ namespace telephony {
 
 namespace imsmedia {
 
+/** Native representation of android.telephony.imsmedia.EvsParams */
 EvsParams::EvsParams() {
+    this->evsMode = 0;
     this->channelAwareMode = 0;
     this->useHeaderFullOnlyOnTx = false;
     this->useHeaderFullOnlyOnRx = false;
 }
 
 EvsParams::EvsParams(EvsParams& params) {
+    this->evsMode = params.evsMode;
     this->channelAwareMode = params.channelAwareMode;
     this->useHeaderFullOnlyOnTx = params.useHeaderFullOnlyOnTx;
     this->useHeaderFullOnlyOnRx = params.useHeaderFullOnlyOnRx;
@@ -38,8 +41,54 @@ EvsParams::~EvsParams() {
 
 }
 
-status_t EvsParams::writeToParcel(Parcel* parcel) const {
-    (void)parcel;
+EvsParams& EvsParams::operator=(const EvsParams& param) {
+    this->evsMode = param.evsMode;
+    this->channelAwareMode = param.channelAwareMode;
+    this->useHeaderFullOnlyOnTx = param.useHeaderFullOnlyOnTx;
+    this->useHeaderFullOnlyOnRx = param.useHeaderFullOnlyOnRx;
+    return *this;
+}
+
+bool EvsParams::operator==(const EvsParams& param) const {
+    return (this->evsMode == param.evsMode
+        && this->channelAwareMode == param.channelAwareMode
+        && this->useHeaderFullOnlyOnTx == param.useHeaderFullOnlyOnTx
+        && this->useHeaderFullOnlyOnRx == param.useHeaderFullOnlyOnRx);
+}
+
+bool EvsParams::operator!=(const EvsParams& param) const {
+    return (this->evsMode != param.evsMode
+        || this->channelAwareMode != param.channelAwareMode
+        || this->useHeaderFullOnlyOnTx != param.useHeaderFullOnlyOnTx
+        || this->useHeaderFullOnlyOnRx != param.useHeaderFullOnlyOnRx);
+}
+
+status_t EvsParams::writeToParcel(Parcel* out) const {
+    status_t err;
+    err = out->writeInt32(evsMode);
+    if (err != NO_ERROR) {
+        return err;
+    }
+
+    err = out->writeByte(channelAwareMode);
+    if (err != NO_ERROR) {
+        return err;
+    }
+
+    int32_t value = 0;
+    useHeaderFullOnlyOnTx ? value = 1 : value = 0;
+    err = out->writeInt32(value);
+    if (err != NO_ERROR) {
+        return err;
+    }
+
+    useHeaderFullOnlyOnRx ? value = 1 : value = 0;
+
+    err = out->writeInt32(value);
+    if (err != NO_ERROR) {
+        return err;
+    }
+
     return NO_ERROR;
 }
 
@@ -69,23 +118,38 @@ status_t EvsParams::readFromParcel(const Parcel* in) {
     }
 
     value == 0 ? useHeaderFullOnlyOnRx = false : useHeaderFullOnlyOnRx = true;
-
     return NO_ERROR;
+}
+
+void EvsParams::setEvsMode(int32_t mode) {
+    evsMode = mode;
 }
 
 int32_t EvsParams::getEvsMode() {
     return evsMode;
 }
 
+void EvsParams::setChannelAwareMode(int8_t mode) {
+    channelAwareMode = mode;
+}
+
 int8_t EvsParams::getChannelAwareMode() {
     return channelAwareMode;
+}
+
+void EvsParams::setUseHeaderFullOnlyOnTx(bool enable) {
+    useHeaderFullOnlyOnTx = enable;
 }
 
 bool EvsParams::getUseHeaderFullOnlyOnTx() {
     return useHeaderFullOnlyOnTx;
 }
 
-bool EvsParams::getMaxRedundancyMillis() {
+void EvsParams::setUseHeaderFullOnlyOnRx(bool enable) {
+    useHeaderFullOnlyOnRx = enable;
+}
+
+bool EvsParams::getUseHeaderFullOnlyOnRx() {
     return useHeaderFullOnlyOnRx;
 }
 
