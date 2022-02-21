@@ -271,6 +271,8 @@ RtpDt_UInt16 GetCVOXHdrLen(eRtp_Bool bEnableCVO)
 
 GLOBAL eRtp_Bool IMS_RtpSvc_Initialize()
 {
+    //Enable RTP Stack trace debug log
+    RtpTrace::RTPSetDebugLog(RTP_PACKET_LOG_RTPSTACK);
 
     if(g_pobjRtpStack==RTP_NULL)
     {
