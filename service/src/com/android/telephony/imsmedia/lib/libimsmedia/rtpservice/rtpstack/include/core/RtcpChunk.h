@@ -22,9 +22,9 @@
 #define __RTCP_CHUNK_H__
 
 #include <RtpGlobal.h>
-#include <RtpList.h>
 #include <RtcpConfigInfo.h>
 #include <RtpBuffer.h>
+#include <list>
 
 /**
  * @class RtcpChunk
@@ -35,7 +35,7 @@ class RtcpChunk
 {
     private:
         RtpDt_UInt32    m_uiSsrc;
-        RtpList m_objSdesItem;
+        std::list<tRTCP_SDES_ITEM *> m_stSdesItemList;
 
     public:
         RtcpChunk();
@@ -52,9 +52,9 @@ class RtcpChunk
         RtpDt_UInt32 getSsrc();
 
         /**
-         * get method for m_objSdesItem
+         * get method for m_stSdesItemList
          */
-        RtpList* getSdesItemList();
+        std::list<tRTCP_SDES_ITEM *>& getSdesItemList();
 
         /**
          * Decodes and stores the information of the RTCP CHUNKS

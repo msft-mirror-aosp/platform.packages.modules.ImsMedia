@@ -22,7 +22,6 @@
 #define __RTP_ACTIVE_SESSIONDB_H__
 
 #include <RtpGlobal.h>
-#include <RtpList.h>
 #include <list>
 
 /**
@@ -36,7 +35,7 @@ class RtpActiveSessionDb
         static RtpActiveSessionDb* m_pInstance;
 
         // It maintains the list of active rtp sessions
-        std::list<RtpDt_Void*> m_list;
+        std::list<RtpDt_Void*> m_objActiveSessionList;
 
         // constructor
         RtpActiveSessionDb();

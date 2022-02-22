@@ -21,9 +21,9 @@ RtpActiveSessionDb* RtpActiveSessionDb::m_pInstance = RTP_NULL;
 
 
 // constructor
-RtpActiveSessionDb::RtpActiveSessionDb()
+RtpActiveSessionDb::RtpActiveSessionDb():
+    m_objActiveSessionList(std::list<RtpDt_Void*>())
 {
-
 }
 
 // destructor
@@ -44,7 +44,7 @@ RtpActiveSessionDb* RtpActiveSessionDb::getInstance()
 // add rtp session
 eRtp_Bool RtpActiveSessionDb::addRtpSession(IN RtpDt_Void* pvData)
 {
-    m_list.push_back(pvData);
+    m_objActiveSessionList.push_back(pvData);
     return eRTP_SUCCESS;
 }
 
@@ -54,14 +54,14 @@ eRtp_Bool RtpActiveSessionDb::validateRtpSession(IN RtpDt_Void* pvData,
 {
     *pusPosition = RTP_ZERO;
     RtpDt_UInt16 usPos = RTP_ZERO;
-    for (auto&i:m_list)
+    for (auto&pobjActiveSession:m_objActiveSessionList)
     {
-        if(i == RTP_NULL)
+        if(pobjActiveSession == RTP_NULL)
         {
             return eRTP_FALSE;
         }
 
-        if(i == pvData)
+        if(pobjActiveSession == pvData)
         {
             *pusPosition = usPos;
             return eRTP_TRUE;
@@ -75,6 +75,6 @@ eRtp_Bool RtpActiveSessionDb::validateRtpSession(IN RtpDt_Void* pvData,
 // it deletes the rtp session pointer from db
 eRtp_Bool RtpActiveSessionDb::deleteRtpSession(IN RtpDt_Void* pvData)
 {
-    m_list.remove(pvData);
+    m_objActiveSessionList.remove(pvData);
     return eRTP_TRUE;
 }

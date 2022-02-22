@@ -19,99 +19,42 @@
 #include <RtpError.h>
 #include <RtpSession.h>
 
-eRtp_Bool Rtp_FreeSRElm(IN RtpDt_Void **ppObj)
-{
-    RtcpSrPacket *pobjSrPkt = RTP_STATIC_CAST(RtcpSrPacket*,*ppObj);
-    delete pobjSrPkt;
-
-    return eRTP_TRUE;
-}
-
-eRtp_Bool Rtp_CompareRtpSRElm(IN RtpDt_Void *pvNode1,
-                                     IN RtpDt_Void *pvNode2)
-{
-    (RtpDt_Void)pvNode1, (RtpDt_Void)pvNode2;
-    return eRTP_TRUE;
-}
-
-eRtp_Bool Rtp_FreeRRElm(IN RtpDt_Void **ppObj)
-{
-    RtcpRrPacket *pobjRrPkt = RTP_STATIC_CAST(RtcpRrPacket*,*ppObj);
-    delete pobjRrPkt;
-
-    return eRTP_TRUE;
-}
-
-eRtp_Bool Rtp_CompareRtpRRElm(IN RtpDt_Void *pvNode1,
-                                     IN RtpDt_Void *pvNode2)
-{
-    (RtpDt_Void)pvNode1, (RtpDt_Void)pvNode2;
-
-    return eRTP_TRUE;
-}
-
-eRtp_Bool Rtp_FreeFBElm(IN RtpDt_Void **ppObj)
-{
-
-    RtcpFbPacket *pobjFbPkt = RTP_STATIC_CAST(RtcpFbPacket*,*ppObj);
-    delete pobjFbPkt;
-
-    return eRTP_TRUE;
-}
-
-eRtp_Bool Rtp_CompareRtpFBElm(IN RtpDt_Void *pvNode1,
-                                     IN RtpDt_Void *pvNode2)
-{
-
-    //remove warnings
-    (RtpDt_Void)pvNode1;
-    (RtpDt_Void)pvNode2;
-
-    return eRTP_TRUE;
-}
-
 RtcpPacket::RtcpPacket():
-                    m_pobjSdesPkt(RTP_NULL),
-                    m_pobjByePkt(RTP_NULL),
-                    m_pobjAppPkt(RTP_NULL),
-                    m_pobjRtcpFbPkt(RTP_NULL),
-                    m_pobjRtcpXrPkt(RTP_NULL)
+    m_objSrPktList(std::list<RtcpSrPacket *>()),
+    m_objRrPktList(std::list<RtcpRrPacket *>()),
+    m_objFbPktList(std::list<RtcpFbPacket *>()),
+    m_pobjSdesPkt(RTP_NULL),
+    m_pobjByePkt(RTP_NULL),
+    m_pobjAppPkt(RTP_NULL),
+    m_pobjRtcpFbPkt(RTP_NULL),
+    m_pobjRtcpXrPkt(RTP_NULL)
 
 {
-    m_objSrPkt.InitList(Rtp_FreeSRElm,Rtp_CompareRtpSRElm);
-    m_objRrPkt.InitList(Rtp_FreeRRElm, Rtp_CompareRtpRRElm);
-    m_objFbPkt.InitList(Rtp_FreeFBElm, Rtp_CompareRtpFBElm);
 }// Constructor
 
 
 RtcpPacket::~RtcpPacket()
 {
-    RtpDt_UInt16 usSize = RTP_ZERO;
-    RtpDt_UInt16 usError = RTP_ZERO;
-
     //delete all RtcpSrPacket objects.
-    m_objSrPkt.GetSize(&usSize, &usError);
-    for(RtpDt_UInt16 usCount = RTP_ZERO;usCount < usSize;
-        usCount = usCount + RTP_ONE)
+    for(auto&pobjSrPkt:m_objSrPktList)
     {
-        m_objSrPkt.DeleteAtPos(RTP_ZERO, &usError);
+        delete pobjSrPkt;
     }
+    m_objSrPktList.clear();
 
     //delete all RtcpRrPacket objects
-    m_objRrPkt.GetSize(&usSize, &usError);
-    for(RtpDt_UInt16 usCount = RTP_ZERO;usCount < usSize;
-        usCount = usCount + RTP_ONE)
+    for(auto&pobjRrPkt:m_objRrPktList)
     {
-        m_objRrPkt.DeleteAtPos(RTP_ZERO, &usError);
+        delete pobjRrPkt;
     }
+    m_objRrPktList.clear();
 
     //delete all RtcpFbPacket objects
-    m_objFbPkt.GetSize(&usSize, &usError);
-    for(RtpDt_UInt16 usCount = RTP_ZERO;usCount < usSize;
-        usCount = usCount + RTP_ONE)
+    for(auto&pobjFbPkt:m_objFbPktList)
     {
-        m_objFbPkt.DeleteAtPos(RTP_ZERO, &usError);
+        delete pobjFbPkt;
     }
+    m_objFbPktList.clear();
 
     if(m_pobjSdesPkt != RTP_NULL)
     {
@@ -141,19 +84,19 @@ RtcpPacket::~RtcpPacket()
     }
 } //Destructor
 
-RtpList* RtcpPacket::getSrPacketList()
+std::list<RtcpSrPacket *>& RtcpPacket::getSrPacketList()
 {
-    return &m_objSrPkt;
+    return m_objSrPktList;
 }
 
-RtpList* RtcpPacket::getRrPacketList()
+std::list<RtcpRrPacket *>& RtcpPacket::getRrPacketList()
 {
-    return &m_objRrPkt;
+    return m_objRrPktList;
 }
 
-RtpList* RtcpPacket::getFbPacketList()
+std::list<RtcpFbPacket *>& RtcpPacket::getFbPacketList()
 {
-    return &m_objFbPkt;
+    return m_objFbPktList;
 }
 
 RtcpSdesPacket* RtcpPacket::getSdesPacket()
@@ -196,25 +139,33 @@ RtpDt_Void RtcpPacket::setRtcpFbPktData(IN RtcpFbPacket* pobjRtcpFbData)
     m_pobjRtcpFbPkt = pobjRtcpFbData;
 }
 
-eRTP_STATUS_CODE RtcpPacket::addRrPacketData(IN RtcpRrPacket *pobjRrPkt)
+eRTP_STATUS_CODE RtcpPacket::addSrPacketData(IN RtcpSrPacket *pobjSrPkt)
 {
-    RtpDt_UInt16 usError = RTP_ZERO;
-    m_objRrPkt.Append(pobjRrPkt, &usError);
-    if(usError == ERR_MALLOC_FAILED)
+    if (pobjSrPkt == RTP_NULL)
     {
-        return RTP_MEMORY_FAIL;
+        return RTP_FAILURE;
     }
+    m_objSrPktList.push_back(pobjSrPkt);
     return RTP_SUCCESS;
 }
 
-eRTP_STATUS_CODE RtcpPacket::addSrPacketData(IN RtcpSrPacket *pobjSrPkt)
+eRTP_STATUS_CODE RtcpPacket::addRrPacketData(IN RtcpRrPacket *pobjRrPkt)
 {
-    RtpDt_UInt16 usError = RTP_ZERO;
-    m_objSrPkt.Append(pobjSrPkt, &usError);
-    if(usError == ERR_MALLOC_FAILED)
+    if (pobjRrPkt == RTP_NULL)
     {
-        return RTP_MEMORY_FAIL;
+        return RTP_FAILURE;
     }
+    m_objRrPktList.push_back(pobjRrPkt);
+    return RTP_SUCCESS;
+}
+
+eRTP_STATUS_CODE RtcpPacket::addFbPacketData(IN RtcpFbPacket *pobjFbPkt)
+{
+    if (pobjFbPkt == RTP_NULL)
+    {
+        return RTP_FAILURE;
+    }
+    m_objFbPktList.push_back(pobjFbPkt);
     return RTP_SUCCESS;
 }
 
@@ -226,17 +177,6 @@ RtcpXrPacket* RtcpPacket::getXrPacket()
 RtpDt_Void RtcpPacket::setXrPktData(IN RtcpXrPacket* pobjRtcpXrData)
 {
     m_pobjRtcpXrPkt = pobjRtcpXrData;
-}
-
-eRTP_STATUS_CODE RtcpPacket::addFbPacketData(IN RtcpFbPacket *pobjFbPkt)
-{
-    RtpDt_UInt16 usError = RTP_ZERO;
-    m_objFbPkt.Append(pobjFbPkt, &usError);
-    if(usError == ERR_MALLOC_FAILED)
-    {
-        return RTP_MEMORY_FAIL;
-    }
-    return RTP_SUCCESS;
 }
 
 eRTP_STATUS_CODE RtcpPacket::decodeRtcpPacket(IN RtpBuffer* pobjRtcpPktBuf,
@@ -417,15 +357,10 @@ eRTP_STATUS_CODE RtcpPacket::decodeRtcpPacket(IN RtpBuffer* pobjRtcpPktBuf,
 
 eRTP_STATUS_CODE RtcpPacket::formRtcpPacket(OUT RtpBuffer* pobjRtcpPktBuf)
 {
-    RtpDt_UInt16 usSrSize = RTP_ZERO;
-    RtpDt_UInt16 usRrSize = RTP_ZERO;
-    RtpDt_UInt16 usError = RTP_ZERO;
-
+    RtpDt_UInt16 usSrSize = m_objSrPktList.size();
+    RtpDt_UInt16 usRrSize = m_objRrPktList.size();
 
     pobjRtcpPktBuf->setLength(RTP_ZERO);
-    m_objSrPkt.GetSize(&usSrSize, &usError);
-    m_objRrPkt.GetSize(&usRrSize, &usError);
-
 
     if((m_pobjRtcpFbPkt == RTP_NULL) && (usSrSize == RTP_ZERO)
         && (usRrSize == RTP_ZERO) && (m_pobjByePkt == RTP_NULL))
@@ -447,16 +382,9 @@ eRTP_STATUS_CODE RtcpPacket::formRtcpPacket(OUT RtpBuffer* pobjRtcpPktBuf)
 
     eRTP_STATUS_CODE eEncodeRes = RTP_FAILURE;
 
-    for(RtpDt_UInt32 uiCount=RTP_ZERO; uiCount < usSrSize; uiCount++)
+    for(auto&pobjSrPkt:m_objSrPktList)
     {
-        RtpDt_Void    *pvElement = RTP_NULL;
-        RtcpSrPacket *pobjSrPkt = RTP_NULL;
-
         //get key material element from list.
-        m_objSrPkt.GetElement(uiCount, &pvElement, &usError);
-        //typecast to RtcpSrPacket
-        pobjSrPkt = RTP_STATIC_CAST(RtcpSrPacket*,pvElement);
-
         eEncodeRes = pobjSrPkt->formSrPacket(pobjRtcpPktBuf);
         if(eEncodeRes != RTP_SUCCESS)
         {
@@ -464,19 +392,11 @@ eRTP_STATUS_CODE RtcpPacket::formRtcpPacket(OUT RtpBuffer* pobjRtcpPktBuf)
                 RTP_ZERO,RTP_ZERO);
             return eEncodeRes;
         }
-
     }
 
-    for(RtpDt_UInt32 uiCount=RTP_ZERO; uiCount < usRrSize; uiCount++)
+    for(auto&pobjRrPkt:m_objRrPktList)
     {
-        RtpDt_Void    *pvElement = RTP_NULL;
-        RtcpRrPacket *pobjRrPkt = RTP_NULL;
-
         //get key material element from list.
-        m_objRrPkt.GetElement(uiCount, &pvElement, &usError);
-        //typecast to RtcpRrPacket
-        pobjRrPkt = RTP_STATIC_CAST(RtcpRrPacket*,pvElement);
-
         eEncodeRes = pobjRrPkt->formRrPacket(pobjRtcpPktBuf, eRTP_TRUE);
         if(eEncodeRes != RTP_SUCCESS)
         {

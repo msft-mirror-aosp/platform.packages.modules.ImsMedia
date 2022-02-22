@@ -20,46 +20,25 @@
 
 #include <stdio.h>
 
-eRtp_Bool Rtp_ReleaseSdesItem(IN RtpDt_Void **ppObj)
-{
-    tRTCP_SDES_ITEM *pstChunkItem = RTP_NULL;
-    pstChunkItem = RTP_STATIC_CAST(tRTCP_SDES_ITEM*,*ppObj);
-    if(pstChunkItem->pValue != RTP_NULL)
-    {
-        delete[] pstChunkItem->pValue;
-    }
-    delete pstChunkItem;
-    return eRTP_SUCCESS;
-}
-
-eRtp_Bool Rtp_CompareSDesItem(IN RtpDt_Void *pvNode1,
-                                     IN RtpDt_Void *pvNode2)
-{
-    (RtpDt_Void)pvNode1, (RtpDt_Void)pvNode2;
-    return eRTP_TRUE;
-}
-
 RtcpChunk::RtcpChunk():
-                m_uiSsrc(RTP_ZERO)
+    m_uiSsrc(RTP_ZERO),
+    m_stSdesItemList(std::list<tRTCP_SDES_ITEM *>())
 {
-    //initialize the tRTCP_SDES_ITEM list
 
-    m_objSdesItem.InitList(Rtp_ReleaseSdesItem,
-                            Rtp_CompareSDesItem);
 }
 
 RtcpChunk::~RtcpChunk()
 {
-    RtpDt_UInt16 usSize = RTP_ZERO;
-    RtpDt_UInt16 usError = RTP_ZERO;
 
-    //m_objSdesItem
-    m_objSdesItem.GetSize(&usSize, &usError);
-    for(RtpDt_UInt16 usCount = RTP_ZERO;usCount < usSize;
-        usCount = usCount + RTP_ONE)
+    for(auto&pstSdesItem:m_stSdesItemList)
     {
-        m_objSdesItem.DeleteAtPos(RTP_ZERO, &usError);
+	    if(pstSdesItem->pValue != RTP_NULL)
+        {
+            delete[] pstSdesItem->pValue;
+        }
+        delete pstSdesItem;
     }
+    m_stSdesItemList.clear();
 }
 
 RtpDt_Void RtcpChunk::setSsrc(IN RtpDt_UInt32 uiSsrc)
@@ -72,9 +51,9 @@ RtpDt_UInt32 RtcpChunk::getSsrc()
     return m_uiSsrc;
 }
 
-RtpList* RtcpChunk::getSdesItemList()
+std::list<tRTCP_SDES_ITEM *>& RtcpChunk::getSdesItemList()
 {
-    return &m_objSdesItem;
+    return m_stSdesItemList;
 }
 
 eRTP_STATUS_CODE RtcpChunk::decodeRtcpChunk(IN RtpDt_UChar* pucChunkBuf,
@@ -94,9 +73,6 @@ eRTP_STATUS_CODE RtcpChunk::decodeRtcpChunk(IN RtpDt_UChar* pucChunkBuf,
 
     while(uiSdesItemCnt > RTP_ZERO)
     {
-        RtpDt_UInt16    usError;
-        RtpDt_UChar    *pcSdesBuf = RTP_NULL;
-
         pstSdesItem = new tRTCP_SDES_ITEM();
         if(pstSdesItem == RTP_NULL)
         {
@@ -124,7 +100,7 @@ eRTP_STATUS_CODE RtcpChunk::decodeRtcpChunk(IN RtpDt_UChar* pucChunkBuf,
                 pstSdesItem->ucType, pstSdesItem->ucLength);
 
         //value
-        pcSdesBuf = new RtpDt_UChar[pstSdesItem->ucLength];
+        RtpDt_UChar    *pcSdesBuf = new RtpDt_UChar[pstSdesItem->ucLength];
         if(pcSdesBuf == RTP_NULL)
         {
             RTP_TRACE_WARNING("decodeRtcpChunk, new returned NULL...!",
@@ -138,7 +114,7 @@ eRTP_STATUS_CODE RtcpChunk::decodeRtcpChunk(IN RtpDt_UChar* pucChunkBuf,
         usChunkLen = usChunkLen + pstSdesItem->ucLength;
         pstSdesItem->pValue = pcSdesBuf;
 
-        m_objSdesItem.Append(pstSdesItem, &usError);
+        m_stSdesItemList.push_back(pstSdesItem);
 
         //decrement uiSdesItemCnt by 1
         uiSdesItemCnt = uiSdesItemCnt - RTP_ONE;
@@ -165,39 +141,31 @@ eRTP_STATUS_CODE RtcpChunk::formRtcpChunk(OUT RtpBuffer* pobjRtcpPktBuf)
     pucBuffer = pucBuffer + RTP_WORD_SIZE;
     uiCurPos = uiCurPos + RTP_WORD_SIZE;
 
-    //m_objSdesItem
-    RtpDt_UInt16 usSize = RTP_ZERO;
-    RtpDt_UInt16 usError = RTP_ZERO;
-    m_objSdesItem.GetSize(&usSize, &usError);
-
+    //m_stSdesItemList
     eRtp_Bool bCName = eRTP_FALSE;
 
-    for(RtpDt_UInt32 uiCount = RTP_ZERO;uiCount < usSize;
-        uiCount = uiCount + RTP_ONE)
+    for(auto&pstSdesItem:m_stSdesItemList)
     {
-        RtpDt_Void    *pvElement = RTP_NULL;
-        m_objSdesItem.GetElement(uiCount,&pvElement, &usError);
-        tRTCP_SDES_ITEM *pobjSdesItem = RTP_STATIC_CAST(tRTCP_SDES_ITEM*,pvElement);
 
         //ucType
-        *(RtpDt_UChar*)pucBuffer = pobjSdesItem->ucType;
+        *(RtpDt_UChar*)pucBuffer = pstSdesItem->ucType;
         pucBuffer = pucBuffer + RTP_ONE;
         uiCurPos = uiCurPos + RTP_ONE;
 
-        if(pobjSdesItem->ucType == RTP_ONE)
+        if(pstSdesItem->ucType == RTP_ONE)
         {
             bCName = eRTP_TRUE;
         }
 
         //ucLength
-        *(RtpDt_UChar*)pucBuffer = pobjSdesItem->ucLength;
+        *(RtpDt_UChar*)pucBuffer = pstSdesItem->ucLength;
         pucBuffer = pucBuffer + RTP_ONE;
         uiCurPos = uiCurPos + RTP_ONE;
 
         //pValue
-        RtpPf_Memcpy(pucBuffer, pobjSdesItem->pValue, pobjSdesItem->ucLength);
-        pucBuffer = pucBuffer + pobjSdesItem->ucLength;
-        uiCurPos = uiCurPos + pobjSdesItem->ucLength;
+        RtpPf_Memcpy(pucBuffer, pstSdesItem->pValue, pstSdesItem->ucLength);
+        pucBuffer = pucBuffer + pstSdesItem->ucLength;
+        uiCurPos = uiCurPos + pstSdesItem->ucLength;
 
        //to add type(0)
         uiCurPos = uiCurPos + RTP_ONE;

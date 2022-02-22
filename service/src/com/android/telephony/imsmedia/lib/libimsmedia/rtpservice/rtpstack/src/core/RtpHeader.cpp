@@ -20,34 +20,12 @@
 
 #include <stdio.h>
 
-eRtp_Bool Rtp_ReleaseCsrcElm(IN RtpDt_Void **ppObj)
-{
-    RtpDt_UInt32 *puiCsrcElm = RTP_NULL;
-    puiCsrcElm = RTP_STATIC_CAST(RtpDt_UInt32*,*ppObj);
-    delete puiCsrcElm;
-    return eRTP_SUCCESS;
-}
-
-eRtp_Bool Rtp_CompareCsrcElm(IN RtpDt_Void *pvNode1,
-                                     IN RtpDt_Void *pvNode2)
-{
-    if(*(RTP_STATIC_CAST(RtpDt_UInt32*,pvNode1)) != RTP_NULL
-        && *(RTP_STATIC_CAST(RtpDt_UInt32*,pvNode2)) != RTP_NULL)
-    {
-        if(*(RTP_STATIC_CAST(RtpDt_UInt32*,pvNode1)) == *(RTP_STATIC_CAST(RtpDt_UInt32*,pvNode2)))
-            return eRTP_TRUE;
-        else
-            return eRTP_FALSE;
-    }
-    else
-        return eRTP_FALSE;
-}
-
 RtpHeader::RtpHeader():
             m_ucVersion(RTP_ZERO),
             m_ucPadding(RTP_ZERO),
             m_ucExtension(RTP_ZERO),
             m_ucCsrcCnt(RTP_ZERO),
+            m_uiCsrcList(std::list<RtpDt_UInt32 *>()),
             m_ucMarker(RTP_ZERO),
             m_ucPldType(RTP_ZERO),
             m_usSeqNum(RTP_ZERO),
@@ -55,21 +33,15 @@ RtpHeader::RtpHeader():
             m_uiSsrc(RTP_ZERO)
 
 {
-    m_objCsrcList.InitList(Rtp_ReleaseCsrcElm,
-        Rtp_CompareCsrcElm);
 }
 
 RtpHeader::~RtpHeader()
 {
-    RtpDt_UInt16 usSize = RTP_ZERO;
-    RtpDt_UInt16 usError = RTP_ZERO;
-
-    m_objCsrcList.GetSize(&usSize, &usError);
-    for(RtpDt_UInt16 usCount = RTP_ZERO;usCount < usSize;
-        usCount = usCount + RTP_ONE)
+   for(auto&puiCsrc:m_uiCsrcList)
     {
-        m_objCsrcList.DeleteAtPos(RTP_ZERO, &usError);
+        delete puiCsrc;
     }
+    m_uiCsrcList.clear();
 }
 
 RtpDt_Void RtpHeader::setVersion(IN RtpDt_UChar ucVersion)
@@ -112,9 +84,9 @@ RtpDt_UChar RtpHeader::getCsrcCount()
     return m_ucCsrcCnt;
 }
 
-RtpList* RtpHeader::getCsrcList()
+std::list<RtpDt_UInt32 *>& RtpHeader::getCsrcList()
 {
-    return &m_objCsrcList;
+    return m_uiCsrcList;
 }
 
 eRtp_Bool RtpHeader::addElmToCsrcList(IN RtpDt_UInt32 uiCsrc)
@@ -126,8 +98,7 @@ eRtp_Bool RtpHeader::addElmToCsrcList(IN RtpDt_UInt32 uiCsrc)
     }
     *puiCsrcElm = uiCsrc;
 
-    RtpDt_UInt16 usError = RTP_ZERO;
-    m_objCsrcList.Append(puiCsrcElm, &usError);
+    m_uiCsrcList.push_back(puiCsrcElm);
     return eRTP_TRUE;
 }
 
@@ -228,29 +199,12 @@ eRtp_Bool RtpHeader::formHeader(IN RtpBuffer* pobjRtpPktBuf)
     uiBufLen = uiBufLen + RTP_FIXED_HDR_LEN;
 
     //csrc list
-    RtpDt_UInt16 usError = RTP_ZERO;
-    RtpDt_UInt16 usSize = RTP_ZERO;
-    m_objCsrcList.GetSize(&usSize, &usError);
-
-    for(RtpDt_UInt16 usCount = RTP_ZERO; usCount < usSize; usCount++)
+    for(auto&puiCsrc:m_uiCsrcList)
     {
-        RtpDt_Void    *pvElement = RTP_NULL;
-        RtpDt_UInt32 *puiCsrc = RTP_NULL;
-
-        m_objCsrcList.GetElement(usCount,&pvElement, &usError);
-        if(usError == ERR_LIST_INV_INPUT)
-        {
-            RTP_TRACE_WARNING(" Error in fetching the element from list...!",
-                RTP_ZERO,RTP_ZERO);
-            return eRTP_FALSE;
-        }
-
-        //typecast to RtpDt_UInt32*
-        puiCsrc = RTP_STATIC_CAST(RtpDt_UInt32*,pvElement);
-
         *(RtpDt_UInt32*)pcRtpHdrBuf = RtpOsUtil::Ntohl(*puiCsrc);
         pcRtpHdrBuf = pcRtpHdrBuf + RTP_WORD_SIZE;
     }
+    RtpDt_UInt16 usSize = m_uiCsrcList.size();
 
     uiBufLen = uiBufLen + (RTP_WORD_SIZE * usSize);
 
@@ -303,8 +257,6 @@ eRtp_Bool RtpHeader::decodeHeader(IN RtpBuffer* pobjRtpPktBuf,
     pcRtpHdrBuf = pcRtpHdrBuf + RTP_FOUR;
     uiBufPos  = uiBufPos + RTP_WORD_SIZE;
 
-    RtpDt_UInt16 usError = RTP_ZERO;
-
     //csrc list
     for(RtpDt_UInt32 usCsrcIdx=RTP_ZERO; usCsrcIdx < m_ucCsrcCnt;
                                 usCsrcIdx++)
@@ -320,7 +272,7 @@ eRtp_Bool RtpHeader::decodeHeader(IN RtpBuffer* pobjRtpPktBuf,
 
         RTP_TRACE_NORMAL("Got %d CSRC[%d]",usCsrcIdx,*puiCsrcItem);
         //append puiCsrcItem into list.
-        m_objCsrcList.Append(puiCsrcItem, &usError);
+        m_uiCsrcList.push_back(puiCsrcItem);
     }
 
     return eRTP_SUCCESS;

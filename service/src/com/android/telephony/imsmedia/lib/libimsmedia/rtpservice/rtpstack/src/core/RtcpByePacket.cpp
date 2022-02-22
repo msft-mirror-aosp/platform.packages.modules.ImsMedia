@@ -18,51 +18,21 @@
 #include <rtp_trace.h>
 #include <rtp_pf_memory.h>
 
-eRtp_Bool Rtp_ReleaseSsrcList(IN RtpDt_Void **ppObj)
-{
-    RtpDt_UInt32 *puiSsrcElm = RTP_NULL;
-    puiSsrcElm = RTP_STATIC_CAST(RtpDt_UInt32*,*ppObj);
-    delete puiSsrcElm;
-    return eRTP_SUCCESS;
-}
-
-eRtp_Bool Rtp_CompareSsrcElm(IN RtpDt_Void *pvNode1,
-                                     IN RtpDt_Void *pvNode2)
-{
-    if(*(RTP_STATIC_CAST(RtpDt_UInt32*,pvNode1)) != RTP_NULL
-        && *(RTP_STATIC_CAST(RtpDt_UInt32*,pvNode2)) != RTP_NULL)
-    {
-        if(*(RTP_STATIC_CAST(RtpDt_UInt32*,pvNode1)) == *(RTP_STATIC_CAST(RtpDt_UInt32*,pvNode2)))
-            return eRTP_TRUE;
-        else
-            return eRTP_FALSE;
-    }
-    else
-    {
-        return eRTP_FALSE;
-    }
-}
 
 RtcpByePacket::RtcpByePacket():
-                    m_pReason(RTP_NULL)
+    m_uiSsrcList(std::list<RtpDt_UInt32 *>()),
+    m_pReason(RTP_NULL)
 {
-    //initialize the report block list
-    m_objSsrcList.InitList(Rtp_ReleaseSsrcList,
-                            Rtp_CompareSsrcElm);
 }//Constructor
 
 RtcpByePacket::~RtcpByePacket()
 {
-    RtpDt_UInt16 usSize = RTP_ZERO;
-    RtpDt_UInt16 usError = RTP_ZERO;
 
-    //m_objReportBlk
-    m_objSsrcList.GetSize(&usSize, &usError);
-    for(RtpDt_UInt16 usCount = RTP_ZERO;usCount < usSize;
-        usCount = usCount + RTP_ONE)
+    for(auto&puiSsrc:m_uiSsrcList)
     {
-        m_objSsrcList.DeleteAtPos(RTP_ZERO, &usError);
-    }//for
+        delete puiSsrc;
+    }
+    m_uiSsrcList.clear();
 
     //m_pReason
     if(m_pReason != RTP_NULL)
@@ -77,9 +47,9 @@ RtcpHeader* RtcpByePacket::getRtcpHdrInfo()
     return &m_objRtcpHdr;
 }
 
-RtpList* RtcpByePacket::getSsrcList()
+std::list<RtpDt_UInt32 *>& RtcpByePacket::getSsrcList()
 {
-    return &m_objSsrcList;
+    return m_uiSsrcList;
 }
 
 RtpBuffer* RtcpByePacket::getReason()
@@ -103,10 +73,9 @@ eRTP_STATUS_CODE RtcpByePacket::decodeByePacket(IN RtpDt_UChar* pucByeBuf,
     pucByeBuf = pucByeBuf + RTCP_FIXED_HDR_LEN;
 
     RtpDt_UChar ucSsrcCnt = m_objRtcpHdr.getRecepRepCnt();
-    // m_objSsrcList
+    // m_uiSsrcList
     while(ucSsrcCnt > RTP_ONE)
     {
-        RtpDt_UInt16    usError;
         RtpDt_UInt32 *puiRcvdSsrc = RTP_NULL;
         puiRcvdSsrc = new RtpDt_UInt32();
         if(puiRcvdSsrc == RTP_NULL)
@@ -119,7 +88,7 @@ eRTP_STATUS_CODE RtcpByePacket::decodeByePacket(IN RtpDt_UChar* pucByeBuf,
         (*puiRcvdSsrc) = RtpOsUtil::Ntohl(*((RtpDt_UInt32*)pucByeBuf));
         pucByeBuf = pucByeBuf + RTP_WORD_SIZE;
 
-        m_objSsrcList.Append(puiRcvdSsrc, &usError);
+        m_uiSsrcList.push_back(puiRcvdSsrc);
         ucSsrcCnt = ucSsrcCnt - RTP_ONE;
     }//while
 
@@ -162,24 +131,13 @@ eRTP_STATUS_CODE RtcpByePacket::formByePacket(OUT RtpBuffer* pobjRtcpPktBuf)
     uiCurPos = uiCurPos + RTCP_FIXED_HDR_LEN;
     pucBuffer = pucBuffer + uiCurPos;
 
-    //m_objSsrcList
-    RtpDt_UInt16 usSize = RTP_ZERO;
-    RtpDt_UInt16 usError = RTP_ZERO;
-
-    m_objSsrcList.GetSize(&usSize, &usError);
-    for(RtpDt_UInt32 uiCount = RTP_ZERO;uiCount < usSize;
-        uiCount = uiCount + RTP_ONE)
+    for(auto&puiSsrc:m_uiSsrcList)
     {
-        RtpDt_Void    *pvElement = RTP_NULL;
-        RtpDt_UInt32 *puiSsrc = RTP_NULL;
-        m_objSsrcList.GetElement(uiCount,&pvElement, &usError);
-        puiSsrc = RTP_STATIC_CAST(RtpDt_UInt32*,pvElement);
-
         //ssrc
         *(RtpDt_UInt32*)pucBuffer = RtpOsUtil::Ntohl(*puiSsrc);
         pucBuffer = pucBuffer + RTP_WORD_SIZE;
         uiCurPos = uiCurPos + RTP_WORD_SIZE;
-    }//for
+    }
 
     //m_pReason
     if(m_pReason != RTP_NULL)
