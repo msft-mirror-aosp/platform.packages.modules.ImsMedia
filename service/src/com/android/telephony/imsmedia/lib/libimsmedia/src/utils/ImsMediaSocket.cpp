@@ -30,6 +30,7 @@
 //#include <NetdClient.h>
 #include <ImsMediaSocket.h>
 #include <ImsMediaTrace.h>
+#include <ImsMediaNetworkUtil.h>
 
 using namespace std;
 
@@ -101,7 +102,7 @@ void ImsMediaSocket::SetLocalEndpoint(const char* ipAddress, const uint32_t port
 void ImsMediaSocket::SetPeerEndpoint(const char* ipAddress, const uint32_t port) {
     std::strcpy(mPeerIP, ipAddress);
     mPeerPort = port;
-    ConvertIPStrToBin(mPeerIP, mPeerIPBin, mPeerIPVersion);
+    ImsMediaNetworkUtil::ConvertIPStrToBin(mPeerIP, mPeerIPBin, mPeerIPVersion);
 }
 
 int ImsMediaSocket::GetLocalPort() {
@@ -460,20 +461,4 @@ void* ImsMediaSocket::SocketMonitorThread(void*) {
     mbTerminateMonitor = false;
     mCondExit.signal();
     return NULL;
-}
-
-bool ImsMediaSocket::ConvertIPStrToBin(char* pszSourceIP, char* pszDestBin,
-    eIPVersion eIPver) {
-    if (pszSourceIP == NULL || pszDestBin == NULL) return false;
-
-    if (eIPver == IPV4) {
-        inet_pton(AF_INET, pszSourceIP, pszDestBin);
-        IMLOGD_PACKET1(IM_PACKET_LOG_SOCKET,
-            "[ConvertIPStrToBin] inet_ntop(INET6) %s", pszDestBin);
-    } else {    //ipv6
-        inet_pton(AF_INET6, pszSourceIP, pszDestBin);
-        IMLOGD_PACKET1(IM_PACKET_LOG_SOCKET,
-            "[ConvertIPStrToBin] inet_ntop(INET6) %s", pszDestBin);
-    }
-    return true;
 }

@@ -51,7 +51,6 @@ public:
     virtual bool Listen(ISocketListener* pListener);
     virtual uint32_t SendTo(uint8_t* pData, uint32_t nDataSize);
     virtual uint32_t ReceiveFrom(uint8_t* pData, uint32_t nBufferSize);
-    virtual bool ConvertIPStrToBin(char* pszSourceIP, char* pszDestBin, eIPVersion eIPver);
     virtual void Close(eSocketMode mode);
     virtual bool SetSocketOpt(eSocketOpt nOption, uint32_t nOptionValue);
     int32_t GetSocketFd();
