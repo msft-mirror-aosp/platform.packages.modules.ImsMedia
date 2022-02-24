@@ -1,25 +1,27 @@
+# Gradle files
+gradle/
+.gradle/
+build.gradle
+gradle.properties
+gradlew
+gradlew.bat
+settings.gradle
+app/build.gradle
+
+# IntelliJ
+.idea/
 *.iml
-/gradle
-/.gradle
-/.idea
-/build.gradle
-/gradle.properties
-/gradlew
-/gradlew.bat
-/local.properties
-/settings.gradle
-/app/build.gradle
-/app/proguard-rules.pro
-/app/.gitignore
-/.idea/caches
-/.idea/libraries
-/.idea/modules.xml
-/.idea/workspace.xml
-/.idea/navEditor.xml
-/.idea/assetWizardSettings.xml
-.DS_Store
-/build
-/captures
-.externalNativeBuild
-.cxx
+
+# Local config files and libraries
 local.properties
+app/libs/
+app/proguard-rules.pro
+app/.gitignore
+
+# Android Studio generated files
+.DS_Store
+build/
+captures/
+.externalNativeBuild/
+.cxx/
+*.apk

@@ -1,14 +1,30 @@
 package com.example.imsmediatestingapp;
 
+import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.view.View;
+import android.view.View.OnClickListener;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 
+/**
+ * The SettingsActivity is the layout page to configure the connection settings for the application.
+ */
 public class SettingsActivity extends AppCompatActivity {
+
+    private static final String PREF_NAME = "preferences";
+    SharedPreferences prefs;
+    SharedPreferences.Editor editor;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.settings);
+
+        prefs = getSharedPreferences(PREF_NAME, MODE_PRIVATE);
+        editor = prefs.edit();
 
     }
 
@@ -21,6 +37,5 @@ public class SettingsActivity extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
     }
-
 
 }

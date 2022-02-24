@@ -1,6 +1,7 @@
 package com.example.imsmediatestingapp;
 
 import android.annotation.SuppressLint;
+import android.bluetooth.BluetoothClass.Device;
 import android.util.Log;
 import androidx.annotation.NonNull;
 import com.example.imsmediatestingapp.MainActivity.AudioCodec;
@@ -10,20 +11,21 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.io.Serializable;
+import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.util.Arrays;
 import java.util.List;
 
+/**
+ * The DeviceInfo class stores the information about a device's connection details, so it can be
+ * quickly and easily sent through DatagramPackets between devices.
+ */
 public class DeviceInfo implements Serializable {
 
     private InetAddress ipAddress;
-    private List<AudioCodec> audioCodecs = Arrays
-        .asList(AudioCodec.AMR_NB, AudioCodec.AMR_WB, AudioCodec.EVS, AudioCodec.PCMA,
-            AudioCodec.PCMU);
-    private List<EvsBandwidth> evsBandwithds = Arrays
-        .asList(EvsBandwidth.NARROW_BAND, EvsBandwidth.WIDE_BAND, EvsBandwidth.SUPER_WIDE_BAND,
-            EvsBandwidth.FULL_BAND);
-    private List<VideoCodec> videoCodecs = Arrays.asList(VideoCodec.H264, VideoCodec.HEVC);
+    private List<AudioCodec> audioCodecs = Arrays.asList(AudioCodec.values());
+    private List<EvsBandwidth> evsBandwidths = Arrays.asList(EvsBandwidth.values());
+    private List<VideoCodec> videoCodecs = Arrays.asList(VideoCodec.values());
     private int handshakePort;
     private int rtpPort;
     private int rtcpPort;
@@ -40,18 +42,16 @@ public class DeviceInfo implements Serializable {
 
     }
 
-    public byte[] getBytes() {
-        ByteArrayOutputStream byteOutputStream = new ByteArrayOutputStream();
-        try {
-            ObjectOutputStream objectOutputStream = new ObjectOutputStream(byteOutputStream);
-            objectOutputStream.writeObject(this);
-            objectOutputStream.flush();
-            objectOutputStream.close();
-            return byteOutputStream.toByteArray();
-        } catch (IOException e) {
-            Log.e("", e.getLocalizedMessage());
-        }
-        return null;
+    public DeviceInfo(InetAddress ipAddress, int handshakePort, int rtpPort, int rtcpPort) {
+        this.ipAddress = ipAddress;
+        this.handshakePort = handshakePort;
+        this.rtpPort = rtpPort;
+        this.rtcpPort = rtcpPort;
+    }
+
+    public DeviceInfo(int handshakePort, InetAddress ipAddress) {
+        this.handshakePort = handshakePort;
+        this.ipAddress = ipAddress;
     }
 
     @NonNull
@@ -84,16 +84,8 @@ public class DeviceInfo implements Serializable {
         return rtpPort;
     }
 
-    public void setRtpPort(int rtpPort) {
-        this.rtpPort = rtpPort;
-    }
-
     public int getRtcpPort() {
         return rtcpPort;
-    }
-
-    public void setRtcpPort(int rtcpPort) {
-        this.rtcpPort = rtcpPort;
     }
 
     public List<AudioCodec> getAudioCodecs() {
@@ -110,6 +102,14 @@ public class DeviceInfo implements Serializable {
 
     public void setVideoCodecs(List<VideoCodec> videoCodecs) {
         this.videoCodecs = videoCodecs;
+    }
+
+    public void setRtpPort(int rtpPort) {
+        this.rtpPort = rtpPort;
+    }
+
+    public void setRtcpPort(int rtcpPort) {
+        this.rtcpPort = rtcpPort;
     }
 
     public String getAudioCodecsAsString() {
@@ -132,7 +132,7 @@ public class DeviceInfo implements Serializable {
 
     public String getEvsBandwidthsCodecsAsString() {
         StringBuilder sb = new StringBuilder("EVS Bandwidths: ");
-        for (EvsBandwidth bandwidth : evsBandwithds) {
+        for (EvsBandwidth bandwidth : evsBandwidths) {
             sb.append(bandwidth.toString());
         }
 

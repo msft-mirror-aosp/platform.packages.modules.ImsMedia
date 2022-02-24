@@ -15,9 +15,10 @@ android_app {
     ],
     static_libs: [
         "com.google.android.material_material",
-    	  "androidx.test.rules",
-    	  "androidx.test.core",
-    	  "androidx.test.ext.junit"
+        "android.telephony.imsmedia",
+        "androidx.test.rules",
+        "androidx.test.core",
+        "androidx.test.ext.junit"
     ],
     required: [
         "privapp_permissions_com.example.imsmediatestingapp",
