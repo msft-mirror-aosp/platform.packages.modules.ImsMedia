@@ -18,6 +18,7 @@
 #include <ImsMediaVoiceRenderer.h>
 #include <ImsMediaTrace.h>
 #include <ImsMediaTimer.h>
+#include <AudioConfig.h>
 #include <string.h>
 
 IVoiceRendererNode::IVoiceRendererNode()
@@ -50,13 +51,14 @@ ImsMediaResult IVoiceRendererNode::Start() {
 
     //reset the jitter
     Reset();
-
+    mMutex.lock();
     if (mVoiceRenderer) {
         mVoiceRenderer->SetCodec(mCodecType);
         mVoiceRenderer->SetCodecMode(mMode);
         mVoiceRenderer->Start();
     }
     mFirstFrame = false;
+    mMutex.unlock();
     mNodeState = NODESTATE_RUNNING;
     StartThread();
     return IMS_MEDIA_OK;
@@ -64,10 +66,10 @@ ImsMediaResult IVoiceRendererNode::Start() {
 
 void IVoiceRendererNode::Stop() {
     IMLOGD0("[Stop]");
+    mMutex.lock();
     if (mVoiceRenderer) {
         mVoiceRenderer->Stop();
     }
-    mMutex.lock();
     StopThread();
     mMutex.unlock();
     mCond.wait();
@@ -83,11 +85,58 @@ bool IVoiceRendererNode::IsSourceNode() {
 }
 
 void IVoiceRendererNode::SetConfig(void* config) {
-    (void)config;
+    AudioConfig *pConfig = reinterpret_cast<AudioConfig*>(config);
+    if (pConfig != NULL) {
+        SetCodec(pConfig->getCodecType());
+        if (mCodecType == AUDIO_AMR || mCodecType == AUDIO_AMR_WB) {
+            SetCodecMode(pConfig->getAmrParams().getAmrMode());
+        }
+        //testing parameter
+        SetJitterBufferSize(4, 4, 9);
+        SetJitterOptions(80, 1, (double)25 / 10, true, true);
+    }
 }
 
-void IVoiceRendererNode::SetCodec(eAudioCodecType eCodecType) {
-    mCodecType = eCodecType;
+bool IVoiceRendererNode::IsSameConfig(void* config) {
+    if (config == NULL) return true;
+    AudioConfig* pConfig = reinterpret_cast<AudioConfig*>(config);
+
+    if (mCodecType == pConfig->getCodecType()) {
+        if (mCodecType == AUDIO_AMR || mCodecType == AUDIO_AMR_WB) {
+            if (mMode == pConfig->getAmrParams().getAmrMode()) {
+                return true;
+            }
+        } else if (mCodecType == AUDIO_EVS) {
+            if (mMode == pConfig->getEvsParams().getEvsMode()) {
+                return true;
+            }
+        }
+    }
+
+    //TBD later jitter configuration compare
+    return false;
+}
+
+void IVoiceRendererNode::SetCodec(int32_t type) {
+    switch (type) {
+        case AudioConfig::CODEC_AMR:
+            mCodecType = AUDIO_AMR;
+            break;
+        case AudioConfig::CODEC_AMR_WB:
+            mCodecType = AUDIO_AMR_WB;
+            break;
+        case AudioConfig::CODEC_EVS:
+            mCodecType = AUDIO_EVS;
+            break;
+        case AudioConfig::CODEC_PCMA:
+            mCodecType = AUDIO_G711_PCMA;
+            break;
+        case AudioConfig::CODEC_PCMU:
+            mCodecType = AUDIO_G711_PCMU;
+            break;
+        default:
+            break;
+    }
 }
 
 void IVoiceRendererNode::SetCodecMode(uint32_t mode) {
@@ -108,7 +157,6 @@ void* IVoiceRendererNode::run() {
 
     while (true) {
         mMutex.lock();
-
         if (IsThreadStopped()) {
             IMLOGD0("[run] exit");
             mMutex.unlock();
@@ -123,7 +171,7 @@ void* IVoiceRendererNode::run() {
                 if (mVoiceRenderer->onDataFrame(pData, nDataSize)) {
                     // send buffering complete message to client
                     if (mFirstFrame == false) {
-                        //ImsMediaEventHandler::SendEvent("_ResponseHandler", RESPONSEEVENT_NOTIFY);
+                        mCallback->SendEvent(EVENT_NOTIFY_FIRST_MEDIA_PACKET_RECEIVED);
                         mFirstFrame = true;
                     }
                 }

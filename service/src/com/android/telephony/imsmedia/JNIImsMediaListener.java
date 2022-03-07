@@ -14,26 +14,11 @@
  * limitations under the License.
  */
 
-#ifndef AUDIO_STREAM_GRAPH_RTCP_H
-#define AUDIO_STREAM_GRAPH_RTCP_H
+ package com.android.telephony.imsmedia;
 
-#include <ImsMediaDefine.h>
-#include <BaseStreamGraph.h>
-#include <BaseNode.h>
-#include <RtpConfig.h>
-#include <AudioConfig.h>
+import android.os.Parcel;
 
-class AudioStreamGraphRtcp : public BaseStreamGraph
-{
-public:
-    AudioStreamGraphRtcp(BaseSessionCallback* callback, int localFd = 0);
-    virtual ~AudioStreamGraphRtcp();
-    virtual ImsMediaResult createGraph(void* config);
-    virtual ImsMediaResult updateGraph(void* config);
-    virtual bool isSameConfig(RtpConfig* config);
-
-private:
-    AudioConfig* mConfig;
-};
-
-#endif
+/** JNI listener class to get message from libimsmediajni */
+public interface JNIImsMediaListener {
+    void onMessage(Parcel parcel);
+}

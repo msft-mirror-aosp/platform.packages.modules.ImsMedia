@@ -36,14 +36,13 @@
 
 RtpEncoderNode::RtpEncoderNode() {
     mRtpSession = NULL;
+    mConfig = NULL;
     mDTMFMode = false;
     mAudioMark = false;
     mPrevTimestamp = 0;
     mDTMFTimestamp = 0;
-    // mLocalAddress = RtpAddress("0,0,0,0", 0);
-    // mPeerAddress = RtpAddress("0,0,0,0", 0);
-    mPeerPayload = 0;
-    mDTMFPeerPayload = 0;
+    mRtpPayload = 0;
+    mDtmfPayload = 0;
     mSamplingRate = 0;
 #ifdef DEBUG_JITTER_GEN_SIMULATION_DELAY
     mNextTime = 0;
@@ -61,6 +60,10 @@ RtpEncoderNode::~RtpEncoderNode() {
     }
 
     mRtpSession = NULL;
+    if (mConfig != NULL) {
+        delete mConfig;
+        mConfig = NULL;
+    }
 }
 
 BaseNode* RtpEncoderNode::GetInstance() {
@@ -86,31 +89,10 @@ ImsMediaResult RtpEncoderNode::Start() {
         }
     }
     mRtpSession->SetRtpEncoderListener(this);
-
-    //test
-    ImsMediaHal::RtpSessionParams params;
-    params.pTimeMillis = 20;
-    params.maxPtimeMillis = static_cast<char>(240);
-    params.maxMtuBytes = 1500;
-    params.dscp = 0;
-    params.dtmfParams.payloadTypeNumber = 100;
-    params.dtmfParams.samplingRateKHz = static_cast<char>(16);
-    params.codecParams.codec.codecType = ImsMediaHal::CodecType::AMR_WB;
-    params.codecParams.codec.bandwidth = ImsMediaHal::EvsBandwidth::WIDE_BAND;
-    params.codecParams.rxPayloadTypeNumber = 96;
-    params.codecParams.txPayloadTypeNumber = 96;
-    params.codecParams.samplingRateKHz = static_cast<char>(16);
-    params.codecParams.txCodecModeRequest = 0;
-    params.codecParams.dtxEnabled = 1;
-    params.codecParams.codecSpecificParams.amr.amrMode = ImsMediaHal::AmrMode::AMR_MODE_8;
-    params.codecParams.codecSpecificParams.amr.octetAligned = 1;
-    params.codecParams.codecSpecificParams.amr.maxRedundancyMillis = 0;
-
-    mPeerPayload = params.codecParams.rxPayloadTypeNumber;
-    mDTMFPeerPayload = params.dtmfParams.payloadTypeNumber;
-    mSamplingRate = params.codecParams.samplingRateKHz;
-
-    mRtpSession->SetRtpPayloadParam(params);
+    mRtpSession->SetRtpPayloadParam(mConfig);
+    if (mMediaType == IMS_MEDIA_AUDIO) {
+        mRtpSession->SetRtpDtmfPayloadParam(reinterpret_cast<AudioConfig*>(mConfig));
+    }
     mRtpSession->StartRtp();
     mDTMFMode = false;
     mAudioMark = true;
@@ -177,24 +159,23 @@ bool RtpEncoderNode::IsSourceNode() {
 
 void RtpEncoderNode::SetConfig(void* config) {
     IMLOGD0("[SetConfig]");
-
     if (config == NULL) return;
-
-    AudioConfig *pConfig = reinterpret_cast<AudioConfig*>(config);
-
-    IMLOGD2("[SetConfig] peer Ip[%s], port[%d]", pConfig->getRemoteAddress().c_str(),
-        pConfig->getRemotePort());
+    if (mMediaType == IMS_MEDIA_AUDIO) {
+        mConfig = new AudioConfig(reinterpret_cast<AudioConfig*>(config));
+        mPeerAddress = RtpAddress(mConfig->getRemoteAddress().c_str(), mConfig->getRemotePort());
+        mRtpPayload = mConfig->getTxPayloadTypeNumber();
+        mDtmfPayload = ((AudioConfig*)mConfig)->getDtmfPayloadTypeNumber();
+        IMLOGD2("[SetConfig] peer Ip[%s], port[%d]", mPeerAddress.ipAddress,
+            mPeerAddress.port);
+    }
 }
 
-bool RtpEncoderNode::UpdateConfig(void* config) {
-    IMLOGD0("UpdateConfig]");
-
-    if (config == NULL) return false;
-
-    AudioConfig *pConfig = reinterpret_cast<AudioConfig*>(config);
-
-    IMLOGD2("UpdateConfig] peer Ip[%s], port[%d]", pConfig->getRemoteAddress().c_str(),
-        pConfig->getRemotePort());
+bool RtpEncoderNode::IsSameConfig(void* config) {
+    if (config == NULL) return true;
+    if (mMediaType == IMS_MEDIA_AUDIO) {
+        AudioConfig* pConfig = reinterpret_cast<AudioConfig*>(config);
+        return (*mConfig == *pConfig);
+    }
 
     return false;
 }
@@ -330,8 +311,8 @@ void RtpEncoderNode::ProcessAudioData(ImsMediaSubType eSubType, uint8_t* pData, 
             }
 
             nTimeDiff_RTPTSUnit = nTimeDiff * (mSamplingRate / 1000);
-            mRtpSession->SendRtpPacket(mDTMFPeerPayload, pData,
-                nDataSize, mDTMFTimestamp, mAudioMark, nTimeDiff_RTPTSUnit, 0 , NULL);
+            mRtpSession->SendRtpPacket(mDtmfPayload, pData,
+                nDataSize, mDTMFTimestamp, mAudioMark, nTimeDiff_RTPTSUnit);
 
             if (mAudioMark) mAudioMark = false;
         }
@@ -358,10 +339,10 @@ void RtpEncoderNode::ProcessAudioData(ImsMediaSubType eSubType, uint8_t* pData, 
 
             nTimeDiff_RTPTSUnit = nTimeDiff * (mSamplingRate / 1000);
             IMLOGD_PACKET3(IM_PACKET_LOG_RTP,
-                "[ProcessData] mPeerPayload[%d], nSize[%d], nTS[%d]",
-                mPeerPayload, nDataSize, nCurrTimestamp);
-            mRtpSession->SendRtpPacket(mPeerPayload, pData, nDataSize, nCurrTimestamp,
-                mAudioMark, nTimeDiff_RTPTSUnit, 0 , NULL);
+                "[ProcessData] mRtpPayload[%d], nSize[%d], nTS[%d]",
+                mRtpPayload, nDataSize, nCurrTimestamp);
+            mRtpSession->SendRtpPacket(mRtpPayload, pData, nDataSize, nCurrTimestamp,
+                mAudioMark, nTimeDiff_RTPTSUnit);
 
             if (mAudioMark) mAudioMark = false;
         }

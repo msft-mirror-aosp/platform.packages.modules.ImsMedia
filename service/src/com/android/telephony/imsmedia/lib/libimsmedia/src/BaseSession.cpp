@@ -25,8 +25,8 @@ BaseSession::BaseSession() : mRtpFd(0), mRtcpFd(0) {
 BaseSession::~BaseSession() {
 }
 
-void BaseSession::setSessionId(int sessionid) {
-    mSessionId = sessionid;
+void BaseSession::setSessionId(int sessionId) {
+    mSessionId = sessionId;
 }
 
 void BaseSession::setLocalEndPoint(int rtpFd, int rtcpFd) {
@@ -44,32 +44,5 @@ int BaseSession::getLocalRtcpFd() {
 }
 
 void BaseSession::onEvent(ImsMediaEventType type, uint64_t param1, uint64_t param2) {
-    IMLOGD1("[onEvent] type[%d]", type);
-    (void)param2;
-    switch (type) {
-        case EVENT_NOTIFY_ERROR:
-            break;
-        case EVENT_NOTIFY_FIRST_MEDIA_PACKET_RECEIVED:
-            ImsMediaEventHandler::SendEvent("VOICE_RESPONSE_EVENT",
-                FIRST_MEDIA_PACKET_RECEIVED, 0, 0);
-            break;
-        case EVENT_NOTIFY_HEADER_EXTENSION_RECEIVED:
-            ImsMediaEventHandler::SendEvent("VOICE_RESPONSE_EVENT",
-                HEADER_EXTENSION_RECEIVED, 0, 0);
-            break;
-        case EVENT_NOTIFY_MEDIA_INACITIVITY:
-            ImsMediaEventHandler::SendEvent("VOICE_RESPONSE_EVENT",
-                NOTIFY_MEDIA_INACITIVITY, param1, 0);
-            break;
-        case EVENT_NOTIFY_PACKET_LOSS:
-            ImsMediaEventHandler::SendEvent("VOICE_RESPONSE_EVENT",
-                NOTIFY_PACKET_LOSS, param1, 0);
-            break;
-        case EVENT_NOTIFY_JITTER:
-            ImsMediaEventHandler::SendEvent("VOICE_RESPONSE_EVENT",
-                NOTIFY_JITTER, param1, 0);
-            break;
-        default:
-            break;
-    }
+    IMLOGD3("[onEvent] type[%d], param1[%d], param2[%d]", type, param1, param2);
 }

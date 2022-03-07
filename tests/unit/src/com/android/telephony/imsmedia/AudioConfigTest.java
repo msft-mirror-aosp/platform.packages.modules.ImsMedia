@@ -132,7 +132,7 @@ public class AudioConfigTest {
                 .setMediaDirection(RtpConfig.MEDIA_DIRECTION_TRANSMIT_RECEIVE)
                 .setAccessNetwork(AccessNetworkType.EUTRAN)
                 .setRemoteRtpAddress(new InetSocketAddress(
-                     InetAddresses.parseNumericAddress(REMOTE_RTP_ADDRESS), REMOTE_RTP_PORT))
+                    InetAddresses.parseNumericAddress(REMOTE_RTP_ADDRESS), REMOTE_RTP_PORT))
                 .setRtcpConfig(rtcp)
                 .setMaxMtuBytes(MAX_MTU_BYTES)
                 .setDscp(DSCP)
@@ -158,7 +158,7 @@ public class AudioConfigTest {
                 .setMediaDirection(RtpConfig.MEDIA_DIRECTION_TRANSMIT_RECEIVE)
                 .setAccessNetwork(AccessNetworkType.EUTRAN)
                 .setRemoteRtpAddress(new InetSocketAddress(
-                     InetAddresses.parseNumericAddress(REMOTE_RTP_ADDRESS), REMOTE_RTP_PORT))
+                    InetAddresses.parseNumericAddress(REMOTE_RTP_ADDRESS), REMOTE_RTP_PORT))
                 .setRtcpConfig(rtcp)
                 .setMaxMtuBytes(MAX_MTU_BYTES)
                 .setDscp(DSCP)

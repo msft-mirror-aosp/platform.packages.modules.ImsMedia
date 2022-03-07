@@ -17,7 +17,6 @@
 #ifndef RTP_ENCODER_NODE_H
 #define RTP_ENCODER_NODE_H
 
-#include <ImsMediaHal.h>
 #include <BaseNode.h>
 #include <IRtpSession.h>
 
@@ -38,7 +37,7 @@ public:
     virtual bool IsRunTime();
     virtual bool IsSourceNode();
     virtual void SetConfig(void* config);
-    virtual bool UpdateConfig(void* config);
+    virtual bool IsSameConfig(void* config);
     //IRtpEncoderListener method
     virtual void OnRtpPacket(unsigned char* pData, uint32_t nSize);
     void SetLocalAddress(const RtpAddress address);
@@ -47,16 +46,16 @@ public:
 private:
     void ProcessAudioData(ImsMediaSubType eSubType, uint8_t* pData, uint32_t nDataSize,
         uint32_t nTimestamp);
-    std::shared_ptr<ImsMediaHal::RtpSessionParams> mSessionParams;
     IRtpSession* mRtpSession;
+    RtpConfig* mConfig;
     RtpAddress mLocalAddress;
     RtpAddress mPeerAddress;
     bool mDTMFMode;
     bool mAudioMark;
     uint32_t mPrevTimestamp;
     uint32_t mDTMFTimestamp;
-    uint32_t mPeerPayload;
-    uint32_t mDTMFPeerPayload;
+    uint32_t mRtpPayload;
+    uint32_t mDtmfPayload;
     uint32_t mSamplingRate;
 #ifdef DEBUG_JITTER_GEN_SIMULATION_DELAY
     uint32_t mNextTime;

@@ -32,6 +32,7 @@
 #include <media/stagefright/foundation/AString.h>
 #include <media/stagefright/foundation/AMessage.h>
 #include <media/stagefright/foundation/ALooper.h>
+#include <thread>
 
 using android::status_t;
 using android::ALooper;
@@ -82,9 +83,9 @@ void ImsMediaVoiceSource::SetUplinkCallback(void* pClient, AudioUplinkCB pUplink
     m_pUplinkCB = pUplinkCB;
 }
 
-void ImsMediaVoiceSource::SetCodec(eAudioCodecType eCodecType) {
-    IMLOGD1("[SetCodec] eCodecType[%d]", eCodecType);
-    m_nCodecType = eCodecType;
+void ImsMediaVoiceSource::SetCodec(int32_t type) {
+    IMLOGD1("[SetCodec] type[%d]", type);
+    m_nCodecType = type;
 }
 
 void ImsMediaVoiceSource::SetCodecMode(uint32_t mode) {
@@ -237,6 +238,9 @@ bool ImsMediaVoiceSource::Start() {
     }
 
     StartThread();
+
+    std::thread t1(&ImsMediaVoiceSource::processOutputBuffer, this);
+    t1.detach();
     IMLOGD0("[Start] exit");
     return true;
 }
@@ -281,14 +285,23 @@ void* ImsMediaVoiceSource::run() {
     for (;;) {
         uint32_t nCurrTime;
         m_mutexUplink.lock();
-        if (mbStopped) {
+        if (IsThreadStopped()) {
             IMLOGD0("[run] terminated");
             m_mutexUplink.unlock();
             break;
         }
         m_mutexUplink.unlock();
 
-        processUplinkThread();
+        int32_t readSize = 0;
+        //get PCM
+        if (m_AudioRecord != NULL) {
+            readSize = m_AudioRecord->read(m_pbBuffer, PCM_BUFFER_SIZE, false);
+        } else {
+            uint16_t bytePerSample = mWavHeader.bitsPerSample / 8;
+            readSize = fread(m_pbBuffer, bytePerSample, 1, mWavFile);
+        }
+
+        queueInputBuffer(m_pbBuffer, readSize);
 
         nNextTime += 20;
         nCurrTime = ImsMediaTimer::GetTimeInMilliSeconds();
@@ -299,32 +312,16 @@ void* ImsMediaVoiceSource::run() {
     return NULL;
 }
 
-void ImsMediaVoiceSource::processUplinkThread() {
+void ImsMediaVoiceSource::queueInputBuffer(uint8_t* buffer, int32_t nSize) {
     IMLOGD0("[processUplinkThread] enter");
-    static int kTimeout = 250000;   // be responsive on signal
-    status_t err;
-    size_t bufIndex, offset, size;
-    int64_t ptsUsec;
-    uint32_t flags;
-
-    if (mbStopped) {
-        return;
-    }
-
     std::lock_guard<std::mutex> guard(m_mutexUplink);
+    static int kTimeout = 100000;   // be responsive on signal
+    status_t err;
+    size_t bufIndex;
 
-    int32_t readSize = 0;
-    //get PCM
-    if (m_AudioRecord != NULL) {
-        readSize = m_AudioRecord->read(m_pbBuffer, PCM_BUFFER_SIZE, false);
-    } else {
-        uint16_t bytePerSample = mWavHeader.bitsPerSample / 8;
-        readSize = fread(m_pbBuffer, bytePerSample, 1, mWavFile);
-    }
+    IMLOGD_PACKET1(IM_PACKET_LOG_AUDIO, "[processUplinkThread] size[%d]", nSize);
 
-    IMLOGD_PACKET1(IM_PACKET_LOG_AUDIO, "[processUplinkThread] nReadSize[%d]", readSize);
-
-    if (readSize <= 0) {
+    if (nSize <= 0 || buffer == NULL || m_MediaCodec == NULL) {
         return;
     }
 
@@ -335,11 +332,11 @@ void ImsMediaVoiceSource::processUplinkThread() {
         err = m_MediaCodec->dequeueInputBuffer(&bufIndex, kTimeout);
 
         if (err == NO_ERROR) {
-            memcpy(inputBuffers[bufIndex]->data(), m_pbBuffer, readSize);
+            memcpy(inputBuffers[bufIndex]->data(), buffer, nSize);
             IMLOGD_PACKET1(IM_PACKET_LOG_AUDIO,
-                "[processUplinkThread] queue input buffer size[%d]", readSize);
+                "[processUplinkThread] queue input buffer size[%d]", nSize);
 
-            err = m_MediaCodec->queueInputBuffer(bufIndex, 0, readSize,
+            err = m_MediaCodec->queueInputBuffer(bufIndex, 0, nSize,
                 ImsMediaTimer::GetTimeInMicroSeconds(),
                 MediaCodec::BUFFER_FLAG_SYNCFRAME);
 
@@ -350,80 +347,99 @@ void ImsMediaVoiceSource::processUplinkThread() {
     } else {
         IMLOGE1("[processUplinkThread] Unable to get input buffers - err[%d]", err);
     }
+}
 
-    //process output buffer
-    Vector<sp<MediaCodecBuffer>> outputBuffers;
-    err = m_MediaCodec->getOutputBuffers(&outputBuffers);
-    if (err != NO_ERROR) {
-        IMLOGE1("[processUplinkThread] Unable to get output buffers - err[%d]", err);
-        return;
-    }
+void ImsMediaVoiceSource::processOutputBuffer() {
+    IMLOGD0("[processOutputBuffer] enter");
+    size_t bufIndex, offset, size;
+    static int kTimeout = 100000;   // be responsive on signal
+    int64_t ptsUsec;
+    uint32_t flags;
+    status_t err;
 
-    err = m_MediaCodec->dequeueOutputBuffer(&bufIndex, &offset, &size, &ptsUsec,
-            &flags, kTimeout);
+    for (;;) {
+        m_mutexUplink.lock();
+        if (IsThreadStopped()) {
+            IMLOGD0("[processOutputBuffer] terminated");
+            m_mutexUplink.unlock();
+            break;
+        }
+        m_mutexUplink.unlock();
+        //process output buffer
+        Vector<sp<MediaCodecBuffer>> outputBuffers;
+        err = m_MediaCodec->getOutputBuffers(&outputBuffers);
+        if (err != NO_ERROR) {
+            IMLOGE1("[processOutputBuffer] Unable to get output buffers - err[%d]", err);
+            continue;
+        }
 
-    switch (err) {
-        case NO_ERROR:
-            // got a buffer
-            if ((flags & MediaCodec::BUFFER_FLAG_CODECCONFIG) != 0) {
-                IMLOGD_PACKET1(IM_PACKET_LOG_AUDIO,
-                    "[processUplinkThread] Got codec config buffer (%zu bytes)", size);
-            }
+        err = m_MediaCodec->dequeueOutputBuffer(&bufIndex, &offset, &size, &ptsUsec,
+                &flags, kTimeout);
 
-            if (size != 0) {
-                IMLOGD_PACKET3(IM_PACKET_LOG_AUDIO,
-                    "[processUplinkThread] Got data in buffer[%zu], size[%zu], pts=%" PRId64,
-                    bufIndex, size, ptsUsec);
-
-                if (ptsUsec == 0) {
-                    ptsUsec = ImsMediaTimer::GetTimeInMicroSeconds() / 1000;
+        switch (err) {
+            case NO_ERROR:
+                // got a buffer
+                if ((flags & MediaCodec::BUFFER_FLAG_CODECCONFIG) != 0) {
+                    IMLOGD_PACKET1(IM_PACKET_LOG_AUDIO,
+                        "[processOutputBuffer] Got codec config buffer (%zu bytes)", size);
                 }
 
-                //call encoding here
-                m_pUplinkCB(m_pUplinkCBClient, outputBuffers[bufIndex]->data(), size,
-                    ptsUsec, flags);
-#ifdef DEBUG_PCM_DUMP
-                memcpy(g_pPCMDump+g_iStoredDumpSize, outputBuffers[bufIndex]->data(), size);
-                g_iStoredDumpSize += readSize;
-#endif
-            }
-            err = m_MediaCodec->releaseOutputBuffer(bufIndex);
+                if (size != 0) {
+                    IMLOGD_PACKET3(IM_PACKET_LOG_AUDIO,
+                        "[processOutputBuffer] Got data in buffer[%zu], size[%zu], pts=%" PRId64,
+                        bufIndex, size, ptsUsec);
 
-            if (err != NO_ERROR) {
-                IMLOGE1("Unable to release output buffer - err[%d]", err);
-                return;
-            }
+                    if (ptsUsec == 0) {
+                        ptsUsec = ImsMediaTimer::GetTimeInMicroSeconds() / 1000;
+                    }
 
-            if ((flags & MediaCodec::BUFFER_FLAG_EOS) != 0) {
-                // Not expecting EOS from SurfaceFlinger.  Go with it.
-                IMLOGD_PACKET0(IM_PACKET_LOG_AUDIO, "Received end-of-stream");
-            }
-            break;
-        case -EAGAIN:                       // INFO_TRY_AGAIN_LATER
-            IMLOGD_PACKET0(IM_PACKET_LOG_AUDIO, "Got -EAGAIN, looping");
-            break;
-        case android::INFO_FORMAT_CHANGED:    // INFO_OUTPUT_FORMAT_CHANGED
-            {
-                // Format includes CSD, which we must provide to muxer.
-                IMLOGD0("Encoder format changed");
-                //sp<AMessage> newFormat;
-                //m_MediaCodec->getOutputFormat(&newFormat);
-            }
-            break;
-        case android::INFO_OUTPUT_BUFFERS_CHANGED:   // INFO_OUTPUT_BUFFERS_CHANGED
-            // Not expected for an encoder; handle it anyway.
-            IMLOGD0("Encoder buffers changed");
-            err = m_MediaCodec->getOutputBuffers(&outputBuffers);
-            if (err != NO_ERROR) {
-                IMLOGE1("Unable to get new output buffers - err[%d]", err);
-                return;
-            }
-            break;
-        case INVALID_OPERATION:
-            IMLOGD0("dequeueOutputBuffer returned INVALID_OPERATION");
-            return;
-        default:
-            IMLOGE1("Got weird result[%d] from dequeueOutputBuffer", err);
-            return;
+                    //call encoding here
+                    m_pUplinkCB(m_pUplinkCBClient, outputBuffers[bufIndex]->data(), size,
+                        ptsUsec, flags);
+    #ifdef DEBUG_PCM_DUMP
+                    memcpy(g_pPCMDump+g_iStoredDumpSize, outputBuffers[bufIndex]->data(), size);
+                    g_iStoredDumpSize += readSize;
+    #endif
+                }
+                err = m_MediaCodec->releaseOutputBuffer(bufIndex);
+
+                if (err != NO_ERROR) {
+                    IMLOGE1("[processOutputBuffer] Unable to release output buffer - err[%d]", err);
+                    continue;
+                }
+
+                if ((flags & MediaCodec::BUFFER_FLAG_EOS) != 0) {
+                    // Not expecting EOS from SurfaceFlinger.  Go with it.
+                    IMLOGD_PACKET0(IM_PACKET_LOG_AUDIO,
+                        "[processOutputBuffer] Received end-of-stream");
+                }
+                break;
+            case -EAGAIN:                       // INFO_TRY_AGAIN_LATER
+                IMLOGD_PACKET0(IM_PACKET_LOG_AUDIO, "Got -EAGAIN, looping");
+                break;
+            case android::INFO_FORMAT_CHANGED:    // INFO_OUTPUT_FORMAT_CHANGED
+                {
+                    // Format includes CSD, which we must provide to muxer.
+                    IMLOGD0("[processOutputBuffer] Encoder format changed");
+                    //sp<AMessage> newFormat;
+                    //m_MediaCodec->getOutputFormat(&newFormat);
+                }
+                break;
+            case android::INFO_OUTPUT_BUFFERS_CHANGED:   // INFO_OUTPUT_BUFFERS_CHANGED
+                // Not expected for an encoder; handle it anyway.
+                IMLOGD0("[processOutputBuffer] Encoder buffers changed");
+                err = m_MediaCodec->getOutputBuffers(&outputBuffers);
+                if (err != NO_ERROR) {
+                    IMLOGE1("Unable to get new output buffers - err[%d]", err);
+                    continue;
+                }
+                break;
+            case INVALID_OPERATION:
+                IMLOGD0("[processOutputBuffer] dequeueOutputBuffer returned INVALID_OPERATION");
+                continue;
+            default:
+                IMLOGE1("[processOutputBuffer] Got weird result[%d] from dequeueOutputBuffer", err);
+                continue;
+        }
     }
 }

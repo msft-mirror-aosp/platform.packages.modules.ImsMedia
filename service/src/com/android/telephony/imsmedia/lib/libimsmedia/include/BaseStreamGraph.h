@@ -35,9 +35,6 @@ protected:
     virtual void RemoveNode(BaseNode* pNode);
     virtual ImsMediaResult startNodes();
     virtual ImsMediaResult stopNodes();
-    virtual void setMediaQualityThreshold(const MediaQualityThreshold& threshold) {
-        (void)threshold;
-    }
 
 public:
     BaseStreamGraph(BaseSessionCallback* callback, int localFd = 0);
@@ -57,14 +54,17 @@ public:
         return mGraphState;
     }
     virtual bool isSameConfig(RtpConfig* config) = 0;
+    virtual void setMediaQualityThreshold(const MediaQualityThreshold& threshold) {
+        mThreshold = threshold;
+    }
 
 protected:
     BaseSessionCallback* mCallback;
     int mLocalFd;
     StreamState mGraphState;
-    std::list<BaseNode*> mListNodes;
     std::list<BaseNode*> mListNodeToStart;
     std::list<BaseNode*> mListNodeStarted;
+    MediaQualityThreshold mThreshold;
     std::unique_ptr<StreamScheduler> mScheduler;
 };
 

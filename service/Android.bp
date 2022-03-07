@@ -45,6 +45,15 @@ android_app {
     static_libs: [
         "imsmedia-core",
     ],
+    required: [
+        "libimsmediajni",
+    ],
+    optimize: {
+        enabled: false,
+    },
+    dex_preopt: {
+        enabled: false,
+    },
 
     privileged: true,
     certificate: "platform",

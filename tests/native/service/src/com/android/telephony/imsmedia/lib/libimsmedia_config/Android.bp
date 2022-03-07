@@ -1,7 +1,7 @@
 cc_test {
     name: "ImsMediaNativeConfigTests",
     srcs: [
-        "**/*.cpp",
+        "android/telephony/imsmedia/**/*.cpp",
     ],
     test_suites: [
         "device-tests"
@@ -10,6 +10,7 @@ cc_test {
         "libimsmedia_config",
         "libbinder",
         "libutils",
+        "liblog",
     ],
     header_libs: [
         "libimsmedia_config_headers"

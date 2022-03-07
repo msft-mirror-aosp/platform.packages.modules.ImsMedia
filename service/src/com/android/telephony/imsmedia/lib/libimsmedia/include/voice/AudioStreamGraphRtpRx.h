@@ -30,7 +30,6 @@ public:
     virtual ~AudioStreamGraphRtpRx();
     virtual ImsMediaResult createGraph(void* config);
     virtual ImsMediaResult updateGraph(void* config);
-    virtual void setMediaQualityThreshold(const MediaQualityThreshold& threshold);
     virtual bool isSameConfig(RtpConfig* config);
 
 private:

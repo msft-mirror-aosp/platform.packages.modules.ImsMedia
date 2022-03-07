@@ -16,77 +16,119 @@
 
 package com.android.telephony.imsmedia;
 
-import android.os.Handler;
+import android.system.Os;
+import android.os.Binder;
+import android.os.Parcel;
+import android.os.Message;
 import android.telephony.imsmedia.AudioConfig;
 import android.telephony.imsmedia.MediaQualityThreshold;
 import android.telephony.ims.RtpHeaderExtension;
 import android.telephony.Rlog;
-
+import android.content.AttributionSource;
+import android.content.AttributionSource.ScopedParcelState;
 import com.android.telephony.imsmedia.Utils.OpenSessionParams;
+import android.telephony.imsmedia.ImsMediaSession;
 
+import java.util.HashSet;
 import java.util.List;
 
 /**
- * Audio RTP stack service
+ * Audio service for internal AP based RTP stack. This interacts with native library
+ * to open/close {@link AudioLocalSession}
  */
 public class AudioService {
     private static final String LOG_TAG = "AudioService";
-    private Handler mHandler;
-    private ImsMediaController.OpenSessionCallback mMediaControllerCallback;
+    private long mNativeObject = 0;
+    private AudioListener mListener = null;
 
-    AudioService(Handler handler) {
-        mHandler = handler;
-
-        // TODO: Initialize audio RTP stack
+    AudioService() {
+        /**
+         * Retrieves attribution source and add audio mic permission if
+         * there is no mic permission acquired in the process
+         */
+        AttributionSource attributionSource = AttributionSource.myAttributionSource();
+        if (attributionSource.getPackageName() == null) {
+            attributionSource = attributionSource.withPackageName("uid:" + Binder.getCallingUid());
+        }
+        HashSet<String> setPermission = new HashSet<String>();
+        setPermission.add("android.permission.RECORD_AUDIO");
+        AttributionSource attributionSource2 = new AttributionSource(attributionSource.getUid(),
+            attributionSource.getPackageName(), attributionSource.getAttributionTag(),
+            setPermission, attributionSource.getNext());
+        try (ScopedParcelState attributionSourceState = attributionSource2.asScopedParcelState()) {
+            mNativeObject = JNIImsMediaService.getInterface(
+                ImsMediaSession.SESSION_TYPE_AUDIO, attributionSourceState.getParcel());
+        } catch (Exception e) {
+            Rlog.e(LOG_TAG, "exception=" + e);
+        }
     }
 
-    public void openSession(int sessionId, OpenSessionParams sessionParams) {
+    /** Returns the native instance identifier of VoiceManager in libimsmedia*/
+    public long getNativeObject() {
+        return mNativeObject;
+    }
+
+    /** Sets JNI listener to get JNI callback from libimsmediajni library*/
+    public void setListener(final AudioListener listener) {
+        mListener = listener;
+        JNIImsMediaService.setListener(mNativeObject, mListener);
+    }
+
+    /**
+     * Sends request message with the corresponding arguments to libimsmediajni library to operate
+     *
+     * @param sessionid : session identifier
+     * @param parcel : parcel argument to send to JNI
+     */
+    public void sendRequest(final int sessionid, Parcel parcel) {
+        if (mNativeObject != 0) {
+            byte[] data = parcel.marshall();
+            parcel.recycle();
+            parcel = null;
+            JNIImsMediaService.sendMessage(mNativeObject, sessionid, data);
+        }
+    }
+
+    /**
+     * Opens a RTP session based on local the local sockets with the associated
+     * initial remote configuration if there is a valid RtpConfig passed.
+     * It starts the media flow if the media direction in the RtpConfig is set
+     * to any value other than NO_MEDIA_FLOW. If the open session is
+     * successful then a new AudioLocalSession object will be created using
+     * the JNIImsMediaListener#onMessage() API. If the open
+     * session is failed then a error code will be returned using
+     * JNIImsMediaListener#onMessage(int) API.
+     *
+     * @param sessionId A unique RTP session identifier
+     * @param sessionParams Paratmers including rtp, rtcp socket to send and receive incoming
+     * RTP packets and RtpConfig to create session.
+     */
+    public void openSession(final int sessionId, final OpenSessionParams sessionParams) {
         Rlog.d(LOG_TAG, "openSession");
-        mMediaControllerCallback = sessionParams.getCallback();
-        // TODO
-        // create localEndPoint
-        // covert telephony AudioConfig internal AudioConfig
-        // Invoke internal openSession(sessionId, localEndPoint, config);
-        //
-        // Once openSession is success notify using ImsMediaController.OpenSessionCallback
-
-        // Stub code
-        // mMediaControllerCallback.onOpenSessionSuccess(sessionId, new Object());
+        if (sessionParams == null) return;
+        Parcel parcel = Parcel.obtain();
+        parcel.writeInt(AudioSession.CMD_OPEN_SESSION);
+        final int socketFdRtp = sessionParams.getRtpFd().getFd();
+        final int socketFdRtcp = sessionParams.getRtcpFd().getFd();
+        parcel.writeInt(socketFdRtp);
+        parcel.writeInt(socketFdRtcp);
+        if (sessionParams.getRtpConfig() != null) {
+            sessionParams.getRtpConfig().writeToParcel(parcel, 0);
+        }
+        sendRequest(sessionId, parcel);
     }
 
-    public void closeSession(int sessionId) {
+    /**
+     * Closes the RTP session including cleanup of all the resources
+     * associated with the session. This will also close the session object
+     * and associated callback.
+     *
+     * @param session RTP session to be closed.
+     */
+    public void closeSession(final int sessionId) {
         Rlog.d(LOG_TAG, "closeSession");
-    }
-
-    public void modifySession(AudioConfig config) {
-        Rlog.d(LOG_TAG, "modifySession");
-    }
-
-    public void addConfig(AudioConfig config) {
-        Rlog.d(LOG_TAG, "addConfig");
-    }
-
-    public void deleteConfig(AudioConfig config) {
-        Rlog.d(LOG_TAG, "deleteConfig");
-    }
-
-    public void confirmConfig(AudioConfig config) {
-        Rlog.d(LOG_TAG, "confirmConfig");
-    }
-
-    public void startDtmf(char dtmfDigit, int volume, int duration) {
-        Rlog.d(LOG_TAG, "startDtmf");
-    }
-
-    public void stopDtmf() {
-        Rlog.d(LOG_TAG, "stopDtmf");
-    }
-
-    public void sendHeaderExtension(List<RtpHeaderExtension> extensions) {
-        Rlog.d(LOG_TAG, "sendHeaderExtension");
-    }
-
-    public void setMediaQualityThreshold(MediaQualityThreshold threshold) {
-        Rlog.d(LOG_TAG, "setMediaQualityThreshold");
+        Parcel parcel = Parcel.obtain();
+        parcel.writeInt(AudioSession.CMD_CLOSE_SESSION);
+        sendRequest(sessionId, parcel);
     }
 }

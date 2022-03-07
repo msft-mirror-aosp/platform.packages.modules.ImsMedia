@@ -20,6 +20,7 @@
 #include <ImsMediaAudioDefine.h>
 #include <media/AudioTrack.h>
 #include <media/stagefright/MediaCodec.h>
+#include <mutex>
 
 using android::sp;
 using android::AudioTrack;
@@ -29,7 +30,7 @@ class ImsMediaVoiceRenderer {
 private:
     sp<AudioTrack> m_AudioTrack;
     sp<MediaCodec> m_MediaCodec;
-    eAudioCodecType m_nCodecType;
+    int32_t m_nCodecType;
     uint32_t m_amr_mode;
 #ifdef DEBUG_PCM_DUMP
     FILE    *fPCMDump; // file pointer for PCM Dump
@@ -39,7 +40,7 @@ private:
 public:
     ImsMediaVoiceRenderer();
     ~ImsMediaVoiceRenderer();
-    void SetCodec(eAudioCodecType eCodecType);
+    void SetCodec(int32_t type);
     void SetCodecMode(uint32_t mode);
     bool Start();
     void Stop();

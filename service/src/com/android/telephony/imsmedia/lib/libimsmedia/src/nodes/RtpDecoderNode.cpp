@@ -21,8 +21,8 @@
 RtpDecoderNode::RtpDecoderNode() {
     mRtpSession = NULL;
     mReceivingSSRC = 0;
-    // mLocalAddress = RtpAddress("0,0,0,0", 0);
-    // mPeerAddress = RtpAddress("0,0,0,0", 0);
+    mInactivityTime = 0;
+    mNoRtpTime = 0;
 }
 
 RtpDecoderNode::~RtpDecoderNode() {
@@ -61,14 +61,14 @@ ImsMediaResult RtpDecoderNode::Start() {
 
     mRtpSession->SetRtpDecoderListener(this);
     mRtpSession->StartRtp();
-    //mRtpSession->EnableRTPMonitoring(true);
     mReceivingSSRC = 0;
+    mInactivityTime = 0;
+    mNoRtpTime = 0;
     mNodeState = NODESTATE_RUNNING;
     return IMS_MEDIA_OK;
 }
 
 void RtpDecoderNode::Stop() {
-    //mRtpSession->EnableRTPMonitoring(false);
     mReceivingSSRC = 0;
     mNodeState = NODESTATE_STOPPED;
 }
@@ -90,6 +90,26 @@ bool RtpDecoderNode::IsSourceNode() {
     return false;
 }
 
+void RtpDecoderNode::SetConfig(void* config) {
+    IMLOGD0("[SetConfig]");
+    if (config == NULL) return;
+    RtpConfig *pConfig = reinterpret_cast<RtpConfig*>(config);
+    mPeerAddress = RtpAddress(pConfig->getRemoteAddress().c_str(), pConfig->getRemotePort());
+    SetSamplingRate(pConfig->getSamplingRateKHz() * 1000);
+    IMLOGD2("[SetConfig] peer Ip[%s], port[%d]", mPeerAddress.ipAddress,
+        mPeerAddress.port);
+}
+
+bool RtpDecoderNode::IsSameConfig(void* config) {
+    if (config == NULL) return true;
+    RtpConfig* pConfig = reinterpret_cast<RtpConfig*>(config);
+    RtpAddress peerAddress = RtpAddress(pConfig->getRemoteAddress().c_str(),
+        pConfig->getRemotePort());
+
+    return (mPeerAddress == peerAddress
+        && mSamplingRate == (pConfig->getSamplingRateKHz() * 1000));
+}
+
 void RtpDecoderNode::OnMediaDataInd(unsigned char* pData, uint32_t nDataSize, uint32_t nTimestamp,
     bool bMark, uint16_t nSeqNum, uint32_t nPayloadType, uint32_t nSSRC,
     bool bExtension, uint16_t nExtensionData) {
@@ -108,8 +128,6 @@ void RtpDecoderNode::OnMediaDataInd(unsigned char* pData, uint32_t nDataSize, ui
             IMLOGD3("[OnMediaDataInd] type[%d] SSRC changed, received SSRC[%x], nSSRC[%x]",
                 mMediaType, mReceivingSSRC, nSSRC);
             mReceivingSSRC = nSSRC;
-            // test block
-            //SendDataToRearNode(mMediaType, MEDIASUBTYPE_REFRESHED, NULL, 0, 0, 0, 0);
         }
     }
 
@@ -117,28 +135,21 @@ void RtpDecoderNode::OnMediaDataInd(unsigned char* pData, uint32_t nDataSize, ui
         nTimestamp, bMark, nSeqNum);
 }
 
-void RtpDecoderNode::SetConfig(void* config) {
-    IMLOGD0("[SetConfig]");
+void RtpDecoderNode::OnNumReceivedPacket(uint32_t nNumRtpPacket) {
+    IMLOGD_PACKET2(IM_PACKET_LOG_RTCP,
+        "[OnNumReceivedPacket] mediaType[%d], numRTP[%d]", mMediaType, nNumRtpPacket);
 
-    if (config == NULL) return;
+    if (nNumRtpPacket == 0) {
+        mNoRtpTime++;
+    } else{
+        mNoRtpTime = 0;
+    }
 
-    AudioConfig *pConfig = reinterpret_cast<AudioConfig*>(config);
-
-    IMLOGD2("[SetConfig] peer Ip[%s], port[%d]", pConfig->getRemoteAddress().c_str(),
-        pConfig->getRemotePort());
-}
-
-bool RtpDecoderNode::UpdateConfig(void* config) {
-    IMLOGD0("UpdateConfig]");
-
-    if (config == NULL) return false;
-
-    AudioConfig *pConfig = reinterpret_cast<AudioConfig*>(config);
-
-    IMLOGD2("UpdateConfig] peer Ip[%s], port[%d]", pConfig->getRemoteAddress().c_str(),
-        pConfig->getRemotePort());
-
-    return false;
+    if (mInactivityTime != 0 && mNoRtpTime == mInactivityTime) {
+        if (mCallback != NULL) {
+            mCallback->SendEvent(EVENT_NOTIFY_MEDIA_INACITIVITY, RTP, mInactivityTime);
+        }
+    }
 }
 
 void RtpDecoderNode::SetLocalAddress(const RtpAddress address) {
@@ -151,4 +162,8 @@ void RtpDecoderNode::SetPeerAddress(const RtpAddress address) {
 
 void RtpDecoderNode::SetSamplingRate(const uint32_t data) {
     mSamplingRate = data;
+}
+
+void RtpDecoderNode::SetInactivityTimerSec(const uint32_t time) {
+    mInactivityTime = time;
 }

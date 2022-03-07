@@ -28,6 +28,13 @@ const int32_t kRxPayload = 96;
 const int32_t kTxPayload = 96;
 const int8_t kSamplingRate = 8;
 
+//rtcp config
+const android::String8 kCanonicalName("name");
+const int32_t kTransmitPort = 1000;
+const int32_t kIntervalSec = 1500;
+const int32_t kRtcpXrBlockTypes = RtcpConfig::FLAG_RTCPXR_STATISTICS_SUMMARY_REPORT_BLOCK |
+    RtcpConfig::FLAG_RTCPXR_VOIP_METRICS_REPORT_BLOCK;
+
 TEST(RtpConfigTest, TestGetterSetter) {
     RtpConfig* config = new RtpConfig();
     config->setMediaDirection(kMediaDirection);
@@ -75,6 +82,28 @@ TEST(RtpConfigTest, TestParcel) {
 
     delete config;
     delete config2;
+}
+
+TEST(RtpConfigTest, TestAssign) {
+    RtpConfig config;
+    config.setMediaDirection(kMediaDirection);
+    config.setRemoteAddress(kRemoteAddress);
+    config.setRemotePort(kRemotePort);
+    RtcpConfig rtcp;
+    rtcp.setCanonicalName(kCanonicalName);
+    rtcp.setTransmitPort(kTransmitPort);
+    rtcp.setIntervalSec(kIntervalSec);
+    rtcp.setRtcpXrBlockTypes(kRtcpXrBlockTypes);
+    config.setRtcpConfig(rtcp);
+    config.setMaxMtuBytes(kMtu);
+    config.setDscp(kDscp);
+    config.setRxPayloadTypeNumber(kRxPayload);
+    config.setTxPayloadTypeNumber(kTxPayload);
+    config.setSamplingRateKHz(kSamplingRate);
+
+    RtpConfig config2;
+    config2 = config;
+    EXPECT_EQ(config, config2);
 }
 
 TEST(RtpConfigTest, TestEqual) {

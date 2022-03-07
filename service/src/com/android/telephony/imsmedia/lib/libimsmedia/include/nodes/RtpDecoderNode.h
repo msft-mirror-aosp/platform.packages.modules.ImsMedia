@@ -17,7 +17,6 @@
 #ifndef RTP_DECODER_NODE_H
 #define RTP_DECODER_NODE_H
 
-#include <ImsMediaHal.h>
 #include <BaseNode.h>
 #include <IRtpSession.h>
 
@@ -38,17 +37,20 @@ public:
     virtual void Stop();
     virtual bool IsRunTime();
     virtual bool IsSourceNode();
+    virtual void SetConfig(void* config);
+    virtual bool IsSameConfig(void* config);
     virtual void OnDataFromFrontNode(ImsMediaSubType subtype, uint8_t* pData,
         uint32_t nDataSize, uint32_t nTimestamp, bool bMark, uint32_t nSeqNum,
         ImsMediaSubType nDataType);
     virtual void OnMediaDataInd(unsigned char* pData, uint32_t nDataSize,
         uint32_t nTimestamp, bool bMark, uint16_t nSeqNum,
         uint32_t nPayloadType, uint32_t nSSRC, bool bExtension, uint16_t nExtensionData);
-    virtual void SetConfig(void* config);
-    virtual bool UpdateConfig(void* config);
+    //IRtpDecoderListener
+    void OnNumReceivedPacket(uint32_t nNumRtpPacket);
     void SetLocalAddress(const RtpAddress address);
     void SetPeerAddress(const RtpAddress address);
     void SetSamplingRate(const uint32_t data);
+    void SetInactivityTimerSec(const uint32_t time);
 
 private:
     IRtpSession* mRtpSession;
@@ -56,7 +58,8 @@ private:
     RtpAddress mPeerAddress;
     uint32_t mSamplingRate;
     uint32_t mReceivingSSRC;
-    std::shared_ptr<ImsMediaHal::RtpSessionParams> mSessionParams;
+    uint32_t mInactivityTime;
+    uint32_t mNoRtpTime;
 };
 
 #endif

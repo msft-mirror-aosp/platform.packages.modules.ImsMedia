@@ -85,10 +85,10 @@ ImsMediaVoiceRenderer::~ImsMediaVoiceRenderer() {
 #endif
 }
 
-void ImsMediaVoiceRenderer::SetCodec(eAudioCodecType eCodecType) {
+void ImsMediaVoiceRenderer::SetCodec(int32_t type) {
     IMLOGD_PACKET1(IM_PACKET_LOG_AUDIO,
-        "[ImsMediaVoiceRenderer::SetCodec] eCodecType[%d]", eCodecType);
-    m_nCodecType = eCodecType;
+        "[ImsMediaVoiceRenderer::SetCodec] type[%d]", type);
+    m_nCodecType = type;
 }
 
 void ImsMediaVoiceRenderer::SetCodecMode(uint32_t mode) {

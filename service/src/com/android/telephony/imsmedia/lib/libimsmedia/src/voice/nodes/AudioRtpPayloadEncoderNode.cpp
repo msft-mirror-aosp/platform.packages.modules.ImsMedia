@@ -17,6 +17,7 @@
 #include <AudioRtpPayloadEncoderNode.h>
 #include <ImsMediaAudioFmt.h>
 #include <ImsMediaTrace.h>
+#include <AudioConfig.h>
 
 AudioRtpPayloadEncoderNode::AudioRtpPayloadEncoderNode() {
     mPtime = 0;
@@ -104,15 +105,41 @@ void AudioRtpPayloadEncoderNode::OnDataFromFrontNode(ImsMediaSubType subtype,
 }
 
 void AudioRtpPayloadEncoderNode::SetConfig(void* config) {
-    (void)config;
+    AudioConfig* pConfig = reinterpret_cast<AudioConfig*>(config);
+    if (pConfig != NULL) {
+        SetCodec(pConfig->getCodecType());
+        if (mCodecType == AUDIO_AMR || mCodecType == AUDIO_AMR_WB) {
+            SetPayloadMode(pConfig->getAmrParams().getOctetAligned());
+        }
+        SetPtime(pConfig->getPtimeMillis());
+    }
 }
 
-void AudioRtpPayloadEncoderNode::SetCodec(eAudioCodecType eCodecType) {
-    mCodecType = eCodecType;
+void AudioRtpPayloadEncoderNode::SetCodec(int32_t type) {
+    switch (type) {
+        case AudioConfig::CODEC_AMR:
+            mCodecType = AUDIO_AMR;
+            break;
+        case AudioConfig::CODEC_AMR_WB:
+            mCodecType = AUDIO_AMR_WB;
+            break;
+        case AudioConfig::CODEC_EVS:
+            mCodecType = AUDIO_EVS;
+            break;
+        case AudioConfig::CODEC_PCMA:
+            mCodecType = AUDIO_G711_PCMA;
+            break;
+        case AudioConfig::CODEC_PCMU:
+            mCodecType = AUDIO_G711_PCMU;
+            break;
+        default:
+            break;
+    }
 }
 
-void AudioRtpPayloadEncoderNode::SetPayloadMode(uint32_t mode) {
-    mPayloadMode = mode;
+void AudioRtpPayloadEncoderNode::SetPayloadMode(bool bOctetAligned) {
+    IMLOGD1("[SetPayloadMode] bOctetAligned[%d]", bOctetAligned);
+    mOctetAligned = bOctetAligned;
 }
 
 void AudioRtpPayloadEncoderNode::SetPtime(uint32_t ptime) {
@@ -136,8 +163,8 @@ void AudioRtpPayloadEncoderNode::Encode_PH_AMR(uint8_t* pData, uint32_t nDataSiz
             pData[0], pData[1], pData[2], pData[3], nDataSize);
     }
 
-    IMLOGD_PACKET2(IM_PACKET_LOG_PH, "[Encode_PH_AMR] codectype[%d], codecMode[%d]",
-        mCodecType, mPayloadMode);
+    IMLOGD_PACKET2(IM_PACKET_LOG_PH, "[Encode_PH_AMR] codectype[%d], octetAligned[%d]",
+        mCodecType, mOctetAligned);
 
     mCurrNumOfFrame++;
     f = (mCurrNumOfFrame == mMaxNumOfFrame) ? 0 : 1;
@@ -188,7 +215,7 @@ void AudioRtpPayloadEncoderNode::Encode_PH_AMR(uint8_t* pData, uint32_t nDataSiz
         mBWPayload.SetBuffer(mPayload, MAX_AUDIO_PAYLOAD_SIZE);
         mBWHeader.Write(nCmr, 4);
 
-        if (mPayloadMode == RTPPAYLOADHEADER_MODE_AMR_OCTETALIGNED) {
+        if (mOctetAligned == true) {
             mBWHeader.Write(0, 4);
             mBWPayload.Seek(8 + mMaxNumOfFrame*8);
         } else {
@@ -203,7 +230,7 @@ void AudioRtpPayloadEncoderNode::Encode_PH_AMR(uint8_t* pData, uint32_t nDataSiz
     mBWHeader.Write(ft, 4);
     mBWHeader.Write(q, 1);
 
-    if (mPayloadMode == RTPPAYLOADHEADER_MODE_AMR_OCTETALIGNED) {
+    if (mOctetAligned == true) {
         mBWHeader.AddPadding();
     }
 
@@ -214,7 +241,7 @@ void AudioRtpPayloadEncoderNode::Encode_PH_AMR(uint8_t* pData, uint32_t nDataSiz
     // Speech Frame
     mBWPayload.WriteByteBuffer(pData, nDataBitSize);
 
-    if (mPayloadMode == RTPPAYLOADHEADER_MODE_AMR_OCTETALIGNED) {
+    if (mOctetAligned == true) {
         mBWPayload.AddPadding();
     }
 

@@ -48,7 +48,7 @@ public:
     virtual char* GetLocalIPAddress();
     virtual char* GetPeerIPAddress();
     virtual bool Open(int socketFd = -1);
-    virtual bool Listen(ISocketListener* pListener);
+    virtual bool Listen(ISocketListener* listener);
     virtual uint32_t SendTo(uint8_t* pData, uint32_t nDataSize);
     virtual uint32_t ReceiveFrom(uint8_t* pData, uint32_t nBufferSize);
     virtual void Close(eSocketMode mode);
@@ -60,7 +60,7 @@ private:
     static std::list<ImsMediaSocket*> slistSocket;
     static std::list<ImsMediaSocket*> slistRxSocket;
     static int32_t sRxSocketCount;
-    static bool mbSocketListUpdated;
+    static bool mSocketListUpdated;
     static bool mbTerminateMonitor;
     static std::mutex sMutexRxSocket;
     static std::mutex sMutexSocketList;

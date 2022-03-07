@@ -80,6 +80,14 @@ public:
         EVS_MODE_20 = 20,
     };
 
+    enum EvsBandwidth {
+        EVS_BAND_NONE = 0,
+        EVS_NARROW_BAND = 1 << 0,
+        EVS_WIDE_BAND = 1 << 1,
+        EVS_SUPER_WIDE_BAND = 1 << 2,
+        EVS_FULL_BAND = 1 << 3,
+    };
+
     EvsParams();
     EvsParams(EvsParams& params);
     virtual ~EvsParams();
@@ -88,6 +96,8 @@ public:
     bool operator!=(const EvsParams& param) const;
     virtual status_t writeToParcel(Parcel* parcel) const;
     virtual status_t readFromParcel(const Parcel* in);
+    void setEvsBandwidth(int32_t bandwidth);
+    int32_t getEvsBandwidth();
     void setEvsMode(int32_t mode);
     int32_t getEvsMode();
     void setChannelAwareMode(int8_t mode);
@@ -98,6 +108,8 @@ public:
     bool getUseHeaderFullOnlyOnRx();
 
 private:
+    /** bw: EVS codec bandwidth range */
+    int32_t evsBandwidth;
     /** mode-set: EVS codec mode to represent the bit rate */
     int32_t evsMode;
     /**

@@ -64,6 +64,20 @@ TEST(MediaQualityThresholdTest, TestParcel) {
     delete threshold2;
 }
 
+TEST(MediaQualityThresholdTest, TestAssign) {
+    MediaQualityThreshold threshold;
+    threshold.setRtpInactivityTimerMillis(kRtpInactivityTimerMillis);
+    threshold.setRtcpInactivityTimerMillis(kRtcpInactivityTimerMillis);
+    threshold.setRtpPacketLossDurationMillis(kRtpPacketLossDurationMillis);
+    threshold.setRtpPacketLossRate(kRtpPacketLossRate);
+    threshold.setJitterDurationMillis(kJitterDurationMillis);
+    threshold.setRtpJitterMillis(kRtpJitterMillis);
+
+    MediaQualityThreshold threshold2;
+    threshold2 = threshold;
+    EXPECT_EQ(threshold, threshold2);
+}
+
 TEST(MediaQualityThresholdTest, TestEqual) {
     MediaQualityThreshold* threshold = new MediaQualityThreshold();
     threshold->setRtpInactivityTimerMillis(kRtpInactivityTimerMillis);

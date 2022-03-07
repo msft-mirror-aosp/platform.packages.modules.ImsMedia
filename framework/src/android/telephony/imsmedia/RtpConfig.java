@@ -23,10 +23,9 @@ import androidx.annotation.Nullable;
 import android.os.Parcel;
 import android.os.Parcelable;
 import android.telephony.AccessNetworkConstants.AccessNetworkType;
-
+import android.net.InetAddresses;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
-import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.UnknownHostException;
 import java.util.Objects;
@@ -51,6 +50,8 @@ public abstract class RtpConfig implements Parcelable {
     public static final int MEDIA_DIRECTION_RECEIVE_ONLY = 2;
     /** Device transmits and receives media in both the directions */
     public static final int MEDIA_DIRECTION_TRANSMIT_RECEIVE = 3;
+    /* definition of uninitialized port number*/
+    public static final int UNINITIALIZED_PORT = -1;
 
     /** @hide */
     @IntDef(
@@ -79,10 +80,7 @@ public abstract class RtpConfig implements Parcelable {
     RtpConfig(Parcel in) {
         direction = in.readInt();
         accessNetwork = in.readInt();
-
-        final int addressLength = in.readInt();
-        remoteRtpAddress = readSocketAddress(in, addressLength);
-
+        remoteRtpAddress = readSocketAddress(in);
         rtcpConfig = in.readParcelable(RtcpConfig.class.getClassLoader(), RtcpConfig.class);
         maxMtuBytes = in.readInt();
         dscp = in.readInt();
@@ -104,21 +102,17 @@ public abstract class RtpConfig implements Parcelable {
         samplingRateKHz = builder.samplingRateKHz;
     }
 
-    private @NonNull InetSocketAddress readSocketAddress(final Parcel in, final int addressLength) {
-        final byte[] address = new byte[addressLength];
-        in.readByteArray(address);
+    private @NonNull InetSocketAddress readSocketAddress(final Parcel in) {
+        final String address = in.readString();
         final int port = in.readInt();
-
-        try {
-            return new InetSocketAddress(InetAddress.getByAddress(address), port);
-        } catch (final UnknownHostException e) {
-            /* This can never happen. UnknownHostException will never be thrown
-               since the address provided is numeric and non-null. */
-            throw new RuntimeException("UnknownHostException on numeric address", e);
+        if(address != null && port != UNINITIALIZED_PORT) {
+            return new InetSocketAddress(
+                InetAddresses.parseNumericAddress(address), port);
         }
+        return null;
     }
 
-    public @MediaDirection int getMediaDirection() {
+    public int getMediaDirection() {
         return direction;
     }
 
@@ -250,16 +244,13 @@ public abstract class RtpConfig implements Parcelable {
     public void writeToParcel(Parcel dest, int flags) {
         dest.writeInt(direction);
         dest.writeInt(accessNetwork);
-
         if (remoteRtpAddress == null) {
-            dest.writeInt(0);
+            dest.writeString(null);
+            dest.writeInt(UNINITIALIZED_PORT);
         } else {
-            final byte[] remoteAddress = remoteRtpAddress.getAddress().getAddress();
-            dest.writeInt(remoteAddress.length);
-            dest.writeByteArray(remoteAddress);
+            dest.writeString(remoteRtpAddress.getAddress().getHostAddress());
             dest.writeInt(remoteRtpAddress.getPort());
         }
-
         dest.writeParcelable(rtcpConfig, flags);
         dest.writeInt(maxMtuBytes);
         dest.writeInt(dscp);

@@ -24,6 +24,7 @@ namespace imsmedia {
 
 /** Native representation of android.telephony.imsmedia.EvsParams */
 EvsParams::EvsParams() {
+    this->evsBandwidth = 0;
     this->evsMode = 0;
     this->channelAwareMode = 0;
     this->useHeaderFullOnlyOnTx = false;
@@ -31,6 +32,7 @@ EvsParams::EvsParams() {
 }
 
 EvsParams::EvsParams(EvsParams& params) {
+    this->evsBandwidth = params.evsBandwidth;
     this->evsMode = params.evsMode;
     this->channelAwareMode = params.channelAwareMode;
     this->useHeaderFullOnlyOnTx = params.useHeaderFullOnlyOnTx;
@@ -42,6 +44,7 @@ EvsParams::~EvsParams() {
 }
 
 EvsParams& EvsParams::operator=(const EvsParams& param) {
+    this->evsBandwidth = param.evsBandwidth;
     this->evsMode = param.evsMode;
     this->channelAwareMode = param.channelAwareMode;
     this->useHeaderFullOnlyOnTx = param.useHeaderFullOnlyOnTx;
@@ -50,14 +53,16 @@ EvsParams& EvsParams::operator=(const EvsParams& param) {
 }
 
 bool EvsParams::operator==(const EvsParams& param) const {
-    return (this->evsMode == param.evsMode
+    return (this->evsBandwidth == param.evsBandwidth
+        && this->evsMode == param.evsMode
         && this->channelAwareMode == param.channelAwareMode
         && this->useHeaderFullOnlyOnTx == param.useHeaderFullOnlyOnTx
         && this->useHeaderFullOnlyOnRx == param.useHeaderFullOnlyOnRx);
 }
 
 bool EvsParams::operator!=(const EvsParams& param) const {
-    return (this->evsMode != param.evsMode
+    return (this->evsBandwidth != param.evsBandwidth
+        || this->evsMode != param.evsMode
         || this->channelAwareMode != param.channelAwareMode
         || this->useHeaderFullOnlyOnTx != param.useHeaderFullOnlyOnTx
         || this->useHeaderFullOnlyOnRx != param.useHeaderFullOnlyOnRx);
@@ -65,6 +70,11 @@ bool EvsParams::operator!=(const EvsParams& param) const {
 
 status_t EvsParams::writeToParcel(Parcel* out) const {
     status_t err;
+    err = out->writeInt32(evsBandwidth);
+    if (err != NO_ERROR) {
+        return err;
+    }
+
     err = out->writeInt32(evsMode);
     if (err != NO_ERROR) {
         return err;
@@ -94,6 +104,11 @@ status_t EvsParams::writeToParcel(Parcel* out) const {
 
 status_t EvsParams::readFromParcel(const Parcel* in) {
     status_t err;
+    err = in->readInt32(&evsBandwidth);
+    if (err != NO_ERROR) {
+        return err;
+    }
+
     err = in->readInt32(&evsMode);
     if (err != NO_ERROR) {
         return err;
@@ -119,6 +134,14 @@ status_t EvsParams::readFromParcel(const Parcel* in) {
 
     value == 0 ? useHeaderFullOnlyOnRx = false : useHeaderFullOnlyOnRx = true;
     return NO_ERROR;
+}
+
+void EvsParams::setEvsBandwidth(int32_t bandwidth) {
+    evsBandwidth = bandwidth;
+}
+
+int32_t EvsParams::getEvsBandwidth() {
+    return evsBandwidth;
 }
 
 void EvsParams::setEvsMode(int32_t mode) {

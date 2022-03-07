@@ -29,15 +29,18 @@ class BaseManager {
 public:
     BaseManager() {}
     virtual ~BaseManager() {}
-    virtual void sendMessage(const int sessionid, const android::Parcel& parcel) = 0;
+    virtual void sendMessage(const int sessionId, const android::Parcel& parcel) = 0;
     virtual void setCallback(CBManager pfnCallback) {
         mfnCallback = pfnCallback;
     }
     virtual CBManager getCallback() {
         return mfnCallback;
     }
+
 protected:
     CBManager mfnCallback;
+
+
 };
 
 #endif

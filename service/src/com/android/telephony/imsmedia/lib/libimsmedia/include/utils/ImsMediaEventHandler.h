@@ -35,8 +35,9 @@ class ImsMediaEventHandler
 {
 private:
     std::list<uint32_t> mListevent;
-    std::list<uint64_t> mListpParam;
-    std::list<uint64_t> mListlParam;
+    std::list<uint64_t> mListParamA;
+    std::list<uint64_t> mListParamB;
+    std::list<uint64_t> mListParamC;
     static std::list<ImsMediaEventHandler*> gListEventHandler;
     static std::mutex mMutex;
     ImsMediaCondition mCond;
@@ -49,12 +50,13 @@ public:
     ImsMediaEventHandler(const char* strName);
     virtual ~ImsMediaEventHandler();
     static void SendEvent(const char* strEventHandlerName, uint32_t event,
-        uint64_t pParam, uint64_t lParam);
+        uint64_t paramA, uint64_t paramB = 0, uint64_t paramC = 0);
     char* getName();
 
 private:
-    void AddEvent(uint32_t event, uint64_t pParam, uint64_t lParam);
-    virtual void processEvent(uint32_t event, uint64_t pParam, uint64_t lParam) = 0;
+    void AddEvent(uint32_t event, uint64_t paramA, uint64_t paramB, uint64_t paramC);
+    virtual void processEvent(uint32_t event, uint64_t paramA, uint64_t paramB,
+        uint64_t paramC) = 0;
     virtual void* run();    //thread method
 };
 

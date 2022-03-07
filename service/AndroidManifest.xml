@@ -19,6 +19,10 @@
     coreApp="true"
     android:singleUser="true">
 <!-- TODO add permission -->
+  <uses-permission android:name="android.permission.RECORD_AUDIO"/>
+  <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
+  <uses-permission android:name="android.permission.INTERNET" />
+
   <application
       android:persistent="true"
       android:defaultToDeviceProtectedStorage="true"

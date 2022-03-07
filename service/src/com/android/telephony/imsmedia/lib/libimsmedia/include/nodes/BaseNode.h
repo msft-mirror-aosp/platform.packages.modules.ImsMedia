@@ -60,7 +60,8 @@ public:
     virtual bool IsRunTime() = 0;
     virtual bool IsSourceNode() = 0;
     virtual void SetConfig(void* config);
-    virtual bool UpdateConfig(void* config);
+    virtual bool IsSameConfig(void* config);
+    virtual ImsMediaResult UpdateConfig(void* config);
     // Scheduler Interface
     virtual void ProcessData();
     const char* GetNodeName();

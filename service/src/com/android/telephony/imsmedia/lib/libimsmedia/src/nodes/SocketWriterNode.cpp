@@ -43,7 +43,8 @@ BaseNodeID SocketWriterNode::GetNodeID() {
 
 ImsMediaResult SocketWriterNode::Start() {
     IMLOGD0("[Start]");
-    mSocket = ISocket::GetInstance(mLocalPort, mPeerIP, mPeerPort);
+    mSocket = ISocket::GetInstance(mLocalAddress.port,
+        mPeerAddress.ipAddress, mPeerAddress.port);
 
     if (mSocket == NULL) {
         IMLOGE0("[Start] can't create socket instance");
@@ -52,8 +53,8 @@ ImsMediaResult SocketWriterNode::Start() {
     }
 
     //set local/peer address here
-    mSocket->SetLocalEndpoint(mLocalIP, mLocalPort);
-    mSocket->SetPeerEndpoint(mPeerIP, mPeerPort);
+    mSocket->SetLocalEndpoint(mLocalAddress.ipAddress, mLocalAddress.port);
+    mSocket->SetPeerEndpoint(mPeerAddress.ipAddress, mPeerAddress.port);
 
     if (mSocket->Open(mLocalFd) == false) {
         IMLOGE0("[Start] can't open socket");
@@ -69,7 +70,7 @@ ImsMediaResult SocketWriterNode::Start() {
 void SocketWriterNode::Stop() {
     IMLOGD0("[Stop]");
     if (mSocket != NULL) {
-        mSocket->Close(SOCKET_MODE_TX);
+        //mSocket->Close(SOCKET_MODE_TX);
         ISocket::ReleaseInstance(mSocket);
         mSocket = NULL;
         mbSocketOpened = false;
@@ -83,6 +84,33 @@ bool SocketWriterNode::IsRunTime() {
 
 bool SocketWriterNode::IsSourceNode() {
     return true;
+}
+
+void SocketWriterNode::SetConfig(void* config) {
+    if (config == NULL) return;
+    RtpConfig* pConfig = reinterpret_cast<RtpConfig*>(config);
+    if (mProtocolType == RTP) {
+        mPeerAddress = RtpAddress(pConfig->getRemoteAddress().c_str(), pConfig->getRemotePort());
+    } else if (mProtocolType == RTCP) {
+        mPeerAddress = RtpAddress(pConfig->getRemoteAddress().c_str(),
+            pConfig->getRemotePort() + 1);
+    }
+}
+
+bool SocketWriterNode::IsSameConfig(void* config) {
+    if (config == NULL) return true;
+    RtpConfig* pConfig = reinterpret_cast<RtpConfig*>(config);
+    RtpAddress peerAddress;
+
+    if (mProtocolType == RTP) {
+        peerAddress = RtpAddress(pConfig->getRemoteAddress().c_str(),
+            pConfig->getRemotePort());
+    } else if (mProtocolType == RTCP) {
+        peerAddress = RtpAddress(pConfig->getRemoteAddress().c_str(),
+            pConfig->getRemotePort() + 1);
+    }
+
+    return (mPeerAddress == peerAddress);
 }
 
 void SocketWriterNode::OnDataFromFrontNode(ImsMediaSubType subtype,
@@ -110,4 +138,12 @@ void SocketWriterNode::OnDataFromFrontNode(ImsMediaSubType subtype,
 
 void SocketWriterNode::SetLocalFd(int fd) {
     mLocalFd = fd;
+}
+
+void SocketWriterNode::SetLocalAddress(const RtpAddress address) {
+    mLocalAddress = address;
+}
+
+void SocketWriterNode::SetPeerAddress(const RtpAddress address) {
+    mPeerAddress = address;
 }

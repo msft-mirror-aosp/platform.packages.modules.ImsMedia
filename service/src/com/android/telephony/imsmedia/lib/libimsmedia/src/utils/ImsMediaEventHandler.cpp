@@ -34,8 +34,9 @@ ImsMediaEventHandler::~ImsMediaEventHandler() {
     IMLOGD1("[~ImsMediaEventHandler] %s", mName);
     gListEventHandler.remove(this);
     mListevent.clear();
-    mListpParam.clear();
-    mListlParam.clear();
+    mListParamA.clear();
+    mListParamB.clear();
+    mListParamC.clear();
     mbTerminate = true;
     mCond.signal();
     mCondExit.wait();
@@ -46,17 +47,17 @@ ImsMediaEventHandler::~ImsMediaEventHandler() {
 }
 
 void ImsMediaEventHandler::SendEvent(const char* strEventHandlerName,
-    uint32_t event, uint64_t pParam, uint64_t lParam) {
+    uint32_t event, uint64_t paramA, uint64_t paramB, uint64_t paramC) {
     if (strEventHandlerName == NULL) {
         IMLOGE0("[SendEvent] strEventHandlerName is NULL");
         return;
     }
     std::lock_guard<std::mutex> guard(mMutex);
-    IMLOGD4("[SendEvent] Name[%s], event[%d], pParam[%p], lParam[%p]",
-        strEventHandlerName, event, pParam, lParam);
+    IMLOGD5("[SendEvent] Name[%s], event[%d], paramA[%p], paramB[%p], paramC[%p]",
+        strEventHandlerName, event, paramA, paramB, paramC);
     for (auto&i : gListEventHandler) {
         if (strcmp(i->getName(), strEventHandlerName) == 0) {
-            i->AddEvent(event, pParam, lParam);
+            i->AddEvent(event, paramA, paramB, paramC);
         }
     }
 }
@@ -65,13 +66,15 @@ char* ImsMediaEventHandler::getName() {
     return mName;
 }
 
-void ImsMediaEventHandler::AddEvent(uint32_t event, uint64_t pParam, uint64_t lParam) {
+void ImsMediaEventHandler::AddEvent(uint32_t event, uint64_t paramA, uint64_t paramB,
+    uint64_t paramC) {
     // lock
     IMLOGD2("[AddEvent] event[%d], size[%d]", event, mListevent.size());
     mMutexEvent.lock();
     mListevent.push_back(event);
-    mListpParam.push_back(pParam);
-    mListlParam.push_back(lParam);
+    mListParamA.push_back(paramA);
+    mListParamB.push_back(paramB);
+    mListParamC.push_back(paramC);
     //unlock
     mMutexEvent.unlock();
     IMLOGD0("[AddEvent] signal");
@@ -92,11 +95,13 @@ void* ImsMediaEventHandler::run() {
                 break;
             }
             mMutexEvent.unlock();
-            processEvent(mListevent.front(), mListpParam.front(), mListlParam.front());
+            processEvent(mListevent.front(), mListParamA.front(),
+                mListParamB.front(), mListParamC.front());
             mMutexEvent.lock();
             mListevent.pop_front();
-            mListpParam.pop_front();
-            mListlParam.pop_front();
+            mListParamA.pop_front();
+            mListParamB.pop_front();
+            mListParamC.pop_front();
             mMutexEvent.unlock();
             // Only when thread needs to be destroyed inside of processEvent,
             // this method returns "true".

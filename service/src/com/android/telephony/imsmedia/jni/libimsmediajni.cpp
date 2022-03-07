@@ -129,7 +129,7 @@ static jlong JNIImsMediaService_getInterface(JNIEnv* env, jobject /* object */,
 }
 
 static jint JNIImsMediaService_sendMessage(JNIEnv* env, jobject,
-    jlong nativeObj, jint sessionid, jbyteArray baData) {
+    jlong nativeObj, jint sessionId, jbyteArray baData) {
 
     BaseManager *manager = reinterpret_cast<BaseManager*>(nativeObj);
     android::Parcel parcel;
@@ -139,7 +139,7 @@ static jint JNIImsMediaService_sendMessage(JNIEnv* env, jobject,
     parcel.setDataPosition(0);
 
     if (manager) {
-        manager->sendMessage(sessionid, parcel);
+        manager->sendMessage(sessionId, parcel);
     }
     env->ReleaseByteArrayElements(baData, pBuff, 0);
     return 0;

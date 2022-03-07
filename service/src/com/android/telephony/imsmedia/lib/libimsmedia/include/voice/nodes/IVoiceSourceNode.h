@@ -29,7 +29,6 @@ class IVoiceSourceNode : public BaseNode
 private:
     IVoiceSourceNode();
     ~IVoiceSourceNode();
-
 public:
     static BaseNode* GetInstance();
     static void ReleaseInstance(BaseNode* pNode);
@@ -38,10 +37,10 @@ public:
     virtual void Stop();
     virtual bool IsRunTime();
     virtual bool IsSourceNode();
-    //ImsMediaResult ProcessCMR(uint32_t eNewAMRMode);
     virtual void SetConfig(void* config);
+    virtual bool IsSameConfig(void* config);
     void SetAttributeSource(android::content::AttributionSourceState& source);
-    void SetCodec(eAudioCodecType eCodecType);
+    void SetCodec(int32_t type);
     void SetCodecMode(uint32_t mode);
     static void CB_AudioUplink(void* pClient, uint8_t* pBitstream, uint32_t pnSize,
         int64_t pstUsec, uint32_t flag);
@@ -51,9 +50,8 @@ public:
     uint64_t m_uiPrevTimestamp;
     bool m_bFirstFrame;
     std::unique_ptr<ImsMediaVoiceSource> mVoiceSource;
-    std::shared_ptr<ImsMediaHal::RtpSessionParams> mSessionParams;
     android::content::AttributionSourceState mSource;
-    eAudioCodecType mCodecType;
+    int32_t mCodecType;
     uint32_t mMode;
 };
 

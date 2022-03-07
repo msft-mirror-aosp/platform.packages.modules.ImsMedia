@@ -18,8 +18,12 @@ package com.android.telephony.imsmedia;
 
 import android.app.Service;
 import android.content.Intent;
+import android.system.Os;
 import android.os.IBinder;
 import android.os.ParcelFileDescriptor;
+import android.net.Network;
+import android.net.ConnectivityManager;
+import android.net.LinkProperties;
 import android.support.annotation.GuardedBy;
 import android.telephony.imsmedia.RtpConfig;
 import android.telephony.imsmedia.IImsMedia;
@@ -30,6 +34,10 @@ import android.telephony.Rlog;
 import android.util.SparseArray;
 import com.android.telephony.imsmedia.Utils.OpenSessionParams;
 
+import java.net.SocketAddress;
+import java.net.InetSocketAddress;
+import java.net.InetAddress;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /** Controller that maintains all IMS Media sessions */
@@ -67,7 +75,9 @@ public class ImsMediaController extends Service {
 
                 if (session != null) {
                     mSessions.append(sessionId, session);
-                    session.openSession(new OpenSessionParams(rtpFd, rtcpFd, rtpConfig, mCallback));
+                    session.openSession(new OpenSessionParams(rtpFd, rtcpFd, rtpConfig,
+                        mCallback));
+
                 }
             }
         }

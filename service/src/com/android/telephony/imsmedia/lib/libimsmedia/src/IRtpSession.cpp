@@ -76,7 +76,13 @@ IRtpSession::IRtpSession(ImsMediaType eMediaType,
     mRtpSessionId = 0;
     mLocalAddress = local;
     mPeerAddress = peer;
+    mRtpStarted = 0;
     mRtcpStarted = 0;
+    mRtpEncoderListener = NULL;
+    mRtpDecoderListener = NULL;
+    mRtcpEncoderListener = NULL;
+    mRtcpDecoderListener = NULL;
+    std::memset(mPayloadParam, 0, sizeof(tRtpSvc_SetPayloadParam) * MAX_NUM_PAYLOAD_PARAM);
     //create rtp stack session
     IMS_RtpSvc_CreateSession(mLocalAddress.ipAddress, mLocalAddress.port,
         this, &mLocalRtpSsrc, &mRtpSessionId);
@@ -87,6 +93,10 @@ IRtpSession::IRtpSession(ImsMediaType eMediaType,
 
 IRtpSession::~IRtpSession() {
     IMS_RtpSvc_DeleteSession(mRtpSessionId);
+    mRtpEncoderListener = NULL;
+    mRtpDecoderListener = NULL;
+    mRtcpEncoderListener = NULL;
+    mRtcpDecoderListener = NULL;
 }
 
 bool IRtpSession::operator==(const IRtpSession &obj2){
@@ -132,59 +142,56 @@ void IRtpSession::SetRtcpDecoderListener(
     mRtcpDecoderListener = pRtcpDecoderListener;
 }
 
-void IRtpSession::SetRtpPayloadParam(const ImsMediaHal::RtpSessionParams& param) {
+void IRtpSession::SetRtpPayloadParam(RtpConfig* config) {
+    if (config == NULL) return;
     // separate local & peer payload type
-    tRtpSvc_SetPayloadParam stPayloadParam[3];
-    uint32_t nNumPayloadParam = 0;
+    mNumPayloadParam = 0;
+    std::memset(mPayloadParam, 0, sizeof(tRtpSvc_SetPayloadParam) * MAX_NUM_PAYLOAD_PARAM);
+    IMLOGD3("[SetRtpPayloadParam] localPayload[%d], peerPayload[%d], sampling[%d]",
+        config->getTxPayloadTypeNumber(),
+        config->getRxPayloadTypeNumber(),
+        config->getSamplingRateKHz());
 
-    IMLOGD4("[SetRtpPayloadParam] localPayload[%d], peerPayload[%d], sampling[%d], dtmfPayload[%d]",
-        param.codecParams.txPayloadTypeNumber,
-        param.codecParams.rxPayloadTypeNumber,
-        param.codecParams.samplingRateKHz,
-        param.dtmfParams.payloadTypeNumber);
-
-    if (nNumPayloadParam >= 3) {
-        IMLOGE1("[SetRtpPayloadParam] overflow[%d]", nNumPayloadParam);
+    if (mNumPayloadParam >= 3) {
+        IMLOGE1("[SetRtpPayloadParam] overflow[%d]", mNumPayloadParam);
         return;
     }
 
-    stPayloadParam[nNumPayloadParam].frameInterval = 100; // not used in stack
-    stPayloadParam[nNumPayloadParam].payloadType = param.codecParams.txPayloadTypeNumber;
-    stPayloadParam[nNumPayloadParam].samplingRate = param.codecParams.samplingRateKHz * 1000;
-    nNumPayloadParam++;
+    //tx parameter
+    mPayloadParam[mNumPayloadParam].frameInterval = 100; // not used in stack
+    mPayloadParam[mNumPayloadParam].payloadType = config->getTxPayloadTypeNumber();
+    mPayloadParam[mNumPayloadParam].samplingRate = config->getSamplingRateKHz() * 1000;
+    mNumPayloadParam++;
 
-    if (param.codecParams.txPayloadTypeNumber != param.codecParams.rxPayloadTypeNumber) {
-        if (nNumPayloadParam >= 3) {
-            IMLOGE1("[SetRtpPayloadParam] overflow[%d]", nNumPayloadParam);
+    if (config->getTxPayloadTypeNumber() != config->getRxPayloadTypeNumber()) {
+        if (mNumPayloadParam >= 3) {
+            IMLOGE1("[SetRtpPayloadParam] overflow[%d]", mNumPayloadParam);
             return;
         }
-
-        stPayloadParam[nNumPayloadParam].frameInterval = 100; // not used in stack
-        stPayloadParam[nNumPayloadParam].payloadType = param.codecParams.rxPayloadTypeNumber;
-        stPayloadParam[nNumPayloadParam].samplingRate = param.codecParams.samplingRateKHz * 1000;
-        nNumPayloadParam++;
+        //rx parameter
+        mPayloadParam[mNumPayloadParam].frameInterval = 100; // not used in stack
+        mPayloadParam[mNumPayloadParam].payloadType = config->getRxPayloadTypeNumber();
+        mPayloadParam[mNumPayloadParam].samplingRate = config->getSamplingRateKHz() * 1000;
+        mNumPayloadParam++;
     }
+}
 
-    if (mMediaType == IMS_MEDIA_AUDIO && param.dtmfParams.payloadTypeNumber != 0) {
-        if (nNumPayloadParam >= 3) {
-            IMLOGE1("[SetRtpPayloadParam] overflow[%d]", nNumPayloadParam);
-            return;
-        }
+void IRtpSession::SetRtpDtmfPayloadParam(AudioConfig* config) {
+    if (config == NULL) return;
+    IMLOGD2("[SetRtpDtmfPayloadParam] payload[%d], samplingRate[%d]",
+        config->getDtmfPayloadTypeNumber(),
+        config->getDtmfsamplingRateKHz());
 
-        stPayloadParam[nNumPayloadParam].frameInterval = 100; // not used in stack
-        stPayloadParam[nNumPayloadParam].payloadType = param.dtmfParams.payloadTypeNumber;
-        stPayloadParam[nNumPayloadParam].samplingRate = param.dtmfParams.samplingRateKHz * 1000;
-        nNumPayloadParam++;
-        mEnableDTMF = true;
-        mDtmfPayloadType = param.dtmfParams.payloadTypeNumber;
-    } else {
-        mEnableDTMF = false;
-    }
+    mEnableDTMF = false;
+    if (mMediaType != IMS_MEDIA_AUDIO) return;
+    if (config->getDtmfPayloadTypeNumber() == 0) return;
 
-    mSamplingRate = param.codecParams.samplingRateKHz * 1000;   //change to hz
-    IMS_RtpSvc_SetPayload(mRtpSessionId, stPayloadParam,
-        eRTP_FALSE, //fix later
-        nNumPayloadParam);
+    mEnableDTMF = true;
+    mDtmfPayloadType = config->getDtmfPayloadTypeNumber();
+    mPayloadParam[mNumPayloadParam].frameInterval = 100; // not used in stack
+    mPayloadParam[mNumPayloadParam].payloadType = config->getDtmfPayloadTypeNumber();
+    mPayloadParam[mNumPayloadParam].samplingRate = config->getDtmfsamplingRateKHz() * 1000;
+    mNumPayloadParam++;
 }
 
 void IRtpSession::SetRtcpInterval(int32_t nInterval) {
@@ -195,7 +202,10 @@ void IRtpSession::SetRtcpInterval(int32_t nInterval) {
 void IRtpSession::StartRtp() {
     IMLOGD1("[StartRtp] mbRtpStarted[%d]", mRtpStarted);
     if (mRtpStarted == 0) {
-        IMLOGD0("[StartRtp] IMS_RtpSvc_SessionEnableRTP");
+        IMLOGD1("[StartRtp] IMS_RtpSvc_SessionEnableRTP, numPayloadParam[%d]", mNumPayloadParam);
+        IMS_RtpSvc_SetPayload(mRtpSessionId, mPayloadParam,
+            eRTP_FALSE, //fix later
+            mNumPayloadParam);
         IMS_RtpSvc_SessionEnableRTP(mRtpSessionId);
     }
 
@@ -234,25 +244,27 @@ void IRtpSession::StopRtcp() {
 
 bool IRtpSession::SendRtpPacket(uint32_t nPayloadType, uint8_t* pData,
     uint32_t nDataSize, uint32_t nTimestamp, bool bMark, uint32_t nTimeDiff,
-    bool bExtension, std::shared_ptr<ImsMediaHal::RtpHeaderExtension> pExtensionInfo) {
+    bool bExtension, void* pExtensionInfo) {
+    (void)pExtensionInfo;
+
     tRtpSvc_SendRtpPacketParm stRtpPacketParam;
     memset(&stRtpPacketParam, 0, sizeof(tRtpSvc_SendRtpPacketParm));
-
     IMLOGD_PACKET5(IM_PACKET_LOG_RTP,
         "SendRtpPacket, payloadType[%d], size[%d], nTS[%d], bMark[%d], bExtension[%d]",
         nPayloadType, nDataSize, nTimestamp, bMark, bExtension);
-
     stRtpPacketParam.bMbit = bMark ? eRTP_TRUE : eRTP_FALSE;
     stRtpPacketParam.byPayLoadType = nPayloadType;
     stRtpPacketParam.diffFromLastRtpTimestamp = nTimeDiff;
     stRtpPacketParam.bXbit = bExtension ? eRTP_TRUE : eRTP_FALSE;
 
+    /* TBD
     if (bExtension) {
         stRtpPacketParam.nDefinedByProfile = pExtensionInfo->localId;
         //rtp extension param is 1 byte
         stRtpPacketParam.nLength = 1;
         stRtpPacketParam.nExtensionData = pExtensionInfo->data;
     }
+    */
 
     if (mPrevTimestamp == nTimestamp) {
         stRtpPacketParam.bUseLastTimestamp = eRTP_TRUE;
@@ -291,7 +303,7 @@ bool IRtpSession::ProcRtcpPacket(uint8_t* pData, uint32_t nDataSize) {
 }
 
 int IRtpSession::OnRtpPacket(unsigned char* pData, RtpSvc_Length wLen) {
-    std::lock_guard<std::mutex> guard(mutexRtpSession);
+    std::lock_guard<std::mutex> guard(mutexEncoder);
     IMLOGD_PACKET1(IM_PACKET_LOG_RTP, "[OnRtpPacket] size[%d]", wLen);
 
     if (mRtpEncoderListener) {
@@ -398,18 +410,20 @@ void IRtpSession::OnPeerInd(tRtpSvc_IndicationFromStack eIndType, void* pMsg) {
 }
 
 void IRtpSession::OnTimer() {
-    mutexRtpSession.lock();
-    mutexDecoder.lock();
+    std::lock_guard<std::mutex> guard(mutexDecoder);
 
-    if (mRtcpDecoderListener) {
-        IMLOGD7("[OnTimer] RX_Rtp[%03d/%03d], RX_Rtcp[%02d/%02d], TX_Rtp[%03d/%03d], TX_Rtcp[%02d]",
+    IMLOGD7("[OnTimer] RX_Rtp[%03d/%03d], RX_Rtcp[%02d/%02d], TX_Rtp[%03d/%03d], TX_Rtcp[%02d]",
             mNumRtpProcPacket, mNumRtpPacket, mNumRtcpProcPacket, mNumSRPacket + mNumRRPacket,
             mNumRtpDataToSend, mNumRtpPacketSent, mNumRtcpPacketSent);
-        mRtcpDecoderListener->OnNumReceivedPacket(mNumRtpProcPacket, mNumRtcpProcPacket,
-            mNumRRPacket);
+
+    if (mRtpDecoderListener) {
+        mRtpDecoderListener->OnNumReceivedPacket(mNumRtpProcPacket);
     }
 
-    mutexDecoder.unlock();
+    if (mRtcpDecoderListener) {
+        mRtcpDecoderListener->OnNumReceivedPacket(mNumRtcpProcPacket, mNumRRPacket);
+    }
+
     mNumRtpProcPacket = 0;
     mNumRtcpProcPacket = 0;
     mNumRtpPacket = 0;
@@ -418,7 +432,6 @@ void IRtpSession::OnTimer() {
     mNumRtpDataToSend = 0;
     mNumRtpPacketSent = 0;
     mNumRtcpPacketSent = 0;
-    mutexRtpSession.unlock();
 }
 
 void IRtpSession::SendRtcpXr(uint8_t* pPayload, uint32_t nSize, uint32_t nRttdOffset) {

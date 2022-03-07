@@ -36,21 +36,20 @@ public:
     virtual void Stop();
     virtual bool IsRunTime();
     virtual bool IsSourceNode();
+    virtual void SetConfig(void* config);
     virtual void OnDataFromFrontNode(ImsMediaSubType subtype,
         uint8_t* pData, uint32_t nDataSize, uint32_t nTimestamp, bool bMark,
         uint32_t nSeqNum, ImsMediaSubType nDataType = ImsMediaSubType::MEDIASUBTYPE_UNDEFINED);
-    virtual void SetConfig(void* config);
-    void SetCodec(eAudioCodecType eCodecType);
-    void SetPayloadMode(uint32_t mode);
+    void SetCodec(int32_t type);
+    void SetPayloadMode(bool mode);
 
 private:
     void Decode_PH_AMR(uint8_t* pData, uint32_t nDataSize, uint32_t nTimestamp,
         bool bMark, uint32_t nSeqNum);
 
 private:
-    std::shared_ptr<ImsMediaHal::RtpSessionParams> mSessionParams;
-    eAudioCodecType mCodecType;
-    uint32_t mHeaderMode;
+    int32_t mCodecType;
+    bool mOctetAligned;
     uint8_t mPayload[MAX_AUDIO_PAYLOAD_SIZE];
     ImsMediaBitReader mBitReader;
     ImsMediaBitWriter mBitWriter;

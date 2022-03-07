@@ -22,39 +22,63 @@ namespace telephony {
 
 namespace imsmedia {
 
-AudioConfig::AudioConfig() {
+const android::String8 kClassNameAmrParams("android.telephony.imsmedia.AmrParams");
+const android::String8 kClassNameEvsParams("android.telephony.imsmedia.EvsParams");
+
+AudioConfig::AudioConfig() : RtpConfig() {
     pTimeMillis = 0;
     maxPtimeMillis = 0;
     txCodecModeRequest = 0;
     dtxEnabled = false;
     codecType = 0;
-    evsBandwidth = 0;
     dtmfPayloadTypeNumber = 0;
     dtmfsamplingRateKHz = 0;
 }
 
 AudioConfig::AudioConfig(AudioConfig* config) {
     if (config != NULL) {
+        direction = config->direction;
+        accessNetwork = config->accessNetwork;
+        remoteAddress = config->remoteAddress;
+        remotePort = config->remotePort;
+        rtcpConfig = config->rtcpConfig;
+        maxMtuBytes = config->maxMtuBytes;
+        dscp = config->dscp;
+        rxPayloadTypeNumber = config->rxPayloadTypeNumber;
+        txPayloadTypeNumber = config->txPayloadTypeNumber;
+        samplingRateKHz = config->samplingRateKHz;
         pTimeMillis = config->pTimeMillis;
         maxPtimeMillis = config->maxPtimeMillis;
         txCodecModeRequest = config->txCodecModeRequest;
         dtxEnabled = config->dtxEnabled;
         codecType = config->codecType;
-        evsBandwidth = config->evsBandwidth;
         dtmfPayloadTypeNumber = config->dtmfPayloadTypeNumber;
         dtmfsamplingRateKHz = config->dtmfsamplingRateKHz;
+        amrParams = config->amrParams;
+        evsParams = config->evsParams;
     }
 }
 
 AudioConfig::AudioConfig(AudioConfig& config) {
+    direction = config.direction;
+    accessNetwork = config.accessNetwork;
+    remoteAddress = config.remoteAddress;
+    remotePort = config.remotePort;
+    rtcpConfig = config.rtcpConfig;
+    maxMtuBytes = config.maxMtuBytes;
+    dscp = config.dscp;
+    rxPayloadTypeNumber = config.rxPayloadTypeNumber;
+    txPayloadTypeNumber = config.txPayloadTypeNumber;
+    samplingRateKHz = config.samplingRateKHz;
     pTimeMillis = config.pTimeMillis;
     maxPtimeMillis = config.maxPtimeMillis;
     txCodecModeRequest = config.txCodecModeRequest;
     dtxEnabled = config.dtxEnabled;
     codecType = config.codecType;
-    evsBandwidth = config.evsBandwidth;
     dtmfPayloadTypeNumber = config.dtmfPayloadTypeNumber;
     dtmfsamplingRateKHz = config.dtmfsamplingRateKHz;
+    amrParams = config.amrParams;
+    evsParams = config.evsParams;
 }
 
 AudioConfig::~AudioConfig() {
@@ -62,14 +86,25 @@ AudioConfig::~AudioConfig() {
 }
 
 AudioConfig& AudioConfig::operator=(const AudioConfig& config) {
+    direction = config.direction;
+    accessNetwork = config.accessNetwork;
+    remoteAddress = config.remoteAddress;
+    remotePort = config.remotePort;
+    rtcpConfig = config.rtcpConfig;
+    maxMtuBytes = config.maxMtuBytes;
+    dscp = config.dscp;
+    rxPayloadTypeNumber = config.rxPayloadTypeNumber;
+    txPayloadTypeNumber = config.txPayloadTypeNumber;
+    samplingRateKHz = config.samplingRateKHz;
     pTimeMillis = config.pTimeMillis;
     maxPtimeMillis = config.maxPtimeMillis;
     txCodecModeRequest = config.txCodecModeRequest;
     dtxEnabled = config.dtxEnabled;
     codecType = config.codecType;
-    evsBandwidth = config.evsBandwidth;
     dtmfPayloadTypeNumber = config.dtmfPayloadTypeNumber;
     dtmfsamplingRateKHz = config.dtmfsamplingRateKHz;
+    amrParams = config.amrParams;
+    evsParams = config.evsParams;
     return *this;
 }
 
@@ -89,9 +124,10 @@ bool AudioConfig::operator==(const AudioConfig &config) const {
         && this->txCodecModeRequest == config.txCodecModeRequest
         && this->dtxEnabled == config.dtxEnabled
         && this->codecType == config.codecType
-        && this->evsBandwidth == config.evsBandwidth
         && this->dtmfPayloadTypeNumber == config.dtmfPayloadTypeNumber
-        && this->dtmfsamplingRateKHz == config.dtmfsamplingRateKHz);
+        && this->dtmfsamplingRateKHz == config.dtmfsamplingRateKHz
+        && this->amrParams == config.amrParams
+        && this->evsParams == config.evsParams);
 }
 
 bool AudioConfig::operator!=(const AudioConfig &config) const {
@@ -110,9 +146,10 @@ bool AudioConfig::operator!=(const AudioConfig &config) const {
         || this->txCodecModeRequest != config.txCodecModeRequest
         || this->dtxEnabled != config.dtxEnabled
         || this->codecType != config.codecType
-        || this->evsBandwidth != config.evsBandwidth
         || this->dtmfPayloadTypeNumber != config.dtmfPayloadTypeNumber
-        || this->dtmfsamplingRateKHz != config.dtmfsamplingRateKHz);
+        || this->dtmfsamplingRateKHz != config.dtmfsamplingRateKHz
+        || this->amrParams != config.amrParams
+        || this->evsParams != config.evsParams);
 }
 
 status_t AudioConfig::writeToParcel(Parcel* out) const {
@@ -149,11 +186,6 @@ status_t AudioConfig::writeToParcel(Parcel* out) const {
         return err;
     }
 
-    err = out->writeInt32(evsBandwidth);
-    if (err != NO_ERROR) {
-        return err;
-    }
-
     err = out->writeInt32(dtmfPayloadTypeNumber);
     if (err != NO_ERROR) {
         return err;
@@ -164,11 +196,25 @@ status_t AudioConfig::writeToParcel(Parcel* out) const {
         return err;
     }
 
+    String16 classNameAmr(kClassNameAmrParams);
+    err = out->writeString16(classNameAmr);
+    if (err != NO_ERROR) {
+        return err;
+    }
+
+    //err = out->writeParcelable(amrParams);
     err = amrParams.writeToParcel(out);
     if (err != NO_ERROR) {
         return err;
     }
 
+    String16 classNameEvs(kClassNameEvsParams);
+    err = out->writeString16(classNameEvs);
+    if (err != NO_ERROR) {
+        return err;
+    }
+
+    //err = out->writeParcelable(evsParams);
     err = evsParams.writeToParcel(out);
     if (err != NO_ERROR) {
         return err;
@@ -212,11 +258,6 @@ status_t AudioConfig::readFromParcel(const Parcel* in) {
         return err;
     }
 
-    err = in->readInt32(&evsBandwidth);
-    if (err != NO_ERROR) {
-        return err;
-    }
-
     err = in->readInt32(&dtmfPayloadTypeNumber);
     if (err != NO_ERROR) {
         return err;
@@ -227,7 +268,18 @@ status_t AudioConfig::readFromParcel(const Parcel* in) {
         return err;
     }
 
+    String16 className;
+    err = in->readString16(&className);
+    if (err != NO_ERROR) {
+        return err;
+    }
+
     err = amrParams.readFromParcel(in);
+    if (err != NO_ERROR) {
+        return err;
+    }
+
+    err = in->readString16(&className);
     if (err != NO_ERROR) {
         return err;
     }
@@ -278,14 +330,6 @@ void AudioConfig::setCodecType(int32_t type) {
 
 int32_t AudioConfig::getCodecType() {
     return codecType;
-}
-
-void AudioConfig::setEvsBandwidth(int32_t bandwidth) {
-    evsBandwidth = bandwidth;
-}
-
-int32_t AudioConfig::getEvsBandwidth() {
-    return evsBandwidth;
 }
 
 void AudioConfig::setDtmfPayloadTypeNumber(int32_t num) {
