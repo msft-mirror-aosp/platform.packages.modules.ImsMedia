@@ -16,6 +16,7 @@
       android:theme="@style/Theme.AppCompat.DayNight.DarkActionBar"
       android:allowBackup="false">
       <activity android:name="com.example.imsmediatestingapp.MainActivity"
+          android:launchMode="singleInstance"
           android:exported="true">
         <intent-filter>
           <action android:name="android.intent.action.MAIN" />
@@ -23,6 +24,7 @@
           <category android:name="android.intent.category.LAUNCHER" />
         </intent-filter>
       </activity>
+
   </application>
 
 </manifest>

@@ -1,6 +1,5 @@
 package com.example.imsmediatestingapp;
 
-import android.Manifest;
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.SharedPreferences;
@@ -8,6 +7,7 @@ import android.media.AudioManager;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 import android.os.Bundle;
+import android.os.IBinder;
 import android.telephony.AccessNetworkConstants.AccessNetworkType;
 import android.telephony.imsmedia.AmrParams;
 import android.telephony.imsmedia.AudioConfig;
@@ -31,8 +31,6 @@ import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
-import androidx.activity.result.ActivityResultLauncher;
-import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.SwitchCompat;
@@ -51,8 +49,6 @@ import java.util.concurrent.Executors;
  */
 public class MainActivity extends AppCompatActivity {
 
-    private final List<AudioCodec> selectedAudioCodecs = new ArrayList<>();
-    private final List<VideoCodec> selectedVideoCodecs = new ArrayList<>();
     public static final String PREF_NAME = "preferences";
     private final String HANDSHAKE_PORT_PREF = "HANDSHAKE_PORT_OPEN";
     private final String CONNECTED_PREF = "IS_CONNECTED";
@@ -63,6 +59,9 @@ public class MainActivity extends AppCompatActivity {
     Thread initiateHandshakeThread;
     private ConnectionStatus connectionStatus;
 
+    private final List<AudioCodec> selectedAudioCodecs = new ArrayList<>();
+    private final List<VideoCodec> selectedVideoCodecs = new ArrayList<>();
+
     HandshakeReceiver handshakeReceptionSocket;
     DatagramSocket rtp;
     DatagramSocket rtcp;
@@ -71,12 +70,16 @@ public class MainActivity extends AppCompatActivity {
     private boolean isMediaManagerReady = false;
     private boolean isOpenSessionSent = false;
     AudioConfig audioConfig;
+
     private ImsAudioSession audioSession;
     Context context;
     MediaManagerCallback callback;
     RtpAudioSessionCallback sessionCallback;
     Executor executor;
     ImsMediaManager imsMediaManager;
+
+    private final StringBuilder dtmfInput = new StringBuilder();
+    BottomSheetDialer bottomSheetDialog;
 
     private TextView localIpLabel;
     private TextView localHandshakePortLabel;
@@ -176,7 +179,6 @@ public class MainActivity extends AppCompatActivity {
 
         updateUI(ConnectionStatus.OFFLINE);
 
-        askForPermissions();
         styleDeviceInfo();
         styleMainActivity();
 
@@ -185,12 +187,13 @@ public class MainActivity extends AppCompatActivity {
         executor = Executors.newSingleThreadExecutor();
         imsMediaManager = new ImsMediaManager(context, executor, callback);
 
+        bottomSheetDialog = new BottomSheetDialer(this);
+        bottomSheetDialog.setContentView(R.layout.dialer);
     }
 
     @Override
     protected void onStart() {
         super.onStart();
-        askForPermissions();
         styleDeviceInfo();
         styleMainActivity();
     }
@@ -205,8 +208,8 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        rtp.close();
-        rtcp.close();
+        if(rtp != null) { rtp.close(); }
+        if(rtcp != null) { rtcp.close(); }
     }
 
     @Override
@@ -219,39 +222,24 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
         switch (item.getItemId()) {
-            case R.id.settingsButton:
+            case R.id.homeMenuButton:
+                setContentView(R.layout.activity_main);
+                updateUI(connectionStatus);
+                break;
+
+            case R.id.settingsMenuButton:
                 setContentView(R.layout.settings);
-                setupAudioCodecDropDown();
                 setupSettingsPage();
                 break;
 
-            case R.id.homeButton:
-                setContentView(R.layout.activity_main);
-                styleDeviceInfo();
-                styleMainActivity();
+            case R.id.activeCallMenuButton:
+                setContentView(R.layout.active_call);
                 break;
 
             default:
                 throw new IllegalStateException("Unexpected value: " + item.getItemId());
         }
         return super.onOptionsItemSelected(item);
-    }
-
-    private void setupAudioCodecDropDown() {
-        ArrayAdapter<AudioCodec> adapter = new ArrayAdapter<>(
-            this, android.R.layout.simple_list_item_multiple_choice, AudioCodec.values());
-        ListView audio = findViewById(R.id.audioCodecList);
-        audio.setAdapter(adapter);
-
-        ArrayAdapter<EvsBandwidth> evsAdaptor = new ArrayAdapter<>(
-            this, android.R.layout.simple_list_item_multiple_choice, EvsBandwidth.values());
-        ListView evs = findViewById(R.id.evsBandwidthsList);
-        evs.setAdapter(evsAdaptor);
-
-        ArrayAdapter<VideoCodec> videoAdaptor = new ArrayAdapter<>(
-            this, android.R.layout.simple_list_item_multiple_choice, VideoCodec.values());
-        ListView video = findViewById(R.id.videoCodecList);
-        video.setAdapter(videoAdaptor);
     }
 
     public String getOtherDeviceIp() {
@@ -263,26 +251,6 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    public int getOtherDevicePortEditText() {
-        EditText portBox = findViewById(R.id.port_number);
-        return Integer.parseInt(portBox.getText().toString());
-    }
-
-    public String getOtherDeviceIpEditText() {
-        EditText ipBox = findViewById(R.id.other_device_ip);
-        return ipBox.getText().toString();
-    }
-
-    public void setupSettingsPage() {
-        EditText ipAddress = findViewById(R.id.other_device_ip);
-        EditText portNumber = findViewById(R.id.port_number);
-        String ip = prefs.getString("OTHER_IP_ADDRESS", "");
-        String portNum = String.valueOf(prefs.getInt("OTHER_HANDSHAKE_PORT", 0));
-
-        ipAddress.setText(ip);
-        portNumber.setText(portNum);
-    }
-
     private WifiInfo retrieveNetworkConfig() {
         WifiManager wifiManager = (WifiManager) getApplication()
             .getSystemService(Context.WIFI_SERVICE);
@@ -291,59 +259,6 @@ public class MainActivity extends AppCompatActivity {
 
     private String getLocalIpAddress() {
         return Formatter.formatIpAddress(retrieveNetworkConfig().getIpAddress());
-    }
-
-    private void getAudioCodecSelections() {
-        ListView audioCodecs = findViewById(R.id.audioCodecList);
-        SparseBooleanArray selectedCodecs = audioCodecs.getCheckedItemPositions();
-        for (int i = 0; i < selectedCodecs.size(); i++) {
-            AudioCodec codec = (AudioCodec) audioCodecs.getAdapter()
-                .getItem(selectedCodecs.keyAt(i));
-            if (selectedCodecs.valueAt(i)) {
-                selectedAudioCodecs.add(codec);
-            } else {
-                selectedAudioCodecs.remove(codec);
-            }
-        }
-    }
-
-    private void getVideoCodecSelections() {
-        ListView videoCodecList = findViewById(R.id.videoCodecList);
-        SparseBooleanArray selected = videoCodecList.getCheckedItemPositions();
-        for (int i = 0; i < selected.size(); i++) {
-            VideoCodec codec = (VideoCodec) videoCodecList.getAdapter().getItem(selected.keyAt(i));
-            if (selected.valueAt(i)) {
-                selectedVideoCodecs.add(codec);
-            } else {
-                selectedVideoCodecs.remove(codec);
-            }
-        }
-    }
-
-    private void askForPermissions() {
-        ActivityResultLauncher<String[]> locationPermissionRequest =
-            registerForActivityResult(new ActivityResultContracts
-                    .RequestMultiplePermissions(), result -> {
-                    Boolean fineLocationGranted = result.getOrDefault(
-                        Manifest.permission.ACCESS_FINE_LOCATION, false);
-                    Boolean coarseLocationGranted = result.getOrDefault(
-                        Manifest.permission.ACCESS_COARSE_LOCATION, false);
-                    if (fineLocationGranted != null && fineLocationGranted) {
-                        Log.d("", "Precise location permissions have already been granted.");
-                    } else if (coarseLocationGranted != null && coarseLocationGranted) {
-                        Log.d("", "Only coarse location permissions have been granted."
-                            + "\n Precise location permissions are needed to access WiFi "
-                            + "information.");
-                    } else {
-                        Log.e("", "No location permissions have been granted.");
-                    }
-                }
-            );
-
-        locationPermissionRequest.launch(new String[]{
-            Manifest.permission.ACCESS_FINE_LOCATION,
-            Manifest.permission.ACCESS_COARSE_LOCATION
-        });
     }
 
     private String getIpAddress() {
@@ -845,6 +760,7 @@ public class MainActivity extends AppCompatActivity {
                 (byte) 3,
                 true,
                 true);
+
             AmrParams mAmr = new AmrParams(AmrParams.AMR_MODE_8,
                 true,
                 0);
@@ -877,14 +793,108 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    public void openDialer(View v) {
+        if(!bottomSheetDialog.isOpen()) {
+            bottomSheetDialog.show();
+        }
+    }
+
+    public void dialerButtonOnClick(View v) {
+        dtmfInput.append(((Button) v).getText().toString());
+        Log.d("", dtmfInput.toString());
+
+        TextView dtmfInputBox = bottomSheetDialog.getDtmfInput();
+        dtmfInputBox.setText(dtmfInput.toString());
+
+
+
+    }
+
+    public void sendDtmf(View v) {
+        for(char dtmf : dtmfInput.toString().toCharArray()) {
+            audioSession.startDtmf(dtmf, 1, 1);
+            audioSession.stopDtmf();
+        }
+
+        dtmfInput.setLength(0);
+        TextView dtmfInputBox = bottomSheetDialog.getDtmfInput();
+        dtmfInputBox.setText(dtmfInput.toString());
+    }
+
     public void closeSessionOnClick(View v) {
         imsMediaManager.closeSession(audioSession);
-        updateUI(ConnectionStatus.CONNECTED);
+        isOpenSessionSent = false;
+    }
+
+    public void setupSettingsPage() {
+        EditText ipAddress = findViewById(R.id.other_device_ip);
+        EditText portNumber = findViewById(R.id.port_number);
+        String ip = prefs.getString("OTHER_IP_ADDRESS", "");
+        String portNum = String.valueOf(prefs.getInt("OTHER_HANDSHAKE_PORT", 0));
+
+        ipAddress.setText(ip);
+        portNumber.setText(portNum);
+
+        setupAudioCodecDropDown();
+    }
+
+    private void getAudioCodecSelections() {
+        ListView audioCodecs = findViewById(R.id.audioCodecList);
+        SparseBooleanArray selectedCodecs = audioCodecs.getCheckedItemPositions();
+        for (int i = 0; i < selectedCodecs.size(); i++) {
+            AudioCodec codec = (AudioCodec) audioCodecs.getAdapter()
+                .getItem(selectedCodecs.keyAt(i));
+            if (selectedCodecs.valueAt(i)) {
+                selectedAudioCodecs.add(codec);
+            } else {
+                selectedAudioCodecs.remove(codec);
+            }
+        }
+    }
+
+    private void getVideoCodecSelections() {
+        ListView videoCodecList = findViewById(R.id.videoCodecList);
+        SparseBooleanArray selected = videoCodecList.getCheckedItemPositions();
+        for (int i = 0; i < selected.size(); i++) {
+            VideoCodec codec = (VideoCodec) videoCodecList.getAdapter().getItem(selected.keyAt(i));
+            if (selected.valueAt(i)) {
+                selectedVideoCodecs.add(codec);
+            } else {
+                selectedVideoCodecs.remove(codec);
+            }
+        }
+    }
+
+    private void setupAudioCodecDropDown() {
+        ArrayAdapter<AudioCodec> adapter = new ArrayAdapter<>(
+            this, android.R.layout.simple_list_item_multiple_choice, AudioCodec.values());
+        ListView audio = findViewById(R.id.audioCodecList);
+        audio.setAdapter(adapter);
+
+        ArrayAdapter<EvsBandwidth> evsAdaptor = new ArrayAdapter<>(
+            this, android.R.layout.simple_list_item_multiple_choice, EvsBandwidth.values());
+        ListView evs = findViewById(R.id.evsBandwidthsList);
+        evs.setAdapter(evsAdaptor);
+
+        ArrayAdapter<VideoCodec> videoAdaptor = new ArrayAdapter<>(
+            this, android.R.layout.simple_list_item_multiple_choice, VideoCodec.values());
+        ListView video = findViewById(R.id.videoCodecList);
+        video.setAdapter(videoAdaptor);
+    }
+
+    public int getRemoteDevicePortEditText() {
+        EditText portBox = findViewById(R.id.port_number);
+        return Integer.parseInt(portBox.getText().toString());
+    }
+
+    public String getRemoteDeviceIpEditText() {
+        EditText ipBox = findViewById(R.id.other_device_ip);
+        return ipBox.getText().toString();
     }
 
     public void saveSettingsOnClick(View v) {
-        int port = getOtherDevicePortEditText();
-        String ip = getOtherDeviceIpEditText();
+        int port = getRemoteDevicePortEditText();
+        String ip = getRemoteDeviceIpEditText();
 
         editor.putInt("OTHER_HANDSHAKE_PORT", port);
         editor.putString("OTHER_IP_ADDRESS", ip);
@@ -894,19 +904,19 @@ public class MainActivity extends AppCompatActivity {
             Toast.LENGTH_SHORT).show();
     }
 
-
     private class MediaManagerCallback implements ImsMediaManager.OnConnectedCallback {
 
         @Override
         public void onConnected() {
             Log.d("", "ImsMediaManager - connected");
             isMediaManagerReady = true;
-            isOpenSessionSent = false;
         }
 
         @Override
         public void onDisconnected() {
             Log.d("", "ImsMediaManager - disconnected");
+            isMediaManagerReady = false;
+            updateUI(ConnectionStatus.CONNECTED);
         }
     }
 
@@ -929,7 +939,7 @@ public class MainActivity extends AppCompatActivity {
             isOpenSessionSent = true;
             updateUI(ConnectionStatus.ACTIVE_CALL);
             AudioManager audioManager = getSystemService(AudioManager.class);
-            audioManager.setMode(AudioManager.MODE_NORMAL);
+            audioManager.setMode(AudioManager.MODE_IN_CALL);
             audioManager.setSpeakerphoneOn(true);
         }
 
@@ -953,6 +963,30 @@ public class MainActivity extends AppCompatActivity {
             Log.d("", "onFirstMediaPacketReceived");
         }
 
+        @Override
+        public IBinder getBinder() {
+            return super.getBinder();
+        }
+
+        @Override
+        public void setExecutor(Executor executor) {
+            super.setExecutor(executor);
+        }
+
+        @Override
+        public void notifyMediaInactivity(int packetType, int duration) {
+            super.notifyMediaInactivity(packetType, duration);
+        }
+
+        @Override
+        public void notifyPacketLoss(int packetLossPercentage) {
+            super.notifyPacketLoss(packetLossPercentage);
+        }
+
+        @Override
+        public void notifyJitter(int jitter) {
+            super.notifyJitter(jitter);
+        }
     }
 
 }

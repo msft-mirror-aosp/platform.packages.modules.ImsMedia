@@ -72,7 +72,6 @@
         android:layout_marginTop="10dp"
         android:layout_marginStart="15dp"
         android:layout_below="@id/audioCodecTitle"
-        android:background="@drawable/row_background_selector"
         android:choiceMode="multipleChoice"
         android:fadeScrollbars="false" />
 
@@ -83,7 +82,6 @@
         android:layout_marginStart="15dp"
         android:layout_alignTop="@id/audioCodecList"
         android:layout_toEndOf="@id/audioCodecList"
-        android:background="@drawable/row_background_selector"
         android:choiceMode="multipleChoice"
         android:fadeScrollbars="false"
         android:saveEnabled="true"

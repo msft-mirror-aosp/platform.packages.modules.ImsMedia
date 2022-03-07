@@ -26,6 +26,7 @@
       android:layout_marginEnd="15dp"
       android:layout_alignParentEnd="true"
       android:text="@string/connection_details_label"
+      android:autoSizeTextType="uniform"
       android:textAlignment="center" />
 
   <TextView
@@ -131,6 +132,7 @@
       android:layout_marginTop="20dp"
       android:layout_marginStart="15dp"
       android:layout_below="@+id/localRtcpPortLabel"
+      android:autoSizeTextType="uniform"
       android:backgroundTint="@drawable/selected_green"
       android:onClick="allowCallsOnClick"
       android:text="@string/allow_calls_button_text"
@@ -143,12 +145,13 @@
       android:layout_marginTop="20dp"
       android:layout_marginStart="15dp"
       android:layout_below="@+id/allowCallsButton"
-      android:backgroundTint="@drawable/selected_green"
-      android:text="@string/connect_button_text"
-      android:textColor="@color/black"
       android:alpha="0.5"
+      android:backgroundTint="@drawable/selected_green"
       android:enabled="false"
-      android:onClick="initiateHandshakeOnClick" />
+      android:onClick="initiateHandshakeOnClick"
+      android:text="@string/connect_button_text"
+      android:autoSizeTextType="uniform"
+      android:textColor="@color/black" />
 
   <Button
       android:id="@+id/openSessionButton"
@@ -163,22 +166,8 @@
       android:enabled="false"
       android:onClick="openSessionOnClick"
       android:text="@string/open_session_button_text"
+      android:autoSizeTextType="uniform"
       android:textColor="@color/black" />
-
-  <Button
-      android:id="@+id/closeSessionButton"
-      android:layout_width="wrap_content"
-      android:layout_height="wrap_content"
-      android:layout_marginTop="20dp"
-      android:layout_marginEnd="15dp"
-      android:layout_alignParentEnd="true"
-      android:layout_below="@+id/allowCallsButton"
-      android:backgroundTint="@color/coral_red"
-      android:text="@string/close_session_button_text"
-      android:textColor="@color/black"
-      android:alpha="0.5"
-      android:enabled="false"
-      android:onClick="closeSessionOnClick" />
 
   <androidx.appcompat.widget.SwitchCompat
       android:id="@+id/loopbackModeSwitch"
@@ -190,5 +179,39 @@
       android:checked="false"
       android:onClick="loopbackOnClick"
       android:text="@string/loop_back_mode_switch_text" />
+
+  <LinearLayout
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"
+      android:layout_alignParentBottom="true"
+      android:orientation="horizontal"
+      android:layout_margin="10dp">
+
+    <ImageButton
+        android:id="@+id/dialerButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:contentDescription="@string/dialerButtonDescription"
+        android:onClick="openDialer"
+        android:src="@drawable/ic_baseline_dialpad_24" />
+
+    <Button
+        android:id="@+id/closeSessionButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
+        android:layout_marginEnd="15dp"
+        android:alpha="0.5"
+        android:backgroundTint="@color/coral_red"
+        android:enabled="false"
+        android:onClick="closeSessionOnClick"
+        android:gravity="center_vertical"
+        android:text="@string/close_session_button_text"
+        android:textColor="@color/black" />
+
+
+  </LinearLayout>
+
+
 
 </RelativeLayout>

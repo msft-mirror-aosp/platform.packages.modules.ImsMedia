@@ -1,17 +1,11 @@
 package com.example.imsmediatestingapp;
 
 import android.annotation.SuppressLint;
-import android.bluetooth.BluetoothClass.Device;
-import android.util.Log;
 import androidx.annotation.NonNull;
 import com.example.imsmediatestingapp.MainActivity.AudioCodec;
 import com.example.imsmediatestingapp.MainActivity.EvsBandwidth;
 import com.example.imsmediatestingapp.MainActivity.VideoCodec;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.ObjectOutputStream;
 import java.io.Serializable;
-import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.util.Arrays;
 import java.util.List;

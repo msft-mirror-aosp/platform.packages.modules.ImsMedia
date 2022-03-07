@@ -53,4 +53,20 @@
   <string name="connected">CONNECTED</string>
   <string name="loop_back_mode_switch_text">LOOP BACK</string>
 
+  <!-- Dialer buttons text -->
+  <string name="dialer_button_1_text">1</string>
+  <string name="dialer_button_2_text">2</string>
+  <string name="dialer_button_3_text">3</string>
+  <string name="dialer_button_4_text">4</string>
+  <string name="dialer_button_5_text">5</string>
+  <string name="dialer_button_6_text">6</string>
+  <string name="dialer_button_7_text">7</string>
+  <string name="dialer_button_8_text">8</string>
+  <string name="dialer_button_9_text">9</string>
+  <string name="dialer_button_0_text">0</string>
+  <string name="dialer_button_pound_text">#</string>
+  <string name="dialer_button_star_text">*</string>
+  <string name="dialerButtonDescription">open dialer</string>
+  <string name="send_dtmf">SEND DTMF</string>
+
 </resources>
