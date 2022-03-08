@@ -30,9 +30,18 @@ public class AmrParamsTest {
     private static final boolean OCTET_ALIGNED = true;
     private static final int MAX_REDUNDANCY_MILLIS = 1001;
 
+    private AmrParams createAmrParams(int amrMode,
+            boolean octetAligned, int maxRedundancyMillis) {
+        return new AmrParams.Builder()
+                .setAmrMode(amrMode)
+                .setOctetAligned(octetAligned)
+                .setMaxRedundancyMillis(maxRedundancyMillis)
+                .build();
+    }
+
     @Test
     public void testConstructorAndGetters() {
-        AmrParams amr = new AmrParams(AmrParams.AMR_MODE_5, OCTET_ALIGNED,
+        AmrParams amr = createAmrParams(AmrParams.AMR_MODE_5, OCTET_ALIGNED,
                 MAX_REDUNDANCY_MILLIS);
 
         assertThat(amr.getAmrMode()).isEqualTo(AmrParams.AMR_MODE_5);
@@ -42,7 +51,7 @@ public class AmrParamsTest {
 
     @Test
     public void testParcel() {
-        AmrParams amr = new AmrParams(AmrParams.AMR_MODE_5, OCTET_ALIGNED, MAX_REDUNDANCY_MILLIS);
+        AmrParams amr = createAmrParams(AmrParams.AMR_MODE_5, OCTET_ALIGNED, MAX_REDUNDANCY_MILLIS);
 
         Parcel parcel = Parcel.obtain();
         amr.writeToParcel(parcel, 0);
@@ -54,10 +63,10 @@ public class AmrParamsTest {
 
     @Test
     public void testEqual() {
-        AmrParams amr1 = new AmrParams(AmrParams.AMR_MODE_5, OCTET_ALIGNED,
+        AmrParams amr1 = createAmrParams(AmrParams.AMR_MODE_5, OCTET_ALIGNED,
                 MAX_REDUNDANCY_MILLIS);
 
-        AmrParams amr2 = new AmrParams(AmrParams.AMR_MODE_5, OCTET_ALIGNED,
+        AmrParams amr2 = createAmrParams(AmrParams.AMR_MODE_5, OCTET_ALIGNED,
                 MAX_REDUNDANCY_MILLIS);
 
         assertThat(amr1).isEqualTo(amr2);
@@ -65,19 +74,19 @@ public class AmrParamsTest {
 
     @Test
     public void testNotEqual() {
-        AmrParams amr1 = new AmrParams(AmrParams.AMR_MODE_5, OCTET_ALIGNED,
+        AmrParams amr1 = createAmrParams(AmrParams.AMR_MODE_5, OCTET_ALIGNED,
                 MAX_REDUNDANCY_MILLIS);
 
-        AmrParams amr2 = new AmrParams(AmrParams.AMR_MODE_6, OCTET_ALIGNED,
+        AmrParams amr2 = createAmrParams(AmrParams.AMR_MODE_6, OCTET_ALIGNED,
                 MAX_REDUNDANCY_MILLIS);
 
         assertThat(amr1).isNotEqualTo(amr2);
 
-        AmrParams amr3 = new AmrParams(AmrParams.AMR_MODE_5, OCTET_ALIGNED, 1002);
+        AmrParams amr3 = createAmrParams(AmrParams.AMR_MODE_5, OCTET_ALIGNED, 1002);
 
         assertThat(amr1).isNotEqualTo(amr3);
 
-        AmrParams amr4 = new AmrParams(AmrParams.AMR_MODE_5, false, MAX_REDUNDANCY_MILLIS);
+        AmrParams amr4 = createAmrParams(AmrParams.AMR_MODE_5, false, MAX_REDUNDANCY_MILLIS);
 
         assertThat(amr1).isNotEqualTo(amr4);
     }

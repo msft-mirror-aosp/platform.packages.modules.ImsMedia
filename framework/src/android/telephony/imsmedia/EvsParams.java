@@ -143,7 +143,7 @@ public final class EvsParams implements Parcelable {
         useHeaderFullOnlyOnRx = in.readBoolean();
     }
 
-    public EvsParams(final @EvsBandwidth int evsBandwidth, final @EvsMode int evsMode,
+    private EvsParams(final @EvsBandwidth int evsBandwidth, final @EvsMode int evsMode,
             final byte channelAwareMode, final boolean useHeaderFullOnlyOnTx,
             final boolean useHeaderFullOnlyOnRx) {
         this.evsBandwidth = evsBandwidth;
@@ -267,7 +267,7 @@ public final class EvsParams implements Parcelable {
          * @param evsBandwidth EVS codec bandwidth
          * @return The same instance of the builder
          */
-        public @NonNull Builder setEvsandwidth(final @EvsBandwidth int evsBandwidth) {
+        public @NonNull Builder setEvsbandwidth(final @EvsBandwidth int evsBandwidth) {
             this.evsBandwidth = evsBandwidth;
             return this;
         }

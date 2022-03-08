@@ -31,9 +31,24 @@ public class EvsParamsTest {
     private static final boolean USE_HEADER_FULL_ONLY_TX = true;
     private static final boolean USE_HEADER_FULL_ONLY_RX = false;
 
+    private EvsParams createEvsParams(
+            final int evsBandwidth,
+            final int evsMode,
+            final byte channelAwareMode,
+            final boolean useHeaderFullOnlyOnTx,
+            final boolean useHeaderFullOnlyOnRx) {
+        return new EvsParams.Builder()
+                .setEvsbandwidth(evsBandwidth)
+                .setEvsMode(evsMode)
+                .setChannelAwareMode(channelAwareMode)
+                .setHeaderFullOnlyOnTx(useHeaderFullOnlyOnTx)
+                .setHeaderFullOnlyOnRx(useHeaderFullOnlyOnRx)
+                .build();
+    }
+
     @Test
     public void testConstructorAndGetters() {
-        EvsParams evs = new EvsParams(EvsParams.EVS_WIDE_BAND, EvsParams.EVS_MODE_7,
+        EvsParams evs = createEvsParams(EvsParams.EVS_WIDE_BAND, EvsParams.EVS_MODE_7,
                 CHANNEL_AWARE_MODE, USE_HEADER_FULL_ONLY_TX, USE_HEADER_FULL_ONLY_RX);
 
         assertThat(evs.getEvsBandwidth()).isEqualTo(EvsParams.EVS_WIDE_BAND);
@@ -45,7 +60,7 @@ public class EvsParamsTest {
 
     @Test
     public void testParcel() {
-        EvsParams evs = new EvsParams(EvsParams.EVS_WIDE_BAND, EvsParams.EVS_MODE_7,
+        EvsParams evs = createEvsParams(EvsParams.EVS_WIDE_BAND, EvsParams.EVS_MODE_7,
                 CHANNEL_AWARE_MODE, USE_HEADER_FULL_ONLY_TX, USE_HEADER_FULL_ONLY_RX);
 
         Parcel parcel = Parcel.obtain();
@@ -58,10 +73,10 @@ public class EvsParamsTest {
 
     @Test
     public void testEqual() {
-        EvsParams evs1 = new EvsParams(EvsParams.EVS_WIDE_BAND, EvsParams.EVS_MODE_7,
+        EvsParams evs1 = createEvsParams(EvsParams.EVS_WIDE_BAND, EvsParams.EVS_MODE_7,
                 CHANNEL_AWARE_MODE, USE_HEADER_FULL_ONLY_TX, USE_HEADER_FULL_ONLY_RX);
 
-        EvsParams evs2 = new EvsParams(EvsParams.EVS_WIDE_BAND, EvsParams.EVS_MODE_7,
+        EvsParams evs2 = createEvsParams(EvsParams.EVS_WIDE_BAND, EvsParams.EVS_MODE_7,
                 CHANNEL_AWARE_MODE, USE_HEADER_FULL_ONLY_TX, USE_HEADER_FULL_ONLY_RX);
 
         assertThat(evs1).isEqualTo(evs2);
@@ -69,30 +84,30 @@ public class EvsParamsTest {
 
     @Test
     public void testNotEqual() {
-        EvsParams evs1 = new EvsParams(EvsParams.EVS_WIDE_BAND, EvsParams.EVS_MODE_7,
+        EvsParams evs1 = createEvsParams(EvsParams.EVS_WIDE_BAND, EvsParams.EVS_MODE_7,
                 CHANNEL_AWARE_MODE, USE_HEADER_FULL_ONLY_TX, USE_HEADER_FULL_ONLY_RX);
 
-        EvsParams evs2 = new EvsParams(EvsParams.EVS_WIDE_BAND, EvsParams.EVS_MODE_6,
+        EvsParams evs2 = createEvsParams(EvsParams.EVS_WIDE_BAND, EvsParams.EVS_MODE_6,
                 CHANNEL_AWARE_MODE, USE_HEADER_FULL_ONLY_TX, USE_HEADER_FULL_ONLY_RX);
 
         assertThat(evs1).isNotEqualTo(evs2);
 
-        EvsParams evs3 = new EvsParams(EvsParams.EVS_WIDE_BAND, EvsParams.EVS_MODE_7,
+        EvsParams evs3 = createEvsParams(EvsParams.EVS_WIDE_BAND, EvsParams.EVS_MODE_7,
                 (byte)8, USE_HEADER_FULL_ONLY_TX, USE_HEADER_FULL_ONLY_RX);
 
         assertThat(evs1).isNotEqualTo(evs3);
 
-        EvsParams evs4 = new EvsParams(EvsParams.EVS_WIDE_BAND, EvsParams.EVS_MODE_7,
+        EvsParams evs4 = createEvsParams(EvsParams.EVS_WIDE_BAND, EvsParams.EVS_MODE_7,
                 CHANNEL_AWARE_MODE, false, USE_HEADER_FULL_ONLY_RX);
 
         assertThat(evs1).isNotEqualTo(evs4);
 
-        EvsParams evs5 = new EvsParams(EvsParams.EVS_WIDE_BAND, EvsParams.EVS_MODE_7,
+        EvsParams evs5 = createEvsParams(EvsParams.EVS_WIDE_BAND, EvsParams.EVS_MODE_7,
                 CHANNEL_AWARE_MODE, USE_HEADER_FULL_ONLY_TX, true);
 
         assertThat(evs1).isNotEqualTo(evs5);
 
-        EvsParams evs6 = new EvsParams(EvsParams.EVS_SUPER_WIDE_BAND, EvsParams.EVS_MODE_7,
+        EvsParams evs6 = createEvsParams(EvsParams.EVS_SUPER_WIDE_BAND, EvsParams.EVS_MODE_7,
                 CHANNEL_AWARE_MODE, USE_HEADER_FULL_ONLY_TX, USE_HEADER_FULL_ONLY_RX);
 
         assertThat(evs1).isNotEqualTo(evs6);

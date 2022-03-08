@@ -53,16 +53,16 @@ public class AudioConfigTest {
     private static final String REMOTE_RTP_ADDRESS = "122.22.22.22";
     private static final int REMOTE_RTP_PORT = 2222;
     private static final int MAX_MTU_BYTES = 1524;
-    private static final int DSCP = 1999;
-    private static final int RX_PAYLOAD = 2001;
-    private static final int TX_PAYLOAD = 2002;
+    private static final byte DSCP = 10;
+    private static final byte RX_PAYLOAD = 112;
+    private static final byte TX_PAYLOAD = 122;
     private static final byte SAMPLING_RATE = 98;
     private static final byte PTIME = 99;
-    private static final byte MAX_PTIME = 100;
+    private static final int MAX_PTIME = 240;
     private static final byte CMR = 100;
     private static final boolean DTX_ENABLED = true;
-    private static final int DTMF_PAYLOAD = 1001;
-    private static final int DTMF_SAMPLING_RATE = 1002;
+    private static final byte DTMF_PAYLOAD = 126;
+    private static final byte DTMF_SAMPLING_RATE = 127;
 
     private static final RtcpConfig rtcp = new RtcpConfig.Builder()
             .setCanonicalName(CANONICAL_NAME)
@@ -71,12 +71,20 @@ public class AudioConfigTest {
             .setRtcpXrBlockTypes(RtcpConfig.FLAG_RTCPXR_DLRR_REPORT_BLOCK)
             .build();
 
-    private static final EvsParams evs = new EvsParams(EvsParams.EVS_SUPER_WIDE_BAND,
-            EvsParams.EVS_MODE_7, CHANNEL_AWARE_MODE,
-            USE_HEADER_FULL_ONLY_TX, USE_HEADER_FULL_ONLY_RX);
+    private static final EvsParams evs = new EvsParams.Builder()
+            .setEvsbandwidth(EvsParams.EVS_SUPER_WIDE_BAND)
+            .setEvsMode(EvsParams.EVS_MODE_7)
+            .setChannelAwareMode(CHANNEL_AWARE_MODE)
+            .setHeaderFullOnlyOnTx(USE_HEADER_FULL_ONLY_TX)
+            .setHeaderFullOnlyOnRx(USE_HEADER_FULL_ONLY_RX)
+            .build();
 
-    private static final AmrParams amr = new AmrParams(AmrParams.AMR_MODE_5, OCTET_ALIGNED,
-            MAX_REDUNDANCY_MILLIS);
+    private static final AmrParams amr = new AmrParams.Builder()
+            .setAmrMode(AmrParams.AMR_MODE_5)
+            .setOctetAligned(OCTET_ALIGNED)
+            .setMaxRedundancyMillis(MAX_REDUNDANCY_MILLIS)
+            .build();
+
     @Test
     public void testConstructorAndGetters() {
         AudioConfig config = createAudioConfig();
@@ -89,14 +97,14 @@ public class AudioConfigTest {
         assertThat(config.getDtxEnabled()).isEqualTo(DTX_ENABLED);
         assertThat(config.getCodecType()).isEqualTo(AudioConfig.CODEC_EVS);
         assertThat(config.getDtmfPayloadTypeNumber()).isEqualTo(DTMF_PAYLOAD);
-        assertThat(config.getDtmfsamplingRateKHz()).isEqualTo(DTMF_SAMPLING_RATE);
+        assertThat(config.getDtmfSamplingRateKHz()).isEqualTo(DTMF_SAMPLING_RATE);
         assertThat(config.getAmrParams()).isEqualTo(null);
         assertThat(config.getEvsParams()).isEqualTo(evs);
         assertThat(config.getAccessNetwork()).isEqualTo(AccessNetworkType.EUTRAN);
         assertThat(config.getRemoteRtpAddress()).isEqualTo(new InetSocketAddress(
                 InetAddresses.parseNumericAddress(REMOTE_RTP_ADDRESS), REMOTE_RTP_PORT));
         assertThat(config.getRtcpConfig()).isEqualTo(rtcp);
-        assertThat(config.getmaxMtuBytes()).isEqualTo(MAX_MTU_BYTES);
+        assertThat(config.getMaxMtuBytes()).isEqualTo(MAX_MTU_BYTES);
         assertThat(config.getRxPayloadTypeNumber()).isEqualTo(RX_PAYLOAD);
         assertThat(config.getTxPayloadTypeNumber()).isEqualTo(TX_PAYLOAD);
         assertThat(config.getSamplingRateKHz()).isEqualTo(SAMPLING_RATE);
@@ -145,7 +153,7 @@ public class AudioConfigTest {
                 .setDtxEnabled(DTX_ENABLED)
                 .setCodecType(AudioConfig.CODEC_EVS)
                 .setDtmfPayloadTypeNumber(DTMF_PAYLOAD)
-                .setDtmfsamplingRateKHz(DTMF_SAMPLING_RATE)
+                .setDtmfSamplingRateKHz(DTMF_SAMPLING_RATE)
                 .setAmrParams(amr)
                 .setEvsParams(evs)
                 .build();
@@ -171,7 +179,7 @@ public class AudioConfigTest {
                 .setDtxEnabled(DTX_ENABLED)
                 .setCodecType(AudioConfig.CODEC_EVS)
                 .setDtmfPayloadTypeNumber(DTMF_PAYLOAD)
-                .setDtmfsamplingRateKHz(DTMF_SAMPLING_RATE)
+                .setDtmfSamplingRateKHz(DTMF_SAMPLING_RATE)
                 .setEvsParams(evs)
                 .build();
     }

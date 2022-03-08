@@ -30,10 +30,11 @@ android_library {
     },
     libs: [
         "android-support-annotations",
+        "androidx.annotation_annotation",
     ],
     static_libs: [
         "android.hardware.radio.ims.media-V1-java",
-	// TODO: move this to libs after API review
+        // TODO: move this to libs after API review
         "android.telephony.imsmedia",
     ],
     platform_apis: true,

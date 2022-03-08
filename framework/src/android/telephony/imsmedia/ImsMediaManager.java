@@ -48,20 +48,20 @@ public class ImsMediaManager {
     private volatile IImsMedia mImsMedia;
 
     /**
-     * Opens a RTP session based on the local sockets with the associated
-     * initial remote configuration if there is a valid RtpConfig passed. It
-     * starts the media flow if the media direction in the RtpConfig is set
-     * to any value other than NO_MEDIA_FLOW. If the open session is
-     * successful then a new ImsMediaSession object will be returned using
-     * the SessionCallback#onOpenSessionSuccess() API. If the open
-     * session is failed then a error code will be returned using
-     * SessionCallback#onOpenSessionFailure(int) API.
+     * Opens a RTP session based on the local sockets with the associated initial
+     * remote configuration if there is a valid {@link RtpConfig} passed. It starts
+     * the media flow if the media direction in the {@link RtpConfig} is set to any
+     * value other than {@link RtpConfig#NO_MEDIA_FLOW}. If the open session is
+     * successful then a new {@link ImsMediaSession} object will be returned using
+     * the {@link SessionCallback#onOpenSessionSuccess(ImsMediaSession)} API. If the
+     * open session is failed then an error code {@link SessionOperationResult} will
+     * be returned using {@link SessionCallback#onOpenSessionFailure(int)} API.
      *
      * @param rtpSocket local UDP socket to send and receive incoming RTP packets
      * @param rtcpSocket local UDP socket to send and receive incoming RTCP packets
      * @param rtpConfig provides remote endpoint info and codec details.
      *        This could be null initially and the application may update
-     *        this later using ImsMediaSession#modifySession() API.
+     *        this later using {@link ImsMediaSession#modifySession()} API.
      * @param callback callbacks to receive session specific notifications.
      */
     public void openSession(@NonNull final DatagramSocket rtpSocket,

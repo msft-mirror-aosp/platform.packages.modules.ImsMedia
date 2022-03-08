@@ -92,8 +92,7 @@ public final class AmrParams implements Parcelable {
         maxRedundancyMillis = in.readInt();
     }
 
-    /** @hide **/
-    public AmrParams(@AmrMode int amrMode, boolean octetAligned, int maxRedundancyMillis) {
+    private AmrParams(@AmrMode int amrMode, boolean octetAligned, int maxRedundancyMillis) {
         this.amrMode = amrMode;
         this.octetAligned = octetAligned;
         this.maxRedundancyMillis = maxRedundancyMillis;

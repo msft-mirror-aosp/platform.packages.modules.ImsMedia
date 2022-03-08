@@ -18,28 +18,33 @@ package com.android.telephony.imsmedia;
 
 import android.os.IBinder;
 import android.os.RemoteException;
-import android.telephony.imsmedia.RtpConfig;
+import android.os.ServiceManager;
+import android.telephony.imsmedia.AudioConfig;
 import android.telephony.Rlog;
 import android.hardware.radio.ims.media.IImsMedia;
 import android.hardware.radio.ims.media.IImsMediaSession;
 import android.hardware.radio.ims.media.IImsMediaListener;
-import android.hardware.radio.ims.media.SpeechCodec;
+import android.hardware.radio.ims.media.LocalEndPoint;
+import android.hardware.radio.ims.media.RtpConfig;
+import android.hardware.radio.ims.media.RtpAddress;
 
 import com.android.telephony.imsmedia.Utils.OpenSessionParams;
 
 /**
  * This connects to IImsMedia HAL and invokes all the HAL APIs
  */
-final class AudioOffloadService {
+public class AudioOffloadService {
 
     private static final String LOG_TAG = "AudioOffloadService";
 
     private IImsMedia mImsMedia;
     private ImsMediaController.OpenSessionCallback mMediaControllerCallback;
     private static AudioOffloadService sInstance;
+    private ImsMediaListener listener;
 
     private AudioOffloadService() {
-        // TODO: Register for IImsMedia HAL service notification
+        listener = new ImsMediaListener();
+        initMediaHal();
     }
 
     public static AudioOffloadService getInstance() {
@@ -55,12 +60,11 @@ final class AudioOffloadService {
         Rlog.d(LOG_TAG, "initMediaHal");
 
         try {
-          // TODO
-          // Connect to the HAL
-          // Set response functions
-          // Set Death receipeint
+            mImsMedia = IImsMedia.Stub.asInterface(ServiceManager.waitForService("ims-media"));
+            mImsMedia.setListener(listener);
         } catch (Exception e) {
             Rlog.e(LOG_TAG, "initMediaHal: Exception: " + e);
+            return;
         }
     }
 
@@ -77,11 +81,26 @@ final class AudioOffloadService {
     }
 
     public void openSession(int sessionId, OpenSessionParams sessionParams) {
+        final LocalEndPoint lep = new LocalEndPoint();
+        final RtpConfig rtpConfig = Utils.convertToRtpConfig(
+                (AudioConfig)sessionParams.getRtpConfig());
+
+        /**
+         * Store the reference to the media MediaControllerCallback so that it can
+         * be used for notifying the onOpenSuccess() or onOpenFailure() callbacks.
+         */
         mMediaControllerCallback = sessionParams.getCallback();
-        // TODO
-        // create localEndPoint
-        // covert telephony AudioConfig to AIDL RtpConfig
-        // getIImsMedia().openSession(sessionId, localEndPoint, config);
+
+        /** Create LocalEndPoint from {@link OpenSessionParams} */
+        lep.rtpFd = sessionParams.getRtpFd();
+        lep.rtcpFd = sessionParams.getRtcpFd();
+        lep.modemId = 1; // TODO : Use the logical modem ID
+
+        try {
+            getIImsMedia().openSession(sessionId, lep, rtpConfig);
+        } catch (RemoteException e) {
+            Rlog.e(LOG_TAG, "openSession: " + e);
+        }
     }
 
     public void closeSession(int sessionId) {
@@ -101,16 +120,6 @@ final class AudioOffloadService {
         @Override
         public void onOpenSessionFailure(int sessionId, int error) {
             mMediaControllerCallback.onOpenSessionFailure(sessionId, error);
-        }
-
-        @Override
-        public void onMediaStackStateChanged(int state) {
-           // TODO: Remove this API in HAL
-        }
-
-        @Override
-        public void onBringupResponse(int state, SpeechCodec[] codecs) {
-           // TODO: Remove this API in HAL
         }
     }
 }

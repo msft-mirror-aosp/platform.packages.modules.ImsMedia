@@ -756,15 +756,19 @@ public class MainActivity extends AppCompatActivity {
                 .setJitterThresholdMillis(5000)
                 .build();
 
-            EvsParams mEvs = new EvsParams(EvsParams.EVS_BAND_NONE,
-                EvsParams.EVS_MODE_0,
-                (byte) 3,
-                true,
-                true);
+            EvsParams mEvs = new EvsParams.Builder()
+                    .setEvsbandwidth(EvsParams.EVS_BAND_NONE)
+                    .setEvsMode(EvsParams.EVS_MODE_0)
+                    .setChannelAwareMode((byte) 3)
+                    .setHeaderFullOnlyOnTx(true)
+                    .setHeaderFullOnlyOnRx(true)
+                    .build();
 
-            AmrParams mAmr = new AmrParams(AmrParams.AMR_MODE_8,
-                true,
-                0);
+            AmrParams mAmr = new AmrParams.Builder()
+                    .setAmrMode(AmrParams.AMR_MODE_8)
+                    .setOctetAligned(true)
+                    .setMaxRedundancyMillis(0)
+                    .build();
 
             audioConfig = new AudioConfig.Builder()
                 .setMediaDirection(RtpConfig.MEDIA_DIRECTION_TRANSMIT_RECEIVE)
@@ -772,17 +776,17 @@ public class MainActivity extends AppCompatActivity {
                 .setRemoteRtpAddress(rtpAddr)
                 .setRtcpConfig(rtcpConfig)
                 .setMaxMtuBytes(1500)
-                .setDscp(0)
-                .setRxPayloadTypeNumber(96)
-                .setTxPayloadTypeNumber(96)
+                .setDscp((byte) 0)
+                .setRxPayloadTypeNumber((byte) 96)
+                .setTxPayloadTypeNumber((byte) 96)
                 .setSamplingRateKHz((byte) 16)
                 .setPtimeMillis((byte) 20)
                 .setMaxPtimeMillis((byte) 240)
                 .setTxCodecModeRequest((byte) 15)
                 .setDtxEnabled(true)
                 .setCodecType(AudioConfig.CODEC_AMR_WB)
-                .setDtmfPayloadTypeNumber(100)
-                .setDtmfsamplingRateKHz(16)
+                .setDtmfPayloadTypeNumber((byte) 100)
+                .setDtmfSamplingRateKHz((byte) 16)
                 .setAmrParams(mAmr)
                 .setEvsParams(mEvs)
                 .build();

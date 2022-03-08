@@ -30,10 +30,14 @@ import android.telephony.imsmedia.MediaQualityThreshold;
 import android.telephony.imsmedia.AudioConfig;
 import android.telephony.ims.RtpHeaderExtension;
 import android.telephony.Rlog;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import com.android.telephony.imsmedia.Utils.OpenSessionParams;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Audio session binder implementation which handles all audio session APIs
@@ -77,20 +81,30 @@ final class AudioSession extends IImsAudioSession.Stub implements IMediaSession 
     private AudioListener mAudioListener;
     private AudioLocalSession mLocalSession;
 
-    AudioSession(int sessionId, IImsAudioSessionCallback callback) {
+    AudioSession(final int sessionId, final IImsAudioSessionCallback callback) {
         mSessionId = sessionId;
         mSessionState = ImsMediaSession.SESSION_STATE_CLOSED;
         mCallback = callback;
         mHandler = new AudioSessionHandler(Looper.getMainLooper());
-        mAudioService = new AudioService();
-        mAudioListener = new AudioListener(mHandler);
-        mAudioService.setListener(mAudioListener);
-        mAudioListener.setNativeObject(mAudioService.getNativeObject());
+        if (isAudioOffload()) {
+            Rlog.d(TAG, "Initialize offload service");
+            mOffloadService = AudioOffloadService.getInstance();
+            mOffloadListener = new AudioOffloadListener(mHandler);
+        } else {
+            Rlog.d(TAG, "Initialize local audio service");
+            mAudioService = new AudioService();
+            mAudioListener = new AudioListener(mHandler);
+            mAudioService.setListener(mAudioListener);
+            mAudioListener.setNativeObject(mAudioService.getNativeObject());
+        }
     }
 
     @VisibleForTesting
-    AudioSession(int sessionId, IImsAudioSessionCallback callback, AudioService audioService,
-        AudioLocalSession localSession) {
+    AudioSession(final int sessionId,
+            final @NonNull IImsAudioSessionCallback callback,
+            final @Nullable AudioService audioService,
+            final @Nullable AudioLocalSession localSession,
+            final @Nullable AudioOffloadService offloadService) {
         mSessionId = sessionId;
         mSessionState = ImsMediaSession.SESSION_STATE_CLOSED;
         mCallback = callback;
@@ -98,6 +112,13 @@ final class AudioSession extends IImsAudioSession.Stub implements IMediaSession 
         mAudioService = audioService;
         mLocalSession = localSession;
         mAudioListener = new AudioListener(mHandler);
+        mOffloadService = offloadService;
+        mOffloadListener = new AudioOffloadListener(mHandler);
+    }
+
+    @VisibleForTesting
+    void setAudioOffload(boolean isOffload) {
+        mIsAudioOffload = isOffload;
     }
 
     @VisibleForTesting
@@ -108,6 +129,10 @@ final class AudioSession extends IImsAudioSession.Stub implements IMediaSession 
     @VisibleForTesting
     AudioListener getAudioListener() {
         return mAudioListener;
+    }
+
+    AudioOffloadListener getOffloadListener() {
+        return mOffloadListener;
     }
 
     @Override
@@ -297,7 +322,7 @@ final class AudioSession extends IImsAudioSession.Stub implements IMediaSession 
     private void handleModifySession(AudioConfig config) {
         if (isAudioOffload()) {
             try {
-                mHalSession.modifySession(null/*TODO*/);
+                mHalSession.modifySession(Utils.convertToRtpConfig(config));
             } catch(RemoteException e) {
                 Rlog.e(TAG, "modifySession : " + e);
             }
@@ -309,7 +334,7 @@ final class AudioSession extends IImsAudioSession.Stub implements IMediaSession 
     private void handleAddConfig(AudioConfig config) {
         if (isAudioOffload()) {
             try {
-                mHalSession.addConfig(null/*TODO*/);
+                mHalSession.addConfig(Utils.convertToRtpConfig(config));
             } catch(RemoteException e) {
                 Rlog.e(TAG, "addConfig : " + e);
             }
@@ -321,7 +346,7 @@ final class AudioSession extends IImsAudioSession.Stub implements IMediaSession 
     private void handleDeleteConfig(AudioConfig config) {
         if (isAudioOffload()) {
             try {
-                mHalSession.deleteConfig(null);
+                mHalSession.deleteConfig(Utils.convertToRtpConfig(config));
             } catch(RemoteException e) {
                 Rlog.e(TAG, "deleteConfig : " + e);
             }
@@ -333,7 +358,7 @@ final class AudioSession extends IImsAudioSession.Stub implements IMediaSession 
     private void handleConfirmConfig(AudioConfig config) {
         if (isAudioOffload()) {
             try {
-                mHalSession.confirmConfig(null);
+                mHalSession.confirmConfig(Utils.convertToRtpConfig(config));
             } catch(RemoteException e) {
                 Rlog.e(TAG, "confirmConfig : " + e);
             }
@@ -369,8 +394,11 @@ final class AudioSession extends IImsAudioSession.Stub implements IMediaSession 
     private void handleSendRtpHeaderExtension(List<RtpHeaderExtension> extensions) {
         if (isAudioOffload()) {
             try {
-                // TODO : covert to HAL
-                mHalSession.sendHeaderExtension(null);
+                List<android.hardware.radio.ims.media.RtpHeaderExtension>
+                        halExtensions = new ArrayList<>();
+                halExtensions = extensions.stream().map(Utils::convertRtpHeaderExtension)
+                        .collect(Collectors.toList());
+                mHalSession.sendHeaderExtension(halExtensions);
             } catch(RemoteException e) {
                 Rlog.e(TAG, "sendHeaderExtension : " + e);
             }
@@ -382,8 +410,7 @@ final class AudioSession extends IImsAudioSession.Stub implements IMediaSession 
     private void handleSetMediaQualityThreshold(MediaQualityThreshold threshold) {
         if (isAudioOffload()) {
             try {
-                // TODO : convert to HAL
-                mHalSession.setMediaQualityThreshold(null);
+                mHalSession.setMediaQualityThreshold(Utils.convertMediaQualityThreshold(threshold));
             } catch(RemoteException e) {
                 Rlog.e(TAG, "setMediaQualityThreshold: " + e);
             }

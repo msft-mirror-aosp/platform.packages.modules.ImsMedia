@@ -34,15 +34,15 @@ import java.util.Objects;
  */
 public final class AudioConfig extends RtpConfig {
     /** Adaptive Multi-Rate */
-    public static final int CODEC_AMR = 1 << 0;
+    public static final int CODEC_AMR = android.hardware.radio.ims.media.CodecType.AMR;
     /** Adaptive Multi-Rate Wide Band */
-    public static final int CODEC_AMR_WB = 1 << 1;
+    public static final int CODEC_AMR_WB = android.hardware.radio.ims.media.CodecType.AMR_WB;
     /** Enhanced Voice Services */
-    public static final int CODEC_EVS = 1 << 2;
+    public static final int CODEC_EVS = android.hardware.radio.ims.media.CodecType.EVS;
     /** G.711 A-law i.e. Pulse Code Modulation using A-law */
-    public static final int CODEC_PCMA = 1 << 3;
+    public static final int CODEC_PCMA = android.hardware.radio.ims.media.CodecType.PCMA;
     /** G.711 μ-law i.e. Pulse Code Modulation using μ-law */
-    public static final int CODEC_PCMU = 1 << 4;
+    public static final int CODEC_PCMU = android.hardware.radio.ims.media.CodecType.PCMU;
 
     /** @hide */
     @IntDef(
@@ -57,28 +57,28 @@ public final class AudioConfig extends RtpConfig {
     @Retention(RetentionPolicy.SOURCE)
     public @interface CodecType {}
 
-    private final byte pTimeMillis;
-    private final byte maxPtimeMillis;
-    private final byte txCodecModeRequest;
-    private final boolean dtxEnabled;
-    private final @CodecType int codecType;
-    private final int dtmfPayloadTypeNumber;
-    private final int dtmfsamplingRateKHz;
+    private byte pTimeMillis;
+    private int maxPtimeMillis;
+    private byte txCodecModeRequest;
+    private boolean dtxEnabled;
+    private @CodecType int codecType;
+    private byte dtmfPayloadTypeNumber;
+    private byte dtmfSamplingRateKHz;
     @Nullable
-    private final AmrParams amrParams;
+    private AmrParams amrParams;
     @Nullable
-    private final EvsParams evsParams;
+    private EvsParams evsParams;
 
     /** @hide */
     AudioConfig(Parcel in) {
         super(in);
         pTimeMillis = in.readByte();
-        maxPtimeMillis = in.readByte();
+        maxPtimeMillis = in.readInt();
         txCodecModeRequest = in.readByte();
         dtxEnabled = in.readBoolean();
         codecType = in.readInt();
-        dtmfPayloadTypeNumber = in.readInt();
-        dtmfsamplingRateKHz = in.readInt();
+        dtmfPayloadTypeNumber = in.readByte();
+        dtmfSamplingRateKHz = in.readByte();
         amrParams = in.readParcelable(AmrParams.class.getClassLoader(), AmrParams.class);
         evsParams = in.readParcelable(EvsParams.class.getClassLoader(), EvsParams.class);
     }
@@ -92,7 +92,7 @@ public final class AudioConfig extends RtpConfig {
         this.dtxEnabled = builder.dtxEnabled;
         this.codecType = builder.codecType;
         this.dtmfPayloadTypeNumber = builder.dtmfPayloadTypeNumber;
-        this.dtmfsamplingRateKHz = builder.dtmfsamplingRateKHz;
+        this.dtmfSamplingRateKHz = builder.dtmfSamplingRateKHz;
         this.amrParams = builder.amrParams;
         this.evsParams = builder.evsParams;
     }
@@ -103,8 +103,18 @@ public final class AudioConfig extends RtpConfig {
     }
 
     /** @hide **/
-    public byte getMaxPtimeMillis() {
+    public void setPtimeMillis(byte pTimeMillis) {
+        this.pTimeMillis = pTimeMillis;
+    }
+
+    /** @hide **/
+    public int getMaxPtimeMillis() {
         return maxPtimeMillis;
+    }
+
+    /** @hide **/
+    public void setMaxPtimeMillis(int maxPtimeMillis) {
+        this.maxPtimeMillis = maxPtimeMillis;
     }
 
     /** @hide **/
@@ -113,8 +123,18 @@ public final class AudioConfig extends RtpConfig {
     }
 
     /** @hide **/
+    public void setTxCodecModeRequest(byte txCodecModeRequest) {
+        this.txCodecModeRequest = txCodecModeRequest;
+    }
+
+    /** @hide **/
     public boolean getDtxEnabled() {
         return dtxEnabled;
+    }
+
+    /** @hide **/
+    public void setDtxEnabled(boolean dtxEnabled) {
+        this.dtxEnabled = dtxEnabled;
     }
 
     /** @hide **/
@@ -123,13 +143,28 @@ public final class AudioConfig extends RtpConfig {
     }
 
     /** @hide **/
-    public int getDtmfPayloadTypeNumber() {
+    public void setCodecType(int codecType) {
+        this.codecType = codecType;
+    }
+
+    /** @hide **/
+    public byte getDtmfPayloadTypeNumber() {
         return dtmfPayloadTypeNumber;
     }
 
     /** @hide **/
-    public int getDtmfsamplingRateKHz() {
-        return dtmfsamplingRateKHz;
+    public void setDtmfPayloadTypeNumber(byte dtmfPayloadTypeNumber) {
+        this.dtmfPayloadTypeNumber = dtmfPayloadTypeNumber;
+    }
+
+    /** @hide **/
+    public byte getDtmfSamplingRateKHz() {
+        return dtmfSamplingRateKHz;
+    }
+
+    /** @hide **/
+    public void setDtmfSamplingRateKHz(byte dtmfSamplingRateKHz) {
+        this.dtmfSamplingRateKHz = dtmfSamplingRateKHz;
     }
 
     /** @hide **/
@@ -151,7 +186,7 @@ public final class AudioConfig extends RtpConfig {
                 + ", dtxEnabled=" + dtxEnabled
                 + ", codecType=" + codecType
                 + ", dtmfPayloadTypeNumber=" + dtmfPayloadTypeNumber
-                + ", dtmfsamplingRateKHz=" + dtmfsamplingRateKHz
+                + ", dtmfSamplingRateKHz=" + dtmfSamplingRateKHz
                 + ", amrParams=" + amrParams
                 + ", evsParams=" + evsParams
                 + " }";
@@ -161,7 +196,7 @@ public final class AudioConfig extends RtpConfig {
     public int hashCode() {
         return Objects.hash(super.hashCode(), pTimeMillis, maxPtimeMillis,
                 txCodecModeRequest, dtxEnabled, codecType, dtmfPayloadTypeNumber,
-                dtmfsamplingRateKHz, amrParams, evsParams);
+                dtmfSamplingRateKHz, amrParams, evsParams);
     }
 
     @Override
@@ -186,7 +221,7 @@ public final class AudioConfig extends RtpConfig {
                 && dtxEnabled == s.dtxEnabled
                 && codecType == s.codecType
                 && dtmfPayloadTypeNumber == s.dtmfPayloadTypeNumber
-                && dtmfsamplingRateKHz == s.dtmfsamplingRateKHz
+                && dtmfSamplingRateKHz == s.dtmfSamplingRateKHz
                 && Objects.equals(amrParams, s.amrParams)
                 && Objects.equals(evsParams, s.evsParams));
     }
@@ -204,12 +239,12 @@ public final class AudioConfig extends RtpConfig {
     public void writeToParcel(Parcel dest, int flags) {
         super.writeToParcel(dest, flags);
         dest.writeByte(pTimeMillis);
-        dest.writeByte(maxPtimeMillis);
+        dest.writeInt(maxPtimeMillis);
         dest.writeByte(txCodecModeRequest);
         dest.writeBoolean(dtxEnabled);
         dest.writeInt(codecType);
-        dest.writeInt(dtmfPayloadTypeNumber);
-        dest.writeInt(dtmfsamplingRateKHz);
+        dest.writeByte(dtmfPayloadTypeNumber);
+        dest.writeByte(dtmfSamplingRateKHz);
         dest.writeParcelable(amrParams, 0);
         dest.writeParcelable(evsParams, 0);
     }
@@ -232,12 +267,12 @@ public final class AudioConfig extends RtpConfig {
      */
     public static final class Builder extends RtpConfig.AbstractBuilder<Builder> {
         private byte pTimeMillis;
-        private byte maxPtimeMillis;
+        private int maxPtimeMillis;
         private byte txCodecModeRequest;
         private boolean dtxEnabled;
         private @CodecType int codecType;
-        private int dtmfPayloadTypeNumber;
-        private int dtmfsamplingRateKHz;
+        private byte dtmfPayloadTypeNumber;
+        private byte dtmfSamplingRateKHz;
         @Nullable
         private AmrParams amrParams;
         @Nullable
@@ -273,7 +308,7 @@ public final class AudioConfig extends RtpConfig {
          * @param maxPtimeMillis maximum packet time
          * @return The same instance of the builder
          */
-        public Builder setMaxPtimeMillis(final byte maxPtimeMillis) {
+        public Builder setMaxPtimeMillis(final int maxPtimeMillis) {
             this.maxPtimeMillis = maxPtimeMillis;
             return this;
         }
@@ -321,7 +356,7 @@ public final class AudioConfig extends RtpConfig {
          * @param dtmfPayloadTypeNumber Payload type number for the DTMF packets
          * @return The same instance of the builder
          */
-        public Builder setDtmfPayloadTypeNumber(final int dtmfPayloadTypeNumber) {
+        public Builder setDtmfPayloadTypeNumber(final byte dtmfPayloadTypeNumber) {
             this.dtmfPayloadTypeNumber = dtmfPayloadTypeNumber;
             return this;
         }
@@ -329,11 +364,11 @@ public final class AudioConfig extends RtpConfig {
         /**
          * Set the DTMF sampling rate on this media stream
          *
-         * @param dtmfsamplingRateKHz DTMF sampling rate
+         * @param dtmfSamplingRateKHz DTMF sampling rate
          * @return The same instance of the builder
          */
-        public Builder setDtmfsamplingRateKHz(final int dtmfsamplingRateKHz) {
-            this.dtmfsamplingRateKHz = dtmfsamplingRateKHz;
+        public Builder setDtmfSamplingRateKHz(final byte dtmfSamplingRateKHz) {
+            this.dtmfSamplingRateKHz = dtmfSamplingRateKHz;
             return this;
         }
 

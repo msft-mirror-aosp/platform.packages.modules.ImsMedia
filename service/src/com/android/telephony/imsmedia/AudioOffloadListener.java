@@ -19,8 +19,10 @@ package com.android.telephony.imsmedia;
 import android.hardware.radio.ims.media.IImsMediaSessionListener;
 import android.hardware.radio.ims.media.RtpHeaderExtension;
 import android.hardware.radio.ims.media.RtpConfig;
-import android.hardware.radio.ims.media.RtpSession;
 import android.os.Handler;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * This implements the handlers for all indication messages from media HAL
@@ -30,40 +32,41 @@ final class AudioOffloadListener extends IImsMediaSessionListener.Stub {
     private Handler handler;
 
     @Override
-    public void onSessionChanged(RtpSession session) {
-        Utils.sendMessage(handler, AudioSession.EVENT_SESSION_CHANGED_IND, session.sessionId);
+    public void onSessionChanged(int state) {
+        Utils.sendMessage(handler, AudioSession.EVENT_SESSION_CHANGED_IND, state);
     }
 
     @Override
     public void onModifySessionResponse(RtpConfig config, int result) {
-        // TODO : convert from HAL
         Utils.sendMessage(handler,
-                AudioSession.EVENT_MODIFY_SESSION_RESPONSE, result, UNUSED, null);
+                AudioSession.EVENT_MODIFY_SESSION_RESPONSE, result,
+                UNUSED, Utils.convertToAudioConfig(config));
     }
 
     @Override
     public void onAddConfigResponse(RtpConfig config, int result) {
-        // TODO : convert from HAL
-        Utils.sendMessage(handler, AudioSession.EVENT_ADD_CONFIG_RESPONSE, result, UNUSED, null);
+        Utils.sendMessage(handler, AudioSession.EVENT_ADD_CONFIG_RESPONSE,
+                result, UNUSED, Utils.convertToAudioConfig(config));
     }
 
     @Override
     public void onConfirmConfigResponse(RtpConfig config, int result) {
-        // TODO : convert from HAL
         Utils.sendMessage(handler,
-                AudioSession.EVENT_CONFIRM_CONFIG_RESPONSE, result, UNUSED, null);
+                AudioSession.EVENT_CONFIRM_CONFIG_RESPONSE, result,
+                UNUSED, Utils.convertToAudioConfig(config));
     }
 
     @Override
     public void onFirstMediaPacketReceived(RtpConfig config) {
-        // TODO : convert from HAL
-        Utils.sendMessage(handler, AudioSession.EVENT_FIRST_MEDIA_PACKET_IND, null);
+        Utils.sendMessage(handler, AudioSession.EVENT_FIRST_MEDIA_PACKET_IND,
+                Utils.convertToAudioConfig(config));
     }
 
     @Override
-    public void onHeaderExtensionReceived(RtpHeaderExtension[] extensions) {
-        // TODO : convert from HAL
-        Utils.sendMessage(handler, AudioSession.EVENT_RTP_HEADER_EXTENSION_IND, null);
+    public void onHeaderExtensionReceived(List<RtpHeaderExtension> extensions) {
+        Utils.sendMessage(handler, AudioSession.EVENT_RTP_HEADER_EXTENSION_IND,
+                extensions.stream().map(Utils::convertRtpHeaderExtension)
+                .collect(Collectors.toList()));
     }
 
     @Override

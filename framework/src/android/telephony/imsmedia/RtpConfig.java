@@ -71,9 +71,9 @@ public abstract class RtpConfig implements Parcelable {
     @Nullable
     private RtcpConfig rtcpConfig;
     private int maxMtuBytes;
-    private int dscp;
-    private int rxPayloadTypeNumber;
-    private int txPayloadTypeNumber;
+    private byte dscp;
+    private byte rxPayloadTypeNumber;
+    private byte txPayloadTypeNumber;
     private byte samplingRateKHz;
 
     /** @hide */
@@ -83,9 +83,9 @@ public abstract class RtpConfig implements Parcelable {
         remoteRtpAddress = readSocketAddress(in);
         rtcpConfig = in.readParcelable(RtcpConfig.class.getClassLoader(), RtcpConfig.class);
         maxMtuBytes = in.readInt();
-        dscp = in.readInt();
-        rxPayloadTypeNumber = in.readInt();
-        txPayloadTypeNumber = in.readInt();
+        dscp = in.readByte();
+        rxPayloadTypeNumber = in.readByte();
+        txPayloadTypeNumber = in.readByte();
         samplingRateKHz = in.readByte();
     }
 
@@ -144,7 +144,7 @@ public abstract class RtpConfig implements Parcelable {
         this.rtcpConfig = rtcpConfig;
     }
 
-    public int getmaxMtuBytes() {
+    public int getMaxMtuBytes() {
         return maxMtuBytes;
     }
 
@@ -152,27 +152,27 @@ public abstract class RtpConfig implements Parcelable {
         this.maxMtuBytes = maxMtuBytes;
     }
 
-    public int getDscp() {
+    public byte getDscp() {
         return dscp;
     }
 
-    public void setDscp(final int dscp) {
+    public void setDscp(final byte dscp) {
         this.dscp = dscp;
     }
 
-    public int getRxPayloadTypeNumber() {
+    public byte getRxPayloadTypeNumber() {
         return rxPayloadTypeNumber;
     }
 
-    public void setRxPayloadTypeNumber(final int rxPayloadTypeNumber) {
+    public void setRxPayloadTypeNumber(final byte rxPayloadTypeNumber) {
         this.rxPayloadTypeNumber = rxPayloadTypeNumber;
     }
 
-    public int getTxPayloadTypeNumber() {
+    public byte getTxPayloadTypeNumber() {
         return txPayloadTypeNumber;
     }
 
-    public void setTxPayloadTypeNumber(final int txPayloadTypeNumber) {
+    public void setTxPayloadTypeNumber(final byte txPayloadTypeNumber) {
         this.txPayloadTypeNumber = txPayloadTypeNumber;
     }
 
@@ -253,9 +253,9 @@ public abstract class RtpConfig implements Parcelable {
         }
         dest.writeParcelable(rtcpConfig, flags);
         dest.writeInt(maxMtuBytes);
-        dest.writeInt(dscp);
-        dest.writeInt(rxPayloadTypeNumber);
-        dest.writeInt(txPayloadTypeNumber);
+        dest.writeByte(dscp);
+        dest.writeByte(rxPayloadTypeNumber);
+        dest.writeByte(txPayloadTypeNumber);
         dest.writeByte(samplingRateKHz);
     }
 
@@ -284,9 +284,9 @@ public abstract class RtpConfig implements Parcelable {
         @Nullable
         private RtcpConfig rtcpConfig;
         private int maxMtuBytes;
-        private int dscp;
-        private int rxPayloadTypeNumber;
-        private int txPayloadTypeNumber;
+        private byte dscp;
+        private byte rxPayloadTypeNumber;
+        private byte txPayloadTypeNumber;
         private byte samplingRateKHz;
 
         AbstractBuilder() {}
@@ -294,47 +294,47 @@ public abstract class RtpConfig implements Parcelable {
         /** Returns {@code this} */
         abstract T self();
 
-        public T setMediaDirection(@MediaDirection int direction) {
+        public T setMediaDirection(final @MediaDirection int direction) {
             this.direction = direction;
             return self();
         }
 
-        public T setAccessNetwork(int accessNetwork) {
+        public T setAccessNetwork(final int accessNetwork) {
             this.accessNetwork = accessNetwork;
             return self();
         }
 
-        public T setRemoteRtpAddress(InetSocketAddress remoteRtpAddress) {
+        public T setRemoteRtpAddress(final InetSocketAddress remoteRtpAddress) {
             this.remoteRtpAddress = remoteRtpAddress;
             return self();
         }
 
-        public T setRtcpConfig(RtcpConfig rtcpConfig) {
+        public T setRtcpConfig(final RtcpConfig rtcpConfig) {
             this.rtcpConfig = rtcpConfig;
             return self();
         }
 
-        public T setMaxMtuBytes(int maxMtuBytes) {
+        public T setMaxMtuBytes(final int maxMtuBytes) {
             this.maxMtuBytes = maxMtuBytes;
             return self();
         }
 
-        public T setDscp(int dscp) {
+        public T setDscp(final byte dscp) {
             this.dscp = dscp;
             return self();
         }
 
-        public T setRxPayloadTypeNumber(int rxPayloadTypeNumber) {
+        public T setRxPayloadTypeNumber(final byte rxPayloadTypeNumber) {
             this.rxPayloadTypeNumber = rxPayloadTypeNumber;
             return self();
         }
 
-        public T setTxPayloadTypeNumber(int txPayloadTypeNumber) {
+        public T setTxPayloadTypeNumber(final byte txPayloadTypeNumber) {
             this.txPayloadTypeNumber = txPayloadTypeNumber;
             return self();
         }
 
-        public T setSamplingRateKHz(byte samplingRateKHz) {
+        public T setSamplingRateKHz(final byte samplingRateKHz) {
             this.samplingRateKHz = samplingRateKHz;
             return self();
         }

@@ -25,6 +25,7 @@ import static org.mockito.Mockito.verify;
 import android.os.Parcel;
 import android.os.Looper;
 import android.os.Message;
+import android.os.ParcelFileDescriptor;
 import android.os.RemoteException;
 import android.telephony.imsmedia.AudioConfig;
 import android.telephony.imsmedia.IImsAudioSessionCallback;
@@ -38,6 +39,8 @@ import com.android.telephony.imsmedia.AudioService;
 import com.android.telephony.imsmedia.Utils;
 import com.android.telephony.imsmedia.Utils.OpenSessionParams;
 
+import java.net.DatagramSocket;
+import java.net.SocketException;
 import java.util.ArrayList;
 
 import org.junit.After;
@@ -54,8 +57,8 @@ public class AudioSessionTest {
     private static final int DTMF_VOL = 50;
     private static final int DTMF_DURATION = 120;
     private static final int UNUSED = -1;
-    private static final int FAILURE = ImsMediaSession.RESULT_FAILURE;
     private static final int SUCCESS = ImsMediaSession.RESULT_SUCCESS;
+    private static final int NO_RESOURCES = ImsMediaSession.RESULT_NO_RESOURCES;
     private static final int RTP = ImsMediaSession.PACKET_TYPE_RTP;
     private static final int RTCP = ImsMediaSession.PACKET_TYPE_RTCP;
     private static final int INACTIVITY_TIMEOUT = 20;
@@ -76,7 +79,8 @@ public class AudioSessionTest {
     @Before
     public void setUp() {
         MockitoAnnotations.initMocks(this);
-        audioSession = new AudioSession(SESSION_ID, callback, audioService, audioLocalSession);
+        audioSession = new AudioSession(SESSION_ID, callback,
+                audioService, audioLocalSession, null);
         audioListener = audioSession.getAudioListener();
         handler = audioSession.getAudioSessionHandler();
         try {
@@ -107,7 +111,21 @@ public class AudioSessionTest {
 
     @Test
     public void testOpenSession() {
-        OpenSessionParams params = new OpenSessionParams();
+        DatagramSocket rtpSocket = null;
+        DatagramSocket rtcpSocket = null;
+
+        try {
+            rtpSocket = new DatagramSocket();
+            rtcpSocket = new DatagramSocket();
+        } catch (SocketException e) {
+            fail("SocketException:" + e);
+        }
+
+        OpenSessionParams params = new OpenSessionParams(
+                ParcelFileDescriptor.fromDatagramSocket(rtpSocket),
+                ParcelFileDescriptor.fromDatagramSocket(rtcpSocket),
+                null, null);
+
         audioSession.openSession(params);
         processAllMessages();
         verify(audioService, times(1)).openSession(eq(SESSION_ID), eq(params));
@@ -138,7 +156,7 @@ public class AudioSessionTest {
         processAllMessages();
         verify(audioLocalSession, times(1)).modifySession(eq(config));
 
-        // Modify Session Response - SUCCESS
+        // Modify Session Response - Success
         audioListener.onMessage(
             createParcel(AudioSession.EVENT_MODIFY_SESSION_RESPONSE, SUCCESS, config));
         processAllMessages();
@@ -148,12 +166,12 @@ public class AudioSessionTest {
             fail("Failed to notify modifySessionResponse: " + e);
         }
 
-        // Modify Session Response - FAILURE
+        // Modify Session Response - Failure (NO_RESOURCES)
         audioListener.onMessage(
-            createParcel(AudioSession.EVENT_MODIFY_SESSION_RESPONSE, FAILURE, config));
+            createParcel(AudioSession.EVENT_MODIFY_SESSION_RESPONSE, NO_RESOURCES, config));
         processAllMessages();
         try {
-            verify(callback, times(1)).onModifySessionResponse(eq(config), eq(FAILURE));
+            verify(callback, times(1)).onModifySessionResponse(eq(config), eq(NO_RESOURCES));
         }  catch(RemoteException e) {
             fail("Failed to notify modifySessionResponse: " + e);
         }
@@ -167,7 +185,7 @@ public class AudioSessionTest {
         processAllMessages();
         verify(audioLocalSession, times(1)).addConfig(eq(config));
 
-        // Add Config Response - SUCCESS
+        // Add Config Response - Success
         audioListener.onMessage(
             createParcel(AudioSession.EVENT_ADD_CONFIG_RESPONSE, SUCCESS, config));
         processAllMessages();
@@ -177,12 +195,12 @@ public class AudioSessionTest {
             fail("Failed to notify addConfigResponse: " + e);
         }
 
-        // Add Config Response - FAILURE
+        // Add Config Response - Failure (NO_RESOURCES)
         audioListener.onMessage(
-            createParcel(AudioSession.EVENT_ADD_CONFIG_RESPONSE, FAILURE, config));
+            createParcel(AudioSession.EVENT_ADD_CONFIG_RESPONSE, NO_RESOURCES, config));
         processAllMessages();
         try {
-            verify(callback, times(1)).onAddConfigResponse(eq(config), eq(FAILURE));
+            verify(callback, times(1)).onAddConfigResponse(eq(config), eq(NO_RESOURCES));
         }  catch(RemoteException e) {
             fail("Failed to notify addConfigResponse: " + e);
         }
@@ -205,7 +223,7 @@ public class AudioSessionTest {
         processAllMessages();
         verify(audioLocalSession, times(1)).confirmConfig(eq(config));
 
-        // Confirm Config Response - SUCCESS
+        // Confirm Config Response - Success
         audioListener.onMessage(
             createParcel(AudioSession.EVENT_CONFIRM_CONFIG_RESPONSE, SUCCESS, config));
         processAllMessages();
@@ -215,12 +233,12 @@ public class AudioSessionTest {
             fail("Failed to notify confirmConfigResponse: " + e);
         }
 
-        // Confirm Config Response - FAILURE
+        // Confirm Config Response - Failure (NO_RESOURCES)
         audioListener.onMessage(
-            createParcel(AudioSession.EVENT_CONFIRM_CONFIG_RESPONSE, FAILURE, config));
+            createParcel(AudioSession.EVENT_CONFIRM_CONFIG_RESPONSE, NO_RESOURCES, config));
         processAllMessages();
         try {
-            verify(callback, times(1)).onConfirmConfigResponse(eq(config), eq(FAILURE));
+            verify(callback, times(1)).onConfirmConfigResponse(eq(config), eq(NO_RESOURCES));
         }  catch(RemoteException e) {
             fail("Failed to notify confirmConfigResponse: " + e);
         }

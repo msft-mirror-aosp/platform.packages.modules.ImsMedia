@@ -18,6 +18,7 @@ package android.telephony.imsmedia;
 
 import android.annotation.IntDef;
 import android.hardware.radio.ims.media.MediaProtocolType;
+import android.hardware.radio.ims.media.RtpError;
 import android.hardware.radio.ims.media.RtpSessionState;
 import android.os.IBinder;
 
@@ -77,15 +78,31 @@ public interface ImsMediaSession {
     @Retention(RetentionPolicy.SOURCE)
     public @interface PacketType {}
 
-    /** Constant represents the result of a session operation is failure */
-    public static final int RESULT_FAILURE = 0;
-    /** Constant represents the result of a session operation is failure */
-    public static final int RESULT_SUCCESS = 1;
+    /** Result of a session operation is successful */
+    public static final int RESULT_SUCCESS = RtpError.NONE;
+    /** Failed because of invalid parameters passed in the request */
+    public static final int RESULT_INVALID_PARAM = RtpError.INVALID_PARAM;
+    /** The RTP stack is not ready to handle the request */
+    public static final int RESULT_NOT_READY = RtpError.NOT_READY;
+    /** Unable to handle the request due to memory allocation failure */
+    public static final int RESULT_NO_MEMORY = RtpError.NO_MEMORY;
+    /** Unable to handle the request due to no sufficient resources such as audio, codec */
+    public static final int RESULT_NO_RESOURCES = RtpError.NO_RESOURCES;
+    /** The requested port number is not available */
+    public static final int RESULT_PORT_UNAVAILABLE = RtpError.PORT_UNAVAILABLE;
+    /** The request is not supported by the vendor implementation */
+    public static final int RESULT_NOT_SUPPORTED = RtpError.NOT_SUPPORTED;
+
     /** @hide */
     @IntDef(
         value = {
-           RESULT_FAILURE,
            RESULT_SUCCESS,
+           RESULT_INVALID_PARAM,
+           RESULT_NOT_READY,
+           RESULT_NO_MEMORY,
+           RESULT_NO_RESOURCES,
+           RESULT_PORT_UNAVAILABLE,
+           RESULT_NOT_SUPPORTED,
     })
     @Retention(RetentionPolicy.SOURCE)
     public @interface SessionOperationResult {}
@@ -101,10 +118,11 @@ public interface ImsMediaSession {
 
     /**
      * Modifies the configuration of the RTP session after the session is opened.
-     * It can be used modify the direction, access network, codec parameters
-     * RTCP configuration, remote address and remote port number. The service will
+     * It can be used to modify the direction, access network, codec parameters,
+     * {@link RtcpConfig}, remote address and remote port number. The service will
      * apply if anything changed in this invocation compared to previous and respond
-     * the updated the config in ImsMediaSession#onModifySessionResponse() API
+     * the updated {@link RtpConfig} in {@link ImsMediaSession#onModifySessionResponse()}
+     * API.
      *
      * @param config provides remote end point info and codec details
      */
