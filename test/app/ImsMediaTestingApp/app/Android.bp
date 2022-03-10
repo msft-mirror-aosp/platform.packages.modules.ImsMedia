@@ -19,9 +19,6 @@ android_app {
     	  "androidx.test.core",
     	  "androidx.test.ext.junit"
     ],
-    required: [
-        "privapp_permissions_com.example.imsmediatestingapp",
-    ],
     owner: "google",
     platform_apis: true,
     privileged: true,
@@ -29,10 +26,4 @@ android_app {
     optimize: {
         enabled: true,
     },
-}
-
-prebuilt_etc {
-    name: "privapp_permissions_com.example.imsmediatestingapp",
-    src: "privapp-permissions_com.example.imsmediatestingapp.xml",
-    sub_dir: "permissions",
 }
