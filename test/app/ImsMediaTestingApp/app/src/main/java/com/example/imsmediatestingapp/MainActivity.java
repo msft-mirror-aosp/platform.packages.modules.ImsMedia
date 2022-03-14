@@ -4,6 +4,7 @@ import android.Manifest;
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.media.AudioManager;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 import android.os.Bundle;
@@ -34,6 +35,7 @@ import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.SwitchCompat;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
@@ -64,19 +66,32 @@ public class MainActivity extends AppCompatActivity {
     HandshakeReceiver handshakeReceptionSocket;
     DatagramSocket rtp;
     DatagramSocket rtcp;
-
     DeviceInfo remoteDeviceInfo;
 
     private boolean isMediaManagerReady = false;
     private boolean isOpenSessionSent = false;
     AudioConfig audioConfig;
     private ImsAudioSession audioSession;
-    int testPortNum = 6000;
     Context context;
     MediaManagerCallback callback;
     RtpAudioSessionCallback sessionCallback;
     Executor executor;
     ImsMediaManager imsMediaManager;
+
+    private TextView localIpLabel;
+    private TextView localHandshakePortLabel;
+    private TextView localRtpPortLabel;
+    private TextView localRtcpPortLabel;
+    private TextView remoteIpLabel;
+    private TextView remoteHandshakePortLabel;
+    private TextView remoteRtpPortLabel;
+    private TextView remoteRtcpPortLabel;
+    private Button allowCallsButton;
+    private Button connectButton;
+    private Button openSessionButton;
+    private Button closeSessionButton;
+    private SwitchCompat loopbackSwitch;
+
 
     public enum AudioCodec {
         AMR_NB(0),
@@ -131,6 +146,7 @@ public class MainActivity extends AppCompatActivity {
 
     public enum ConnectionStatus {
         OFFLINE(0),
+        LOOPBACK(1),
         AWAITING_CONNECTION(1),
         CONNECTING(2),
         CONNECTED(3),
@@ -158,7 +174,7 @@ public class MainActivity extends AppCompatActivity {
         editor.putBoolean(HANDSHAKE_PORT_PREF, false);
         editor.apply();
 
-        connectionStatus = ConnectionStatus.OFFLINE;
+        updateUI(ConnectionStatus.OFFLINE);
 
         askForPermissions();
         styleDeviceInfo();
@@ -331,7 +347,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private String getIpAddress() {
-        TextView ipBox = findViewById(R.id.otherIpAddress);
+        TextView ipBox = findViewById(R.id.remoteIpLabel);
         return ipBox.getText().toString();
     }
 
@@ -340,7 +356,7 @@ public class MainActivity extends AppCompatActivity {
         return portNumberBox.getText().toString();
     }
 
-    public void openRtpPorts() {
+    public void openRtpPorts(boolean openHandshakePort) {
         Executor socketBindingExecutor = Executors.newSingleThreadExecutor();
 
         Runnable bindSockets = new Runnable() {
@@ -353,8 +369,10 @@ public class MainActivity extends AppCompatActivity {
                     rtcp = new DatagramSocket(rtp.getLocalPort() + 1);
                     rtcp.setReuseAddress(true);
 
-                    handshakeReceptionSocket = new HandshakeReceiver(prefs);
-                    handshakeReceptionSocket.run();
+                    if (openHandshakePort) {
+                        handshakeReceptionSocket = new HandshakeReceiver(prefs);
+                        handshakeReceptionSocket.run();
+                    }
                 } catch (SocketException e) {
                     Log.d("", e.toString());
                 }
@@ -365,9 +383,17 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void closePorts() {
-        handshakeReceptionSocket.close();
-        rtp.close();
-        rtcp.close();
+        if(handshakeReceptionSocket != null) {
+            handshakeReceptionSocket.close();
+        }
+
+        if(rtp != null) {
+            rtp.close();
+        }
+
+        if(rtcp != null) {
+            rtcp.close();
+        }
     }
 
     public void styleMainActivity() {
@@ -378,6 +404,10 @@ public class MainActivity extends AppCompatActivity {
 
                     case OFFLINE:
                         styleOffline();
+                        break;
+
+                    case LOOPBACK:
+                        styleLoopbackMode();
                         break;
 
                     case AWAITING_CONNECTION:
@@ -402,28 +432,26 @@ public class MainActivity extends AppCompatActivity {
     private void styleDeviceInfo() {
         styleIpLabel();
 
-        TextView otherIp = findViewById(R.id.otherIpAddress);
-        String ip = prefs.getString("OTHER_IP_ADDRESS", "null");
-        otherIp.setText(getString(R.string.other_device_ip_label, ip));
+        remoteIpLabel = findViewById(R.id.remoteIpLabel);
+        remoteIpLabel.setText(getString(R.string.other_device_port_label,
+            prefs.getString("OTHER_IP_ADDRESS", "null")));
 
-        TextView otherPort = findViewById(R.id.otherHandshakePort);
-        String portNum = String.valueOf(getOtherDevicePort());
-        otherPort.setText(getString(R.string.other_device_port_label, portNum));
+        remoteHandshakePortLabel = findViewById(R.id.remoteHandshakePortLabel);
+        remoteHandshakePortLabel.setText(getString(R.string.other_device_port_label,
+            String.valueOf(getOtherDevicePort())));
 
     }
 
     private void styleIpLabel() {
-        TextView ipText = findViewById(R.id.ipAddress);
-
-        String ip = getLocalIpAddress();
-        ipText.setText(getString(R.string.local_ip_label, ip));
+        localIpLabel = findViewById(R.id.localIpLabel);
+        localIpLabel.setText(getString(R.string.local_ip_label, getLocalIpAddress()));
     }
 
     public void styleOffline() {
-        Button allowCallsButton, connectButton, openSessionButton, closeSessionButton;
-
-        allowCallsButton = findViewById(R.id.clientButton);
+        allowCallsButton = findViewById(R.id.allowCallsButton);
         allowCallsButton.setText(R.string.allow_calls_button_text);
+        allowCallsButton.setEnabled(true);
+        allowCallsButton.setAlpha(1.0f);
         allowCallsButton.setBackgroundColor(getResources().getColor(R.color.mint_green));
 
         connectButton = findViewById(R.id.connectButton);
@@ -438,24 +466,30 @@ public class MainActivity extends AppCompatActivity {
         closeSessionButton.setEnabled(false);
         closeSessionButton.setAlpha(0.5f);
 
-        TextView portText, rtpPortText, rtcpPortText;
+        localHandshakePortLabel = findViewById(R.id.localHandshakePortLabel);
+        localHandshakePortLabel.setText(getString(R.string.port_closed_label));
 
-        portText = findViewById(R.id.receptionPort);
-        portText.setText(getString(R.string.port_closed_label));
+        localRtpPortLabel = findViewById(R.id.localRtpPortLabel);
+        localRtpPortLabel.setText(getString(R.string.port_closed_label));
 
-        rtpPortText = findViewById(R.id.rtpReceptionPort);
-        rtpPortText.setText(getString(R.string.port_closed_label));
+        localRtcpPortLabel = findViewById(R.id.localRtcpPortLabel);
+        localRtcpPortLabel.setText(getString(R.string.port_closed_label));
 
-        rtcpPortText = findViewById(R.id.rtcpReceptionPort);
-        rtcpPortText.setText(getString(R.string.port_closed_label));
+        remoteHandshakePortLabel = findViewById(R.id.remoteHandshakePortLabel);
+        remoteHandshakePortLabel.setText(getString(R.string.port_closed_label));
+
+        remoteRtpPortLabel = findViewById(R.id.remoteRtpPortLabel);
+        remoteRtpPortLabel.setText(getString(R.string.port_closed_label));
+
+        remoteRtcpPortLabel = findViewById(R.id.remoteRtcpPortLabel);
+        remoteRtcpPortLabel.setText(getString(R.string.port_closed_label));
+
         styleDeviceInfo();
 
     }
 
     public void styleAwaitingConnection() {
-        Button allowCallsButton, connectButton, openSessionButton, closeSessionButton;
-
-        allowCallsButton = findViewById(R.id.clientButton);
+        allowCallsButton = findViewById(R.id.allowCallsButton);
         allowCallsButton.setText(R.string.disable_calls_button_text);
         allowCallsButton.setBackgroundColor(getResources().getColor(R.color.coral_red));
 
@@ -471,36 +505,32 @@ public class MainActivity extends AppCompatActivity {
         closeSessionButton.setEnabled(false);
         closeSessionButton.setAlpha(0.5f);
 
-        TextView handshakePort, localRtp, localRtcpPort, remoteHandshake, remoteRtp, remoteRtcp;
-
-        handshakePort = findViewById(R.id.receptionPort);
-        handshakePort.setText(getString(R.string.reception_port_label,
+        localHandshakePortLabel = findViewById(R.id.localHandshakePortLabel);
+        localHandshakePortLabel.setText(getString(R.string.reception_port_label,
             String.valueOf(handshakeReceptionSocket.getBoundSocket())));
 
-        localRtp = findViewById(R.id.rtpReceptionPort);
-        localRtp.setText(getString(R.string.rtp_reception_port_label,
+        localRtpPortLabel = findViewById(R.id.localRtpPortLabel);
+        localRtpPortLabel.setText(getString(R.string.rtp_reception_port_label,
             String.valueOf(rtp.getLocalPort())));
 
-        localRtcpPort = findViewById(R.id.rtcpReceptionPort);
-        localRtcpPort.setText(getString(R.string.rtcp_reception_port_label,
+        localRtcpPortLabel = findViewById(R.id.localRtcpPortLabel);
+        localRtcpPortLabel.setText(getString(R.string.rtcp_reception_port_label,
             String.valueOf(rtcp.getLocalPort())));
 
-        remoteHandshake = findViewById(R.id.otherHandshakePort);
-        remoteHandshake.setText(getString(R.string.reception_port_label,
+        remoteHandshakePortLabel = findViewById(R.id.remoteHandshakePortLabel);
+        remoteHandshakePortLabel.setText(getString(R.string.reception_port_label,
             String.valueOf(getOtherDevicePort())));
 
-        remoteRtp = findViewById(R.id.remoteRtpPort);
-        remoteRtp.setText(getString(R.string.port_closed_label));
+        remoteRtpPortLabel = findViewById(R.id.remoteRtpPortLabel);
+        remoteRtpPortLabel.setText(getString(R.string.port_closed_label));
 
-        remoteRtcp = findViewById(R.id.remoteRtcpPort);
-        remoteRtcp.setText(getString(R.string.port_closed_label));
+        remoteRtcpPortLabel = findViewById(R.id.remoteRtcpPortLabel);
+        remoteRtcpPortLabel.setText(getString(R.string.port_closed_label));
         styleDeviceInfo();
     }
 
     public void styleConnected() {
-        Button allowCallsButton, connectButton, openSessionButton, closeSessionButton;
-
-        allowCallsButton = findViewById(R.id.clientButton);
+        allowCallsButton = findViewById(R.id.allowCallsButton);
         allowCallsButton.setText(R.string.disable_calls_button_text);
         allowCallsButton.setBackgroundColor(getColor(R.color.coral_red));
 
@@ -518,39 +548,35 @@ public class MainActivity extends AppCompatActivity {
         closeSessionButton.setEnabled(false);
         closeSessionButton.setAlpha(0.5f);
 
-        TextView handshakePort, localRtp, localRtcpPort, remoteHandshake, remoteRtp, remoteRtcp;
-
-        handshakePort = findViewById(R.id.receptionPort);
-        handshakePort.setText(getString(R.string.reception_port_label,
+        localHandshakePortLabel = findViewById(R.id.localHandshakePortLabel);
+        localHandshakePortLabel.setText(getString(R.string.reception_port_label,
             getString(R.string.connected)));
 
-        localRtp = findViewById(R.id.rtpReceptionPort);
-        localRtp.setText(getString(R.string.rtp_reception_port_label,
+        localRtpPortLabel = findViewById(R.id.localRtpPortLabel);
+        localRtpPortLabel.setText(getString(R.string.rtp_reception_port_label,
             String.valueOf(rtp.getLocalPort())));
 
-        localRtcpPort = findViewById(R.id.rtcpReceptionPort);
-        localRtcpPort.setText(getString(R.string.rtcp_reception_port_label,
+        localRtcpPortLabel = findViewById(R.id.localRtcpPortLabel);
+        localRtcpPortLabel.setText(getString(R.string.rtcp_reception_port_label,
             String.valueOf(rtcp.getLocalPort())));
 
-        remoteHandshake = findViewById(R.id.otherHandshakePort);
-        remoteHandshake.setText(getString(R.string.reception_port_label,
+        remoteHandshakePortLabel = findViewById(R.id.remoteHandshakePortLabel);
+        remoteHandshakePortLabel.setText(getString(R.string.reception_port_label,
             getString(R.string.connected)));
 
-        remoteRtp = findViewById(R.id.remoteRtpPort);
-        remoteRtp.setText(getString(R.string.rtp_reception_port_label,
+        remoteRtpPortLabel = findViewById(R.id.remoteRtpPortLabel);
+        remoteRtpPortLabel.setText(getString(R.string.rtp_reception_port_label,
             String.valueOf(remoteDeviceInfo.getRtpPort())));
 
-        remoteRtcp = findViewById(R.id.remoteRtcpPort);
-        remoteRtcp.setText(getString(R.string.rtcp_reception_port_label,
+        remoteRtcpPortLabel = findViewById(R.id.remoteRtcpPortLabel);
+        remoteRtcpPortLabel.setText(getString(R.string.rtcp_reception_port_label,
             String.valueOf(remoteDeviceInfo.getRtcpPort())));
 
         styleDeviceInfo();
     }
 
     public void styleActiveCall() {
-        Button allowCallsButton, connectButton, openSessionButton, closeSessionButton;
-
-        allowCallsButton = findViewById(R.id.clientButton);
+        allowCallsButton = findViewById(R.id.allowCallsButton);
         allowCallsButton.setText(R.string.disable_calls_button_text);
         allowCallsButton.setBackgroundColor(getResources().getColor(R.color.coral_red));
 
@@ -566,31 +592,86 @@ public class MainActivity extends AppCompatActivity {
         closeSessionButton.setEnabled(true);
         closeSessionButton.setAlpha(1.0f);
 
-        TextView handshakePort, localRtp, localRtcpPort, remoteHandshake, remoteRtp, remoteRtcp;
-
-        handshakePort = findViewById(R.id.receptionPort);
-        handshakePort
+        localHandshakePortLabel = findViewById(R.id.localHandshakePortLabel);
+        localHandshakePortLabel
             .setText(getString(R.string.reception_port_label, getString(R.string.connected)));
 
-        localRtp = findViewById(R.id.rtpReceptionPort);
-        localRtp.setText(getString(R.string.rtp_reception_port_label,
+        localRtpPortLabel = findViewById(R.id.localRtpPortLabel);
+        localRtpPortLabel.setText(getString(R.string.rtp_reception_port_label,
             String.valueOf(rtp.getLocalPort())));
 
-        localRtcpPort = findViewById(R.id.rtcpReceptionPort);
-        localRtcpPort.setText(getString(R.string.rtcp_reception_port_label,
+        localRtcpPortLabel = findViewById(R.id.localRtcpPortLabel);
+        localRtcpPortLabel.setText(getString(R.string.rtcp_reception_port_label,
             String.valueOf(rtcp.getLocalPort())));
 
-        remoteHandshake = findViewById(R.id.otherHandshakePort);
-        remoteHandshake.setText(getString(R.string.reception_port_label,
+        remoteHandshakePortLabel = findViewById(R.id.remoteHandshakePortLabel);
+        remoteHandshakePortLabel.setText(getString(R.string.reception_port_label,
             getString(R.string.connected)));
 
-        remoteRtp = findViewById(R.id.remoteRtpPort);
-        remoteRtp.setText(getString(R.string.rtp_reception_port_label,
+        remoteRtpPortLabel = findViewById(R.id.remoteRtpPortLabel);
+        remoteRtpPortLabel.setText(getString(R.string.rtp_reception_port_label,
             String.valueOf(remoteDeviceInfo.getRtpPort())));
 
-        remoteRtcp = findViewById(R.id.remoteRtcpPort);
-        remoteRtcp.setText(getString(R.string.rtcp_reception_port_label,
+        remoteRtcpPortLabel = findViewById(R.id.remoteRtcpPortLabel);
+        remoteRtcpPortLabel.setText(getString(R.string.rtcp_reception_port_label,
             String.valueOf(remoteDeviceInfo.getRtcpPort())));
+
+        loopbackSwitch = findViewById(R.id.loopbackModeSwitch);
+        if(loopbackSwitch.isChecked()) {
+            loopbackSwitch.setChecked(true);
+            loopbackSwitch.setEnabled(true);
+            loopbackSwitch.setAlpha(1.0f);
+        }
+    }
+
+    public void styleLoopbackMode() {
+        allowCallsButton = findViewById(R.id.allowCallsButton);
+        allowCallsButton.setEnabled(false);
+        allowCallsButton.setAlpha(0.5f);
+
+        connectButton = findViewById(R.id.connectButton);
+        connectButton.setEnabled(false);
+        connectButton.setAlpha(0.5f);
+
+        openSessionButton = findViewById(R.id.openSessionButton);
+        openSessionButton.setEnabled(true);
+        openSessionButton.setAlpha(1.0f);
+
+        closeSessionButton = findViewById(R.id.closeSessionButton);
+        closeSessionButton.setEnabled(false);
+        closeSessionButton.setAlpha(0.5f);
+
+        remoteIpLabel = findViewById(R.id.remoteIpLabel);
+        remoteIpLabel.setText(getString(R.string.other_device_ip_label,
+            prefs.getString("OTHER_IP_ADDRESS", "null")));
+
+        localHandshakePortLabel = findViewById(R.id.localHandshakePortLabel);
+        localHandshakePortLabel
+            .setText(getString(R.string.reception_port_label, getString(R.string.connected)));
+
+        localRtpPortLabel = findViewById(R.id.localRtpPortLabel);
+        localRtpPortLabel.setText(getString(R.string.rtp_reception_port_label,
+            String.valueOf(rtp.getLocalPort())));
+
+        localRtcpPortLabel = findViewById(R.id.localRtcpPortLabel);
+        localRtcpPortLabel.setText(getString(R.string.rtcp_reception_port_label,
+            String.valueOf(rtcp.getLocalPort())));
+
+        remoteHandshakePortLabel = findViewById(R.id.remoteHandshakePortLabel);
+        remoteHandshakePortLabel.setText(getString(R.string.reception_port_label,
+            getString(R.string.connected)));
+
+        remoteRtpPortLabel = findViewById(R.id.remoteRtpPortLabel);
+        remoteRtpPortLabel.setText(getString(R.string.rtp_reception_port_label,
+            String.valueOf(rtp.getLocalPort())));
+
+        remoteRtcpPortLabel = findViewById(R.id.remoteRtcpPortLabel);
+        remoteRtcpPortLabel.setText(getString(R.string.rtcp_reception_port_label,
+            String.valueOf(rtcp.getLocalPort())));
+
+        loopbackSwitch = findViewById(R.id.loopbackModeSwitch);
+        loopbackSwitch.setChecked(true);
+
     }
 
     Runnable handleIncomingHandshake = new Runnable() {
@@ -667,9 +748,14 @@ public class MainActivity extends AppCompatActivity {
         try {
             DeviceInfo deviceInfo = new DeviceInfo();
             deviceInfo.setIpAddress(InetAddress.getByName(getLocalIpAddress()));
-            deviceInfo.setHandshakePort(handshakeReceptionSocket.getBoundSocket());
-            deviceInfo.setRtpPort(rtp.getLocalPort());
-            deviceInfo.setRtcpPort(rtcp.getLocalPort());
+            if(handshakeReceptionSocket != null) {
+                deviceInfo.setHandshakePort(handshakeReceptionSocket.getBoundSocket());
+            }
+
+            if(rtp != null) { deviceInfo.setRtpPort(rtp.getLocalPort()); }
+
+            if(rtcp != null) { deviceInfo.setRtcpPort(rtcp.getLocalPort()); }
+
             return deviceInfo;
         } catch (UnknownHostException e) {
             e.printStackTrace();
@@ -677,8 +763,21 @@ public class MainActivity extends AppCompatActivity {
         return null;
     }
 
+    public void loopbackOnClick(View v) {
+        SwitchCompat loopbackSwitch = findViewById(R.id.loopbackModeSwitch);
+        if(loopbackSwitch.isChecked()) {
+            // enable loop back mode
+            openRtpPorts(false);
+            editor.putString("OTHER_IP_ADDRESS", getLocalIpAddress()).apply();
+            remoteDeviceInfo = createMyDeviceInfo();
+            updateUI(ConnectionStatus.LOOPBACK);
+        } else {
+            closePorts();
+            updateUI(ConnectionStatus.OFFLINE);
+        }
+    }
+
     public void allowCallsOnClick(View v) {
-        Button connectButton = findViewById(R.id.connectButton);
         if (prefs.getBoolean(HANDSHAKE_PORT_PREF, false)) {
             closePorts();
             Log.d("", "Closed handshake, rtp, and rtcp ports.");
@@ -688,7 +787,7 @@ public class MainActivity extends AppCompatActivity {
                 Toast.LENGTH_SHORT).show();
             updateUI(ConnectionStatus.OFFLINE);
         } else {
-            openRtpPorts();
+            openRtpPorts(true);
             while (!prefs.getBoolean(HANDSHAKE_PORT_PREF, false)) {
             }
             Log.d("", "Handshake, rtp, and rtcp ports have been bound.");
@@ -721,17 +820,9 @@ public class MainActivity extends AppCompatActivity {
                 getString(R.string.connecting_call_toast_text),
                 Toast.LENGTH_SHORT).show();
 
-            String remoteIp = prefs.getString("OTHER_IP_ADDRESS", "localhost");
-            int remotePort = prefs.getInt("OTHER_HANDSHAKE_PORT", -1);
-            InetAddress addr;
-            try {
-                addr = InetAddress.getByName(remoteIp);
-            } catch (UnknownHostException e) {
-                e.printStackTrace();
-                return;
-            }
+            int remotePort = remoteDeviceInfo.getRtpPort();
+            InetAddress addr = remoteDeviceInfo.getIpAddress();
             InetSocketAddress rtpAddr = new InetSocketAddress(addr, remotePort);
-            Log.d("", "IP: " + remoteIp + "\tPORT: " + remotePort);
 
             RtcpConfig rtcpConfig = new RtcpConfig.Builder()
                 .setCanonicalName("steve")
@@ -749,10 +840,11 @@ public class MainActivity extends AppCompatActivity {
                 .setJitterThresholdMillis(5000)
                 .build();
 
-            EvsParams mEvs = new EvsParams(EvsParams.EVS_MODE_7,
+            EvsParams mEvs = new EvsParams(EvsParams.EVS_BAND_NONE,
+                EvsParams.EVS_MODE_0,
                 (byte) 3,
-                false,
-                false);
+                true,
+                true);
             AmrParams mAmr = new AmrParams(AmrParams.AMR_MODE_8,
                 true,
                 0);
@@ -772,7 +864,6 @@ public class MainActivity extends AppCompatActivity {
                 .setTxCodecModeRequest((byte) 15)
                 .setDtxEnabled(true)
                 .setCodecType(AudioConfig.CODEC_AMR_WB)
-                .setEvsBandwidth(AudioConfig.EVS_BAND_NONE)
                 .setDtmfPayloadTypeNumber(100)
                 .setDtmfsamplingRateKHz(16)
                 .setAmrParams(mAmr)
@@ -803,12 +894,19 @@ public class MainActivity extends AppCompatActivity {
             Toast.LENGTH_SHORT).show();
     }
 
+
     private class MediaManagerCallback implements ImsMediaManager.OnConnectedCallback {
 
         @Override
         public void onConnected() {
             Log.d("", "ImsMediaManager - connected");
             isMediaManagerReady = true;
+            isOpenSessionSent = false;
+        }
+
+        @Override
+        public void onDisconnected() {
+            Log.d("", "ImsMediaManager - disconnected");
         }
     }
 
@@ -830,6 +928,9 @@ public class MainActivity extends AppCompatActivity {
             Log.d("", "onOpenSessionSuccess: id=" + audioSession.getSessionId());
             isOpenSessionSent = true;
             updateUI(ConnectionStatus.ACTIVE_CALL);
+            AudioManager audioManager = getSystemService(AudioManager.class);
+            audioManager.setMode(AudioManager.MODE_NORMAL);
+            audioManager.setSpeakerphoneOn(true);
         }
 
         @Override

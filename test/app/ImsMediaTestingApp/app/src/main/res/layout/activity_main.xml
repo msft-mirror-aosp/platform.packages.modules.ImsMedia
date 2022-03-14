@@ -7,7 +7,7 @@
     tools:context=".MainActivity">
 
   <TextView
-      android:id="@+id/my_device_label"
+      android:id="@+id/myDeviceLabel"
       android:textStyle="bold"
       android:layout_width="150dp"
       android:layout_height="wrap_content"
@@ -18,7 +18,7 @@
       android:textAlignment="center" />
 
   <TextView
-      android:id="@+id/connectionDetailsLabel"
+      android:id="@+id/remoteDeviceLabel"
       android:textStyle="bold"
       android:layout_width="150dp"
       android:layout_height="wrap_content"
@@ -29,108 +29,108 @@
       android:textAlignment="center" />
 
   <TextView
-      android:id="@+id/ipAddress"
+      android:id="@+id/localIpLabel"
       android:layout_width="150dp"
       android:layout_height="wrap_content"
       android:layout_marginTop="15dp"
       android:layout_marginStart="15dp"
       android:layout_alignParentStart="true"
-      android:layout_below="@+id/my_device_label"
+      android:layout_below="@+id/myDeviceLabel"
       android:layout_centerInParent="true"
       android:text="@string/other_device_ip_label"
       android:textAlignment="center" />
 
   <TextView
-      android:id="@+id/otherIpAddress"
+      android:id="@+id/remoteIpLabel"
       android:layout_width="150dp"
       android:layout_height="wrap_content"
       android:layout_marginTop="15dp"
       android:layout_marginEnd="15dp"
       android:layout_alignParentEnd="true"
-      android:layout_below="@+id/connectionDetailsLabel"
+      android:layout_below="@+id/remoteDeviceLabel"
       android:layout_centerInParent="true"
       android:text="@string/other_device_ip_label"
       android:textAlignment="center" />
 
   <TextView
-      android:id="@+id/receptionPort"
+      android:id="@+id/localHandshakePortLabel"
       android:layout_width="150dp"
       android:layout_height="wrap_content"
       android:layout_marginTop="15dp"
       android:layout_marginStart="15dp"
       android:layout_alignParentStart="true"
-      android:layout_below="@+id/ipAddress"
+      android:layout_below="@+id/localIpLabel"
       android:layout_centerInParent="true"
       android:text="@string/port_closed_label"
       android:textAlignment="center" />
 
   <TextView
-      android:id="@+id/otherHandshakePort"
+      android:id="@+id/remoteHandshakePortLabel"
       android:layout_width="150dp"
       android:layout_height="wrap_content"
       android:layout_marginTop="15dp"
       android:layout_marginEnd="15dp"
       android:layout_alignParentEnd="true"
-      android:layout_below="@+id/otherIpAddress"
+      android:layout_below="@+id/remoteIpLabel"
       android:layout_centerInParent="true"
       android:text="@string/port_closed_label"
       android:textAlignment="center" />
 
   <TextView
-      android:id="@+id/rtpReceptionPort"
+      android:id="@+id/localRtpPortLabel"
       android:layout_width="150dp"
       android:layout_height="wrap_content"
       android:layout_marginTop="15dp"
       android:layout_marginStart="15dp"
       android:layout_alignParentStart="true"
-      android:layout_below="@+id/receptionPort"
+      android:layout_below="@+id/localHandshakePortLabel"
       android:layout_centerInParent="true"
       android:text="@string/port_closed_label"
       android:textAlignment="center" />
 
   <TextView
-      android:id="@+id/remoteRtpPort"
+      android:id="@+id/remoteRtpPortLabel"
       android:layout_width="150dp"
       android:layout_height="wrap_content"
       android:layout_marginTop="15dp"
       android:layout_marginEnd="15dp"
       android:layout_alignParentEnd="true"
-      android:layout_below="@+id/receptionPort"
+      android:layout_below="@+id/localHandshakePortLabel"
       android:layout_centerInParent="true"
       android:text="@string/port_closed_label"
       android:textAlignment="center" />
 
   <TextView
-      android:id="@+id/rtcpReceptionPort"
+      android:id="@+id/localRtcpPortLabel"
       android:layout_width="150dp"
       android:layout_height="wrap_content"
       android:layout_marginTop="15dp"
       android:layout_marginStart="15dp"
       android:layout_alignParentStart="true"
-      android:layout_below="@+id/rtpReceptionPort"
+      android:layout_below="@+id/localRtpPortLabel"
       android:layout_centerInParent="true"
       android:text="@string/port_closed_label"
       android:textAlignment="center" />
 
   <TextView
-      android:id="@+id/remoteRtcpPort"
+      android:id="@+id/remoteRtcpPortLabel"
       android:layout_width="150dp"
       android:layout_height="wrap_content"
       android:layout_marginTop="15dp"
       android:layout_marginEnd="15dp"
       android:layout_alignParentEnd="true"
-      android:layout_below="@+id/remoteRtpPort"
+      android:layout_below="@+id/remoteRtpPortLabel"
       android:layout_centerInParent="true"
       android:text="@string/port_closed_label"
       android:textAlignment="center" />
 
   <Button
-      android:id="@+id/clientButton"
+      android:id="@+id/allowCallsButton"
       android:layout_width="wrap_content"
       android:layout_height="wrap_content"
       android:layout_marginTop="20dp"
       android:layout_marginStart="15dp"
-      android:layout_below="@+id/rtcpReceptionPort"
+      android:layout_below="@+id/localRtcpPortLabel"
       android:backgroundTint="@drawable/selected_green"
       android:onClick="allowCallsOnClick"
       android:text="@string/allow_calls_button_text"
@@ -142,7 +142,7 @@
       android:layout_height="wrap_content"
       android:layout_marginTop="20dp"
       android:layout_marginStart="15dp"
-      android:layout_below="@+id/clientButton"
+      android:layout_below="@+id/allowCallsButton"
       android:backgroundTint="@drawable/selected_green"
       android:text="@string/connect_button_text"
       android:textColor="@color/black"
@@ -157,7 +157,7 @@
       android:layout_marginTop="20dp"
       android:layout_marginEnd="15dp"
       android:layout_alignParentEnd="true"
-      android:layout_below="@+id/rtcpReceptionPort"
+      android:layout_below="@+id/localRtcpPortLabel"
       android:alpha="0.5"
       android:backgroundTint="@drawable/selected_green"
       android:enabled="false"
@@ -172,12 +172,23 @@
       android:layout_marginTop="20dp"
       android:layout_marginEnd="15dp"
       android:layout_alignParentEnd="true"
-      android:layout_below="@+id/clientButton"
+      android:layout_below="@+id/allowCallsButton"
       android:backgroundTint="@color/coral_red"
       android:text="@string/close_session_button_text"
       android:textColor="@color/black"
       android:alpha="0.5"
       android:enabled="false"
       android:onClick="closeSessionOnClick" />
+
+  <androidx.appcompat.widget.SwitchCompat
+      android:id="@+id/loopbackModeSwitch"
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content"
+      android:layout_below="@id/connectButton"
+      android:layout_marginStart="15dp"
+      android:layout_marginTop="50dp"
+      android:checked="false"
+      android:onClick="loopbackOnClick"
+      android:text="@string/loop_back_mode_switch_text" />
 
 </RelativeLayout>

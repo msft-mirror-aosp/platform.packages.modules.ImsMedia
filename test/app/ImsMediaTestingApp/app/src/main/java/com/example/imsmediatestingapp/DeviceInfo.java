@@ -26,9 +26,9 @@ public class DeviceInfo implements Serializable {
     private List<AudioCodec> audioCodecs = Arrays.asList(AudioCodec.values());
     private List<EvsBandwidth> evsBandwidths = Arrays.asList(EvsBandwidth.values());
     private List<VideoCodec> videoCodecs = Arrays.asList(VideoCodec.values());
-    private int handshakePort;
-    private int rtpPort;
-    private int rtcpPort;
+    private int handshakePort = -1;
+    private int rtpPort = -1;
+    private int rtcpPort = -1;
 
     public DeviceInfo(int handshakePort, InetAddress ipAddress, List<AudioCodec> audioCodecs,
         List<VideoCodec> videoCodecs) {

@@ -51,5 +51,6 @@
   <!-- Save button toast text -->
   <string name="save_button_action_toast">Settings saved</string>
   <string name="connected">CONNECTED</string>
+  <string name="loop_back_mode_switch_text">LOOP BACK</string>
 
 </resources>
