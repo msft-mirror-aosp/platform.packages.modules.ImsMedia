@@ -18,8 +18,6 @@
 #include <rtp_trace.h>
 #include <RtpError.h>
 
-#include <stdio.h>
-
 RtpHeader::RtpHeader():
             m_ucVersion(RTP_ZERO),
             m_ucPadding(RTP_ZERO),

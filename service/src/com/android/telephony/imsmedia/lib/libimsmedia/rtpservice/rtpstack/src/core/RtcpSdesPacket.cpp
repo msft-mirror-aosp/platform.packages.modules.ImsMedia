@@ -16,7 +16,6 @@
 
 #include <RtcpSdesPacket.h>
 #include <rtp_trace.h>
-#include <rtp_pf_memory.h>
 
 RtcpSdesPacket::RtcpSdesPacket():
     m_objSdesChunkList(std::list<RtcpChunk *>())
@@ -146,7 +145,7 @@ eRTP_STATUS_CODE RtcpSdesPacket::formSdesPacket(OUT RtpBuffer* pobjRtcpPktBuf)
             uiPadLen = RTP_WORD_SIZE - uiPadLen;
             uiSdesPktLen = uiSdesPktLen + uiPadLen;
             uiCurPos = uiCurPos + uiPadLen;
-            RtpPf_Memset(pucBuffer, RTP_ZERO, uiPadLen);
+            memset(pucBuffer, RTP_ZERO, uiPadLen);
         }
 #endif
         m_objRtcpHdr.setLength(uiSdesPktLen);

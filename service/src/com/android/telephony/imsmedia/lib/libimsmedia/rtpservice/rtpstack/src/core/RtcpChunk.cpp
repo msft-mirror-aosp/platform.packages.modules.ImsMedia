@@ -16,9 +16,6 @@
 
 #include <RtcpChunk.h>
 #include <rtp_trace.h>
-#include <rtp_pf_memory.h>
-
-#include <stdio.h>
 
 RtcpChunk::RtcpChunk():
     m_uiSsrc(RTP_ZERO),
@@ -80,7 +77,7 @@ eRTP_STATUS_CODE RtcpChunk::decodeRtcpChunk(IN RtpDt_UChar* pucChunkBuf,
                 RTP_ZERO,RTP_ZERO);
             return RTP_MEMORY_FAIL;
         }
-        RtpPf_Memset(pstSdesItem, RTP_ZERO, sizeof(tRTCP_SDES_ITEM));
+        memset(pstSdesItem, RTP_ZERO, sizeof(tRTCP_SDES_ITEM));
 
         //type
         pstSdesItem->ucType = *(RtpDt_UChar*)pucChunkBuf;
@@ -108,7 +105,7 @@ eRTP_STATUS_CODE RtcpChunk::decodeRtcpChunk(IN RtpDt_UChar* pucChunkBuf,
             delete pstSdesItem;
             return RTP_MEMORY_FAIL;
         }
-        RtpPf_Memcpy(pcSdesBuf, pucChunkBuf, pstSdesItem->ucLength);
+        memcpy(pcSdesBuf, pucChunkBuf, pstSdesItem->ucLength);
 
         pucChunkBuf = pucChunkBuf + pstSdesItem->ucLength;
         usChunkLen = usChunkLen + pstSdesItem->ucLength;
@@ -163,7 +160,7 @@ eRTP_STATUS_CODE RtcpChunk::formRtcpChunk(OUT RtpBuffer* pobjRtcpPktBuf)
         uiCurPos = uiCurPos + RTP_ONE;
 
         //pValue
-        RtpPf_Memcpy(pucBuffer, pstSdesItem->pValue, pstSdesItem->ucLength);
+        memcpy(pucBuffer, pstSdesItem->pValue, pstSdesItem->ucLength);
         pucBuffer = pucBuffer + pstSdesItem->ucLength;
         uiCurPos = uiCurPos + pstSdesItem->ucLength;
 
@@ -178,7 +175,7 @@ eRTP_STATUS_CODE RtcpChunk::formRtcpChunk(OUT RtpBuffer* pobjRtcpPktBuf)
         {
             uiPadLen = RTP_WORD_SIZE - uiPadLen;
             uiCurPos = uiCurPos + uiPadLen;
-            RtpPf_Memset(pucBuffer, RTP_ZERO, uiPadLen);
+            memset(pucBuffer, RTP_ZERO, uiPadLen);
             pucBuffer = pucBuffer + uiPadLen;
         }
     }//for

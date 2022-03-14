@@ -15,7 +15,6 @@
  */
 
 #include <RtpSession.h>
-#include <rtp_pf_memory.h>
 #include <rtp_trace.h>
 #include <RtpError.h>
 #include <RtpStackUtil.h>
@@ -206,7 +205,7 @@ eRtp_Bool RtpSession::compareRtpSessions(IN RtpSession* pobjSession)
             //const RtpDt_Char *pcTranAddr1 = (const RtpDt_Char*)pucTBuf;
             RtpDt_UChar *pcTranAddr2 = objRtpBuff->getBuffer();
             //const RtpDt_Char* pcTranAddr2 = (RtpDt_Char*)pcDesAddr;
-            if(RtpPf_Memcmp(pcTranAddr1, pcTranAddr2, uiTBufLen) == RTP_ZERO)
+            if(memcmp(pcTranAddr1, pcTranAddr2, uiTBufLen) == RTP_ZERO)
             {
                 return eRTP_SUCCESS;
             }
@@ -1121,7 +1120,7 @@ eRTP_STATUS_CODE RtpSession::constructSdesPkt(IN_OUT RtcpPacket *pobjRtcpPkt)
 
             pstTmpSdesItem->ucType = pstSdesItem->ucType;
             pstTmpSdesItem->ucLength = pstSdesItem->ucLength;
-            RtpPf_Memcpy(pucSdesBuf, pstSdesItem->pValue, pstSdesItem->ucLength);
+            memcpy(pucSdesBuf, pstSdesItem->pValue, pstSdesItem->ucLength);
             pstTmpSdesItem->pValue = pucSdesBuf;
             pobjChunkList.push_back(pstTmpSdesItem);
         }
@@ -1428,7 +1427,7 @@ RtpReceiverInfo* RtpSession::checkSsrcCollisionOnRcv(IN RtpBuffer* pobjRtpAddr,
                 return RTP_NULL;
             }
 
-            if(RtpPf_Memcmp(pcDestAddr, pcRcvDestAddr,
+            if(memcmp(pcDestAddr, pcRcvDestAddr,
                                 uiRcvDestAddrLen) != RTP_ZERO)
             {
                 eResult = RTP_REMOTE_SSRC_COLLISION;
@@ -1825,7 +1824,7 @@ eRTP_STATUS_CODE RtpSession::createRtpPacket(IN RtpBuffer* pobjPayload,
         objRtpPacket.setRtpPayload(RTP_NULL);
         return RTP_MEMORY_FAIL;
     }
-    RtpPf_Memset(pucRtpBuffer, RTP_ZERO, uiRtpLength);
+    memset(pucRtpBuffer, RTP_ZERO, uiRtpLength);
 
     pRtpPkt->setBufferInfo(uiRtpLength, pucRtpBuffer);
 
@@ -2431,7 +2430,7 @@ eRTP_STATUS_CODE RtpSession::sendRtcpXrPacket(IN RtpDt_UChar* m_pBlockBuffer,
         RTP_ZERO,RTP_ZERO);
      return RTP_FAILURE;
     }
-   RtpPf_Memcpy(m_stRtcpXr.m_pBlockBuffer, m_pBlockBuffer,nblockLength);
+   memcpy(m_stRtcpXr.m_pBlockBuffer, m_pBlockBuffer,nblockLength);
 
    m_stRtcpXr.nlength = nblockLength;
     m_stRtcpXr.nRttdOffset = nRttdOffset;

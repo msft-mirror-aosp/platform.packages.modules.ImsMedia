@@ -15,7 +15,7 @@
  */
 
 #include <RtpBuffer.h>
-#include <rtp_pf_memory.h>
+#include <string.h>
 
 RtpBuffer::RtpBuffer():
     m_uiLength(RTP_ZERO),
@@ -36,11 +36,11 @@ RtpBuffer::RtpBuffer(IN RtpDt_UInt32 uiLength,
 
         if(pBuffer != RTP_NULL)
         {
-            RtpPf_Memcpy(m_pBuffer, pBuffer,m_uiLength);
+            memcpy(m_pBuffer, pBuffer,m_uiLength);
         }
         else
         {
-            RtpPf_Memset(m_pBuffer, RTP_ZERO, m_uiLength);
+            memset(m_pBuffer, RTP_ZERO, m_uiLength);
         }
     }
 

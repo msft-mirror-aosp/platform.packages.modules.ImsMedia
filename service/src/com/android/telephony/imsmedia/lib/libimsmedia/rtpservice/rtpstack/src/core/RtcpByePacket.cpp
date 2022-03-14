@@ -16,8 +16,6 @@
 
 #include <RtcpByePacket.h>
 #include <rtp_trace.h>
-#include <rtp_pf_memory.h>
-
 
 RtcpByePacket::RtcpByePacket():
     m_uiSsrcList(std::list<RtpDt_UInt32 *>()),
@@ -114,8 +112,8 @@ eRTP_STATUS_CODE RtcpByePacket::decodeByePacket(IN RtpDt_UChar* pucByeBuf,
             delete[] pucReason;
             return RTP_MEMORY_FAIL;
         }
-        RtpPf_Memset(pucReason, RTP_ZERO, uiByte4Data);
-        RtpPf_Memcpy(pucReason, pucByeBuf, uiByte4Data);
+        memset(pucReason, RTP_ZERO, uiByte4Data);
+        memcpy(pucReason, pucByeBuf, uiByte4Data);
         m_pReason->setBufferInfo(uiByte4Data, pucReason);
     }//if
 
@@ -147,7 +145,7 @@ eRTP_STATUS_CODE RtcpByePacket::formByePacket(OUT RtpBuffer* pobjRtcpPktBuf)
         pucBuffer = pucBuffer + RTP_ONE;
         uiCurPos = uiCurPos + RTP_ONE;
 
-        RtpPf_Memcpy(pucBuffer, m_pReason->getBuffer(), m_pReason->getLength());
+        memcpy(pucBuffer, m_pReason->getBuffer(), m_pReason->getLength());
         pucBuffer = pucBuffer + m_pReason->getLength();
         uiCurPos = uiCurPos + m_pReason->getLength();
     }
@@ -164,7 +162,7 @@ eRTP_STATUS_CODE RtcpByePacket::formByePacket(OUT RtpBuffer* pobjRtcpPktBuf)
             uiPadLen = RTP_WORD_SIZE - uiPadLen;
             uiByePktLen = uiByePktLen + uiPadLen;
             uiCurPos = uiCurPos + uiPadLen;
-            RtpPf_Memset(pucBuffer, RTP_ZERO, uiPadLen);
+            memset(pucBuffer, RTP_ZERO, uiPadLen);
 
             pucBuffer = pucBuffer + uiPadLen;
             pucBuffer = pucBuffer - RTP_ONE;

@@ -15,7 +15,6 @@
  */
 
 #include <RtcpSrPacket.h>
-#include <rtp_pf_memory.h>
 #include <rtp_trace.h>
 
 
@@ -32,7 +31,7 @@ RtcpSrPacket::RtcpSrPacket():
             m_uiSendPktCount(RTP_ZERO),
             m_uiSendOctCount(RTP_ZERO)
 {
-    RtpPf_Memset(&m_stNtpTimestamp, RTP_ZERO, sizeof(tRTP_NTP_TIME));
+    memset(&m_stNtpTimestamp, RTP_ZERO, sizeof(tRTP_NTP_TIME));
 }
 
 
@@ -358,7 +357,7 @@ block  +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
     {
         uiSrPktLen = uiSrPktLen + uiPadLen;
         uiPadLen = RTP_WORD_SIZE - uiPadLen;
-        RtpPf_Memset(pucBuffer, RTP_ZERO, uiPadLen);
+        memset(pucBuffer, RTP_ZERO, uiPadLen);
         pucBuffer = pucBuffer + uiPadLen;
         pucBuffer = pucBuffer - RTP_ONE;
         *(RtpDt_UChar*)pucBuffer = (RtpDt_UChar)uiPadLen;

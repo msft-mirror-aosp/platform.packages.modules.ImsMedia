@@ -18,11 +18,9 @@
 #include <RtpString.h>
 #include <RtpGlobal.h>
 #include <RtpImpl.h>
-#include <rtp_pf_memory.h>
 #include <RtpStack.h>
 #include <rtp_trace.h>
 #include <RtpError.h>
-#include <stdio.h>
 
 RtpStack *g_pobjRtpStack = RTP_NULL;
 
@@ -31,7 +29,7 @@ RtpDt_Void addSdesItem(OUT RtcpConfigInfo *pobjRtcpCfgInfo,
                         IN RtpDt_UInt32 uiLength)
 {
     tRTCP_SDES_ITEM stSdesItem;
-    RtpPf_Memset(&stSdesItem, RTP_ZERO, sizeof(tRTCP_SDES_ITEM));
+    memset(&stSdesItem, RTP_ZERO, sizeof(tRTCP_SDES_ITEM));
     RtpDt_UInt32 uiIndex = RTP_ZERO;
     stSdesItem.ucType = RTP_ONE; //RTCP_SDES_CNAME
     stSdesItem.ucLength = uiLength;
@@ -296,7 +294,7 @@ GLOBAL eRtp_Bool IMS_RtpSvc_CreateSession(IN RtpDt_Char* szLocalIP,
     RtpBuffer *pobjTransAddr = new RtpBuffer();
     RtpDt_UInt32 uiIpLen = Rtp_Strlen(szLocalIP) + 1;
     RtpDt_UChar *pcIpAddr  = new RtpDt_UChar[uiIpLen];
-    RtpPf_Memcpy(pcIpAddr, szLocalIP, uiIpLen);
+    memcpy(pcIpAddr, szLocalIP, uiIpLen);
     pobjTransAddr->setBufferInfo(uiIpLen, pcIpAddr);
 
     pobjRtpSession->setRtpTransAddr(pobjTransAddr);

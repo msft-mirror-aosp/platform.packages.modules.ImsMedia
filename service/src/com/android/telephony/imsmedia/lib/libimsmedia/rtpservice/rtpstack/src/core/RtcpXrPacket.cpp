@@ -16,7 +16,6 @@
 
 #include <RtcpXrPacket.h>
 #include <rtp_trace.h>
-#include <rtp_pf_memory.h>
 #include <RtpSession.h>
 
 #define NTP2MSEC  65.555555
@@ -104,7 +103,7 @@ eRTP_STATUS_CODE RtcpXrPacket::formRtcpXrPacket(OUT RtpBuffer* pobjRtcpPktBuf)
 
         // set the report block buffer
         RtpBuffer *pReportBlk = this->getReportBlk();
-        RtpPf_Memcpy(pucBuffer, pReportBlk->getBuffer(), pReportBlk->getLength());
+        memcpy(pucBuffer, pReportBlk->getBuffer(), pReportBlk->getLength());
         SET16BIT_ENDIAN(pucBuffer,&uiRttdOffset,msecRTTD);
 
         pucBuffer = pucBuffer + pReportBlk->getLength();
@@ -120,7 +119,7 @@ eRTP_STATUS_CODE RtcpXrPacket::formRtcpXrPacket(OUT RtpBuffer* pobjRtcpPktBuf)
             uiPadLen = RTP_WORD_SIZE - uiPadLen;
             uiXrPktLen = uiXrPktLen + uiPadLen;
             uiCurPos = uiCurPos + uiPadLen;
-            RtpPf_Memset(pucBuffer, RTP_ZERO, uiPadLen);
+            memset(pucBuffer, RTP_ZERO, uiPadLen);
 
             pucBuffer = pucBuffer + uiPadLen;
             pucBuffer = pucBuffer - RTP_ONE;

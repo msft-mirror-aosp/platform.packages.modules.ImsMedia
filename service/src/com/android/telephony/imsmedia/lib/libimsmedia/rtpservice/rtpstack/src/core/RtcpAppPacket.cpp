@@ -16,7 +16,6 @@
 
 #include <RtcpAppPacket.h>
 #include <rtp_trace.h>
-#include <rtp_pf_memory.h>
 
 RtcpAppPacket::RtcpAppPacket():
                 m_uiName(RTP_ZERO),
@@ -83,7 +82,7 @@ eRTP_STATUS_CODE RtcpAppPacket::decodeAppPacket(IN RtpDt_UChar* pucAppBuf,
         m_pAppData = new RtpBuffer();
         pucTmpBuf = new RtpDt_UChar[usTmpAppLen];
 
-        RtpPf_Memcpy(pucTmpBuf, pucAppBuf, usTmpAppLen);
+        memcpy(pucTmpBuf, pucAppBuf, usTmpAppLen);
         m_pAppData->setBufferInfo(usTmpAppLen, pucTmpBuf);
     }
 
@@ -109,7 +108,7 @@ eRTP_STATUS_CODE RtcpAppPacket::formAppPacket(OUT RtpBuffer* pobjRtcpPktBuf)
     //m_pAppData
     if(m_pAppData != RTP_NULL)
     {
-        RtpPf_Memcpy(pucBuffer, m_pAppData->getBuffer(), m_pAppData->getLength());
+        memcpy(pucBuffer, m_pAppData->getBuffer(), m_pAppData->getLength());
         pucBuffer = pucBuffer + m_pAppData->getLength();
         uiCurPos = uiCurPos + m_pAppData->getLength();
     }
@@ -124,7 +123,7 @@ eRTP_STATUS_CODE RtcpAppPacket::formAppPacket(OUT RtpBuffer* pobjRtcpPktBuf)
             uiPadLen = RTP_WORD_SIZE - uiPadLen;
             uiAppPktLen = uiAppPktLen + uiPadLen;
             uiCurPos = uiCurPos + uiPadLen;
-            RtpPf_Memset(pucBuffer, RTP_ZERO, uiPadLen);
+            memset(pucBuffer, RTP_ZERO, uiPadLen);
 
             pucBuffer = pucBuffer + uiPadLen;
             pucBuffer = pucBuffer - RTP_ONE;

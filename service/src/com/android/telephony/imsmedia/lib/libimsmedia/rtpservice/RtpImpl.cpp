@@ -17,7 +17,6 @@
 
 #include <RtpImpl.h>
 #include <RtpService.h>
-#include <rtp_pf_memory.h>
 #include <rtp_trace.h>
 #include <RtpTimer.h>
 
@@ -92,8 +91,8 @@ eRtp_Bool RtpImpl::rtcpAppPayloadReqInd(OUT RtpDt_UInt16& pusSubType,
     uiName = 1111;
     //allocated memory will be released by the RTP stack
     RtpDt_UChar *pcAppData = new RtpDt_UChar[25];
-    RtpPf_Memset(pcAppData, 0, 25);
-    RtpPf_Memcpy(pcAppData,"application specific data",25);
+    memset(pcAppData, 0, 25);
+    memcpy(pcAppData,"application specific data",25);
     pobjPayload->setBufferInfo(25, pcAppData);
 
     return eRTP_TRUE;
@@ -107,8 +106,8 @@ eRtp_Bool RtpImpl::getRtpHdrExtInfo(OUT RtpBuffer* pobjExtHdrInfo)
     }
     //allocated memory will be released by the RTP stack
     RtpDt_UChar *pcExtHdrInfo = new RtpDt_UChar[21];
-    RtpPf_Memset(pcExtHdrInfo, 0, 21);
-    RtpPf_Memcpy(pcExtHdrInfo,"extension header info",21);
+    memset(pcExtHdrInfo, 0, 21);
+    memcpy(pcExtHdrInfo,"extension header info",21);
     pobjExtHdrInfo->setBufferInfo(21, pcExtHdrInfo);
     return eRTP_TRUE;
 }

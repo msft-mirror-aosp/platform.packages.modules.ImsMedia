@@ -16,7 +16,6 @@
 
 #include <RtpPacket.h>
 #include <rtp_trace.h>
-#include <rtp_pf_memory.h>
 
 RtpPacket::RtpPacket():
                     m_pobjExt(RTP_NULL),
@@ -89,7 +88,7 @@ eRtp_Bool RtpPacket::formPacket(IN RtpBuffer* pobjRtpPktBuf)
     {
         pRtpUtlBuf = m_pobjExt->getBuffer();
         uiRtpUtlBufLen = m_pobjExt->getLength();
-        RtpPf_Memcpy(pcRtpBuf, pRtpUtlBuf, uiRtpUtlBufLen);
+        memcpy(pcRtpBuf, pRtpUtlBuf, uiRtpUtlBufLen);
         pcRtpBuf += uiRtpUtlBufLen;
         uiRtpBufPos += uiRtpUtlBufLen;
     }
@@ -99,7 +98,7 @@ eRtp_Bool RtpPacket::formPacket(IN RtpBuffer* pobjRtpPktBuf)
     {
         pRtpUtlBuf = m_pobjRtpPayload->getBuffer();
         uiRtpUtlBufLen = m_pobjRtpPayload->getLength();
-        RtpPf_Memcpy(pcRtpBuf, pRtpUtlBuf, uiRtpUtlBufLen);
+        memcpy(pcRtpBuf, pRtpUtlBuf, uiRtpUtlBufLen);
         pcRtpBuf += uiRtpUtlBufLen;
         uiRtpBufPos += uiRtpUtlBufLen;
 #ifdef ENABLE_PADDING
@@ -114,7 +113,7 @@ eRtp_Bool RtpPacket::formPacket(IN RtpBuffer* pobjRtpPktBuf)
         if(m_ucPadLen > RTP_ZERO)
         {
             RtpDt_UChar ucTmpPadLen = m_ucPadLen - RTP_ONE;
-            RtpPf_Memset(pcRtpBuf, RTP_ZERO, m_ucPadLen);
+            memset(pcRtpBuf, RTP_ZERO, m_ucPadLen);
             //pad length
             *((RtpDt_UChar*)(pcRtpBuf + ucTmpPadLen)) = m_ucPadLen;
             pcRtpBuf += m_ucPadLen;
@@ -180,7 +179,7 @@ eRtp_Bool RtpPacket::decodePacket(IN RtpBuffer* pobjRtpPktBuf)
         {
             return eRTP_FAILURE;
         }
-        RtpPf_Memcpy(pRtpExtData, pcRtpBuf, uXHdrLen);
+        memcpy(pRtpExtData, pcRtpBuf, uXHdrLen);
         m_pobjExt->setBufferInfo(uXHdrLen, pRtpExtData);
 
         pcRtpBuf  = pcRtpBuf + uXHdrLen;
@@ -224,7 +223,7 @@ eRtp_Bool RtpPacket::decodePacket(IN RtpBuffer* pobjRtpPktBuf)
     {
         return eRTP_FAILURE;
     }
-    RtpPf_Memcpy(pRtpUtlBuf, pcRtpBuf, uiRtpUtlBufLen);
+    memcpy(pRtpUtlBuf, pcRtpBuf, uiRtpUtlBufLen);
     m_pobjRtpPayload->setBufferInfo(uiRtpUtlBufLen, pRtpUtlBuf);
 
     return eRTP_SUCCESS;

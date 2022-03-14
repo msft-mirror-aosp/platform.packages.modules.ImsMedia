@@ -17,8 +17,6 @@
 #include <RtcpRrPacket.h>
 #include <RtcpReportBlock.h>
 #include <rtp_trace.h>
-#include <rtp_pf_memory.h>
-
 
 RtcpRrPacket::RtcpRrPacket():
     m_objReportBlkList(std::list<RtcpReportBlock *>()),
@@ -120,7 +118,7 @@ eRTP_STATUS_CODE RtcpRrPacket::decodeRrPacket(IN RtpDt_UChar* pucRrBuf,
             return RTP_MEMORY_FAIL;
         }
 
-        RtpPf_Memcpy(pcProfExtBuf, pucRrBuf, usProfExtLen);
+        memcpy(pcProfExtBuf, pucRrBuf, usProfExtLen);
         m_pobjExt->setBufferInfo(usProfExtLen, pcProfExtBuf);
     }
 
@@ -153,7 +151,7 @@ eRTP_STATUS_CODE RtcpRrPacket::formRrPacket(OUT RtpBuffer* pobjRtcpPktBuf,
     {
         RtpDt_UChar *pucExtHdr = m_pobjExt->getBuffer();
         RtpDt_UInt32 uiExtHdrLen = m_pobjExt->getLength();
-        RtpPf_Memcpy(pucBuffer+uiCurPos, pucExtHdr, uiExtHdrLen);
+        memcpy(pucBuffer+uiCurPos, pucExtHdr, uiExtHdrLen);
         uiCurPos = uiCurPos + uiExtHdrLen;
         pobjRtcpPktBuf->setLength(uiCurPos);
     } // extension header
@@ -170,7 +168,7 @@ eRTP_STATUS_CODE RtcpRrPacket::formRrPacket(OUT RtpBuffer* pobjRtcpPktBuf,
             uiPadLen = RTP_WORD_SIZE - uiPadLen;
             uiRrPktLen = uiRrPktLen + uiPadLen;
             uiCurPos = uiCurPos + uiPadLen;
-            RtpPf_Memset(pucBuffer, RTP_ZERO, uiPadLen);
+            memset(pucBuffer, RTP_ZERO, uiPadLen);
 
             pucBuffer = pucBuffer + uiPadLen;
             pucBuffer = pucBuffer - RTP_ONE;

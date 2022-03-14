@@ -15,7 +15,7 @@
  */
 
 #include <RtcpConfigInfo.h>
-#include <rtp_pf_memory.h>
+#include <string.h>
 
 RtcpConfigInfo::RtcpConfigInfo():
                     m_uiSdesItemCnt(RTP_ZERO),
@@ -103,7 +103,7 @@ eRtp_Bool RtcpConfigInfo::addRtcpSdesItem(IN tRTCP_SDES_ITEM *pstSdesItem,
         {
             return eRTP_FALSE;
         }
-        RtpPf_Memcpy(pcBuffer, pstSdesItem->pValue, pstSdesItem->ucLength);
+        memcpy(pcBuffer, pstSdesItem->pValue, pstSdesItem->ucLength);
         if(m_arrSdesInfo[uiIndex].pValue != RTP_NULL)
         {
             delete [] m_arrSdesInfo[uiIndex].pValue;

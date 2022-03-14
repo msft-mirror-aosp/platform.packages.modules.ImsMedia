@@ -15,11 +15,8 @@
  */
 
 #include <RtpReceiverInfo.h>
-#include <rtp_pf_memory.h>
 #include <RtpStackUtil.h>
 #include <rtp_trace.h>
-
-#include <stdio.h>
 
 RtpReceiverInfo::RtpReceiverInfo():
                     m_uiSsrc(RTP_ZERO),
@@ -39,7 +36,7 @@ RtpReceiverInfo::RtpReceiverInfo():
     m_stPrevNtpTimestamp.m_uiNtpHigh32Bits = RTP_ZERO;
     m_stPrevNtpTimestamp.m_uiNtpLow32Bits = RTP_ZERO;
     //m_stRtpSource
-    RtpPf_Memset(&m_stRtpSource, RTP_ZERO, sizeof(tRTP_SOURCE));
+    memset(&m_stRtpSource, RTP_ZERO, sizeof(tRTP_SOURCE));
     m_stRtpSource.uiProbation = RTP_MIN_SEQUENTIAL;
     m_stRtpSource.uiTransit = RTP_MIN_SEQUENTIAL;
 }

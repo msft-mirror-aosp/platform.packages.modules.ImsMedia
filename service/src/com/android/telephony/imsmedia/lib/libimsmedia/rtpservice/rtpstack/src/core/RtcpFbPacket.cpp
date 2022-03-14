@@ -17,7 +17,6 @@
 
 #include <RtcpFbPacket.h>
 #include <rtp_trace.h>
-#include <rtp_pf_memory.h>
 
 RtcpFbPacket::RtcpFbPacket() : m_pFCI(RTP_NULL)
 {
@@ -157,7 +156,7 @@ eRTP_STATUS_CODE RtcpFbPacket::formRtcpRtpFbPacket(OUT RtpBuffer* pobjRtcpPktBuf
     {
         RtpBuffer *pFCI = this->getFCI();
 
-        RtpPf_Memcpy(pucBuffer, pFCI->getBuffer(), pFCI->getLength());//copy buffer not Fci object
+        memcpy(pucBuffer, pFCI->getBuffer(), pFCI->getLength());//copy buffer not Fci object
         pucBuffer = pucBuffer + pFCI->getLength();
         uiCurPos = uiCurPos + pFCI->getLength();
     }
@@ -173,7 +172,7 @@ eRTP_STATUS_CODE RtcpFbPacket::formRtcpRtpFbPacket(OUT RtpBuffer* pobjRtcpPktBuf
             uiPadLen = RTP_WORD_SIZE - uiPadLen;
             uiFbPktLen = uiFbPktLen + uiPadLen;
             uiCurPos = uiCurPos + uiPadLen;
-            RtpPf_Memset(pucBuffer, RTP_ZERO, uiPadLen);
+            memset(pucBuffer, RTP_ZERO, uiPadLen);
 
             pucBuffer = pucBuffer + uiPadLen;
             pucBuffer = pucBuffer - RTP_ONE;
@@ -230,7 +229,7 @@ eRTP_STATUS_CODE RtcpFbPacket::formRtcpPayloadFbPacket(OUT RtpBuffer* pobjRtcpPk
     {
         RtpBuffer *pFCI = this->getFCI();
 
-        RtpPf_Memcpy(pucBuffer, pFCI, pFCI->getLength());
+        memcpy(pucBuffer, pFCI, pFCI->getLength());
         pucBuffer = pucBuffer + pFCI->getLength();
         uiCurPos = uiCurPos + pFCI->getLength();
     }
@@ -247,7 +246,7 @@ eRTP_STATUS_CODE RtcpFbPacket::formRtcpPayloadFbPacket(OUT RtpBuffer* pobjRtcpPk
             uiPadLen = RTP_WORD_SIZE - uiPadLen;
             uiFbPktLen = uiFbPktLen + uiPadLen;
             uiCurPos = uiCurPos + uiPadLen;
-            RtpPf_Memset(pucBuffer, RTP_ZERO, uiPadLen);
+            memset(pucBuffer, RTP_ZERO, uiPadLen);
 
             pucBuffer = pucBuffer + uiPadLen;
             pucBuffer = pucBuffer - RTP_ONE;
