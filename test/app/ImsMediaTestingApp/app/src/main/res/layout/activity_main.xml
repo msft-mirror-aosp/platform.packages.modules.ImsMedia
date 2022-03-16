@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout
+    android:id="@+id/rootLayout"
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
@@ -173,9 +174,9 @@
       android:id="@+id/loopbackModeSwitch"
       android:layout_width="wrap_content"
       android:layout_height="wrap_content"
-      android:layout_below="@id/connectButton"
-      android:layout_marginStart="15dp"
       android:layout_marginTop="50dp"
+      android:layout_marginStart="15dp"
+      android:layout_below="@id/connectButton"
       android:checked="false"
       android:onClick="loopbackOnClick"
       android:text="@string/loop_back_mode_switch_text" />
@@ -183,8 +184,9 @@
   <LinearLayout
       android:layout_width="match_parent"
       android:layout_height="wrap_content"
-      android:layout_alignParentBottom="true"
+      android:gravity="center_horizontal"
       android:orientation="horizontal"
+      android:layout_alignParentBottom="true"
       android:layout_margin="10dp">
 
     <ImageButton
@@ -193,22 +195,37 @@
         android:layout_height="wrap_content"
         android:contentDescription="@string/dialerButtonDescription"
         android:onClick="openDialer"
+        android:layout_gravity="center_vertical"
         android:src="@drawable/ic_baseline_dialpad_24" />
+
+    <View android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_weight="1" />
 
     <Button
         android:id="@+id/closeSessionButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="20dp"
-        android:layout_marginEnd="15dp"
         android:alpha="0.5"
         android:backgroundTint="@color/coral_red"
         android:enabled="false"
         android:onClick="closeSessionOnClick"
-        android:gravity="center_vertical"
+        android:layout_gravity="center_vertical"
         android:text="@string/close_session_button_text"
         android:textColor="@color/black" />
 
+    <View android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_weight="1" />
+
+    <ImageButton
+        android:id="@+id/mediaDirectionButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:contentDescription="@string/dialerButtonDescription"
+        android:onClick="mediaDirectionOnClick"
+        android:layout_gravity="center_vertical"
+        android:src="@drawable/ic_baseline_phone_paused_24" />
 
   </LinearLayout>
 

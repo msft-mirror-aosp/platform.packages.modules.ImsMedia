@@ -68,5 +68,10 @@
   <string name="dialer_button_star_text">*</string>
   <string name="dialerButtonDescription">open dialer</string>
   <string name="send_dtmf">SEND DTMF</string>
+  <string name="hold">HOLD</string>
+  <string name="media_direction_transmit_only">MEDIA_DIRECTION_TRANSMIT_ONLY</string>
+  <string name="media_direction_receive_only">MEDIA_DIRECTION_RECEIVE_ONLY</string>
+  <string name="media_direction_transmit_receive">MEDIA_DIRECTION_TRANSMIT_RECEIVE</string>
+  <string name="media_direction_no_flow">MEDIA_DIRECTION_NO_FLOW</string>
 
 </resources>

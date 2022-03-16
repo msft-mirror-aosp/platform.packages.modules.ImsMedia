@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+  <item
+      android:id="@+id/noFlowDirectionItem"
+      android:title="@string/media_direction_no_flow">
+  </item>
+
+  <item
+      android:id="@+id/transmitReceiveDirectionItem"
+      android:title="@string/media_direction_transmit_receive">
+  </item>
+
+  <item
+      android:id="@+id/receiveOnlyDirectionItem"
+      android:title="@string/media_direction_receive_only">
+  </item>
+
+  <item
+      android:id="@+id/transmitOnlyDirectionItem"
+      android:title="@string/media_direction_transmit_only">
+  </item>
+
+</menu>

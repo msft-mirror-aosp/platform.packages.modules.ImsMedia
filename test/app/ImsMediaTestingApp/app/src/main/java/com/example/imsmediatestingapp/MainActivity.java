@@ -29,6 +29,7 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
+import android.widget.PopupMenu;
 import android.widget.TextView;
 import android.widget.Toast;
 import androidx.annotation.NonNull;
@@ -836,6 +837,41 @@ public class MainActivity extends AppCompatActivity {
         portNumber.setText(portNum);
 
         setupAudioCodecDropDown();
+    }
+
+    public void mediaDirectionOnClick(View v) {
+        PopupMenu debugMenu = new PopupMenu(this, findViewById(R.id.mediaDirectionButton));
+        debugMenu.getMenuInflater().inflate(R.menu.media_direction_menu, debugMenu.getMenu());
+        debugMenu.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
+            @Override
+            public boolean onMenuItemClick(MenuItem item) {
+                switch (item.getItemId()) {
+
+                    case R.id.noFlowDirectionItem:
+                        audioConfig.setMediaDirection(AudioConfig.MEDIA_DIRECTION_NO_FLOW);
+                        break;
+
+                    case R.id.transmitReceiveDirectionItem:
+                        audioConfig.setMediaDirection(AudioConfig.MEDIA_DIRECTION_TRANSMIT_RECEIVE);
+                        break;
+
+                    case R.id.receiveOnlyDirectionItem:
+                        audioConfig.setMediaDirection(AudioConfig.MEDIA_DIRECTION_RECEIVE_ONLY);
+                        break;
+
+                    case R.id.transmitOnlyDirectionItem:
+                        audioConfig.setMediaDirection(AudioConfig.MEDIA_DIRECTION_TRANSMIT_ONLY);
+                        break;
+
+                    default:
+                        return false;
+                }
+
+                audioSession.modifySession(audioConfig);
+                return true;
+            }
+        });
+        debugMenu.show();
     }
 
     private void getAudioCodecSelections() {
