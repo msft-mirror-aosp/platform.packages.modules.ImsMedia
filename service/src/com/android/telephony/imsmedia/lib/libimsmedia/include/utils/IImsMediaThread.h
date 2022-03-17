@@ -42,7 +42,7 @@ protected:
 
 protected:
     void* mThread;
-    bool mbStopped;
+    bool mStopped;
 };
 
 #endif

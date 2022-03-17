@@ -27,18 +27,15 @@
 #include <arpa/inet.h>
 #include <sys/ioctl.h>
 #include <net/if.h>
-//#include <NetdClient.h>
 #include <ImsMediaSocket.h>
 #include <ImsMediaTrace.h>
 #include <ImsMediaNetworkUtil.h>
-
-using namespace std;
 
 //static valuable
 std::list<ImsMediaSocket*> ImsMediaSocket::slistRxSocket;
 std::list<ImsMediaSocket*> ImsMediaSocket::slistSocket;
 int32_t ImsMediaSocket::sRxSocketCount = 0;
-bool ImsMediaSocket::mbSocketListUpdated = false;
+bool ImsMediaSocket::mSocketListUpdated = false;
 bool ImsMediaSocket::mbTerminateMonitor = false;
 ImsMediaCondition ImsMediaSocket::mCondExit;
 std::mutex ImsMediaSocket::sMutexRxSocket;
@@ -83,7 +80,6 @@ ImsMediaSocket::ImsMediaSocket() {
     //mToS = pPortInfo->nTOS;
     mSocketFd = -1;
     memset(mPeerIPBin, 0, sizeof(mPeerIPBin));
-    //ConvertIPStrToBin(mPeerIP, mPeerIPBin, mPeerIPVersion);
     mbReceivingIPFiltering = true;
     IMLOGD0("[ImsMediaSocket] enter");
 }
@@ -102,6 +98,13 @@ void ImsMediaSocket::SetLocalEndpoint(const char* ipAddress, const uint32_t port
 void ImsMediaSocket::SetPeerEndpoint(const char* ipAddress, const uint32_t port) {
     std::strcpy(mPeerIP, ipAddress);
     mPeerPort = port;
+
+    if (strstr(mPeerIP, ":") == NULL) {
+        mPeerIPVersion = IPV4;
+    } else {
+        mPeerIPVersion = IPV6;
+    }
+
     ImsMediaNetworkUtil::ConvertIPStrToBin(mPeerIP, mPeerIPBin, mPeerIPVersion);
 }
 
@@ -137,36 +140,43 @@ bool ImsMediaSocket::Open(int socketFd) {
     return true;
 }
 
-bool ImsMediaSocket::Listen(ISocketListener* pListener) {
-    IMLOGD1("[Listen] enter, listener[%p]", pListener);
+bool ImsMediaSocket::Listen(ISocketListener* listener) {
+    IMLOGD0("[Listen]");
+    mListener = listener;
+    std::lock_guard<std::mutex> guard(sMutexSocketMonitorThread);
+    if (listener != NULL) {
+        // add socket list, run thread
+        sMutexRxSocket.lock();
+        slistRxSocket.push_back(this);
+        sMutexRxSocket.unlock();
 
-    mListener = pListener;
-    // add socket list, run thread
-    IMLOGD_PACKET0(IM_PACKET_LOG_SOCKET, "[Listen] add to list");
-    sMutexSocketMonitorThread.lock();
-    sMutexRxSocket.lock();
-    slistRxSocket.push_back(this);
-    sMutexRxSocket.unlock();
-
-    if (sRxSocketCount == 0) {
-        StartSocketMonitor();
+        if (sRxSocketCount == 0) {
+            StartSocketMonitor();
+        } else {
+            mSocketListUpdated = true;
+        }
+        sRxSocketCount++;
+        IMLOGD1("[Listen] add sRxSocketCount[%d]", sRxSocketCount);
     } else {
-        mbSocketListUpdated = true;
+        sMutexRxSocket.lock();
+        slistRxSocket.remove(this);
+        sMutexRxSocket.unlock();
+        sRxSocketCount--;
+
+        if (sRxSocketCount <= 0) {
+            StopSocketMonitor();
+            sRxSocketCount = 0;
+        } else {
+            mSocketListUpdated = true;
+        }
+        IMLOGD1("[Listen] remove RxSocketCount[%d]", sRxSocketCount);
     }
-    sRxSocketCount++;
-    sMutexSocketMonitorThread.unlock();
-
-    IMLOGD_PACKET1(IM_PACKET_LOG_SOCKET,
-        "[Listen] add sRxSocketCount[%d]", sRxSocketCount);
-
-    IMLOGD0("[Listen] exit");
-
     return true;
 }
 
 uint32_t ImsMediaSocket::SendTo(uint8_t* pData, uint32_t nDataSize) {
     uint32_t nLen;
-    IMLOGD_PACKET1(IM_PACKET_LOG_SOCKET, "[SendTo] [%d] bytes", nDataSize);
+    IMLOGD_PACKET2(IM_PACKET_LOG_SOCKET, "[SendTo] fd[%d],[%d] bytes", mSocketFd, nDataSize);
 
     if (nDataSize == 0) return 0;
 
@@ -210,51 +220,23 @@ uint32_t ImsMediaSocket::SendTo(uint8_t* pData, uint32_t nDataSize) {
             nLen, nDataSize, errno, strerror(errno));
     }
 
-    IMLOGD_PACKET1(IM_PACKET_LOG_SOCKET, "[SendTo] exit [%d] bytes",
-        nDataSize);
-
     return nLen;
 }
 
 uint32_t ImsMediaSocket::ReceiveFrom(uint8_t* pData, uint32_t nBufferSize) {
     uint32_t nLen;
-    static char pSourceIP[MAX_IP_LEN];
-    struct sockaddr_in stAddr4;
-    struct sockaddr_in6 stAddr6;
     struct sockaddr *pstSockAddr = NULL;
     socklen_t nSockAddrLen = 0;
-    memset(pSourceIP, 0, sizeof(pSourceIP));
-
-    if (strstr(mLocalIP, ":") == NULL) {
-        // IPv4
-        nSockAddrLen = sizeof(stAddr4);
-        memset(&stAddr4, 0, nSockAddrLen);
-        pstSockAddr = (struct sockaddr*)&stAddr4;
-    } else {
-        // IPv6
-        nSockAddrLen = sizeof(stAddr6);
-        memset(&stAddr6, 0, nSockAddrLen);
-        pstSockAddr = (struct sockaddr*)&stAddr6;
-    }
+    sockaddr_storage ss;
+    pstSockAddr = reinterpret_cast<sockaddr*>(&ss);
 
     nLen = recvfrom(mSocketFd, pData, nBufferSize, 0, pstSockAddr, &nSockAddrLen);
 
     if (nLen > 0) {
-        // uint32_t nSrcPort;
-        if (pstSockAddr->sa_family == AF_INET) {
-            memcpy(pSourceIP, (const char*)&(stAddr4.sin_addr.s_addr), sizeof(struct in_addr));
-        } else {
-            memcpy(pSourceIP, (const char*)&(stAddr6.sin6_addr.s6_addr), sizeof(struct in6_addr));
-        }
-
-        if (mbReceivingIPFiltering == true) {
-            if (strcmp(pSourceIP, mPeerIPBin) != 0) {
-                nLen = 0;
-            }
-        }
-
-        IMLOGD_PACKET1(IM_PACKET_LOG_SOCKET,
-            "[ReceiveFrom] str_len[%d]", nLen);
+        static char pSourceIP[MAX_IP_LEN];
+        memset(pSourceIP, 0, sizeof(pSourceIP));
+        //TODO : add filtering operation with peer ip address and port
+        IMLOGD_PACKET1(IM_PACKET_LOG_SOCKET, "[ReceiveFrom] str_len[%d]", nLen);
     }
     else if (EWOULDBLOCK == errno) {
         IMLOGE0("[ReceiveFrom], WBlock");
@@ -286,7 +268,7 @@ void ImsMediaSocket::Close(eSocketMode mode) {
             StopSocketMonitor();
             sRxSocketCount = 0;
         } else {
-            mbSocketListUpdated = true;
+            mSocketListUpdated = true;
         }
 
         sMutexSocketMonitorThread.unlock();
@@ -341,7 +323,7 @@ ISocketListener* ImsMediaSocket::GetListener() {
 
 void ImsMediaSocket::StartSocketMonitor() {
     if (mbTerminateMonitor == true) {
-        IMLOGD_PACKET0(IM_PACKET_LOG_SOCKET, "[StartSocketMonitor] Send Signal");
+        IMLOGD0("[StartSocketMonitor] Send Signal");
         mbTerminateMonitor = false;
         mCondExit.signal();
         return;
@@ -386,11 +368,10 @@ void ImsMediaSocket::StopSocketMonitor() {
 
 uint32_t ImsMediaSocket::SetSocketFD(void* pReadFds, void* pWriteFds, void* pExceptFds) {
     uint32_t nMaxSD = 0;
+    std::lock_guard<std::mutex> guard(sMutexRxSocket);
     FD_ZERO((fd_set*)pReadFds);
     FD_ZERO((fd_set*)pWriteFds);
     FD_ZERO((fd_set*)pExceptFds);
-
-    std::lock_guard<std::mutex> guard(sMutexRxSocket);
     IMLOGD_PACKET0(IM_PACKET_LOG_SOCKET, "[SetSocketFD]");
 
     for (auto&i:slistRxSocket) {
@@ -399,7 +380,7 @@ uint32_t ImsMediaSocket::SetSocketFD(void* pReadFds, void* pWriteFds, void* pExc
         if (socketFD > nMaxSD) nMaxSD = socketFD;
     }
 
-    mbSocketListUpdated = false;
+    mSocketListUpdated = false;
     return nMaxSD;
 }
 
@@ -433,10 +414,10 @@ void* ImsMediaSocket::SocketMonitorThread(void*) {
         struct timeval tv;
         tv.tv_sec = 0;
         tv.tv_usec = 100*1000;    //micro-second
-        if (mbTerminateMonitor == true) {
+        if (mbTerminateMonitor) {
             break;
         }
-        if (mbSocketListUpdated) {
+        if (mSocketListUpdated) {
             nMaxSD = SetSocketFD(&ReadFds, &WriteFds, &ExceptFds);
         }
 
@@ -445,7 +426,7 @@ void* ImsMediaSocket::SocketMonitorThread(void*) {
         memcpy(&TmpExcepfds, &ExceptFds, sizeof(fd_set));
 
         nRes = select(nMaxSD+1, &TmpReadfds, &TmpWritefds, &TmpExcepfds, &tv);
-        if (mbTerminateMonitor == true) {
+        if (mbTerminateMonitor) {
             break;
         }
         else if (-1 == nRes) {

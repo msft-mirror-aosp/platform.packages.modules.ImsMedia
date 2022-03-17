@@ -17,14 +17,23 @@
 #include <RtpConfig.h>
 
 namespace android {
+
 namespace telephony {
+
 namespace imsmedia {
+
+const android::String8 kClassNameRtcpConfig("android.telephony.imsmedia.RtcpConfig");
 
 RtpConfig::RtpConfig()
     : direction(0),
-    remoteAddress(),
-    remotePort(0) {
-
+    accessNetwork(0),
+    remoteAddress(""),
+    remotePort(0),
+    maxMtuBytes(0),
+    dscp(0),
+    rxPayloadTypeNumber(0),
+    txPayloadTypeNumber(0),
+    samplingRateKHz(0) {
 }
 
 RtpConfig::~RtpConfig() {
@@ -42,6 +51,20 @@ RtpConfig::RtpConfig(RtpConfig& config) {
     rxPayloadTypeNumber = config.rxPayloadTypeNumber;
     txPayloadTypeNumber = config.txPayloadTypeNumber;
     samplingRateKHz = config.samplingRateKHz;
+}
+
+RtpConfig& RtpConfig::operator=(const RtpConfig& config) {
+    direction = config.direction;
+    accessNetwork = config.accessNetwork;
+    remoteAddress = config.remoteAddress;
+    remotePort = config.remotePort;
+    rtcpConfig = config.rtcpConfig;
+    maxMtuBytes = config.maxMtuBytes;
+    dscp = config.dscp;
+    rxPayloadTypeNumber = config.rxPayloadTypeNumber;
+    txPayloadTypeNumber = config.txPayloadTypeNumber;
+    samplingRateKHz = config.samplingRateKHz;
+    return *this;
 }
 
 bool RtpConfig::operator==(const RtpConfig &config) const{
@@ -83,7 +106,8 @@ status_t RtpConfig::writeToParcel(Parcel* out) const {
         return err;
     }
 
-    err = out->writeString8(remoteAddress);
+    String16 address(remoteAddress);
+    err = out->writeString16(address);
     if (err != NO_ERROR) {
         return err;
     }
@@ -93,7 +117,14 @@ status_t RtpConfig::writeToParcel(Parcel* out) const {
         return err;
     }
 
+    String16 className(kClassNameRtcpConfig);
+    err = out->writeString16(className);
+    if (err != NO_ERROR) {
+        return err;
+    }
+
     err = rtcpConfig.writeToParcel(out);
+    //err = out->writeParcelable(rtcpConfig);
     if (err != NO_ERROR) {
         return err;
     }
@@ -139,16 +170,27 @@ status_t RtpConfig::readFromParcel(const Parcel* in) {
         return err;
     }
 
-    err = in->readString8(&remoteAddress);
+    String16 address;
+    err = in->readString16(&address);
     if (err != NO_ERROR) {
         return err;
     }
+
+    remoteAddress = String8(address.string());
 
     err = in->readInt32(&remotePort);
     if (err != NO_ERROR) {
         return err;
     }
 
+    String16 className;
+    err = in->readString16(&className);
+    if (err != NO_ERROR) {
+        return err;
+    }
+
+    //read RtcpConfig
+    String8 className2 = String8(className.string());
     err = rtcpConfig.readFromParcel(in);
     if (err != NO_ERROR) {
         return err;

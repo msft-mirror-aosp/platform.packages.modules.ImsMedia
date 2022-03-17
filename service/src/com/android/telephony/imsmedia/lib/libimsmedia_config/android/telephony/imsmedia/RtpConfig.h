@@ -42,6 +42,7 @@ public:
     RtpConfig();
     RtpConfig(RtpConfig& config);
     virtual ~RtpConfig();
+    RtpConfig& operator=(const RtpConfig& config);
     bool operator==(const RtpConfig &c2) const;
     bool operator!=(const RtpConfig &c2) const;
     virtual status_t writeToParcel(Parcel* parcel) const;
@@ -54,8 +55,8 @@ public:
     int32_t getRemotePort();
     void setRtcpConfig(const RtcpConfig& config);
     RtcpConfig getRtcpConfig();
-    //QosSessionAttributes getQos();
     void setMaxMtuBytes(int32_t mtu);
+    //TODO : change method name
     int32_t getmaxMtuBytes();
     void setDscp(int dscp);
     int32_t getDscp();

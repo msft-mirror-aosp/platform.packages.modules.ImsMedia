@@ -19,6 +19,10 @@
 #include <ImsMediaNetworkUtil.h>
 #include <ImsMediaTrace.h>
 
+#define V4MAPPED_OFFSET 12
+#define NUM_OF_BYTES_IPV4 4
+#define NUM_OF_BYTES_IPV6 6
+
 bool ImsMediaNetworkUtil::ConvertIPStrToBin(char* pszSourceIP, char* pszDestBin,
     eIPVersion eIPver) {
     if (pszSourceIP == NULL || pszDestBin == NULL) return false;
@@ -26,12 +30,45 @@ bool ImsMediaNetworkUtil::ConvertIPStrToBin(char* pszSourceIP, char* pszDestBin,
     if (eIPver == IPV4) {
         inet_pton(AF_INET, pszSourceIP, pszDestBin);
         IMLOGD_PACKET1(IM_PACKET_LOG_SOCKET,
-            "[ConvertIPStrToBin] inet_ntop(INET6) %s", pszDestBin);
+            "[ConvertIPStrToBin] inet_ntop(INET6) %d", pszDestBin);
     } else {    //ipv6
         inet_pton(AF_INET6, pszSourceIP, pszDestBin);
         IMLOGD_PACKET1(IM_PACKET_LOG_SOCKET,
-            "[ConvertIPStrToBin] inet_ntop(INET6) %s", pszDestBin);
+            "[ConvertIPStrToBin] inet_ntop(INET6) %d", pszDestBin);
     }
+    return true;
+}
+
+static bool GetIpPortFromSockAddr(const sockaddr_storage& ss,
+    char* ipAddress, int len, unsigned int& port) {
+    const sockaddr_in6& sin6 = reinterpret_cast<const sockaddr_in6&>(ss);
+    if (ss.ss_family == AF_INET6 && IN6_IS_ADDR_V4MAPPED(&sin6.sin6_addr)) {
+        // Copy the IPv6 address into the temporary sockaddr_storage.
+        sockaddr_storage tmp;
+        memset(&tmp, 0, sizeof(tmp));
+        memcpy(&tmp, &ss, sizeof(sockaddr_in6));
+        // Unmap it into an IPv4 address.
+        sockaddr_in& sin = reinterpret_cast<sockaddr_in&>(tmp);
+        sin.sin_family = AF_INET;
+        sin.sin_port = sin6.sin6_port;
+        memcpy(&sin.sin_addr.s_addr, &sin6.sin6_addr.s6_addr[V4MAPPED_OFFSET], NUM_OF_BYTES_IPV4);
+        // Do the regular conversion using the unmapped address.
+        return GetIpPortFromSockAddr(tmp, ipAddress, len, port);
+    }
+
+    if (ss.ss_family == AF_INET) {
+        const sockaddr_in& sin = reinterpret_cast<const sockaddr_in&>(ss);
+        strncpy(ipAddress, inet_ntoa(sin.sin_addr), len);
+        //memcpy(ipAddress, &(sin.sin_addr.s_addr), sizeof(struct in_addr));
+        port = ntohs(sin.sin_port);
+    } else if (ss.ss_family == AF_INET6) {
+        inet_ntop(AF_INET6, sin6.sin6_addr.s6_addr, ipAddress, len);
+        port = ntohs(sin6.sin6_port);
+    } else {
+        return false;
+    }
+
+    IMLOGD2("[GetIpPortFromSockAddr] %s:%u", ipAddress, port);
     return true;
 }
 
@@ -42,19 +79,17 @@ bool ImsMediaNetworkUtil::GetLocalIPPortFromSocketFD(
         return false;
     }
 
-    struct sockaddr_in addr;
-    socklen_t addr_size = sizeof(addr);
+    sockaddr_storage ss;
+    sockaddr* sa = reinterpret_cast<sockaddr*>(&ss);
+    socklen_t byteCount = sizeof(ss);
     errno = 0;
-    int res = getsockname(nSocketFD, (struct sockaddr *)&addr, &addr_size);
-    if (res == 0) {
-        strncpy(pIPAddress, inet_ntoa(addr.sin_addr), len);
-        port = ntohs(addr.sin_port);
-        IMLOGD3("GetLocalIPPortFromSocketFD FD[%d]->%s:%u", nSocketFD, pIPAddress, port);
-        return true;
+    int res = getsockname(nSocketFD, sa, &byteCount);
+    if (res == -1) {
+        IMLOGE1("[GetLocalIPPortFromSocketFD] getsockname failed. Error[%d]", errno);
+        return false;
     }
 
-    IMLOGE1("GetLocalIPPortFromSocketFD->getpeername failed. Error[%d]", errno);
-    return false;
+    return GetIpPortFromSockAddr(ss, pIPAddress, len, port);
 }
 
 bool ImsMediaNetworkUtil::GetRemoteIPPortFromSocketFD(
@@ -64,17 +99,15 @@ bool ImsMediaNetworkUtil::GetRemoteIPPortFromSocketFD(
         return false;
     }
 
-    struct sockaddr_in addr;
-    socklen_t addr_size = sizeof(addr);
+    sockaddr_storage ss;
+    sockaddr* sa = reinterpret_cast<sockaddr*>(&ss);
+    socklen_t byteCount = sizeof(ss);
     errno = 0;
-    int res = getpeername(nSocketFD, (struct sockaddr *)&addr, &addr_size);
-    if (res == 0) {
-        strncpy(pIPAddress, inet_ntoa(addr.sin_addr), len);
-        port = ntohs(addr.sin_port);
-        IMLOGD3("GetRemoteIPPortFromSocketFD FD[%d]->%s:%u", nSocketFD, pIPAddress, port);
-        return true;
+    int res = getpeername(nSocketFD, sa, &byteCount);
+    if (res == -1) {
+        IMLOGE1("[GetRemoteIPPortFromSocketFD] getpeername failed. Error[%d]", errno);
+        return false;
     }
 
-    IMLOGE1("GetRemoteIPPortFromSocketFD->getpeername failed. Error[%d]", errno);
-    return false;
+    return GetIpPortFromSockAddr(ss, pIPAddress, len, port);
 }

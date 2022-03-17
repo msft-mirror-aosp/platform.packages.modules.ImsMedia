@@ -18,10 +18,9 @@
 #define VOICE_MANAGER_H
 
 #include <ImsMediaDefine.h>
-#include <ImsMediaHal.h>
 #include <BaseManager.h>
 #include <AudioSession.h>
-#include <RtpConfig.h>
+#include <AudioConfig.h>
 #include <MediaQualityThreshold.h>
 #include <unordered_map>
 #include <android/content/AttributionSourceState.h>
@@ -40,7 +39,8 @@ public:
         RequestHandler();
         virtual ~RequestHandler();
     protected:
-        virtual void processEvent(uint32_t event, uint64_t pParam, uint64_t lParam);
+        virtual void processEvent(uint32_t event,
+            uint64_t paramA, uint64_t paramB, uint64_t paramC);
     };
 
     /**
@@ -53,27 +53,28 @@ public:
         ResponseHandler();
         virtual ~ResponseHandler();
     protected:
-        virtual void processEvent(uint32_t event, uint64_t pParam, uint64_t lParam);
+        virtual void processEvent(uint32_t event,
+            uint64_t paramA, uint64_t paramB, uint64_t paramC);
     };
 
     static VoiceManager* getInstance();
     static void setAttributeSource(const android::content::AttributionSourceState& client);
     static android::content::AttributionSourceState& getAttributeSource();
-    virtual void sendMessage(const int sessionid, const android::Parcel& parcel);
+    virtual void sendMessage(const int sessionId, const android::Parcel& parcel);
 
 private:
     VoiceManager();
     virtual ~VoiceManager();
-    bool openSession(int sessionid, int rtpFd, int rtcpFd, RtpConfig* config);
-    ImsMediaResult closeSession(int sessionid);
-    bool modifySession(int sessionid, RtpConfig* config);
-    void addConfig(int sessionid, RtpConfig* config);
-    bool deleteConfig(int sessionid, RtpConfig* config);
-    void confirmConfig(int sessionid, RtpConfig* config);
-    void startDtmf(int sessionid, char dtmfDigit, int volume, int duration);
-    void stopDtmf(int sessionid);
-    //void sendHeaderExtension(int sessionid, RtpHeaderExtension* data);
-    void setMediaQualityThreshold(int sessionid, MediaQualityThreshold* threshold);
+    bool openSession(int sessionId, int rtpFd, int rtcpFd, AudioConfig* config);
+    ImsMediaResult closeSession(int sessionId);
+    bool modifySession(int sessionId, AudioConfig* config);
+    bool addConfig(int sessionId, AudioConfig* config);
+    bool deleteConfig(int sessionId, AudioConfig* config);
+    bool confirmConfig(int sessionId, AudioConfig* config);
+    void startDtmf(int sessionId, char dtmfDigit, int volume, int duration);
+    void stopDtmf(int sessionId);
+    //void sendHeaderExtension(int sessionId, RtpHeaderExtension* data);
+    void setMediaQualityThreshold(int sessionId, MediaQualityThreshold* threshold);
 
     static VoiceManager* sManager;
     static android::content::AttributionSourceState mAttributionSource;

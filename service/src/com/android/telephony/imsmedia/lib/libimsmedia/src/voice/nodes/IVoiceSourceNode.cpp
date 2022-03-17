@@ -18,10 +18,13 @@
 #include <ImsMediaVoiceSource.h>
 #include <ImsMediaTrace.h>
 #include <string.h>
+#include <AudioConfig.h>
 
 IVoiceSourceNode::IVoiceSourceNode() {
     std::unique_ptr<ImsMediaVoiceSource> recoder(new ImsMediaVoiceSource());
     mVoiceSource = std::move(recoder);
+    mCodecType = 0;
+    mMode = 0;
     m_bFirstFrame = false;
 }
 
@@ -73,15 +76,57 @@ bool IVoiceSourceNode::IsSourceNode() {
 }
 
 void IVoiceSourceNode::SetConfig(void* config) {
-    (void)config;
+    if (config == NULL) return;
+    AudioConfig* pConfig = reinterpret_cast<AudioConfig*>(config);
+    SetCodec(pConfig->getCodecType());
+    if (mCodecType == AUDIO_AMR || mCodecType == AUDIO_AMR_WB) {
+        SetCodecMode(pConfig->getAmrParams().getAmrMode());
+    }
+}
+
+bool IVoiceSourceNode::IsSameConfig(void* config) {
+    if (config == NULL) return true;
+    AudioConfig* pConfig = reinterpret_cast<AudioConfig*>(config);
+
+    if (mCodecType == pConfig->getCodecType()) {
+        if (mCodecType == AUDIO_AMR || mCodecType == AUDIO_AMR_WB) {
+            if (mMode == pConfig->getAmrParams().getAmrMode()) {
+                return true;
+            }
+        } else if (mCodecType == AUDIO_EVS) {
+            if (mMode == pConfig->getEvsParams().getEvsMode()) {
+                return true;
+            }
+        }
+    }
+
+    return false;
 }
 
 void IVoiceSourceNode::SetAttributeSource(android::content::AttributionSourceState& source) {
     mSource = source;
 }
 
-void IVoiceSourceNode::SetCodec(eAudioCodecType eCodecType) {
-    mCodecType = eCodecType;
+void IVoiceSourceNode::SetCodec(int32_t type) {
+    switch (type) {
+        case AudioConfig::CODEC_AMR:
+            mCodecType = AUDIO_AMR;
+            break;
+        case AudioConfig::CODEC_AMR_WB:
+            mCodecType = AUDIO_AMR_WB;
+            break;
+        case AudioConfig::CODEC_EVS:
+            mCodecType = AUDIO_EVS;
+            break;
+        case AudioConfig::CODEC_PCMA:
+            mCodecType = AUDIO_G711_PCMA;
+            break;
+        case AudioConfig::CODEC_PCMU:
+            mCodecType = AUDIO_G711_PCMU;
+            break;
+        default:
+            break;
+    }
 }
 
 void IVoiceSourceNode::SetCodecMode(uint32_t mode) {

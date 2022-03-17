@@ -42,14 +42,14 @@ public:
     virtual bool IsRunTime();
     virtual bool IsSourceNode();
     virtual void SetConfig(void* config);
-    void SetCodec(eAudioCodecType eCodecType);
+    virtual bool IsSameConfig(void* config);
+    void SetCodec(int32_t type);
     void SetCodecMode(uint32_t mode);
     virtual void* run();
 
 private:
     std::unique_ptr<ImsMediaVoiceRenderer> mVoiceRenderer;
-    std::shared_ptr<ImsMediaHal::RtpSessionParams> mSessionParams;
-    eAudioCodecType mCodecType;
+    int32_t mCodecType;
     uint32_t mMode;
     std::mutex mMutex;
     ImsMediaCondition mCond;

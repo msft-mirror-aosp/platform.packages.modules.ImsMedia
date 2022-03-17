@@ -44,12 +44,14 @@ public:
     virtual void Stop();
     virtual bool IsRunTime();
     virtual bool IsSourceNode();
+    virtual void SetConfig(void* config);
+    virtual bool IsSameConfig(void* config);
     virtual void OnRtcpPacket(unsigned char *pData, uint32_t wLen);
     void ProcessTimer();
     void SetLocalAddress(const RtpAddress address);
     void SetPeerAddress(const RtpAddress address);
     void SetRtcpInterval(const uint32_t interval);
-    void SetRtcpXrEnable(const bool bEnable);
+    void SetRtcpXrBlockType(const uint32_t rtcpXrBlockType);
     void SetRtcpByeEnable(const bool bEnable);
 
 private:
@@ -59,7 +61,7 @@ private:
     uint32_t mRtcpInterval;
     uint8_t* mRtcpXrPayload;
     bool mEnableRtcpBye;
-    bool mRtcpXrEnabled;
+    uint32_t mRtcpXrBlockType;
     int32_t mRtcpXrCounter;
     //ImsMediaBitWriter m_objBitWriter;
     hTimerHandler m_hTimer;

@@ -18,6 +18,7 @@
 #include <ImsMediaTrace.h>
 #include <DtmfSenderNode.h>
 #include <ImsMediaTimer.h>
+#include <AudioConfig.h>
 
 DtmfSenderNode::DtmfSenderNode() {
     mNextTime = 0;
@@ -48,11 +49,13 @@ BaseNodeID DtmfSenderNode::GetNodeID() {
 
 ImsMediaResult DtmfSenderNode::Start() {
     mNextTime = 0;
+    mNodeState = NODESTATE_RUNNING;
     return IMS_MEDIA_OK;
 }
 
 void DtmfSenderNode::Stop() {
     mNextTime = 0;
+    mNodeState = NODESTATE_STOPPED;
 }
 
 bool DtmfSenderNode::IsRunTime() {

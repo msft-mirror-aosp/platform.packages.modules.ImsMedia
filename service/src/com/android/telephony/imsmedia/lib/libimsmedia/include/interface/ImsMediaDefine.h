@@ -17,8 +17,8 @@
 #ifndef IMS_MEDIA_DEFINE_H
 #define IMS_MEDIA_DEFINE_H
 
-#include <ImsMediaHal.h>
 #include <RtpConfig.h>
+#include <AudioConfig.h>
 #include <string.h>
 
 using namespace android::telephony::imsmedia;
@@ -72,6 +72,11 @@ enum ImsMediaType {
     IMS_MEDIA_AUDIO = 0,
     IMS_MEDIA_VIDEO,
     IMS_MEDIA_TEXT,
+};
+
+enum ImsMediaProtocolType {
+    RTP = 0,
+    RTCP,
 };
 
 enum ImsMediaSubType {
@@ -130,7 +135,7 @@ enum ImsMediaSubType {
 };
 
 enum ImsMediaVoiceMsgRequest {
-    OPEN_SESSION = 0,
+    OPEN_SESSION = 101,
     CLOSE_SESSION,
     MODIFY_SESSION,
     ADD_CONFIG,
@@ -143,26 +148,30 @@ enum ImsMediaVoiceMsgRequest {
 };
 
 enum ImsMediaVoiceMsgResponse {
-    OPEN_SUCCESS = 0,
+    OPEN_SUCCESS = 201,
     OPEN_FAILURE,
     MODIFY_SESSION_RESPONSE,
     ADD_CONFIG_RESPONSE,
-    DELETE_CONFIG_RESPONSE,
     CONFIRM_CONFIG_RESPONSE,
-    FIRST_MEDIA_PACKET_RECEIVED,
-    HEADER_EXTENSION_RECEIVED,
-    NOTIFY_MEDIA_INACITIVITY,
-    NOTIFY_PACKET_LOSS,
-    NOTIFY_JITTER,
-    MEDIA_QUALITY_CHANGED,
+    SESSION_CHANGED_IND,
+    FIRST_MEDIA_PACKET_IND,
+    RTP_HEADER_EXTENSION_IND,
+    MEDIA_INACITIVITY_IND,
+    PACKET_LOSS_IND,
+    JITTER_IND,
+};
+
+enum ImsMediaResponse {
+    RESPONSE_FAIL = 0,
+    RESPONSE_SUCCESS,
 };
 
 struct EventParamOpenSession {
 public:
-    RtpConfig* mConfig;
+    AudioConfig* mConfig;
     int rtpFd;
     int rtcpFd;
-    EventParamOpenSession(int rtp, int rtcp, RtpConfig* config)
+    EventParamOpenSession(int rtp, int rtcp, AudioConfig* config)
         : mConfig(config), rtpFd(rtp), rtcpFd(rtcp) {
     }
 };
@@ -257,11 +266,12 @@ public:
         return *this;
     }
     bool operator==(const RtpAddress& address) {
-        if (std::strcmp(this->ipAddress, address.ipAddress) == 0
-            && this->port == address.port) {
-            return true;
-        }
-        return false;
+        return (std::strcmp(this->ipAddress, address.ipAddress) == 0
+            && this->port == address.port);
+    }
+    bool operator!=(const RtpAddress& address) {
+        return (std::strcmp(this->ipAddress, address.ipAddress) != 0
+            || this->port != address.port);
     }
     char ipAddress[MAX_IP_LEN];
     uint32_t port;

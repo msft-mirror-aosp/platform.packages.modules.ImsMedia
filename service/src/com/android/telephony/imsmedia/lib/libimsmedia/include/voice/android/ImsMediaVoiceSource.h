@@ -59,7 +59,7 @@ public:
     sp<MediaCodec> m_MediaCodec;
     AudioUplinkCB m_pUplinkCB;
     void*    m_pUplinkCBClient;
-    eAudioCodecType m_nCodecType;
+    int32_t m_nCodecType;
     uint32_t m_nMode;
     uint8_t m_pbBuffer[PCM_BUFFER_SIZE]; // read buffer size
     android::content::AttributionSourceState mSource;
@@ -72,14 +72,15 @@ private:
     wav_hdr mWavHeader;
 
 private:
-    void processUplinkThread();
+    void queueInputBuffer(uint8_t* buffer, int32_t nSize);
+    void processOutputBuffer();
 
 public:
     ImsMediaVoiceSource();
     virtual ~ImsMediaVoiceSource();
     void SetAttributionSource(android::content::AttributionSourceState& source);
     void SetUplinkCallback(void* pClient, AudioUplinkCB pDnlinkCB);
-    void SetCodec(eAudioCodecType eCodecType);
+    void SetCodec(int32_t type);
     void SetCodecMode(uint32_t mode);
     bool Start();
     void Stop();

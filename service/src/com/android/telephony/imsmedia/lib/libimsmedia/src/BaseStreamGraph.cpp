@@ -19,14 +19,17 @@
 
 BaseStreamGraph::BaseStreamGraph(BaseSessionCallback* callback, int localFd)
     : mCallback(callback), mLocalFd(localFd) {
+    IMLOGD0("[BaseStreamGraph]");
     std::unique_ptr<StreamScheduler> scheduler(new StreamScheduler());
     mScheduler = std::move(scheduler);
 }
 
 BaseStreamGraph::~BaseStreamGraph() {
+    IMLOGD0("[~BaseStreamGraph]");
 }
 
 ImsMediaResult BaseStreamGraph::startGraph() {
+    IMLOGD0("startGraph]");
     ImsMediaResult ret = startNodes();
     if (ret != IMS_MEDIA_OK) {
         return ret;
@@ -36,6 +39,7 @@ ImsMediaResult BaseStreamGraph::startGraph() {
 }
 
 ImsMediaResult BaseStreamGraph::stopGraph() {
+    IMLOGD0("stopGraph]");
     ImsMediaResult ret = stopNodes();
     if (ret != IMS_MEDIA_OK) {
         return ret;

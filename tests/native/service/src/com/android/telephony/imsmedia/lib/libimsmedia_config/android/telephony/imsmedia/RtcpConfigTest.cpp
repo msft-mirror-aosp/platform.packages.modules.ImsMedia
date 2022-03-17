@@ -57,6 +57,18 @@ TEST(RtcpConfigTest, TestParcel) {
     delete rtcp2;
 }
 
+TEST(RtcpConfigTest, TestAssign) {
+    RtcpConfig config;
+    config.setCanonicalName(kCanonicalName);
+    config.setTransmitPort(kTransmitPort);
+    config.setIntervalSec(kIntervalSec);
+    config.setRtcpXrBlockTypes(kRtcpXrBlockTypes);
+
+    RtcpConfig config2;
+    config2 = config;
+    EXPECT_EQ(config, config2);
+}
+
 TEST(RtcpConfigTest, TestEqual) {
     RtcpConfig* rtcp = new RtcpConfig();
     rtcp->setCanonicalName(kCanonicalName);

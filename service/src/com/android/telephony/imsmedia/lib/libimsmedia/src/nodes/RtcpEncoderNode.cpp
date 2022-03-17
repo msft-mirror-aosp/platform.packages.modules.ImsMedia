@@ -21,13 +21,13 @@ RtcpEncoderNode::RtcpEncoderNode() {
     mRtpSession = NULL;
     mEnableRtcpBye = false;
     mRtcpXrPayload = NULL;
-    mRtcpXrEnabled = false;
+    mRtcpXrBlockType = RtcpConfig::FLAG_RTCPXR_NONE;
     mRtcpXrCounter = 0;
     m_hTimer = NULL;
 }
 
 RtcpEncoderNode::~RtcpEncoderNode() {
-    mRtcpXrEnabled = false;
+    mRtcpXrBlockType = RtcpConfig::FLAG_RTCPXR_NONE;
     mRtcpXrCounter = 0;
 }
 
@@ -50,6 +50,7 @@ BaseNodeID RtcpEncoderNode::GetNodeID() {
 }
 
 ImsMediaResult RtcpEncoderNode::Start() {
+    std::lock_guard<std::mutex> guard(mMutexTimer);
     if (mRtpSession == NULL) {
         mRtpSession = IRtpSession::GetInstance(mMediaType, mLocalAddress, mPeerAddress);
         if (mRtpSession == NULL) {
@@ -58,19 +59,17 @@ ImsMediaResult RtcpEncoderNode::Start() {
         }
     }
 
-    IMLOGD3("[Start] interval[%d], rtcpBye[%d], rtcpXr[%d]",
-        mRtcpInterval, mEnableRtcpBye, mRtcpXrEnabled);
+    IMLOGD3("[Start] interval[%d], rtcpBye[%d], rtcpXrBlock[%d]",
+        mRtcpInterval, mEnableRtcpBye, mRtcpXrBlockType);
 
     mRtpSession->SetRtcpEncoderListener(this);
     mRtpSession->SetRtcpInterval(mRtcpInterval);
     mRtpSession->StartRtcp(mEnableRtcpBye);
 
-    mMutexTimer.lock();
     if (m_hTimer == NULL) {
         m_hTimer = ImsMediaTimer::TimerStart(1000, true, OnTimer, this);
         IMLOGD0("[Start] Rtcp Timer started");
     }
-    mMutexTimer.unlock();
     mRtcpXrCounter = 0;
     mNodeState = NODESTATE_RUNNING;
     return IMS_MEDIA_OK;
@@ -78,7 +77,7 @@ ImsMediaResult RtcpEncoderNode::Start() {
 
 void RtcpEncoderNode::Stop() {
     IMLOGD0("[Stop]");
-
+    std::lock_guard<std::mutex> guard(mMutexTimer);
     if (mRtpSession != NULL) {
         mRtpSession->StopRtcp();
         mRtpSession->SetRtcpEncoderListener(NULL);
@@ -86,13 +85,11 @@ void RtcpEncoderNode::Stop() {
         mRtpSession = NULL;
     }
 
-    mMutexTimer.lock();
     if (m_hTimer != NULL) {
         ImsMediaTimer::TimerStop(m_hTimer, NULL);
         m_hTimer = NULL;
         IMLOGD0("[Stop] Rtcp Timer stopped");
     }
-    mMutexTimer.unlock();
     mNodeState = NODESTATE_STOPPED;
 }
 
@@ -102,6 +99,27 @@ bool RtcpEncoderNode::IsRunTime() {
 
 bool RtcpEncoderNode::IsSourceNode() {
     return true;
+}
+
+void RtcpEncoderNode::SetConfig(void* config) {
+    RtpConfig* pConfig = reinterpret_cast<RtpConfig*>(config);
+    mPeerAddress = RtpAddress(pConfig->getRemoteAddress().c_str(), pConfig->getRemotePort());
+    SetRtcpInterval(pConfig->getRtcpConfig().getIntervalSec());
+    SetRtcpXrBlockType(pConfig->getRtcpConfig().getRtcpXrBlockTypes());
+    SetRtcpByeEnable(false);
+    IMLOGD4("[SetConfig] peer Ip[%s], port[%d], interval[%d], rtcpxr[%d]", mPeerAddress.ipAddress,
+        mPeerAddress.port, mRtcpInterval, mRtcpXrBlockType);
+}
+
+bool RtcpEncoderNode::IsSameConfig(void* config) {
+    if (config == NULL) return true;
+    RtpConfig* pConfig = reinterpret_cast<RtpConfig*>(config);
+    RtpAddress peerAddress = RtpAddress(pConfig->getRemoteAddress().c_str(),
+        pConfig->getRemotePort());
+
+    return (mPeerAddress == peerAddress
+        && mRtcpInterval == pConfig->getRtcpConfig().getIntervalSec()
+        && mRtcpXrBlockType == pConfig->getRtcpConfig().getRtcpXrBlockTypes());
 }
 
 void RtcpEncoderNode::OnRtcpPacket(unsigned char* pData, uint32_t wLen) {
@@ -148,19 +166,9 @@ void RtcpEncoderNode::OnTimer(hTimerHandler hTimer, void* pUserData) {
 void RtcpEncoderNode::ProcessTimer() {
     std::lock_guard<std::mutex> guard(mMutexTimer);
 
-    if (m_hTimer == NULL) return;
+    if (m_hTimer == NULL || mRtpSession == NULL) return;
 
     mRtpSession->OnTimer();
-    /*
-    if (mRtcpXrEnabled == true && mRtcpInterval > 0) {
-        mRtcpXrCounter++;
-        if (mRtcpXrCounter == mRtcpInterval && m_pRtcpXrAnalyzer != NULL) {
-            SendRtcpXrPacket(m_pRtcpXrAnalyzer->GetRxStatisticsParam(),
-                m_pRtcpXrAnalyzer->GetRxVoipMetricsParam());
-            mRtcpXrCounter = 0;
-        }
-    }
-    */
 }
 
 void RtcpEncoderNode::SetLocalAddress(const RtpAddress address) {
@@ -175,8 +183,8 @@ void RtcpEncoderNode::SetRtcpInterval(const uint32_t interval) {
     mRtcpInterval = interval;
 }
 
-void RtcpEncoderNode::SetRtcpXrEnable(const bool bEnable) {
-    mRtcpXrEnabled = bEnable;
+void RtcpEncoderNode::SetRtcpXrBlockType(const uint32_t rtcpXrBlockType) {
+    mRtcpXrBlockType = rtcpXrBlockType;
 }
 
 void RtcpEncoderNode::SetRtcpByeEnable(const bool bEnable) {

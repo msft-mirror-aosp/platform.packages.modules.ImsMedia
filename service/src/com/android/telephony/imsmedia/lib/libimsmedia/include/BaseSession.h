@@ -26,7 +26,7 @@ class BaseSession : public BaseSessionCallback {
 public:
     BaseSession();
     virtual ~BaseSession();
-    void setSessionId(int sessionid);
+    void setSessionId(int sessionId);
     void setLocalEndPoint(int rtpFd, int rtcpFd);
     int getLocalRtpFd();
     int getLocalRtcpFd();

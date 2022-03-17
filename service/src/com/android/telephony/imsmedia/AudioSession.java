@@ -74,27 +74,40 @@ final class AudioSession extends IImsAudioSession.Stub implements IMediaSession 
     private AudioSessionHandler mHandler;
     private boolean mIsAudioOffload;
     private AudioService mAudioService;
+    private AudioListener mAudioListener;
+    private AudioLocalSession mLocalSession;
 
     AudioSession(int sessionId, IImsAudioSessionCallback callback) {
         mSessionId = sessionId;
         mSessionState = ImsMediaSession.SESSION_STATE_CLOSED;
         mCallback = callback;
         mHandler = new AudioSessionHandler(Looper.getMainLooper());
-        mAudioService = new AudioService(mHandler);
+        mAudioService = new AudioService();
+        mAudioListener = new AudioListener(mHandler);
+        mAudioService.setListener(mAudioListener);
+        mAudioListener.setNativeObject(mAudioService.getNativeObject());
     }
 
     @VisibleForTesting
-    AudioSession(int sessionId, IImsAudioSessionCallback callback, AudioService audioService) {
+    AudioSession(int sessionId, IImsAudioSessionCallback callback, AudioService audioService,
+        AudioLocalSession localSession) {
         mSessionId = sessionId;
         mSessionState = ImsMediaSession.SESSION_STATE_CLOSED;
         mCallback = callback;
         mHandler = new AudioSessionHandler(Looper.getMainLooper());
         mAudioService = audioService;
+        mLocalSession = localSession;
+        mAudioListener = new AudioListener(mHandler);
     }
 
     @VisibleForTesting
     AudioSessionHandler getAudioSessionHandler() {
         return mHandler;
+    }
+
+    @VisibleForTesting
+    AudioListener getAudioListener() {
+        return mAudioListener;
     }
 
     @Override
@@ -266,6 +279,7 @@ final class AudioSession extends IImsAudioSession.Stub implements IMediaSession 
         if (isAudioOffload()) {
             mOffloadService.openSession(mSessionId, sessionParams);
         } else {
+            mAudioListener.setMediaCallback(sessionParams.getCallback());
             mAudioService.openSession(mSessionId, sessionParams);
         }
     }
@@ -288,7 +302,7 @@ final class AudioSession extends IImsAudioSession.Stub implements IMediaSession 
                 Rlog.e(TAG, "modifySession : " + e);
             }
         } else {
-            mAudioService.modifySession(config);
+            mLocalSession.modifySession(config);
         }
     }
 
@@ -300,7 +314,7 @@ final class AudioSession extends IImsAudioSession.Stub implements IMediaSession 
                 Rlog.e(TAG, "addConfig : " + e);
             }
         } else {
-            mAudioService.addConfig(config);
+            mLocalSession.addConfig(config);
         }
     }
 
@@ -312,7 +326,7 @@ final class AudioSession extends IImsAudioSession.Stub implements IMediaSession 
                 Rlog.e(TAG, "deleteConfig : " + e);
             }
         } else {
-            mAudioService.deleteConfig(config);
+            mLocalSession.deleteConfig(config);
         }
     }
 
@@ -324,7 +338,7 @@ final class AudioSession extends IImsAudioSession.Stub implements IMediaSession 
                 Rlog.e(TAG, "confirmConfig : " + e);
             }
         } else {
-            mAudioService.confirmConfig(config);
+            mLocalSession.confirmConfig(config);
         }
     }
 
@@ -336,7 +350,7 @@ final class AudioSession extends IImsAudioSession.Stub implements IMediaSession 
                 Rlog.e(TAG, "startDtmf : " + e);
             }
         } else {
-            mAudioService.startDtmf(digit, volume, duration);
+            mLocalSession.startDtmf(digit, volume, duration);
         }
     }
 
@@ -348,7 +362,7 @@ final class AudioSession extends IImsAudioSession.Stub implements IMediaSession 
                 Rlog.e(TAG, "stoptDtmf : " + e);
             }
         } else {
-            mAudioService.stopDtmf();
+            mLocalSession.stopDtmf();
         }
     }
 
@@ -361,7 +375,7 @@ final class AudioSession extends IImsAudioSession.Stub implements IMediaSession 
                 Rlog.e(TAG, "sendHeaderExtension : " + e);
             }
         } else {
-            mAudioService.sendHeaderExtension(extensions);
+            mLocalSession.sendHeaderExtension(extensions);
         }
     }
 
@@ -374,7 +388,7 @@ final class AudioSession extends IImsAudioSession.Stub implements IMediaSession 
                 Rlog.e(TAG, "setMediaQualityThreshold: " + e);
             }
         } else {
-            mAudioService.setMediaQualityThreshold(threshold);
+            mLocalSession.setMediaQualityThreshold(threshold);
         }
     }
 
@@ -387,7 +401,7 @@ final class AudioSession extends IImsAudioSession.Stub implements IMediaSession 
             }
             mHalSession = (IImsMediaSession) session;
         } else {
-            // TODO local audio service
+            mLocalSession = (AudioLocalSession)session;
         }
 
         try {

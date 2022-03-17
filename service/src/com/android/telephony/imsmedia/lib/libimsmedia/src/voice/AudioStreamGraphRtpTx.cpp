@@ -19,6 +19,9 @@
 #include <ImsMediaVoiceNodeList.h>
 #include <ImsMediaTrace.h>
 #include <VoiceManager.h>
+#include <ImsMediaNetworkUtil.h>
+#include <AudioConfig.h>
+#include <NetdClient.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -40,55 +43,42 @@ ImsMediaResult AudioStreamGraphRtpTx::createGraph(void* config){
     BaseNode* pNodeSource = BaseNode::Load(BaseNodeID::NODEID_VOICESOURCE, mCallback);
     if (pNodeSource == NULL) return IMS_MEDIA_ERROR_UNKNOWN;
     pNodeSource->SetMediaType(IMS_MEDIA_AUDIO);
-    //pNodeSource->SetRtpSessionParams(&mConfig->sessionParams);
-    //testing
     ((IVoiceSourceNode*)pNodeSource)->SetAttributeSource(VoiceManager::getAttributeSource());
-    ((IVoiceSourceNode*)pNodeSource)->SetCodec(AUDIO_AMR_WB);
-    ((IVoiceSourceNode*)pNodeSource)->SetCodecMode(8);
+    pNodeSource->SetConfig(mConfig);
     AddNode(pNodeSource);
 
     BaseNode* pNodeRtpPayloadEncoder = BaseNode::Load(BaseNodeID::NODEID_RTPPAYLOAD_ENCODER_AUDIO,
         mCallback);
     if (pNodeRtpPayloadEncoder == NULL) return IMS_MEDIA_ERROR_UNKNOWN;
     pNodeRtpPayloadEncoder->SetMediaType(IMS_MEDIA_AUDIO);
-    //pNodeRtpPayloadEncoder->SetRtpSessionParams(&mConfig->sessionParams);
-    //test parameters
-    ((AudioRtpPayloadEncoderNode*)pNodeRtpPayloadEncoder)->SetCodec(AUDIO_AMR_WB);
-    ((AudioRtpPayloadEncoderNode*)pNodeRtpPayloadEncoder)->SetPayloadMode(
-        RTPPAYLOADHEADER_MODE_AMR_OCTETALIGNED);
-    ((AudioRtpPayloadEncoderNode*)pNodeRtpPayloadEncoder)->SetPtime(20);
+    pNodeRtpPayloadEncoder->SetConfig(mConfig);
     AddNode(pNodeRtpPayloadEncoder);
     pNodeSource->ConnectRearNode(pNodeRtpPayloadEncoder);
 
     BaseNode* pNodeRtpEncoder = BaseNode::Load(BaseNodeID::NODEID_RTPENCODER, mCallback);
     if (pNodeRtpEncoder == NULL) return IMS_MEDIA_ERROR_UNKNOWN;
     pNodeRtpEncoder->SetMediaType(IMS_MEDIA_AUDIO);
-    //test parameters
-    RtpAddress localAddrss("0.0.0.0", 61002);
-    RtpAddress peerAddrss("0.0.0.0", 61002);
-    ((RtpEncoderNode*)pNodeRtpEncoder)->SetLocalAddress(localAddrss);
-    ((RtpEncoderNode*)pNodeRtpEncoder)->SetPeerAddress(peerAddrss);
-    //pNodeRtpEncoder->SetRtpSessionParams(&mConfig->sessionParams);
+    char localIp[128];
+    uint32_t localPort = 0;
+    ImsMediaNetworkUtil::GetLocalIPPortFromSocketFD(mLocalFd, localIp, 128, localPort);
+    RtpAddress localAddress(localIp, localPort);
+    pNodeRtpEncoder->SetConfig(mConfig);
+    ((RtpEncoderNode*)pNodeRtpEncoder)->SetLocalAddress(localAddress);
     AddNode(pNodeRtpEncoder);
     pNodeRtpPayloadEncoder->ConnectRearNode(pNodeRtpEncoder);
 
     BaseNode* pNodeSocketWriter = BaseNode::Load(BaseNodeID::NODEID_SOCKETWRITER, mCallback);
     if (pNodeSocketWriter == NULL) return IMS_MEDIA_ERROR_UNKNOWN;
     pNodeSocketWriter->SetMediaType(IMS_MEDIA_AUDIO);
-    //test parameters
     ((SocketWriterNode*)pNodeSocketWriter)->SetLocalFd(mLocalFd);
-    ((SocketWriterNode*)pNodeSocketWriter)->SetLocalEndpoint(localAddrss.ipAddress,
-        localAddrss.port);
-    ((SocketWriterNode*)pNodeSocketWriter)->SetPeerEndpoint(peerAddrss.ipAddress,
-        peerAddrss.port);
-
-    //need to set socket id here
+    ((SocketWriterNode*)pNodeSocketWriter)->SetLocalAddress(localAddress);
+    ((SocketWriterNode*)pNodeSocketWriter)->SetProtocolType(RTP);
+    pNodeSocketWriter->SetConfig(config);
     AddNode(pNodeSocketWriter);
     pNodeRtpEncoder->ConnectRearNode(pNodeSocketWriter);
     setState(StreamState::STATE_CREATED);
 
-    bool bEnableDTMF = false;
-    if (bEnableDTMF) {
+    if (mConfig->getDtmfPayloadTypeNumber() != 0) {
         BaseNode* pDtmfEncoderNode = BaseNode::Load(BaseNodeID::NODEID_DTMFENCODER, mCallback);
         BaseNode* pDtmfSenderNode = BaseNode::Load(BaseNodeID::NODEID_DTMFSENDER, mCallback);
 
@@ -96,15 +86,10 @@ ImsMediaResult AudioStreamGraphRtpTx::createGraph(void* config){
             AddNode(pDtmfEncoderNode);
             mListDtmfNodes.push_back(pDtmfEncoderNode);
             pDtmfEncoderNode->SetMediaType(IMS_MEDIA_AUDIO);
-            //test parameters
-            ((DtmfEncoderNode*)pDtmfEncoderNode)->SetSamplingRate(16000);
-            ((DtmfEncoderNode*)pDtmfEncoderNode)->SetDuration(10, 2);
-            ((DtmfEncoderNode*)pDtmfEncoderNode)->SetVolume(10);
-
+            pDtmfEncoderNode->SetConfig(mConfig);
             AddNode(pDtmfSenderNode);
             mListDtmfNodes.push_back(pDtmfSenderNode);
             pDtmfSenderNode->SetMediaType(IMS_MEDIA_AUDIO);
-            //test parameters
             ((DtmfSenderNode*)pDtmfSenderNode)->SetInterval(3);
             pDtmfEncoderNode->ConnectRearNode(pDtmfSenderNode);
             pDtmfSenderNode->ConnectRearNode(pNodeRtpEncoder);
@@ -115,14 +100,65 @@ ImsMediaResult AudioStreamGraphRtpTx::createGraph(void* config){
 
 ImsMediaResult AudioStreamGraphRtpTx::updateGraph(void* config)  {
     IMLOGD0("[updateGraph]");
-    (void)config;
-    return ImsMediaResult::IMS_MEDIA_OK;
+    if (config == NULL) return IMS_MEDIA_ERROR_INVALID_ARGUMENT;
+
+    AudioConfig* pConfig = reinterpret_cast<AudioConfig*>(config);
+
+    if (*mConfig == *pConfig) {
+        IMLOGD0("[updateGraph] no update");
+        return IMS_MEDIA_OK;
+    }
+
+    if (mConfig != NULL) {
+        delete mConfig;
+    }
+
+    mConfig = new AudioConfig(pConfig);
+
+    if (mConfig->getMediaDirection() == RtpConfig::MEDIA_DIRECTION_NO_FLOW
+        || mConfig->getMediaDirection() == RtpConfig::MEDIA_DIRECTION_RECEIVE_ONLY) {
+        IMLOGD0("[updateGraph] pause TX");
+        return stopGraph();
+    }
+
+    ImsMediaResult ret = ImsMediaResult::IMS_MEDIA_ERROR_UNKNOWN;
+
+    if (mGraphState == STATE_RUN) {
+        mScheduler->Stop();
+        for (auto& node:mListNodeStarted) {
+            IMLOGD1("[updateGraph] update node[%s]", node->GetNodeName());
+            ret = node->UpdateConfig(mConfig);
+            if (ret != IMS_MEDIA_OK) {
+                IMLOGE2("[updateGraph] error in update node[%s], ret[%d]",
+                    node->GetNodeName(), ret);
+            }
+        }
+        mScheduler->Start();
+    } else if (mGraphState == STATE_CREATED) {
+        for (auto& node:mListNodeToStart) {
+            IMLOGD1("[updateGraph] update node[%s]", node->GetNodeName());
+            ret = node->UpdateConfig(mConfig);
+            if (ret != IMS_MEDIA_OK) {
+                IMLOGE2("[updateGraph] error in update node[%s], ret[%d]",
+                    node->GetNodeName(), ret);
+            }
+        }
+    }
+
+    if (mGraphState == STATE_CREATED &&
+        (pConfig->getMediaDirection() == RtpConfig::MEDIA_DIRECTION_TRANSMIT_ONLY
+        || pConfig->getMediaDirection() == RtpConfig::MEDIA_DIRECTION_TRANSMIT_RECEIVE)) {
+        IMLOGD0("[updateGraph] resume TX");
+        return startGraph();
+    }
+
+    return ret;
 }
 
 bool AudioStreamGraphRtpTx::isSameConfig(RtpConfig* config) {
-    if (mConfig == NULL) return false;
+    if (mConfig == NULL || config == NULL) return false;
     //check compare
-    if (mConfig->getRemoteAddress().compare(config->getRemoteAddress()) != 0
+    if (mConfig->getRemoteAddress() == config->getRemoteAddress()
         && mConfig->getRemotePort() == config->getRemotePort()) {
         return true;
     }
@@ -132,12 +168,25 @@ bool AudioStreamGraphRtpTx::isSameConfig(RtpConfig* config) {
 
 void AudioStreamGraphRtpTx::startDtmf(char digit, int volume, int duration) {
     IMLOGD0("[startDtmf]");
-    (void)digit;
-    (void)volume;
-    (void)duration;
+    BaseNode* pDTMFNode = mListDtmfNodes.front();
+    if (pDTMFNode != NULL) {
+        IMLOGD3("[startDtmf] %c, vol[%d], duration[%d]", digit, volume, duration);
+        ImsMediaSubType subtype = MEDIASUBTYPE_DTMF_PAYLOAD;
+        if (duration == 0) {
+            subtype = MEDIASUBTYPE_DTMFSTART;
+        }
+        pDTMFNode->OnDataFromFrontNode(subtype, (uint8_t*)&digit, 1, volume, 0, duration);
+    } else {
+        IMLOGE0("[startDtmf] DTMF is not enabled");
+    }
 }
 
 void AudioStreamGraphRtpTx::stopDtmf() {
     IMLOGD0("[stopDtmf]");
-
+    BaseNode* pDTMFNode = mListDtmfNodes.front();
+    if (pDTMFNode != NULL) {
+        pDTMFNode->OnDataFromFrontNode(MEDIASUBTYPE_DTMFEND, 0, 0, 0, 0, 0);
+    } else {
+        IMLOGE0("[stopDtmf] DTMF is not enabled");
+    }
 }

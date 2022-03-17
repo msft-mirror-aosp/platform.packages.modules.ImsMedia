@@ -178,10 +178,35 @@ void BaseNode::SetConfig(void* config) {
     IMLOGE0("[SetConfig] Error - base method");
 }
 
-bool BaseNode::UpdateConfig(void* config) {
+bool BaseNode::IsSameConfig(void* config) {
     (void)config;
-    IMLOGE0("UpdateConfig] Error - base method");
-    return false;
+    IMLOGE0("[IsSameConfig] Error - base method");
+    return true;
+}
+
+ImsMediaResult BaseNode::UpdateConfig(void* config) {
+    //check config items updates
+    bool isUpdateNode = false;
+    if (IsSameConfig(config)) {
+        IMLOGD0("[UpdateConfig] no update");
+        return IMS_MEDIA_OK;
+    } else {
+        isUpdateNode = true;
+    }
+
+    BaseNodeState prevState = mNodeState;
+    if (isUpdateNode && mNodeState == NODESTATE_RUNNING) {
+        Stop();
+    }
+
+    //reset the parameters
+    SetConfig(config);
+
+    if (isUpdateNode && prevState == NODESTATE_RUNNING) {
+        return Start();
+    }
+
+    return IMS_MEDIA_OK;
 }
 
 void BaseNode::ProcessData() {

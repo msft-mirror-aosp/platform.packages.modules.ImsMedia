@@ -6,10 +6,8 @@ namespace telephony {
 
 namespace imsmedia {
 
-RtcpConfig::RtcpConfig() : canonicalName("") {
-    transmitPort = 0;
-    intervalSec = 0;
-    rtcpXrBlockTypes = 0;
+RtcpConfig::RtcpConfig() : canonicalName(""), transmitPort(0),
+    intervalSec(0), rtcpXrBlockTypes(0) {
 }
 
 RtcpConfig::RtcpConfig(RtcpConfig& config) {
@@ -48,7 +46,8 @@ bool RtcpConfig::operator!=(const RtcpConfig& config) const {
 status_t RtcpConfig::writeToParcel(Parcel* out) const {
     status_t err;
 
-    err = out->writeString8(canonicalName);
+    String16 name(canonicalName);
+    err = out->writeString16(name);
     if (err != NO_ERROR) {
         return err;
     }
@@ -74,10 +73,13 @@ status_t RtcpConfig::writeToParcel(Parcel* out) const {
 status_t RtcpConfig::readFromParcel(const Parcel* in) {
     status_t err;
 
-    err = in->readString8(&canonicalName);
+    String16 name;
+    err = in->readString16(&name);
     if (err != NO_ERROR) {
         return err;
     }
+
+    canonicalName = String8(name.string());
 
     err = in->readInt32(&transmitPort);
     if (err != NO_ERROR) {

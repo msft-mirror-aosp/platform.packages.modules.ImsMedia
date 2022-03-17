@@ -36,16 +36,20 @@ public:
         ImsMediaSubType nDataType = MEDIASUBTYPE_UNDEFINED);
     virtual bool IsRunTime();
     virtual bool IsSourceNode();
+    void SetConfig(void* config);
+    virtual bool IsSameConfig(void* config);
     virtual void OnRtcpInd(tRtpSvc_IndicationFromStack eIndType, void *pMsg);
-    virtual void OnNumReceivedPacket(int32_t nNumRTPPacket, uint32_t nNumRTCPSRPacket,
-        uint32_t nNumRTCPRRPacket);
+    virtual void OnNumReceivedPacket(uint32_t nNumRTCPSRPacket, uint32_t nNumRTCPRRPacket);
     void SetLocalAddress(const RtpAddress address);
     void SetPeerAddress(const RtpAddress address);
+    void SetInactivityTimerSec(const uint32_t time);
 
 private:
     IRtpSession* mRtpSession;
     RtpAddress mLocalAddress;
     RtpAddress mPeerAddress;
+    uint32_t mInactivityTime;
+    uint32_t mNoRtcpTime;
 };
 
 #endif // RTCPDECODERNODE_H

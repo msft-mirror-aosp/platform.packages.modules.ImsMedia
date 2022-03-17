@@ -41,7 +41,6 @@ const int8_t kMaxPtimeMillis = 100;
 const int8_t kTxCodecModeRequest = 15;
 const bool kDtxEnabled = true;
 const int32_t kCodecType = AudioConfig::CODEC_AMR_WB;
-const int32_t kEvsBandwidth = AudioConfig::EVS_BAND_NONE;
 const int32_t kDtmfPayloadTypeNumber = 100;
 const int32_t kDtmfsamplingRateKHz = 16;
 
@@ -51,6 +50,7 @@ const bool kOctetAligned = false;
 const int32_t kMaxRedundancyMillis = 240;
 
 //EvsParam
+const int32_t kEvsBandwidth = EvsParams::EVS_BAND_NONE;
 const int32_t kEvsMode = 8;
 const int8_t kChannelAwareMode = 3;
 const bool kUseHeaderFullOnlyOnTx = false;
@@ -80,6 +80,7 @@ protected:
         amr->setOctetAligned(kOctetAligned);
         amr->setMaxRedundancyMillis(kMaxRedundancyMillis);
 
+        evs->setEvsBandwidth(kEvsBandwidth);
         evs->setEvsMode(kEvsMode);
         evs->setChannelAwareMode(kChannelAwareMode);
         evs->setUseHeaderFullOnlyOnTx(kUseHeaderFullOnlyOnTx);
@@ -100,7 +101,6 @@ protected:
         config1->setTxCodecModeRequest(kTxCodecModeRequest);
         config1->setDtxEnabled(kDtxEnabled);
         config1->setCodecType(kCodecType);
-        config1->setEvsBandwidth(kEvsBandwidth);
         config1->setDtmfPayloadTypeNumber(kDtmfPayloadTypeNumber);
         config1->setDtmfsamplingRateKHz(kDtmfsamplingRateKHz);
         config1->setAmrParams(*amr);
@@ -154,7 +154,6 @@ TEST_F(AudioConfigTest, TestGetterSetter) {
     EXPECT_EQ(config1->getTxCodecModeRequest(), kTxCodecModeRequest);
     EXPECT_EQ(config1->getDtxEnabled(), kDtxEnabled);
     EXPECT_EQ(config1->getCodecType(), kCodecType);
-    EXPECT_EQ(config1->getEvsBandwidth(), kEvsBandwidth);
     EXPECT_EQ(config1->getDtmfPayloadTypeNumber(), kDtmfPayloadTypeNumber);
     EXPECT_EQ(config1->getDtmfsamplingRateKHz(), kDtmfsamplingRateKHz);
     EXPECT_EQ(config1->getAmrParams(), *amr);
@@ -172,6 +171,12 @@ TEST_F(AudioConfigTest, TestParcel) {
     delete configTest;
 }
 
+TEST_F(AudioConfigTest, TestAssign) {
+    AudioConfig testConfig;
+    testConfig = config1;
+    EXPECT_EQ(*config1, testConfig);
+}
+
 TEST_F(AudioConfigTest, TestEqual) {
     config2->setMediaDirection(kMediaDirection);
     config2->setRemoteAddress(kRemoteAddress);
@@ -187,7 +192,6 @@ TEST_F(AudioConfigTest, TestEqual) {
     config2->setTxCodecModeRequest(kTxCodecModeRequest);
     config2->setDtxEnabled(kDtxEnabled);
     config2->setCodecType(kCodecType);
-    config2->setEvsBandwidth(kEvsBandwidth);
     config2->setDtmfPayloadTypeNumber(kDtmfPayloadTypeNumber);
     config2->setDtmfsamplingRateKHz(kDtmfsamplingRateKHz);
     config2->setAmrParams(*amr);
@@ -210,7 +214,6 @@ TEST_F(AudioConfigTest, TestNotEqual) {
     config2->setTxCodecModeRequest(kTxCodecModeRequest);
     config2->setDtxEnabled(kDtxEnabled);
     config2->setCodecType(kCodecType);
-    config2->setEvsBandwidth(kEvsBandwidth);
     config2->setDtmfPayloadTypeNumber(kDtmfPayloadTypeNumber);
     config2->setDtmfsamplingRateKHz(kDtmfsamplingRateKHz);
     config2->setAmrParams(*amr);
@@ -230,7 +233,6 @@ TEST_F(AudioConfigTest, TestNotEqual) {
     config3->setTxCodecModeRequest(kTxCodecModeRequest);
     config3->setDtxEnabled(false);
     config3->setCodecType(kCodecType);
-    config3->setEvsBandwidth(kEvsBandwidth);
     config3->setDtmfPayloadTypeNumber(kDtmfPayloadTypeNumber);
     config3->setDtmfsamplingRateKHz(kDtmfsamplingRateKHz);
     config3->setAmrParams(*amr);

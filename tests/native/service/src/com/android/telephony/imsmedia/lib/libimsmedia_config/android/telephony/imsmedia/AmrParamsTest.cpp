@@ -51,6 +51,17 @@ TEST(AmrParamsTest, TestParcel) {
     delete param2;
 }
 
+TEST(AmrParamsTest, TestAssign) {
+    AmrParams param;
+    param.setAmrMode(kAmrMode);
+    param.setOctetAligned(kOctetAligned);
+    param.setMaxRedundancyMillis(kMaxRedundancyMillis);
+
+    AmrParams param2;
+    param2 = param;
+    EXPECT_EQ(param, param2);
+}
+
 TEST(AmrParamsTest, TestEqual) {
     AmrParams* param = new AmrParams();
     param->setAmrMode(kAmrMode);

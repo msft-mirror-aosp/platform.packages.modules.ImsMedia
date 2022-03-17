@@ -17,8 +17,8 @@
 #ifndef Rtp_SESSION_H
 #define Rtp_SESSION_H
 
-#include <ImsMediaHal.h>
 #include <ImsMediaDefine.h>
+#include <AudioConfig.h>
 #include <RtpService.h>
 #include <list>
 #include <atomic>
@@ -58,6 +58,7 @@ public:
     virtual void OnMediaDataInd(unsigned char *pData, uint32_t nDataSize, uint32_t nTimestamp,
         bool bMark, uint16_t nSeqNum, uint32_t nPayloadType, uint32_t nSSRC, bool bExtension,
         uint16_t nExtensionData) = 0;
+    virtual void OnNumReceivedPacket(uint32_t nNumRtpPacket) = 0;
 };
 
 /*!
@@ -69,9 +70,10 @@ public:
     IRtcpDecoderListener() {}
     virtual ~IRtcpDecoderListener() {}
     virtual void OnRtcpInd(tRtpSvc_IndicationFromStack eIndType, void *pMsg) = 0;
-    virtual void OnNumReceivedPacket(int32_t nNumRtpPacket,
-        uint32_t nNumRtcpSRPacket, uint32_t nNumRtcpRRPacket) = 0;
+    virtual void OnNumReceivedPacket(uint32_t nNumRtcpSRPacket, uint32_t nNumRtcpRRPacket) = 0;
 };
+
+#define MAX_NUM_PAYLOAD_PARAM 3
 
 /*!
  * @class        IRtpSession
@@ -92,7 +94,8 @@ public:
     void SetRtpDecoderListener(IRtpDecoderListener *pRtpDecoderListener);
     void SetRtcpEncoderListener(IRtcpEncoderListener *pRtcpEncoderListener);
     void SetRtcpDecoderListener(IRtcpDecoderListener *pRtcpDecoderListener);
-    void SetRtpPayloadParam(const ImsMediaHal::RtpSessionParams &pRtpInfo);
+    void SetRtpPayloadParam(RtpConfig* config);
+    void SetRtpDtmfPayloadParam(AudioConfig* config);
     void SetRtcpInterval(int32_t nInterval);
     void StartRtp();
     void StopRtp();
@@ -100,7 +103,7 @@ public:
     void StopRtcp();
     bool SendRtpPacket(uint32_t nPayloadType, uint8_t *pData, uint32_t nDataSize,
         uint32_t nTimestamp, bool bMark, uint32_t nTimeDiff,
-        bool bExtension, std::shared_ptr<ImsMediaHal::RtpHeaderExtension> pExtensionInfo);
+        bool bExtension = false, void* pExtensionInfo = NULL);
     bool ProcRtpPacket(uint8_t *pData, uint32_t nDataSize);
     bool ProcRtcpPacket(uint8_t *pData, uint32_t nDataSize);
     void OnTimer();
@@ -123,11 +126,14 @@ private:
     std::atomic<int32_t> mRefCount;
     RtpAddress mLocalAddress;
     RtpAddress mPeerAddress;
-    // Listene*r
+    // Listener
     IRtpEncoderListener *mRtpEncoderListener;
     IRtpDecoderListener *mRtpDecoderListener;
     IRtcpEncoderListener *mRtcpEncoderListener;
     IRtcpDecoderListener *mRtcpDecoderListener;
+    //payload parameter
+    tRtpSvc_SetPayloadParam mPayloadParam[MAX_NUM_PAYLOAD_PARAM];
+    uint32_t mNumPayloadParam;
     // Rtp configure
     uint32_t mLocalRtpSsrc;
     uint32_t mPeerRtpSsrc;
@@ -146,11 +152,9 @@ private:
     uint32_t mNumRtpDataToSend;
     uint32_t mNumRtpPacketSent;
     uint32_t mNumRtcpPacketSent;
-    uint32_t mSamplingRate;
     int32_t mRttd;
     std::mutex mutexDecoder;
     std::mutex mutexEncoder;
-    std::mutex mutexRtpSession;
 };
 
 #endif

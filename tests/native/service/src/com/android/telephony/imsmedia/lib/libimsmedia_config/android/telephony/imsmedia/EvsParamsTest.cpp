@@ -19,6 +19,7 @@
 
 using namespace android::telephony::imsmedia;
 
+const int32_t kEvsBandwidth = EvsParams::EVS_BAND_NONE;
 const int32_t kEvsMode = 8;
 const int8_t kChannelAwareMode = 3;
 const bool kUseHeaderFullOnlyOnTx = false;
@@ -26,6 +27,7 @@ const bool kUseHeaderFullOnlyOnRx = false;
 
 TEST(EvsParamsTest, TestGetterSetter) {
     EvsParams* param = new EvsParams();
+    param->setEvsBandwidth(kEvsBandwidth);
     param->setEvsMode(kEvsMode);
     param->setChannelAwareMode(kChannelAwareMode);
     param->setUseHeaderFullOnlyOnTx(kUseHeaderFullOnlyOnTx);
@@ -39,6 +41,7 @@ TEST(EvsParamsTest, TestGetterSetter) {
 
 TEST(EvsParamsTest, TestParcel) {
     EvsParams* param = new EvsParams();
+    param->setEvsBandwidth(kEvsBandwidth);
     param->setEvsMode(kEvsMode);
     param->setChannelAwareMode(kChannelAwareMode);
     param->setUseHeaderFullOnlyOnTx(kUseHeaderFullOnlyOnTx);
@@ -56,14 +59,29 @@ TEST(EvsParamsTest, TestParcel) {
     delete param2;
 }
 
+TEST(EvsParamsTest, TestAssign) {
+    EvsParams param;
+    param.setEvsBandwidth(kEvsBandwidth);
+    param.setEvsMode(kEvsMode);
+    param.setChannelAwareMode(kChannelAwareMode);
+    param.setUseHeaderFullOnlyOnTx(kUseHeaderFullOnlyOnTx);
+    param.setUseHeaderFullOnlyOnRx(kUseHeaderFullOnlyOnRx);
+
+    EvsParams param2;
+    param2 = param;
+    EXPECT_EQ(param, param2);
+}
+
 TEST(EvsParamsTest, TestEqual) {
     EvsParams* param = new EvsParams();
+    param->setEvsBandwidth(kEvsBandwidth);
     param->setEvsMode(kEvsMode);
     param->setChannelAwareMode(kChannelAwareMode);
     param->setUseHeaderFullOnlyOnTx(kUseHeaderFullOnlyOnTx);
     param->setUseHeaderFullOnlyOnRx(kUseHeaderFullOnlyOnRx);
 
     EvsParams* param2 = new EvsParams();
+    param2->setEvsBandwidth(kEvsBandwidth);
     param2->setEvsMode(kEvsMode);
     param2->setChannelAwareMode(kChannelAwareMode);
     param2->setUseHeaderFullOnlyOnTx(kUseHeaderFullOnlyOnTx);
@@ -76,18 +94,21 @@ TEST(EvsParamsTest, TestEqual) {
 
 TEST(EvsParamsTest, TestNotEqual) {
     EvsParams* param = new EvsParams();
+    param->setEvsBandwidth(kEvsBandwidth);
     param->setEvsMode(kEvsMode);
     param->setChannelAwareMode(kChannelAwareMode);
     param->setUseHeaderFullOnlyOnTx(kUseHeaderFullOnlyOnTx);
     param->setUseHeaderFullOnlyOnRx(kUseHeaderFullOnlyOnRx);
 
     EvsParams* param2 = new EvsParams();
+    param2->setEvsBandwidth(kEvsBandwidth);
     param2->setEvsMode(5);
     param2->setChannelAwareMode(kChannelAwareMode);
     param2->setUseHeaderFullOnlyOnTx(kUseHeaderFullOnlyOnTx);
     param2->setUseHeaderFullOnlyOnRx(kUseHeaderFullOnlyOnRx);
 
     EvsParams* param3 = new EvsParams();
+    param3->setEvsBandwidth(kEvsBandwidth);
     param3->setEvsMode(kEvsMode);
     param3->setChannelAwareMode(kChannelAwareMode);
     param3->setUseHeaderFullOnlyOnTx(true);

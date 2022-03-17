@@ -38,16 +38,15 @@ public:
         uint8_t* pData, uint32_t nDataSize, uint32_t nTimestamp, bool bMark, uint32_t nSeqNum,
         ImsMediaSubType nDataType = ImsMediaSubType::MEDIASUBTYPE_UNDEFINED);
     virtual void SetConfig(void* config);
-    void SetCodec(eAudioCodecType eCodecType);
-    void SetPayloadMode(uint32_t mode);
+    void SetCodec(int32_t type);
+    void SetPayloadMode(bool mode);
     void SetPtime(uint32_t ptime);
 private:
     void Encode_PH_AMR(uint8_t* pData, uint32_t nDataSize, uint32_t nTimestamp, bool bMark);
 
 private:
-    std::shared_ptr<ImsMediaHal::RtpSessionParams> mSessionParams;
-    eAudioCodecType mCodecType;
-    uint32_t mPayloadMode;
+    int32_t mCodecType;
+    bool mOctetAligned;
     uint32_t mPtime;
     uint8_t mPayload[MAX_AUDIO_PAYLOAD_SIZE];
     bool mFirstFrame;

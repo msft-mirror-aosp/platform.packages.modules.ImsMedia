@@ -34,38 +34,24 @@ public:
     virtual void Stop();
     virtual bool IsRunTime();
     virtual bool IsSourceNode();
+    virtual void SetConfig(void* config);
+    virtual bool IsSameConfig(void* config);
     virtual void OnDataFromFrontNode(ImsMediaSubType subtype,
         uint8_t* pData, uint32_t nDataSize, uint32_t nTimestamp, bool bMark, uint32_t nSeqNum,
         ImsMediaSubType nDataType = ImsMediaSubType::MEDIASUBTYPE_UNDEFINED);
     void SetLocalFd(int fd);
-    void SetLocalEndpoint(const char* ipAddress, const uint32_t port) {
-        std::strcpy(mLocalIP, ipAddress);
-        mLocalPort = port;
-    }
-    void SetPeerEndpoint(const char* ipAddress, const uint32_t port) {
-        std::strcpy(mPeerIP, ipAddress);
-        mPeerPort = port;
-    }
-    int GetLocalPort() {
-        return mLocalPort;
-    }
-    int GetPeerPort() {
-        return mPeerPort;
-    }
-    char* GetLocalIPAddress() {
-        return mLocalIP;
-    }
-    char* GetPeerIPAddress() {
-        return mPeerIP;
+    void SetLocalAddress(const RtpAddress address);
+    void SetPeerAddress(const RtpAddress address);
+    void SetProtocolType(ImsMediaProtocolType type) {
+        mProtocolType = type;
     }
 
 private:
     int mLocalFd;
     ISocket* mSocket;
-    char mLocalIP[MAX_IP_LEN];
-    char mPeerIP[MAX_IP_LEN];
-    uint32_t mLocalPort;
-    uint32_t mPeerPort;
+    ImsMediaProtocolType mProtocolType;
+    RtpAddress mLocalAddress;
+    RtpAddress mPeerAddress;
     bool mbSocketOpened;
     bool mDisableSocket;
 };

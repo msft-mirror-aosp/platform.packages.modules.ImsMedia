@@ -35,22 +35,15 @@ class AudioConfig : public RtpConfig {
 public:
     enum CodecType {
         /** Adaptive Multi-Rate */
-        CODEC_AMR,
+        CODEC_AMR = 1 << 0,
         /** Adaptive Multi-Rate Wide Band */
-        CODEC_AMR_WB,
+        CODEC_AMR_WB = 1 << 1,
         /** Enhanced Voice Services */
-        CODEC_EVS,
+        CODEC_EVS = 1 << 2,
         /** G.711 A-law i.e. Pulse Code Modulation using A-law */
-        CODEC_PCMA,
+        CODEC_PCMA = 1 << 3,
         /** G.711 μ-law i.e. Pulse Code Modulation using μ-law */
-        CODEC_PCMU,
-    };
-    enum EvsBandwidth {
-        EVS_BAND_NONE,
-        EVS_NARROW_BAND,
-        EVS_WIDE_BAND,
-        EVS_SUPER_WIDE_BAND,
-        EVS_FULL_BAND,
+        CODEC_PCMU = 1 << 4,
     };
 
     AudioConfig();
@@ -72,8 +65,6 @@ public:
     bool getDtxEnabled();
     void setCodecType(int32_t type);
     int32_t getCodecType();
-    void setEvsBandwidth(int32_t bandwidth);
-    int32_t getEvsBandwidth();
     void setDtmfPayloadTypeNumber(int32_t num);
     int32_t getDtmfPayloadTypeNumber();
     void setDtmfsamplingRateKHz(int32_t sampling);
@@ -89,7 +80,6 @@ protected:
     int8_t txCodecModeRequest;
     bool dtxEnabled;
     int32_t codecType;
-    int32_t evsBandwidth;
     int32_t dtmfPayloadTypeNumber;
     int32_t dtmfsamplingRateKHz;
     AmrParams amrParams;

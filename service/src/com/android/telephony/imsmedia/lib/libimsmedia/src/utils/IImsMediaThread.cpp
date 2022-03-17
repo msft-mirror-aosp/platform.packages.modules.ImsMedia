@@ -24,7 +24,7 @@
  */
 IImsMediaThread::IImsMediaThread() {
     mThread = NULL;
-    mbStopped = false;
+    mStopped = false;
 }
 
 IImsMediaThread::~IImsMediaThread() {
@@ -34,38 +34,35 @@ bool IImsMediaThread::StartThread() {
     IMLOGD0("[IImsMediaThread::StartThread]");
     pthread_t thr;
     pthread_attr_t attr;
+    mStopped = false;
 
     if (pthread_attr_init(&attr) < 0) {
         IMLOGD0("[IImsMediaThread::StartThread] pthread_attr_init error");
+        mStopped = true;
         return false;
     }
 
     if (pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED) < 0) {
         IMLOGD0("[IImsMediaThread::StartThread] pthread_attr_setdetachstate error");
         pthread_attr_destroy(&attr);
+        mStopped = true;
         return false;
     }
 
-//    pthread_attr_getschedparam(&attr, &sched);
-//    sched.sched_priority += (-16);         // android.os.Process.THREAD_PRIORITY_AUDIO = -16
-//    pthread_attr_setschedparam(&attr, &sched);
-#if 1
     if (pthread_create(&thr, &attr, thread_fn, (void*)this) < 0) {
         IMLOGD0("[IImsMediaThread::StartThread] pthread_create error");
         pthread_attr_destroy(&attr);
+        mStopped = true;
         return false;
     }
 
     pthread_attr_destroy(&attr);
-#else
-    pthread_create(&thr, NULL, thread_fn, (void*)this);
-#endif
     mThread = (void*)thr;
     return true;
 }
 
 void IImsMediaThread::StopThread() {
-    mbStopped = true;
+    mStopped = true;
 }
 
 bool IImsMediaThread::IsMyThread() {
@@ -74,7 +71,7 @@ bool IImsMediaThread::IsMyThread() {
 }
 
 bool IImsMediaThread::IsThreadStopped() {
-    return mbStopped;
+    return mStopped;
 }
 
 void* IImsMediaThread::thread_fn(void* arg) {

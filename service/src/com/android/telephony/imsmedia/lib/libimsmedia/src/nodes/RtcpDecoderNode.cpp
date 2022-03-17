@@ -19,6 +19,8 @@
 
 RtcpDecoderNode::RtcpDecoderNode() {
     mRtpSession = NULL;
+    mInactivityTime = 0;
+    mNoRtcpTime = 0;
 }
 
 RtcpDecoderNode::~RtcpDecoderNode() {
@@ -53,6 +55,8 @@ ImsMediaResult RtcpDecoderNode::Start() {
     }
     mRtpSession->SetRtcpDecoderListener(this);
     mRtpSession->StartRtcp();
+    mInactivityTime = 0;
+    mNoRtcpTime = 0;
     mNodeState = NODESTATE_RUNNING;
     return IMS_MEDIA_OK;
 }
@@ -87,17 +91,45 @@ bool RtcpDecoderNode::IsSourceNode() {
     return false;
 }
 
+void RtcpDecoderNode::SetConfig(void* config) {
+    if (config == NULL) return;
+    RtpConfig* pConfig = reinterpret_cast<RtpConfig*>(config);
+    mPeerAddress = RtpAddress(pConfig->getRemoteAddress().c_str(), pConfig->getRemotePort());
+    IMLOGD2("[SetConfig] peer Ip[%s], port[%d]", mPeerAddress.ipAddress,
+        mPeerAddress.port);
+}
+
+bool RtcpDecoderNode::IsSameConfig(void* config) {
+    if (config == NULL) return true;
+    RtpConfig* pConfig = reinterpret_cast<RtpConfig*>(config);
+    RtpAddress peerAddress = RtpAddress(pConfig->getRemoteAddress().c_str(),
+        pConfig->getRemotePort());
+
+    return (mPeerAddress == peerAddress);
+}
+
 void RtcpDecoderNode::OnRtcpInd(tRtpSvc_IndicationFromStack eIndType, void* pMsg) {
     (void)pMsg;
     IMLOGD_PACKET1(IM_PACKET_LOG_RTCP,
         "[OnRtcpInd] type[%d]", eIndType);
 }
 
-void RtcpDecoderNode::OnNumReceivedPacket(int32_t nNumRTPPacket,
-    uint32_t nNumRtcpSRPacket, uint32_t nNumRtcpRRPacket) {
+void RtcpDecoderNode::OnNumReceivedPacket(uint32_t nNumRtcpSRPacket, uint32_t nNumRtcpRRPacket) {
     IMLOGD_PACKET3(IM_PACKET_LOG_RTCP,
-        "[OnNumReceivedPacket] mediaType[%d], numRTP[%d], numSR[%d], numRR[%d]",
-        nNumRTPPacket, nNumRtcpSRPacket, nNumRtcpRRPacket);
+        "[OnNumReceivedPacket] mediaType[%d], numSR[%d], numRR[%d]",
+        mMediaType, nNumRtcpSRPacket, nNumRtcpRRPacket);
+
+    if (nNumRtcpSRPacket == 0 && nNumRtcpRRPacket == 0) {
+        mNoRtcpTime++;
+    } else{
+        mNoRtcpTime = 0;
+    }
+
+    if (mInactivityTime != 0 && mNoRtcpTime == mInactivityTime) {
+        if (mCallback != NULL) {
+            mCallback->SendEvent(EVENT_NOTIFY_MEDIA_INACITIVITY, RTCP, mInactivityTime);
+        }
+    }
 }
 
 void RtcpDecoderNode::SetLocalAddress(const RtpAddress address) {
@@ -106,4 +138,8 @@ void RtcpDecoderNode::SetLocalAddress(const RtpAddress address) {
 
 void RtcpDecoderNode::SetPeerAddress(const RtpAddress address) {
     mPeerAddress = address;
+}
+
+void RtcpDecoderNode::SetInactivityTimerSec(const uint32_t time) {
+    mInactivityTime = time;
 }

@@ -22,6 +22,7 @@ import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
+import android.os.Parcel;
 import android.os.Looper;
 import android.os.Message;
 import android.os.RemoteException;
@@ -65,6 +66,9 @@ public class AudioSessionTest {
     private AudioSession.AudioSessionHandler handler;
     @Mock
     private AudioService audioService;
+    private AudioListener audioListener;
+    @Mock
+    private AudioLocalSession audioLocalSession;
     @Mock
     private IImsAudioSessionCallback callback;
     private TestableLooper looper;
@@ -72,7 +76,8 @@ public class AudioSessionTest {
     @Before
     public void setUp() {
         MockitoAnnotations.initMocks(this);
-        audioSession = new AudioSession(SESSION_ID, callback, audioService);
+        audioSession = new AudioSession(SESSION_ID, callback, audioService, audioLocalSession);
+        audioListener = audioSession.getAudioListener();
         handler = audioSession.getAudioSessionHandler();
         try {
             looper = new TestableLooper(handler.getLooper());
@@ -87,6 +92,17 @@ public class AudioSessionTest {
             looper.destroy();
             looper = null;
         }
+    }
+
+    private Parcel createParcel(int message, int result, AudioConfig config) {
+        Parcel parcel = Parcel.obtain();
+        parcel.writeInt(message);
+        parcel.writeInt(result);
+        if (config != null) {
+            config.writeToParcel(parcel, 0);
+        }
+        parcel.setDataPosition(0);
+        return parcel;
     }
 
     @Test
@@ -120,11 +136,11 @@ public class AudioSessionTest {
         AudioConfig config = AudioConfigTest.createAudioConfig();
         audioSession.modifySession(config);
         processAllMessages();
-        verify(audioService, times(1)).modifySession(eq(config));
+        verify(audioLocalSession, times(1)).modifySession(eq(config));
 
         // Modify Session Response - SUCCESS
-        Utils.sendMessage(handler, AudioSession.EVENT_MODIFY_SESSION_RESPONSE,
-                SUCCESS, UNUSED, config);
+        audioListener.onMessage(
+            createParcel(AudioSession.EVENT_MODIFY_SESSION_RESPONSE, SUCCESS, config));
         processAllMessages();
         try {
             verify(callback, times(1)).onModifySessionResponse(eq(config), eq(SUCCESS));
@@ -133,8 +149,8 @@ public class AudioSessionTest {
         }
 
         // Modify Session Response - FAILURE
-        Utils.sendMessage(handler, AudioSession.EVENT_MODIFY_SESSION_RESPONSE,
-                FAILURE, UNUSED, config);
+        audioListener.onMessage(
+            createParcel(AudioSession.EVENT_MODIFY_SESSION_RESPONSE, FAILURE, config));
         processAllMessages();
         try {
             verify(callback, times(1)).onModifySessionResponse(eq(config), eq(FAILURE));
@@ -149,10 +165,11 @@ public class AudioSessionTest {
         AudioConfig config = AudioConfigTest.createAudioConfig();
         audioSession.addConfig(config);
         processAllMessages();
-        verify(audioService, times(1)).addConfig(eq(config));
+        verify(audioLocalSession, times(1)).addConfig(eq(config));
 
         // Add Config Response - SUCCESS
-        Utils.sendMessage(handler, AudioSession.EVENT_ADD_CONFIG_RESPONSE, SUCCESS, UNUSED, config);
+        audioListener.onMessage(
+            createParcel(AudioSession.EVENT_ADD_CONFIG_RESPONSE, SUCCESS, config));
         processAllMessages();
         try {
             verify(callback, times(1)).onAddConfigResponse(eq(config), eq(SUCCESS));
@@ -161,7 +178,8 @@ public class AudioSessionTest {
         }
 
         // Add Config Response - FAILURE
-        Utils.sendMessage(handler, AudioSession.EVENT_ADD_CONFIG_RESPONSE, FAILURE, UNUSED, config);
+        audioListener.onMessage(
+            createParcel(AudioSession.EVENT_ADD_CONFIG_RESPONSE, FAILURE, config));
         processAllMessages();
         try {
             verify(callback, times(1)).onAddConfigResponse(eq(config), eq(FAILURE));
@@ -176,7 +194,7 @@ public class AudioSessionTest {
         AudioConfig config = AudioConfigTest.createAudioConfig();
         audioSession.deleteConfig(config);
         processAllMessages();
-        verify(audioService, times(1)).deleteConfig(eq(config));
+        verify(audioLocalSession, times(1)).deleteConfig(eq(config));
     }
 
     @Test
@@ -185,11 +203,11 @@ public class AudioSessionTest {
         AudioConfig config = AudioConfigTest.createAudioConfig();
         audioSession.confirmConfig(config);
         processAllMessages();
-        verify(audioService, times(1)).confirmConfig(eq(config));
+        verify(audioLocalSession, times(1)).confirmConfig(eq(config));
 
         // Confirm Config Response - SUCCESS
-        Utils.sendMessage(handler, AudioSession.EVENT_CONFIRM_CONFIG_RESPONSE,
-                SUCCESS, UNUSED, config);
+        audioListener.onMessage(
+            createParcel(AudioSession.EVENT_CONFIRM_CONFIG_RESPONSE, SUCCESS, config));
         processAllMessages();
         try {
             verify(callback, times(1)).onConfirmConfigResponse(eq(config), eq(SUCCESS));
@@ -198,8 +216,8 @@ public class AudioSessionTest {
         }
 
         // Confirm Config Response - FAILURE
-        Utils.sendMessage(handler, AudioSession.EVENT_CONFIRM_CONFIG_RESPONSE,
-                FAILURE, UNUSED, config);
+        audioListener.onMessage(
+            createParcel(AudioSession.EVENT_CONFIRM_CONFIG_RESPONSE, FAILURE, config));
         processAllMessages();
         try {
             verify(callback, times(1)).onConfirmConfigResponse(eq(config), eq(FAILURE));
@@ -212,14 +230,15 @@ public class AudioSessionTest {
     public void testStartDtmf() {
         audioSession.startDtmf(DTMF_DIGIT, DTMF_VOL, DTMF_DURATION);
         processAllMessages();
-        verify(audioService, times(1)).startDtmf(eq(DTMF_DIGIT), eq(DTMF_VOL), eq(DTMF_DURATION));
+        verify(audioLocalSession, times(1)).startDtmf(eq(DTMF_DIGIT), eq(DTMF_VOL),
+            eq(DTMF_DURATION));
     }
 
     @Test
     public void testStopDtmf() {
         audioSession.stopDtmf();
         processAllMessages();
-        verify(audioService, times(1)).stopDtmf();
+        verify(audioLocalSession, times(1)).stopDtmf();
     }
 
     @Test
@@ -228,14 +247,18 @@ public class AudioSessionTest {
         MediaQualityThreshold threshold = MediaQualityThresholdTest.createMediaQualityThreshold();
         audioSession.setMediaQualityThreshold(threshold);
         processAllMessages();
-        verify(audioService, times(1)).setMediaQualityThreshold(eq(threshold));
+        verify(audioLocalSession, times(1)).setMediaQualityThreshold(eq(threshold));
     }
 
     @Test
     public void testMediaInactivityInd() {
         // Receive Inactivity - RTP
-        Utils.sendMessage(handler, AudioSession.EVENT_MEDIA_INACTIVITY_IND,
-                RTP, INACTIVITY_TIMEOUT);
+        Parcel parcel = Parcel.obtain();
+        parcel.writeInt(AudioSession.EVENT_MEDIA_INACTIVITY_IND);
+        parcel.writeInt(RTP);
+        parcel.writeInt(INACTIVITY_TIMEOUT);
+        parcel.setDataPosition(0);
+        audioListener.onMessage(parcel);
         processAllMessages();
         try {
             verify(callback, times(1)).notifyMediaInactivity(eq(RTP), eq(INACTIVITY_TIMEOUT));
@@ -244,8 +267,12 @@ public class AudioSessionTest {
         }
 
         // Receive Inactivity - RTCP
-        Utils.sendMessage(handler, AudioSession.EVENT_MEDIA_INACTIVITY_IND,
-                RTCP, INACTIVITY_TIMEOUT);
+        Parcel parcel2 = Parcel.obtain();
+        parcel2.writeInt(AudioSession.EVENT_MEDIA_INACTIVITY_IND);
+        parcel2.writeInt(RTCP);
+        parcel2.writeInt(INACTIVITY_TIMEOUT);
+        parcel2.setDataPosition(0);
+        audioListener.onMessage(parcel2);
         processAllMessages();
         try {
             verify(callback, times(1)).notifyMediaInactivity(eq(RTCP), eq(INACTIVITY_TIMEOUT));
@@ -297,7 +324,7 @@ public class AudioSessionTest {
         ArrayList extensions = new ArrayList<RtpHeaderExtension>();
         audioSession.sendHeaderExtension(extensions);
         processAllMessages();
-        verify(audioService, times(1)).sendHeaderExtension(eq(extensions));
+        verify(audioLocalSession, times(1)).sendHeaderExtension(eq(extensions));
 
         // Receive RtpHeaderExtension
         Utils.sendMessage(handler, AudioSession.EVENT_RTP_HEADER_EXTENSION_IND, extensions);
