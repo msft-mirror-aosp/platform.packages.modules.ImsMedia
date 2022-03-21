@@ -60,7 +60,8 @@ public class AudioOffloadService {
         Rlog.d(LOG_TAG, "initMediaHal");
 
         try {
-            mImsMedia = IImsMedia.Stub.asInterface(ServiceManager.waitForService("ims-media"));
+            mImsMedia = IImsMedia.Stub.asInterface(ServiceManager.waitForDeclaredService(
+                    IImsMedia.DESCRIPTOR + "/default"));
             mImsMedia.setListener(listener);
         } catch (Exception e) {
             Rlog.e(LOG_TAG, "initMediaHal: Exception: " + e);
