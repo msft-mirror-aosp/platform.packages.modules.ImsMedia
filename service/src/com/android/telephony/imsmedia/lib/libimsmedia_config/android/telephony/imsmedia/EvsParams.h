@@ -96,15 +96,15 @@ public:
     bool operator!=(const EvsParams& param) const;
     virtual status_t writeToParcel(Parcel* parcel) const;
     virtual status_t readFromParcel(const Parcel* in);
-    void setEvsBandwidth(int32_t bandwidth);
+    void setEvsBandwidth(const int32_t bandwidth);
     int32_t getEvsBandwidth();
-    void setEvsMode(int32_t mode);
+    void setEvsMode(const int32_t mode);
     int32_t getEvsMode();
     void setChannelAwareMode(int8_t mode);
     int8_t getChannelAwareMode();
-    void setUseHeaderFullOnlyOnTx(bool enable);
+    void setUseHeaderFullOnlyOnTx(const bool enable);
     bool getUseHeaderFullOnlyOnTx();
-    void setUseHeaderFullOnlyOnRx(bool enable);
+    void setUseHeaderFullOnlyOnRx(const bool enable);
     bool getUseHeaderFullOnlyOnRx();
 
 private:

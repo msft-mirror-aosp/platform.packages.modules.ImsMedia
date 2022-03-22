@@ -60,6 +60,10 @@ bool AmrParams::operator!=(const AmrParams& param) const {
 
 status_t AmrParams::writeToParcel(Parcel* out) const {
     status_t err;
+    if (out == NULL) {
+        return BAD_VALUE;
+    }
+
     err = out->writeInt32(amrMode);
     if (err != NO_ERROR) {
         return err;
@@ -81,6 +85,10 @@ status_t AmrParams::writeToParcel(Parcel* out) const {
 
 status_t AmrParams::readFromParcel(const Parcel* in) {
     status_t err;
+    if (in == NULL) {
+        return BAD_VALUE;
+    }
+
     err = in->readInt32(&amrMode);
     if (err != NO_ERROR) {
         return err;
@@ -102,7 +110,7 @@ status_t AmrParams::readFromParcel(const Parcel* in) {
     return NO_ERROR;
 }
 
-void AmrParams::setAmrMode(int32_t mode) {
+void AmrParams::setAmrMode(const int32_t mode) {
     amrMode = mode;
 }
 
@@ -110,7 +118,7 @@ int32_t AmrParams::getAmrMode() {
     return amrMode;
 }
 
-void AmrParams::setOctetAligned(bool enable) {
+void AmrParams::setOctetAligned(const bool enable) {
     octetAligned = enable;
 }
 
@@ -118,7 +126,7 @@ bool AmrParams::getOctetAligned() {
     return octetAligned;
 }
 
-void AmrParams::setMaxRedundancyMillis(int32_t value) {
+void AmrParams::setMaxRedundancyMillis(const int32_t value) {
     maxRedundancyMillis = value;
 }
 

@@ -6,6 +6,7 @@ namespace telephony {
 
 namespace imsmedia {
 
+/** Native representation of android.telephony.imsmedia.RtcpConfig */
 RtcpConfig::RtcpConfig() : canonicalName(""), transmitPort(0),
     intervalSec(0), rtcpXrBlockTypes(0) {
 }
@@ -45,6 +46,9 @@ bool RtcpConfig::operator!=(const RtcpConfig& config) const {
 
 status_t RtcpConfig::writeToParcel(Parcel* out) const {
     status_t err;
+    if (out == NULL) {
+        return BAD_VALUE;
+    }
 
     String16 name(canonicalName);
     err = out->writeString16(name);
@@ -72,6 +76,9 @@ status_t RtcpConfig::writeToParcel(Parcel* out) const {
 
 status_t RtcpConfig::readFromParcel(const Parcel* in) {
     status_t err;
+    if (in == NULL) {
+        return BAD_VALUE;
+    }
 
     String16 name;
     err = in->readString16(&name);
@@ -107,7 +114,7 @@ String8 RtcpConfig::getCanonicalName() {
     return canonicalName;
 }
 
-void RtcpConfig::setTransmitPort(int32_t port) {
+void RtcpConfig::setTransmitPort(const int32_t port) {
     transmitPort = port;
 }
 
@@ -115,7 +122,7 @@ int32_t RtcpConfig::getTransmitPort() {
     return transmitPort;
 }
 
-void RtcpConfig::setIntervalSec(int32_t interval) {
+void RtcpConfig::setIntervalSec(const int32_t interval) {
     intervalSec = interval;
 }
 
@@ -123,7 +130,7 @@ int32_t RtcpConfig::getIntervalSec() {
     return intervalSec;
 }
 
-void RtcpConfig::setRtcpXrBlockTypes(int32_t type) {
+void RtcpConfig::setRtcpXrBlockTypes(const int32_t type) {
     rtcpXrBlockTypes = type;
 }
 

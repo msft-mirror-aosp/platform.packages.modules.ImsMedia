@@ -53,6 +53,8 @@ bool VoiceManager::openSession(int sessionId, int rtpFd, int rtcpFd, AudioConfig
     ImsMediaTrace::IMSetDebugLog(IM_PACKET_LOG_SOCKET | IM_PACKET_LOG_AUDIO | IM_PACKET_LOG_RTP |
         IM_PACKET_LOG_RTCP | IM_PACKET_LOG_PH | IM_PACKET_LOG_JITTER);
 
+    if (rtpFd == -1 || rtcpFd == -1) return false;
+
     if (!mSessions.count(sessionId)) {
         AudioSession* session = new AudioSession();
         session->setSessionId(sessionId);
@@ -167,8 +169,6 @@ void VoiceManager::sendMessage(const int sessionId, const android::Parcel& parce
             err = config->readFromParcel(&parcel);
             if (err != NO_ERROR) {
                 IMLOGE1("sendMessage() - error readFromParcel[%d]", err);
-                delete config;
-                return;
             }
             EventParamOpenSession* param = new EventParamOpenSession(rtpFd, rtcpFd, config);
             ImsMediaEventHandler::SendEvent("VOICE_REQUEST_EVENT", nMsg,
@@ -187,8 +187,6 @@ void VoiceManager::sendMessage(const int sessionId, const android::Parcel& parce
             config->readFromParcel(&parcel);
             if (err != NO_ERROR) {
                 IMLOGE1("sendMessage() - error readFromParcel[%d]", err);
-                delete config;
-                return;
             }
             ImsMediaEventHandler::SendEvent("VOICE_REQUEST_EVENT", nMsg,
                 sessionId, reinterpret_cast<uint64_t>(config));

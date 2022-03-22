@@ -154,6 +154,10 @@ bool AudioConfig::operator!=(const AudioConfig &config) const {
 
 status_t AudioConfig::writeToParcel(Parcel* out) const {
     status_t err;
+    if (out == NULL) {
+        return BAD_VALUE;
+    }
+
     err = RtpConfig::writeToParcel(out);
     if (err != NO_ERROR) {
         return err;
@@ -164,7 +168,7 @@ status_t AudioConfig::writeToParcel(Parcel* out) const {
         return err;
     }
 
-    err = out->writeByte(maxPtimeMillis);
+    err = out->writeInt32(maxPtimeMillis);
     if (err != NO_ERROR) {
         return err;
     }
@@ -186,12 +190,12 @@ status_t AudioConfig::writeToParcel(Parcel* out) const {
         return err;
     }
 
-    err = out->writeInt32(dtmfPayloadTypeNumber);
+    err = out->writeByte(dtmfPayloadTypeNumber);
     if (err != NO_ERROR) {
         return err;
     }
 
-    err = out->writeInt32(dtmfsamplingRateKHz);
+    err = out->writeByte(dtmfsamplingRateKHz);
     if (err != NO_ERROR) {
         return err;
     }
@@ -225,6 +229,10 @@ status_t AudioConfig::writeToParcel(Parcel* out) const {
 
 status_t AudioConfig::readFromParcel(const Parcel* in) {
     status_t err;
+    if (in == NULL) {
+        return BAD_VALUE;
+    }
+
     err = RtpConfig::readFromParcel(in);
     if (err != NO_ERROR) {
         return err;
@@ -235,7 +243,7 @@ status_t AudioConfig::readFromParcel(const Parcel* in) {
         return err;
     }
 
-    err = in->readByte(&maxPtimeMillis);
+    err = in->readInt32(&maxPtimeMillis);
     if (err != NO_ERROR) {
         return err;
     }
@@ -258,12 +266,12 @@ status_t AudioConfig::readFromParcel(const Parcel* in) {
         return err;
     }
 
-    err = in->readInt32(&dtmfPayloadTypeNumber);
+    err = in->readByte(&dtmfPayloadTypeNumber);
     if (err != NO_ERROR) {
         return err;
     }
 
-    err = in->readInt32(&dtmfsamplingRateKHz);
+    err = in->readByte(&dtmfsamplingRateKHz);
     if (err != NO_ERROR) {
         return err;
     }
@@ -275,7 +283,7 @@ status_t AudioConfig::readFromParcel(const Parcel* in) {
     }
 
     err = amrParams.readFromParcel(in);
-    if (err != NO_ERROR) {
+    if ((codecType == CODEC_AMR || codecType == CODEC_AMR_WB) && err != NO_ERROR) {
         return err;
     }
 
@@ -285,14 +293,14 @@ status_t AudioConfig::readFromParcel(const Parcel* in) {
     }
 
     err = evsParams.readFromParcel(in);
-    if (err != NO_ERROR) {
+    if (codecType == CODEC_EVS && err != NO_ERROR) {
         return err;
     }
 
     return NO_ERROR;
 }
 
-void AudioConfig::setPtimeMillis(int8_t ptime) {
+void AudioConfig::setPtimeMillis(const int8_t ptime) {
     pTimeMillis = ptime;
 }
 
@@ -300,15 +308,15 @@ int8_t AudioConfig::getPtimeMillis() {
     return pTimeMillis;
 }
 
-void AudioConfig::setMaxPtimeMillis(int8_t maxPtime) {
+void AudioConfig::setMaxPtimeMillis(const int32_t maxPtime) {
     maxPtimeMillis = maxPtime;
 }
 
-int8_t AudioConfig::getMaxPtimeMillis() {
+int32_t AudioConfig::getMaxPtimeMillis() {
     return maxPtimeMillis;
 }
 
-void AudioConfig::setTxCodecModeRequest(int8_t cmr) {
+void AudioConfig::setTxCodecModeRequest(const int8_t cmr) {
     txCodecModeRequest = cmr;
 }
 
@@ -316,7 +324,7 @@ int8_t AudioConfig::getTxCodecModeRequest() {
     return txCodecModeRequest;
 }
 
-void AudioConfig::setDtxEnabled(bool enable) {
+void AudioConfig::setDtxEnabled(const bool enable) {
     dtxEnabled = enable;
 }
 
@@ -324,7 +332,7 @@ bool AudioConfig::getDtxEnabled() {
     return dtxEnabled;
 }
 
-void AudioConfig::setCodecType(int32_t type) {
+void AudioConfig::setCodecType(const int32_t type) {
     codecType = type;
 }
 
@@ -332,19 +340,19 @@ int32_t AudioConfig::getCodecType() {
     return codecType;
 }
 
-void AudioConfig::setDtmfPayloadTypeNumber(int32_t num) {
+void AudioConfig::setDtmfPayloadTypeNumber(const int8_t num) {
     dtmfPayloadTypeNumber = num;
 }
 
-int32_t AudioConfig::getDtmfPayloadTypeNumber() {
+int8_t AudioConfig::getDtmfPayloadTypeNumber() {
     return dtmfPayloadTypeNumber;
 }
 
-void AudioConfig::setDtmfsamplingRateKHz(int32_t sampling) {
+void AudioConfig::setDtmfsamplingRateKHz(const int8_t sampling) {
     dtmfsamplingRateKHz = sampling;
 }
 
-int32_t AudioConfig::getDtmfsamplingRateKHz() {
+int8_t AudioConfig::getDtmfsamplingRateKHz() {
     return dtmfsamplingRateKHz;
 }
 

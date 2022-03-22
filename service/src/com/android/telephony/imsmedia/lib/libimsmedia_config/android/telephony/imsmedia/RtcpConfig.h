@@ -28,7 +28,7 @@ namespace telephony {
 
 namespace imsmedia {
 
-/** Native representation of android.telephony.imsmedia.RtpConfig */
+/** Native representation of android.telephony.imsmedia.RtcpConfig */
 
 /**
  * The class represents RTCP (Real Time Control Protocol) configurations.
@@ -88,11 +88,11 @@ public:
     virtual status_t readFromParcel(const Parcel* in);
     void setCanonicalName(String8 name);
     String8 getCanonicalName();
-    void setTransmitPort(int32_t port);
+    void setTransmitPort(const int32_t port);
     int32_t getTransmitPort();
-    void setIntervalSec(int32_t interval);
+    void setIntervalSec(const int32_t interval);
     int32_t getIntervalSec();
-    void setRtcpXrBlockTypes(int32_t type);
+    void setRtcpXrBlockTypes(const int32_t type);
     int32_t getRtcpXrBlockTypes();
 
 private:

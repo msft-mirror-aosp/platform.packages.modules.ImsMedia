@@ -70,6 +70,10 @@ bool EvsParams::operator!=(const EvsParams& param) const {
 
 status_t EvsParams::writeToParcel(Parcel* out) const {
     status_t err;
+    if (out == NULL) {
+        return BAD_VALUE;
+    }
+
     err = out->writeInt32(evsBandwidth);
     if (err != NO_ERROR) {
         return err;
@@ -104,6 +108,10 @@ status_t EvsParams::writeToParcel(Parcel* out) const {
 
 status_t EvsParams::readFromParcel(const Parcel* in) {
     status_t err;
+    if (in == NULL) {
+        return BAD_VALUE;
+    }
+
     err = in->readInt32(&evsBandwidth);
     if (err != NO_ERROR) {
         return err;
@@ -136,7 +144,7 @@ status_t EvsParams::readFromParcel(const Parcel* in) {
     return NO_ERROR;
 }
 
-void EvsParams::setEvsBandwidth(int32_t bandwidth) {
+void EvsParams::setEvsBandwidth(const int32_t bandwidth) {
     evsBandwidth = bandwidth;
 }
 
@@ -144,7 +152,7 @@ int32_t EvsParams::getEvsBandwidth() {
     return evsBandwidth;
 }
 
-void EvsParams::setEvsMode(int32_t mode) {
+void EvsParams::setEvsMode(const int32_t mode) {
     evsMode = mode;
 }
 
@@ -160,7 +168,7 @@ int8_t EvsParams::getChannelAwareMode() {
     return channelAwareMode;
 }
 
-void EvsParams::setUseHeaderFullOnlyOnTx(bool enable) {
+void EvsParams::setUseHeaderFullOnlyOnTx(const bool enable) {
     useHeaderFullOnlyOnTx = enable;
 }
 
@@ -168,7 +176,7 @@ bool EvsParams::getUseHeaderFullOnlyOnTx() {
     return useHeaderFullOnlyOnTx;
 }
 
-void EvsParams::setUseHeaderFullOnlyOnRx(bool enable) {
+void EvsParams::setUseHeaderFullOnlyOnRx(const bool enable) {
     useHeaderFullOnlyOnRx = enable;
 }
 

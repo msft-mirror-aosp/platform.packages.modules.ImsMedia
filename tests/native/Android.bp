@@ -61,3 +61,14 @@ cc_test {
     enabled: false,
 }
 
+cc_test {
+    name: "ImsMediaNativeConfigTests",
+    defaults: [
+        "imsmedia_tests_defaults",
+    ],
+    srcs: [
+        "service/src/com/android/telephony/imsmedia/lib/libimsmedia_config/**/*.cpp",
+    ],
+    test_config: "imsmedia_config_tests.xml",
+    enabled: true,
+}

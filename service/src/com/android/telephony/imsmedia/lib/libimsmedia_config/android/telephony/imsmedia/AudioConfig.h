@@ -31,6 +31,10 @@ namespace telephony {
 namespace imsmedia {
 
 /** Native representation of android.telephony.imsmedia.AudioConfig */
+
+/**
+ * The class represents RTP (Real Time Control) configuration for audio stream.
+ */
 class AudioConfig : public RtpConfig {
 public:
     enum CodecType {
@@ -55,34 +59,67 @@ public:
     bool operator!=(const AudioConfig &config) const;
     virtual status_t writeToParcel(Parcel* parcel) const;
     virtual status_t readFromParcel(const Parcel* in);
-    void setPtimeMillis(int8_t ptime);
+    void setPtimeMillis(const int8_t ptime);
     int8_t getPtimeMillis();
-    void setMaxPtimeMillis(int8_t maxPtime);
-    int8_t getMaxPtimeMillis();
-    void setTxCodecModeRequest(int8_t cmr);
+    void setMaxPtimeMillis(const int32_t maxPtime);
+    int32_t getMaxPtimeMillis();
+    void setTxCodecModeRequest(const int8_t cmr);
     int8_t getTxCodecModeRequest();
-    void setDtxEnabled(bool enable);
+    void setDtxEnabled(const bool enable);
     bool getDtxEnabled();
-    void setCodecType(int32_t type);
+    void setCodecType(const int32_t type);
     int32_t getCodecType();
-    void setDtmfPayloadTypeNumber(int32_t num);
-    int32_t getDtmfPayloadTypeNumber();
-    void setDtmfsamplingRateKHz(int32_t sampling);
-    int32_t getDtmfsamplingRateKHz();
+    void setDtmfPayloadTypeNumber(const int8_t num);
+    int8_t getDtmfPayloadTypeNumber();
+    void setDtmfsamplingRateKHz(const int8_t sampling);
+    int8_t getDtmfsamplingRateKHz();
     void setAmrParams(const AmrParams& param);
     AmrParams getAmrParams();
     void setEvsParams(const EvsParams& param);
     EvsParams getEvsParams();
 
 protected:
+    /**
+     * @brief Recommended length of time in milliseconds represented by the media
+     * in each packet, see RFC 4566
+     */
     int8_t pTimeMillis;
-    int8_t maxPtimeMillis;
+    /**
+     * @brief Maximum amount of media that can be encapsulated in each packet
+     * represented in milliseconds, see RFC 4566
+     */
+    int32_t maxPtimeMillis;
+    /**
+     * @brief Codec mode request(CMR) is used to request the speech codec encoder of the
+     * other party to set the frame type index of speech mode via RTP header, See RFC
+     * 4867 section 4.3.1. Allowed values are -1, 0 and 1.
+     */
     int8_t txCodecModeRequest;
+    /**
+     * @brief Whether discontinuous transmission is enabled or not
+     */
     bool dtxEnabled;
+    /**
+     * @brief Audio codec type
+     */
     int32_t codecType;
-    int32_t dtmfPayloadTypeNumber;
-    int32_t dtmfsamplingRateKHz;
+    /**
+     * @brief Dynamic payload type number to be used for DTMF RTP packets. The values is
+     * in the range from 96 to 127 chosen during the session establishment. The PT
+     * value of the RTP header of all DTMF packets shall be set with this value.
+     */
+    int8_t dtmfPayloadTypeNumber;
+    /**
+     * @brief Sampling rate for DTMF tone in kHz
+     */
+    int8_t dtmfsamplingRateKHz;
+    /**
+     * @brief Negotiated AMR codec parameters
+     */
     AmrParams amrParams;
+    /**
+     * @brief Negotiated EVS codec parameters
+     */
     EvsParams evsParams;
 };
 

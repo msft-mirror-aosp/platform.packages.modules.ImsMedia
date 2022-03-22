@@ -24,11 +24,12 @@ namespace imsmedia {
 
 const android::String8 kClassNameRtcpConfig("android.telephony.imsmedia.RtcpConfig");
 
+/** Native representation of android.telephony.imsmedia.RtpConfig */
 RtpConfig::RtpConfig()
     : direction(0),
     accessNetwork(0),
     remoteAddress(""),
-    remotePort(0),
+    remotePort(UNINITIALIZED_PORT),
     maxMtuBytes(0),
     dscp(0),
     rxPayloadTypeNumber(0),
@@ -95,6 +96,9 @@ bool RtpConfig::operator!=(const RtpConfig &config) const{
 
 status_t RtpConfig::writeToParcel(Parcel* out) const {
     status_t err;
+    if (out == NULL) {
+        return BAD_VALUE;
+    }
 
     err = out->writeInt32(direction);
     if (err != NO_ERROR) {
@@ -134,17 +138,17 @@ status_t RtpConfig::writeToParcel(Parcel* out) const {
         return err;
     }
 
-    err = out->writeInt32(dscp);
+    err = out->writeByte(dscp);
     if (err != NO_ERROR) {
         return err;
     }
 
-    err = out->writeInt32(rxPayloadTypeNumber);
+    err = out->writeByte(rxPayloadTypeNumber);
     if (err != NO_ERROR) {
         return err;
     }
 
-    err = out->writeInt32(txPayloadTypeNumber);
+    err = out->writeByte(txPayloadTypeNumber);
     if (err != NO_ERROR) {
         return err;
     }
@@ -159,6 +163,9 @@ status_t RtpConfig::writeToParcel(Parcel* out) const {
 
 status_t RtpConfig::readFromParcel(const Parcel* in) {
     status_t err;
+    if (in == NULL) {
+        return BAD_VALUE;
+    }
 
     err = in->readInt32(&direction);
     if (err != NO_ERROR) {
@@ -201,17 +208,17 @@ status_t RtpConfig::readFromParcel(const Parcel* in) {
         return err;
     }
 
-    err = in->readInt32(&dscp);
+    err = in->readByte(&dscp);
     if (err != NO_ERROR) {
         return err;
     }
 
-    err = in->readInt32(&rxPayloadTypeNumber);
+    err = in->readByte(&rxPayloadTypeNumber);
     if (err != NO_ERROR) {
         return err;
     }
 
-    err = in->readInt32(&txPayloadTypeNumber);
+    err = in->readByte(&txPayloadTypeNumber);
     if (err != NO_ERROR) {
         return err;
     }
@@ -224,7 +231,7 @@ status_t RtpConfig::readFromParcel(const Parcel* in) {
     return NO_ERROR;
 }
 
-void RtpConfig::setMediaDirection(int32_t direction) {
+void RtpConfig::setMediaDirection(const int32_t direction) {
     this->direction = direction;
 }
 
@@ -240,7 +247,7 @@ String8 RtpConfig::getRemoteAddress() {
     return remoteAddress;
 }
 
-void RtpConfig::setRemotePort(int32_t port) {
+void RtpConfig::setRemotePort(const int32_t port) {
     this->remotePort = port;
 }
 
@@ -256,7 +263,7 @@ RtcpConfig RtpConfig::getRtcpConfig() {
     return rtcpConfig;
 }
 
-void RtpConfig::setMaxMtuBytes(int32_t mtu) {
+void RtpConfig::setMaxMtuBytes(const int32_t mtu) {
     this->maxMtuBytes = mtu;
 }
 
@@ -264,31 +271,31 @@ int32_t RtpConfig::getmaxMtuBytes() {
     return maxMtuBytes;
 }
 
-void RtpConfig::setDscp(int dscp) {
+void RtpConfig::setDscp(const int8_t dscp) {
     this->dscp = dscp;
 }
 
-int32_t RtpConfig::getDscp() {
+int8_t RtpConfig::getDscp() {
     return dscp;
 }
 
-void RtpConfig::setRxPayloadTypeNumber(int32_t num) {
+void RtpConfig::setRxPayloadTypeNumber(const int8_t num) {
     this->rxPayloadTypeNumber = num;
 }
 
-int32_t RtpConfig::getRxPayloadTypeNumber() {
+int8_t RtpConfig::getRxPayloadTypeNumber() {
     return rxPayloadTypeNumber;
 }
 
-void RtpConfig::setTxPayloadTypeNumber(int32_t num) {
+void RtpConfig::setTxPayloadTypeNumber(const int8_t num) {
     this->txPayloadTypeNumber = num;
 }
 
-int32_t RtpConfig::getTxPayloadTypeNumber() {
+int8_t RtpConfig::getTxPayloadTypeNumber() {
     return txPayloadTypeNumber;
 }
 
-void RtpConfig::setSamplingRateKHz(int8_t sample) {
+void RtpConfig::setSamplingRateKHz(const int8_t sample) {
     this->samplingRateKHz = sample;
 }
 

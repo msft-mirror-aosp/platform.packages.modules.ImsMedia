@@ -30,12 +30,26 @@ namespace telephony {
 namespace imsmedia {
 
 /** Native representation of android.telephony.imsmedia.RtpConfig */
+
+/**
+ * The class to encapsulate RTP (Real Time Protocol) configurations
+ */
 class RtpConfig : public Parcelable {
 public:
     enum MediaDirection {
+        /** Device neither transmits nor receives any media */
         MEDIA_DIRECTION_NO_FLOW,
+        /**
+         * Device transmits outgoing media but but doesn't receive incoming media.
+         * Eg. Other party muted the call
+         */
         MEDIA_DIRECTION_TRANSMIT_ONLY,
+        /**
+         * Device receives the incoming media but doesn't transmit any outgoing media.
+         * Eg. User muted the call
+         */
         MEDIA_DIRECTION_RECEIVE_ONLY,
+        /** Device transmits and receives media in both the directions */
         MEDIA_DIRECTION_TRANSMIT_RECEIVE,
     };
 
@@ -47,37 +61,72 @@ public:
     bool operator!=(const RtpConfig &c2) const;
     virtual status_t writeToParcel(Parcel* parcel) const;
     virtual status_t readFromParcel(const Parcel* in);
-    void setMediaDirection(int32_t direction);
+    void setMediaDirection(const int32_t direction);
     int32_t getMediaDirection();
     void setRemoteAddress(String8 address);
     String8 getRemoteAddress();
-    void setRemotePort(int32_t port);
+    void setRemotePort(const int32_t port);
     int32_t getRemotePort();
     void setRtcpConfig(const RtcpConfig& config);
     RtcpConfig getRtcpConfig();
-    void setMaxMtuBytes(int32_t mtu);
+    void setMaxMtuBytes(const int32_t mtu);
     //TODO : change method name
     int32_t getmaxMtuBytes();
-    void setDscp(int dscp);
-    int32_t getDscp();
-    void setRxPayloadTypeNumber(int32_t num);
-    int32_t getRxPayloadTypeNumber();
-    void setTxPayloadTypeNumber(int32_t num);
-    int32_t getTxPayloadTypeNumber();
-    void setSamplingRateKHz(int8_t sample);
+    void setDscp(const int8_t dscp);
+    int8_t getDscp();
+    void setRxPayloadTypeNumber(const int8_t num);
+    int8_t getRxPayloadTypeNumber();
+    void setTxPayloadTypeNumber(const int8_t num);
+    int8_t getTxPayloadTypeNumber();
+    void setSamplingRateKHz(const int8_t sample);
     int8_t getSamplingRateKHz();
 
 protected:
+    /* definition of uninitialized port number*/
+    const static int32_t UNINITIALIZED_PORT = -1;
+    /**
+     * @brief RTP media flow direction
+     */
     int32_t direction;
+    /**
+     * @brief source Radio Access Network to RTP stack
+     */
     int32_t accessNetwork;
+    /**
+     * @brief ip address of other party
+     */
     String8 remoteAddress;
+    /**
+     * @brief port number of other party
+     */
     int32_t remotePort;
+    /**
+     * @brief Rtcp configuration
+     */
     RtcpConfig rtcpConfig;
-    //QosSessionAttributes qos;
+    /**
+     * @brief Maximum Rtp transfer unit in bytes
+     */
     int32_t maxMtuBytes;
-    int32_t dscp;
-    int32_t rxPayloadTypeNumber;
-    int32_t txPayloadTypeNumber;
+    /**
+     * @brief Differentiated Services Field Code Point value, see RFC 2474
+     */
+    int8_t dscp;
+    /**
+     * @brief Static or dynamic payload type number negotiated through the SDP for
+     * the incoming RTP packets. This value shall be matched with the PT value
+     * of the incoming RTP header. Values 0 to 127, see RFC 3551 section 6
+     */
+    int8_t rxPayloadTypeNumber;
+    /**
+     * @brief Static or dynamic payload type number negotiated through the SDP for
+     * the outgoing RTP packets. This value shall be set to the PT value
+     * of the outgoing RTP header. Values 0 to 127, see RFC 3551 section 6
+     */
+    int8_t txPayloadTypeNumber;
+    /**
+     * @brief Sampling rate in kHz
+     */
     int8_t samplingRateKHz;
 };
 

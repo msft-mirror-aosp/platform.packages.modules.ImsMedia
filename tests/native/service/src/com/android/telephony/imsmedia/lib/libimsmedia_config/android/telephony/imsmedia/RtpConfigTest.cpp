@@ -23,9 +23,9 @@ const int32_t kMediaDirection = RtpConfig::MEDIA_DIRECTION_NO_FLOW;
 const android::String8 kRemoteAddress("0.0.0.0");
 const int32_t kRemotePort = 1000;
 const int32_t kMtu = 1500;
-const int32_t kDscp = 1500;
-const int32_t kRxPayload = 96;
-const int32_t kTxPayload = 96;
+const int8_t kDscp = 0;
+const int8_t kRxPayload = 96;
+const int8_t kTxPayload = 96;
 const int8_t kSamplingRate = 8;
 
 //rtcp config
@@ -36,52 +36,48 @@ const int32_t kRtcpXrBlockTypes = RtcpConfig::FLAG_RTCPXR_STATISTICS_SUMMARY_REP
     RtcpConfig::FLAG_RTCPXR_VOIP_METRICS_REPORT_BLOCK;
 
 TEST(RtpConfigTest, TestGetterSetter) {
-    RtpConfig* config = new RtpConfig();
-    config->setMediaDirection(kMediaDirection);
-    config->setRemoteAddress(kRemoteAddress);
-    config->setRemotePort(kRemotePort);
+    RtpConfig config;
+    config.setMediaDirection(kMediaDirection);
+    config.setRemoteAddress(kRemoteAddress);
+    config.setRemotePort(kRemotePort);
     RtcpConfig rtcp;
-    config->setRtcpConfig(rtcp);
-    config->setMaxMtuBytes(kMtu);
-    config->setDscp(kDscp);
-    config->setRxPayloadTypeNumber(kRxPayload);
-    config->setTxPayloadTypeNumber(kTxPayload);
-    config->setSamplingRateKHz(kSamplingRate);
-    EXPECT_EQ(kMediaDirection, config->getMediaDirection());
-    EXPECT_EQ(kRemoteAddress, config->getRemoteAddress());
-    EXPECT_EQ(kRemotePort, config->getRemotePort());
-    EXPECT_EQ(rtcp, config->getRtcpConfig());
-    EXPECT_EQ(kMtu, config->getmaxMtuBytes());
-    EXPECT_EQ(kDscp, config->getDscp());
-    EXPECT_EQ(kRxPayload, config->getRxPayloadTypeNumber());
-    EXPECT_EQ(kTxPayload, config->getTxPayloadTypeNumber());
-    EXPECT_EQ(kSamplingRate, config->getSamplingRateKHz());
-    delete config;
+    config.setRtcpConfig(rtcp);
+    config.setMaxMtuBytes(kMtu);
+    config.setDscp(kDscp);
+    config.setRxPayloadTypeNumber(kRxPayload);
+    config.setTxPayloadTypeNumber(kTxPayload);
+    config.setSamplingRateKHz(kSamplingRate);
+    EXPECT_EQ(kMediaDirection, config.getMediaDirection());
+    EXPECT_EQ(kRemoteAddress, config.getRemoteAddress());
+    EXPECT_EQ(kRemotePort, config.getRemotePort());
+    EXPECT_EQ(rtcp, config.getRtcpConfig());
+    EXPECT_EQ(kMtu, config.getmaxMtuBytes());
+    EXPECT_EQ(kDscp, config.getDscp());
+    EXPECT_EQ(kRxPayload, config.getRxPayloadTypeNumber());
+    EXPECT_EQ(kTxPayload, config.getTxPayloadTypeNumber());
+    EXPECT_EQ(kSamplingRate, config.getSamplingRateKHz());
 }
 
 TEST(RtpConfigTest, TestParcel) {
-    RtpConfig* config = new RtpConfig();
-    config->setMediaDirection(kMediaDirection);
-    config->setRemoteAddress(kRemoteAddress);
-    config->setRemotePort(kRemotePort);
+    RtpConfig config;
+    config.setMediaDirection(kMediaDirection);
+    config.setRemoteAddress(kRemoteAddress);
+    config.setRemotePort(kRemotePort);
     RtcpConfig rtcp;
-    config->setRtcpConfig(rtcp);
-    config->setMaxMtuBytes(kMtu);
-    config->setDscp(kDscp);
-    config->setRxPayloadTypeNumber(kRxPayload);
-    config->setTxPayloadTypeNumber(kTxPayload);
-    config->setSamplingRateKHz(kSamplingRate);
+    config.setRtcpConfig(rtcp);
+    config.setMaxMtuBytes(kMtu);
+    config.setDscp(kDscp);
+    config.setRxPayloadTypeNumber(kRxPayload);
+    config.setTxPayloadTypeNumber(kTxPayload);
+    config.setSamplingRateKHz(kSamplingRate);
 
     android::Parcel parcel;
-    config->writeToParcel(&parcel);
+    config.writeToParcel(&parcel);
     parcel.setDataPosition(0);
 
-    RtpConfig* config2 = new RtpConfig();
-    config2->readFromParcel(&parcel);
-    EXPECT_EQ(*config2, *config);
-
-    delete config;
-    delete config2;
+    RtpConfig config2;
+    config2.readFromParcel(&parcel);
+    EXPECT_EQ(config2, config);
 }
 
 TEST(RtpConfigTest, TestAssign) {
@@ -107,74 +103,67 @@ TEST(RtpConfigTest, TestAssign) {
 }
 
 TEST(RtpConfigTest, TestEqual) {
-    RtpConfig* config = new RtpConfig();
-    config->setMediaDirection(kMediaDirection);
-    config->setRemoteAddress(kRemoteAddress);
-    config->setRemotePort(kRemotePort);
+    RtpConfig config;
+    config.setMediaDirection(kMediaDirection);
+    config.setRemoteAddress(kRemoteAddress);
+    config.setRemotePort(kRemotePort);
     RtcpConfig rtcp;
-    config->setRtcpConfig(rtcp);
-    config->setMaxMtuBytes(kMtu);
-    config->setDscp(kDscp);
-    config->setRxPayloadTypeNumber(kRxPayload);
-    config->setTxPayloadTypeNumber(kTxPayload);
-    config->setSamplingRateKHz(kSamplingRate);
+    config.setRtcpConfig(rtcp);
+    config.setMaxMtuBytes(kMtu);
+    config.setDscp(kDscp);
+    config.setRxPayloadTypeNumber(kRxPayload);
+    config.setTxPayloadTypeNumber(kTxPayload);
+    config.setSamplingRateKHz(kSamplingRate);
 
-    RtpConfig* config2 = new RtpConfig();
-    config2->setMediaDirection(kMediaDirection);
-    config2->setRemoteAddress(kRemoteAddress);
-    config2->setRemotePort(kRemotePort);
-    config2->setRtcpConfig(rtcp);
-    config2->setMaxMtuBytes(kMtu);
-    config2->setDscp(kDscp);
-    config2->setRxPayloadTypeNumber(kRxPayload);
-    config2->setTxPayloadTypeNumber(kTxPayload);
-    config2->setSamplingRateKHz(kSamplingRate);
-    EXPECT_EQ(*config2, *config);
-
-    delete config;
-    delete config2;
+    RtpConfig config2;
+    config2.setMediaDirection(kMediaDirection);
+    config2.setRemoteAddress(kRemoteAddress);
+    config2.setRemotePort(kRemotePort);
+    config2.setRtcpConfig(rtcp);
+    config2.setMaxMtuBytes(kMtu);
+    config2.setDscp(kDscp);
+    config2.setRxPayloadTypeNumber(kRxPayload);
+    config2.setTxPayloadTypeNumber(kTxPayload);
+    config2.setSamplingRateKHz(kSamplingRate);
+    EXPECT_EQ(config2, config);
 }
 
 TEST(RtpConfigTest, TestNotEqual) {
-    RtpConfig* config = new RtpConfig();
-    config->setMediaDirection(kMediaDirection);
-    config->setRemoteAddress(kRemoteAddress);
-    config->setRemotePort(kRemotePort);
+    RtpConfig config;
+    config.setMediaDirection(kMediaDirection);
+    config.setRemoteAddress(kRemoteAddress);
+    config.setRemotePort(kRemotePort);
     RtcpConfig rtcp;
-    config->setRtcpConfig(rtcp);
-    config->setMaxMtuBytes(kMtu);
-    config->setDscp(kDscp);
-    config->setRxPayloadTypeNumber(kRxPayload);
-    config->setTxPayloadTypeNumber(kTxPayload);
-    config->setSamplingRateKHz(kSamplingRate);
+    config.setRtcpConfig(rtcp);
+    config.setMaxMtuBytes(kMtu);
+    config.setDscp(kDscp);
+    config.setRxPayloadTypeNumber(kRxPayload);
+    config.setTxPayloadTypeNumber(kTxPayload);
+    config.setSamplingRateKHz(kSamplingRate);
 
-    RtpConfig* config2 = new RtpConfig();
-    config2->setMediaDirection(kMediaDirection);
-    config2->setRemoteAddress(kRemoteAddress);
-    config2->setRemotePort(9999);
-    config2->setRtcpConfig(rtcp);
-    config2->setMaxMtuBytes(kMtu);
-    config2->setDscp(kDscp);
-    config2->setRxPayloadTypeNumber(kRxPayload);
-    config2->setTxPayloadTypeNumber(kTxPayload);
-    config2->setSamplingRateKHz(kSamplingRate);
+    RtpConfig config2;
+    config2.setMediaDirection(kMediaDirection);
+    config2.setRemoteAddress(kRemoteAddress);
+    config2.setRemotePort(9999);
+    config2.setRtcpConfig(rtcp);
+    config2.setMaxMtuBytes(kMtu);
+    config2.setDscp(kDscp);
+    config2.setRxPayloadTypeNumber(kRxPayload);
+    config2.setTxPayloadTypeNumber(kTxPayload);
+    config2.setSamplingRateKHz(kSamplingRate);
 
-    RtpConfig* config3 = new RtpConfig();
-    config3->setMediaDirection(kMediaDirection);
+    RtpConfig config3;
+    config3.setMediaDirection(kMediaDirection);
     android::String8 addressConfig3("1.1.1.1");
-    config3->setRemoteAddress(addressConfig3);
-    config3->setRemotePort(kRemotePort);
-    config3->setRtcpConfig(rtcp);
-    config3->setMaxMtuBytes(kMtu);
-    config3->setDscp(kDscp);
-    config3->setRxPayloadTypeNumber(kRxPayload);
-    config3->setTxPayloadTypeNumber(kTxPayload);
-    config3->setSamplingRateKHz(kSamplingRate);
+    config3.setRemoteAddress(addressConfig3);
+    config3.setRemotePort(kRemotePort);
+    config3.setRtcpConfig(rtcp);
+    config3.setMaxMtuBytes(kMtu);
+    config3.setDscp(kDscp);
+    config3.setRxPayloadTypeNumber(kRxPayload);
+    config3.setTxPayloadTypeNumber(kTxPayload);
+    config3.setSamplingRateKHz(kSamplingRate);
 
-    EXPECT_NE(*config2, *config);
-    EXPECT_NE(*config3, *config);
-
-    delete config;
-    delete config2;
-    delete config3;
+    EXPECT_NE(config2, config);
+    EXPECT_NE(config3, config);
 }

@@ -64,11 +64,11 @@ public:
     bool operator!=(const AmrParams& param) const;
     virtual status_t writeToParcel(Parcel* parcel) const;
     virtual status_t readFromParcel(const Parcel* in);
-    void setAmrMode(int32_t mode);
+    void setAmrMode(const int32_t mode);
     int32_t getAmrMode();
-    void setOctetAligned(bool enable);
+    void setOctetAligned(const bool enable);
     bool getOctetAligned();
-    void setMaxRedundancyMillis(int32_t value);
+    void setMaxRedundancyMillis(const int32_t value);
     int32_t getMaxRedundancyMillis();
 
 private:
