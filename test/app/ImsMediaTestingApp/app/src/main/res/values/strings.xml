@@ -67,11 +67,61 @@
   <string name="dialer_button_pound_text">#</string>
   <string name="dialer_button_star_text">*</string>
   <string name="dialerButtonDescription">open dialer</string>
-  <string name="send_dtmf">SEND DTMF</string>
+
   <string name="hold">HOLD</string>
   <string name="media_direction_transmit_only">MEDIA_DIRECTION_TRANSMIT_ONLY</string>
   <string name="media_direction_receive_only">MEDIA_DIRECTION_RECEIVE_ONLY</string>
   <string name="media_direction_transmit_receive">MEDIA_DIRECTION_TRANSMIT_RECEIVE</string>
   <string name="media_direction_no_flow">MEDIA_DIRECTION_NO_FLOW</string>
+  <string name="clear_dtmf_input_button">CLEAR</string>
+  <string name="dtmfInputPlaceholder">…</string>
+
+  <string name="select_a_mode">Select a mode</string>
+  <string name="select_an_audio_codec">Select an audio codec</string>
+  <string name="change_audio_codec_title">Switch Audio Codecs</string>
+  <string name="change_codec">Change Codec</string>
+
+  <string name="amr_mode_0">AMR_MODE_0</string>
+  <string name="amr_mode_1">AMR_MODE_1</string>
+  <string name="amr_mode_2">AMR_MODE_2</string>
+  <string name="amr_mode_3">AMR_MODE_3</string>
+  <string name="amr_mode_4">AMR_MODE_4</string>
+  <string name="amr_mode_5">AMR_MODE_5</string>
+  <string name="amr_mode_6">AMR_MODE_6</string>
+  <string name="amr_mode_7">AMR_MODE_7</string>
+  <string name="amr_mode_8">AMR_MODE_8</string>
+
+  <string name="evs_mode_0">EVS_MODE_0</string>
+  <string name="evs_mode_1">EVS_MODE_1</string>
+  <string name="evs_mode_2">EVS_MODE_2</string>
+  <string name="evs_mode_3">EVS_MODE_3</string>
+  <string name="evs_mode_4">EVS_MODE_4</string>
+  <string name="evs_mode_5">EVS_MODE_5</string>
+  <string name="evs_mode_6">EVS_MODE_6</string>
+  <string name="evs_mode_7">EVS_MODE_7</string>
+  <string name="evs_mode_8">EVS_MODE_8</string>
+  <string name="evs_mode_9">EVS_MODE_9</string>
+  <string name="evs_mode_10">EVS_MODE_10</string>
+  <string name="evs_mode_11">EVS_MODE_11</string>
+  <string name="evs_mode_12">EVS_MODE_12</string>
+  <string name="evs_mode_13">EVS_MODE_13</string>
+  <string name="evs_mode_14">EVS_MODE_14</string>
+  <string name="evs_mode_15">EVS_MODE_15</string>
+  <string name="evs_mode_16">EVS_MODE_16</string>
+  <string name="evs_mode_17">EVS_MODE_17</string>
+  <string name="evs_mode_18">EVS_MODE_18</string>
+  <string name="evs_mode_19">EVS_MODE_019</string>
+  <string name="evs_mode_20">EVS_MODE_20</string>
+  <string name="evs_band_none">EVS_BAND_NONE</string>
+  <string name="evs_narrow_band">EVS_NARROW_BAND</string>
+  <string name="evs_wide_band">EVS_WIDE_BAND</string>
+  <string name="evs_super_wide_band">EVS_SUPER_WIDE_BAND</string>
+  <string name="evs_full_band">EVS_FULL_BAND</string>
+  <string name="codec_amr">CODEC_AMR</string>
+  <string name="codec_amr_wb">CODEC_AMR_WB</string>
+  <string name="codec_evs">CODEC_EVS</string>
+  <string name="codec_pcma">CODEC_PCMA</string>
+  <string name="codec_pcmu">CODEC_PCMU</string>
+  <string name="select_an_evs_band">Select an EVS Band</string>
 
 </resources>

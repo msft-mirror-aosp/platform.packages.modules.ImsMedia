@@ -16,7 +16,6 @@ import android.telephony.imsmedia.EvsParams;
 import android.telephony.imsmedia.ImsAudioSession;
 import android.telephony.imsmedia.ImsMediaManager;
 import android.telephony.imsmedia.ImsMediaSession;
-import android.telephony.imsmedia.MediaQualityThreshold;
 import android.telephony.imsmedia.RtcpConfig;
 import android.telephony.imsmedia.RtpConfig;
 import android.text.format.Formatter;
@@ -28,6 +27,7 @@ import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.PopupMenu;
 import android.widget.TextView;
@@ -54,6 +54,18 @@ public class MainActivity extends AppCompatActivity {
     private final String HANDSHAKE_PORT_PREF = "HANDSHAKE_PORT_OPEN";
     private final String CONNECTED_PREF = "IS_CONNECTED";
     private final String CONFIRMATION_MESSAGE = "CONNECTED";
+
+    private static final int MAX_MTU_BYTES = 1500;
+    private static final int DSCP = 0;
+    private static final int RX_PAYLOAD_TYPE_NUMBER = 96;
+    private static final int TX_PAYLOAD_TYPE_NUMBER = 96;
+    private static final int SAMPLING_RATE_KHZ = 16;
+    private static final int P_TIME_MILLIS = 20;
+    private static final int MAX_P_TIME_MILLIS = 240;
+    private static final int TX_CODEC_MODE_REQUEST = 15;
+    private static final int DTMF_PAYLOAD_TYPE_NUMBER = 100;
+    private static final int DTMF_SAMPLING_RATE_KHZ = 16;
+
     SharedPreferences prefs;
     SharedPreferences.Editor editor;
     Thread waitForHandshakeThread;
@@ -81,6 +93,7 @@ public class MainActivity extends AppCompatActivity {
 
     private final StringBuilder dtmfInput = new StringBuilder();
     BottomSheetDialer bottomSheetDialog;
+    BottomSheetAudioCodecSettings bottomSheetAudioCodecSettings;
 
     private TextView localIpLabel;
     private TextView localHandshakePortLabel;
@@ -190,6 +203,9 @@ public class MainActivity extends AppCompatActivity {
 
         bottomSheetDialog = new BottomSheetDialer(this);
         bottomSheetDialog.setContentView(R.layout.dialer);
+
+        bottomSheetAudioCodecSettings = new BottomSheetAudioCodecSettings(this);
+        bottomSheetAudioCodecSettings.setContentView(R.layout.audio_codec_change);
     }
 
     @Override
@@ -209,8 +225,12 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        if(rtp != null) { rtp.close(); }
-        if(rtcp != null) { rtcp.close(); }
+        if (rtp != null) {
+            rtp.close();
+        }
+        if (rtcp != null) {
+            rtcp.close();
+        }
     }
 
     @Override
@@ -299,15 +319,15 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void closePorts() {
-        if(handshakeReceptionSocket != null) {
+        if (handshakeReceptionSocket != null) {
             handshakeReceptionSocket.close();
         }
 
-        if(rtp != null) {
+        if (rtp != null) {
             rtp.close();
         }
 
-        if(rtcp != null) {
+        if (rtcp != null) {
             rtcp.close();
         }
     }
@@ -349,7 +369,7 @@ public class MainActivity extends AppCompatActivity {
         styleIpLabel();
 
         remoteIpLabel = findViewById(R.id.remoteIpLabel);
-        remoteIpLabel.setText(getString(R.string.other_device_port_label,
+        remoteIpLabel.setText(getString(R.string.other_device_ip_label,
             prefs.getString("OTHER_IP_ADDRESS", "null")));
 
         remoteHandshakePortLabel = findViewById(R.id.remoteHandshakePortLabel);
@@ -505,8 +525,8 @@ public class MainActivity extends AppCompatActivity {
         openSessionButton.setAlpha(0.5f);
 
         closeSessionButton = findViewById(R.id.closeSessionButton);
-        closeSessionButton.setEnabled(true);
-        closeSessionButton.setAlpha(1.0f);
+        //closeSessionButton.setEnabled(true);
+        //closeSessionButton.setAlpha(1.0f);
 
         localHandshakePortLabel = findViewById(R.id.localHandshakePortLabel);
         localHandshakePortLabel
@@ -533,10 +553,17 @@ public class MainActivity extends AppCompatActivity {
             String.valueOf(remoteDeviceInfo.getRtcpPort())));
 
         loopbackSwitch = findViewById(R.id.loopbackModeSwitch);
-        if(loopbackSwitch.isChecked()) {
+        if (loopbackSwitch.isChecked()) {
             loopbackSwitch.setChecked(true);
             loopbackSwitch.setEnabled(true);
             loopbackSwitch.setAlpha(1.0f);
+        }
+
+        LinearLayout activeCallToolBar = findViewById(R.id.activeCallActionsLayout);
+        activeCallToolBar.setAlpha(1.0f);
+        for (int x = 0; x < activeCallToolBar.getChildCount(); x++) {
+            activeCallToolBar.getChildAt(x).setAlpha(1.0f);
+            activeCallToolBar.getChildAt(x).setEnabled(true);
         }
     }
 
@@ -664,13 +691,17 @@ public class MainActivity extends AppCompatActivity {
         try {
             DeviceInfo deviceInfo = new DeviceInfo();
             deviceInfo.setIpAddress(InetAddress.getByName(getLocalIpAddress()));
-            if(handshakeReceptionSocket != null) {
+            if (handshakeReceptionSocket != null) {
                 deviceInfo.setHandshakePort(handshakeReceptionSocket.getBoundSocket());
             }
 
-            if(rtp != null) { deviceInfo.setRtpPort(rtp.getLocalPort()); }
+            if (rtp != null) {
+                deviceInfo.setRtpPort(rtp.getLocalPort());
+            }
 
-            if(rtcp != null) { deviceInfo.setRtcpPort(rtcp.getLocalPort()); }
+            if (rtcp != null) {
+                deviceInfo.setRtcpPort(rtcp.getLocalPort());
+            }
 
             return deviceInfo;
         } catch (UnknownHostException e) {
@@ -681,7 +712,7 @@ public class MainActivity extends AppCompatActivity {
 
     public void loopbackOnClick(View v) {
         SwitchCompat loopbackSwitch = findViewById(R.id.loopbackModeSwitch);
-        if(loopbackSwitch.isChecked()) {
+        if (loopbackSwitch.isChecked()) {
             // enable loop back mode
             openRtpPorts(false);
             editor.putString("OTHER_IP_ADDRESS", getLocalIpAddress()).apply();
@@ -729,32 +760,40 @@ public class MainActivity extends AppCompatActivity {
         updateUI(ConnectionStatus.CONNECTING);
     }
 
+    /**
+     * Creates and returns an InetSocketAddress from the remote device that is connected to the
+     * local device.
+     * @return the InetSocketAddress of the remote device
+     */
+    private InetSocketAddress getRemoteSocketAddress() {
+        int remotePort = remoteDeviceInfo.getRtpPort();
+        InetAddress addr = remoteDeviceInfo.getIpAddress();
+        return new InetSocketAddress(addr, remotePort);
+    }
+
+    /**
+     * Builds and returns an RtcpConfig for the remote device that is connected to the local device.
+     * @return the RtcpConfig for the remote device
+     */
+    private RtcpConfig getRemoteRtcpConfig() {
+        return new RtcpConfig.Builder()
+            .setCanonicalName("rtp config")
+            .setTransmitPort(remoteDeviceInfo.getRtpPort() + 1)
+            .setIntervalSec(5)
+            .setRtcpXrBlockTypes(0)
+            .build();
+    }
+
     public void openSessionOnClick(View v) {
         if (isMediaManagerReady && !isOpenSessionSent) {
 
             Toast.makeText(getApplicationContext(),
                 getString(R.string.connecting_call_toast_text),
                 Toast.LENGTH_SHORT).show();
-
+            //
             int remotePort = remoteDeviceInfo.getRtpPort();
             InetAddress addr = remoteDeviceInfo.getIpAddress();
             InetSocketAddress rtpAddr = new InetSocketAddress(addr, remotePort);
-
-            RtcpConfig rtcpConfig = new RtcpConfig.Builder()
-                .setCanonicalName("steve")
-                .setTransmitPort(remotePort + 1)
-                .setIntervalSec(5)
-                .setRtcpXrBlockTypes(0)
-                .build();
-
-            MediaQualityThreshold mThreshold = new MediaQualityThreshold.Builder()
-                .setRtpInactivityTimerMillis(20)
-                .setRtcpInactivityTimerMillis(20)
-                .setPacketLossPeriodMillis(10000)
-                .setPacketLossThreshold(1)
-                .setJitterPeriodMillis(300)
-                .setJitterThresholdMillis(5000)
-                .build();
 
             EvsParams mEvs = new EvsParams.Builder()
                     .setEvsbandwidth(EvsParams.EVS_BAND_NONE)
@@ -773,8 +812,8 @@ public class MainActivity extends AppCompatActivity {
             audioConfig = new AudioConfig.Builder()
                 .setMediaDirection(RtpConfig.MEDIA_DIRECTION_TRANSMIT_RECEIVE)
                 .setAccessNetwork(AccessNetworkType.EUTRAN)
-                .setRemoteRtpAddress(rtpAddr)
-                .setRtcpConfig(rtcpConfig)
+                .setRemoteRtpAddress(getRemoteSocketAddress())
+                .setRtcpConfig(getRemoteRtcpConfig())
                 .setMaxMtuBytes(1500)
                 .setDscp((byte) 0)
                 .setRxPayloadTypeNumber((byte) 96)
@@ -794,39 +833,138 @@ public class MainActivity extends AppCompatActivity {
             sessionCallback = new RtpAudioSessionCallback();
             imsMediaManager.openSession(rtp, rtcp, ImsMediaSession.SESSION_TYPE_AUDIO,
                 audioConfig, executor, sessionCallback);
-            Log.d("", "starting open session");
+            Log.d("",
+                "called openSession IP: " + remoteDeviceInfo.getIpAddress() + " Port: " +
+                    remoteDeviceInfo.getRtpPort());
         }
     }
 
-    public void openDialer(View v) {
-        if(!bottomSheetDialog.isOpen()) {
+    /**
+     * Creates and returns a new AudioConfig
+     * @param remoteRtpAddress - InetSocketAddress of the remote device
+     * @param rtcpConfig - RtcpConfig of the remove device
+     * @param audioCodec - the type of AudioCodec
+     * @param amrParams - the settings if the AudioCodec is an AMR variant
+     * @param evsParams - the settings if the AudioCodec is EVS
+     * @return an AudioConfig with the given params
+     */
+    private AudioConfig createAudioConfig(InetSocketAddress remoteRtpAddress,
+        RtcpConfig rtcpConfig, int audioCodec, AmrParams amrParams, EvsParams evsParams) {
+        AudioConfig config;
+
+        if(audioCodec == AudioConfig.CODEC_AMR || audioCodec == AudioConfig.CODEC_AMR_WB) {
+            config = new AudioConfig.Builder()
+                .setMediaDirection(RtpConfig.MEDIA_DIRECTION_TRANSMIT_RECEIVE)
+                .setAccessNetwork(AccessNetworkType.EUTRAN)
+                .setRemoteRtpAddress(remoteRtpAddress)
+                .setRtcpConfig(rtcpConfig)
+                .setMaxMtuBytes(MAX_MTU_BYTES)
+                .setDscp((byte) DSCP)
+                .setRxPayloadTypeNumber((byte) RX_PAYLOAD_TYPE_NUMBER)
+                .setTxPayloadTypeNumber((byte) TX_PAYLOAD_TYPE_NUMBER)
+                .setSamplingRateKHz((byte) SAMPLING_RATE_KHZ)
+                .setPtimeMillis((byte) P_TIME_MILLIS)
+                .setMaxPtimeMillis((byte) MAX_P_TIME_MILLIS)
+                .setTxCodecModeRequest((byte) TX_CODEC_MODE_REQUEST)
+                .setDtxEnabled(true)
+                .setDtmfPayloadTypeNumber((byte) DTMF_PAYLOAD_TYPE_NUMBER)
+                .setDtmfSamplingRateKHz((byte) DTMF_SAMPLING_RATE_KHZ)
+                .setCodecType(audioCodec)
+                .setAmrParams(amrParams)
+                .build();
+
+        } else if(audioCodec == AudioConfig.CODEC_EVS) {
+            config = new AudioConfig.Builder()
+                .setMediaDirection(RtpConfig.MEDIA_DIRECTION_TRANSMIT_RECEIVE)
+                .setAccessNetwork(AccessNetworkType.EUTRAN)
+                .setRemoteRtpAddress(remoteRtpAddress)
+                .setRtcpConfig(rtcpConfig)
+                .setMaxMtuBytes(MAX_MTU_BYTES)
+                .setDscp((byte) DSCP)
+                .setRxPayloadTypeNumber((byte) RX_PAYLOAD_TYPE_NUMBER)
+                .setTxPayloadTypeNumber((byte) TX_PAYLOAD_TYPE_NUMBER)
+                .setSamplingRateKHz((byte) SAMPLING_RATE_KHZ)
+                .setPtimeMillis((byte) P_TIME_MILLIS)
+                .setMaxPtimeMillis((byte) MAX_P_TIME_MILLIS)
+                .setTxCodecModeRequest((byte) TX_CODEC_MODE_REQUEST)
+                .setDtxEnabled(true)
+                .setDtmfPayloadTypeNumber((byte) DTMF_PAYLOAD_TYPE_NUMBER)
+                .setDtmfSamplingRateKHz((byte) DTMF_SAMPLING_RATE_KHZ)
+                .setCodecType(audioCodec)
+                .setEvsParams(evsParams)
+                .build();
+
+        } else {
+            config = new AudioConfig.Builder()
+                .setMediaDirection(RtpConfig.MEDIA_DIRECTION_TRANSMIT_RECEIVE)
+                .setAccessNetwork(AccessNetworkType.EUTRAN)
+                .setRemoteRtpAddress(remoteRtpAddress)
+                .setRtcpConfig(rtcpConfig)
+                .setMaxMtuBytes(MAX_MTU_BYTES)
+                .setDscp((byte) DSCP)
+                .setRxPayloadTypeNumber((byte) RX_PAYLOAD_TYPE_NUMBER)
+                .setTxPayloadTypeNumber((byte) TX_PAYLOAD_TYPE_NUMBER)
+                .setSamplingRateKHz((byte) SAMPLING_RATE_KHZ)
+                .setPtimeMillis((byte) P_TIME_MILLIS)
+                .setMaxPtimeMillis((byte) MAX_P_TIME_MILLIS)
+                .setTxCodecModeRequest((byte) TX_CODEC_MODE_REQUEST)
+                .setDtxEnabled(true)
+                .setDtmfPayloadTypeNumber((byte) DTMF_PAYLOAD_TYPE_NUMBER)
+                .setDtmfSamplingRateKHz((byte) DTMF_SAMPLING_RATE_KHZ)
+                .setCodecType(audioCodec)
+                .build();
+        }
+        return config;
+    }
+
+    private AmrParams createAmrParams(int amrMode) {
+        return new AmrParams.Builder()
+            .setAmrMode(amrMode)
+            .setOctetAligned(true)
+            .setMaxRedundancyMillis(0)
+            .build();
+    }
+
+    private EvsParams createEvsParams(int evsBand, int evsMode) {
+        return new EvsParams.Builder()
+            .setEvsbandwidth(evsBand)
+            .setEvsMode(evsMode)
+            .setChannelAwareMode((byte) 3)
+            .setHeaderFullOnlyOnTx(true)
+            .setHeaderFullOnlyOnRx(true)
+            .build();
+    }
+
+    /**
+     * Displays the dialer BottomSheetDialog when the button is clicked
+     * @param view the view form the button click
+     */
+    public void openDialer(View view) {
+        if (!bottomSheetDialog.isOpen()) {
             bottomSheetDialog.show();
         }
     }
 
-    public void dialerButtonOnClick(View v) {
-        dtmfInput.append(((Button) v).getText().toString());
-        Log.d("", dtmfInput.toString());
+    public void sendDtmfOnClick(View view) {
+        char digit = ((Button) view).getText().toString().charAt(0);
+        dtmfInput.append(digit);
 
         TextView dtmfInputBox = bottomSheetDialog.getDtmfInput();
         dtmfInputBox.setText(dtmfInput.toString());
 
+        audioSession.startDtmf(digit, 50, 3);
+        audioSession.stopDtmf();
 
 
     }
 
-    public void sendDtmf(View v) {
-        for(char dtmf : dtmfInput.toString().toCharArray()) {
-            audioSession.startDtmf(dtmf, 1, 1);
-            audioSession.stopDtmf();
-        }
-
+    public void clearDtmfInputOnClick(View view) {
         dtmfInput.setLength(0);
         TextView dtmfInputBox = bottomSheetDialog.getDtmfInput();
-        dtmfInputBox.setText(dtmfInput.toString());
+        dtmfInputBox.setText(getString(R.string.dtmfInputPlaceholder));
     }
 
-    public void closeSessionOnClick(View v) {
+    public void closeSessionOnClick(View view) {
         imsMediaManager.closeSession(audioSession);
         isOpenSessionSent = false;
     }
@@ -843,39 +981,47 @@ public class MainActivity extends AppCompatActivity {
         setupAudioCodecDropDown();
     }
 
-    public void mediaDirectionOnClick(View v) {
-        PopupMenu debugMenu = new PopupMenu(this, findViewById(R.id.mediaDirectionButton));
-        debugMenu.getMenuInflater().inflate(R.menu.media_direction_menu, debugMenu.getMenu());
-        debugMenu.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
-            @Override
-            public boolean onMenuItemClick(MenuItem item) {
-                switch (item.getItemId()) {
+    public void mediaDirectionOnClick(View view) {
+        PopupMenu mediaDirectionMenu = new PopupMenu(this, findViewById(R.id.mediaDirectionButton));
+        mediaDirectionMenu.getMenuInflater()
+            .inflate(R.menu.media_direction_menu, mediaDirectionMenu.getMenu());
+        mediaDirectionMenu.setOnMenuItemClickListener(item -> {
+            switch (item.getItemId()) {
 
-                    case R.id.noFlowDirectionItem:
-                        audioConfig.setMediaDirection(AudioConfig.MEDIA_DIRECTION_NO_FLOW);
-                        break;
+                case R.id.noFlowDirectionItem:
+                    audioConfig.setMediaDirection(AudioConfig.MEDIA_DIRECTION_NO_FLOW);
+                    break;
 
-                    case R.id.transmitReceiveDirectionItem:
-                        audioConfig.setMediaDirection(AudioConfig.MEDIA_DIRECTION_TRANSMIT_RECEIVE);
-                        break;
+                case R.id.transmitReceiveDirectionItem:
+                    audioConfig.setMediaDirection(AudioConfig.MEDIA_DIRECTION_TRANSMIT_RECEIVE);
+                    break;
 
-                    case R.id.receiveOnlyDirectionItem:
-                        audioConfig.setMediaDirection(AudioConfig.MEDIA_DIRECTION_RECEIVE_ONLY);
-                        break;
+                case R.id.receiveOnlyDirectionItem:
+                    audioConfig.setMediaDirection(AudioConfig.MEDIA_DIRECTION_RECEIVE_ONLY);
+                    break;
 
-                    case R.id.transmitOnlyDirectionItem:
-                        audioConfig.setMediaDirection(AudioConfig.MEDIA_DIRECTION_TRANSMIT_ONLY);
-                        break;
+                case R.id.transmitOnlyDirectionItem:
+                    audioConfig.setMediaDirection(AudioConfig.MEDIA_DIRECTION_TRANSMIT_ONLY);
+                    break;
 
-                    default:
-                        return false;
-                }
-
-                audioSession.modifySession(audioConfig);
-                return true;
+                default:
+                    return false;
             }
+
+            audioSession.modifySession(audioConfig);
+            return true;
         });
-        debugMenu.show();
+        mediaDirectionMenu.show();
+    }
+
+    /**
+     * Displays the audio codec change BottomSheetDialog when the button is clicked
+     * @param view the view form the button click
+     */
+    public void openChangeAudioCodecSheet(View view) {
+        if (!bottomSheetAudioCodecSettings.isOpen()) {
+            bottomSheetAudioCodecSettings.show();
+        }
     }
 
     private void getAudioCodecSelections() {
@@ -932,7 +1078,7 @@ public class MainActivity extends AppCompatActivity {
         return ipBox.getText().toString();
     }
 
-    public void saveSettingsOnClick(View v) {
+    public void saveSettingsOnClick(View view) {
         int port = getRemoteDevicePortEditText();
         String ip = getRemoteDeviceIpEditText();
 
@@ -942,6 +1088,63 @@ public class MainActivity extends AppCompatActivity {
 
         Toast.makeText(getApplicationContext(), R.string.save_button_action_toast,
             Toast.LENGTH_SHORT).show();
+    }
+
+    /**
+     * Calls modifySession to change the audio codec on the current AudioSession. Also contains
+     * the logic to create the new AudioConfig.
+     * @param view the view form the button click
+     */
+    public void changeAudioCodecOnClick(View view) {
+        AudioConfig config = null;
+        AmrParams amrParams = null;
+        EvsParams evsParams = null;
+        switch (bottomSheetAudioCodecSettings.getAudioCodec()) {
+            case "CODEC_AMR":
+                amrParams = createAmrParams(bottomSheetAudioCodecSettings.getAmrMode());
+                config = createAudioConfig(getRemoteSocketAddress(), getRemoteRtcpConfig(),
+                    AudioConfig.CODEC_AMR, amrParams, null);
+                Log.d("", String.format("AudioConfig switched to Codec: %s\t Params: %s",
+                    bottomSheetAudioCodecSettings.getAudioCodec(),
+                    config.getAmrParams().toString()));
+                break;
+
+            case "CODEC_AMR_WB":
+                amrParams = createAmrParams(bottomSheetAudioCodecSettings.getAmrMode());
+                config = createAudioConfig(getRemoteSocketAddress(), getRemoteRtcpConfig(),
+                    AudioConfig.CODEC_AMR_WB, amrParams, null);
+                Log.d("", String.format("AudioConfig switched to Codec: %s\t Params: %s",
+                    bottomSheetAudioCodecSettings.getAudioCodec(),
+                    config.getAmrParams().toString()));
+                break;
+
+            case "CODEC_EVS":
+                 evsParams = createEvsParams(bottomSheetAudioCodecSettings.getEvsBand(),
+                    bottomSheetAudioCodecSettings.getEvsMode());
+                config = createAudioConfig(getRemoteSocketAddress(), getRemoteRtcpConfig(),
+                    AudioConfig.CODEC_EVS, null, evsParams);
+                Log.d("", String.format("AudioConfig switched to Codec: %s\t Params: %s",
+                    bottomSheetAudioCodecSettings.getAudioCodec(),
+                    config.getEvsParams().toString()));
+                break;
+
+            case "CODEC_PCMA":
+                config = createAudioConfig(getRemoteSocketAddress(), getRemoteRtcpConfig(),
+                    AudioConfig.CODEC_PCMA, null, null);
+                Log.d("", String.format("AudioConfig switched to Codec: %s",
+                    bottomSheetAudioCodecSettings.getAudioCodec()));
+                break;
+
+            case "CODEC_PCMU":
+                config = createAudioConfig(getRemoteSocketAddress(), getRemoteRtcpConfig(),
+                    AudioConfig.CODEC_PCMU, null, null);
+                Log.d("", String.format("AudioConfig switched to Codec: %s",
+                    bottomSheetAudioCodecSettings.getAudioCodec()));
+                break;
+        }
+
+        audioSession.modifySession(config);
+        bottomSheetAudioCodecSettings.dismiss();
     }
 
     private class MediaManagerCallback implements ImsMediaManager.OnConnectedCallback {
@@ -1027,6 +1230,7 @@ public class MainActivity extends AppCompatActivity {
         public void notifyJitter(int jitter) {
             super.notifyJitter(jitter);
         }
+
     }
 
 }

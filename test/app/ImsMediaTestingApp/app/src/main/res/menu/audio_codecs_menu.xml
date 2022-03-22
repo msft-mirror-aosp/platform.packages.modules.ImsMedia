@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+
+  <item
+      android:id="@+id/amrCodec"
+      android:title="@string/codec_amr">
+  </item>
+
+  <item
+      android:id="@+id/amrWbCodec"
+      android:title="@string/codec_amr_wb">
+  </item>
+
+  <item
+      android:id="@+id/evsCodec"
+      android:title="@string/codec_evs">
+  </item>
+
+  <item
+      android:id="@+id/pcmaCodec"
+      android:title="@string/codec_pcma">
+  </item>
+
+  <item
+      android:id="@+id/pcmuCodec"
+      android:title="@string/codec_pcmu">
+  </item>
+
+</menu>

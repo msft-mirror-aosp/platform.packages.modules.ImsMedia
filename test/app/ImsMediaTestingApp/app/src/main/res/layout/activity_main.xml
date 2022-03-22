@@ -182,11 +182,13 @@
       android:text="@string/loop_back_mode_switch_text" />
 
   <LinearLayout
+      android:id="@+id/activeCallActionsLayout"
       android:layout_width="match_parent"
       android:layout_height="wrap_content"
       android:gravity="center_horizontal"
       android:orientation="horizontal"
       android:layout_alignParentBottom="true"
+      android:alpha="0.5"
       android:layout_margin="10dp">
 
     <ImageButton
@@ -196,6 +198,9 @@
         android:contentDescription="@string/dialerButtonDescription"
         android:onClick="openDialer"
         android:layout_gravity="center_vertical"
+        android:alpha="0.5"
+        android:enabled="false"
+        android:background="#00000000"
         android:src="@drawable/ic_baseline_dialpad_24" />
 
     <View android:layout_width="0dp"
@@ -225,10 +230,27 @@
         android:contentDescription="@string/dialerButtonDescription"
         android:onClick="mediaDirectionOnClick"
         android:layout_gravity="center_vertical"
+        android:background="#00000000"
+        android:alpha="0.5"
+        android:enabled="false"
         android:src="@drawable/ic_baseline_phone_paused_24" />
 
+    <View android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_weight="1" />
+
+    <ImageButton
+        android:id="@+id/changeAudioCodecButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:contentDescription="@string/dialerButtonDescription"
+        android:onClick="openChangeAudioCodecSheet"
+        android:layout_gravity="center_vertical"
+        android:background="#00000000"
+        android:alpha="0.5"
+        android:enabled="false"
+        android:src="@drawable/ic_baseline_phone_in_talk_24" />
+
   </LinearLayout>
-
-
 
 </RelativeLayout>
