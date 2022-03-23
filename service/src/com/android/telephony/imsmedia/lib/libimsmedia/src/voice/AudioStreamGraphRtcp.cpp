@@ -34,15 +34,15 @@ AudioStreamGraphRtcp::~AudioStreamGraphRtcp() {
     }
 }
 
-ImsMediaResult AudioStreamGraphRtcp::createGraph(void* config) {
+ImsMediaResult AudioStreamGraphRtcp::create(void* config) {
     IMLOGD0("[createGraph]");
     mConfig = new AudioConfig(reinterpret_cast<AudioConfig*>(config));
     BaseNode* pNodeRtcpEncoder = BaseNode::Load(BaseNodeID::NODEID_RTCPENCODER, mCallback);
     if (pNodeRtcpEncoder == NULL) return IMS_MEDIA_ERROR_UNKNOWN;
     pNodeRtcpEncoder->SetMediaType(IMS_MEDIA_AUDIO);
-    char localIp[128];
+    char localIp[MAX_IP_LEN];
     uint32_t localPort = 0;
-    ImsMediaNetworkUtil::GetLocalIPPortFromSocketFD(mLocalFd, localIp, 128, localPort);
+    ImsMediaNetworkUtil::GetLocalIPPortFromSocketFD(mLocalFd, localIp, MAX_IP_LEN, localPort);
     RtpAddress localAddress(localIp, localPort - 1);
     ((RtcpEncoderNode*)pNodeRtcpEncoder)->SetLocalAddress(localAddress);
     pNodeRtcpEncoder->SetConfig(config);
@@ -81,14 +81,14 @@ ImsMediaResult AudioStreamGraphRtcp::createGraph(void* config) {
     return ImsMediaResult::IMS_MEDIA_OK;
 }
 
-ImsMediaResult AudioStreamGraphRtcp::updateGraph(void* config)  {
-    IMLOGD0("[updateGraph]");
+ImsMediaResult AudioStreamGraphRtcp::update(void* config)  {
+    IMLOGD0("[update]");
     if (config == NULL) return IMS_MEDIA_ERROR_INVALID_ARGUMENT;
 
     AudioConfig* pConfig = reinterpret_cast<AudioConfig*>(config);
 
     if (*mConfig == *pConfig) {
-        IMLOGD0("[updateGraph] no update");
+        IMLOGD0("[update] no update");
         return IMS_MEDIA_OK;
     }
 
@@ -98,8 +98,8 @@ ImsMediaResult AudioStreamGraphRtcp::updateGraph(void* config)  {
     }
 
     if (mConfig->getRtcpConfig().getIntervalSec() == 0) {
-        IMLOGD0("[updateGraph] pause RTCP");
-        return stopGraph();
+        IMLOGD0("[update] pause RTCP");
+        return stop();
     }
 
     ImsMediaResult ret = ImsMediaResult::IMS_MEDIA_ERROR_UNKNOWN;
@@ -109,16 +109,16 @@ ImsMediaResult AudioStreamGraphRtcp::updateGraph(void* config)  {
     }
 
     for (auto& node:mListNodeStarted) {
-        IMLOGD1("[updateGraph] update node[%s]", node->GetNodeName());
+        IMLOGD1("[update] update node[%s]", node->GetNodeName());
         ret = node->UpdateConfig(pConfig);
         if (ret != IMS_MEDIA_OK) {
-            IMLOGE2("[updateGraph] error in update node[%s], ret[%d]", node->GetNodeName(), ret);
+            IMLOGE2("[update] error in update node[%s], ret[%d]", node->GetNodeName(), ret);
         }
     }
 
     if (mGraphState == STATE_CREATED && mConfig->getRtcpConfig().getIntervalSec() != 0) {
-        IMLOGD0("[updateGraph] resume RTCP");
-        return startGraph();
+        IMLOGD0("[update] resume RTCP");
+        return start();
     }
 
     //restart scheduler
@@ -127,15 +127,4 @@ ImsMediaResult AudioStreamGraphRtcp::updateGraph(void* config)  {
     }
 
     return ret;
-}
-
-bool AudioStreamGraphRtcp::isSameConfig(RtpConfig* config) {
-    if (mConfig == NULL) return false;
-    //check compare
-    if (mConfig->getRemoteAddress().compare(config->getRemoteAddress()) != 0
-        && mConfig->getRemotePort() == config->getRemotePort()) {
-        return true;
-    }
-
-    return false;
 }

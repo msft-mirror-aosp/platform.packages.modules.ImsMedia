@@ -28,7 +28,7 @@ BaseStreamGraph::~BaseStreamGraph() {
     IMLOGD0("[~BaseStreamGraph]");
 }
 
-ImsMediaResult BaseStreamGraph::startGraph() {
+ImsMediaResult BaseStreamGraph::start() {
     IMLOGD0("startGraph]");
     ImsMediaResult ret = startNodes();
     if (ret != IMS_MEDIA_OK) {
@@ -38,7 +38,7 @@ ImsMediaResult BaseStreamGraph::startGraph() {
     return IMS_MEDIA_OK;
 }
 
-ImsMediaResult BaseStreamGraph::stopGraph() {
+ImsMediaResult BaseStreamGraph::stop() {
     IMLOGD0("stopGraph]");
     ImsMediaResult ret = stopNodes();
     if (ret != IMS_MEDIA_OK) {

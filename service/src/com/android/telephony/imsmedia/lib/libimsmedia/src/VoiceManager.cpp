@@ -85,18 +85,25 @@ bool VoiceManager::modifySession(int sessionId, AudioConfig* config) {
     auto session = mSessions.find(sessionId);
     IMLOGD1("modifySession() - sessionId[%d]", sessionId);
     if (session != mSessions.end()) {
-        (session->second)->startGraph(config);
-        return true;
+        if ((session->second)->startGraph(config) == IMS_MEDIA_OK) {
+            return true;
+        }
     } else {
         IMLOGE1("modifySession() - no session id[%d]", sessionId);
-        return false;
     }
+    return false;
 }
 
 bool VoiceManager::addConfig(int sessionId, AudioConfig* config) {
-    (void)sessionId;
-    (void)config;
-    //TODO : add implementation
+    auto session = mSessions.find(sessionId);
+    IMLOGD1("addConfig() - sessionId[%d]", sessionId);
+    if (session != mSessions.end()) {
+        if ((session->second)->addGraph(config) == IMS_MEDIA_OK) {
+            return true;
+        }
+    } else {
+        IMLOGE1("addConfig() - no session id[%d]", sessionId);
+    }
     return false;
 }
 
@@ -109,15 +116,20 @@ bool VoiceManager::deleteConfig(int sessionId, AudioConfig* config) {
         }
     } else {
         IMLOGE1("deleteConfig() - no session id[%d]", sessionId);
-        return false;
     }
     return false;
 }
 
 bool VoiceManager::confirmConfig(int sessionId, AudioConfig* config) {
-    (void)sessionId;
-    (void)config;
-    //TODO : add implementation
+    auto session = mSessions.find(sessionId);
+    IMLOGD1("confirmConfig() - sessionId[%d]", sessionId);
+    if (session != mSessions.end()) {
+        if ((session->second)->confirmGraph(config) == IMS_MEDIA_OK) {
+            return true;
+        }
+    } else {
+        IMLOGE1("confirmConfig() - no session id[%d]", sessionId);
+    }
     return false;
 }
 

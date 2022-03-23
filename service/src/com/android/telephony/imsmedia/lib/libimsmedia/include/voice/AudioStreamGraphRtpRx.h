@@ -20,20 +20,14 @@
 #include <ImsMediaDefine.h>
 #include <BaseStreamGraph.h>
 #include <BaseNode.h>
-#include <RtpConfig.h>
-#include <AudioConfig.h>
 
 class AudioStreamGraphRtpRx : public BaseStreamGraph
 {
 public:
     AudioStreamGraphRtpRx(BaseSessionCallback* callback, int localFd = 0);
     virtual ~AudioStreamGraphRtpRx();
-    virtual ImsMediaResult createGraph(void* config);
-    virtual ImsMediaResult updateGraph(void* config);
-    virtual bool isSameConfig(RtpConfig* config);
-
-private:
-    AudioConfig* mConfig;
+    virtual ImsMediaResult create(void* config);
+    virtual ImsMediaResult update(void* config);
 };
 
 #endif

@@ -28,16 +28,16 @@ AudioStreamGraphRtpRx::AudioStreamGraphRtpRx(BaseSessionCallback* callback, int 
 AudioStreamGraphRtpRx::~AudioStreamGraphRtpRx() {
 }
 
-ImsMediaResult AudioStreamGraphRtpRx::createGraph(void* config) {
-    IMLOGD0("[createGraph]");
+ImsMediaResult AudioStreamGraphRtpRx::create(void* config) {
+    IMLOGD0("[create]");
     mConfig = new AudioConfig(reinterpret_cast<AudioConfig*>(config));
 
     BaseNode* pNodeSocketReader = BaseNode::Load(BaseNodeID::NODEID_SOCKETREADER, mCallback);
     if (pNodeSocketReader == NULL) return IMS_MEDIA_ERROR_UNKNOWN;
     pNodeSocketReader->SetMediaType(IMS_MEDIA_AUDIO);
-    char localIp[128];
+    char localIp[MAX_IP_LEN];
     uint32_t localPort = 0;
-    ImsMediaNetworkUtil::GetLocalIPPortFromSocketFD(mLocalFd, localIp, 128, localPort);
+    ImsMediaNetworkUtil::GetLocalIPPortFromSocketFD(mLocalFd, localIp, MAX_IP_LEN, localPort);
     RtpAddress localAddress(localIp, localPort);
     ((SocketReaderNode*)pNodeSocketReader)->SetLocalFd(mLocalFd);
     ((SocketReaderNode*)pNodeSocketReader)->SetLocalAddress(localAddress);
@@ -74,14 +74,14 @@ ImsMediaResult AudioStreamGraphRtpRx::createGraph(void* config) {
     return ImsMediaResult::IMS_MEDIA_OK;
 }
 
-ImsMediaResult AudioStreamGraphRtpRx::updateGraph(void* config) {
-    IMLOGD0("[updateGraph]");
+ImsMediaResult AudioStreamGraphRtpRx::update(void* config) {
+    IMLOGD0("[update]");
     if (config == NULL) return IMS_MEDIA_ERROR_INVALID_ARGUMENT;
 
     AudioConfig* pConfig = reinterpret_cast<AudioConfig*>(config);
 
     if (*mConfig == *pConfig) {
-        IMLOGD0("[updateGraph] no update");
+        IMLOGD0("[update] no update");
         return IMS_MEDIA_OK;
     }
 
@@ -93,28 +93,28 @@ ImsMediaResult AudioStreamGraphRtpRx::updateGraph(void* config) {
 
     if (mConfig->getMediaDirection() == RtpConfig::MEDIA_DIRECTION_NO_FLOW
         || mConfig->getMediaDirection() == RtpConfig::MEDIA_DIRECTION_TRANSMIT_ONLY) {
-        IMLOGD0("[updateGraph] pause RX");
-        return stopGraph();
+        IMLOGD0("[update] pause RX");
+        return stop();
     }
     ImsMediaResult ret = ImsMediaResult::IMS_MEDIA_ERROR_UNKNOWN;
 
     if (mGraphState == STATE_RUN) {
         mScheduler->Stop();
         for (auto& node:mListNodeStarted) {
-            IMLOGD1("[updateGraph] update node[%s]", node->GetNodeName());
+            IMLOGD1("[update] update node[%s]", node->GetNodeName());
             ret = node->UpdateConfig(mConfig);
             if (ret != IMS_MEDIA_OK) {
-                IMLOGE2("[updateGraph] error in update node[%s], ret[%d]",
+                IMLOGE2("[update] error in update node[%s], ret[%d]",
                     node->GetNodeName(), ret);
             }
         }
         mScheduler->Start();
     } else if (mGraphState == STATE_CREATED) {
         for (auto& node:mListNodeToStart) {
-            IMLOGD1("[updateGraph] update node[%s]", node->GetNodeName());
+            IMLOGD1("[update] update node[%s]", node->GetNodeName());
             ret = node->UpdateConfig(mConfig);
             if (ret != IMS_MEDIA_OK) {
-                IMLOGE2("[updateGraph] error in update node[%s], ret[%d]",
+                IMLOGE2("[update] error in update node[%s], ret[%d]",
                     node->GetNodeName(), ret);
             }
         }
@@ -123,20 +123,9 @@ ImsMediaResult AudioStreamGraphRtpRx::updateGraph(void* config) {
     if (mGraphState == STATE_CREATED &&
         (pConfig->getMediaDirection() == RtpConfig::MEDIA_DIRECTION_RECEIVE_ONLY
         || pConfig->getMediaDirection() == RtpConfig::MEDIA_DIRECTION_TRANSMIT_RECEIVE)) {
-        IMLOGD0("[updateGraph] resume RX");
-        return startGraph();
+        IMLOGD0("[update] resume RX");
+        return start();
     }
 
     return ret;
-}
-
-bool AudioStreamGraphRtpRx::isSameConfig(RtpConfig* config) {
-    if (mConfig == NULL || config == NULL) return false;
-    //check compare
-    if (mConfig->getRemoteAddress().compare(config->getRemoteAddress()) != 0
-        && mConfig->getRemotePort() == config->getRemotePort()) {
-        return true;
-    }
-
-    return false;
 }

@@ -28,7 +28,7 @@ AudioSession::~AudioSession() {
     while (mListGraphRtpTx.size() > 0) {
         AudioStreamGraphRtpTx* graph = mListGraphRtpTx.front();
         if (graph->getState() == STATE_RUN) {
-            graph->stopGraph();
+            graph->stop();
         }
         mListGraphRtpTx.pop_front();
         delete graph;
@@ -36,7 +36,7 @@ AudioSession::~AudioSession() {
     while (mListGraphRtpRx.size() > 0) {
         AudioStreamGraphRtpRx* graph = mListGraphRtpRx.front();
         if (graph->getState() == STATE_RUN) {
-            graph->stopGraph();
+            graph->stop();
         }
         mListGraphRtpRx.pop_front();
         delete graph;
@@ -44,7 +44,7 @@ AudioSession::~AudioSession() {
     while (mListGraphRtcp.size() > 0) {
         AudioStreamGraphRtcp* graph = mListGraphRtcp.front();
         if (graph->getState() == STATE_RUN) {
-            graph->stopGraph();
+            graph->stop();
         }
         mListGraphRtcp.pop_front();
         delete graph;
@@ -56,21 +56,24 @@ ImsMediaResult AudioSession::startGraph(RtpConfig* config) {
     if (config == NULL || std::strcmp(config->getRemoteAddress().c_str(), "") == 0) {
         return IMS_MEDIA_ERROR_INVALID_ARGUMENT;
     }
+
     ImsMediaResult ret = IMS_MEDIA_ERROR_UNKNOWN;
     IMLOGD1("[startGraph] mListGraphRtpTx size[%d]", mListGraphRtpTx.size());
 
     if (mListGraphRtpTx.size() != 0) {
-        ret = mListGraphRtpTx.front()->updateGraph(config);
+        ret = mListGraphRtpTx.front()->update(config);
         if (ret != IMS_MEDIA_OK) {
-            IMLOGE1("[startGraph] updateGraph error[%d]", ret);
+            IMLOGE1("[startGraph] update error[%d]", ret);
+            return ret;
         }
     } else {
         mListGraphRtpTx.push_back(new AudioStreamGraphRtpTx(this, mRtpFd));
-        ret = mListGraphRtpTx.back()->createGraph(config);
+        ret = mListGraphRtpTx.back()->create(config);
         if (ret == IMS_MEDIA_OK) {
-            ret = mListGraphRtpTx.back()->startGraph();
+            ret = mListGraphRtpTx.back()->start();
             if (ret != IMS_MEDIA_OK) {
-                IMLOGE1("[startGraph] startGraph error[%d]", ret);
+                IMLOGE1("[startGraph] start error[%d]", ret);
+                return ret;
             }
         }
     }
@@ -78,17 +81,19 @@ ImsMediaResult AudioSession::startGraph(RtpConfig* config) {
     IMLOGD1("[startGraph] mListGraphRtpRx size[%d]", mListGraphRtpRx.size());
 
     if (mListGraphRtpRx.size() != 0) {
-        ret = mListGraphRtpRx.front()->updateGraph(config);
+        ret = mListGraphRtpRx.front()->update(config);
         if (ret != IMS_MEDIA_OK) {
-            IMLOGE1("[startGraph] updateGraph error[%d]", ret);
+            IMLOGE1("[startGraph] update error[%d]", ret);
+            return ret;
         }
     } else {
         mListGraphRtpRx.push_back(new AudioStreamGraphRtpRx(this, mRtpFd));
-        ret = mListGraphRtpRx.back()->createGraph(config);
+        ret = mListGraphRtpRx.back()->create(config);
         if (ret == IMS_MEDIA_OK) {
-            ret = mListGraphRtpRx.back()->startGraph();
+            ret = mListGraphRtpRx.back()->start();
             if (ret != IMS_MEDIA_OK) {
-                IMLOGE1("[startGraph] startGraph error[%d]", ret);
+                IMLOGE1("[startGraph] start error[%d]", ret);
+                return ret;
             }
         }
     }
@@ -96,17 +101,19 @@ ImsMediaResult AudioSession::startGraph(RtpConfig* config) {
     IMLOGD1("[startGraph] mListGraphRtcp size[%d]", mListGraphRtcp.size());
 
     if (mListGraphRtcp.size() != 0) {
-        ret = mListGraphRtcp.front()->updateGraph(config);
+        ret = mListGraphRtcp.front()->update(config);
         if (ret != IMS_MEDIA_OK) {
-            IMLOGE1("[startGraph] updateGraph error[%d]", ret);
+            IMLOGE1("[startGraph] update error[%d]", ret);
+            return ret;
         }
     } else {
         mListGraphRtcp.push_back(new AudioStreamGraphRtcp(this, mRtcpFd));
-        ret = mListGraphRtcp.back()->createGraph(config);
+        ret = mListGraphRtcp.back()->create(config);
         if (ret == IMS_MEDIA_OK) {
-            ret = mListGraphRtcp.back()->startGraph();
+            ret = mListGraphRtcp.back()->start();
             if (ret != IMS_MEDIA_OK) {
-                IMLOGE1("[startGraph] startGraph error[%d]", ret);
+                IMLOGE1("[startGraph] start error[%d]", ret);
+                return ret;
             }
         }
     }
@@ -115,60 +122,222 @@ ImsMediaResult AudioSession::startGraph(RtpConfig* config) {
 }
 
 ImsMediaResult AudioSession::addGraph(RtpConfig* config) {
-    //stop rtp tx/rx and start rtcp
-    //create graph for new config
-    (void)config;
+    if (config == NULL || std::strcmp(config->getRemoteAddress().c_str(), "") == 0) {
+        return IMS_MEDIA_ERROR_INVALID_ARGUMENT;
+    }
+
+    for (auto&i : mListGraphRtpTx) {
+        if (i->isSameConfig(config)) {
+            IMLOGE0("[addGraph] same config is exist");
+            return IMS_MEDIA_ERROR_INVALID_ARGUMENT;
+        }
+    }
+
+    for (auto&i : mListGraphRtpTx) {
+        i->stop();
+    }
+
+    for (auto&i : mListGraphRtpRx) {
+        i->stop();
+    }
+
+    for (auto&i : mListGraphRtcp) {
+        if (i->getState() != STATE_RUN) {
+            i->start();
+        }
+    }
+
+    ImsMediaResult ret = IMS_MEDIA_ERROR_UNKNOWN;
+
+    mListGraphRtpTx.push_back(new AudioStreamGraphRtpTx(this, mRtpFd));
+    ret = mListGraphRtpTx.back()->create(config);
+    if (ret == IMS_MEDIA_OK) {
+        ret = mListGraphRtpTx.back()->start();
+        if (ret != IMS_MEDIA_OK) {
+            IMLOGE1("[addGraph] start error[%d]", ret);
+            return ret;
+        }
+    }
+
+    IMLOGD1("[addGraph] mListGraphTx size[%d]", mListGraphRtpTx.size());
+
+    mListGraphRtpRx.push_back(new AudioStreamGraphRtpRx(this, mRtpFd));
+    ret = mListGraphRtpRx.back()->create(config);
+    if (ret == IMS_MEDIA_OK) {
+        ret = mListGraphRtpRx.back()->start();
+        if (ret != IMS_MEDIA_OK) {
+            IMLOGE1("[addGraph] start error[%d]", ret);
+            return ret;
+        }
+    }
+
+    IMLOGD1("[addGraph] mListGraphRx size[%d]", mListGraphRtpRx.size());
+
+    mListGraphRtcp.push_back(new AudioStreamGraphRtcp(this, mRtcpFd));
+    ret = mListGraphRtcp.back()->create(config);
+    if (ret == IMS_MEDIA_OK) {
+        ret = mListGraphRtcp.back()->start();
+        if (ret != IMS_MEDIA_OK) {
+            IMLOGE1("[addGraph] start error[%d]", ret);
+            return ret;
+        }
+    }
+
+    IMLOGD1("[addGraph] mListGraphRtcp size[%d]", mListGraphRtcp.size());
+
     return IMS_MEDIA_OK;
 }
 
 ImsMediaResult AudioSession::confirmGraph(RtpConfig* config) {
-    //stop rtp tx/rx/rtcp and delete other graph
-    (void)config;
+    if (config == NULL || std::strcmp(config->getRemoteAddress().c_str(), "") == 0) {
+        return IMS_MEDIA_ERROR_INVALID_ARGUMENT;
+    }
+
+    ImsMediaResult ret = IMS_MEDIA_ERROR_UNKNOWN;
+
+    /** Stop unmatched running instances of StreamGraph. */
+    for (auto&i : mListGraphRtpTx) {
+        if (!i->isSameConfig(config)) {
+            i->stop();
+        }
+    }
+
+    for (auto&i : mListGraphRtpRx) {
+        if (!i->isSameConfig(config)) {
+            i->stop();
+        }
+    }
+
+    for (auto&i : mListGraphRtcp) {
+        if (!i->isSameConfig(config)) {
+            i->stop();
+        }
+    }
+
+    bool bFound = false;
+    for (std::list<AudioStreamGraphRtpTx*>::iterator
+        iter = mListGraphRtpTx.begin(); iter != mListGraphRtpTx.end();) {
+        AudioStreamGraphRtpTx* graph = *iter;
+        if (!graph->isSameConfig(config)) {
+            iter = mListGraphRtpTx.erase(iter);
+            delete graph;
+        } else {
+            if (graph->getState() != STATE_RUN) {
+                ret = graph->start();
+                if (ret != IMS_MEDIA_OK) {
+                    IMLOGE1("[confirmGraph] start tx error[%d]", ret);
+                    return ret;
+                }
+            }
+            iter++;
+            bFound = true;
+        }
+    }
+
+    IMLOGD1("[confirmGraph] mListGraphTx size[%d]", mListGraphRtpTx.size());
+
+    if (bFound == false) {
+        IMLOGE0("[confirmGraph] no graph to confirm");
+        return IMS_MEDIA_ERROR_INVALID_ARGUMENT;
+    }
+
+    for (std::list<AudioStreamGraphRtpRx*>::iterator
+        iter = mListGraphRtpRx.begin(); iter != mListGraphRtpRx.end();) {
+        AudioStreamGraphRtpRx* graph = *iter;
+        if (!graph->isSameConfig(config)) {
+            iter = mListGraphRtpRx.erase(iter);
+            delete graph;
+        } else {
+            if (graph->getState() != STATE_RUN) {
+                ret = graph->start();
+                if (ret != IMS_MEDIA_OK) {
+                    IMLOGE1("[confirmGraph] start rx error[%d]", ret);
+                    return ret;
+                }
+            }
+            iter++;
+        }
+    }
+
+    IMLOGD1("[confirmGraph] mListGraphRx size[%d]", mListGraphRtpRx.size());
+
+    for (std::list<AudioStreamGraphRtcp*>::iterator
+        iter = mListGraphRtcp.begin(); iter != mListGraphRtcp.end();) {
+        AudioStreamGraphRtcp* graph = *iter;
+        if (!graph->isSameConfig(config)) {
+            iter = mListGraphRtcp.erase(iter);
+            delete graph;
+        } else {
+            if (graph->getState() != STATE_RUN) {
+                ret = graph->start();
+                if (ret != IMS_MEDIA_OK) {
+                    IMLOGE1("[confirmGraph] start rtcp error[%d]", ret);
+                    return ret;
+                }
+            }
+            iter++;
+        }
+    }
+
+    IMLOGD1("[confirmGraph] mListGraphRtcp size[%d]", mListGraphRtcp.size());
+
     return IMS_MEDIA_OK;
 }
 
 ImsMediaResult AudioSession::deleteGraph(RtpConfig* config) {
     IMLOGD0("[deleteGraph]");
+    bool bFound = false;
     for (std::list<AudioStreamGraphRtpTx*>::iterator
-        iter = mListGraphRtpTx.begin(); iter != mListGraphRtpTx.end(); iter++) {
+        iter = mListGraphRtpTx.begin(); iter != mListGraphRtpTx.end();) {
         AudioStreamGraphRtpTx* graph = *iter;
         if (graph->isSameConfig(config)) {
             if (graph->getState() == STATE_RUN) {
-                graph->stopGraph();
+                graph->stop();
             }
-            mListGraphRtpTx.erase(iter);
+            iter = mListGraphRtpTx.erase(iter);
             delete graph;
+            bFound = true;
             break;
+        } else {
+            iter++;
         }
+    }
+
+    if (bFound == false) {
+        return IMS_MEDIA_ERROR_INVALID_ARGUMENT;
     }
 
     IMLOGD1("[deleteGraph] mListGraphRtpTx size[%d]", mListGraphRtpTx.size());
 
     for (std::list<AudioStreamGraphRtpRx*>::iterator iter =
-        mListGraphRtpRx.begin(); iter != mListGraphRtpRx.end(); iter++) {
+        mListGraphRtpRx.begin(); iter != mListGraphRtpRx.end();) {
         AudioStreamGraphRtpRx* graph = *iter;
         if (graph->isSameConfig(config)) {
             if (graph->getState() == STATE_RUN) {
-                graph->stopGraph();
+                graph->stop();
             }
-            mListGraphRtpRx.erase(iter);
+            iter = mListGraphRtpRx.erase(iter);
             delete graph;
             break;
+        } else {
+            iter++;
         }
     }
 
     IMLOGD1("[deleteGraph] mListGraphRtpRx size[%d]", mListGraphRtpRx.size());
 
     for (std::list<AudioStreamGraphRtcp*>::iterator iter =
-        mListGraphRtcp.begin(); iter != mListGraphRtcp.end(); iter++) {
+        mListGraphRtcp.begin(); iter != mListGraphRtcp.end();) {
         AudioStreamGraphRtcp* graph = *iter;
         if (graph->isSameConfig(config)) {
             if (graph->getState() == STATE_RUN) {
-                graph->stopGraph();
+                graph->stop();
             }
-            mListGraphRtcp.erase(iter);
+            iter = mListGraphRtcp.erase(iter);
             delete graph;
             break;
+        } else {
+            iter++;
         }
     }
 

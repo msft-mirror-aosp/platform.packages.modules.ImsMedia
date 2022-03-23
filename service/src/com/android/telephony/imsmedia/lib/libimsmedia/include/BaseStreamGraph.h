@@ -22,6 +22,7 @@
 #include <BaseNode.h>
 #include <BaseSessionCallback.h>
 #include <MediaQualityThreshold.h>
+#include <RtpConfig.h>
 #include <list>
 
 /**
@@ -29,8 +30,8 @@
  */
 class BaseStreamGraph {
 protected:
-    virtual ImsMediaResult createGraph(void* config) = 0;
-    virtual ImsMediaResult updateGraph(void* config) = 0;
+    virtual ImsMediaResult create(void* config) = 0;
+    virtual ImsMediaResult update(void* config) = 0;
     virtual void AddNode(BaseNode* pNode, bool bReverse = true);
     virtual void RemoveNode(BaseNode* pNode);
     virtual ImsMediaResult startNodes();
@@ -45,20 +46,35 @@ public:
     int getLocalFd() {
         return mLocalFd;
     }
-    virtual ImsMediaResult startGraph();
-    virtual ImsMediaResult stopGraph();
+    virtual ImsMediaResult start();
+    virtual ImsMediaResult stop();
     void setState(StreamState state) {
         mGraphState = state;
     }
     StreamState getState() {
         return mGraphState;
     }
-    virtual bool isSameConfig(RtpConfig* config) = 0;
+    /**
+     * @brief Checks StreamGraph has a config is same with argument
+     *
+     * @param config RtpConfig for the StreamGraph operates nodes in the graph
+     * @return true The remote IP address and port number is same
+     * @return false The remote IP address or port number is not the same
+     */
+    virtual bool isSameConfig(RtpConfig* config) {
+        if (mConfig == NULL || config == NULL) return false;
+        if (mConfig->getRemoteAddress() == config->getRemoteAddress() &&
+            mConfig->getRemotePort() == config->getRemotePort()) {
+            return true;
+        }
+        return false;
+    }
     virtual void setMediaQualityThreshold(const MediaQualityThreshold& threshold) {
         mThreshold = threshold;
     }
 
 protected:
+    RtpConfig* mConfig;
     BaseSessionCallback* mCallback;
     int mLocalFd;
     StreamState mGraphState;

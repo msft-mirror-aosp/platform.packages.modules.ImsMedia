@@ -20,9 +20,12 @@
 #include <ImsMediaTimer.h>
 #include <AudioConfig.h>
 
+#define DEFAULT_INTERVAL 3
+
 DtmfSenderNode::DtmfSenderNode() {
     mNextTime = 0;
     mPrevTime = 0;
+    mInterval = DEFAULT_INTERVAL;
 }
 
 DtmfSenderNode::~DtmfSenderNode() {
