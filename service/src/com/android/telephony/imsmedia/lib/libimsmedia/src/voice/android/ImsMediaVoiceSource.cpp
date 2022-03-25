@@ -128,7 +128,7 @@ bool ImsMediaVoiceSource::Start() {
     int samplingRate = 8000;
     if (m_nCodecType == AUDIO_G711_PCMU || m_nCodecType == AUDIO_G711_PCMA) {
     } else if (m_nCodecType == AUDIO_AMR) {
-        sprintf(kMimeType, "audio/amr");
+        sprintf(kMimeType, "audio/3gpp");
     } else if (m_nCodecType == AUDIO_AMR_WB) {
         samplingRate = 16000;
         sprintf(kMimeType, "audio/amr-wb");
