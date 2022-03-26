@@ -1,0 +1,31 @@
+package {
+    default_applicable_licenses: ["Android-Apache-2.0"],
+}
+
+android_app {
+    name: "com.android.telephony.testimsmediahal",
+    manifest: "AndroidManifest.xml",
+    srcs: [
+        "src/**/*.java",
+    ],
+    libs: [
+        "android-support-annotations",
+    ],
+    static_libs: [
+       "android.hardware.radio.ims.media-V1-java",
+       "android.telephony.imsmedia",
+       "imsmedia-core",
+    ],
+    optimize: {
+        enabled: false,
+    },
+    dex_preopt: {
+        enabled: false,
+    },
+    owner: "google",
+    platform_apis: true,
+    privileged: true,
+    certificate: "platform",
+}
+
+

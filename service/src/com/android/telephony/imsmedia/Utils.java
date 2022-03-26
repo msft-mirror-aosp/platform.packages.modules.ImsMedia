@@ -195,7 +195,7 @@ public final class Utils {
     }
 
     /** Converts {@link AudioConfig} to HAL RtpConfig */
-    static android.hardware.radio.ims.media.RtpConfig convertToRtpConfig(
+    public static android.hardware.radio.ims.media.RtpConfig convertToRtpConfig(
             final AudioConfig audioConfig) {
         final android.hardware.radio.ims.media.RtpConfig rtpConfig;
 

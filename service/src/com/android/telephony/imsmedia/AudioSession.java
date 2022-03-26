@@ -43,7 +43,7 @@ import java.util.stream.Collectors;
  * Audio session binder implementation which handles all audio session APIs
  * from the VOIP applications.
  */
-final class AudioSession extends IImsAudioSession.Stub implements IMediaSession {
+public final class AudioSession extends IImsAudioSession.Stub implements IMediaSession {
     private static final String TAG = "AudioSession";
 
     public static final int CMD_OPEN_SESSION = 101;
