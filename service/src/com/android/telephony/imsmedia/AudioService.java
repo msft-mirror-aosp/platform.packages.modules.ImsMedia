@@ -108,8 +108,8 @@ public class AudioService {
         if (sessionParams == null) return;
         Parcel parcel = Parcel.obtain();
         parcel.writeInt(AudioSession.CMD_OPEN_SESSION);
-        final int socketFdRtp = sessionParams.getRtpFd().getFd();
-        final int socketFdRtcp = sessionParams.getRtcpFd().getFd();
+        final int socketFdRtp = sessionParams.getRtpFd().detachFd();
+        final int socketFdRtcp = sessionParams.getRtcpFd().detachFd();
         parcel.writeInt(socketFdRtp);
         parcel.writeInt(socketFdRtcp);
         if (sessionParams.getRtpConfig() != null) {
