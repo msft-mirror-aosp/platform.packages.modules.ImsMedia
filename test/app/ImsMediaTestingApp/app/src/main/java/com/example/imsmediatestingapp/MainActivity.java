@@ -630,7 +630,7 @@ public class MainActivity extends AppCompatActivity {
                 remoteDeviceInfo = handshakeReceptionSocket.getReceivedDeviceInfo();
 
                 HandshakeSender handshakeSender = new HandshakeSender(
-                    remoteDeviceInfo.getIpAddress(), remoteDeviceInfo.getHandshakePort());
+                    remoteDeviceInfo.getInetAddress(), remoteDeviceInfo.getHandshakePort());
                 handshakeSender.setData(createMyDeviceInfo());
                 handshakeSender.run();
 
@@ -640,13 +640,13 @@ public class MainActivity extends AppCompatActivity {
                     }
                 }
 
-                handshakeSender = new HandshakeSender(remoteDeviceInfo.getIpAddress(),
+                handshakeSender = new HandshakeSender(remoteDeviceInfo.getInetAddress(),
                     remoteDeviceInfo.getHandshakePort());
                 handshakeSender.setData(CONFIRMATION_MESSAGE);
                 handshakeSender.run();
                 Log.d("", "accepted handshake initiation from other device");
                 editor.putString("OTHER_IP_ADDRESS",
-                    remoteDeviceInfo.getIpAddress().getHostName());
+                    remoteDeviceInfo.getInetAddress().getHostName());
                 editor.putInt("OTHER_HANDSHAKE_PORT", remoteDeviceInfo.getRtpPort());
                 editor.apply();
                 updateUI(ConnectionStatus.CONNECTED);
@@ -689,21 +689,13 @@ public class MainActivity extends AppCompatActivity {
 
     public DeviceInfo createMyDeviceInfo() {
         try {
-            DeviceInfo deviceInfo = new DeviceInfo();
-            deviceInfo.setIpAddress(InetAddress.getByName(getLocalIpAddress()));
-            if (handshakeReceptionSocket != null) {
-                deviceInfo.setHandshakePort(handshakeReceptionSocket.getBoundSocket());
-            }
+            return new DeviceInfo.Builder()
+                .setInetAddress(InetAddress.getByName(getLocalIpAddress()))
+                .setHandshakePort(handshakeReceptionSocket.getBoundSocket())
+                .setRtpPort(rtp.getLocalPort())
+                .setRtcpPort(rtcp.getLocalPort())
+                .build();
 
-            if (rtp != null) {
-                deviceInfo.setRtpPort(rtp.getLocalPort());
-            }
-
-            if (rtcp != null) {
-                deviceInfo.setRtcpPort(rtcp.getLocalPort());
-            }
-
-            return deviceInfo;
         } catch (UnknownHostException e) {
             e.printStackTrace();
         }
@@ -714,7 +706,7 @@ public class MainActivity extends AppCompatActivity {
         SwitchCompat loopbackSwitch = findViewById(R.id.loopbackModeSwitch);
         if (loopbackSwitch.isChecked()) {
             // enable loop back mode
-            openRtpPorts(false);
+            openRtpPorts(true);
             editor.putString("OTHER_IP_ADDRESS", getLocalIpAddress()).apply();
             remoteDeviceInfo = createMyDeviceInfo();
             updateUI(ConnectionStatus.LOOPBACK);
@@ -767,7 +759,7 @@ public class MainActivity extends AppCompatActivity {
      */
     private InetSocketAddress getRemoteSocketAddress() {
         int remotePort = remoteDeviceInfo.getRtpPort();
-        InetAddress addr = remoteDeviceInfo.getIpAddress();
+        InetAddress addr = remoteDeviceInfo.getInetAddress();
         return new InetSocketAddress(addr, remotePort);
     }
 
@@ -792,7 +784,7 @@ public class MainActivity extends AppCompatActivity {
                 Toast.LENGTH_SHORT).show();
             //
             int remotePort = remoteDeviceInfo.getRtpPort();
-            InetAddress addr = remoteDeviceInfo.getIpAddress();
+            InetAddress addr = remoteDeviceInfo.getInetAddress();
             InetSocketAddress rtpAddr = new InetSocketAddress(addr, remotePort);
 
             EvsParams mEvs = new EvsParams.Builder()
@@ -834,7 +826,7 @@ public class MainActivity extends AppCompatActivity {
             imsMediaManager.openSession(rtp, rtcp, ImsMediaSession.SESSION_TYPE_AUDIO,
                 audioConfig, executor, sessionCallback);
             Log.d("",
-                "called openSession IP: " + remoteDeviceInfo.getIpAddress() + " Port: " +
+                "called openSession IP: " + remoteDeviceInfo.getInetAddress() + " Port: " +
                     remoteDeviceInfo.getRtpPort());
         }
     }
