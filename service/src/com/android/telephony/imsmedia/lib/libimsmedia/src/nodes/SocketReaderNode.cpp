@@ -81,7 +81,7 @@ void SocketReaderNode::Stop() {
     IMLOGD0("[Stop]");
     if (mSocket != NULL) {
         mSocket->Listen(NULL);
-        //mSocket->Close(SOCKET_MODE_RX);
+        mSocket->Close();
         ISocket::ReleaseInstance(mSocket);
         mSocket = NULL;
         mbSocketOpened = false;

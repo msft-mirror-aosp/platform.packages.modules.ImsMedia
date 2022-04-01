@@ -247,7 +247,7 @@ uint32_t ImsMediaSocket::ReceiveFrom(uint8_t* pData, uint32_t nBufferSize) {
     return nLen;
 }
 
-void ImsMediaSocket::Close(eSocketMode mode) {
+void ImsMediaSocket::Close() {
     IMLOGD1("[Close] enter, nRefCount[%d]", mRefCount);
     mRefCount--;
     if (mRefCount > 0) {
@@ -255,29 +255,9 @@ void ImsMediaSocket::Close(eSocketMode mode) {
         return;
     }
 
-    if (mode == SOCKET_MODE_RX) {
-        sMutexSocketMonitorThread.lock();
-        sMutexRxSocket.lock();
-        slistRxSocket.remove(this);
-        sMutexRxSocket.unlock();
-        sRxSocketCount--;
-        IMLOGD_PACKET1(IM_PACKET_LOG_SOCKET,
-            "[Close] remove RxSocketCount[%d]", sRxSocketCount);
-
-        if (sRxSocketCount <= 0) {
-            StopSocketMonitor();
-            sRxSocketCount = 0;
-        } else {
-            mSocketListUpdated = true;
-        }
-
-        sMutexSocketMonitorThread.unlock();
-    }
-
-    close(mSocketFd);
-    sMutexSocketList.lock();
+    //close(mSocketFd);
+    std::lock_guard<std::mutex> guard(sMutexSocketList);
     slistSocket.remove(this);
-    sMutexSocketList.unlock();
     IMLOGD0("[Close] exit");
 }
 

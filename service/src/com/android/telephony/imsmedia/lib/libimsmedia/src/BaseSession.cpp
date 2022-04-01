@@ -19,7 +19,7 @@
 #include <ImsMediaEventHandler.h>
 #include <string.h>
 
-BaseSession::BaseSession() : mRtpFd(0), mRtcpFd(0) {
+BaseSession::BaseSession() : mRtpFd(-1), mRtcpFd(-1) {
 }
 
 BaseSession::~BaseSession() {

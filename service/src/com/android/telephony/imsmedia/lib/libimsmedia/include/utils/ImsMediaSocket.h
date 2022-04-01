@@ -51,7 +51,7 @@ public:
     virtual bool Listen(ISocketListener* listener);
     virtual uint32_t SendTo(uint8_t* pData, uint32_t nDataSize);
     virtual uint32_t ReceiveFrom(uint8_t* pData, uint32_t nBufferSize);
-    virtual void Close(eSocketMode mode);
+    virtual void Close();
     virtual bool SetSocketOpt(eSocketOpt nOption, uint32_t nOptionValue);
     int32_t GetSocketFd();
     ISocketListener* GetListener();

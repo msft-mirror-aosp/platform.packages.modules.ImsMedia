@@ -70,7 +70,7 @@ ImsMediaResult SocketWriterNode::Start() {
 void SocketWriterNode::Stop() {
     IMLOGD0("[Stop]");
     if (mSocket != NULL) {
-        //mSocket->Close(SOCKET_MODE_TX);
+        mSocket->Close();
         ISocket::ReleaseInstance(mSocket);
         mSocket = NULL;
         mbSocketOpened = false;

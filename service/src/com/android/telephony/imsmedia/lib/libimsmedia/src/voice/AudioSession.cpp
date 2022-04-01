@@ -18,6 +18,7 @@
 #include <ImsMediaTrace.h>
 #include <ImsMediaEventHandler.h>
 #include <string>
+#include <sys/socket.h>
 
 AudioSession::AudioSession() {
     IMLOGD0("[AudioSession]");
@@ -48,6 +49,15 @@ AudioSession::~AudioSession() {
         }
         mListGraphRtcp.pop_front();
         delete graph;
+    }
+
+    if (mRtpFd != -1) {
+        IMLOGD0("[~AudioSession] close rtp fd");
+        close(mRtpFd);
+    }
+    if (mRtcpFd != -1) {
+        IMLOGD0("[~AudioSession] close rtcp fd");
+        close(mRtcpFd);
     }
 }
 
