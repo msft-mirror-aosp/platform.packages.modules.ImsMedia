@@ -1,15 +1,17 @@
 package com.example.imsmediatestingapp;
 
 import android.hardware.radio.ims.media.AmrMode;
+import android.hardware.radio.ims.media.CodecType;
 import android.hardware.radio.ims.media.EvsBandwidth;
 import android.hardware.radio.ims.media.EvsMode;
 import androidx.annotation.NonNull;
-import com.example.imsmediatestingapp.MainActivity.AudioCodec;
-import com.example.imsmediatestingapp.MainActivity.VideoCodec;
+import com.example.imsmediatestingapp.MainActivity.VideoCodecEnum;
 import java.io.Serializable;
 import java.net.InetAddress;
-import java.util.List;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.Locale;
+import java.util.Set;
 import java.util.StringJoiner;
 
 /**
@@ -19,18 +21,18 @@ import java.util.StringJoiner;
  */
 public class DeviceInfo implements Serializable {
     private final InetAddress inetAddress;
-    private final List<AudioCodec> audioCodecs;
-    private final List<AmrMode> amrModes;
-    private final List<EvsBandwidth> evsBandwidths;
-    private final List<EvsMode> evsModes;
-    private final List<VideoCodec> videoCodecs;
+    private final Set<Integer> audioCodecs;
+    private final Set<Integer> amrModes;
+    private final Set<Integer> evsBandwidths;
+    private final Set<Integer> evsModes;
+    private final Set<VideoCodecEnum> videoCodecs;
     private final int handshakePort;
     private final int rtpPort;
     private final int rtcpPort;
 
     private DeviceInfo(InetAddress inetSocketAddress,
-        List<AudioCodec> audioCodecs, List<AmrMode> amrModes, List<EvsBandwidth> evsBandwidths,
-        List<EvsMode> evsModes, List<VideoCodec> videoCodecs, int handshakePort, int rtpPort,
+        Set<Integer> audioCodecs, Set<Integer> amrModes, Set<Integer> evsBandwidths,
+        Set<Integer> evsModes, Set<VideoCodecEnum> videoCodecs, int handshakePort, int rtpPort,
         int rtcpPort) {
         this.inetAddress = inetSocketAddress;
         this.audioCodecs = audioCodecs;
@@ -66,19 +68,23 @@ public class DeviceInfo implements Serializable {
         return rtcpPort;
     }
 
-    public List<AudioCodec> getAudioCodecs() {
+    public Set<Integer> getAudioCodecs() {
         return audioCodecs;
     }
 
-    public List<VideoCodec> getVideoCodecs() {
+    public Set<Integer> getEvsBandwidths() {
+        return evsBandwidths;
+    }
+
+    public Set<VideoCodecEnum> getVideoCodecs() {
         return videoCodecs;
     }
 
-    public List<EvsMode> getEvsModes() {
+    public Set<Integer> getEvsModes() {
         return evsModes;
     }
 
-    public List<AmrMode> getAmrModes() {
+    public Set<Integer> getAmrModes() {
         return amrModes;
     }
 
@@ -118,11 +124,21 @@ public class DeviceInfo implements Serializable {
 
     public static final class Builder {
         private InetAddress inetAddress;
-        private List<AudioCodec> audioCodecs;
-        private List<AmrMode> amrModes;
-        private List<EvsBandwidth> evsBandwidths;
-        private List<EvsMode> evsModes;
-        private List<VideoCodec> videoCodecs;
+        private Set<Integer> audioCodecs = new HashSet<>(Arrays.asList(CodecType.AMR,
+            CodecType.AMR_WB, CodecType.EVS, CodecType.PCMA, CodecType.PCMU));
+        private Set<Integer> amrModes = new HashSet<>(Arrays.asList(AmrMode.AMR_MODE_0,
+            AmrMode.AMR_MODE_1, AmrMode.AMR_MODE_2, AmrMode.AMR_MODE_3, AmrMode.AMR_MODE_4,
+            AmrMode.AMR_MODE_5, AmrMode.AMR_MODE_6, AmrMode.AMR_MODE_7, AmrMode.AMR_MODE_8));
+        private Set<Integer> evsBandwidths = new HashSet<>(Arrays.asList(EvsBandwidth.NONE,
+            EvsBandwidth.NARROW_BAND, EvsBandwidth.WIDE_BAND, EvsBandwidth.SUPER_WIDE_BAND,
+            EvsBandwidth.FULL_BAND));
+        private Set<Integer> evsModes = new HashSet<>(Arrays.asList(EvsMode.EVS_MODE_0,
+            EvsMode.EVS_MODE_1, EvsMode.EVS_MODE_2, EvsMode.EVS_MODE_3, EvsMode.EVS_MODE_4,
+            EvsMode.EVS_MODE_5, EvsMode.EVS_MODE_6, EvsMode.EVS_MODE_7, EvsMode.EVS_MODE_8,
+            EvsMode.EVS_MODE_9, EvsMode.EVS_MODE_10, EvsMode.EVS_MODE_11, EvsMode.EVS_MODE_12,
+            EvsMode.EVS_MODE_13, EvsMode.EVS_MODE_14, EvsMode.EVS_MODE_15, EvsMode.EVS_MODE_16,
+            EvsMode.EVS_MODE_17, EvsMode.EVS_MODE_18, EvsMode.EVS_MODE_19, EvsMode.EVS_MODE_20));
+        private Set<VideoCodecEnum> videoCodecs;
         private int handshakePort;
         private int rtpPort;
         private int rtcpPort;
@@ -137,27 +153,27 @@ public class DeviceInfo implements Serializable {
         }
 
         @NonNull
-        public DeviceInfo.Builder setAudioCodecs(List<AudioCodec> audioCodecs) {
-            this.audioCodecs = audioCodecs;
+        public DeviceInfo.Builder setAudioCodecs(Set<Integer> audioCodecs) {
+            if(!audioCodecs.isEmpty()) { this.audioCodecs = audioCodecs; }
             return this;
         }
 
-        public DeviceInfo.Builder setAmrModes(List<AmrMode> amrModes) {
-            this.amrModes = amrModes;
+        public DeviceInfo.Builder setAmrModes(Set<Integer> amrModes) {
+            if(!amrModes.isEmpty()) { this.amrModes = amrModes; }
             return this;
         }
 
-        public DeviceInfo.Builder setEvsBandwidths(List<EvsBandwidth> evsBandwidths) {
-            this.evsBandwidths = evsBandwidths;
+        public DeviceInfo.Builder setEvsBandwidths(Set<Integer> evsBandwidths) {
+            if(!evsBandwidths.isEmpty()) { this.evsBandwidths = evsBandwidths; }
             return this;
         }
 
-        public DeviceInfo.Builder setEvsModes(List<EvsMode> evsModes) {
-            this.evsModes = evsModes;
+        public DeviceInfo.Builder setEvsModes(Set<Integer> evsModes) {
+            if(!evsModes.isEmpty()) { this.evsModes = evsModes; }
             return this;
         }
 
-        public DeviceInfo.Builder setVideoCodecs(List<VideoCodec> videoCodecs) {
+        public DeviceInfo.Builder setVideoCodecs(Set<VideoCodecEnum> videoCodecs) {
             this.videoCodecs = videoCodecs;
             return this;
         }

@@ -38,11 +38,12 @@
 
 
   <!-- Settings page Strings -->
-  <string name="other_device_label">Other Device</string>
+  <string name="settings_remote_device_title">Remote Device</string>
   <string name="port_number_placeholder">port number</string>
   <string name="ip_address_placeholder">ip address</string>
-  <string name="audio_codec_settings">Audio Codec Settings</string>
-  <string name="video_codec_settings">Video Codec Settings</string>
+  <string name="audio_codec_settings">Audio Codecs</string>
+  <string name="video_codec_settings">Amr Modes</string>
+  <string name="evs_modes">EVS Modes</string>
   <string name="evs_bandwidths">EVS Bandwidths</string>
 
   <!-- Save button text -->
@@ -123,5 +124,6 @@
   <string name="codec_pcma">CODEC_PCMA</string>
   <string name="codec_pcmu">CODEC_PCMU</string>
   <string name="select_an_evs_band">Select an EVS Band</string>
+
 
 </resources>

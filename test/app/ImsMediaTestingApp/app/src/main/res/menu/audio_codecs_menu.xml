@@ -3,27 +3,32 @@
 
   <item
       android:id="@+id/amrCodec"
-      android:title="@string/codec_amr">
+      android:title="@string/codec_amr"
+      android:titleCondensed="1">
   </item>
 
   <item
       android:id="@+id/amrWbCodec"
-      android:title="@string/codec_amr_wb">
+      android:title="@string/codec_amr_wb"
+      android:titleCondensed="2">
   </item>
 
   <item
       android:id="@+id/evsCodec"
-      android:title="@string/codec_evs">
+      android:title="@string/codec_evs"
+      android:titleCondensed="4">
   </item>
 
   <item
       android:id="@+id/pcmaCodec"
-      android:title="@string/codec_pcma">
+      android:title="@string/codec_pcma"
+      android:titleCondensed="8">
   </item>
 
   <item
       android:id="@+id/pcmuCodec"
-      android:title="@string/codec_pcmu">
+      android:title="@string/codec_pcmu"
+      android:titleCondensed="16">
   </item>
 
 </menu>

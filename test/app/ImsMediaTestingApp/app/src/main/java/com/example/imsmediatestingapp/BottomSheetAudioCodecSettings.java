@@ -23,7 +23,7 @@ public class BottomSheetAudioCodecSettings extends BottomSheetDialog implements 
     AutoCompleteTextView audioCodecModeDropdown;
     TextInputLayout audioCodecModeDropdownLayout;
     TextInputLayout evsBandDropdownLayout;
-    private String audioCodec = "";
+    private int audioCodec;
     private int evsMode;
     private int evsBand;
     private int amrMode;
@@ -85,7 +85,7 @@ public class BottomSheetAudioCodecSettings extends BottomSheetDialog implements 
             .inflate(R.menu.audio_codecs_menu, audioCodecMenu.getMenu());
         audioCodecMenu.setOnMenuItemClickListener(item -> {
             audioCodecDropDown.setText(item.getTitle());
-            audioCodec = String.valueOf(item.getTitle());
+            audioCodec = Integer.parseInt(String.valueOf(item.getTitleCondensed()));
             audioCodecModeDropdownLayout = findViewById(R.id.selectAudioCodecModeLayout);
             evsBandDropdownLayout = findViewById(R.id.selectEvsBandLayout);
 
@@ -215,10 +215,9 @@ public class BottomSheetAudioCodecSettings extends BottomSheetDialog implements 
     }
 
     /**
-     * @return String value of the selected audio codec type.
+     * @return Integer value of the selected audio codec type.
      */
-    public String getAudioCodec() {
+    public int getAudioCodec() {
         return audioCodec;
     }
-
 }

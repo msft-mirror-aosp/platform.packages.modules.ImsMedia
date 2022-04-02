@@ -8,13 +8,13 @@
 
 
     <TextView
-        android:id="@+id/other_device_label"
+        android:id="@+id/remoteDeviceTitle"
         android:textStyle="bold"
         android:layout_width="150dp"
         android:layout_height="wrap_content"
         android:layout_marginTop="15dp"
         android:layout_marginStart="15dp"
-        android:text="@string/other_device_label"
+        android:text="@string/settings_remote_device_title"
         android:textAlignment="center" />
 
     <EditText
@@ -22,7 +22,7 @@
         android:layout_width="150dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="15dp"
-        android:layout_below="@+id/other_device_label"
+        android:layout_below="@+id/remoteDeviceTitle"
         android:ems="15"
         android:hint="@string/ip_address_placeholder"
         android:importantForAutofill="no"
@@ -85,10 +85,10 @@
         android:choiceMode="multipleChoice"
         android:fadeScrollbars="false"
         android:saveEnabled="true"
-        android:visibility="visible"/>
+        android:visibility="visible" />
 
     <TextView
-        android:id="@+id/videoCodecTitle"
+        android:id="@+id/amrModesTitle"
         android:textStyle="bold"
         android:layout_width="150dp"
         android:layout_height="wrap_content"
@@ -99,13 +99,36 @@
         android:textAlignment="center" />
 
     <ListView
-        android:id="@+id/videoCodecList"
-        android:layout_width="150dp"
+        android:id="@+id/amrModesList"
+        android:layout_width="175dp"
         android:layout_height="200dp"
         android:layout_marginTop="10dp"
-        android:layout_marginEnd="15dp"
-        android:layout_below="@id/videoCodecTitle"
         android:layout_marginStart="15dp"
+        android:layout_marginEnd="15dp"
+        android:layout_below="@id/amrModesTitle"
+        android:choiceMode="multipleChoice" />
+
+    <TextView
+        android:id="@+id/evsModesTitle"
+        android:textStyle="bold"
+        android:layout_width="150dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="30dp"
+        android:layout_marginEnd="15dp"
+        android:layout_below="@id/evsBandwidthsList"
+        android:layout_alignStart="@id/evsBandwidthsList"
+        android:text="@string/evs_modes"
+        android:textAlignment="center" />
+
+    <ListView
+        android:id="@+id/evsModesList"
+        android:layout_width="175dp"
+        android:layout_height="200dp"
+        android:layout_marginTop="10dp"
+        android:layout_marginStart="15dp"
+        android:layout_marginEnd="15dp"
+        android:layout_below="@id/amrModesTitle"
+        android:layout_toEndOf="@id/amrModesList"
         android:choiceMode="multipleChoice" />
 
     <Button
@@ -114,12 +137,11 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="15dp"
         android:layout_marginEnd="15dp"
-        android:layout_below="@+id/videoCodecList"
+        android:layout_below="@+id/amrModesList"
         android:layout_centerHorizontal="true"
         android:background="@color/teal_700"
-        android:onClick="saveSettingsOnClick"
         android:hapticFeedbackEnabled="true"
+        android:onClick="saveSettingsOnClick"
         android:text="@string/save" />
-
 
 </RelativeLayout>
