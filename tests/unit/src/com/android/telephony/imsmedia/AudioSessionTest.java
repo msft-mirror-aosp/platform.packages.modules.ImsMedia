@@ -61,7 +61,6 @@ public class AudioSessionTest {
     private static final int NO_RESOURCES = ImsMediaSession.RESULT_NO_RESOURCES;
     private static final int RTP = ImsMediaSession.PACKET_TYPE_RTP;
     private static final int RTCP = ImsMediaSession.PACKET_TYPE_RTCP;
-    private static final int INACTIVITY_TIMEOUT = 20;
     private static final int PACKET_LOSS = 15;
     private static final int JITTER = 200;
     private static final char DTMF_DIGIT = '7';
@@ -274,12 +273,11 @@ public class AudioSessionTest {
         Parcel parcel = Parcel.obtain();
         parcel.writeInt(AudioSession.EVENT_MEDIA_INACTIVITY_IND);
         parcel.writeInt(RTP);
-        parcel.writeInt(INACTIVITY_TIMEOUT);
         parcel.setDataPosition(0);
         audioListener.onMessage(parcel);
         processAllMessages();
         try {
-            verify(callback, times(1)).notifyMediaInactivity(eq(RTP), eq(INACTIVITY_TIMEOUT));
+            verify(callback, times(1)).notifyMediaInactivity(eq(RTP));
         }  catch(RemoteException e) {
             fail("Failed to notify notifyMediaInactivity: " + e);
         }
@@ -288,12 +286,11 @@ public class AudioSessionTest {
         Parcel parcel2 = Parcel.obtain();
         parcel2.writeInt(AudioSession.EVENT_MEDIA_INACTIVITY_IND);
         parcel2.writeInt(RTCP);
-        parcel2.writeInt(INACTIVITY_TIMEOUT);
         parcel2.setDataPosition(0);
         audioListener.onMessage(parcel2);
         processAllMessages();
         try {
-            verify(callback, times(1)).notifyMediaInactivity(eq(RTCP), eq(INACTIVITY_TIMEOUT));
+            verify(callback, times(1)).notifyMediaInactivity(eq(RTCP));
         }  catch(RemoteException e) {
             fail("Failed to notify notifyMediaInactivity: " + e);
         }

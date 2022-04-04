@@ -156,12 +156,12 @@ public class AudioSessionCallback extends ImsMediaManager.SessionCallback {
         }
 
         @Override
-        public void notifyMediaInactivity(final int packetType, final int duration) {
+        public void notifyMediaInactivity(final int packetType) {
             if (mLocalCallback == null) return;
 
             final long callingIdentity = Binder.clearCallingIdentity();
             try {
-                mExecutor.execute(() -> mLocalCallback.notifyMediaInactivity(packetType, duration));
+                mExecutor.execute(() -> mLocalCallback.notifyMediaInactivity(packetType));
             } finally {
                 restoreCallingIdentity(callingIdentity);
             }
@@ -272,9 +272,8 @@ public class AudioSessionCallback extends ImsMediaManager.SessionCallback {
      * setMediaQualityThreshold() API
      *
      * @param packetType either RTP or RTCP
-     * @param duration Inactivity duration
      */
-    public void notifyMediaInactivity(final int packetType, final int duration) {
+    public void notifyMediaInactivity(final int packetType) {
          // Base Implementation
     }
 

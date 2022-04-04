@@ -76,7 +76,6 @@ public class AudioOffloadTest {
     private static final int SUCCESS = ImsMediaSession.RESULT_SUCCESS;
     private static final int RTP = ImsMediaSession.PACKET_TYPE_RTP;
     private static final int RTCP = ImsMediaSession.PACKET_TYPE_RTCP;
-    private static final int INACTIVITY_TIMEOUT = 20;
     private static final int PACKET_LOSS = 15;
     private static final int JITTER = 200;
     private static final char DTMF_DIGIT = '7';
@@ -359,19 +358,19 @@ public class AudioOffloadTest {
     @Test
     public void testMediaInactivityInd() {
         // Receive Inactivity - RTP
-        offloadListener.notifyMediaInactivity(MediaProtocolType.RTP, INACTIVITY_TIMEOUT);
+        offloadListener.notifyMediaInactivity(MediaProtocolType.RTP);
         processAllMessages();
         try {
-            verify(callback, times(1)).notifyMediaInactivity(eq(RTP), eq(INACTIVITY_TIMEOUT));
+            verify(callback, times(1)).notifyMediaInactivity(eq(RTP));
         }  catch(RemoteException e) {
             fail("Failed to notify notifyMediaInactivity: " + e);
         }
 
         // Receive Inactivity - RTCP
-        offloadListener.notifyMediaInactivity(MediaProtocolType.RTCP, INACTIVITY_TIMEOUT);
+        offloadListener.notifyMediaInactivity(MediaProtocolType.RTCP);
         processAllMessages();
         try {
-            verify(callback, times(1)).notifyMediaInactivity(eq(RTCP), eq(INACTIVITY_TIMEOUT));
+            verify(callback, times(1)).notifyMediaInactivity(eq(RTCP));
         }  catch(RemoteException e) {
             fail("Failed to notify notifyMediaInactivity: " + e);
         }
