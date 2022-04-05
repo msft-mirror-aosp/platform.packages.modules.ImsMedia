@@ -19,7 +19,7 @@ public class HandshakeSender implements Runnable {
     private byte[] data;
     private int dataLength;
     DatagramSocket sendSocket;
-    private final String tag = "HandshakeSender";
+    private static final String TAG = HandshakeSender.class.getName();
 
     public HandshakeSender(InetAddress remoteAddress, int remotePort) {
         this.remoteAddress = remoteAddress;
@@ -34,13 +34,17 @@ public class HandshakeSender implements Runnable {
 
             DatagramPacket packet = new DatagramPacket(data, dataLength, remoteAddress, remotePort);
             sendSocket.send(packet);
-
+            Log.d(TAG, "Packet has been set to " + remoteAddress.getHostName() + ":" + remotePort);
             close();
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
+    /**
+     * Sets the passed object to the data the Datagram socket will send.
+     * @param data DeviceInfo of the device or the conformation String
+     */
     public void setData(Object data) {
         if (data instanceof String) {
             String stringData = (String) data;
@@ -48,16 +52,16 @@ public class HandshakeSender implements Runnable {
             this.data = stringBytes;
             this.dataLength = stringBytes.length;
 
-            Log.d(tag, "Data set as type String");
+            Log.d(TAG, "Data set as type String");
         } else if(data instanceof DeviceInfo) {
             DeviceInfo deviceInfoData = (DeviceInfo) data;
             byte[] deviceInfoBytes = serializeData(deviceInfoData);
             this.data = deviceInfoBytes;
             this.dataLength = deviceInfoBytes.length;
 
-            Log.d(tag, "Data set as type DeviceInfo");
+            Log.d(TAG, "Data set as type DeviceInfo");
         } else {
-            Log.e(tag, "Data set was was not type String or DeviceInfo");
+            Log.e(TAG, "Data set was was not type String or DeviceInfo");
         }
     }
 
@@ -65,6 +69,11 @@ public class HandshakeSender implements Runnable {
         sendSocket.close();
     }
 
+    /**
+     * Turns the given object into a byte array so it can be send through Datagram packet.
+     * @param data the object to turn into a byte array
+     * @return the byte array of the converted data
+     */
     public byte[] serializeData(Object data) {
         ByteArrayOutputStream byteOutputStream = new ByteArrayOutputStream();
         try {
@@ -74,7 +83,7 @@ public class HandshakeSender implements Runnable {
             objectOutputStream.close();
             return byteOutputStream.toByteArray();
         } catch (IOException e) {
-            Log.e("DeviceInfo", e.getLocalizedMessage());
+            Log.e(TAG, e.getLocalizedMessage());
         }
         return null;
     }

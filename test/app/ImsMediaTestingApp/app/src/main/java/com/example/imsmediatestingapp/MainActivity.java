@@ -52,11 +52,13 @@ import java.util.concurrent.Executors;
  * The MainActivity is the main and default layout for the application.
  */
 public class MainActivity extends AppCompatActivity {
-
+    private SharedPreferences prefs;
+    private SharedPreferences.Editor editor;
+    private SharedPrefsHandler prefsHandler;
     public static final String PREF_NAME = "preferences";
-    private final String HANDSHAKE_PORT_PREF = "HANDSHAKE_PORT_OPEN";
-    private final String CONNECTED_PREF = "IS_CONNECTED";
-    private final String CONFIRMATION_MESSAGE = "CONNECTED";
+    private static final String HANDSHAKE_PORT_PREF = "HANDSHAKE_PORT_OPEN";
+    private static final String CONFIRMATION_MESSAGE = "CONNECTED";
+    private static final String TAG = MainActivity.class.getName();
 
     private static final int MAX_MTU_BYTES = 1500;
     private static final int DSCP = 0;
@@ -69,8 +71,17 @@ public class MainActivity extends AppCompatActivity {
     private static final int DTMF_PAYLOAD_TYPE_NUMBER = 100;
     private static final int DTMF_SAMPLING_RATE_KHZ = 16;
 
-    // Change the order of these values to change the priority in which they are selected, or
-    // sort them in the determineAudioConfig() function.
+    private static final float DISABLED_ALPHA = 0.3f;
+    private static final float ENABLED_ALPHA = 1.0f;
+
+    private Set<Integer> selectedCodecTypes = new HashSet<>();
+    private Set<Integer> selectedAmrModes = new HashSet<>();
+    private Set<Integer> selectedEvsBandwidths = new HashSet<>();
+    private Set<Integer> selectedEvsModes = new HashSet<>();
+    private Set<Integer> selectedVideoCodecs = new HashSet<>();
+
+    // The order of these values determines the priority in which they would be selected if there
+    // is a common match between the two devices' selections during the handshake process.
     private static final int[] CODEC_ORDER = new int[]{CodecType.AMR, CodecType.AMR_WB,
         CodecType.EVS, CodecType.PCMA, CodecType.PCMU};
     private static final int[] EVS_BANDWIDTH_ORDER = new int[]{EvsBandwidth.NONE,
@@ -86,42 +97,24 @@ public class MainActivity extends AppCompatActivity {
         EvsMode.EVS_MODE_14, EvsMode.EVS_MODE_15, EvsMode.EVS_MODE_16, EvsMode.EVS_MODE_17,
         EvsMode.EVS_MODE_18, EvsMode.EVS_MODE_19, EvsMode.EVS_MODE_20};
 
-    SharedPreferences prefs;
-    SharedPreferences.Editor editor;
-    SharedPrefsHandler prefsHandler;
-    Thread waitForHandshakeThread;
-    Thread initiateHandshakeThread;
-    private ConnectionStatus connectionStatus;
-
-    private Set<Integer> selectedCodecTypes = new HashSet<>();
-    private Set<Integer> selectedAmrModes = new HashSet<>();
-    private Set<Integer> selectedEvsBandwidths = new HashSet<>();
-    private Set<Integer> selectedEvsModes = new HashSet<>();
-    private final Set<Integer> selectedVideoCodecs = new HashSet<>();
-
-    HandshakeReceiver handshakeReceptionSocket;
-    DatagramSocket rtp;
-    DatagramSocket rtcp;
-    DeviceInfo remoteDeviceInfo;
-    DeviceInfo localDeviceInfo;
-
+    private boolean loopbackModeEnabled = false;
     private boolean isMediaManagerReady = false;
     private boolean isOpenSessionSent = false;
-    AudioConfig audioConfig;
-
-    private ImsAudioSession audioSession;
-    Context context;
-    MediaManagerCallback callback;
-    RtpAudioSessionCallback sessionCallback;
-    Executor executor;
-    ImsMediaManager imsMediaManager;
-
     private final StringBuilder dtmfInput = new StringBuilder();
-    BottomSheetDialer bottomSheetDialog;
-    BottomSheetAudioCodecSettings bottomSheetAudioCodecSettings;
-    BottomSheetAudioCodecSettings handshakeBottomSheet;
 
-    private TextView localIpLabel;
+    private ConnectionStatus connectionStatus;
+    private ImsAudioSession audioSession;
+    private AudioConfig audioConfig;
+    private ImsMediaManager imsMediaManager;
+    private Executor executor;
+    private Thread waitForHandshakeThread;
+    private HandshakeReceiver handshakeReceptionSocket;
+    private DatagramSocket rtp;
+    private DatagramSocket rtcp;
+    private DeviceInfo remoteDeviceInfo;
+    private DeviceInfo localDeviceInfo;
+    private BottomSheetDialer bottomSheetDialog;
+    private BottomSheetAudioCodecSettings bottomSheetAudioCodecSettings;
     private TextView localHandshakePortLabel;
     private TextView localRtpPortLabel;
     private TextView localRtcpPortLabel;
@@ -132,16 +125,19 @@ public class MainActivity extends AppCompatActivity {
     private Button allowCallsButton;
     private Button connectButton;
     private Button openSessionButton;
-    private Button closeSessionButton;
     private SwitchCompat loopbackSwitch;
+    private LinearLayout activeCallToolBar;
 
-
+    /**
+     * Enum of the CodecType from android.hardware.radio.ims.media.CodecType with the matching
+     * Integer value.
+     */
     public enum CodecTypeEnum {
-        AMR(1),
-        AMR_WB(2),
-        EVS(4),
-        PCMA(8),
-        PCMU(16);
+        AMR(CodecType.AMR),
+        AMR_WB(CodecType.AMR_WB),
+        EVS(CodecType.EVS),
+        PCMA(CodecType.PCMA),
+        PCMU(CodecType.PCMU);
 
         private final int value;
 
@@ -154,16 +150,20 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    /**
+     * Enum of the AmrMode from android.hardware.radio.ims.media.AmrMode with the matching
+     * Integer value.
+     */
     public enum AmrModeEnum {
-        AMR_MODE_0(0),
-        AMR_MODE_1(1),
-        AMR_MODE_2(2),
-        AMR_MODE_3(3),
-        AMR_MODE_4(4),
-        AMR_MODE_5(5),
-        AMR_MODE_6(6),
-        AMR_MODE_7(7),
-        AMR_MODE_8(8);
+        AMR_MODE_0(AmrMode.AMR_MODE_0),
+        AMR_MODE_1(AmrMode.AMR_MODE_1),
+        AMR_MODE_2(AmrMode.AMR_MODE_2),
+        AMR_MODE_3(AmrMode.AMR_MODE_3),
+        AMR_MODE_4(AmrMode.AMR_MODE_4),
+        AMR_MODE_5(AmrMode.AMR_MODE_5),
+        AMR_MODE_6(AmrMode.AMR_MODE_6),
+        AMR_MODE_7(AmrMode.AMR_MODE_7),
+        AMR_MODE_8(AmrMode.AMR_MODE_8);
 
         private final int value;
 
@@ -177,12 +177,16 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
+    /**
+     * Enum of the EvsBandwidth from android.hardware.radio.ims.media.EvsBandwidth with the
+     * matching Integer value.
+     */
     public enum EvsBandwidthEnum {
-        NONE(0),
-        NARROW_BAND(1),
-        WIDE_BAND(2),
-        SUPER_WIDE_BAND(4),
-        FULL_BAND(8);
+        NONE(EvsBandwidth.NONE),
+        NARROW_BAND(EvsBandwidth.NARROW_BAND),
+        WIDE_BAND(EvsBandwidth.WIDE_BAND),
+        SUPER_WIDE_BAND(EvsBandwidth.SUPER_WIDE_BAND),
+        FULL_BAND(EvsBandwidth.FULL_BAND);
 
         private final int value;
 
@@ -195,28 +199,32 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    /**
+     * Enum of the EvsMode from android.hardware.radio.ims.media.EvsMode with the matching
+     * Integer value.
+     */
     public enum EvsModeEnum {
-        EVS_MODE_0(0),
-        EVS_MODE_1(1),
-        EVS_MODE_2(2),
-        EVS_MODE_3(3),
-        EVS_MODE_4(4),
-        EVS_MODE_5(5),
-        EVS_MODE_6(6),
-        EVS_MODE_7(7),
-        EVS_MODE_8(8),
-        EVS_MODE_9(9),
-        EVS_MODE_10(10),
-        EVS_MODE_11(11),
-        EVS_MODE_12(12),
-        EVS_MODE_13(13),
-        EVS_MODE_14(14),
-        EVS_MODE_15(15),
-        EVS_MODE_16(16),
-        EVS_MODE_17(17),
-        EVS_MODE_18(18),
-        EVS_MODE_19(19),
-        EVS_MODE_20(20);
+        EVS_MODE_0(EvsMode.EVS_MODE_0),
+        EVS_MODE_1(EvsMode.EVS_MODE_1),
+        EVS_MODE_2(EvsMode.EVS_MODE_2),
+        EVS_MODE_3(EvsMode.EVS_MODE_3),
+        EVS_MODE_4(EvsMode.EVS_MODE_4),
+        EVS_MODE_5(EvsMode.EVS_MODE_5),
+        EVS_MODE_6(EvsMode.EVS_MODE_6),
+        EVS_MODE_7(EvsMode.EVS_MODE_7),
+        EVS_MODE_8(EvsMode.EVS_MODE_8),
+        EVS_MODE_9(EvsMode.EVS_MODE_9),
+        EVS_MODE_10(EvsMode.EVS_MODE_10),
+        EVS_MODE_11(EvsMode.EVS_MODE_11),
+        EVS_MODE_12(EvsMode.EVS_MODE_12),
+        EVS_MODE_13(EvsMode.EVS_MODE_13),
+        EVS_MODE_14(EvsMode.EVS_MODE_14),
+        EVS_MODE_15(EvsMode.EVS_MODE_15),
+        EVS_MODE_16(EvsMode.EVS_MODE_16),
+        EVS_MODE_17(EvsMode.EVS_MODE_17),
+        EVS_MODE_18(EvsMode.EVS_MODE_18),
+        EVS_MODE_19(EvsMode.EVS_MODE_19),
+        EVS_MODE_20(EvsMode.EVS_MODE_20);
 
         private final int value;
 
@@ -245,10 +253,13 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    /**
+     * Enum of the different states the application can be in. Mainly used to decide how
+     * different features of the app UI will be styled.
+     */
     public enum ConnectionStatus {
         OFFLINE(0),
-        LOOPBACK(1),
-        AWAITING_CONNECTION(1),
+        DISCONNECTED(1),
         CONNECTING(2),
         CONNECTED(3),
         ACTIVE_CALL(4);
@@ -272,17 +283,11 @@ public class MainActivity extends AppCompatActivity {
         prefs = getSharedPreferences(PREF_NAME, MODE_PRIVATE);
         prefsHandler = new SharedPrefsHandler(prefs);
         editor = prefs.edit();
-        editor.putBoolean(CONNECTED_PREF, false);
         editor.putBoolean(HANDSHAKE_PORT_PREF, false);
         editor.apply();
 
-        updateUI(ConnectionStatus.OFFLINE);
-
-        styleDeviceInfo();
-        styleMainActivity();
-
-        context = getApplicationContext();
-        callback = new MediaManagerCallback();
+        Context context = getApplicationContext();
+        MediaManagerCallback callback = new MediaManagerCallback();
         executor = Executors.newSingleThreadExecutor();
         imsMediaManager = new ImsMediaManager(context, executor, callback);
 
@@ -292,21 +297,18 @@ public class MainActivity extends AppCompatActivity {
         bottomSheetAudioCodecSettings = new BottomSheetAudioCodecSettings(this);
         bottomSheetAudioCodecSettings.setContentView(R.layout.audio_codec_change);
 
-        handshakeBottomSheet = new BottomSheetAudioCodecSettings(this);
-        handshakeBottomSheet.setContentView(R.layout.audio_codec_change);
+        updateUI(ConnectionStatus.OFFLINE);
     }
 
     @Override
     protected void onStart() {
         super.onStart();
-        styleDeviceInfo();
         styleMainActivity();
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        styleDeviceInfo();
         styleMainActivity();
     }
 
@@ -333,16 +335,12 @@ public class MainActivity extends AppCompatActivity {
         switch (item.getItemId()) {
             case R.id.homeMenuButton:
                 setContentView(R.layout.activity_main);
-                updateUI(connectionStatus);
+                styleMainActivity();
                 break;
 
             case R.id.settingsMenuButton:
                 setContentView(R.layout.settings);
                 setupSettingsPage();
-                break;
-
-            case R.id.activeCallMenuButton:
-                setContentView(R.layout.active_call);
                 break;
 
             default:
@@ -351,12 +349,89 @@ public class MainActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
-    public String getOtherDeviceIp() {
-        return prefs.getString("OTHER_IP_ADDRESS", "localhost");
+    private class MediaManagerCallback implements ImsMediaManager.OnConnectedCallback {
+
+        @Override
+        public void onConnected() {
+            Log.d(TAG, "ImsMediaManager - connected");
+            isMediaManagerReady = true;
+        }
+
+        @Override
+        public void onDisconnected() {
+            Log.d(TAG, "ImsMediaManager - disconnected");
+            isMediaManagerReady = false;
+            updateUI(ConnectionStatus.CONNECTED);
+        }
     }
 
-    public int getOtherDevicePort() {
-        return prefs.getInt("OTHER_HANDSHAKE_PORT", -1);
+    private class RtpAudioSessionCallback extends AudioSessionCallback {
+
+        @Override
+        public void onModifySessionResponse(AudioConfig config, int result) {
+            Log.d(TAG, "onModifySessionResponse");
+        }
+
+        @Override
+        public void onOpenSessionFailure(int error) {
+            Log.e(TAG, "onOpenSessionFailure - error=" + error);
+        }
+
+        @Override
+        public void onOpenSessionSuccess(ImsMediaSession session) {
+            audioSession = (ImsAudioSession) session;
+            Log.d(TAG, "onOpenSessionSuccess: id=" + audioSession.getSessionId());
+            isOpenSessionSent = true;
+            updateUI(ConnectionStatus.ACTIVE_CALL);
+            AudioManager audioManager = getSystemService(AudioManager.class);
+            audioManager.setMode(AudioManager.MODE_IN_CALL);
+            audioManager.setSpeakerphoneOn(true);
+        }
+
+        @Override
+        public void onSessionChanged(@ImsMediaSession.SessionState int state) {
+            Log.d(TAG, "onSessionChanged - state=" + state);
+        }
+
+        @Override
+        public void onAddConfigResponse(AudioConfig config, int result) {
+            Log.d(TAG, "onAddConfigResponse");
+        }
+
+        @Override
+        public void onConfirmConfigResponse(AudioConfig config, int result) {
+            Log.d(TAG, "onConfirmConfigResponse");
+        }
+
+        @Override
+        public void onFirstMediaPacketReceived(AudioConfig config) {
+            Log.d(TAG, "onFirstMediaPacketReceived");
+        }
+
+        @Override
+        public IBinder getBinder() {
+            return super.getBinder();
+        }
+
+        @Override
+        public void setExecutor(Executor executor) {
+            super.setExecutor(executor);
+        }
+
+        @Override
+        public void notifyMediaInactivity(int packetType, int duration) {
+            super.notifyMediaInactivity(packetType, duration);
+        }
+
+        @Override
+        public void notifyPacketLoss(int packetLossPercentage) {
+            super.notifyPacketLoss(packetLossPercentage);
+        }
+
+        @Override
+        public void notifyJitter(int jitter) {
+            super.notifyJitter(jitter);
+        }
 
     }
 
@@ -370,43 +445,56 @@ public class MainActivity extends AppCompatActivity {
         return Formatter.formatIpAddress(retrieveNetworkConfig().getIpAddress());
     }
 
-    private String getIpAddress() {
-        TextView ipBox = findViewById(R.id.remoteIpLabel);
+    private String getOtherDeviceIp() {
+        return prefs.getString("OTHER_IP_ADDRESS", "localhost");
+    }
+
+    private int getOtherDevicePort() {
+        return prefs.getInt("OTHER_HANDSHAKE_PORT", -1);
+    }
+
+    private int getRemoteDevicePortEditText() {
+        EditText portBox = findViewById(R.id.remotePortNumberEditText);
+        return Integer.parseInt(portBox.getText().toString());
+    }
+
+    private String getRemoteDeviceIpEditText() {
+        EditText ipBox = findViewById(R.id.remoteDeviceIpEditText);
         return ipBox.getText().toString();
     }
 
-    private String getPortNumber() {
-        EditText portNumberBox = findViewById(R.id.port_number);
-        return portNumberBox.getText().toString();
-    }
-
-    public void openRtpPorts(boolean openHandshakePort) {
+    /**
+     * Opens two datagram sockets for audio rtp and rtcp, and a third for the handshake between
+     * devices if true is passed in the parameter.
+     * @param openHandshakePort boolean value to open a port for the handshake.
+     */
+    private void openRtpPorts(boolean openHandshakePort) {
         Executor socketBindingExecutor = Executors.newSingleThreadExecutor();
 
-        Runnable bindSockets = new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    rtp = new DatagramSocket();
-                    rtp.setReuseAddress(true);
+        Runnable bindSockets = () -> {
+            try {
+                rtp = new DatagramSocket();
+                rtp.setReuseAddress(true);
 
-                    rtcp = new DatagramSocket(rtp.getLocalPort() + 1);
-                    rtcp.setReuseAddress(true);
+                rtcp = new DatagramSocket(rtp.getLocalPort() + 1);
+                rtcp.setReuseAddress(true);
 
-                    if (openHandshakePort) {
-                        handshakeReceptionSocket = new HandshakeReceiver(prefs);
-                        handshakeReceptionSocket.run();
-                    }
-                } catch (SocketException e) {
-                    Log.d("", e.toString());
+                if (openHandshakePort) {
+                    handshakeReceptionSocket = new HandshakeReceiver(prefs);
+                    handshakeReceptionSocket.run();
                 }
+            } catch (SocketException e) {
+                Log.e(TAG, e.toString());
             }
         };
 
         socketBindingExecutor.execute(bindSockets);
     }
 
-    public void closePorts() {
+    /**
+     * Closes the handshake, rtp, and rtcp ports if they have been opened or instantiated.
+     */
+    private void closePorts() {
         if (handshakeReceptionSocket != null) {
             handshakeReceptionSocket.close();
         }
@@ -420,291 +508,10 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    public void styleMainActivity() {
-        runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                switch (connectionStatus) {
-
-                    case OFFLINE:
-                        styleOffline();
-                        break;
-
-                    case LOOPBACK:
-                        styleLoopbackMode();
-                        break;
-
-                    case AWAITING_CONNECTION:
-                        styleAwaitingConnection();
-                        break;
-
-                    case CONNECTING:
-                        break;
-
-                    case CONNECTED:
-                        styleConnected();
-                        break;
-
-                    case ACTIVE_CALL:
-                        styleActiveCall();
-                        break;
-                }
-            }
-        });
-    }
-
-    private void styleDeviceInfo() {
-        styleIpLabel();
-
-        remoteIpLabel = findViewById(R.id.remoteIpLabel);
-        remoteIpLabel.setText(getString(R.string.other_device_ip_label,
-            prefs.getString("OTHER_IP_ADDRESS", "null")));
-
-        remoteHandshakePortLabel = findViewById(R.id.remoteHandshakePortLabel);
-        remoteHandshakePortLabel.setText(getString(R.string.other_device_port_label,
-            String.valueOf(getOtherDevicePort())));
-
-    }
-
-    private void styleIpLabel() {
-        localIpLabel = findViewById(R.id.localIpLabel);
-        localIpLabel.setText(getString(R.string.local_ip_label, getLocalIpAddress()));
-    }
-
-    public void styleOffline() {
-        allowCallsButton = findViewById(R.id.allowCallsButton);
-        allowCallsButton.setText(R.string.allow_calls_button_text);
-        allowCallsButton.setEnabled(true);
-        allowCallsButton.setAlpha(1.0f);
-        allowCallsButton.setBackgroundColor(getResources().getColor(R.color.mint_green));
-
-        connectButton = findViewById(R.id.connectButton);
-        connectButton.setEnabled(false);
-        connectButton.setAlpha(0.5f);
-
-        openSessionButton = findViewById(R.id.openSessionButton);
-        openSessionButton.setEnabled(false);
-        openSessionButton.setAlpha(0.5f);
-
-        closeSessionButton = findViewById(R.id.closeSessionButton);
-        closeSessionButton.setEnabled(false);
-        closeSessionButton.setAlpha(0.5f);
-
-        localHandshakePortLabel = findViewById(R.id.localHandshakePortLabel);
-        localHandshakePortLabel.setText(getString(R.string.port_closed_label));
-
-        localRtpPortLabel = findViewById(R.id.localRtpPortLabel);
-        localRtpPortLabel.setText(getString(R.string.port_closed_label));
-
-        localRtcpPortLabel = findViewById(R.id.localRtcpPortLabel);
-        localRtcpPortLabel.setText(getString(R.string.port_closed_label));
-
-        remoteHandshakePortLabel = findViewById(R.id.remoteHandshakePortLabel);
-        remoteHandshakePortLabel.setText(getString(R.string.port_closed_label));
-
-        remoteRtpPortLabel = findViewById(R.id.remoteRtpPortLabel);
-        remoteRtpPortLabel.setText(getString(R.string.port_closed_label));
-
-        remoteRtcpPortLabel = findViewById(R.id.remoteRtcpPortLabel);
-        remoteRtcpPortLabel.setText(getString(R.string.port_closed_label));
-
-        styleDeviceInfo();
-
-    }
-
-    public void styleAwaitingConnection() {
-        allowCallsButton = findViewById(R.id.allowCallsButton);
-        allowCallsButton.setText(R.string.disable_calls_button_text);
-        allowCallsButton.setBackgroundColor(getResources().getColor(R.color.coral_red));
-
-        connectButton = findViewById(R.id.connectButton);
-        connectButton.setEnabled(true);
-        connectButton.setAlpha(1.0f);
-
-        openSessionButton = findViewById(R.id.openSessionButton);
-        openSessionButton.setEnabled(false);
-        openSessionButton.setAlpha(0.5f);
-
-        closeSessionButton = findViewById(R.id.closeSessionButton);
-        closeSessionButton.setEnabled(false);
-        closeSessionButton.setAlpha(0.5f);
-
-        localHandshakePortLabel = findViewById(R.id.localHandshakePortLabel);
-        localHandshakePortLabel.setText(getString(R.string.reception_port_label,
-            String.valueOf(handshakeReceptionSocket.getBoundSocket())));
-
-        localRtpPortLabel = findViewById(R.id.localRtpPortLabel);
-        localRtpPortLabel.setText(getString(R.string.rtp_reception_port_label,
-            String.valueOf(rtp.getLocalPort())));
-
-        localRtcpPortLabel = findViewById(R.id.localRtcpPortLabel);
-        localRtcpPortLabel.setText(getString(R.string.rtcp_reception_port_label,
-            String.valueOf(rtcp.getLocalPort())));
-
-        remoteHandshakePortLabel = findViewById(R.id.remoteHandshakePortLabel);
-        remoteHandshakePortLabel.setText(getString(R.string.reception_port_label,
-            String.valueOf(getOtherDevicePort())));
-
-        remoteRtpPortLabel = findViewById(R.id.remoteRtpPortLabel);
-        remoteRtpPortLabel.setText(getString(R.string.port_closed_label));
-
-        remoteRtcpPortLabel = findViewById(R.id.remoteRtcpPortLabel);
-        remoteRtcpPortLabel.setText(getString(R.string.port_closed_label));
-        styleDeviceInfo();
-    }
-
-    public void styleConnected() {
-        allowCallsButton = findViewById(R.id.allowCallsButton);
-        allowCallsButton.setText(R.string.disable_calls_button_text);
-        allowCallsButton.setBackgroundColor(getColor(R.color.coral_red));
-
-        connectButton = findViewById(R.id.connectButton);
-        connectButton.setText(R.string.disconnect_button_text);
-        connectButton.setBackgroundColor(getColor(R.color.coral_red));
-        connectButton.setEnabled(true);
-        connectButton.setAlpha(1.0f);
-
-        openSessionButton = findViewById(R.id.openSessionButton);
-        openSessionButton.setEnabled(true);
-        openSessionButton.setAlpha(1.0f);
-
-        closeSessionButton = findViewById(R.id.closeSessionButton);
-        closeSessionButton.setEnabled(false);
-        closeSessionButton.setAlpha(0.5f);
-
-        localHandshakePortLabel = findViewById(R.id.localHandshakePortLabel);
-        localHandshakePortLabel.setText(getString(R.string.reception_port_label,
-            getString(R.string.connected)));
-
-        localRtpPortLabel = findViewById(R.id.localRtpPortLabel);
-        localRtpPortLabel.setText(getString(R.string.rtp_reception_port_label,
-            String.valueOf(rtp.getLocalPort())));
-
-        localRtcpPortLabel = findViewById(R.id.localRtcpPortLabel);
-        localRtcpPortLabel.setText(getString(R.string.rtcp_reception_port_label,
-            String.valueOf(rtcp.getLocalPort())));
-
-        remoteHandshakePortLabel = findViewById(R.id.remoteHandshakePortLabel);
-        remoteHandshakePortLabel.setText(getString(R.string.reception_port_label,
-            getString(R.string.connected)));
-
-        remoteRtpPortLabel = findViewById(R.id.remoteRtpPortLabel);
-        remoteRtpPortLabel.setText(getString(R.string.rtp_reception_port_label,
-            String.valueOf(remoteDeviceInfo.getRtpPort())));
-
-        remoteRtcpPortLabel = findViewById(R.id.remoteRtcpPortLabel);
-        remoteRtcpPortLabel.setText(getString(R.string.rtcp_reception_port_label,
-            String.valueOf(remoteDeviceInfo.getRtcpPort())));
-
-        styleDeviceInfo();
-    }
-
-    public void styleActiveCall() {
-        allowCallsButton = findViewById(R.id.allowCallsButton);
-        allowCallsButton.setText(R.string.disable_calls_button_text);
-        allowCallsButton.setBackgroundColor(getResources().getColor(R.color.coral_red));
-
-        connectButton = findViewById(R.id.connectButton);
-        connectButton.setEnabled(false);
-        connectButton.setAlpha(0.5f);
-
-        openSessionButton = findViewById(R.id.openSessionButton);
-        openSessionButton.setEnabled(false);
-        openSessionButton.setAlpha(0.5f);
-
-        closeSessionButton = findViewById(R.id.closeSessionButton);
-        //closeSessionButton.setEnabled(true);
-        //closeSessionButton.setAlpha(1.0f);
-
-        localHandshakePortLabel = findViewById(R.id.localHandshakePortLabel);
-        localHandshakePortLabel
-            .setText(getString(R.string.reception_port_label, getString(R.string.connected)));
-
-        localRtpPortLabel = findViewById(R.id.localRtpPortLabel);
-        localRtpPortLabel.setText(getString(R.string.rtp_reception_port_label,
-            String.valueOf(rtp.getLocalPort())));
-
-        localRtcpPortLabel = findViewById(R.id.localRtcpPortLabel);
-        localRtcpPortLabel.setText(getString(R.string.rtcp_reception_port_label,
-            String.valueOf(rtcp.getLocalPort())));
-
-        remoteHandshakePortLabel = findViewById(R.id.remoteHandshakePortLabel);
-        remoteHandshakePortLabel.setText(getString(R.string.reception_port_label,
-            getString(R.string.connected)));
-
-        remoteRtpPortLabel = findViewById(R.id.remoteRtpPortLabel);
-        remoteRtpPortLabel.setText(getString(R.string.rtp_reception_port_label,
-            String.valueOf(remoteDeviceInfo.getRtpPort())));
-
-        remoteRtcpPortLabel = findViewById(R.id.remoteRtcpPortLabel);
-        remoteRtcpPortLabel.setText(getString(R.string.rtcp_reception_port_label,
-            String.valueOf(remoteDeviceInfo.getRtcpPort())));
-
-        loopbackSwitch = findViewById(R.id.loopbackModeSwitch);
-        if (loopbackSwitch.isChecked()) {
-            loopbackSwitch.setChecked(true);
-            loopbackSwitch.setEnabled(true);
-            loopbackSwitch.setAlpha(1.0f);
-        }
-
-        LinearLayout activeCallToolBar = findViewById(R.id.activeCallActionsLayout);
-        activeCallToolBar.setAlpha(1.0f);
-        for (int x = 0; x < activeCallToolBar.getChildCount(); x++) {
-            activeCallToolBar.getChildAt(x).setAlpha(1.0f);
-            activeCallToolBar.getChildAt(x).setEnabled(true);
-        }
-    }
-
-    public void styleLoopbackMode() {
-        allowCallsButton = findViewById(R.id.allowCallsButton);
-        allowCallsButton.setEnabled(false);
-        allowCallsButton.setAlpha(0.5f);
-
-        connectButton = findViewById(R.id.connectButton);
-        connectButton.setEnabled(false);
-        connectButton.setAlpha(0.5f);
-
-        openSessionButton = findViewById(R.id.openSessionButton);
-        openSessionButton.setEnabled(true);
-        openSessionButton.setAlpha(1.0f);
-
-        closeSessionButton = findViewById(R.id.closeSessionButton);
-        closeSessionButton.setEnabled(false);
-        closeSessionButton.setAlpha(0.5f);
-
-        remoteIpLabel = findViewById(R.id.remoteIpLabel);
-        remoteIpLabel.setText(getString(R.string.other_device_ip_label,
-            prefs.getString("OTHER_IP_ADDRESS", "null")));
-
-        localHandshakePortLabel = findViewById(R.id.localHandshakePortLabel);
-        localHandshakePortLabel
-            .setText(getString(R.string.reception_port_label, getString(R.string.connected)));
-
-        localRtpPortLabel = findViewById(R.id.localRtpPortLabel);
-        localRtpPortLabel.setText(getString(R.string.rtp_reception_port_label,
-            String.valueOf(rtp.getLocalPort())));
-
-        localRtcpPortLabel = findViewById(R.id.localRtcpPortLabel);
-        localRtcpPortLabel.setText(getString(R.string.rtcp_reception_port_label,
-            String.valueOf(rtcp.getLocalPort())));
-
-        remoteHandshakePortLabel = findViewById(R.id.remoteHandshakePortLabel);
-        remoteHandshakePortLabel.setText(getString(R.string.reception_port_label,
-            getString(R.string.connected)));
-
-        remoteRtpPortLabel = findViewById(R.id.remoteRtpPortLabel);
-        remoteRtpPortLabel.setText(getString(R.string.rtp_reception_port_label,
-            String.valueOf(rtp.getLocalPort())));
-
-        remoteRtcpPortLabel = findViewById(R.id.remoteRtcpPortLabel);
-        remoteRtcpPortLabel.setText(getString(R.string.rtcp_reception_port_label,
-            String.valueOf(rtcp.getLocalPort())));
-
-        loopbackSwitch = findViewById(R.id.loopbackModeSwitch);
-        loopbackSwitch.setChecked(true);
-
-    }
-
+    /**
+     * After the ports are open this runnable is called to wait for in incoming handshake to pair
+     * with the remote device.
+     */
     Runnable handleIncomingHandshake = new Runnable() {
         @Override
         public void run() {
@@ -733,19 +540,26 @@ public class MainActivity extends AppCompatActivity {
                     remoteDeviceInfo.getHandshakePort());
                 handshakeSender.setData(CONFIRMATION_MESSAGE);
                 handshakeSender.run();
-                Log.d("", "accepted handshake initiation from other device");
+                Log.d(TAG, "Handshake has been completed. Devices are connected.");
                 editor.putString("OTHER_IP_ADDRESS",
                     remoteDeviceInfo.getInetAddress().getHostName());
                 editor.putInt("OTHER_HANDSHAKE_PORT", remoteDeviceInfo.getRtpPort());
                 editor.apply();
                 updateUI(ConnectionStatus.CONNECTED);
             } catch (InterruptedException e) {
-                Log.d("", "" + e.toString());
+                Log.e(TAG, e.toString());
             }
 
         }
     };
 
+    /**
+     * This runnable controls the handshake process from the user that is attempting to connect
+     * to the remote device. First it will create and send a DeviceInfo object that contains the
+     * local devices info, and wait until it receives the remote DeviceInfo. After it receives
+     * the remote DeviceInfo it will save it into memory and send a conformation String back, then
+     * wait until it receives a conformation String.
+     */
     Runnable initiateHandshake = new Runnable() {
         @Override
         public void run() {
@@ -768,7 +582,7 @@ public class MainActivity extends AppCompatActivity {
 
                 }
 
-                Log.d("", "connected to the other device");
+                Log.d(TAG, "Handshake successful, devices connected.");
                 updateUI(ConnectionStatus.CONNECTED);
             } catch (Exception e) {
                 Log.e("initiateHandshake(): ", e.toString());
@@ -776,6 +590,10 @@ public class MainActivity extends AppCompatActivity {
         }
     };
 
+    /**
+     * Creates and returns a DeviceInfo object with the local port, ip, and audio codec settings
+     * @return DeviceInfo object containing the local device's information
+     */
     public DeviceInfo createMyDeviceInfo() {
         try {
             return new DeviceInfo.Builder()
@@ -795,54 +613,13 @@ public class MainActivity extends AppCompatActivity {
         return null;
     }
 
-    public void loopbackOnClick(View v) {
-        SwitchCompat loopbackSwitch = findViewById(R.id.loopbackModeSwitch);
-        if (loopbackSwitch.isChecked()) {
-            // enable loop back mode
-            openRtpPorts(true);
-            editor.putString("OTHER_IP_ADDRESS", getLocalIpAddress()).apply();
-            remoteDeviceInfo = createMyDeviceInfo();
-            updateUI(ConnectionStatus.LOOPBACK);
-        } else {
-            closePorts();
-            updateUI(ConnectionStatus.OFFLINE);
-        }
-    }
-
-    public void allowCallsOnClick(View v) {
-        if (prefs.getBoolean(HANDSHAKE_PORT_PREF, false)) {
-            closePorts();
-            Log.d("", "Closed handshake, rtp, and rtcp ports.");
-
-            Toast.makeText(getApplicationContext(),
-                "Closing ports",
-                Toast.LENGTH_SHORT).show();
-            updateUI(ConnectionStatus.OFFLINE);
-        } else {
-            openRtpPorts(true);
-            while (!prefs.getBoolean(HANDSHAKE_PORT_PREF, false)) {
-            }
-            Log.d("", "Handshake, rtp, and rtcp ports have been bound.");
-
-            Toast.makeText(getApplicationContext(), getString(R.string.allowing_calls_toast_text),
-                Toast.LENGTH_SHORT).show();
-
-            waitForHandshakeThread = new Thread(handleIncomingHandshake);
-            waitForHandshakeThread.start();
-            updateUI(ConnectionStatus.AWAITING_CONNECTION);
-        }
-    }
-
+    /**
+     * Updates the connectionStatus and restyles the UI
+     * @param newStatus The new ConnectionStatus used to style the UI
+     */
     public void updateUI(ConnectionStatus newStatus) {
         connectionStatus = newStatus;
         styleMainActivity();
-    }
-
-    public void initiateHandshakeOnClick(View v) {
-        waitForHandshakeThread.interrupt();
-        initiateHandshakeThread = new Thread(initiateHandshake);
-        initiateHandshakeThread.start();
-        updateUI(ConnectionStatus.CONNECTING);
     }
 
     /**
@@ -867,25 +644,6 @@ public class MainActivity extends AppCompatActivity {
             .setIntervalSec(5)
             .setRtcpXrBlockTypes(0)
             .build();
-    }
-
-    public void openSessionOnClick(View v) {
-        if (isMediaManagerReady && !isOpenSessionSent) {
-
-            Toast.makeText(getApplicationContext(),
-                getString(R.string.connecting_call_toast_text),
-                Toast.LENGTH_SHORT).show();
-
-            audioConfig = determineAudioConfig(localDeviceInfo, remoteDeviceInfo);
-            Log.d("", audioConfig.toString());
-
-            sessionCallback = new RtpAudioSessionCallback();
-            imsMediaManager.openSession(rtp, rtcp, ImsMediaSession.SESSION_TYPE_AUDIO,
-                audioConfig, executor, sessionCallback);
-            Log.d("",
-                "called openSession IP: " + remoteDeviceInfo.getInetAddress() + " Port: " +
-                    remoteDeviceInfo.getRtpPort());
-        }
     }
 
     /**
@@ -968,7 +726,6 @@ public class MainActivity extends AppCompatActivity {
         return config;
     }
 
-
     /**
      * @param amrMode Integer value of the AmrMode
      * @return AmrParams object with the passed AmrMode value
@@ -994,97 +751,6 @@ public class MainActivity extends AppCompatActivity {
             .setHeaderFullOnlyOnTx(true)
             .setHeaderFullOnlyOnRx(true)
             .build();
-    }
-
-    /**
-     * Displays the dialer BottomSheetDialog when the button is clicked
-     * @param view the view form the button click
-     */
-    public void openDialer(View view) {
-        if (!bottomSheetDialog.isOpen()) {
-            bottomSheetDialog.show();
-        }
-    }
-
-    public void sendDtmfOnClick(View view) {
-        char digit = ((Button) view).getText().toString().charAt(0);
-        dtmfInput.append(digit);
-
-        TextView dtmfInputBox = bottomSheetDialog.getDtmfInput();
-        dtmfInputBox.setText(dtmfInput.toString());
-
-        audioSession.startDtmf(digit, 50, 3);
-        audioSession.stopDtmf();
-
-
-    }
-
-    public void clearDtmfInputOnClick(View view) {
-        dtmfInput.setLength(0);
-        TextView dtmfInputBox = bottomSheetDialog.getDtmfInput();
-        dtmfInputBox.setText(getString(R.string.dtmfInputPlaceholder));
-    }
-
-    public void closeSessionOnClick(View view) {
-        imsMediaManager.closeSession(audioSession);
-        isOpenSessionSent = false;
-    }
-
-    public void setupSettingsPage() {
-        EditText ipAddress = findViewById(R.id.other_device_ip);
-        EditText portNumber = findViewById(R.id.port_number);
-        String ip = prefs.getString("OTHER_IP_ADDRESS", "");
-        String portNum = String.valueOf(prefs.getInt("OTHER_HANDSHAKE_PORT", 0));
-
-        ipAddress.setText(ip);
-        portNumber.setText(portNum);
-
-        setupAudioCodecSelectionLists();
-
-        setupCodecSelectionOnClickListeners();
-    }
-
-    public void mediaDirectionOnClick(View view) {
-        PopupMenu mediaDirectionMenu = new PopupMenu(this, findViewById(R.id.mediaDirectionButton));
-        mediaDirectionMenu.getMenuInflater()
-            .inflate(R.menu.media_direction_menu, mediaDirectionMenu.getMenu());
-        mediaDirectionMenu.setOnMenuItemClickListener(item -> {
-            switch (item.getItemId()) {
-
-                case R.id.noFlowDirectionItem:
-                    audioConfig.setMediaDirection(AudioConfig.MEDIA_DIRECTION_NO_FLOW);
-                    break;
-
-                case R.id.transmitReceiveDirectionItem:
-                    audioConfig.setMediaDirection(AudioConfig.MEDIA_DIRECTION_TRANSMIT_RECEIVE);
-                    break;
-
-                case R.id.receiveOnlyDirectionItem:
-                    audioConfig.setMediaDirection(AudioConfig.MEDIA_DIRECTION_RECEIVE_ONLY);
-                    break;
-
-                case R.id.transmitOnlyDirectionItem:
-                    audioConfig.setMediaDirection(AudioConfig.MEDIA_DIRECTION_TRANSMIT_ONLY);
-                    break;
-
-                default:
-                    return false;
-            }
-
-            audioSession.modifySession(audioConfig);
-            return true;
-        });
-        mediaDirectionMenu.show();
-    }
-
-    /**
-     * Displays the audio codec change BottomSheetDialog when the button is clicked
-     * @param view the view form the button click
-     */
-    public void openChangeAudioCodecSheet(View view) {
-        if (!bottomSheetAudioCodecSettings.isOpen()) {
-            bottomSheetAudioCodecSettings.show();
-        }
     }
 
     /**
@@ -1143,6 +809,291 @@ public class MainActivity extends AppCompatActivity {
             }
         }
         return -1;
+    }
+
+    /**
+     * Creates an AudioConfig object depending on the passed parameters and returns it.
+     * @param audioCodec Integer value of the CodecType
+     * @param amrParams AmrParams object to be set in the AudioConfig
+     * @param evsParams EvsParams object to be set in the AudioConfig
+     * @return an AudioConfig with the passed parameters and default values.
+     */
+    private AudioConfig createAudioConfig(int audioCodec, AmrParams amrParams,
+        EvsParams evsParams) {
+        AudioConfig audioConfig = null;
+        // TODO - evs params must be present to hear audio currently, regardless of codec
+        EvsParams mEvs = new EvsParams.Builder()
+            .setEvsbandwidth(EvsParams.EVS_BAND_NONE)
+            .setEvsMode(EvsParams.EVS_MODE_0)
+            .setChannelAwareMode((byte) 3)
+            .setHeaderFullOnlyOnTx(true)
+            .setHeaderFullOnlyOnRx(true)
+            .build();
+
+        switch (audioCodec) {
+            case CodecType.AMR: case CodecType.AMR_WB:
+                audioConfig = createAudioConfig(getRemoteSocketAddress(), getRemoteRtcpConfig(),
+                    audioCodec, amrParams, mEvs);
+                break;
+
+            case CodecType.EVS:
+                audioConfig = createAudioConfig(getRemoteSocketAddress(), getRemoteRtcpConfig(),
+                    audioCodec, null, evsParams);
+                break;
+
+            case CodecType.PCMA: case CodecType.PCMU:
+                audioConfig = createAudioConfig(getRemoteSocketAddress(), getRemoteRtcpConfig(),
+                    audioCodec, null, null);
+                break;
+
+        }
+
+        return audioConfig;
+    }
+
+    /**
+     * Displays the dialer BottomSheetDialog when the button is clicked
+     * @param view the view form the button click
+     */
+    public void openDialer(View view) {
+        if (!bottomSheetDialog.isOpen()) {
+            bottomSheetDialog.show();
+        }
+    }
+
+    /**
+     * Sends a DTMF input to the current AudioSession and updates the TextView to display the input.
+     * @param view the view from the button click
+     */
+    public void sendDtmfOnClick(View view) {
+        char digit = ((Button) view).getText().toString().charAt(0);
+        dtmfInput.append(digit);
+
+        TextView dtmfInputBox = bottomSheetDialog.getDtmfInput();
+        dtmfInputBox.setText(dtmfInput.toString());
+
+        audioSession.startDtmf(digit, 50, 3);
+        audioSession.stopDtmf();
+    }
+
+    /**
+     * Resets the TextView containing the DTMF input
+     * @param view the view from the button click
+     */
+    public void clearDtmfInputOnClick(View view) {
+        dtmfInput.setLength(0);
+        TextView dtmfInputBox = bottomSheetDialog.getDtmfInput();
+        dtmfInputBox.setText(getString(R.string.dtmfInputPlaceholder));
+    }
+
+    /**
+     * Calls closeSession() on ImsMediaManager and resets the flag on isOpenSessionSent
+     * @param view the view from the button click
+     */
+    public void closeSessionOnClick(View view) {
+        imsMediaManager.closeSession(audioSession);
+        isOpenSessionSent = false;
+    }
+
+    /**
+     * When the button is clicked a menu is opened containing the different media directions and
+     * the onMenuItemClickListener is set to handle the user's selection.
+     * @param view The view passed in from the button that is clicked
+     */
+    @SuppressLint("NonConstantResourceId")
+    public void mediaDirectionOnClick(View view) {
+        PopupMenu mediaDirectionMenu = new PopupMenu(this, findViewById(R.id.mediaDirectionButton));
+        mediaDirectionMenu.getMenuInflater()
+            .inflate(R.menu.media_direction_menu, mediaDirectionMenu.getMenu());
+        mediaDirectionMenu.setOnMenuItemClickListener(item -> {
+            switch (item.getItemId()) {
+
+                case R.id.noFlowDirectionMenuItem:
+                    audioConfig.setMediaDirection(AudioConfig.MEDIA_DIRECTION_NO_FLOW);
+                    break;
+
+                case R.id.transmitReceiveDirectionMenuItem:
+                    audioConfig.setMediaDirection(AudioConfig.MEDIA_DIRECTION_TRANSMIT_RECEIVE);
+                    break;
+
+                case R.id.receiveOnlyDirectionMenuItem:
+                    audioConfig.setMediaDirection(AudioConfig.MEDIA_DIRECTION_RECEIVE_ONLY);
+                    break;
+
+                case R.id.transmitOnlyDirectionMenuItem:
+                    audioConfig.setMediaDirection(AudioConfig.MEDIA_DIRECTION_TRANSMIT_ONLY);
+                    break;
+
+                default:
+                    return false;
+            }
+
+            audioSession.modifySession(audioConfig);
+            return true;
+        });
+        mediaDirectionMenu.show();
+    }
+
+    /**
+     * Displays the audio codec change BottomSheetDialog when the button is clicked
+     * @param view the view form the button click
+     */
+    public void openChangeAudioCodecSheet(View view) {
+        if (!bottomSheetAudioCodecSettings.isOpen()) {
+            bottomSheetAudioCodecSettings.show();
+        }
+    }
+
+    /**
+     * Calls openSession() on the ImsMediaManager
+     * @param view the view from the button click
+     */
+    public void openSessionOnClick(View view) {
+        if (isMediaManagerReady && !isOpenSessionSent) {
+
+            Toast.makeText(getApplicationContext(), getString(R.string.connecting_call_toast_text),
+                Toast.LENGTH_SHORT).show();
+
+            audioConfig = determineAudioConfig(localDeviceInfo, remoteDeviceInfo);
+            Log.d(TAG, audioConfig.toString());
+
+            RtpAudioSessionCallback sessionCallback = new RtpAudioSessionCallback();
+            imsMediaManager.openSession(rtp, rtcp, ImsMediaSession.SESSION_TYPE_AUDIO,
+                audioConfig, executor, sessionCallback);
+            Log.d(TAG, "openSession(): " + remoteDeviceInfo.getInetAddress() + ":" +
+                remoteDeviceInfo.getRtpPort());
+        }
+    }
+
+    /**
+     * Saves the inputted ip address and port number to SharedPreferences.
+     * @param view the view from the button click
+     */
+    public void saveSettingsOnClick(View view) {
+        int port = getRemoteDevicePortEditText();
+        String ip = getRemoteDeviceIpEditText();
+
+        editor.putInt("OTHER_HANDSHAKE_PORT", port);
+        editor.putString("OTHER_IP_ADDRESS", ip);
+        editor.apply();
+
+        Toast.makeText(getApplicationContext(), R.string.save_button_action_toast,
+            Toast.LENGTH_SHORT).show();
+    }
+
+    /**
+     * Calls modifySession to change the audio codec on the current AudioSession. Also contains
+     * the logic to create the new AudioConfig.
+     * @param view the view form the button click
+     */
+    public void changeAudioCodecOnClick(View view) {
+        AudioConfig config = null;
+        AmrParams amrParams;
+        EvsParams evsParams;
+        int audioCodec = bottomSheetAudioCodecSettings.getAudioCodec();
+
+        switch (audioCodec) {
+            case CodecType.AMR: case CodecType.AMR_WB:
+                amrParams = createAmrParams(bottomSheetAudioCodecSettings.getAmrMode());
+                config = createAudioConfig(getRemoteSocketAddress(), getRemoteRtcpConfig(),
+                    audioCodec, amrParams, null);
+                Log.d(TAG, String.format("AudioConfig switched to Codec: %s\t Params: %s",
+                    bottomSheetAudioCodecSettings.getAudioCodec(),
+                    config.getAmrParams().toString()));
+                break;
+
+            case CodecType.EVS:
+                evsParams = createEvsParams(bottomSheetAudioCodecSettings.getEvsBand(),
+                    bottomSheetAudioCodecSettings.getEvsMode());
+                config = createAudioConfig(getRemoteSocketAddress(), getRemoteRtcpConfig(),
+                    audioCodec, null, evsParams);
+                Log.d(TAG, String.format("AudioConfig switched to Codec: %s\t Params: %s",
+                    bottomSheetAudioCodecSettings.getAudioCodec(),
+                    config.getEvsParams().toString()));
+                break;
+
+            case CodecType.PCMA: case CodecType.PCMU:
+                config = createAudioConfig(getRemoteSocketAddress(), getRemoteRtcpConfig(),
+                    audioCodec, null, null);
+                Log.d(TAG, String.format("AudioConfig switched to Codec: %s",
+                    bottomSheetAudioCodecSettings.getAudioCodec()));
+                break;
+        }
+
+        audioSession.modifySession(config);
+        bottomSheetAudioCodecSettings.dismiss();
+    }
+
+    /**
+     * Changes the flag of loopback mode, changes the ConnectionStatus sate, and restyles the UI
+     * @param view the view from, the button click
+     */
+    public void loopbackOnClick(View view) {
+        SwitchCompat loopbackSwitch = findViewById(R.id.loopbackModeSwitch);
+        if (loopbackSwitch.isChecked()) {
+            openRtpPorts(true);
+            editor.putString("OTHER_IP_ADDRESS", getLocalIpAddress()).apply();
+            remoteDeviceInfo = createMyDeviceInfo();
+            loopbackModeEnabled = true;
+            updateUI(ConnectionStatus.CONNECTED);
+        } else {
+            closePorts();
+            loopbackModeEnabled = false;
+            updateUI(ConnectionStatus.OFFLINE);
+        }
+    }
+
+    /**
+     * Opens or closes ports and starts the waiting handshake runnable depending on the current
+     * state of the button.
+     * @param view view from the button click
+     */
+    public void allowCallsOnClick(View view) {
+        if (prefs.getBoolean(HANDSHAKE_PORT_PREF, false)) {
+            closePorts();
+            Log.d(TAG, "Closed handshake, rtp, and rtcp ports.");
+
+            Toast.makeText(getApplicationContext(),
+                "Closing ports",
+                Toast.LENGTH_SHORT).show();
+            updateUI(ConnectionStatus.OFFLINE);
+        } else {
+            openRtpPorts(true);
+            while (!prefs.getBoolean(HANDSHAKE_PORT_PREF, false)) {
+            }
+            Log.d(TAG, "Handshake, rtp, and rtcp ports have been bound.");
+
+            Toast.makeText(getApplicationContext(), getString(R.string.allowing_calls_toast_text),
+                Toast.LENGTH_SHORT).show();
+
+            waitForHandshakeThread = new Thread(handleIncomingHandshake);
+            waitForHandshakeThread.start();
+            updateUI(ConnectionStatus.DISCONNECTED);
+        }
+    }
+
+    /**
+     * Starts the handshake process runnable that attempts to connect to two device together.
+     * @param view view from the button click
+     */
+    public void initiateHandshakeOnClick(View view) {
+        waitForHandshakeThread.interrupt();
+        Thread initiateHandshakeThread = new Thread(initiateHandshake);
+        initiateHandshakeThread.start();
+        updateUI(ConnectionStatus.CONNECTING);
+    }
+
+    /**
+     * Handles the styling of the settings layout.
+     */
+    public void setupSettingsPage() {
+        EditText ipAddress = findViewById(R.id.remoteDeviceIpEditText);
+        EditText portNumber = findViewById(R.id.remotePortNumberEditText);
+        ipAddress.setText(prefs.getString("OTHER_IP_ADDRESS", ""));
+        portNumber.setText(String.valueOf(prefs.getInt("OTHER_HANDSHAKE_PORT", 0)));
+
+        setupAudioCodecSelectionLists();
+        setupCodecSelectionOnClickListeners();
     }
 
     /**
@@ -1210,12 +1161,12 @@ public class MainActivity extends AppCompatActivity {
             if(audioCodecList.isItemChecked(position)) {
                 selectedCodecTypes.add(item.getValue());
                 if(item == CodecTypeEnum.AMR || item == CodecTypeEnum.AMR_WB) {
-                    amrModeList.setAlpha(1.0f);
+                    amrModeList.setAlpha(ENABLED_ALPHA);
                     amrModeList.setEnabled(true);
                 } else if(item == CodecTypeEnum.EVS) {
-                    evsBandList.setAlpha(1.0f);
+                    evsBandList.setAlpha(ENABLED_ALPHA);
                     amrModeList.setEnabled(true);
-                    evsModeList.setAlpha(1.0f);
+                    evsModeList.setAlpha(ENABLED_ALPHA);
                     evsModeList.setEnabled(true);
                 }
             } else {
@@ -1270,193 +1221,224 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
-    public int getRemoteDevicePortEditText() {
-        EditText portBox = findViewById(R.id.port_number);
-        return Integer.parseInt(portBox.getText().toString());
-    }
-
-    public String getRemoteDeviceIpEditText() {
-        EditText ipBox = findViewById(R.id.other_device_ip);
-        return ipBox.getText().toString();
-    }
-
-    public void saveSettingsOnClick(View view) {
-        int port = getRemoteDevicePortEditText();
-        String ip = getRemoteDeviceIpEditText();
-
-        editor.putInt("OTHER_HANDSHAKE_PORT", port);
-        editor.putString("OTHER_IP_ADDRESS", ip);
-        editor.apply();
-
-        Log.d("CODECS", selectedCodecTypes.toString());
-        Log.d("AMR MODES", selectedAmrModes.toString());
-        Log.d("EVS BANDS", selectedEvsBandwidths.toString());
-        Log.d("EVS MODES", selectedEvsModes.toString());
-
-        Toast.makeText(getApplicationContext(), R.string.save_button_action_toast,
-            Toast.LENGTH_SHORT).show();
-    }
-
     /**
-     * Calls modifySession to change the audio codec on the current AudioSession. Also contains
-     * the logic to create the new AudioConfig.
-     * @param view the view form the button click
+     * Styles the main activity UI based on the current ConnectionStatus enum state.
      */
-    public void changeAudioCodecOnClick(View view) {
-        AudioConfig config = null;
-        AmrParams amrParams = null;
-        EvsParams evsParams = null;
-        int audioCodec = bottomSheetAudioCodecSettings.getAudioCodec();
+    private void styleMainActivity() {
+        runOnUiThread(() -> {
+            updateUiViews();
+            styleDevicesInfo();
+            switch (connectionStatus) {
+                case OFFLINE:
+                    styleOffline();
+                    break;
 
-        switch (audioCodec) {
-            case CodecType.AMR: case CodecType.AMR_WB:
-                amrParams = createAmrParams(bottomSheetAudioCodecSettings.getAmrMode());
-                config = createAudioConfig(getRemoteSocketAddress(), getRemoteRtcpConfig(),
-                    audioCodec, amrParams, null);
-                Log.d("", String.format("AudioConfig switched to Codec: %s\t Params: %s",
-                    bottomSheetAudioCodecSettings.getAudioCodec(),
-                    config.getAmrParams().toString()));
-                break;
+                case DISCONNECTED:
+                    styleDisconnected();
+                    break;
 
-            case CodecType.EVS:
-                 evsParams = createEvsParams(bottomSheetAudioCodecSettings.getEvsBand(),
-                    bottomSheetAudioCodecSettings.getEvsMode());
-                config = createAudioConfig(getRemoteSocketAddress(), getRemoteRtcpConfig(),
-                    audioCodec, null, evsParams);
-                Log.d("", String.format("AudioConfig switched to Codec: %s\t Params: %s",
-                    bottomSheetAudioCodecSettings.getAudioCodec(),
-                    config.getEvsParams().toString()));
-                break;
+                case CONNECTING:
+                    break;
 
-            case CodecType.PCMA: case CodecType.PCMU:
-                config = createAudioConfig(getRemoteSocketAddress(), getRemoteRtcpConfig(),
-                    audioCodec, null, null);
-                Log.d("", String.format("AudioConfig switched to Codec: %s",
-                    bottomSheetAudioCodecSettings.getAudioCodec()));
-                break;
-        }
+                case CONNECTED:
+                    styleConnected();
+                    break;
 
-        audioSession.modifySession(config);
-        bottomSheetAudioCodecSettings.dismiss();
+                case ACTIVE_CALL:
+                    styleActiveCall();
+                    break;
+            }
+        });
     }
 
-    private AudioConfig createAudioConfig(int audioCodec, AmrParams amrParams,
-        EvsParams evsParams) {
-        AudioConfig audioConfig = null;
-        // TODO - evs params must be present to hear audio currently, regardless of codec
-        EvsParams mEvs = new EvsParams.Builder()
-            .setEvsbandwidth(EvsParams.EVS_BAND_NONE)
-            .setEvsMode(EvsParams.EVS_MODE_0)
-            .setChannelAwareMode((byte) 3)
-            .setHeaderFullOnlyOnTx(true)
-            .setHeaderFullOnlyOnRx(true)
-            .build();
+    private void styleDevicesInfo() {
+        TextView localIpLabel = findViewById(R.id.localIpLabel);
+        localIpLabel.setText(getString(R.string.local_ip_label, getLocalIpAddress()));
 
-        switch (audioCodec) {
-            case CodecType.AMR: case CodecType.AMR_WB:
-                audioConfig = createAudioConfig(getRemoteSocketAddress(), getRemoteRtcpConfig(),
-                    audioCodec, amrParams, mEvs);
-                break;
+        remoteIpLabel = findViewById(R.id.remoteIpLabel);
+        remoteIpLabel.setText(getString(R.string.other_device_ip_label,
+            prefs.getString("OTHER_IP_ADDRESS", "null")));
 
-            case CodecType.EVS:
-                audioConfig = createAudioConfig(getRemoteSocketAddress(), getRemoteRtcpConfig(),
-                    audioCodec, null, evsParams);
-                break;
-
-            case CodecType.PCMA: case CodecType.PCMU:
-                audioConfig = createAudioConfig(getRemoteSocketAddress(), getRemoteRtcpConfig(),
-                    audioCodec, null, null);
-                break;
-
-        }
-
-        return audioConfig;
+        remoteHandshakePortLabel = findViewById(R.id.remoteHandshakePortLabel);
+        remoteHandshakePortLabel.setText(getString(R.string.handshake_port_label,
+            String.valueOf(getOtherDevicePort())));
     }
 
-    private class MediaManagerCallback implements ImsMediaManager.OnConnectedCallback {
+    private void styleOffline() {
+        localHandshakePortLabel.setText(getString(R.string.port_closed_label));
+        localRtpPortLabel.setText(getString(R.string.port_closed_label));
+        localRtcpPortLabel.setText(getString(R.string.port_closed_label));
+        remoteRtpPortLabel.setText(getString(R.string.port_closed_label));
+        remoteRtcpPortLabel.setText(getString(R.string.port_closed_label));
 
-        @Override
-        public void onConnected() {
-            Log.d("", "ImsMediaManager - connected");
-            isMediaManagerReady = true;
+        allowCallsButton.setText(R.string.allow_calls_button_text);
+        allowCallsButton.setBackgroundColor(getColor(R.color.mint_green));
+        styleButtonEnabled(allowCallsButton);
+
+        connectButton.setText(R.string.connect_button_text);
+        connectButton.setBackgroundColor(getColor(R.color.mint_green));
+        styleButtonDisabled(connectButton);
+
+        styleLoopbackSwitchEnabled();
+        styleButtonDisabled(openSessionButton);
+        styleLayoutChildrenDisabled(activeCallToolBar);
+    }
+
+    private void styleDisconnected() {
+        localHandshakePortLabel.setText(getString(R.string.handshake_port_label,
+            String.valueOf(handshakeReceptionSocket.getBoundSocket())));
+        localRtpPortLabel.setText(getString(R.string.rtp_reception_port_label,
+            String.valueOf(rtp.getLocalPort())));
+        localRtcpPortLabel.setText(getString(R.string.rtcp_reception_port_label,
+            String.valueOf(rtcp.getLocalPort())));
+        remoteRtpPortLabel.setText(getString(R.string.port_closed_label));
+        remoteRtcpPortLabel.setText(getString(R.string.port_closed_label));
+
+        allowCallsButton.setText(R.string.disable_calls_button_text);
+        allowCallsButton.setBackgroundColor(getColor(R.color.coral_red));
+        styleButtonEnabled(allowCallsButton);
+
+        connectButton.setText(R.string.connect_button_text);
+        connectButton.setBackgroundColor(getColor(R.color.mint_green));
+        styleButtonEnabled(connectButton);
+
+        styleLoopbackSwitchDisabled();
+        styleButtonDisabled(openSessionButton);
+        styleLayoutChildrenDisabled(activeCallToolBar);
+    }
+
+    private void styleConnected() {
+        if (loopbackModeEnabled) {
+            allowCallsButton.setText(R.string.allow_calls_button_text);
+            allowCallsButton.setBackgroundColor(getColor(R.color.mint_green));
+            styleButtonDisabled(allowCallsButton);
+
+            connectButton.setText(R.string.connect_button_text);
+            connectButton.setBackgroundColor(getColor(R.color.mint_green));
+            styleButtonDisabled(connectButton);
+            styleLoopbackSwitchEnabled();
+
+        } else {
+            allowCallsButton.setText(R.string.disable_calls_button_text);
+            allowCallsButton.setBackgroundColor(getColor(R.color.coral_red));
+            styleButtonEnabled(allowCallsButton);
+
+            connectButton.setText(R.string.disconnect_button_text);
+            connectButton.setBackgroundColor(getColor(R.color.coral_red));
+            styleButtonEnabled(connectButton);
+            styleLoopbackSwitchDisabled();
         }
 
-        @Override
-        public void onDisconnected() {
-            Log.d("", "ImsMediaManager - disconnected");
-            isMediaManagerReady = false;
-            updateUI(ConnectionStatus.CONNECTED);
+        localHandshakePortLabel.setText(getString(R.string.reception_port_label,
+            String.valueOf(handshakeReceptionSocket.getBoundSocket())));
+        localRtpPortLabel.setText(getString(R.string.rtp_reception_port_label,
+            String.valueOf(rtp.getLocalPort())));
+        localRtcpPortLabel.setText(getString(R.string.rtcp_reception_port_label,
+            String.valueOf(rtcp.getLocalPort())));
+        remoteRtpPortLabel.setText(getString(R.string.rtp_reception_port_label,
+            String.valueOf(remoteDeviceInfo.getRtpPort())));
+        remoteRtcpPortLabel.setText(getString(R.string.rtcp_reception_port_label,
+            String.valueOf(remoteDeviceInfo.getRtcpPort())));
+        styleButtonEnabled(openSessionButton);
+        styleLayoutChildrenDisabled(activeCallToolBar);
+    }
+
+    private void styleActiveCall() {
+        if(loopbackModeEnabled) {
+            styleLoopbackSwitchEnabled();
+
+            allowCallsButton.setText(R.string.allow_calls_button_text);
+            allowCallsButton.setBackgroundColor(getColor(R.color.mint_green));
+            styleButtonDisabled(allowCallsButton);
+
+            connectButton.setText(R.string.connect_button_text);
+            connectButton.setBackgroundColor(getColor(R.color.mint_green));
+            styleButtonDisabled(connectButton);
+            styleLoopbackSwitchEnabled();
+
+        } else  {
+            styleLoopbackSwitchDisabled();
+
+            allowCallsButton.setText(R.string.disable_calls_button_text);
+            allowCallsButton.setBackgroundColor(getColor(R.color.coral_red));
+            styleButtonDisabled(allowCallsButton);
+
+            connectButton.setText(R.string.disconnect_button_text);
+            connectButton.setBackgroundColor(getColor(R.color.coral_red));
+            styleButtonDisabled(connectButton);
+            styleLoopbackSwitchDisabled();
+        }
+
+        localHandshakePortLabel
+            .setText(getString(R.string.reception_port_label, getString(R.string.connected)));
+        localRtpPortLabel.setText(getString(R.string.rtp_reception_port_label,
+            String.valueOf(rtp.getLocalPort())));
+        localRtcpPortLabel.setText(getString(R.string.rtcp_reception_port_label,
+            String.valueOf(rtcp.getLocalPort())));
+        remoteRtpPortLabel.setText(getString(R.string.rtp_reception_port_label,
+            String.valueOf(remoteDeviceInfo.getRtpPort())));
+        remoteRtcpPortLabel.setText(getString(R.string.rtcp_reception_port_label,
+            String.valueOf(remoteDeviceInfo.getRtcpPort())));
+
+        styleButtonDisabled(openSessionButton);
+        styleLayoutChildrenEnabled(activeCallToolBar);
+    }
+
+    private void styleButtonDisabled(Button button) {
+        button.setEnabled(false);
+        button.setClickable(false);
+        button.setAlpha(DISABLED_ALPHA);
+    }
+
+    private void styleButtonEnabled(Button button) {
+        button.setEnabled(true);
+        button.setClickable(true);
+        button.setAlpha(ENABLED_ALPHA);
+    }
+
+    private void styleLayoutChildrenDisabled(LinearLayout linearLayout) {
+        linearLayout.setAlpha(DISABLED_ALPHA);
+        for (int x = 0; x < linearLayout.getChildCount(); x++) {
+            linearLayout.getChildAt(x).setAlpha(DISABLED_ALPHA);
+            linearLayout.getChildAt(x).setEnabled(false);
+            linearLayout.getChildAt(x).setClickable(false);
         }
     }
 
-    private class RtpAudioSessionCallback extends AudioSessionCallback {
-
-        @Override
-        public void onModifySessionResponse(AudioConfig config, int result) {
-            Log.d("", "onModifySessionResponse");
+    private void styleLayoutChildrenEnabled(LinearLayout linearLayout) {
+        linearLayout.setAlpha(ENABLED_ALPHA);
+        for (int x = 0; x < linearLayout.getChildCount(); x++) {
+            linearLayout.getChildAt(x).setAlpha(ENABLED_ALPHA);
+            linearLayout.getChildAt(x).setEnabled(true);
+            linearLayout.getChildAt(x).setClickable(true);
         }
-
-        @Override
-        public void onOpenSessionFailure(int error) {
-            Log.d("", "onOpenSessionFailure - error=" + error);
-        }
-
-        @Override
-        public void onOpenSessionSuccess(ImsMediaSession session) {
-            audioSession = (ImsAudioSession) session;
-            Log.d("", "onOpenSessionSuccess: id=" + audioSession.getSessionId());
-            isOpenSessionSent = true;
-            updateUI(ConnectionStatus.ACTIVE_CALL);
-            AudioManager audioManager = getSystemService(AudioManager.class);
-            audioManager.setMode(AudioManager.MODE_IN_CALL);
-            audioManager.setSpeakerphoneOn(true);
-        }
-
-        @Override
-        public void onSessionChanged(@ImsMediaSession.SessionState int state) {
-            Log.d("", "onSessionChanged - state=" + state);
-        }
-
-        @Override
-        public void onAddConfigResponse(AudioConfig config, int result) {
-            Log.d("", "onAddConfigResponse");
-        }
-
-        @Override
-        public void onConfirmConfigResponse(AudioConfig config, int result) {
-            Log.d("", "onConfirmConfigResponse");
-        }
-
-        @Override
-        public void onFirstMediaPacketReceived(AudioConfig config) {
-            Log.d("", "onFirstMediaPacketReceived");
-        }
-
-        @Override
-        public IBinder getBinder() {
-            return super.getBinder();
-        }
-
-        @Override
-        public void setExecutor(Executor executor) {
-            super.setExecutor(executor);
-        }
-
-        @Override
-        public void notifyMediaInactivity(int packetType) {
-            super.notifyMediaInactivity(packetType);
-        }
-
-        @Override
-        public void notifyPacketLoss(int packetLossPercentage) {
-            super.notifyPacketLoss(packetLossPercentage);
-        }
-
-        @Override
-        public void notifyJitter(int jitter) {
-            super.notifyJitter(jitter);
-        }
-
     }
 
+    private void updateUiViews() {
+        localHandshakePortLabel = findViewById(R.id.localHandshakePortLabel);
+        localRtpPortLabel = findViewById(R.id.localRtpPortLabel);
+        localRtcpPortLabel = findViewById(R.id.localRtcpPortLabel);
+        remoteHandshakePortLabel = findViewById(R.id.remoteHandshakePortLabel);
+        remoteRtpPortLabel = findViewById(R.id.remoteRtpPortLabel);
+        remoteRtcpPortLabel = findViewById(R.id.remoteRtcpPortLabel);
+        allowCallsButton = findViewById(R.id.allowCallsButton);
+        connectButton = findViewById(R.id.connectButton);
+        openSessionButton = findViewById(R.id.openSessionButton);
+        activeCallToolBar = findViewById(R.id.activeCallActionsLayout);
+        loopbackSwitch = findViewById(R.id.loopbackModeSwitch);
+    }
+
+    private void styleLoopbackSwitchEnabled() {
+        loopbackSwitch.setChecked(loopbackModeEnabled);
+        loopbackSwitch.setEnabled(true);
+        loopbackSwitch.setClickable(true);
+        loopbackSwitch.setAlpha(ENABLED_ALPHA);
+    }
+
+    private void styleLoopbackSwitchDisabled() {
+        loopbackSwitch.setChecked(loopbackModeEnabled);
+        loopbackSwitch.setEnabled(false);
+        loopbackSwitch.setClickable(false);
+        loopbackSwitch.setAlpha(DISABLED_ALPHA);
+    }
 }

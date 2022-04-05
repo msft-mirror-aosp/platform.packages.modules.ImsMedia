@@ -1,5 +1,6 @@
 package com.example.imsmediatestingapp;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.telephony.imsmedia.EvsParams;
 import android.view.View;
@@ -44,15 +45,15 @@ public class BottomSheetAudioCodecSettings extends BottomSheetDialog implements 
         super.onStart();
         isOpen = true;
 
-        audioCodecDropDown = findViewById(R.id.selectAudioCodec);
+        audioCodecDropDown = findViewById(R.id.selectAudioCodecMenu);
         Objects.requireNonNull(audioCodecDropDown).setOnClickListener(
             view -> openCodecSelectionMenu());
 
-        evsBandDropdown = findViewById(R.id.selectEvsBand);
+        evsBandDropdown = findViewById(R.id.selectEvsBandMenu);
         Objects.requireNonNull(evsBandDropdown).setOnClickListener(
             view -> openEvsBandwidthMenu());
 
-        audioCodecModeDropdown = findViewById(R.id.selectAudioCodecMode);
+        audioCodecModeDropdown = findViewById(R.id.selectAudioCodecModeMenu);
         Objects.requireNonNull(audioCodecModeDropdown).setOnClickListener(
             view -> openAmrModeSelectionMenu());
     }
@@ -79,8 +80,10 @@ public class BottomSheetAudioCodecSettings extends BottomSheetDialog implements 
      * configures the onClickListener to save the user's selection. Also contains the logic to
      * determine which menu should be shown for each selection.
      */
+    @SuppressLint("NonConstantResourceId")
     public void openCodecSelectionMenu() {
-        PopupMenu audioCodecMenu = new PopupMenu(getContext(), findViewById(R.id.selectAudioCodec));
+        PopupMenu audioCodecMenu = new PopupMenu(getContext(),
+            findViewById(R.id.selectAudioCodecMenu));
         audioCodecMenu.getMenuInflater()
             .inflate(R.menu.audio_codecs_menu, audioCodecMenu.getMenu());
         audioCodecMenu.setOnMenuItemClickListener(item -> {
@@ -91,21 +94,21 @@ public class BottomSheetAudioCodecSettings extends BottomSheetDialog implements 
 
             switch (item.getItemId()) {
 
-                case R.id.amrCodec:
-                case R.id.amrWbCodec:
+                case R.id.amrCodecMenuItem:
+                case R.id.amrWbCodecMenuItem:
                     Objects.requireNonNull(audioCodecModeDropdown).setOnClickListener(
                         view -> openAmrModeSelectionMenu());
                     evsBandDropdownLayout.setVisibility(View.GONE);
                     audioCodecModeDropdownLayout.setVisibility(View.VISIBLE);
                     break;
 
-                case R.id.evsCodec:
+                case R.id.evsCodecMenuItem:
                     evsBandDropdownLayout.setVisibility(View.VISIBLE);
                     audioCodecModeDropdownLayout.setVisibility(View.GONE);
                     break;
 
-                case R.id.pcmaCodec:
-                case R.id.pcmuCodec:
+                case R.id.pcmaCodecMenuItem:
+                case R.id.pcmuCodecMenuItem:
                     evsBandDropdownLayout.setVisibility(View.GONE);
                     audioCodecModeDropdownLayout.setVisibility(View.GONE);
                     break;
@@ -123,8 +126,9 @@ public class BottomSheetAudioCodecSettings extends BottomSheetDialog implements 
      * Displays a PopupMenu filled with the EVS bandwidths from the "evs_band_menu.xml".
      * Also, configures the menu's onClickListener to save the user's selection.
      */
+    @SuppressLint("NonConstantResourceId")
     public void openEvsBandwidthMenu() {
-        PopupMenu evsBandMenu = new PopupMenu(getContext(), findViewById(R.id.selectEvsBand));
+        PopupMenu evsBandMenu = new PopupMenu(getContext(), findViewById(R.id.selectEvsBandMenu));
         evsBandMenu.getMenuInflater().inflate(R.menu.evs_band_menu, evsBandMenu.getMenu());
         evsBandMenu.setOnMenuItemClickListener(item -> {
             evsBandDropdown.setText(item.getTitle());
@@ -133,23 +137,23 @@ public class BottomSheetAudioCodecSettings extends BottomSheetDialog implements 
             audioCodecModeDropdownLayout.setVisibility(View.VISIBLE);
             evsBand = Integer.parseInt(String.valueOf(item.getTitleCondensed()));
             switch (item.getItemId()) {
-                case R.id.evsBandNone:
+                case R.id.evsBandNoneMenuItem:
                     evsBand = EvsParams.EVS_BAND_NONE;
                     break;
 
-                case R.id.evsBandNarrow:
+                case R.id.evsBandNarrowMenuItem:
                     evsBand = EvsParams.EVS_NARROW_BAND;
                     break;
 
-                case R.id.evsBandWide:
+                case R.id.evsBandWideMenuItem:
                     evsBand = EvsParams.EVS_WIDE_BAND;
                     break;
 
-                case R.id.evsBandSuperWide:
+                case R.id.evsBandSuperWideMenuItem:
                     evsBand = EvsParams.EVS_SUPER_WIDE_BAND;
                     break;
 
-                case R.id.evsBandFull:
+                case R.id.evsBandFullMenuItem:
                     evsBand = EvsParams.EVS_FULL_BAND;
                     break;
             }
@@ -165,7 +169,7 @@ public class BottomSheetAudioCodecSettings extends BottomSheetDialog implements 
      */
     public void openAmrModeSelectionMenu() {
         PopupMenu amrModeMenu = new PopupMenu(getContext(),
-            findViewById(R.id.selectAudioCodecMode));
+            findViewById(R.id.selectAudioCodecModeMenu));
         amrModeMenu.getMenuInflater().inflate(R.menu.amr_modes_menu, amrModeMenu.getMenu());
         amrModeMenu.setOnMenuItemClickListener(item -> {
             audioCodecModeDropdown.setText(item.getTitle());
@@ -182,7 +186,7 @@ public class BottomSheetAudioCodecSettings extends BottomSheetDialog implements 
      */
     public void openEvsModeSelectionMenu() {
         PopupMenu evsModeMenu = new PopupMenu(getContext(),
-            findViewById(R.id.selectAudioCodecMode));
+            findViewById(R.id.selectAudioCodecModeMenu));
         evsModeMenu.getMenuInflater().inflate(R.menu.evs_modes_menu, evsModeMenu.getMenu());
         evsModeMenu.setOnMenuItemClickListener(item -> {
             audioCodecModeDropdown.setText(item.getTitle());

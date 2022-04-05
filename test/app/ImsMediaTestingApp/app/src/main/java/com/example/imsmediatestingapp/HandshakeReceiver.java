@@ -69,6 +69,13 @@ public class HandshakeReceiver implements Runnable {
         }
     }
 
+    /**
+     * Reads the data into a ByteArrayInputStream and ObjectInputStream to determine the type of
+     * the data, then casts it to the correct type and returns it.
+     * @param data byte array from the packet received from the DatagramSocket
+     * @param <T> either a String or DeviceInfo
+     * @return string value of hte conformation string, or the DeviceInfo
+     */
     private <T> T deserializePacket(byte[] data) {
         DeviceInfo deviceInfo = null;
         String confirmationMessage = null;
@@ -104,10 +111,11 @@ public class HandshakeReceiver implements Runnable {
         editor.putBoolean(HANDSHAKE_PORT_PREF, false).apply();
     }
 
-    public void kill() {
-        running = false;
-    }
-
+    /**
+     * Verifies that the incoming DeviceInfo has all valid port numbers.
+     * @param deviceInfo device info to verify
+     * @return boolean if the DeviceInfo has all the right info
+     */
     private boolean verifyHandshakePacket(DeviceInfo deviceInfo) {
         if(deviceInfo.getHandshakePort() == -1 || deviceInfo.getRtpPort() == -1
             || deviceInfo.getRtcpPort() == -1) {

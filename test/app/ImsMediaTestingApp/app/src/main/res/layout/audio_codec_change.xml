@@ -31,7 +31,7 @@
       app:layout_constraintTop_toBottomOf="@+id/switchAudioCodecsTitle">
 
     <AutoCompleteTextView
-        android:id="@+id/selectAudioCodec"
+        android:id="@+id/selectAudioCodecMenu"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:autoSizeTextType="uniform"
@@ -58,7 +58,7 @@
       app:layout_constraintTop_toBottomOf="@+id/selectAudioCodecLayout">
 
     <AutoCompleteTextView
-        android:id="@+id/selectEvsBand"
+        android:id="@+id/selectEvsBandMenu"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:autoSizeTextType="uniform"
@@ -89,7 +89,7 @@
       app:layout_constraintTop_toBottomOf="@+id/selectEvsBandLayout">
 
     <AutoCompleteTextView
-        android:id="@+id/selectAudioCodecMode"
+        android:id="@+id/selectAudioCodecModeMenu"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:autoSizeTextType="uniform"

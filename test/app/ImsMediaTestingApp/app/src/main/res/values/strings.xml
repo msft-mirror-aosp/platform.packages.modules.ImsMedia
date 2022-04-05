@@ -5,20 +5,20 @@
   <string name="home">home_button</string>
 
   <!-- MainActivity page Strings -->
-  <string name="my_device_label">My Device</string>
+  <string name="local_device_label">Local Device</string>
   <string name="local_ip_label">Local IP: %s</string>
-  <string name="port_closed_label">Port: null</string>
+  <string name="port_closed_label">Port:  - -</string>
   <string name="reception_port_label">Port: %s</string>
   <string name="rtp_reception_port_label">RTP Port: %s</string>
   <string name="rtcp_reception_port_label">RTCP Port: %s</string>
 
   <string name="connection_details_label">Remote Device</string>
   <string name="other_device_ip_label">IP: %s</string>
-  <string name="other_device_port_label">Handshake Port: %s</string>
+  <string name="handshake_port_label">Handshake Port: %s</string>
 
   <!-- Allow calls button text -->
-  <string name="allow_calls_button_text">ALLOW CALLS </string>
-  <string name="disable_calls_button_text">DISABLE CALLS</string>
+  <string name="allow_calls_button_text">ALLOW\nCALLS </string>
+  <string name="disable_calls_button_text">DISABLE\nCALLS</string>
 
   <!-- Connect button text -->
   <string name="connect_button_text">Connect</string>
@@ -28,7 +28,7 @@
   <string name="open_session_button_text">OPEN SESSION</string>
 
   <!-- Close session button text -->
-  <string name="close_session_button_text">CLOSE SESSION</string>
+  <string name="close_session_button_text">CLOSE\nSESSION</string>
 
   <!-- Allow calls button toast text -->
   <string name="allowing_calls_toast_text">Allowing calls</string>
@@ -68,20 +68,24 @@
   <string name="dialer_button_pound_text">#</string>
   <string name="dialer_button_star_text">*</string>
   <string name="dialerButtonDescription">open dialer</string>
-
-  <string name="hold">HOLD</string>
-  <string name="media_direction_transmit_only">MEDIA_DIRECTION_TRANSMIT_ONLY</string>
-  <string name="media_direction_receive_only">MEDIA_DIRECTION_RECEIVE_ONLY</string>
-  <string name="media_direction_transmit_receive">MEDIA_DIRECTION_TRANSMIT_RECEIVE</string>
-  <string name="media_direction_no_flow">MEDIA_DIRECTION_NO_FLOW</string>
   <string name="clear_dtmf_input_button">CLEAR</string>
   <string name="dtmfInputPlaceholder">…</string>
 
-  <string name="select_a_mode">Select a mode</string>
-  <string name="select_an_audio_codec">Select an audio codec</string>
+  <!-- Media direction change text -->
+  <string name="hold">HOLD</string>
+  <string name="media_direction_transmit_only">TRANSMIT_ONLY</string>
+  <string name="media_direction_receive_only">RECEIVE_ONLY</string>
+  <string name="media_direction_transmit_receive">TRANSMIT_RECEIVE</string>
+  <string name="media_direction_no_flow">NO_FLOW</string>
+
+  <!-- Audio codec change text -->
   <string name="change_audio_codec_title">Switch Audio Codecs</string>
   <string name="change_codec">Change Codec</string>
+  <string name="select_an_audio_codec">Select an audio codec</string>
+  <string name="select_a_mode">Select a mode</string>
+  <string name="select_an_evs_band">Select an EVS Band</string>
 
+  <!-- Amr Modes items text -->
   <string name="amr_mode_0">AMR_MODE_0</string>
   <string name="amr_mode_1">AMR_MODE_1</string>
   <string name="amr_mode_2">AMR_MODE_2</string>
@@ -92,6 +96,7 @@
   <string name="amr_mode_7">AMR_MODE_7</string>
   <string name="amr_mode_8">AMR_MODE_8</string>
 
+  <!-- Evs Modes items text -->
   <string name="evs_mode_0">EVS_MODE_0</string>
   <string name="evs_mode_1">EVS_MODE_1</string>
   <string name="evs_mode_2">EVS_MODE_2</string>
@@ -111,19 +116,21 @@
   <string name="evs_mode_16">EVS_MODE_16</string>
   <string name="evs_mode_17">EVS_MODE_17</string>
   <string name="evs_mode_18">EVS_MODE_18</string>
-  <string name="evs_mode_19">EVS_MODE_019</string>
+  <string name="evs_mode_19">EVS_MODE_19</string>
   <string name="evs_mode_20">EVS_MODE_20</string>
+
+  <!-- Evs Bandwidths items text -->
   <string name="evs_band_none">EVS_BAND_NONE</string>
   <string name="evs_narrow_band">EVS_NARROW_BAND</string>
   <string name="evs_wide_band">EVS_WIDE_BAND</string>
   <string name="evs_super_wide_band">EVS_SUPER_WIDE_BAND</string>
   <string name="evs_full_band">EVS_FULL_BAND</string>
+
+  <!-- Codec Types items text -->
   <string name="codec_amr">CODEC_AMR</string>
   <string name="codec_amr_wb">CODEC_AMR_WB</string>
   <string name="codec_evs">CODEC_EVS</string>
   <string name="codec_pcma">CODEC_PCMA</string>
   <string name="codec_pcmu">CODEC_PCMU</string>
-  <string name="select_an_evs_band">Select an EVS Band</string>
-
 
 </resources>
