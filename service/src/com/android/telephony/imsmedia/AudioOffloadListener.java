@@ -70,8 +70,8 @@ final class AudioOffloadListener extends IImsMediaSessionListener.Stub {
     }
 
     @Override
-    public void notifyMediaInactivity(int packetType, int timeout) {
-        Utils.sendMessage(handler, AudioSession.EVENT_MEDIA_INACTIVITY_IND, packetType, timeout);
+    public void notifyMediaInactivity(int packetType) {
+        Utils.sendMessage(handler, AudioSession.EVENT_MEDIA_INACTIVITY_IND, packetType);
     }
 
     @Override

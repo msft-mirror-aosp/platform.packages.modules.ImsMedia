@@ -35,7 +35,7 @@ oneway interface IImsAudioSessionCallback {
     void onConfirmConfigResponse(in AudioConfig config, int result);
     void onFirstMediaPacketReceived(in AudioConfig config);
     void onHeaderExtensionReceived(in List<RtpHeaderExtension> extensions);
-    void notifyMediaInactivity(int packetType, int duration);
+    void notifyMediaInactivity(int packetType);
     void notifyPacketLoss(int packetLossPercentage);
     void notifyJitter(int jitter);
     void onMediaQualityChanged(in CallQuality callQuality);

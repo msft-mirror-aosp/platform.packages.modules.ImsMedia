@@ -163,10 +163,9 @@ class AudioListenerProxy implements JNIImsMediaListener {
                 break;
             case AudioSession.EVENT_MEDIA_INACTIVITY_IND:
                 final int pktType = parcel.readInt();
-                final int timeout = parcel.readInt();
 
                 try {
-                    mMediaSessionListener.notifyMediaInactivity(pktType,timeout);
+                    mMediaSessionListener.notifyMediaInactivity(pktType);
                 } catch(RemoteException e) {
                     Rlog.e(TAG, "Failed to notify media inactivity: " + e);
                 }

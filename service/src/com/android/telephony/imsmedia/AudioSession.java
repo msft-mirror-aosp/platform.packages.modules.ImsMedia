@@ -287,7 +287,7 @@ public final class AudioSession extends IImsAudioSession.Stub implements IMediaS
                     handleRtpHeaderExtensionInd((List<RtpHeaderExtension>)msg.obj);
                     break;
                 case EVENT_MEDIA_INACTIVITY_IND:
-                    notifyMediaInactivityInd(msg.arg1, msg.arg2);
+                    notifyMediaInactivityInd(msg.arg1);
                     break;
                 case EVENT_PACKET_LOSS_IND:
                     notifyPacketLossInd((int)msg.obj);
@@ -495,9 +495,9 @@ public final class AudioSession extends IImsAudioSession.Stub implements IMediaS
         }
     }
 
-    private void notifyMediaInactivityInd(int packetType, int timeout) {
+    private void notifyMediaInactivityInd(int packetType) {
         try {
-            mCallback.notifyMediaInactivity(packetType, timeout);
+            mCallback.notifyMediaInactivity(packetType);
         }  catch(RemoteException e) {
             Rlog.e(TAG, "Failed to notify media timeout: " + e);
         }
