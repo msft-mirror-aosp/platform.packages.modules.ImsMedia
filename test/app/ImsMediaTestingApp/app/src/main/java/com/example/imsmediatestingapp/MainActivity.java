@@ -297,6 +297,8 @@ public class MainActivity extends AppCompatActivity {
         bottomSheetAudioCodecSettings = new BottomSheetAudioCodecSettings(this);
         bottomSheetAudioCodecSettings.setContentView(R.layout.audio_codec_change);
 
+        updateCodecSelectionFromPrefs();
+
         updateUI(ConnectionStatus.OFFLINE);
     }
 
@@ -962,6 +964,7 @@ public class MainActivity extends AppCompatActivity {
                 audioConfig, executor, sessionCallback);
             Log.d(TAG, "openSession(): " + remoteDeviceInfo.getInetAddress() + ":" +
                 remoteDeviceInfo.getRtpPort());
+            Log.d(TAG, "AudioConfig: " + audioConfig.toString());
         }
     }
 
@@ -1034,6 +1037,7 @@ public class MainActivity extends AppCompatActivity {
             openRtpPorts(true);
             editor.putString("OTHER_IP_ADDRESS", getLocalIpAddress()).apply();
             remoteDeviceInfo = createMyDeviceInfo();
+            localDeviceInfo = createMyDeviceInfo();
             loopbackModeEnabled = true;
             updateUI(ConnectionStatus.CONNECTED);
         } else {
@@ -1101,11 +1105,12 @@ public class MainActivity extends AppCompatActivity {
      * match.
      */
     private void setupAudioCodecSelectionLists() {
+        updateCodecSelectionFromPrefs();
+
         ArrayAdapter<CodecTypeEnum> codecTypeAdapter = new ArrayAdapter<>(
             this, android.R.layout.simple_list_item_multiple_choice, CodecTypeEnum.values());
         ListView codecTypeList = findViewById(R.id.audioCodecList);
         codecTypeList.setAdapter(codecTypeAdapter);
-        selectedCodecTypes = prefsHandler.getIntegerSetFromPrefs(SharedPrefsHandler.CODECS_PREF);
         for(int i = 0; i < codecTypeAdapter.getCount(); i++) {
             CodecTypeEnum mode = (CodecTypeEnum) codecTypeList.getItemAtPosition(i);
             codecTypeList.setItemChecked(i, selectedCodecTypes.contains(mode.getValue()));
@@ -1115,8 +1120,6 @@ public class MainActivity extends AppCompatActivity {
             this, android.R.layout.simple_list_item_multiple_choice, EvsBandwidthEnum.values());
         ListView evsBandwidthList = findViewById(R.id.evsBandwidthsList);
         evsBandwidthList.setAdapter(evsBandAdaptor);
-        selectedEvsBandwidths =
-            prefsHandler.getIntegerSetFromPrefs(SharedPrefsHandler.EVS_BANDS_PREF);
         for(int i = 0; i < evsBandAdaptor.getCount(); i++) {
             EvsBandwidthEnum mode = (EvsBandwidthEnum) evsBandwidthList.getItemAtPosition(i);
             evsBandwidthList.setItemChecked(i, selectedEvsBandwidths.contains(mode.getValue()));
@@ -1126,7 +1129,6 @@ public class MainActivity extends AppCompatActivity {
             this, android.R.layout.simple_list_item_multiple_choice, AmrModeEnum.values());
         ListView amrModesList = findViewById(R.id.amrModesList);
         amrModesList.setAdapter(amrModeAdapter);
-        selectedAmrModes = prefsHandler.getIntegerSetFromPrefs(SharedPrefsHandler.AMR_MODES_PREF);
         for(int i = 0; i < amrModeAdapter.getCount(); i++) {
             AmrModeEnum mode = (AmrModeEnum) amrModesList.getItemAtPosition(i);
             amrModesList.setItemChecked(i, selectedAmrModes.contains(mode.getValue()));
@@ -1136,11 +1138,21 @@ public class MainActivity extends AppCompatActivity {
             this, android.R.layout.simple_list_item_multiple_choice, EvsModeEnum.values());
         ListView evsModeList = findViewById(R.id.evsModesList);
         evsModeList.setAdapter(evsModeAdaptor);
-        selectedEvsModes = prefsHandler.getIntegerSetFromPrefs(SharedPrefsHandler.EVS_MODES_PREF);
         for(int i = 0; i < evsModeAdaptor.getCount(); i++) {
             EvsModeEnum mode = (EvsModeEnum) evsModeList.getItemAtPosition(i);
             evsModeList.setItemChecked(i, selectedEvsModes.contains(mode.getValue()));
         }
+    }
+
+    /**
+     * Updates all of the lists containing the user's codecs selections.
+     */
+    private void updateCodecSelectionFromPrefs() {
+        selectedCodecTypes = prefsHandler.getIntegerSetFromPrefs(SharedPrefsHandler.CODECS_PREF);
+        selectedEvsBandwidths =
+            prefsHandler.getIntegerSetFromPrefs(SharedPrefsHandler.EVS_BANDS_PREF);
+        selectedAmrModes = prefsHandler.getIntegerSetFromPrefs(SharedPrefsHandler.AMR_MODES_PREF);
+        selectedEvsModes = prefsHandler.getIntegerSetFromPrefs(SharedPrefsHandler.EVS_MODES_PREF);
     }
 
     /**
