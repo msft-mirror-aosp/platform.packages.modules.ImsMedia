@@ -1,77 +1,61 @@
 package com.example.imsmediatestingapp;
 
-import android.annotation.SuppressLint;
+import android.hardware.radio.ims.media.AmrMode;
+import android.hardware.radio.ims.media.EvsBandwidth;
+import android.hardware.radio.ims.media.EvsMode;
 import androidx.annotation.NonNull;
 import com.example.imsmediatestingapp.MainActivity.AudioCodec;
-import com.example.imsmediatestingapp.MainActivity.EvsBandwidth;
 import com.example.imsmediatestingapp.MainActivity.VideoCodec;
 import java.io.Serializable;
 import java.net.InetAddress;
-import java.util.Arrays;
 import java.util.List;
+import java.util.Locale;
+import java.util.StringJoiner;
 
 /**
  * The DeviceInfo class stores the information about a device's connection details, so it can be
- * quickly and easily sent through DatagramPackets between devices.
+ * quickly and easily sent through DatagramPackets between devices. Uses the Builder pattern to
+ * more easily create and change variables.
  */
 public class DeviceInfo implements Serializable {
+    private final InetAddress inetAddress;
+    private final List<AudioCodec> audioCodecs;
+    private final List<AmrMode> amrModes;
+    private final List<EvsBandwidth> evsBandwidths;
+    private final List<EvsMode> evsModes;
+    private final List<VideoCodec> videoCodecs;
+    private final int handshakePort;
+    private final int rtpPort;
+    private final int rtcpPort;
 
-    private InetAddress ipAddress;
-    private List<AudioCodec> audioCodecs = Arrays.asList(AudioCodec.values());
-    private List<EvsBandwidth> evsBandwidths = Arrays.asList(EvsBandwidth.values());
-    private List<VideoCodec> videoCodecs = Arrays.asList(VideoCodec.values());
-    private int handshakePort = -1;
-    private int rtpPort = -1;
-    private int rtcpPort = -1;
-
-    public DeviceInfo(int handshakePort, InetAddress ipAddress, List<AudioCodec> audioCodecs,
-        List<VideoCodec> videoCodecs) {
-        this.handshakePort = handshakePort;
-        this.ipAddress = ipAddress;
+    private DeviceInfo(InetAddress inetSocketAddress,
+        List<AudioCodec> audioCodecs, List<AmrMode> amrModes, List<EvsBandwidth> evsBandwidths,
+        List<EvsMode> evsModes, List<VideoCodec> videoCodecs, int handshakePort, int rtpPort,
+        int rtcpPort) {
+        this.inetAddress = inetSocketAddress;
         this.audioCodecs = audioCodecs;
+        this.amrModes = amrModes;
+        this.evsBandwidths = evsBandwidths;
+        this.evsModes = evsModes;
         this.videoCodecs = videoCodecs;
-    }
-
-    public DeviceInfo() {
-
-    }
-
-    public DeviceInfo(InetAddress ipAddress, int handshakePort, int rtpPort, int rtcpPort) {
-        this.ipAddress = ipAddress;
         this.handshakePort = handshakePort;
         this.rtpPort = rtpPort;
         this.rtcpPort = rtcpPort;
     }
 
-    public DeviceInfo(int handshakePort, InetAddress ipAddress) {
-        this.handshakePort = handshakePort;
-        this.ipAddress = ipAddress;
-    }
-
     @NonNull
     public String toString() {
-        @SuppressLint("DefaultLocale") String toString = String.format(
-            "IP Address: %s\nHandshake Port: %d\nRTP Port: %d\nRTCP Port: %d\nAudio Codecs: %s\n"
-                + "Video Codecs: %s\nEVS Bandwidths: %s",
-            ipAddress.getHostAddress(), handshakePort, rtpPort, rtcpPort, getAudioCodecsAsString(),
-            getVideoCodecsAsString(), getEvsBandwidthsCodecsAsString());
-        return toString;
+        return String.format(Locale.US,
+            "IP Address: %s\nHandshake Port: %d\nRTP Port: %d\nRTCP Port: %d\nSelected Audio "
+                + "Codecs: %s\nSelected AMR Modes: %s\nSelected EVS Bandwidths: %s\nSelected EVS "
+                + "Modes: %s\nSelected Video Codecs: %s",
+            inetAddress.getHostName(), handshakePort, rtpPort, rtcpPort, getAudioCodecsToString(),
+            getAmrModesToString(), getEvsBandwidthsToString(), getEvsModesToString(),
+            getVideoCodecsToString());
     }
 
     public int getHandshakePort() {
         return handshakePort;
-    }
-
-    public InetAddress getIpAddress() {
-        return ipAddress;
-    }
-
-    public void setHandshakePort(int handshakePort) {
-        this.handshakePort = handshakePort;
-    }
-
-    public void setIpAddress(InetAddress ipAddress) {
-        this.ipAddress = ipAddress;
     }
 
     public int getRtpPort() {
@@ -86,51 +70,120 @@ public class DeviceInfo implements Serializable {
         return audioCodecs;
     }
 
-    public void setAudioCodecs(List<AudioCodec> audioCodecs) {
-        this.audioCodecs = audioCodecs;
-    }
-
     public List<VideoCodec> getVideoCodecs() {
         return videoCodecs;
     }
 
-    public void setVideoCodecs(List<VideoCodec> videoCodecs) {
-        this.videoCodecs = videoCodecs;
+    public List<EvsMode> getEvsModes() {
+        return evsModes;
     }
 
-    public void setRtpPort(int rtpPort) {
-        this.rtpPort = rtpPort;
+    public List<AmrMode> getAmrModes() {
+        return amrModes;
     }
 
-    public void setRtcpPort(int rtcpPort) {
-        this.rtcpPort = rtcpPort;
+    public InetAddress getInetAddress() {
+        return inetAddress;
     }
 
-    public String getAudioCodecsAsString() {
-        StringBuilder sb = new StringBuilder("Audio Codecs: ");
-        for (AudioCodec codec : audioCodecs) {
-            sb.append(codec.toString());
+    private String getAudioCodecsToString() {
+        StringJoiner joiner = new StringJoiner(",");
+        audioCodecs.forEach(item -> joiner.add(item.toString()));
+        return joiner.toString();
+    }
+
+    private String getAmrModesToString() {
+        StringJoiner joiner = new StringJoiner(",");
+        amrModes.forEach(item -> joiner.add(item.toString()));
+        return joiner.toString();
+    }
+
+    private String getEvsBandwidthsToString() {
+        StringJoiner joiner = new StringJoiner(",");
+        evsBandwidths.forEach(item -> joiner.add(item.toString()));
+        return joiner.toString();
+    }
+
+    private String getEvsModesToString() {
+        StringJoiner joiner = new StringJoiner(",");
+        evsModes.forEach(item -> joiner.add(item.toString()));
+        return joiner.toString();
+    }
+
+    private String getVideoCodecsToString() {
+        StringJoiner joiner = new StringJoiner(",");
+        videoCodecs.forEach(item -> joiner.add(item.toString()));
+        return joiner.toString();
+    }
+
+    public static final class Builder {
+        private InetAddress inetAddress;
+        private List<AudioCodec> audioCodecs;
+        private List<AmrMode> amrModes;
+        private List<EvsBandwidth> evsBandwidths;
+        private List<EvsMode> evsModes;
+        private List<VideoCodec> videoCodecs;
+        private int handshakePort;
+        private int rtpPort;
+        private int rtcpPort;
+
+        public Builder() {
         }
 
-        return sb.toString();
-    }
-
-    public String getVideoCodecsAsString() {
-        StringBuilder sb = new StringBuilder("Video Codecs: ");
-        for (VideoCodec codec : videoCodecs) {
-            sb.append(codec.toString());
+        @NonNull
+        public DeviceInfo.Builder setInetAddress(InetAddress inetAddress) {
+            this.inetAddress = inetAddress;
+            return this;
         }
 
-        return sb.toString();
-    }
-
-    public String getEvsBandwidthsCodecsAsString() {
-        StringBuilder sb = new StringBuilder("EVS Bandwidths: ");
-        for (EvsBandwidth bandwidth : evsBandwidths) {
-            sb.append(bandwidth.toString());
+        @NonNull
+        public DeviceInfo.Builder setAudioCodecs(List<AudioCodec> audioCodecs) {
+            this.audioCodecs = audioCodecs;
+            return this;
         }
 
-        return sb.toString();
-    }
+        public DeviceInfo.Builder setAmrModes(List<AmrMode> amrModes) {
+            this.amrModes = amrModes;
+            return this;
+        }
 
+        public DeviceInfo.Builder setEvsBandwidths(List<EvsBandwidth> evsBandwidths) {
+            this.evsBandwidths = evsBandwidths;
+            return this;
+        }
+
+        public DeviceInfo.Builder setEvsModes(List<EvsMode> evsModes) {
+            this.evsModes = evsModes;
+            return this;
+        }
+
+        public DeviceInfo.Builder setVideoCodecs(List<VideoCodec> videoCodecs) {
+            this.videoCodecs = videoCodecs;
+            return this;
+        }
+
+        @NonNull
+        public DeviceInfo.Builder setHandshakePort(int handshakePort) {
+            this.handshakePort = handshakePort;
+            return this;
+        }
+
+        @NonNull
+        public DeviceInfo.Builder setRtpPort(int rtpPort) {
+            this.rtpPort = rtpPort;
+            return this;
+        }
+
+        @NonNull
+        public DeviceInfo.Builder setRtcpPort(int rtcpPort) {
+            this.rtcpPort = rtcpPort;
+            return this;
+        }
+
+        @NonNull
+        public DeviceInfo build() {
+            return new DeviceInfo(inetAddress, audioCodecs, amrModes, evsBandwidths, evsModes,
+                videoCodecs, handshakePort, rtpPort, rtcpPort);
+        }
+    }
 }
