@@ -24,10 +24,13 @@
 using namespace android::telephony::imsmedia;
 
 enum ImsMediaResult {
-    IMS_MEDIA_OK = 0,
-    IMS_MEDIA_ERROR_UNKNOWN,
-    IMS_MEDIA_ERROR_INVALID_REQUEST,
-    IMS_MEDIA_ERROR_INVALID_ARGUMENT,
+    RESULT_SUCCESS = 0,
+    RESULT_INVALID_PARAM,
+    RESULT_NOT_READY,
+    RESULT_NO_MEMORY,
+    RESULT_NO_RESOURCES,
+    RESULT_PORT_UNAVAILABLE,
+    RESULT_NOT_SUPPORTED,
 };
 
 enum ImsMediaEventType {
@@ -148,8 +151,8 @@ enum ImsMediaVoiceMsgRequest {
 };
 
 enum ImsMediaVoiceMsgResponse {
-    OPEN_SUCCESS = 201,
-    OPEN_FAILURE,
+    OPEN_SESSION_SUCCESS = 201,
+    OPEN_SESSION_FAILURE,
     MODIFY_SESSION_RESPONSE,
     ADD_CONFIG_RESPONSE,
     CONFIRM_CONFIG_RESPONSE,
@@ -159,11 +162,6 @@ enum ImsMediaVoiceMsgResponse {
     MEDIA_INACITIVITY_IND,
     PACKET_LOSS_IND,
     JITTER_IND,
-};
-
-enum ImsMediaResponse {
-    RESPONSE_FAIL = 0,
-    RESPONSE_SUCCESS,
 };
 
 struct EventParamOpenSession {

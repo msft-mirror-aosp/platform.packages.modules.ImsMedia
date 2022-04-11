@@ -85,7 +85,7 @@ ImsMediaResult RtpEncoderNode::Start() {
         mRtpSession = IRtpSession::GetInstance(mMediaType, mLocalAddress, mPeerAddress);
         if (mRtpSession == NULL) {
             IMLOGE0("[Start] Can't create rtp session");
-            return IMS_MEDIA_ERROR_UNKNOWN;
+            return RESULT_NOT_READY;
         }
     }
     mRtpSession->SetRtpEncoderListener(this);
@@ -107,7 +107,7 @@ ImsMediaResult RtpEncoderNode::Start() {
     mReorderDataCount = 0;
 #endif
     mNodeState = NODESTATE_RUNNING;
-    return IMS_MEDIA_OK;
+    return RESULT_SUCCESS;
 }
 
 void RtpEncoderNode::Stop() {

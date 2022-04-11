@@ -31,21 +31,21 @@ BaseStreamGraph::~BaseStreamGraph() {
 ImsMediaResult BaseStreamGraph::start() {
     IMLOGD0("startGraph]");
     ImsMediaResult ret = startNodes();
-    if (ret != IMS_MEDIA_OK) {
+    if (ret != RESULT_SUCCESS) {
         return ret;
     }
     setState(StreamState::STATE_RUN);
-    return IMS_MEDIA_OK;
+    return RESULT_SUCCESS;
 }
 
 ImsMediaResult BaseStreamGraph::stop() {
     IMLOGD0("stopGraph]");
     ImsMediaResult ret = stopNodes();
-    if (ret != IMS_MEDIA_OK) {
+    if (ret != RESULT_SUCCESS) {
         return ret;
     }
     setState(StreamState::STATE_CREATED);
-    return IMS_MEDIA_OK;
+    return RESULT_SUCCESS;
 }
 
 void BaseStreamGraph::AddNode(BaseNode* pNode, bool bReverse) {
@@ -77,7 +77,7 @@ void BaseStreamGraph::RemoveNode(BaseNode* pNode) {
 ImsMediaResult BaseStreamGraph::startNodes() {
     BaseNode* pNode = NULL;
     std::list<BaseNode*>::iterator iter;
-    ImsMediaResult ret = ImsMediaResult::IMS_MEDIA_ERROR_UNKNOWN;
+    ImsMediaResult ret = ImsMediaResult::RESULT_NOT_READY;
     while (mListNodeToStart.size() > 0) {
         pNode = mListNodeToStart.front();
         IMLOGD1("[startNodes] Start node[%s]", pNode->GetNodeName());
@@ -85,13 +85,13 @@ ImsMediaResult BaseStreamGraph::startNodes() {
         mListNodeToStart.pop_front();
         mListNodeStarted.push_front(pNode);
         IMLOGD2("[startNodes] Start node[%s], ret[%d]", pNode->GetNodeName(), ret);
-        if (ret != IMS_MEDIA_OK) {
+        if (ret != RESULT_SUCCESS) {
             return ret;
         }
     }
 
     mScheduler->Start();
-    return IMS_MEDIA_OK;
+    return RESULT_SUCCESS;
 }
 
 ImsMediaResult BaseStreamGraph::stopNodes() {
@@ -106,5 +106,5 @@ ImsMediaResult BaseStreamGraph::stopNodes() {
         mListNodeToStart.push_front(pNode);
         IMLOGD0("[stopNodes] Stop node exit");
     }
-    return IMS_MEDIA_OK;
+    return RESULT_SUCCESS;
 }

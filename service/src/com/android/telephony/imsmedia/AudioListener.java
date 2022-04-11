@@ -64,14 +64,15 @@ public class AudioListener implements JNIImsMediaListener {
     @Override
     public void onMessage(final Parcel parcel) {
         final int event = parcel.readInt();
-        Rlog.d(LOG_TAG, "onMessage=" + event);
         switch (event) {
             case AudioSession.EVENT_OPEN_SESSION_SUCCESS:
                 final int sessionId = parcel.readInt();
+                Rlog.d(LOG_TAG, "onMessage=" + event);
                 mCallback.onOpenSessionSuccess(sessionId,
                     new AudioLocalSession(sessionId, mNativeObject));
                 break;
             case AudioSession.EVENT_OPEN_SESSION_FAILURE:
+                Rlog.d(LOG_TAG, "onMessage=" + event);
                 mCallback.onOpenSessionFailure(parcel.readInt(),
                     parcel.readInt());
                 break;
@@ -80,6 +81,7 @@ public class AudioListener implements JNIImsMediaListener {
             case AudioSession.EVENT_CONFIRM_CONFIG_RESPONSE:
                 final int result = parcel.readInt();
                 final AudioConfig config = AudioConfig.CREATOR.createFromParcel(parcel);
+                Rlog.d(LOG_TAG, "onMessage=" + event + ", result=" + result);
                 Utils.sendMessage(mHandler, event, result, UNUSED, config);
                 break;
             case AudioSession.EVENT_SESSION_CHANGED_IND:

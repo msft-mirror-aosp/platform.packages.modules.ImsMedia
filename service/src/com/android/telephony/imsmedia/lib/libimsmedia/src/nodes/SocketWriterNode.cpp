@@ -49,7 +49,7 @@ ImsMediaResult SocketWriterNode::Start() {
     if (mSocket == NULL) {
         IMLOGE0("[Start] can't create socket instance");
         mbSocketOpened = false;
-        return IMS_MEDIA_ERROR_UNKNOWN;
+        return RESULT_NOT_READY;
     }
 
     //set local/peer address here
@@ -59,12 +59,12 @@ ImsMediaResult SocketWriterNode::Start() {
     if (mSocket->Open(mLocalFd) == false) {
         IMLOGE0("[Start] can't open socket");
         mbSocketOpened = false;
-        return IMS_MEDIA_ERROR_UNKNOWN;
+        return RESULT_PORT_UNAVAILABLE;
     }
 
     mbSocketOpened = true;
     mNodeState = NODESTATE_RUNNING;
-    return IMS_MEDIA_OK;
+    return RESULT_SUCCESS;
 }
 
 void SocketWriterNode::Stop() {

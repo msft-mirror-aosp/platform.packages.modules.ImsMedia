@@ -40,7 +40,7 @@ protected:
      *
      * @param config The parameters to operate nodes in the StreamGraph.
      * @return ImsMediaResult result of create or start graph. If the result has no error, it
-     *         returns IMS_MEDIA_OK. check #ImsMediaDefine.h.
+     *         returns RESULT_SUCCESS. check #ImsMediaDefine.h.
      */
     virtual ImsMediaResult startGraph(RtpConfig* config) = 0;
     /**
@@ -49,7 +49,7 @@ protected:
      *
      * @param config The parameters to operate nodes in the StreamGraph.
      * @return ImsMediaResult result of create or start graph. If the result has no error, it
-     *         returns IMS_MEDIA_OK. check #ImsMediaDefine.h.
+     *         returns RESULT_SUCCESS. check #ImsMediaDefine.h.
      */
     virtual ImsMediaResult addGraph(RtpConfig* config) = 0;
     /**
@@ -58,11 +58,11 @@ protected:
      *        RUN state. when the call session is converted to confirmed session. It has to be
      *        called with proper RtpConfig argument that can choose the StreamGraph with the
      *        config. If there is no matched StreamGraph with same RtpConfig, it returns failure
-     *        of IMS_MEDIA_ERROR_INVALID_ARGUMENT.
+     *        of RESULT_INVALID_PARAM.
      *
      * @param config The parameters to operate nodes in the StreamGraph.
      * @return ImsMediaResult result of create or start graph. If the result has no error, it
-     *         returns IMS_MEDIA_OK. check #ImsMediaDefine.h.
+     *         returns RESULT_SUCCESS. check #ImsMediaDefine.h.
      */
     virtual ImsMediaResult confirmGraph(RtpConfig* config) = 0;
     /**
@@ -70,7 +70,7 @@ protected:
      *
      * @param config A parameter to find the matching StreamGraph instance.
      * @return ImsMediaResult A result of deleting StreamGraph instance. If the result has
-     *         no error, it returns IMS_MEDIA_OK. check #ImsMediaDefine.h.
+     *         no error, it returns RESULT_SUCCESS. check #ImsMediaDefine.h.
      */
     virtual ImsMediaResult deleteGraph(RtpConfig* config) = 0;
     virtual void setMediaQualityThreshold(MediaQualityThreshold* threshold) = 0;

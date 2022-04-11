@@ -61,7 +61,7 @@ ImsMediaResult IVoiceRendererNode::Start() {
     mMutex.unlock();
     mNodeState = NODESTATE_RUNNING;
     StartThread();
-    return IMS_MEDIA_OK;
+    return RESULT_SUCCESS;
 }
 
 void IVoiceRendererNode::Stop() {

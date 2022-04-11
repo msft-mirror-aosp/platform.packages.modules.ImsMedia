@@ -52,7 +52,7 @@ ImsMediaResult SocketReaderNode::Start() {
     if (mSocket == NULL) {
         IMLOGE0("[Start] can't create socket instance");
         mbSocketOpened = false;
-        return IMS_MEDIA_ERROR_UNKNOWN;
+        return RESULT_NOT_READY;
     }
 
     //set socket local/peer address here
@@ -62,19 +62,19 @@ ImsMediaResult SocketReaderNode::Start() {
     if (mSocket->Open(mLocalFd) != true) {
         IMLOGE0("[Start] can't open socket");
         mbSocketOpened = false;
-        return IMS_MEDIA_ERROR_UNKNOWN;
+        return RESULT_PORT_UNAVAILABLE;
     }
 
     if (mSocket->Listen(this) != true) {
         IMLOGE0("[Start] can't listen socket");
         mbSocketOpened = false;
-        return IMS_MEDIA_ERROR_UNKNOWN;
+        return RESULT_NOT_READY;
     }
 
     memset(mBuffer, 0, sizeof(mBuffer));
     mbSocketOpened = true;
     mNodeState = NODESTATE_RUNNING;
-    return IMS_MEDIA_OK;
+    return RESULT_SUCCESS;
 }
 
 void SocketReaderNode::Stop() {

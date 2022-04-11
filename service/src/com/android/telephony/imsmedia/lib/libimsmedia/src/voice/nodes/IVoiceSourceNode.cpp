@@ -56,7 +56,7 @@ ImsMediaResult IVoiceSourceNode::Start() {
     }
 
     mNodeState = NODESTATE_RUNNING;
-    return IMS_MEDIA_OK;
+    return RESULT_SUCCESS;
 }
 
 void IVoiceSourceNode::Stop() {

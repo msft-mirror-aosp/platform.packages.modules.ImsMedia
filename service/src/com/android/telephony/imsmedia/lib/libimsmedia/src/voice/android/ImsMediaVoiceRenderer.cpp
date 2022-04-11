@@ -175,7 +175,7 @@ bool ImsMediaVoiceRenderer::Start() {
     if (err != NO_ERROR) {
         IMLOGE2("[Start] unable to configure[%s] codec - err[%d]", kMimeType, err);
         m_MediaCodec->release();
-        return err;
+        return false;
     }
 
     if (m_AudioTrack != NULL) {

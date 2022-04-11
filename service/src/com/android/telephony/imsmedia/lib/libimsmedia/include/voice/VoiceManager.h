@@ -40,7 +40,7 @@ public:
         virtual ~RequestHandler();
     protected:
         virtual void processEvent(uint32_t event,
-            uint64_t paramA, uint64_t paramB, uint64_t paramC);
+            uint64_t sessionId, uint64_t paramA, uint64_t paramB);
     };
 
     /**
@@ -54,7 +54,7 @@ public:
         virtual ~ResponseHandler();
     protected:
         virtual void processEvent(uint32_t event,
-            uint64_t paramA, uint64_t paramB, uint64_t paramC);
+            uint64_t sessionId, uint64_t paramA, uint64_t paramB);
     };
 
     static VoiceManager* getInstance();
@@ -65,12 +65,12 @@ public:
 private:
     VoiceManager();
     virtual ~VoiceManager();
-    bool openSession(int sessionId, int rtpFd, int rtcpFd, AudioConfig* config);
+    ImsMediaResult openSession(int sessionId, int rtpFd, int rtcpFd, AudioConfig* config);
     ImsMediaResult closeSession(int sessionId);
-    bool modifySession(int sessionId, AudioConfig* config);
-    bool addConfig(int sessionId, AudioConfig* config);
-    bool deleteConfig(int sessionId, AudioConfig* config);
-    bool confirmConfig(int sessionId, AudioConfig* config);
+    ImsMediaResult modifySession(int sessionId, AudioConfig* config);
+    ImsMediaResult addConfig(int sessionId, AudioConfig* config);
+    ImsMediaResult deleteConfig(int sessionId, AudioConfig* config);
+    ImsMediaResult confirmConfig(int sessionId, AudioConfig* config);
     void startDtmf(int sessionId, char dtmfDigit, int volume, int duration);
     void stopDtmf(int sessionId);
     //void sendHeaderExtension(int sessionId, RtpHeaderExtension* data);

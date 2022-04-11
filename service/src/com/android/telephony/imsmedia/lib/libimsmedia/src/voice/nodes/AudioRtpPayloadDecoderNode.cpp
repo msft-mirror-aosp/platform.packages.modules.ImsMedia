@@ -44,7 +44,7 @@ ImsMediaResult AudioRtpPayloadDecoderNode::Start() {
     std::lock_guard<std::mutex> guard(mMutexExit);
     mPrevCMR = 15;
     mNodeState = NODESTATE_RUNNING;
-    return IMS_MEDIA_OK;
+    return RESULT_SUCCESS;
 }
 
 void AudioRtpPayloadDecoderNode::Stop() {

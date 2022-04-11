@@ -57,7 +57,7 @@ ImsMediaResult DtmfEncoderNode::Start() {
     IMLOGD1("[Start] interval[%d]", mAudioFrameDuration);
     StartThread();
     mNodeState = NODESTATE_RUNNING;
-    return IMS_MEDIA_OK;
+    return RESULT_SUCCESS;
 }
 
 void DtmfEncoderNode::Stop() {

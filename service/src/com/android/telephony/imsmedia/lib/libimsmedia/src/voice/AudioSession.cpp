@@ -64,24 +64,24 @@ AudioSession::~AudioSession() {
 ImsMediaResult AudioSession::startGraph(RtpConfig* config) {
     IMLOGD0("[startGraph]");
     if (config == NULL || std::strcmp(config->getRemoteAddress().c_str(), "") == 0) {
-        return IMS_MEDIA_ERROR_INVALID_ARGUMENT;
+        return RESULT_INVALID_PARAM;
     }
 
-    ImsMediaResult ret = IMS_MEDIA_ERROR_UNKNOWN;
+    ImsMediaResult ret = RESULT_NOT_READY;
     IMLOGD1("[startGraph] mListGraphRtpTx size[%d]", mListGraphRtpTx.size());
 
     if (mListGraphRtpTx.size() != 0) {
         ret = mListGraphRtpTx.front()->update(config);
-        if (ret != IMS_MEDIA_OK) {
+        if (ret != RESULT_SUCCESS) {
             IMLOGE1("[startGraph] update error[%d]", ret);
             return ret;
         }
     } else {
         mListGraphRtpTx.push_back(new AudioStreamGraphRtpTx(this, mRtpFd));
         ret = mListGraphRtpTx.back()->create(config);
-        if (ret == IMS_MEDIA_OK) {
+        if (ret == RESULT_SUCCESS) {
             ret = mListGraphRtpTx.back()->start();
-            if (ret != IMS_MEDIA_OK) {
+            if (ret != RESULT_SUCCESS) {
                 IMLOGE1("[startGraph] start error[%d]", ret);
                 return ret;
             }
@@ -92,16 +92,16 @@ ImsMediaResult AudioSession::startGraph(RtpConfig* config) {
 
     if (mListGraphRtpRx.size() != 0) {
         ret = mListGraphRtpRx.front()->update(config);
-        if (ret != IMS_MEDIA_OK) {
+        if (ret != RESULT_SUCCESS) {
             IMLOGE1("[startGraph] update error[%d]", ret);
             return ret;
         }
     } else {
         mListGraphRtpRx.push_back(new AudioStreamGraphRtpRx(this, mRtpFd));
         ret = mListGraphRtpRx.back()->create(config);
-        if (ret == IMS_MEDIA_OK) {
+        if (ret == RESULT_SUCCESS) {
             ret = mListGraphRtpRx.back()->start();
-            if (ret != IMS_MEDIA_OK) {
+            if (ret != RESULT_SUCCESS) {
                 IMLOGE1("[startGraph] start error[%d]", ret);
                 return ret;
             }
@@ -112,16 +112,16 @@ ImsMediaResult AudioSession::startGraph(RtpConfig* config) {
 
     if (mListGraphRtcp.size() != 0) {
         ret = mListGraphRtcp.front()->update(config);
-        if (ret != IMS_MEDIA_OK) {
+        if (ret != RESULT_SUCCESS) {
             IMLOGE1("[startGraph] update error[%d]", ret);
             return ret;
         }
     } else {
         mListGraphRtcp.push_back(new AudioStreamGraphRtcp(this, mRtcpFd));
         ret = mListGraphRtcp.back()->create(config);
-        if (ret == IMS_MEDIA_OK) {
+        if (ret == RESULT_SUCCESS) {
             ret = mListGraphRtcp.back()->start();
-            if (ret != IMS_MEDIA_OK) {
+            if (ret != RESULT_SUCCESS) {
                 IMLOGE1("[startGraph] start error[%d]", ret);
                 return ret;
             }
@@ -133,13 +133,13 @@ ImsMediaResult AudioSession::startGraph(RtpConfig* config) {
 
 ImsMediaResult AudioSession::addGraph(RtpConfig* config) {
     if (config == NULL || std::strcmp(config->getRemoteAddress().c_str(), "") == 0) {
-        return IMS_MEDIA_ERROR_INVALID_ARGUMENT;
+        return RESULT_INVALID_PARAM;
     }
 
     for (auto&i : mListGraphRtpTx) {
         if (i->isSameConfig(config)) {
             IMLOGE0("[addGraph] same config is exist");
-            return IMS_MEDIA_ERROR_INVALID_ARGUMENT;
+            return RESULT_INVALID_PARAM;
         }
     }
 
@@ -157,13 +157,13 @@ ImsMediaResult AudioSession::addGraph(RtpConfig* config) {
         }
     }
 
-    ImsMediaResult ret = IMS_MEDIA_ERROR_UNKNOWN;
+    ImsMediaResult ret = RESULT_NOT_READY;
 
     mListGraphRtpTx.push_back(new AudioStreamGraphRtpTx(this, mRtpFd));
     ret = mListGraphRtpTx.back()->create(config);
-    if (ret == IMS_MEDIA_OK) {
+    if (ret == RESULT_SUCCESS) {
         ret = mListGraphRtpTx.back()->start();
-        if (ret != IMS_MEDIA_OK) {
+        if (ret != RESULT_SUCCESS) {
             IMLOGE1("[addGraph] start error[%d]", ret);
             return ret;
         }
@@ -173,9 +173,9 @@ ImsMediaResult AudioSession::addGraph(RtpConfig* config) {
 
     mListGraphRtpRx.push_back(new AudioStreamGraphRtpRx(this, mRtpFd));
     ret = mListGraphRtpRx.back()->create(config);
-    if (ret == IMS_MEDIA_OK) {
+    if (ret == RESULT_SUCCESS) {
         ret = mListGraphRtpRx.back()->start();
-        if (ret != IMS_MEDIA_OK) {
+        if (ret != RESULT_SUCCESS) {
             IMLOGE1("[addGraph] start error[%d]", ret);
             return ret;
         }
@@ -185,9 +185,9 @@ ImsMediaResult AudioSession::addGraph(RtpConfig* config) {
 
     mListGraphRtcp.push_back(new AudioStreamGraphRtcp(this, mRtcpFd));
     ret = mListGraphRtcp.back()->create(config);
-    if (ret == IMS_MEDIA_OK) {
+    if (ret == RESULT_SUCCESS) {
         ret = mListGraphRtcp.back()->start();
-        if (ret != IMS_MEDIA_OK) {
+        if (ret != RESULT_SUCCESS) {
             IMLOGE1("[addGraph] start error[%d]", ret);
             return ret;
         }
@@ -195,15 +195,15 @@ ImsMediaResult AudioSession::addGraph(RtpConfig* config) {
 
     IMLOGD1("[addGraph] mListGraphRtcp size[%d]", mListGraphRtcp.size());
 
-    return IMS_MEDIA_OK;
+    return RESULT_SUCCESS;
 }
 
 ImsMediaResult AudioSession::confirmGraph(RtpConfig* config) {
     if (config == NULL || std::strcmp(config->getRemoteAddress().c_str(), "") == 0) {
-        return IMS_MEDIA_ERROR_INVALID_ARGUMENT;
+        return RESULT_INVALID_PARAM;
     }
 
-    ImsMediaResult ret = IMS_MEDIA_ERROR_UNKNOWN;
+    ImsMediaResult ret = RESULT_NOT_READY;
 
     /** Stop unmatched running instances of StreamGraph. */
     for (auto&i : mListGraphRtpTx) {
@@ -234,7 +234,7 @@ ImsMediaResult AudioSession::confirmGraph(RtpConfig* config) {
         } else {
             if (graph->getState() != STATE_RUN) {
                 ret = graph->start();
-                if (ret != IMS_MEDIA_OK) {
+                if (ret != RESULT_SUCCESS) {
                     IMLOGE1("[confirmGraph] start tx error[%d]", ret);
                     return ret;
                 }
@@ -248,7 +248,7 @@ ImsMediaResult AudioSession::confirmGraph(RtpConfig* config) {
 
     if (bFound == false) {
         IMLOGE0("[confirmGraph] no graph to confirm");
-        return IMS_MEDIA_ERROR_INVALID_ARGUMENT;
+        return RESULT_INVALID_PARAM;
     }
 
     for (std::list<AudioStreamGraphRtpRx*>::iterator
@@ -260,7 +260,7 @@ ImsMediaResult AudioSession::confirmGraph(RtpConfig* config) {
         } else {
             if (graph->getState() != STATE_RUN) {
                 ret = graph->start();
-                if (ret != IMS_MEDIA_OK) {
+                if (ret != RESULT_SUCCESS) {
                     IMLOGE1("[confirmGraph] start rx error[%d]", ret);
                     return ret;
                 }
@@ -280,7 +280,7 @@ ImsMediaResult AudioSession::confirmGraph(RtpConfig* config) {
         } else {
             if (graph->getState() != STATE_RUN) {
                 ret = graph->start();
-                if (ret != IMS_MEDIA_OK) {
+                if (ret != RESULT_SUCCESS) {
                     IMLOGE1("[confirmGraph] start rtcp error[%d]", ret);
                     return ret;
                 }
@@ -291,7 +291,7 @@ ImsMediaResult AudioSession::confirmGraph(RtpConfig* config) {
 
     IMLOGD1("[confirmGraph] mListGraphRtcp size[%d]", mListGraphRtcp.size());
 
-    return IMS_MEDIA_OK;
+    return RESULT_SUCCESS;
 }
 
 ImsMediaResult AudioSession::deleteGraph(RtpConfig* config) {
@@ -314,7 +314,7 @@ ImsMediaResult AudioSession::deleteGraph(RtpConfig* config) {
     }
 
     if (bFound == false) {
-        return IMS_MEDIA_ERROR_INVALID_ARGUMENT;
+        return RESULT_INVALID_PARAM;
     }
 
     IMLOGD1("[deleteGraph] mListGraphRtpTx size[%d]", mListGraphRtpTx.size());
@@ -352,7 +352,7 @@ ImsMediaResult AudioSession::deleteGraph(RtpConfig* config) {
     }
 
     IMLOGD1("[deleteGraph] mListGraphRtcp size[%d]", mListGraphRtcp.size());
-    return IMS_MEDIA_OK;
+    return RESULT_SUCCESS;
 }
 
 void AudioSession::setMediaQualityThreshold(MediaQualityThreshold* threshold) {
@@ -389,7 +389,7 @@ void AudioSession::onEvent(ImsMediaEventType type, uint64_t param1, uint64_t par
             break;
         case EVENT_NOTIFY_MEDIA_INACITIVITY:
             ImsMediaEventHandler::SendEvent("VOICE_RESPONSE_EVENT",
-                MEDIA_INACITIVITY_IND, param1, param2);
+                MEDIA_INACITIVITY_IND, mSessionId, param1, param2);
             break;
         case EVENT_NOTIFY_PACKET_LOSS:
             ImsMediaEventHandler::SendEvent("VOICE_RESPONSE_EVENT",

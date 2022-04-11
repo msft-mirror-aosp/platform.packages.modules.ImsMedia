@@ -50,7 +50,7 @@ ImsMediaResult AudioRtpPayloadEncoderNode::Start() {
 
     if (mMaxNumOfFrame == 0 || mMaxNumOfFrame > MAX_FRAME_IN_PACKET) {
         IMLOGE1("[Start] Invalid ptime [%d]", mPtime);
-        return IMS_MEDIA_ERROR_INVALID_ARGUMENT;
+        return RESULT_INVALID_PARAM;
     }
 
     mCurrNumOfFrame = 0;
@@ -58,7 +58,7 @@ ImsMediaResult AudioRtpPayloadEncoderNode::Start() {
     mFirstFrame = true;
     mTotalPayloadSize = 0;
     mNodeState = NODESTATE_RUNNING;
-    return IMS_MEDIA_OK;
+    return RESULT_SUCCESS;
 }
 
 void AudioRtpPayloadEncoderNode::Stop() {

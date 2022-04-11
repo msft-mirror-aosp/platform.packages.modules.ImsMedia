@@ -189,7 +189,7 @@ ImsMediaResult BaseNode::UpdateConfig(void* config) {
     bool isUpdateNode = false;
     if (IsSameConfig(config)) {
         IMLOGD0("[UpdateConfig] no update");
-        return IMS_MEDIA_OK;
+        return RESULT_SUCCESS;
     } else {
         isUpdateNode = true;
     }
@@ -206,7 +206,7 @@ ImsMediaResult BaseNode::UpdateConfig(void* config) {
         return Start();
     }
 
-    return IMS_MEDIA_OK;
+    return RESULT_SUCCESS;
 }
 
 void BaseNode::ProcessData() {
