@@ -45,7 +45,8 @@ public:
     void SetVolume(uint32_t nVolume);
     virtual void* run();
 private:
-    bool SendDTMFEvent(uint8_t digit, uint32_t volume, uint32_t duration);
+    bool SendDTMFEvent(uint8_t digit, uint32_t duration);
+    uint32_t calculateDtmfDuration(uint32_t duration);
     bool convertSignal(uint8_t digit, uint8_t& signal);
     uint32_t MakeDTMFPayload(uint8_t* pbPayload, uint8_t nEvent, bool bEnd,
         uint8_t nVolume, uint16_t nPeriod);

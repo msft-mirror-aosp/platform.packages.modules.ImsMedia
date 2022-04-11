@@ -21,14 +21,18 @@
 #include <AudioConfig.h>
 
 #define BUNDLE_DTMF_DATA_MAX 32    // Max bundling # : 8 X 4bytes
+#define DTMF_DEFAULT_DURATION 200
+#define DTMF_MINIMUM_DURATION 40
+#define DTMF_DEFAULT_RETRANSMIT_DURATION 2
+#define DTMF_DEFAULT_VOLUME 10
 
 DtmfEncoderNode::DtmfEncoderNode() {
     mStopDtmf = true;
     mListDtmfDigit.clear();
     mSamplingRate = 0;
-    mDuration = 0;
-    mRetransmitDuration = 0;
-    mVolume = 0;
+    mDuration = DTMF_DEFAULT_DURATION;
+    mRetransmitDuration = DTMF_DEFAULT_RETRANSMIT_DURATION;
+    mVolume = DTMF_DEFAULT_VOLUME;
     mAudioFrameDuration = 0;
 }
 
@@ -79,8 +83,8 @@ void DtmfEncoderNode::SetConfig(void* config) {
     if (pConfig != NULL) {
         SetSamplingRate(pConfig->getSamplingRateKHz() * 1000);
         //test parameter
-        SetDuration(10, 2);
-        SetVolume(10);
+        SetDuration(DTMF_DEFAULT_DURATION, DTMF_DEFAULT_RETRANSMIT_DURATION);
+        SetVolume(DTMF_DEFAULT_VOLUME);
     }
 }
 
@@ -89,6 +93,7 @@ void DtmfEncoderNode::OnDataFromFrontNode(ImsMediaSubType subtype,
     ImsMediaSubType nDataType) {
     (void)bMark;
     (void)nDataType;
+    (void)volume;
     if (duration != 0 && subtype == MEDIASUBTYPE_DTMF_PAYLOAD) {
         mStopDtmf = true;
         IMLOGD1("[OnDataFromFrontNode] Send DTMF string %c", *pData);
@@ -97,7 +102,7 @@ void DtmfEncoderNode::OnDataFromFrontNode(ImsMediaSubType subtype,
             return;
         }
         SendDataToRearNode(MEDIASUBTYPE_DTMFSTART, NULL, 0, 0, 0, 0);    // set dtmf mode true
-        SendDTMFEvent(nSignal, volume, duration);
+        SendDTMFEvent(nSignal, duration);
         SendDataToRearNode(MEDIASUBTYPE_DTMFEND, NULL, 0, 0, 0, 0);    // set dtmf mode false
     } else {
         if (subtype == MEDIASUBTYPE_DTMFEND) {
@@ -112,7 +117,6 @@ void DtmfEncoderNode::OnDataFromFrontNode(ImsMediaSubType subtype,
             mMutex.lock();
             mStopDtmf = false;
             mMutex.unlock();
-            mVolume = volume;
             mListDtmfDigit.push_back(nSignal);
             mCond.signal();
         }
@@ -189,15 +193,24 @@ void* DtmfEncoderNode::run() {
     return NULL;
 }
 
-bool DtmfEncoderNode::SendDTMFEvent(uint8_t digit, uint32_t volume, uint32_t duration) {
-    (void)volume;
-    if (duration == 0) return false;
+uint32_t DtmfEncoderNode::calculateDtmfDuration(uint32_t duration) {
+    if (duration < DTMF_MINIMUM_DURATION)
+    {
+        // Force minimum duration
+        duration = DTMF_MINIMUM_DURATION;
+    }
+
+    return ( ((duration + 10) / 20) * (mAudioFrameDuration / 20) );
+}
+
+bool DtmfEncoderNode::SendDTMFEvent(uint8_t digit, uint32_t duration) {
+
     uint16_t nPeriod = 0;
     uint8_t pbPayload[BUNDLE_DTMF_DATA_MAX];
     uint32_t nPayloadSize;
     uint32_t nTimestamp = 0;
     bool bMarker = true;
-    uint32_t nDTMFDuration = duration * (mAudioFrameDuration / 20);
+    uint32_t nDTMFDuration = calculateDtmfDuration(duration);
     uint32_t nDTMFRetransmitDuration = mRetransmitDuration * (mAudioFrameDuration / 20);
 
 #if 0

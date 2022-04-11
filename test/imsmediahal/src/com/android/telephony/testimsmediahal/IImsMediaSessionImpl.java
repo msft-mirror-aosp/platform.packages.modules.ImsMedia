@@ -14,22 +14,18 @@
  * limitations under the License.
  */
 
-
 package com.android.telephony.testimsmediahal;
 
-import android.hardware.radio.ims.media.RtpConfig;
-import android.hardware.radio.ims.media.MediaQualityThreshold;
 import android.hardware.radio.ims.media.IImsMediaSession;
-import android.hardware.radio.ims.media.RtpHeaderExtension;
 import android.hardware.radio.ims.media.IImsMediaSessionListener;
-
-import android.telephony.imsmedia.AudioConfig;
-import com.android.telephony.imsmedia.Utils;
-import com.android.telephony.imsmedia.AudioSession;
-
+import android.hardware.radio.ims.media.MediaQualityThreshold;
+import android.hardware.radio.ims.media.RtpConfig;
+import android.hardware.radio.ims.media.RtpHeaderExtension;
 import android.os.Parcel;
 import android.telephony.Rlog;
-
+import android.telephony.imsmedia.AudioConfig;
+import com.android.telephony.imsmedia.AudioSession;
+import com.android.telephony.imsmedia.Utils;
 import java.util.List;
 
 
@@ -118,22 +114,12 @@ public class IImsMediaSessionImpl extends IImsMediaSession.Stub {
     }
 
     @Override
-    public void startDtmf(char dtmfDigit, int volume, int duration) {
-        Rlog.d(TAG, "startDtmf: digit= " + dtmfDigit +
-            ",volume=" + volume + ", duration=" + duration);
+    public void sendDtmf(char dtmfDigit, int duration) {
+        Rlog.d(TAG, "sendDtmf: digit= " + dtmfDigit + ", duration=" + duration);
         Parcel parcel = Parcel.obtain();
-        parcel.writeInt(AudioSession.CMD_START_DTMF);
+        parcel.writeInt(AudioSession.CMD_SEND_DTMF);
         parcel.writeByte((byte)dtmfDigit);
-        parcel.writeInt(volume);
         parcel.writeInt(duration);
-        connector.sendRequest(mSessionId, parcel);
-    }
-
-    @Override
-    public void stopDtmf() {
-        Rlog.d(TAG, "stopDtmf");
-        Parcel parcel = Parcel.obtain();
-        parcel.writeInt(AudioSession.CMD_STOP_DTMF);
         connector.sendRequest(mSessionId, parcel);
     }
 

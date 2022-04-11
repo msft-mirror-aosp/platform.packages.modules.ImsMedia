@@ -71,8 +71,7 @@ private:
     ImsMediaResult addConfig(int sessionId, AudioConfig* config);
     ImsMediaResult deleteConfig(int sessionId, AudioConfig* config);
     ImsMediaResult confirmConfig(int sessionId, AudioConfig* config);
-    void startDtmf(int sessionId, char dtmfDigit, int volume, int duration);
-    void stopDtmf(int sessionId);
+    void sendDtmf(int sessionId, char dtmfDigit, int duration);
     //void sendHeaderExtension(int sessionId, RtpHeaderExtension* data);
     void setMediaQualityThreshold(int sessionId, MediaQualityThreshold* threshold);
 

@@ -404,22 +404,12 @@ void AudioSession::onEvent(ImsMediaEventType type, uint64_t param1, uint64_t par
     }
 }
 
-void AudioSession::startDtmf(char digit, int volume, int duration) {
+void AudioSession::sendDtmf(char digit, int duration) {
     for (std::list<AudioStreamGraphRtpTx*>::iterator
         iter = mListGraphRtpTx.begin(); iter != mListGraphRtpTx.end(); iter++) {
         AudioStreamGraphRtpTx* graph = *iter;
         if (graph->getState() == STATE_RUN) {
-            graph->startDtmf(digit, volume, duration);
-        }
-    }
-}
-
-void AudioSession::stopDtmf() {
-    for (std::list<AudioStreamGraphRtpTx*>::iterator
-        iter = mListGraphRtpTx.begin(); iter != mListGraphRtpTx.end(); iter++) {
-        AudioStreamGraphRtpTx* graph = *iter;
-        if (graph->getState() == STATE_RUN) {
-            graph->stopDtmf();
+            graph->sendDtmf(digit, duration);
         }
     }
 }

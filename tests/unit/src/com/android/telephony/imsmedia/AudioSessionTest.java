@@ -22,27 +22,24 @@ import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
-import android.os.Parcel;
 import android.os.Looper;
 import android.os.Message;
+import android.os.Parcel;
 import android.os.ParcelFileDescriptor;
 import android.os.RemoteException;
+import android.telephony.ims.RtpHeaderExtension;
 import android.telephony.imsmedia.AudioConfig;
 import android.telephony.imsmedia.IImsAudioSessionCallback;
 import android.telephony.imsmedia.ImsMediaSession;
 import android.telephony.imsmedia.MediaQualityThreshold;
-import android.telephony.ims.RtpHeaderExtension;
 import android.testing.TestableLooper;
-
-import com.android.telephony.imsmedia.AudioSession;
 import com.android.telephony.imsmedia.AudioService;
+import com.android.telephony.imsmedia.AudioSession;
 import com.android.telephony.imsmedia.Utils;
 import com.android.telephony.imsmedia.Utils.OpenSessionParams;
-
 import java.net.DatagramSocket;
 import java.net.SocketException;
 import java.util.ArrayList;
-
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -54,7 +51,6 @@ import org.mockito.MockitoAnnotations;
 @RunWith(JUnit4.class)
 public class AudioSessionTest {
     private static final int SESSION_ID = 1;
-    private static final int DTMF_VOL = 50;
     private static final int DTMF_DURATION = 120;
     private static final int UNUSED = -1;
     private static final int SUCCESS = ImsMediaSession.RESULT_SUCCESS;
@@ -244,18 +240,10 @@ public class AudioSessionTest {
     }
 
     @Test
-    public void testStartDtmf() {
-        audioSession.startDtmf(DTMF_DIGIT, DTMF_VOL, DTMF_DURATION);
+    public void testsendDtmf() {
+        audioSession.sendDtmf(DTMF_DIGIT, DTMF_DURATION);
         processAllMessages();
-        verify(audioLocalSession, times(1)).startDtmf(eq(DTMF_DIGIT), eq(DTMF_VOL),
-            eq(DTMF_DURATION));
-    }
-
-    @Test
-    public void testStopDtmf() {
-        audioSession.stopDtmf();
-        processAllMessages();
-        verify(audioLocalSession, times(1)).stopDtmf();
+        verify(audioLocalSession, times(1)).sendDtmf(eq(DTMF_DIGIT), eq(DTMF_DURATION));
     }
 
     @Test

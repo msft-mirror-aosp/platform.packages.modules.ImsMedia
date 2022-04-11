@@ -20,7 +20,6 @@ import android.os.IBinder;
 import android.os.RemoteException;
 import android.telephony.ims.RtpHeaderExtension;
 import android.util.Log;
-
 import java.util.List;
 
 /**
@@ -137,29 +136,16 @@ public class ImsAudioSession implements ImsMediaSession {
     }
 
     /**
-     * Start sending DTMF digit until the duration expires or a stopDtmf() API
-     * is received. If the implementation is currently playing a DTMF tone, that
-     * tone must be stopped first using stopDtmf().
+     * Send DTMF digit until the duration expires.
      *
      * @param dtmfDigit single char having one of 12 values: 0-9, *, #
-     * @param volume of the DTMF digit between 0 and -63 dBm dropping the sign.
-     * @param duration of the key press in milliseconds. -1 means no duration
-     *        is passed and the caller will invoke stopDtmf().
+     * @param duration of the key press in milliseconds.
      */
-    public void startDtmf(final char dtmfDigit, final int volume, final int duration) {
+    public void sendDtmf(final char dtmfDigit, final int duration) {
         try {
-            miSession.startDtmf(dtmfDigit, volume, duration);
+            miSession.sendDtmf(dtmfDigit, duration);
         } catch (RemoteException e) {
-            Log.e(TAG, "Failed to start DTMF: " + e);
-        }
-    }
-
-    /** Stop sending the last DTMF digit */
-    public void stopDtmf() {
-        try {
-            miSession.stopDtmf();
-        } catch (RemoteException e) {
-            Log.e(TAG, "Failed to stop DTMF: " + e);
+            Log.e(TAG, "Failed to send DTMF: " + e);
         }
     }
 

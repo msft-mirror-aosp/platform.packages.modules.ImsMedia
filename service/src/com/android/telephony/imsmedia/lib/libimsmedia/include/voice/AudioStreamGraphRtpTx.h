@@ -29,8 +29,7 @@ public:
     virtual ~AudioStreamGraphRtpTx();
     virtual ImsMediaResult create(void* config);
     virtual ImsMediaResult update(void* config);
-    void startDtmf(char digit, int volume, int duration);
-    void stopDtmf();
+    void sendDtmf(char digit, int duration);
 
 private:
     std::list<BaseNode*> mListDtmfNodes;

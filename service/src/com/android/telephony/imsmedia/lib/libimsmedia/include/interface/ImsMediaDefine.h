@@ -144,8 +144,7 @@ enum ImsMediaVoiceMsgRequest {
     ADD_CONFIG,
     DELETE_CONFIG,
     CONFIRM_CONFIG,
-    START_DTMF,
-    STOP_DTMF,
+    SEND_DTMF,
     SEND_HEADER_EXTENSION,
     SET_MEDIA_QUALITY_THRESHOLD,
 };
@@ -177,12 +176,10 @@ public:
 struct EventParamDtmf {
 public:
     char digit;
-    int volume;
     int duration;
 
-    EventParamDtmf(char dig, int v, int d) {
+    EventParamDtmf(char dig, int d) {
         digit = dig;
-        volume = v;
         duration = d;
     }
 };

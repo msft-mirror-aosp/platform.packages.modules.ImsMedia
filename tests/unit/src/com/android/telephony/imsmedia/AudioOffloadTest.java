@@ -17,6 +17,7 @@
 package com.android.telephony.imsmedia;
 
 import static com.google.common.truth.Truth.assertThat;
+import static junit.framework.Assert.assertEquals;
 import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doReturn;
@@ -25,7 +26,6 @@ import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
-import static junit.framework.Assert.assertEquals;
 
 import android.hardware.radio.ims.media.IImsMedia;
 import android.hardware.radio.ims.media.IImsMediaSession;
@@ -37,24 +37,21 @@ import android.os.Looper;
 import android.os.Message;
 import android.os.ParcelFileDescriptor;
 import android.os.RemoteException;
+import android.telephony.ims.RtpHeaderExtension;
 import android.telephony.imsmedia.AudioConfig;
 import android.telephony.imsmedia.IImsAudioSessionCallback;
 import android.telephony.imsmedia.ImsMediaSession;
 import android.telephony.imsmedia.MediaQualityThreshold;
-import android.telephony.ims.RtpHeaderExtension;
 import android.testing.TestableLooper;
-
-import com.android.telephony.imsmedia.AudioSession;
 import com.android.telephony.imsmedia.AudioService;
+import com.android.telephony.imsmedia.AudioSession;
 import com.android.telephony.imsmedia.Utils;
 import com.android.telephony.imsmedia.Utils.OpenSessionParams;
-
 import java.net.DatagramSocket;
 import java.net.SocketException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
-
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -307,27 +304,14 @@ public class AudioOffloadTest {
     }
 
     @Test
-    public void testStartDtmf() {
-        audioSession.startDtmf(DTMF_DIGIT, DTMF_VOL, DTMF_DURATION);
+    public void testsendDtmf() {
+        audioSession.sendDtmf(DTMF_DIGIT, DTMF_DURATION);
         processAllMessages();
         try {
-            verify(imsMediaSession, times(1)).startDtmf
-                    (eq(DTMF_DIGIT), eq(DTMF_VOL), eq(DTMF_DURATION));
+            verify(imsMediaSession, times(1)).sendDtmf(eq(DTMF_DIGIT), eq(DTMF_DURATION));
         } catch(RemoteException e) {
-            fail("Failed to invoke startDtmf: " + e);
+            fail("Failed to invoke sendDtmf: " + e);
         }
-    }
-
-    @Test
-    public void testStopDtmf() {
-        audioSession.stopDtmf();
-        processAllMessages();
-        try {
-            verify(imsMediaSession, times(1)).stopDtmf();
-        } catch(RemoteException e) {
-            fail("Failed to invoke stopDtmf: " + e);
-        }
-
     }
 
     @Test

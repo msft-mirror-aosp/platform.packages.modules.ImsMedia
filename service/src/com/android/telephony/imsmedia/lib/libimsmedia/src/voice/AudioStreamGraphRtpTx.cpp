@@ -156,27 +156,17 @@ ImsMediaResult AudioStreamGraphRtpTx::update(void* config)  {
     return ret;
 }
 
-void AudioStreamGraphRtpTx::startDtmf(char digit, int volume, int duration) {
-    IMLOGD0("[startDtmf]");
+void AudioStreamGraphRtpTx::sendDtmf(char digit, int duration) {
+    IMLOGD0("[sendDtmf]");
     BaseNode* pDTMFNode = mListDtmfNodes.front();
     if (pDTMFNode != NULL) {
-        IMLOGD3("[startDtmf] %c, vol[%d], duration[%d]", digit, volume, duration);
+        IMLOGD2("[sendDtmf] %c, duration[%d]", digit, duration);
         ImsMediaSubType subtype = MEDIASUBTYPE_DTMF_PAYLOAD;
         if (duration == 0) {
             subtype = MEDIASUBTYPE_DTMFSTART;
         }
-        pDTMFNode->OnDataFromFrontNode(subtype, (uint8_t*)&digit, 1, volume, 0, duration);
+        pDTMFNode->OnDataFromFrontNode(subtype, (uint8_t*)&digit, 1, 0, 0, duration);
     } else {
-        IMLOGE0("[startDtmf] DTMF is not enabled");
-    }
-}
-
-void AudioStreamGraphRtpTx::stopDtmf() {
-    IMLOGD0("[stopDtmf]");
-    BaseNode* pDTMFNode = mListDtmfNodes.front();
-    if (pDTMFNode != NULL) {
-        pDTMFNode->OnDataFromFrontNode(MEDIASUBTYPE_DTMFEND, 0, 0, 0, 0, 0);
-    } else {
-        IMLOGE0("[stopDtmf] DTMF is not enabled");
+        IMLOGE0("[sendDtmf] DTMF is not enabled");
     }
 }

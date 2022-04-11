@@ -127,23 +127,13 @@ ImsMediaResult VoiceManager::confirmConfig(int sessionId, AudioConfig* config) {
     }
 }
 
-void VoiceManager::startDtmf(int sessionId, char dtmfDigit, int volume, int duration) {
+void VoiceManager::sendDtmf(int sessionId, char dtmfDigit, int duration) {
     auto session = mSessions.find(sessionId);
-    IMLOGD1("startDtmf() - sessionId[%d]", sessionId);
+    IMLOGD1("sendDtmf() - sessionId[%d]", sessionId);
     if (session != mSessions.end()) {
-        (session->second)->startDtmf(dtmfDigit, volume, duration);
+        (session->second)->sendDtmf(dtmfDigit, duration);
     } else {
-        IMLOGE1("startDtmf() - no session id[%d]", sessionId);
-    }
-}
-
-void VoiceManager::stopDtmf(int sessionId) {
-    auto session = mSessions.find(sessionId);
-    IMLOGD1("stopDtmf() - sessionId[%d]", sessionId);
-    if (session != mSessions.end()) {
-        (session->second)->stopDtmf();
-    } else {
-        IMLOGE1("stopDtmf() - no session id[%d]", sessionId);
+        IMLOGE1("sendDtmf() - no session id[%d]", sessionId);
     }
 }
 
@@ -198,17 +188,12 @@ void VoiceManager::sendMessage(const int sessionId, const android::Parcel& parce
                 sessionId, reinterpret_cast<uint64_t>(config));
         }
             break;
-        case START_DTMF:
+        case SEND_DTMF:
         {
-            EventParamDtmf* param = new EventParamDtmf(parcel.readByte(),
-                parcel.readInt32(), parcel.readInt32());
+            EventParamDtmf* param = new EventParamDtmf(parcel.readByte(), parcel.readInt32());
             ImsMediaEventHandler::SendEvent("VOICE_REQUEST_EVENT", nMsg,
                 sessionId, reinterpret_cast<uint64_t>(param));
         }
-            break;
-        case STOP_DTMF:
-            ImsMediaEventHandler::SendEvent("VOICE_REQUEST_EVENT", nMsg,
-                sessionId, 0);
             break;
         case SEND_HEADER_EXTENSION:
             //TO DO
@@ -297,18 +282,15 @@ void VoiceManager::RequestHandler::processEvent(uint32_t event,
             }
         }
             break;
-        case START_DTMF:
+        case SEND_DTMF:
         {
             EventParamDtmf* param = reinterpret_cast<EventParamDtmf*>(paramA);
             if (param != NULL) {
-                VoiceManager::getInstance()->startDtmf(static_cast<int>(sessionId), param->digit,
-                    param->volume, param->duration);
+                VoiceManager::getInstance()->sendDtmf(static_cast<int>(sessionId), param->digit,
+                    param->duration);
                 delete param;
             }
         }
-            break;
-        case STOP_DTMF:
-            VoiceManager::getInstance()->stopDtmf(static_cast<int>(sessionId));
             break;
         case SEND_HEADER_EXTENSION:
             //TO DO : add implementation

@@ -32,8 +32,7 @@ interface IImsAudioSession {
     oneway void addConfig(in AudioConfig config);
     oneway void deleteConfig(in AudioConfig config);
     oneway void confirmConfig(in AudioConfig config);
-    oneway void startDtmf(char dtmfDigit, int volume, int duration);
-    oneway void stopDtmf();
+    oneway void sendDtmf(char dtmfDigit, int duration);
     oneway void sendHeaderExtension(in List<RtpHeaderExtension> extensions);
     oneway void setMediaQualityThreshold(in MediaQualityThreshold threshold);
 }

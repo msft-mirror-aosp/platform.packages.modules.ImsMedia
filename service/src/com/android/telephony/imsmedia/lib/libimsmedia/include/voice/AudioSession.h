@@ -38,8 +38,7 @@ public:
     // BaseSessionCallback
     virtual void onEvent(ImsMediaEventType type, uint64_t param1, uint64_t param2);
     // dtmf method
-    void startDtmf(char digit, int volume, int duration);
-    void stopDtmf();
+    void sendDtmf(char digit, int duration);
 
 private:
     std::list<AudioStreamGraphRtpTx*> mListGraphRtpTx;

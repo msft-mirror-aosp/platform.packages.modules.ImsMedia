@@ -23,18 +23,16 @@ import android.os.Looper;
 import android.os.Message;
 import android.os.RemoteException;
 import android.support.annotation.VisibleForTesting;
+import android.telephony.Rlog;
+import android.telephony.ims.RtpHeaderExtension;
+import android.telephony.imsmedia.AudioConfig;
 import android.telephony.imsmedia.IImsAudioSession;
 import android.telephony.imsmedia.IImsAudioSessionCallback;
 import android.telephony.imsmedia.ImsMediaSession;
 import android.telephony.imsmedia.MediaQualityThreshold;
-import android.telephony.imsmedia.AudioConfig;
-import android.telephony.ims.RtpHeaderExtension;
-import android.telephony.Rlog;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-
 import com.android.telephony.imsmedia.Utils.OpenSessionParams;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -52,10 +50,9 @@ public final class AudioSession extends IImsAudioSession.Stub implements IMediaS
     public static final int CMD_ADD_CONFIG = 104;
     public static final int CMD_DELETE_CONFIG = 105;
     public static final int CMD_CONFIRM_CONFIG = 106;
-    public static final int CMD_START_DTMF = 107;
-    public static final int CMD_STOP_DTMF = 108;
-    public static final int CMD_SEND_RTP_HDR_EXTN = 109;
-    public static final int CMD_SET_MEDIA_QUALITY_THRESHOLD = 110;
+    public static final int CMD_SEND_DTMF = 107;
+    public static final int CMD_SEND_RTP_HDR_EXTN = 108;
+    public static final int CMD_SET_MEDIA_QUALITY_THRESHOLD = 109;
 
     public static final int EVENT_OPEN_SESSION_SUCCESS = 201;
     public static final int EVENT_OPEN_SESSION_FAILURE = 202;
@@ -180,16 +177,9 @@ public final class AudioSession extends IImsAudioSession.Stub implements IMediaS
     }
 
     @Override
-    public void startDtmf(char digit, int volume, int duration) {
-        Rlog.d(TAG, "startDtmf: digit=" + digit + ",volume="
-                + volume + ",duration=" + duration);
-        Utils.sendMessage(mHandler, CMD_START_DTMF, volume, duration, digit);
-    }
-
-    @Override
-    public void stopDtmf() {
-        Rlog.d(TAG, "stopDtmf");
-        Utils.sendMessage(mHandler, CMD_STOP_DTMF);
+    public void sendDtmf(char digit, int duration) {
+        Rlog.d(TAG, "sendDtmf: digit=" + digit + ",duration=" + duration);
+        Utils.sendMessage(mHandler, CMD_SEND_DTMF, digit, duration);
     }
 
     @Override
@@ -250,11 +240,8 @@ public final class AudioSession extends IImsAudioSession.Stub implements IMediaS
                 case CMD_CONFIRM_CONFIG:
                     handleConfirmConfig((AudioConfig)msg.obj);
                     break;
-                case CMD_START_DTMF:
-                    handleStartDtmf((char)msg.obj, msg.arg1, msg.arg2);
-                    break;
-                case CMD_STOP_DTMF:
-                    handleStopDtmf();
+                case CMD_SEND_DTMF:
+                    handlesendDtmf((char)msg.obj, msg.arg1);
                     break;
                 case CMD_SEND_RTP_HDR_EXTN:
                     handleSendRtpHeaderExtension((List<RtpHeaderExtension>)msg.obj);
@@ -367,27 +354,15 @@ public final class AudioSession extends IImsAudioSession.Stub implements IMediaS
         }
     }
 
-    private void handleStartDtmf(char digit, int volume, int duration) {
+    private void handlesendDtmf(char digit, int duration) {
         if (isAudioOffload()) {
             try {
-                mHalSession.startDtmf(digit, volume, duration);
+                mHalSession.sendDtmf(digit, duration);
             } catch(RemoteException e) {
-                Rlog.e(TAG, "startDtmf : " + e);
+                Rlog.e(TAG, "sendDtmf : " + e);
             }
         } else {
-            mLocalSession.startDtmf(digit, volume, duration);
-        }
-    }
-
-    private void handleStopDtmf() {
-        if (isAudioOffload()) {
-            try {
-                mHalSession.stopDtmf();
-            } catch(RemoteException e) {
-                Rlog.e(TAG, "stoptDtmf : " + e);
-            }
-        } else {
-            mLocalSession.stopDtmf();
+            mLocalSession.sendDtmf(digit, duration);
         }
     }
 

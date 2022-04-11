@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
- package com.android.telephony.imsmedia;
+package com.android.telephony.imsmedia;
 
 import android.os.Handler;
 import android.os.Parcel;
@@ -139,31 +139,17 @@ public class AudioLocalSession {
     }
 
     /**
-     * Start sending DTMF digit until the duration expires or a stopDtmf() API
-     * is received. If the implementation is currently playing a DTMF tone, that
-     * tone must be stopped first using stopDtmf().
+     * Send DTMF digit until the duration expires.
      *
      * @param dtmfDigit single char having one of 12 values: 0-9, *, #
-     * @param volume of the DTMF digit between 0 and -63 dBm dropping the sign.
-     * @param duration of the key press in milliseconds. -1 means no duration
-     *        is passed and the caller will invoke stopDtmf().
+     * @param duration of the key press in milliseconds.
      */
-    public void startDtmf(final char dtmfDigit, final int volume, final int duration) {
-        Rlog.d(TAG, "startDtmf: digit= " + dtmfDigit +
-            ",volume=" + volume + ", duration=" + duration);
+    public void sendDtmf(final char dtmfDigit, final int duration) {
+        Rlog.d(TAG, "sendDtmf: digit= " + dtmfDigit + ", duration=" + duration);
         Parcel parcel = Parcel.obtain();
-        parcel.writeInt(AudioSession.CMD_START_DTMF);
+        parcel.writeInt(AudioSession.CMD_SEND_DTMF);
         parcel.writeByte((byte)dtmfDigit);
-        parcel.writeInt(volume);
         parcel.writeInt(duration);
-        sendRequest(mSessionId, parcel);
-    }
-
-    /** Stop sending the last DTMF digit */
-    public void stopDtmf() {
-        Rlog.d(TAG, "stopDtmf");
-        Parcel parcel = Parcel.obtain();
-        parcel.writeInt(AudioSession.CMD_STOP_DTMF);
         sendRequest(mSessionId, parcel);
     }
 

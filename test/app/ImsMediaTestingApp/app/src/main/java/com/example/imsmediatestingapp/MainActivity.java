@@ -70,6 +70,7 @@ public class MainActivity extends AppCompatActivity {
     private static final int TX_CODEC_MODE_REQUEST = 15;
     private static final int DTMF_PAYLOAD_TYPE_NUMBER = 100;
     private static final int DTMF_SAMPLING_RATE_KHZ = 16;
+    private static final int DTMF_DURATION = 140;
 
     private static final float DISABLED_ALPHA = 0.3f;
     private static final float ENABLED_ALPHA = 1.0f;
@@ -874,8 +875,7 @@ public class MainActivity extends AppCompatActivity {
         TextView dtmfInputBox = bottomSheetDialog.getDtmfInput();
         dtmfInputBox.setText(dtmfInput.toString());
 
-        audioSession.startDtmf(digit, 50, 3);
-        audioSession.stopDtmf();
+        audioSession.sendDtmf(digit, DTMF_DURATION);
     }
 
     /**
