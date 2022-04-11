@@ -421,8 +421,8 @@ public class MainActivity extends AppCompatActivity {
         }
 
         @Override
-        public void notifyMediaInactivity(int packetType, int duration) {
-            super.notifyMediaInactivity(packetType, duration);
+        public void notifyMediaInactivity(int packetType) {
+            super.notifyMediaInactivity(packetType);
         }
 
         @Override
