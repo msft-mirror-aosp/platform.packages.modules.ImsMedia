@@ -16,7 +16,6 @@
 
 #include <stdio.h>
 #include <sys/time.h>
-//#include <sys/timeb.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
@@ -34,6 +33,10 @@
 #include <media/stagefright/foundation/ALooper.h>
 #include <thread>
 
+#define NANOS_PER_SECOND 1000000000L
+#define AAUDIO_NANOS_PER_MILLISECOND 1000000L
+#define NUM_FRAMES_PER_SEC 50
+
 using android::status_t;
 using android::ALooper;
 using android::AMessage;
@@ -41,156 +44,59 @@ using android::AString;
 using android::Vector;
 using android::MediaCodecBuffer;
 
-#ifdef ANDROID_VOICE_INTERFACE_V2
-#include <system/audio.h>
-#endif
-
-#ifdef CALL_AUDIOSYSTEM_SETPHONE_STATE
-#include <media/AudioSystem.h>
-#endif
-
 using namespace android;
 
 #define AMR_BUFFER_SIZE 31
 #define AMRWB_BUFFER_SIZE 60
-#define SAMPLING_RATE 8000
-#ifdef DEBUG_PCM_DUMP
-uint8_t *g_pPCMDump; // location pointer for PCM Dump
-int32_t g_iStoredDumpSize; // the size of stored PCM Dump size
-uint32_t g_amr_mode;
-#endif
+#define DEFAULT_SAMPLING_RATE 8000
 
 ImsMediaVoiceSource::ImsMediaVoiceSource() {
-    m_pUplinkCB = NULL;
-    m_AudioRecord = NULL;
-    mWavFile = NULL;
-#ifdef CALL_AUDIOSYSTEM_SETPHONE_STATE
-    AudioSystem::setCallModeInfo(2);
-    AudioSystem::setPhoneState(AUDIO_MODE_VOIP_CALL);
-#endif
+    mUplinkCB = NULL;
+    mAudioStream = NULL;
+    mBufferSize = 0;
+    mSamplingRate = DEFAULT_SAMPLING_RATE;
 }
 
 ImsMediaVoiceSource::~ImsMediaVoiceSource() {
-#ifdef CALL_AUDIOSYSTEM_SETPHONE_STATE
-    AudioSystem::setCallModeInfo(0);
-    AudioSystem::setPhoneState(AUDIO_MODE_NORMAL);
-#endif
 }
 
 void ImsMediaVoiceSource::SetUplinkCallback(void* pClient, AudioUplinkCB pUplinkCB) {
-    std::lock_guard<std::mutex> guard(m_mutexUplink);
-    m_pUplinkCBClient = pClient;
-    m_pUplinkCB = pUplinkCB;
+    std::lock_guard<std::mutex> guard(mMutexUplink);
+    mUplinkCBClient = pClient;
+    mUplinkCB = pUplinkCB;
 }
 
 void ImsMediaVoiceSource::SetCodec(int32_t type) {
     IMLOGD1("[SetCodec] type[%d]", type);
-    m_nCodecType = type;
+    mCodecType = type;
 }
 
 void ImsMediaVoiceSource::SetCodecMode(uint32_t mode) {
     IMLOGD1("[SetCodecMode] mode[%d]", mode);
-    m_nMode = mode;
-#ifdef DEBUG_PCM_DUMP
-    g_amr_mode = m_nMode;
-#endif
+    mMode = mode;
 }
 
-void ImsMediaVoiceSource::SetAttributionSource(android::content::AttributionSourceState& source) {
-    mSource = source;
+void ImsMediaVoiceSource::SetPtime(uint32_t time) {
+    IMLOGD1("[SetCodecMode] Ptime[%d]", time);
+    mPtime = time;
 }
 
 bool ImsMediaVoiceSource::Start() {
-    size_t nMinBufferSize;
     status_t err;
-    IMLOGD0("[Start] enter");
-#ifdef DEBUG_PCM_DUMP
-    memset(bPCMDump, 0x00, PCM_DUMP_SIZE); // init
-    IMLOGE1("[Start] dump[%s]", bPCMDump);
-    g_pPCMDump = bPCMDump;
-    g_iStoredDumpSize = 0;
-
-    if ((fPCMDump = fopen(
-        "/data/user_de/0/com.android.telephony.imsmedia/voicefile.wav","w")) == NULL) {
-        IMLOGE0("file open error !");
-    }
-
-    static char header[32];
-    unsigned int header_size = 0;
-    fwrite(header, 1, header_size, fPCMDump);
-#endif
-    //Set AMR Codec Mode
-    //setAudioSystemAmrModeParameter();
-    //Set DTX Mode
-    //AudioSystem::setParameters(0,String8("dtx_on=true"));
-
     char kMimeType[128] = {'\0'};
-    int samplingRate = 8000;
-    if (m_nCodecType == AUDIO_G711_PCMU || m_nCodecType == AUDIO_G711_PCMA) {
-    } else if (m_nCodecType == AUDIO_AMR) {
+    if (mCodecType == AUDIO_G711_PCMU || mCodecType == AUDIO_G711_PCMA) {
+    } else if (mCodecType == AUDIO_AMR) {
         sprintf(kMimeType, "audio/3gpp");
-    } else if (m_nCodecType == AUDIO_AMR_WB) {
-        samplingRate = 16000;
+    } else if (mCodecType == AUDIO_AMR_WB) {
+        mSamplingRate = 16000;
         sprintf(kMimeType, "audio/amr-wb");
     }
 
-    AudioRecord::getMinFrameCount(&nMinBufferSize, samplingRate, AUDIO_FORMAT_PCM,
-        AUDIO_CHANNEL_IN_MONO);
-    IMLOGD1("[Start] nMinBufferSize[%d]", nMinBufferSize);
+    openAudioStream();
 
-    /*
-     * inputSource:        Select the audio input to record from (e.g. AUDIO_SOURCE_DEFAULT).
-     * sampleRate:         Data sink sampling rate in Hz.  Zero means to use the source sample rate.
-     * format:             Audio format (e.g AUDIO_FORMAT_PCM_16_BIT for signed
-     *                     16 bits per sample).
-     * channelMask:        Channel mask, such that audio_is_input_channel(channelMask) is true.
-     * client:             The attribution source of the owner of the record
-     * frameCount:         Minimum size of track PCM buffer in frames. This defines the
-     *                     application's contribution to the
-     *                     latency of the track.  The actual size selected by the AudioRecord could
-     *                     be larger if the requested size is not compatible with current audio HAL
-     *                     latency.  Zero means to use a default value.
-     * cbf:                Callback function. If not null, this function is called periodically
-     *                     to consume new data in TRANSFER_CALLBACK mode
-     *                     and inform of marker, position updates, etc.
-     * user:               Context for use by the callback receiver.
-     * notificationFrames: The callback function is called each time notificationFrames PCM
-     *                     frames are ready in record track output buffer.
-     * sessionId:          Not yet supported.
-     * transferType:       How data is transferred from AudioRecord.
-     * flags:              See comments on audio_input_flags_t in <system/audio.h>
-     * pAttributes:        If not NULL, supersedes inputSource for use case selection.
-     * threadCanCallJava:  Not present in parameter list, and so is fixed at false.
-     */
-    IMLOGD1("[Start] client[%s]", mSource.toString().c_str());
-    m_AudioRecord = new AudioRecord(mSource);
-
-    //m_AudioRecord = new AudioRecord(
-    err = m_AudioRecord->set(AUDIO_SOURCE_VOICE_COMMUNICATION,
-        samplingRate,
-        AUDIO_FORMAT_PCM_16_BIT,
-        AUDIO_CHANNEL_IN_MONO);
-
-    if (err != NO_ERROR) {
-        IMLOGE1("[Start] err[%d]", err);
-        m_AudioRecord.clear();
-        m_AudioRecord = NULL;
-        //return false;
-        //test read pcm file
-        mWavFile = fopen("/data/user_de/0/com.android.telephony.imsmedia/voicesample1.wav","r");
-        if (mWavFile == NULL) {
-            IMLOGE0("[Start] Unable to open wave file");
-            return false;
-        }
-
-        int headerSize = sizeof(wav_hdr);
-        size_t bytesRead = fread(&mWavHeader, 1, headerSize, mWavFile);
-        if (bytesRead > 0) {
-            //print header info
-            IMLOGD4("[Start] chunksize[%d] SamplingRate[%d], Format[%d], bitsPerSample[%d]",
-                mWavHeader.ChunkSize, mWavHeader.SamplesPerSec,
-                mWavHeader.AudioFormat, mWavHeader.bitsPerSample);
-        }
+    if (mAudioStream == NULL) {
+        IMLOGE0("[Start] create audio stream failed");
+        return false;
     }
 
     sp<ALooper> looper = new ALooper;
@@ -198,8 +104,8 @@ bool ImsMediaVoiceSource::Start() {
     looper->start();
     IMLOGD1("[Start] Creating codec[%s]", kMimeType);
 
-    m_MediaCodec = MediaCodec::CreateByType(looper, kMimeType, true);
-    if (m_MediaCodec == NULL) {
+    mMediaCodec = MediaCodec::CreateByType(looper, kMimeType, true);
+    if (mMediaCodec == NULL) {
         IMLOGE1("[Start] unable to create %s codec instance", kMimeType);
         return false;
     }
@@ -211,29 +117,44 @@ bool ImsMediaVoiceSource::Start() {
 
     sp<AMessage> format = new AMessage();
     format->setString(KEY_MIME, kMimeType);
-    format->setInt32(KEY_SAMPLE_RATE, samplingRate);
+    format->setInt32(KEY_SAMPLE_RATE, mSamplingRate);
     format->setInt32(KEY_CHANNEL_COUNT, 1);
-    if (m_nCodecType == AUDIO_AMR) {
-        format->setInt32(KEY_BIT_RATE, ImsMediaAudioFmt::GetBitrateAmr(m_nMode));
-    } else if (m_nCodecType == AUDIO_AMR_WB) {
-        format->setInt32(KEY_BIT_RATE, ImsMediaAudioFmt::GetBitrateAmrWb(m_nMode));
+    if (mCodecType == AUDIO_AMR) {
+        format->setInt32(KEY_BIT_RATE, ImsMediaAudioFmt::GetBitrateAmr(mMode));
+    } else if (mCodecType == AUDIO_AMR_WB) {
+        format->setInt32(KEY_BIT_RATE, ImsMediaAudioFmt::GetBitrateAmrWb(mMode));
     }
 
-    err = m_MediaCodec->configure(format, NULL, NULL, MediaCodec::CONFIGURE_FLAG_ENCODE);
+    err = mMediaCodec->configure(format, NULL, NULL, MediaCodec::CONFIGURE_FLAG_ENCODE);
     if (err != NO_ERROR) {
         IMLOGE2("[Start] unable to configure[%s] codec - err[%d]", kMimeType, err);
-        m_MediaCodec->release();
+        mMediaCodec->release();
         return false;
     }
 
-    if (m_AudioRecord != NULL) {
-        m_AudioRecord->start();
+    aaudio_stream_state_t inputState = AAUDIO_STREAM_STATE_STARTING;
+    aaudio_stream_state_t nextState = AAUDIO_STREAM_STATE_UNINITIALIZED;
+    int64_t timeoutNanos = 300 * AAUDIO_NANOS_PER_MILLISECOND;
+    aaudio_result_t result = AAudioStream_requestStart(mAudioStream);
+    if (result != AAUDIO_OK) {
+        IMLOGE1("[Start] Error start stream[%s]", AAudio_convertResultToText(result));
+        mMediaCodec->release();
+        return false;
     }
 
-    err = m_MediaCodec->start();
+    result = AAudioStream_waitForStateChange(mAudioStream, inputState, &nextState, timeoutNanos);
+    if (result != AAUDIO_OK) {
+        IMLOGE1("[Start] Error start stream[%s]", AAudio_convertResultToText(result));
+        mMediaCodec->release();
+        return false;
+    }
+
+    IMLOGD1("[Start] start stream state[%s]", AAudio_convertStreamStateToText(nextState));
+
+    err = mMediaCodec->start();
     if (err != NO_ERROR) {
         IMLOGE1("[Start] unable to start codec - err[%d]", err);
-        m_MediaCodec->release();
+        mMediaCodec->release();
         return false;
     }
 
@@ -247,27 +168,27 @@ bool ImsMediaVoiceSource::Start() {
 
 void ImsMediaVoiceSource::Stop() {
     IMLOGD0("[Stop] Enter");
-    m_mutexUplink.lock();
+    std::lock_guard<std::mutex> guard(mMutexUplink);
     StopThread();
-    m_AudioRecord->stop();
-    m_AudioRecord.clear();
-    m_AudioRecord = NULL;
-    if (m_MediaCodec != NULL) {
-        m_MediaCodec->stop();
-        m_MediaCodec->release();
-        m_MediaCodec = NULL;
-    }
-    m_mutexUplink.unlock();
-#ifdef DEBUG_PCM_DUMP
-    if (fwrite(bPCMDump, sizeof(uint8_t), g_iStoredDumpSize, fPCMDump) == -1) {
-        IMLOGD("file write error !");
+    aaudio_stream_state_t inputState = AAUDIO_STREAM_STATE_STOPPING;
+    aaudio_stream_state_t nextState = AAUDIO_STREAM_STATE_UNINITIALIZED;
+    int64_t timeoutNanos = 100 * AAUDIO_NANOS_PER_MILLISECOND;
+    aaudio_result_t result = AAudioStream_requestStop(mAudioStream);
+    result = AAudioStream_waitForStateChange(mAudioStream, inputState, &nextState, timeoutNanos);
+    if (result != AAUDIO_OK) {
+        IMLOGE1("[Stop] Error stop stream[%s]", AAudio_convertResultToText(result));
     }
 
-    IMLOGE1("[Stop] dumpsize[%d]", g_iStoredDumpSize);
-    fclose(fPCMDump);
-#endif
-    if (mWavFile != NULL) {
-        fclose(mWavFile);
+    IMLOGD1("[Stop] Stop stream state[%s]",
+        AAudio_convertStreamStateToText(nextState));
+
+    AAudioStream_close(mAudioStream);
+    mAudioStream = NULL;
+
+    if (mMediaCodec != NULL) {
+        mMediaCodec->stop();
+        mMediaCodec->release();
+        mMediaCodec = NULL;
     }
     IMLOGD0("[Stop] Exit");
 }
@@ -278,168 +199,266 @@ bool ImsMediaVoiceSource::ProcessCMR(uint32_t mode) {
     // do nothing
 }
 
+aaudio_data_callback_result_t ImsMediaVoiceSource::uplinkCallback(AAudioStream *stream,
+    void *userData, void *audioData, int32_t numFrames) {
+    (void)stream;
+    if (userData == NULL || audioData == NULL) return AAUDIO_CALLBACK_RESULT_STOP;
+    IMLOGD1("[uplinkCallback] size[%d]", numFrames);
+    ImsMediaVoiceSource *voice = reinterpret_cast<ImsMediaVoiceSource*>(userData);
+    voice->queueInputBuffer(reinterpret_cast<uint16_t*>(audioData), numFrames);
+    return AAUDIO_CALLBACK_RESULT_CONTINUE;
+}
+
+void ImsMediaVoiceSource::errorCallback(AAudioStream *stream, void *userData,
+    aaudio_result_t error) {
+    if (stream == NULL || userData == NULL) return;
+
+    aaudio_stream_state_t streamState = AAudioStream_getState(stream);
+    IMLOGW2("[errorCallback] error[%s], state[%d]", AAudio_convertResultToText(error), streamState);
+
+    if (streamState == AAUDIO_STREAM_STATE_DISCONNECTED) {
+        // Handle stream restart on a separate thread
+        std::thread streamRestartThread(&ImsMediaVoiceSource::restartAudioStream,
+            reinterpret_cast<ImsMediaVoiceSource*>(userData));
+        streamRestartThread.detach();
+    }
+}
+
 void* ImsMediaVoiceSource::run() {
     IMLOGD0("[run] enter");
     uint32_t nNextTime = ImsMediaTimer::GetTimeInMilliSeconds();
 
     for (;;) {
         uint32_t nCurrTime;
-        m_mutexUplink.lock();
+        mMutexUplink.lock();
         if (IsThreadStopped()) {
             IMLOGD0("[run] terminated");
-            m_mutexUplink.unlock();
+            mMutexUplink.unlock();
             break;
         }
-        m_mutexUplink.unlock();
+        mMutexUplink.unlock();
 
-        int32_t readSize = 0;
-        //get PCM
-        if (m_AudioRecord != NULL) {
-            readSize = m_AudioRecord->read(m_pbBuffer, PCM_BUFFER_SIZE, false);
-        } else {
-            uint16_t bytePerSample = mWavHeader.bitsPerSample / 8;
-            readSize = fread(m_pbBuffer, bytePerSample, 1, mWavFile);
+        if (mAudioStream != NULL &&
+            AAudioStream_getState(mAudioStream) == AAUDIO_STREAM_STATE_STARTED) {
+            aaudio_result_t readSize = AAudioStream_read(mAudioStream, mBuffer, mBufferSize, 0);
+            IMLOGD_PACKET1(IM_PACKET_LOG_AUDIO, "[run] nReadSize[%d]", readSize);
+            queueInputBuffer(mBuffer, readSize);
         }
 
-        queueInputBuffer(m_pbBuffer, readSize);
-
-        nNextTime += 20;
+        nNextTime += mPtime;
         nCurrTime = ImsMediaTimer::GetTimeInMilliSeconds();
-        IMLOGD1("[run] nCurrTime[%u]", nCurrTime);
+        IMLOGD_PACKET1(IM_PACKET_LOG_AUDIO, "[run] nCurrTime[%u]", nCurrTime);
         if (nNextTime > nCurrTime) ImsMediaTimer::Sleep(nNextTime - nCurrTime);
     }
 
     return NULL;
 }
 
-void ImsMediaVoiceSource::queueInputBuffer(uint8_t* buffer, int32_t nSize) {
-    IMLOGD0("[processUplinkThread] enter");
-    std::lock_guard<std::mutex> guard(m_mutexUplink);
+void ImsMediaVoiceSource::openAudioStream() {
+    AAudioStreamBuilder *builder = NULL;
+    aaudio_result_t result = AAudio_createStreamBuilder(&builder);
+    if (result != AAUDIO_OK) {
+        IMLOGE1("[openAudioStream] Error creating stream builder[%s]",
+            AAudio_convertResultToText(result));
+        return;
+    }
+
+    //setup builder
+    AAudioStreamBuilder_setInputPreset(builder, AAUDIO_INPUT_PRESET_VOICE_COMMUNICATION);
+    AAudioStreamBuilder_setDirection(builder, AAUDIO_DIRECTION_INPUT);
+    AAudioStreamBuilder_setFormat(builder, AAUDIO_FORMAT_PCM_I16);
+    AAudioStreamBuilder_setChannelCount(builder, 1);
+    AAudioStreamBuilder_setSampleRate(builder, mSamplingRate);
+    AAudioStreamBuilder_setSharingMode(builder, AAUDIO_SHARING_MODE_EXCLUSIVE);
+    AAudioStreamBuilder_setPerformanceMode(builder, AAUDIO_PERFORMANCE_MODE_LOW_LATENCY);
+    AAudioStreamBuilder_setUsage(builder, AAUDIO_USAGE_VOICE_COMMUNICATION);
+    AAudioStreamBuilder_setErrorCallback(builder, errorCallback, this);
+
+    int numFramesPerSec = 0;
+    mPtime == 0 ? numFramesPerSec = NUM_FRAMES_PER_SEC : numFramesPerSec = 1000 / mPtime;
+
+    //open stream
+    result = AAudioStreamBuilder_openStream(builder, &mAudioStream);
+    AAudioStreamBuilder_delete(builder);
+
+    if (result == AAUDIO_OK && mAudioStream != NULL) {
+        mBufferSize = AAudioStream_getFramesPerBurst(mAudioStream);
+        IMLOGD3("[openAudioStream] samplingRate[%d], framesPerBurst[%d], framesPerData[%d]",
+            AAudioStream_getSampleRate(mAudioStream), mBufferSize,
+            AAudioStream_getFramesPerDataCallback(mAudioStream));
+        switch (AAudioStream_getPerformanceMode(mAudioStream)) {
+            case AAUDIO_PERFORMANCE_MODE_LOW_LATENCY:
+                IMLOGD0("[openAudioStream] getPerformanceMode : low latency");
+                break;
+            case AAUDIO_PERFORMANCE_MODE_POWER_SAVING:
+                IMLOGD0("[openAudioStream] getPerformanceMode : power saving");
+                break;
+            default:
+                break;
+        }
+        // Set the buffer size to the burst size - this will give us the minimum possible latency
+        AAudioStream_setBufferSizeInFrames(mAudioStream, mBufferSize);
+    } else {
+        IMLOGE1("[openAudioStream] Failed to openStream. Error[%s]",
+            AAudio_convertResultToText(result));
+    }
+}
+
+void ImsMediaVoiceSource::restartAudioStream() {
+    std::lock_guard<std::mutex> guard(mMutexUplink);
+    if (mAudioStream == NULL) return;
+
+    AAudioStream_requestStop(mAudioStream);
+    AAudioStream_close(mAudioStream);
+    openAudioStream();
+
+    if (mAudioStream == NULL) return;
+
+    aaudio_stream_state_t inputState = AAUDIO_STREAM_STATE_STARTING;
+    aaudio_stream_state_t nextState = AAUDIO_STREAM_STATE_UNINITIALIZED;
+    int64_t timeoutNanos = 300 * AAUDIO_NANOS_PER_MILLISECOND;
+    aaudio_result_t result = AAudioStream_requestStart(mAudioStream);
+    if (result != AAUDIO_OK) {
+        IMLOGE1("[restartAudioStream] Error start stream[%s]",
+            AAudio_convertResultToText(result));
+        return;
+    }
+
+    result = AAudioStream_waitForStateChange(mAudioStream, inputState, &nextState, timeoutNanos);
+    if (result != AAUDIO_OK) {
+        IMLOGE1("[restartAudioStream] Error start stream[%s]",
+            AAudio_convertResultToText(result));
+        return;
+    }
+
+    IMLOGD1("[restartAudioStream] start stream state[%s]",
+        AAudio_convertStreamStateToText(nextState));
+}
+
+void ImsMediaVoiceSource::queueInputBuffer(uint16_t* buffer, int32_t nSize) {
+    std::lock_guard<std::mutex> guard(mMutexUplink);
     static int kTimeout = 100000;   // be responsive on signal
     status_t err;
     size_t bufIndex;
 
-    IMLOGD_PACKET1(IM_PACKET_LOG_AUDIO, "[processUplinkThread] size[%d]", nSize);
-
-    if (nSize <= 0 || buffer == NULL || m_MediaCodec == NULL) {
+    if (nSize <= 0 || buffer == NULL || mMediaCodec == NULL) {
         return;
     }
 
+    int byteSize = nSize * sizeof(buffer[0]);
+
     //process input buffer
     Vector<sp<MediaCodecBuffer>> inputBuffers;
-    err = m_MediaCodec->getInputBuffers(&inputBuffers);
+    err = mMediaCodec->getInputBuffers(&inputBuffers);
     if (err == NO_ERROR) {
-        err = m_MediaCodec->dequeueInputBuffer(&bufIndex, kTimeout);
+        err = mMediaCodec->dequeueInputBuffer(&bufIndex, kTimeout);
 
         if (err == NO_ERROR) {
-            memcpy(inputBuffers[bufIndex]->data(), buffer, nSize);
-            IMLOGD_PACKET1(IM_PACKET_LOG_AUDIO,
-                "[processUplinkThread] queue input buffer size[%d]", nSize);
+            memcpy(inputBuffers[bufIndex]->data(), buffer, byteSize);
+            IMLOGD_PACKET2(IM_PACKET_LOG_AUDIO,
+                "[queueInputBuffer] queue input buffer index[%d], size[%d]", bufIndex, byteSize);
 
-            err = m_MediaCodec->queueInputBuffer(bufIndex, 0, nSize,
+            err = mMediaCodec->queueInputBuffer(bufIndex, 0, byteSize,
                 ImsMediaTimer::GetTimeInMicroSeconds(),
                 MediaCodec::BUFFER_FLAG_SYNCFRAME);
 
             if (err != NO_ERROR) {
-                IMLOGE1("[processUplinkThread] Unable to get input buffers - err[%d]", err);
+                IMLOGE1("[queueInputBuffer] Unable to get input buffers - err[%d]", err);
             }
         }
     } else {
-        IMLOGE1("[processUplinkThread] Unable to get input buffers - err[%d]", err);
+        IMLOGE1("[queueInputBuffer] Unable to get input buffers - err[%d]", err);
     }
 }
 
 void ImsMediaVoiceSource::processOutputBuffer() {
-    IMLOGD0("[processOutputBuffer] enter");
     size_t bufIndex, offset, size;
     static int kTimeout = 100000;   // be responsive on signal
     int64_t ptsUsec;
     uint32_t flags;
     status_t err;
+    uint32_t nNextTime = ImsMediaTimer::GetTimeInMilliSeconds();
 
     for (;;) {
-        m_mutexUplink.lock();
-        if (IsThreadStopped()) {
+        uint32_t nCurrTime;
+        mMutexUplink.lock();
+        if (IsThreadStopped() || mAudioStream == NULL || mMediaCodec == NULL) {
             IMLOGD0("[processOutputBuffer] terminated");
-            m_mutexUplink.unlock();
+            mMutexUplink.unlock();
             break;
         }
-        m_mutexUplink.unlock();
+        mMutexUplink.unlock();
+
         //process output buffer
         Vector<sp<MediaCodecBuffer>> outputBuffers;
-        err = m_MediaCodec->getOutputBuffers(&outputBuffers);
-        if (err != NO_ERROR) {
-            IMLOGE1("[processOutputBuffer] Unable to get output buffers - err[%d]", err);
-            continue;
-        }
+        err = mMediaCodec->getOutputBuffers(&outputBuffers);
 
-        err = m_MediaCodec->dequeueOutputBuffer(&bufIndex, &offset, &size, &ptsUsec,
-                &flags, kTimeout);
+        if (err == NO_ERROR) {
+            err = mMediaCodec->dequeueOutputBuffer(&bufIndex, &offset, &size, &ptsUsec,
+                    &flags, kTimeout);
 
-        switch (err) {
-            case NO_ERROR:
-                // got a buffer
-                if ((flags & MediaCodec::BUFFER_FLAG_CODECCONFIG) != 0) {
-                    IMLOGD_PACKET1(IM_PACKET_LOG_AUDIO,
-                        "[processOutputBuffer] Got codec config buffer (%zu bytes)", size);
-                }
-
-                if (size != 0) {
-                    IMLOGD_PACKET3(IM_PACKET_LOG_AUDIO,
-                        "[processOutputBuffer] Got data in buffer[%zu], size[%zu], pts=%" PRId64,
-                        bufIndex, size, ptsUsec);
-
-                    if (ptsUsec == 0) {
-                        ptsUsec = ImsMediaTimer::GetTimeInMicroSeconds() / 1000;
+            switch (err) {
+                case NO_ERROR:
+                    // got a buffer
+                    if ((flags & MediaCodec::BUFFER_FLAG_CODECCONFIG) != 0) {
+                        IMLOGD_PACKET1(IM_PACKET_LOG_AUDIO,
+                            "[processOutputBuffer] Got codec config buffer (%zu bytes)", size);
                     }
 
-                    //call encoding here
-                    m_pUplinkCB(m_pUplinkCBClient, outputBuffers[bufIndex]->data(), size,
-                        ptsUsec, flags);
-    #ifdef DEBUG_PCM_DUMP
-                    memcpy(g_pPCMDump+g_iStoredDumpSize, outputBuffers[bufIndex]->data(), size);
-                    g_iStoredDumpSize += readSize;
-    #endif
-                }
-                err = m_MediaCodec->releaseOutputBuffer(bufIndex);
+                    if (size != 0) {
+                        IMLOGD_PACKET3(IM_PACKET_LOG_AUDIO,
+                            "[processOutputBuffer] Got data in buffer[%zu], size[%zu], pts=%ld",
+                            bufIndex, size, ptsUsec);
 
-                if (err != NO_ERROR) {
-                    IMLOGE1("[processOutputBuffer] Unable to release output buffer - err[%d]", err);
-                    continue;
-                }
+                        if (ptsUsec == 0) {
+                            ptsUsec = ImsMediaTimer::GetTimeInMicroSeconds() / 1000;
+                        }
 
-                if ((flags & MediaCodec::BUFFER_FLAG_EOS) != 0) {
-                    // Not expecting EOS from SurfaceFlinger.  Go with it.
-                    IMLOGD_PACKET0(IM_PACKET_LOG_AUDIO,
-                        "[processOutputBuffer] Received end-of-stream");
-                }
-                break;
-            case -EAGAIN:                       // INFO_TRY_AGAIN_LATER
-                IMLOGD_PACKET0(IM_PACKET_LOG_AUDIO, "Got -EAGAIN, looping");
-                break;
-            case android::INFO_FORMAT_CHANGED:    // INFO_OUTPUT_FORMAT_CHANGED
-                {
-                    // Format includes CSD, which we must provide to muxer.
-                    IMLOGD0("[processOutputBuffer] Encoder format changed");
-                    //sp<AMessage> newFormat;
-                    //m_MediaCodec->getOutputFormat(&newFormat);
-                }
-                break;
-            case android::INFO_OUTPUT_BUFFERS_CHANGED:   // INFO_OUTPUT_BUFFERS_CHANGED
-                // Not expected for an encoder; handle it anyway.
-                IMLOGD0("[processOutputBuffer] Encoder buffers changed");
-                err = m_MediaCodec->getOutputBuffers(&outputBuffers);
-                if (err != NO_ERROR) {
-                    IMLOGE1("Unable to get new output buffers - err[%d]", err);
-                    continue;
-                }
-                break;
-            case INVALID_OPERATION:
-                IMLOGD0("[processOutputBuffer] dequeueOutputBuffer returned INVALID_OPERATION");
-                continue;
-            default:
-                IMLOGE1("[processOutputBuffer] Got weird result[%d] from dequeueOutputBuffer", err);
-                continue;
+                        //call encoding here
+                        mUplinkCB(mUplinkCBClient, outputBuffers[bufIndex]->data(), size,
+                            ptsUsec, flags);
+                    }
+
+                    err = mMediaCodec->releaseOutputBuffer(bufIndex);
+
+                    if ((flags & MediaCodec::BUFFER_FLAG_EOS) != 0) {
+                        IMLOGD_PACKET0(IM_PACKET_LOG_AUDIO,
+                            "[processOutputBuffer] Received end-of-stream");
+                    }
+                    break;
+                case -EAGAIN:                       // INFO_TRY_AGAIN_LATER
+                    IMLOGD_PACKET0(IM_PACKET_LOG_AUDIO, "Got -EAGAIN, looping");
+                    break;
+                case android::INFO_FORMAT_CHANGED:    // INFO_OUTPUT_FORMAT_CHANGED
+                    {
+                        // Format includes CSD, which we must provide to muxer.
+                        IMLOGD0("[processOutputBuffer] Encoder format changed");
+                        //sp<AMessage> newFormat;
+                        //mMediaCodec->getOutputFormat(&newFormat);
+                    }
+                    break;
+                case android::INFO_OUTPUT_BUFFERS_CHANGED:   // INFO_OUTPUT_BUFFERS_CHANGED
+                    // Not expected for an encoder; handle it anyway.
+                    IMLOGD0("[processOutputBuffer] Encoder buffers changed");
+                    err = mMediaCodec->getOutputBuffers(&outputBuffers);
+                    if (err != NO_ERROR) {
+                        IMLOGW1("[processOutputBuffer] Unable to get new output buffers - err[%d]",
+                            err);
+                    }
+                    break;
+                case INVALID_OPERATION:
+                    IMLOGW0("[processOutputBuffer] dequeueOutputBuffer returned INVALID_OPERATION");
+                    break;
+                default:
+                    IMLOGE1("[processOutputBuffer] Got weird result[%d] from dequeueOutputBuffer",
+                        err);
+                    break;
+            }
+
+            nNextTime += mPtime;
+            nCurrTime = ImsMediaTimer::GetTimeInMilliSeconds();
+            IMLOGD_PACKET1(IM_PACKET_LOG_AUDIO, "[processOutputBuffer] nCurrTime[%u]", nCurrTime);
+            if (nNextTime > nCurrTime) ImsMediaTimer::Sleep(nNextTime - nCurrTime);
         }
     }
 }

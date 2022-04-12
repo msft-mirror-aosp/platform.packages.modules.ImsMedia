@@ -24,8 +24,6 @@ import android.telephony.imsmedia.AudioConfig;
 import android.telephony.imsmedia.MediaQualityThreshold;
 import android.telephony.ims.RtpHeaderExtension;
 import android.telephony.Rlog;
-import android.content.AttributionSource;
-import android.content.AttributionSource.ScopedParcelState;
 import com.android.telephony.imsmedia.Utils.OpenSessionParams;
 import android.telephony.imsmedia.ImsMediaSession;
 
@@ -42,25 +40,7 @@ public class AudioService {
     private AudioListener mListener = null;
 
     AudioService() {
-        /**
-         * Retrieves attribution source and add audio mic permission if
-         * there is no mic permission acquired in the process
-         */
-        AttributionSource attributionSource = AttributionSource.myAttributionSource();
-        if (attributionSource.getPackageName() == null) {
-            attributionSource = attributionSource.withPackageName("uid:" + Binder.getCallingUid());
-        }
-        HashSet<String> setPermission = new HashSet<String>();
-        setPermission.add("android.permission.RECORD_AUDIO");
-        AttributionSource attributionSource2 = new AttributionSource(attributionSource.getUid(),
-            attributionSource.getPackageName(), attributionSource.getAttributionTag(),
-            setPermission, attributionSource.getNext());
-        try (ScopedParcelState attributionSourceState = attributionSource2.asScopedParcelState()) {
-            mNativeObject = JNIImsMediaService.getInterface(
-                ImsMediaSession.SESSION_TYPE_AUDIO, attributionSourceState.getParcel());
-        } catch (Exception e) {
-            Rlog.e(LOG_TAG, "exception=" + e);
-        }
+        mNativeObject = JNIImsMediaService.getInterface(ImsMediaSession.SESSION_TYPE_AUDIO);
     }
 
     /** Returns the native instance identifier of VoiceManager in libimsmedia*/

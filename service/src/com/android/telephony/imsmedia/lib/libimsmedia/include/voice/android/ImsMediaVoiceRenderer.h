@@ -18,24 +18,19 @@
 #define AUDIO_TRACK_H_INCLUDED
 
 #include <ImsMediaAudioDefine.h>
-#include <media/AudioTrack.h>
+#include <aaudio/AAudio.h>
 #include <media/stagefright/MediaCodec.h>
-#include <mutex>
 
 using android::sp;
-using android::AudioTrack;
 using android::MediaCodec;
 
 class ImsMediaVoiceRenderer {
 private:
-    sp<AudioTrack> m_AudioTrack;
-    sp<MediaCodec> m_MediaCodec;
-    int32_t m_nCodecType;
-    uint32_t m_amr_mode;
-#ifdef DEBUG_PCM_DUMP
-    FILE    *fPCMDump; // file pointer for PCM Dump
-    uint8_t bPCMDump[PCM_DUMP_SIZE];  // buffer of PCM Dump
-#endif
+    AAudioStream* mAudioStream;
+    sp<MediaCodec> mMediaCodec;
+    int32_t mCodecType;
+    uint32_t mCodecMode;
+    uint16_t mBuffer[PCM_BUFFER_SIZE];
 
 public:
     ImsMediaVoiceRenderer();

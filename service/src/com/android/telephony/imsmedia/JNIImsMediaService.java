@@ -40,10 +40,9 @@ public class JNIImsMediaService {
      * Gets instance object of BaseManager with the corresponding media type
      *
      * @param mediatype Audio/Video/Text type
-     * @param attributionSource permission information of the current process
      * @return
      */
-    public static native long getInterface(int mediatype, Parcel attributionSource);
+    public static native long getInterface(int mediatype);
 
     /**
      * Send message to libimsmediajni to operate libimsmedia library to operate with corresponding

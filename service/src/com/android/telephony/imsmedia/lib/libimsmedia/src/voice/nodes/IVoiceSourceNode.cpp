@@ -46,10 +46,10 @@ BaseNodeID IVoiceSourceNode::GetNodeID() {
 ImsMediaResult IVoiceSourceNode::Start() {
     IMLOGD2("[Start] codec[%d], mode[%d]", mCodecType, mMode);
     if (mVoiceSource) {
-        mVoiceSource->SetAttributionSource(mSource);
         mVoiceSource->SetUplinkCallback(this, IVoiceSourceNode::CB_AudioUplink);
         mVoiceSource->SetCodec(mCodecType);
         mVoiceSource->SetCodecMode(mMode);
+        mVoiceSource->SetPtime(mPtime);
         if (mVoiceSource->Start() == true) {
             m_bFirstFrame = false;
         }
@@ -82,6 +82,7 @@ void IVoiceSourceNode::SetConfig(void* config) {
     if (mCodecType == AUDIO_AMR || mCodecType == AUDIO_AMR_WB) {
         SetCodecMode(pConfig->getAmrParams().getAmrMode());
     }
+    mPtime = pConfig->getPtimeMillis();
 }
 
 bool IVoiceSourceNode::IsSameConfig(void* config) {
@@ -101,10 +102,6 @@ bool IVoiceSourceNode::IsSameConfig(void* config) {
     }
 
     return false;
-}
-
-void IVoiceSourceNode::SetAttributeSource(android::content::AttributionSourceState& source) {
-    mSource = source;
 }
 
 void IVoiceSourceNode::SetCodec(int32_t type) {

@@ -23,7 +23,6 @@
 #include <AudioConfig.h>
 #include <MediaQualityThreshold.h>
 #include <unordered_map>
-#include <android/content/AttributionSourceState.h>
 
 using namespace std;
 using namespace android::telephony::imsmedia;
@@ -58,8 +57,6 @@ public:
     };
 
     static VoiceManager* getInstance();
-    static void setAttributeSource(const android::content::AttributionSourceState& client);
-    static android::content::AttributionSourceState& getAttributeSource();
     virtual void sendMessage(const int sessionId, const android::Parcel& parcel);
 
 private:
@@ -77,7 +74,6 @@ private:
     void setMediaQualityThreshold(int sessionId, MediaQualityThreshold* threshold);
 
     static VoiceManager* sManager;
-    static android::content::AttributionSourceState mAttributionSource;
     std::unordered_map<int, std::unique_ptr<AudioSession>> mSessions;
     RequestHandler mRequestHandler;
     ResponseHandler mResponseHandler;
