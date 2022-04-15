@@ -17,10 +17,9 @@
 package com.android.telephony.imsmedia;
 
 import android.hardware.radio.ims.media.IImsMediaSessionListener;
-import android.hardware.radio.ims.media.RtpHeaderExtension;
 import android.hardware.radio.ims.media.RtpConfig;
+import android.hardware.radio.ims.media.RtpHeaderExtension;
 import android.os.Handler;
-
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -30,6 +29,16 @@ import java.util.stream.Collectors;
 final class AudioOffloadListener extends IImsMediaSessionListener.Stub {
     private static final int UNUSED = -1;
     private Handler handler;
+
+    @Override
+    public String getInterfaceHash() {
+        return IImsMediaSessionListener.HASH;
+    }
+
+    @Override
+    public int getInterfaceVersion() {
+        return IImsMediaSessionListener.VERSION;
+    }
 
     @Override
     public void onSessionChanged(int state) {
