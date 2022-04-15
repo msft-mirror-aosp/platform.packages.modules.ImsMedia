@@ -16,18 +16,17 @@
 
 package com.android.telephony.imsmedia;
 
+import android.hardware.radio.ims.media.IImsMedia;
+import android.hardware.radio.ims.media.IImsMediaListener;
+import android.hardware.radio.ims.media.IImsMediaSession;
+import android.hardware.radio.ims.media.LocalEndPoint;
+import android.hardware.radio.ims.media.RtpAddress;
+import android.hardware.radio.ims.media.RtpConfig;
 import android.os.IBinder;
 import android.os.RemoteException;
 import android.os.ServiceManager;
-import android.telephony.imsmedia.AudioConfig;
 import android.telephony.Rlog;
-import android.hardware.radio.ims.media.IImsMedia;
-import android.hardware.radio.ims.media.IImsMediaSession;
-import android.hardware.radio.ims.media.IImsMediaListener;
-import android.hardware.radio.ims.media.LocalEndPoint;
-import android.hardware.radio.ims.media.RtpConfig;
-import android.hardware.radio.ims.media.RtpAddress;
-
+import android.telephony.imsmedia.AudioConfig;
 import com.android.telephony.imsmedia.Utils.OpenSessionParams;
 
 /**
@@ -113,6 +112,17 @@ public class AudioOffloadService {
     }
 
     private class ImsMediaListener extends IImsMediaListener.Stub {
+
+        @Override
+        public String getInterfaceHash() {
+            return IImsMediaListener.HASH;
+        }
+
+        @Override
+        public int getInterfaceVersion() {
+            return IImsMediaListener.VERSION;
+        }
+
         @Override
         public void onOpenSessionSuccess(int sessionId, IImsMediaSession session) {
             mMediaControllerCallback.onOpenSessionSuccess(sessionId, session);
