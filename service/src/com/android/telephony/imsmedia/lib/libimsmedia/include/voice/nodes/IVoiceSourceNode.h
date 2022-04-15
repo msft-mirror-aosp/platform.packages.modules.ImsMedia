@@ -19,7 +19,6 @@
 
 #include <BaseNode.h>
 #include <ImsMediaVoiceSource.h>
-#include <android/content/AttributionSourceState.h>
 
 /**
  * @brief      This class is interface between device and ims media framework packetization module
@@ -39,7 +38,6 @@ public:
     virtual bool IsSourceNode();
     virtual void SetConfig(void* config);
     virtual bool IsSameConfig(void* config);
-    void SetAttributeSource(android::content::AttributionSourceState& source);
     void SetCodec(int32_t type);
     void SetCodecMode(uint32_t mode);
     static void CB_AudioUplink(void* pClient, uint8_t* pBitstream, uint32_t pnSize,
@@ -50,9 +48,9 @@ public:
     uint64_t m_uiPrevTimestamp;
     bool m_bFirstFrame;
     std::unique_ptr<ImsMediaVoiceSource> mVoiceSource;
-    android::content::AttributionSourceState mSource;
     int32_t mCodecType;
     uint32_t mMode;
+    uint32_t mPtime;
 };
 
 #endif

@@ -21,7 +21,6 @@
 using namespace android;
 
 VoiceManager* VoiceManager::sManager = NULL;
-android::content::AttributionSourceState VoiceManager::mAttributionSource;
 
 VoiceManager::VoiceManager() {
 }
@@ -34,16 +33,6 @@ VoiceManager* VoiceManager::getInstance() {
         sManager = new VoiceManager();
     }
     return sManager;
-}
-
-void VoiceManager::setAttributeSource(const android::content::AttributionSourceState& client) {
-    IMLOGD1("[setAttributeSource] client[%s]", client.toString().c_str());
-    mAttributionSource = client;
-    IMLOGD1("[setAttributeSource] client[%s]", mAttributionSource.toString().c_str());
-}
-
-android::content::AttributionSourceState& VoiceManager::getAttributeSource() {
-    return mAttributionSource;
 }
 
 ImsMediaResult VoiceManager::openSession(int sessionId, int rtpFd, int rtcpFd,

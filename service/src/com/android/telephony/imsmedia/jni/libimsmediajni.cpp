@@ -103,8 +103,8 @@ static int SendData2Java(long nNativeObject, const android::Parcel &objParcel) {
     return 1;
 }
 
-static jlong JNIImsMediaService_getInterface(JNIEnv* env, jobject /* object */,
-    jint mediatype, jobject jAttributionSource) {
+static jlong JNIImsMediaService_getInterface(JNIEnv* /* env */, jobject /* object */,
+    jint mediatype) {
     ALOGD("JNIImsMediaService_getInterface: type[%d]", mediatype);
     BaseManager* manager = NULL;
     switch (mediatype) {
@@ -112,13 +112,6 @@ static jlong JNIImsMediaService_getInterface(JNIEnv* env, jobject /* object */,
             manager = MediaManagerFactory::getInterface(MEDIA_TYPE_AUDIO);
             if (manager != NULL) {
                 manager->setCallback(SendData2Java);
-                // create an uninitialized AudioRecord object
-                android::Parcel* parcel = android::parcelForJavaObject(env, jAttributionSource);
-                android::content::AttributionSourceState attributionSource;
-                attributionSource.readFromParcel(parcel);
-                ALOGD("JNIImsMediaService_getInterface: client[%s]",
-                    attributionSource.toString().c_str());
-                VoiceManager::setAttributeSource(attributionSource);
             }
             break;
         default:
@@ -146,7 +139,7 @@ static jint JNIImsMediaService_sendMessage(JNIEnv* env, jobject,
 }
 
 static JNINativeMethod gMethods[] = {
-    { "getInterface", "(ILandroid/os/Parcel;)J", (void*)JNIImsMediaService_getInterface },
+    { "getInterface", "(I)J", (void*)JNIImsMediaService_getInterface },
     { "sendMessage", "(JI[B)V", (void*)JNIImsMediaService_sendMessage },
 };
 

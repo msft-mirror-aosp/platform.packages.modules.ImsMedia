@@ -21,7 +21,6 @@
 #include <ImsMediaEventHandler.h>
 #include <BaseSession.h>
 #include <binder/Parcel.h>
-#include <android/content/AttributionSourceState.h>
 
 typedef int (*CBManager)(long nNativeObj, const android::Parcel& pParcel);
 

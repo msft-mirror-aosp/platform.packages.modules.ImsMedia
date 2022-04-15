@@ -18,10 +18,8 @@
 #include <ImsMediaNodeList.h>
 #include <ImsMediaVoiceNodeList.h>
 #include <ImsMediaTrace.h>
-#include <VoiceManager.h>
 #include <ImsMediaNetworkUtil.h>
 #include <AudioConfig.h>
-#include <NetdClient.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -43,7 +41,6 @@ ImsMediaResult AudioStreamGraphRtpTx::create(void* config){
     BaseNode* pNodeSource = BaseNode::Load(BaseNodeID::NODEID_VOICESOURCE, mCallback);
     if (pNodeSource == NULL) return RESULT_NOT_READY;
     pNodeSource->SetMediaType(IMS_MEDIA_AUDIO);
-    ((IVoiceSourceNode*)pNodeSource)->SetAttributeSource(VoiceManager::getAttributeSource());
     pNodeSource->SetConfig(mConfig);
     AddNode(pNodeSource);
 

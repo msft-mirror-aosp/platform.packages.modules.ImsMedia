@@ -35,6 +35,9 @@
 #include <media/stagefright/foundation/AMessage.h>
 #include <media/stagefright/foundation/ALooper.h>
 
+#define NANOS_PER_SECOND 1000000000L
+#define AAUDIO_NANOS_PER_MILLISECOND 1000000L
+
 using android::status_t;
 using android::ALooper;
 using android::AMessage;
@@ -69,8 +72,8 @@ uint32_t g_amr_mode_tx;
 #endif
 
 ImsMediaVoiceRenderer::ImsMediaVoiceRenderer() {
-    m_AudioTrack = NULL;
-    m_MediaCodec = NULL;
+    mAudioStream = NULL;
+    mMediaCodec = NULL;
 
 #ifdef CALL_AUDIOSYSTEM_SETPHONE_STATE
     AudioSystem::setCallModeInfo(2);
@@ -87,67 +90,69 @@ ImsMediaVoiceRenderer::~ImsMediaVoiceRenderer() {
 
 void ImsMediaVoiceRenderer::SetCodec(int32_t type) {
     IMLOGD_PACKET1(IM_PACKET_LOG_AUDIO,
-        "[ImsMediaVoiceRenderer::SetCodec] type[%d]", type);
-    m_nCodecType = type;
+        "[SetCodec] type[%d]", type);
+    mCodecType = type;
 }
 
 void ImsMediaVoiceRenderer::SetCodecMode(uint32_t mode) {
-    IMLOGD1("[SetAMRMode] mode[%d]", mode);
-    m_amr_mode = mode;
+    IMLOGD1("[SetCodecMode] mode[%d]", mode);
+    mCodecMode = mode;
 #ifdef DEBUG_PCM_DUMP
-    g_amr_mode_tx = m_amr_mode;
+    g_amr_mode_tx = mCodecMode;
 #endif
 }
 
 bool ImsMediaVoiceRenderer::Start() {
-    uint32_t nAudioTrackStatus;
-    size_t nMinBufferSize;
+    AAudioStreamBuilder *builder = NULL;
+    aaudio_result_t result = AAudio_createStreamBuilder(&builder);
+
+    if (result != AAUDIO_OK) {
+        IMLOGE1("[Start] Error creating stream builder: %s", AAudio_convertResultToText(result));
+        return false;
+    }
+
     status_t err;
-#ifdef DEBUG_PCM_DUMP
-        memset(bPCMDump, 0x00, PCM_DUMP_SIZE); // init
-        IMLOGE1("[Start] dump[%s]", bPCMDump);
-        g_pPCMDump_tx = bPCMDump;
-        g_iStoredDumpSize_tx = 0;
 
-        if ((fPCMDump = fopen(
-            "/data/user_de/0/com.android.imsstack.imsmedia/voicefile_dl.dat", "w")) == NULL) {
-            IMLOGE0("file open error !");
-            exit(1);
-        }
-
-        static char header[32];
-        unsigned int header_size = 0;
-
-        if (m_nCodecType == AUDIO_AMR) {
-            std::strcpy(header, "#!AMR");
-            header_size = 6;
-        } else if (m_nCodecType == AUDIO_AMR_WB) {
-            std::strcpy(header, "#!AMR-WB");
-            header_size = 9;
-        }
-
-        fwrite(header, 1, header_size, fPCMDump);
-#endif
     char kMimeType[128] = {'\0'};
     int samplingRate = 8000;
-    if (m_nCodecType == AUDIO_AMR) {
+    if (mCodecType == AUDIO_AMR) {
         sprintf(kMimeType, "audio/3gpp");
-    } else if (m_nCodecType == AUDIO_AMR_WB) {
+    } else if (mCodecType == AUDIO_AMR_WB) {
         samplingRate = 16000;
         sprintf(kMimeType, "audio/amr-wb");
     }
 
-    AudioTrack::getMinFrameCount(&nMinBufferSize, AUDIO_STREAM_VOICE_CALL, samplingRate);
-    IMLOGD1("[Start] nMinBufferSize[%d]", nMinBufferSize);
-    m_AudioTrack = new AudioTrack(AUDIO_STREAM_VOICE_CALL, samplingRate, AUDIO_FORMAT_PCM,
-        AUDIO_CHANNEL_OUT_MONO, AMR_WB_NOTI_COUNT[m_amr_mode] + 12,
-        (audio_output_flags_t)AUDIO_OUTPUT_FLAG_NONE, NULL, NULL,
-        AMR_WB_NOTI_COUNT[m_amr_mode] + 12);
+    //setup builder
+    AAudioStreamBuilder_setDirection(builder, AAUDIO_DIRECTION_OUTPUT);
+    AAudioStreamBuilder_setFormat(builder, AAUDIO_FORMAT_PCM_I16);
+    AAudioStreamBuilder_setChannelCount(builder, 1);
+    AAudioStreamBuilder_setSampleRate(builder, samplingRate);
+    AAudioStreamBuilder_setSharingMode(builder, AAUDIO_SHARING_MODE_EXCLUSIVE);
+    AAudioStreamBuilder_setPerformanceMode(builder, AAUDIO_PERFORMANCE_MODE_LOW_LATENCY);
 
-    nAudioTrackStatus = m_AudioTrack->initCheck();
+    //open stream
+    result = AAudioStreamBuilder_openStream(builder, &mAudioStream);
+    AAudioStreamBuilder_delete(builder);
 
-    if (nAudioTrackStatus != 0) {
-        IMLOGD1("[Start] Init fail [%d]", nAudioTrackStatus);
+    if (result == AAUDIO_OK && mAudioStream != NULL) {
+        int bufferSize = AAudioStream_getFramesPerBurst(mAudioStream);
+        IMLOGD3("[Start] samplingRate[%d], framesPerBurst[%d], framesPerData[%d]",
+            AAudioStream_getSampleRate(mAudioStream), bufferSize,
+            AAudioStream_getFramesPerDataCallback(mAudioStream));
+        switch (AAudioStream_getPerformanceMode(mAudioStream)) {
+            case AAUDIO_PERFORMANCE_MODE_LOW_LATENCY:
+                IMLOGD0("[Start] getPerformanceMode : low latency");
+                break;
+            case AAUDIO_PERFORMANCE_MODE_POWER_SAVING:
+                IMLOGD0("[Start] getPerformanceMode : power saving");
+                break;
+            default:
+                break;
+        }
+        // Set the buffer size to the burst size - this will give us the minimum possible latency
+        AAudioStream_setBufferSizeInFrames(mAudioStream, bufferSize);
+    } else {
+        IMLOGE1("[Start] Failed to openStream. Error[%s]", AAudio_convertResultToText(result));
         return false;
     }
 
@@ -156,8 +161,8 @@ bool ImsMediaVoiceRenderer::Start() {
     looper->start();
     IMLOGD1("[Start] Creating codec[%s]", kMimeType);
 
-    m_MediaCodec = MediaCodec::CreateByType(looper, kMimeType, false);
-    if (m_MediaCodec == NULL) {
+    mMediaCodec = MediaCodec::CreateByType(looper, kMimeType, false);
+    if (mMediaCodec == NULL) {
         IMLOGE1("[Start] unable to create %s codec instance", kMimeType);
         return false;
     }
@@ -171,21 +176,36 @@ bool ImsMediaVoiceRenderer::Start() {
     format->setInt32(KEY_SAMPLE_RATE, samplingRate);
     format->setInt32(KEY_CHANNEL_COUNT, 1);
 
-    err = m_MediaCodec->configure(format, NULL, NULL, 0);
+    err = mMediaCodec->configure(format, NULL, NULL, 0);
     if (err != NO_ERROR) {
         IMLOGE2("[Start] unable to configure[%s] codec - err[%d]", kMimeType, err);
-        m_MediaCodec->release();
+        mMediaCodec->release();
         return false;
     }
 
-    if (m_AudioTrack != NULL) {
-        m_AudioTrack->start();
+    aaudio_stream_state_t inputState = AAUDIO_STREAM_STATE_STARTING;
+    aaudio_stream_state_t nextState = AAUDIO_STREAM_STATE_UNINITIALIZED;
+    int64_t timeoutNanos = 100 * AAUDIO_NANOS_PER_MILLISECOND;
+    result = AAudioStream_requestStart(mAudioStream);
+    if (result != AAUDIO_OK) {
+        IMLOGE1("[Start] Error start stream[%s]", AAudio_convertResultToText(result));
+        mMediaCodec->release();
+        return false;
     }
 
-    err = m_MediaCodec->start();
+    result = AAudioStream_waitForStateChange(mAudioStream, inputState, &nextState, timeoutNanos);
+    if (result != AAUDIO_OK) {
+        IMLOGE1("[Start] Error start stream[%s]", AAudio_convertResultToText(result));
+        mMediaCodec->release();
+        return false;
+    }
+
+    IMLOGD1("[Start] start stream state[%s]", AAudio_convertStreamStateToText(nextState));
+
+    err = mMediaCodec->start();
     if (err != NO_ERROR) {
         IMLOGE1("[Start] unable to start codec - err[%d]", err);
-        m_MediaCodec->release();
+        mMediaCodec->release();
         return false;
     }
 
@@ -195,31 +215,32 @@ bool ImsMediaVoiceRenderer::Start() {
 
 void ImsMediaVoiceRenderer::Stop() {
     IMLOGD0("[Stop] enter");
-    if (m_MediaCodec != NULL) {
-        m_MediaCodec->stop();
-        m_MediaCodec->release();
-        m_MediaCodec.clear();
-        m_MediaCodec = NULL;
-    }
-    m_AudioTrack->stop();
-    m_AudioTrack->flush();
-    m_AudioTrack.clear();
-#ifdef DEBUG_PCM_DUMP
-    if (fwrite(bPCMDump, sizeof(uint8_t), g_iStoredDumpSize_tx, fPCMDump) == -1) {
-        IMLOGE0("[Stop] dump - file write error ! ");
+    if (mMediaCodec != NULL) {
+        mMediaCodec->stop();
+        mMediaCodec->release();
+        mMediaCodec.clear();
+        mMediaCodec = NULL;
     }
 
-    IMLOGE1("[Stop] dump[%d]", g_iStoredDumpSize_tx);
-
-    fclose(fPCMDump);
-#endif
-    m_AudioTrack = NULL;
+    aaudio_stream_state_t inputState = AAUDIO_STREAM_STATE_STOPPING;
+    aaudio_stream_state_t nextState = AAUDIO_STREAM_STATE_UNINITIALIZED;
+    int64_t timeoutNanos = 100 * AAUDIO_NANOS_PER_MILLISECOND;
+    aaudio_result_t result = AAudioStream_requestStop(mAudioStream);
+    result = AAudioStream_waitForStateChange(mAudioStream, inputState, &nextState, timeoutNanos);
+    if (result != AAUDIO_OK) {
+        IMLOGE1("[Stop] Error stop stream[%s]", AAudio_convertResultToText(result));
+    }
+    IMLOGD1("[Stop] Stop stream state[%s]", AAudio_convertStreamStateToText(nextState));
+    AAudioStream_close(mAudioStream);
+    mAudioStream = NULL;
     IMLOGD0("[Stop] exit ");
 }
 
 bool ImsMediaVoiceRenderer::onDataFrame(uint8_t* buffer, uint32_t nSize) {
     if (nSize == 0) return false;
-    if (m_MediaCodec == NULL) return false;
+    if (mMediaCodec == NULL) return false;
+    if (mAudioStream == NULL || AAudioStream_getState(mAudioStream) != AAUDIO_STREAM_STATE_STARTED)
+        return false;
 
     static int kTimeout = 250000;   // be responsive on signal
     status_t err;
@@ -229,16 +250,16 @@ bool ImsMediaVoiceRenderer::onDataFrame(uint8_t* buffer, uint32_t nSize) {
 
     //process input buffer
     Vector<sp<MediaCodecBuffer>> inputBuffers;
-    err = m_MediaCodec->getInputBuffers(&inputBuffers);
+    err = mMediaCodec->getInputBuffers(&inputBuffers);
     if (err == NO_ERROR) {
-        err = m_MediaCodec->dequeueInputBuffer(&bufIndex, kTimeout);
+        err = mMediaCodec->dequeueInputBuffer(&bufIndex, kTimeout);
 
         if (err == NO_ERROR) {
             memcpy(inputBuffers[bufIndex]->data(), buffer, nSize);
-            IMLOGD_PACKET1(IM_PACKET_LOG_AUDIO,
-                "[onDataFrame] queue input buffer size[%d]", nSize);
+            IMLOGD_PACKET2(IM_PACKET_LOG_AUDIO,
+                "[onDataFrame] queue input buffer index[%d], size[%d]", bufIndex, nSize);
 
-            err = m_MediaCodec->queueInputBuffer(bufIndex, 0, nSize,
+            err = mMediaCodec->queueInputBuffer(bufIndex, 0, nSize,
                 ImsMediaTimer::GetTimeInMicroSeconds(),
                 MediaCodec::BUFFER_FLAG_SYNCFRAME);
 
@@ -252,13 +273,13 @@ bool ImsMediaVoiceRenderer::onDataFrame(uint8_t* buffer, uint32_t nSize) {
 
     //process output buffer
     Vector<sp<MediaCodecBuffer>> outputBuffers;
-    err = m_MediaCodec->getOutputBuffers(&outputBuffers);
+    err = mMediaCodec->getOutputBuffers(&outputBuffers);
     if (err != NO_ERROR) {
         IMLOGE1("[onDataFrame] Unable to get output buffers - err[%d]", err);
         return false;
     }
 
-    err = m_MediaCodec->dequeueOutputBuffer(&bufIndex, &offset, &size, &ptsUsec,
+    err = mMediaCodec->dequeueOutputBuffer(&bufIndex, &offset, &size, &ptsUsec,
             &flags, kTimeout);
 
     switch (err) {
@@ -266,22 +287,17 @@ bool ImsMediaVoiceRenderer::onDataFrame(uint8_t* buffer, uint32_t nSize) {
             // got a buffer
             if ((flags & MediaCodec::BUFFER_FLAG_CODECCONFIG) != 0) {
                 IMLOGD_PACKET1(IM_PACKET_LOG_AUDIO,
-                    "Got codec config buffer (%zu bytes)", size);
+                    "[onDataFrame] Got codec config buffer[%zd])", size);
             }
 
             if (size != 0) {
                 IMLOGD_PACKET3(IM_PACKET_LOG_AUDIO,
-                    "Got data in buffer %zu, size=%zu, pts=%" PRId64,
+                    "[onDataFrame] write audio data in buffer[%zu], size[%zu], pts[%" PRId64 "]",
                     bufIndex, size, ptsUsec);
 
-                if (ptsUsec == 0) {
-                    ptsUsec = ImsMediaTimer::GetTimeInMicroSeconds() / 1000;
-                }
-
-                //call encoding here
-                if (m_AudioTrack) {
-                    m_AudioTrack->write(outputBuffers[bufIndex]->data(), size, true);
-                }
+                memcpy(mBuffer, outputBuffers[bufIndex]->data(), size);
+                //call audio write
+                AAudioStream_write(mAudioStream, mBuffer, size / 2, 0);
 #ifdef DEBUG_PCM_DUMP
                 if ((g_iStoredDumpSize_tx + size + 1)< PCM_DUMP_SIZE) {
                     unsigned char packet_header;
@@ -299,7 +315,7 @@ bool ImsMediaVoiceRenderer::onDataFrame(uint8_t* buffer, uint32_t nSize) {
 #endif
             }
 
-            err = m_MediaCodec->releaseOutputBuffer(bufIndex);
+            err = mMediaCodec->releaseOutputBuffer(bufIndex);
 
             if (err != NO_ERROR) {
                 IMLOGE1("Unable to release output buffer - err[%d]", err);
@@ -319,13 +335,13 @@ bool ImsMediaVoiceRenderer::onDataFrame(uint8_t* buffer, uint32_t nSize) {
                 // Format includes CSD, which we must provide to muxer.
                 IMLOGD0("Decoder format changed");
                 //sp<AMessage> newFormat;
-                //m_MediaCodec->getOutputFormat(&newFormat);
+                //mMediaCodec->getOutputFormat(&newFormat);
             }
             break;
         case android::INFO_OUTPUT_BUFFERS_CHANGED:   // INFO_OUTPUT_BUFFERS_CHANGED
             // Not expected for an encoder; handle it anyway.
             IMLOGD0("Decoder buffers changed");
-            err = m_MediaCodec->getOutputBuffers(&outputBuffers);
+            err = mMediaCodec->getOutputBuffers(&outputBuffers);
             if (err != NO_ERROR) {
                 IMLOGE1("Unable to get new output buffers - err[%d]", err);
                 return false;
