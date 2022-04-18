@@ -16,7 +16,7 @@
 
 #include <AudioStreamGraphRtpRx.h>
 #include <ImsMediaNodeList.h>
-#include <ImsMediaVoiceNodeList.h>
+#include <ImsMediaAudioNodeList.h>
 #include <ImsMediaTrace.h>
 #include <ImsMediaNetworkUtil.h>
 #include <AudioConfig.h>
@@ -64,7 +64,7 @@ ImsMediaResult AudioStreamGraphRtpRx::create(void* config) {
     AddNode(pNodeRtpPayloadDecoder);
     pNodeRtpDecoder->ConnectRearNode(pNodeRtpPayloadDecoder);
 
-    BaseNode* pNodeRenderer = BaseNode::Load(BaseNodeID::NODEID_VOICERENDERER, mCallback);
+    BaseNode* pNodeRenderer = BaseNode::Load(BaseNodeID::NODEID_AUDIOPLAYER, mCallback);
     if (pNodeRenderer == NULL) return RESULT_NOT_READY;
     pNodeRenderer->SetMediaType(IMS_MEDIA_AUDIO);
     pNodeRenderer->SetConfig(mConfig);

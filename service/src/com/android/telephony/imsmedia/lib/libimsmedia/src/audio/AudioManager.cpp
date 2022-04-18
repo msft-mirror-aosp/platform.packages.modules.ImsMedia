@@ -14,28 +14,28 @@
  * limitations under the License.
  */
 
-#include <VoiceManager.h>
+#include <AudioManager.h>
 #include <ImsMediaTrace.h>
 #include <ImsMediaNetworkUtil.h>
 
 using namespace android;
 
-VoiceManager* VoiceManager::sManager = NULL;
+AudioManager* AudioManager::sManager = NULL;
 
-VoiceManager::VoiceManager() {
+AudioManager::AudioManager() {
 }
 
-VoiceManager::~VoiceManager() {
+AudioManager::~AudioManager() {
 }
 
-VoiceManager* VoiceManager::getInstance() {
+AudioManager* AudioManager::getInstance() {
     if (sManager == NULL) {
-        sManager = new VoiceManager();
+        sManager = new AudioManager();
     }
     return sManager;
 }
 
-ImsMediaResult VoiceManager::openSession(int sessionId, int rtpFd, int rtcpFd,
+ImsMediaResult AudioManager::openSession(int sessionId, int rtpFd, int rtcpFd,
     AudioConfig* config) {
     IMLOGD1("[openSession] sessionId[%d]", sessionId);
 
@@ -63,7 +63,7 @@ ImsMediaResult VoiceManager::openSession(int sessionId, int rtpFd, int rtcpFd,
     return RESULT_SUCCESS;
 }
 
-ImsMediaResult VoiceManager::closeSession(int sessionId) {
+ImsMediaResult AudioManager::closeSession(int sessionId) {
     IMLOGD1("closeSession() - sessionId[%d]", sessionId);
     if (mSessions.count(sessionId)) {
         mSessions.erase(sessionId);
@@ -72,7 +72,7 @@ ImsMediaResult VoiceManager::closeSession(int sessionId) {
     return RESULT_INVALID_PARAM;
 }
 
-ImsMediaResult VoiceManager::modifySession(int sessionId, AudioConfig* config) {
+ImsMediaResult AudioManager::modifySession(int sessionId, AudioConfig* config) {
     auto session = mSessions.find(sessionId);
     IMLOGD1("modifySession() - sessionId[%d]", sessionId);
     if (session != mSessions.end()) {
@@ -83,7 +83,7 @@ ImsMediaResult VoiceManager::modifySession(int sessionId, AudioConfig* config) {
     }
 }
 
-ImsMediaResult VoiceManager::addConfig(int sessionId, AudioConfig* config) {
+ImsMediaResult AudioManager::addConfig(int sessionId, AudioConfig* config) {
     auto session = mSessions.find(sessionId);
     IMLOGD1("addConfig() - sessionId[%d]", sessionId);
     if (session != mSessions.end()) {
@@ -94,7 +94,7 @@ ImsMediaResult VoiceManager::addConfig(int sessionId, AudioConfig* config) {
     }
 }
 
-ImsMediaResult VoiceManager::deleteConfig(int sessionId, AudioConfig* config) {
+ImsMediaResult AudioManager::deleteConfig(int sessionId, AudioConfig* config) {
     auto session = mSessions.find(sessionId);
     IMLOGD1("deleteConfig() - sessionId[%d]", sessionId);
     if (session != mSessions.end()) {
@@ -105,7 +105,7 @@ ImsMediaResult VoiceManager::deleteConfig(int sessionId, AudioConfig* config) {
     }
 }
 
-ImsMediaResult VoiceManager::confirmConfig(int sessionId, AudioConfig* config) {
+ImsMediaResult AudioManager::confirmConfig(int sessionId, AudioConfig* config) {
     auto session = mSessions.find(sessionId);
     IMLOGD1("confirmConfig() - sessionId[%d]", sessionId);
     if (session != mSessions.end()) {
@@ -116,7 +116,7 @@ ImsMediaResult VoiceManager::confirmConfig(int sessionId, AudioConfig* config) {
     }
 }
 
-void VoiceManager::sendDtmf(int sessionId, char dtmfDigit, int duration) {
+void AudioManager::sendDtmf(int sessionId, char dtmfDigit, int duration) {
     auto session = mSessions.find(sessionId);
     IMLOGD1("sendDtmf() - sessionId[%d]", sessionId);
     if (session != mSessions.end()) {
@@ -126,12 +126,12 @@ void VoiceManager::sendDtmf(int sessionId, char dtmfDigit, int duration) {
     }
 }
 
-/*void VoiceManager::sendHeaderExtension(int sessionId, RtpHeaderExtension* data) {
+/*void AudioManager::sendHeaderExtension(int sessionId, RtpHeaderExtension* data) {
     (void)sessionId;
     (void)data;
 }*/
 
-void VoiceManager::setMediaQualityThreshold(int sessionId,
+void AudioManager::setMediaQualityThreshold(int sessionId,
     MediaQualityThreshold* threshold) {
     auto session = mSessions.find(sessionId);
     IMLOGD1("setMediaQualityThreshold() - sessionId[%d]", sessionId);
@@ -142,7 +142,7 @@ void VoiceManager::setMediaQualityThreshold(int sessionId,
     }
 }
 
-void VoiceManager::sendMessage(const int sessionId, const android::Parcel& parcel) {
+void AudioManager::sendMessage(const int sessionId, const android::Parcel& parcel) {
     int nMsg = parcel.readInt32();
     status_t err = NO_ERROR;
     switch (nMsg) {
@@ -156,12 +156,12 @@ void VoiceManager::sendMessage(const int sessionId, const android::Parcel& parce
                 IMLOGE1("sendMessage() - error readFromParcel[%d]", err);
             }
             EventParamOpenSession* param = new EventParamOpenSession(rtpFd, rtcpFd, config);
-            ImsMediaEventHandler::SendEvent("VOICE_REQUEST_EVENT", nMsg,
+            ImsMediaEventHandler::SendEvent("AUDIO_REQUEST_EVENT", nMsg,
                 sessionId, reinterpret_cast<uint64_t>(param));
         }
             break;
         case CLOSE_SESSION:
-            ImsMediaEventHandler::SendEvent("VOICE_REQUEST_EVENT", nMsg, sessionId);
+            ImsMediaEventHandler::SendEvent("AUDIO_REQUEST_EVENT", nMsg, sessionId);
             break;
         case MODIFY_SESSION:
         case ADD_CONFIG:
@@ -173,14 +173,14 @@ void VoiceManager::sendMessage(const int sessionId, const android::Parcel& parce
             if (err != NO_ERROR) {
                 IMLOGE1("sendMessage() - error readFromParcel[%d]", err);
             }
-            ImsMediaEventHandler::SendEvent("VOICE_REQUEST_EVENT", nMsg,
+            ImsMediaEventHandler::SendEvent("AUDIO_REQUEST_EVENT", nMsg,
                 sessionId, reinterpret_cast<uint64_t>(config));
         }
             break;
         case SEND_DTMF:
         {
             EventParamDtmf* param = new EventParamDtmf(parcel.readByte(), parcel.readInt32());
-            ImsMediaEventHandler::SendEvent("VOICE_REQUEST_EVENT", nMsg,
+            ImsMediaEventHandler::SendEvent("AUDIO_REQUEST_EVENT", nMsg,
                 sessionId, reinterpret_cast<uint64_t>(param));
         }
             break;
@@ -191,7 +191,7 @@ void VoiceManager::sendMessage(const int sessionId, const android::Parcel& parce
         {
             MediaQualityThreshold* threshold = new MediaQualityThreshold();
             threshold->readFromParcel(&parcel);
-            ImsMediaEventHandler::SendEvent("VOICE_REQUEST_EVENT", nMsg,
+            ImsMediaEventHandler::SendEvent("AUDIO_REQUEST_EVENT", nMsg,
                 sessionId, reinterpret_cast<uint64_t>(threshold));
         }
             break;
@@ -200,14 +200,14 @@ void VoiceManager::sendMessage(const int sessionId, const android::Parcel& parce
     }
 }
 
-VoiceManager::RequestHandler::RequestHandler()
-    : ImsMediaEventHandler("VOICE_REQUEST_EVENT") {
+AudioManager::RequestHandler::RequestHandler()
+    : ImsMediaEventHandler("AUDIO_REQUEST_EVENT") {
 }
 
-VoiceManager::RequestHandler::~RequestHandler() {
+AudioManager::RequestHandler::~RequestHandler() {
 }
 
-void VoiceManager::RequestHandler::processEvent(uint32_t event,
+void AudioManager::RequestHandler::processEvent(uint32_t event,
     uint64_t sessionId, uint64_t paramA, uint64_t paramB) {
     IMLOGD4("[processEvent] event[%d], sessionId[%d], paramA[%d], paramB[%d]",
         event, sessionId, paramA, paramB);
@@ -217,48 +217,48 @@ void VoiceManager::RequestHandler::processEvent(uint32_t event,
         {
             EventParamOpenSession* param = reinterpret_cast<EventParamOpenSession*>(paramA);
             if (param != NULL) {
-                result = VoiceManager::getInstance()->openSession(static_cast<int>(sessionId),
+                result = AudioManager::getInstance()->openSession(static_cast<int>(sessionId),
                     param->rtpFd, param->rtcpFd, param->mConfig);
                 if (result == RESULT_SUCCESS) {
-                    ImsMediaEventHandler::SendEvent("VOICE_RESPONSE_EVENT", OPEN_SESSION_SUCCESS,
+                    ImsMediaEventHandler::SendEvent("AUDIO_RESPONSE_EVENT", OPEN_SESSION_SUCCESS,
                         sessionId);
                 } else {
-                    ImsMediaEventHandler::SendEvent("VOICE_RESPONSE_EVENT", OPEN_SESSION_FAILURE,
+                    ImsMediaEventHandler::SendEvent("AUDIO_RESPONSE_EVENT", OPEN_SESSION_FAILURE,
                         sessionId, result);
                 }
                 delete param;
             } else {
-                ImsMediaEventHandler::SendEvent("VOICE_RESPONSE_EVENT", OPEN_SESSION_FAILURE,
+                ImsMediaEventHandler::SendEvent("AUDIO_RESPONSE_EVENT", OPEN_SESSION_FAILURE,
                     sessionId, RESULT_INVALID_PARAM);
             }
         }
             break;
         case CLOSE_SESSION:
-            VoiceManager::getInstance()->closeSession(static_cast<int>(sessionId));
+            AudioManager::getInstance()->closeSession(static_cast<int>(sessionId));
             break;
         case MODIFY_SESSION:
         {
             AudioConfig* config = reinterpret_cast<AudioConfig*>(paramA);
-            result = VoiceManager::getInstance()->modifySession(static_cast<int>(sessionId),
+            result = AudioManager::getInstance()->modifySession(static_cast<int>(sessionId),
                 config);
-            ImsMediaEventHandler::SendEvent("VOICE_RESPONSE_EVENT", MODIFY_SESSION_RESPONSE,
+            ImsMediaEventHandler::SendEvent("AUDIO_RESPONSE_EVENT", MODIFY_SESSION_RESPONSE,
                 sessionId, result, paramA);
         }
             break;
         case ADD_CONFIG:
         {
             AudioConfig* config = reinterpret_cast<AudioConfig*>(paramA);
-            result = VoiceManager::getInstance()->addConfig(static_cast<int>(sessionId), config);
-            ImsMediaEventHandler::SendEvent("VOICE_RESPONSE_EVENT", ADD_CONFIG_RESPONSE,
+            result = AudioManager::getInstance()->addConfig(static_cast<int>(sessionId), config);
+            ImsMediaEventHandler::SendEvent("AUDIO_RESPONSE_EVENT", ADD_CONFIG_RESPONSE,
                 sessionId, result, paramA);
         }
             break;
         case CONFIRM_CONFIG:
         {
             AudioConfig* config = reinterpret_cast<AudioConfig*>(paramA);
-            result = VoiceManager::getInstance()->confirmConfig(static_cast<int>(sessionId),
+            result = AudioManager::getInstance()->confirmConfig(static_cast<int>(sessionId),
                 config);
-            ImsMediaEventHandler::SendEvent("VOICE_RESPONSE_EVENT", CONFIRM_CONFIG_RESPONSE,
+            ImsMediaEventHandler::SendEvent("AUDIO_RESPONSE_EVENT", CONFIRM_CONFIG_RESPONSE,
                 sessionId, result, paramA);
         }
             break;
@@ -266,7 +266,7 @@ void VoiceManager::RequestHandler::processEvent(uint32_t event,
         {
             AudioConfig* config = reinterpret_cast<AudioConfig*>(paramA);
             if (config != NULL) {
-                VoiceManager::getInstance()->deleteConfig(static_cast<int>(sessionId), config);
+                AudioManager::getInstance()->deleteConfig(static_cast<int>(sessionId), config);
                 delete config;
             }
         }
@@ -275,7 +275,7 @@ void VoiceManager::RequestHandler::processEvent(uint32_t event,
         {
             EventParamDtmf* param = reinterpret_cast<EventParamDtmf*>(paramA);
             if (param != NULL) {
-                VoiceManager::getInstance()->sendDtmf(static_cast<int>(sessionId), param->digit,
+                AudioManager::getInstance()->sendDtmf(static_cast<int>(sessionId), param->digit,
                     param->duration);
                 delete param;
             }
@@ -288,7 +288,7 @@ void VoiceManager::RequestHandler::processEvent(uint32_t event,
         {
             MediaQualityThreshold* threshold = reinterpret_cast<MediaQualityThreshold*>(paramA);
             if (threshold != NULL) {
-                VoiceManager::getInstance()->setMediaQualityThreshold(
+                AudioManager::getInstance()->setMediaQualityThreshold(
                     static_cast<int>(sessionId), threshold);
                 delete threshold;
             }
@@ -299,14 +299,14 @@ void VoiceManager::RequestHandler::processEvent(uint32_t event,
     }
 }
 
-VoiceManager::ResponseHandler::ResponseHandler()
-: ImsMediaEventHandler("VOICE_RESPONSE_EVENT") {
+AudioManager::ResponseHandler::ResponseHandler()
+: ImsMediaEventHandler("AUDIO_RESPONSE_EVENT") {
 }
 
-VoiceManager::ResponseHandler::~ResponseHandler() {
+AudioManager::ResponseHandler::~ResponseHandler() {
 }
 
-void VoiceManager::ResponseHandler::processEvent(uint32_t event,
+void AudioManager::ResponseHandler::processEvent(uint32_t event,
     uint64_t sessionId, uint64_t paramA, uint64_t paramB) {
     IMLOGD4("[processEvent] event[%d], sessionId[%d], paramA[%d], paramB[%d]",
         event, sessionId, paramA, paramB);
@@ -320,8 +320,8 @@ void VoiceManager::ResponseHandler::processEvent(uint32_t event,
                 // fail reason
                 parcel.writeInt32(static_cast<int>(paramA));
             }
-            VoiceManager::getInstance()->getCallback()(
-                reinterpret_cast<uint64_t>(VoiceManager::getInstance()), parcel);
+            AudioManager::getInstance()->getCallback()(
+                reinterpret_cast<uint64_t>(AudioManager::getInstance()), parcel);
             break;
         case MODIFY_SESSION_RESPONSE:   //fall through
         case ADD_CONFIG_RESPONSE:       //fall through
@@ -333,8 +333,8 @@ void VoiceManager::ResponseHandler::processEvent(uint32_t event,
             if (config != NULL) {
                 config->writeToParcel(&parcel);
             }
-            VoiceManager::getInstance()->getCallback()(
-                reinterpret_cast<uint64_t>(VoiceManager::getInstance()), parcel);
+            AudioManager::getInstance()->getCallback()(
+                reinterpret_cast<uint64_t>(AudioManager::getInstance()), parcel);
         }
             break;
         case SESSION_CHANGED_IND:
@@ -342,8 +342,8 @@ void VoiceManager::ResponseHandler::processEvent(uint32_t event,
             break;
         case FIRST_MEDIA_PACKET_IND:
             parcel.writeInt32(event);
-            VoiceManager::getInstance()->getCallback()(
-                reinterpret_cast<uint64_t>(VoiceManager::getInstance()), parcel);
+            AudioManager::getInstance()->getCallback()(
+                reinterpret_cast<uint64_t>(AudioManager::getInstance()), parcel);
             break;
         case RTP_HEADER_EXTENSION_IND:
             //TODO : add implementation
@@ -352,8 +352,8 @@ void VoiceManager::ResponseHandler::processEvent(uint32_t event,
             parcel.writeInt32(event);
             parcel.writeInt32(static_cast<int>(paramA));    //type
             parcel.writeInt32(static_cast<int>(paramB));    //duration
-            VoiceManager::getInstance()->getCallback()(
-                reinterpret_cast<uint64_t>(VoiceManager::getInstance()), parcel);
+            AudioManager::getInstance()->getCallback()(
+                reinterpret_cast<uint64_t>(AudioManager::getInstance()), parcel);
             break;
         case PACKET_LOSS_IND:
         case JITTER_IND:

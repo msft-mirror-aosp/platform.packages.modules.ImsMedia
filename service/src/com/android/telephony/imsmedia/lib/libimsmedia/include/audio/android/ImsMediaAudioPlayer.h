@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#ifndef AUDIO_TRACK_H_INCLUDED
-#define AUDIO_TRACK_H_INCLUDED
+#ifndef IMSMEDIA_AUDIO_PLAYER_INCLUDED
+#define IMSMEDIA_AUDIO_PLAYER_INCLUDED
 
 #include <ImsMediaAudioDefine.h>
 #include <aaudio/AAudio.h>
@@ -24,7 +24,7 @@
 using android::sp;
 using android::MediaCodec;
 
-class ImsMediaVoiceRenderer {
+class ImsMediaAudioPlayer {
 private:
     AAudioStream* mAudioStream;
     sp<MediaCodec> mMediaCodec;
@@ -33,8 +33,8 @@ private:
     uint16_t mBuffer[PCM_BUFFER_SIZE];
 
 public:
-    ImsMediaVoiceRenderer();
-    ~ImsMediaVoiceRenderer();
+    ImsMediaAudioPlayer();
+    ~ImsMediaAudioPlayer();
     void SetCodec(int32_t type);
     void SetCodecMode(uint32_t mode);
     bool Start();

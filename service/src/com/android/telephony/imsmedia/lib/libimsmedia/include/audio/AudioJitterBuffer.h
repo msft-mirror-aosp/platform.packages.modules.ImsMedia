@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#ifndef AUDIO_JITTER_BUFFER_H
-#define AUDIO_JITTER_BUFFER_H
+#ifndef AUDIO_JITTER_BUFFER_INCLUDED
+#define AUDIO_JITTER_BUFFER_INCLUDED
 
 #include <BaseJitterBuffer.h>
 #include <JitterNetworkAnalyser.h>

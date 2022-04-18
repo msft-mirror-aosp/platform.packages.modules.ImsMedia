@@ -14,11 +14,11 @@
  * limitations under the License.
  */
 
-#ifndef IMS_MEDIA_VOICE_NODE_LIST_H
-#define IMS_MEDIA_VOICE_NODE_LIST_H
+#ifndef IMS_MEDIA_AUDIO_NODE_LIST_INCLUDED
+#define IMS_MEDIA_AUDIO_NODE_LIST_INCLUDED
 //voice
-#include <IVoiceSourceNode.h>
-#include <IVoiceRendererNode.h>
+#include <IAudioSourceNode.h>
+#include <IAudioPlayerNode.h>
 #include <DtmfEncoderNode.h>
 #include <DtmfSenderNode.h>
 #include <AudioRtpPayloadEncoderNode.h>

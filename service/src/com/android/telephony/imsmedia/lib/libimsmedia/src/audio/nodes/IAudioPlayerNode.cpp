@@ -14,36 +14,36 @@
  * limitations under the License.
  */
 
-#include <IVoiceRendererNode.h>
-#include <ImsMediaVoiceRenderer.h>
+#include <IAudioPlayerNode.h>
+#include <ImsMediaAudioPlayer.h>
 #include <ImsMediaTrace.h>
 #include <ImsMediaTimer.h>
 #include <AudioConfig.h>
 #include <string.h>
 
-IVoiceRendererNode::IVoiceRendererNode()
+IAudioPlayerNode::IAudioPlayerNode()
     : JitterBufferControlNode(IMS_MEDIA_AUDIO){
-    std::unique_ptr<ImsMediaVoiceRenderer> track(new ImsMediaVoiceRenderer());
-    mVoiceRenderer = std::move(track);
+    std::unique_ptr<ImsMediaAudioPlayer> track(new ImsMediaAudioPlayer());
+    mAudioPlayer = std::move(track);
 }
 
-IVoiceRendererNode::~IVoiceRendererNode() {
+IAudioPlayerNode::~IAudioPlayerNode() {
 
 }
 
-BaseNode* IVoiceRendererNode::GetInstance() {
-    return new IVoiceRendererNode();
+BaseNode* IAudioPlayerNode::GetInstance() {
+    return new IAudioPlayerNode();
 }
 
-void IVoiceRendererNode::ReleaseInstance(BaseNode* pNode) {
-    delete (IVoiceRendererNode*)pNode;
+void IAudioPlayerNode::ReleaseInstance(BaseNode* pNode) {
+    delete (IAudioPlayerNode*)pNode;
 }
 
-BaseNodeID IVoiceRendererNode::GetNodeID() {
-    return BaseNodeID::NODEID_VOICERENDERER;
+BaseNodeID IAudioPlayerNode::GetNodeID() {
+    return BaseNodeID::NODEID_AUDIOPLAYER;
 }
 
-ImsMediaResult IVoiceRendererNode::Start() {
+ImsMediaResult IAudioPlayerNode::Start() {
     IMLOGD2("[Start] codec[%d], mode[%d]", mCodecType, mMode);
     if (mJitterBuffer) {
         mJitterBuffer->SetCodecType(mCodecType);
@@ -52,10 +52,10 @@ ImsMediaResult IVoiceRendererNode::Start() {
     //reset the jitter
     Reset();
     mMutex.lock();
-    if (mVoiceRenderer) {
-        mVoiceRenderer->SetCodec(mCodecType);
-        mVoiceRenderer->SetCodecMode(mMode);
-        mVoiceRenderer->Start();
+    if (mAudioPlayer) {
+        mAudioPlayer->SetCodec(mCodecType);
+        mAudioPlayer->SetCodecMode(mMode);
+        mAudioPlayer->Start();
     }
     mFirstFrame = false;
     mMutex.unlock();
@@ -64,11 +64,11 @@ ImsMediaResult IVoiceRendererNode::Start() {
     return RESULT_SUCCESS;
 }
 
-void IVoiceRendererNode::Stop() {
+void IAudioPlayerNode::Stop() {
     IMLOGD0("[Stop]");
     mMutex.lock();
-    if (mVoiceRenderer) {
-        mVoiceRenderer->Stop();
+    if (mAudioPlayer) {
+        mAudioPlayer->Stop();
     }
     StopThread();
     mMutex.unlock();
@@ -76,15 +76,15 @@ void IVoiceRendererNode::Stop() {
     mNodeState = NODESTATE_STOPPED;
 }
 
-bool IVoiceRendererNode::IsRunTime() {
+bool IAudioPlayerNode::IsRunTime() {
     return true;
 }
 
-bool IVoiceRendererNode::IsSourceNode() {
+bool IAudioPlayerNode::IsSourceNode() {
     return false;
 }
 
-void IVoiceRendererNode::SetConfig(void* config) {
+void IAudioPlayerNode::SetConfig(void* config) {
     AudioConfig *pConfig = reinterpret_cast<AudioConfig*>(config);
     if (pConfig != NULL) {
         SetCodec(pConfig->getCodecType());
@@ -97,7 +97,7 @@ void IVoiceRendererNode::SetConfig(void* config) {
     }
 }
 
-bool IVoiceRendererNode::IsSameConfig(void* config) {
+bool IAudioPlayerNode::IsSameConfig(void* config) {
     if (config == NULL) return true;
     AudioConfig* pConfig = reinterpret_cast<AudioConfig*>(config);
 
@@ -117,7 +117,7 @@ bool IVoiceRendererNode::IsSameConfig(void* config) {
     return false;
 }
 
-void IVoiceRendererNode::SetCodec(int32_t type) {
+void IAudioPlayerNode::SetCodec(int32_t type) {
     switch (type) {
         case AudioConfig::CODEC_AMR:
             mCodecType = AUDIO_AMR;
@@ -139,11 +139,11 @@ void IVoiceRendererNode::SetCodec(int32_t type) {
     }
 }
 
-void IVoiceRendererNode::SetCodecMode(uint32_t mode) {
+void IAudioPlayerNode::SetCodecMode(uint32_t mode) {
     mMode = mode;
 }
 
-void* IVoiceRendererNode::run() {
+void* IAudioPlayerNode::run() {
     ImsMediaSubType subtype = MEDIASUBTYPE_UNDEFINED;
     ImsMediaSubType datatype = MEDIASUBTYPE_UNDEFINED;
     uint8_t* pData = NULL;
@@ -168,7 +168,7 @@ void* IVoiceRendererNode::run() {
             &nSeqNum, &datatype) == true) {
             if (nDataSize != 0) {
                 IMLOGD2("[run] write buffer size[%d], timestamp[%u]", nDataSize, nTimestamp);
-                if (mVoiceRenderer->onDataFrame(pData, nDataSize)) {
+                if (mAudioPlayer->onDataFrame(pData, nDataSize)) {
                     // send buffering complete message to client
                     if (mFirstFrame == false) {
                         mCallback->SendEvent(EVENT_NOTIFY_FIRST_MEDIA_PACKET_RECEIVED);

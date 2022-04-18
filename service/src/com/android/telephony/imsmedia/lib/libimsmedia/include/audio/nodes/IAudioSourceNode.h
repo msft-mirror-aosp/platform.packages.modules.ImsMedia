@@ -14,20 +14,20 @@
  * limitations under the License.
  */
 
-#ifndef IVOICE_SOURCE_NODE_H
-#define IVOICE_SOURCE_NODE_H
+#ifndef IAUDIO_SOURCE_NODE_H_INCLUDED
+#define IAUDIO_SOURCE_NODE_H_INCLUDED
 
 #include <BaseNode.h>
-#include <ImsMediaVoiceSource.h>
+#include <ImsMediaAudioSource.h>
 
 /**
- * @brief      This class is interface between device and ims media framework packetization module
+ * @brief This class is interface between audio device and ims media packetization node
  */
-class IVoiceSourceNode : public BaseNode
+class IAudioSourceNode : public BaseNode
 {
 private:
-    IVoiceSourceNode();
-    ~IVoiceSourceNode();
+    IAudioSourceNode();
+    ~IAudioSourceNode();
 public:
     static BaseNode* GetInstance();
     static void ReleaseInstance(BaseNode* pNode);
@@ -47,7 +47,7 @@ public:
     uint64_t m_uiTimestamp;
     uint64_t m_uiPrevTimestamp;
     bool m_bFirstFrame;
-    std::unique_ptr<ImsMediaVoiceSource> mVoiceSource;
+    std::unique_ptr<ImsMediaAudioSource> mAudioSource;
     int32_t mCodecType;
     uint32_t mMode;
     uint32_t mPtime;

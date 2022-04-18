@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#ifndef VOICE_MANAGER_H
-#define VOICE_MANAGER_H
+#ifndef AUDIO_MANAGER_INCLUDED
+#define AUDIO_MANAGER_INCLUDED
 
 #include <ImsMediaDefine.h>
 #include <BaseManager.h>
@@ -27,7 +27,7 @@
 using namespace std;
 using namespace android::telephony::imsmedia;
 
-class VoiceManager : public BaseManager {
+class AudioManager : public BaseManager {
 public:
     /**
      * @class   RequestHandler
@@ -56,12 +56,12 @@ public:
             uint64_t sessionId, uint64_t paramA, uint64_t paramB);
     };
 
-    static VoiceManager* getInstance();
+    static AudioManager* getInstance();
     virtual void sendMessage(const int sessionId, const android::Parcel& parcel);
 
 private:
-    VoiceManager();
-    virtual ~VoiceManager();
+    AudioManager();
+    virtual ~AudioManager();
     ImsMediaResult openSession(int sessionId, int rtpFd, int rtcpFd, AudioConfig* config);
     ImsMediaResult closeSession(int sessionId);
     ImsMediaResult modifySession(int sessionId, AudioConfig* config);
@@ -72,7 +72,7 @@ private:
     //void sendHeaderExtension(int sessionId, RtpHeaderExtension* data);
     void setMediaQualityThreshold(int sessionId, MediaQualityThreshold* threshold);
 
-    static VoiceManager* sManager;
+    static AudioManager* sManager;
     std::unordered_map<int, std::unique_ptr<AudioSession>> mSessions;
     RequestHandler mRequestHandler;
     ResponseHandler mResponseHandler;

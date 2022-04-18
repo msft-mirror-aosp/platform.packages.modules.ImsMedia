@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#ifndef VOICE_AMRFMT_H_INCLUDED
-#define VOICE_AMRFMT_H_INCLUDED
+#ifndef AUDIO_AMRFMT_H_INCLUDED
+#define AUDIO_AMRFMT_H_INCLUDED
 
 #include <stdint.h>
 
@@ -219,4 +219,4 @@ public:
     static uint32_t GetBitrateAmrWb(int mode);
 };
 
-#endif // VOICE_AMRFMT_H_INCLUDED
+#endif // AUDIO_AMRFMT_H_INCLUDED

@@ -26,8 +26,8 @@
 #include <RtcpDecoderNode.h>
 #include <DtmfEncoderNode.h>
 #include <DtmfSenderNode.h>
-#include <IVoiceRendererNode.h>
-#include <IVoiceSourceNode.h>
+#include <IAudioPlayerNode.h>
+#include <IAudioSourceNode.h>
 #include <AudioRtpPayloadDecoderNode.h>
 #include <AudioRtpPayloadEncoderNode.h>
 

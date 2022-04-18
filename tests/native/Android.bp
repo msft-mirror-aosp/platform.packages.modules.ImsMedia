@@ -3,7 +3,7 @@ cc_defaults {
     defaults: [
         "librtp_defaults",
         "libimsmedia_shared_defaults",
-        "libimsmedia_voice_defaults"
+        "libimsmedia_audio_defaults"
     ],
     test_suites: [
         "device-tests"
@@ -21,7 +21,6 @@ cc_defaults {
     ],
     header_libs: [
         "libimsmedia_header",
-        "libimsmedia_interface",
         "libimsmedia_config_headers",
     ],
 }

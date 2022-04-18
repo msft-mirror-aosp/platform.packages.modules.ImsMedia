@@ -43,7 +43,7 @@ public class AudioService {
         mNativeObject = JNIImsMediaService.getInterface(ImsMediaSession.SESSION_TYPE_AUDIO);
     }
 
-    /** Returns the native instance identifier of VoiceManager in libimsmedia*/
+    /** Returns the native instance identifier of AudioManager in libimsmedia*/
     public long getNativeObject() {
         return mNativeObject;
     }

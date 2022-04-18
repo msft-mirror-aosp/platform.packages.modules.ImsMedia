@@ -14,24 +14,24 @@
  * limitations under the License.
  */
 
-#ifndef IVOICE_RENDERER_NODE_H
-#define IVOICE_RENDERER_NODE_H
+#ifndef IAUDIO_PLAYER_NODE_H_INCLUDED
+#define IAUDIO_PLAYER_NODE_H_INCLUDED
 
 #include <BaseNode.h>
 #include <JitterBufferControlNode.h>
 #include <IImsMediaThread.h>
 #include <ImsMediaCondition.h>
-#include <ImsMediaVoiceRenderer.h>
+#include <ImsMediaAudioPlayer.h>
 #include <mutex>
 
 /**
  * @brief This class describes an interface between depacketization module and audio device
  */
-class IVoiceRendererNode : public JitterBufferControlNode, IImsMediaThread
+class IAudioPlayerNode : public JitterBufferControlNode, IImsMediaThread
 {
 private:
-    IVoiceRendererNode();
-    virtual ~IVoiceRendererNode();
+    IAudioPlayerNode();
+    virtual ~IAudioPlayerNode();
 
 public:
     static BaseNode* GetInstance();
@@ -48,7 +48,7 @@ public:
     virtual void* run();
 
 private:
-    std::unique_ptr<ImsMediaVoiceRenderer> mVoiceRenderer;
+    std::unique_ptr<ImsMediaAudioPlayer> mAudioPlayer;
     int32_t mCodecType;
     uint32_t mMode;
     std::mutex mMutex;

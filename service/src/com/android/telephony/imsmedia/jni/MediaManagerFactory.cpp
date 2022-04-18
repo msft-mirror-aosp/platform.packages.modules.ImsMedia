@@ -15,13 +15,13 @@
  */
 
 #include <MediaManagerFactory.h>
-#include <VoiceManager.h>
+#include <AudioManager.h>
 
 BaseManager* MediaManagerFactory::getInterface(int mediatype){
     BaseManager* pManager = NULL;
     switch ((IMS_MEDIA_TYPE)mediatype) {
         case MEDIA_TYPE_AUDIO:
-            pManager = VoiceManager::getInstance();
+            pManager = AudioManager::getInstance();
             break;
         case MEDIA_TYPE_VIDEO:
         case MEDIA_TYPE_RTT:

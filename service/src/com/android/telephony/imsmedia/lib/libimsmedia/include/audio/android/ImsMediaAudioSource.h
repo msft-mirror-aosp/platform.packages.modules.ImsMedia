@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#ifndef AUDIO_RECORD_H_INCLUDED
-#define AUDIO_RECORD_H_INCLUDED
+#ifndef IMSMEDIA_AUDIO_SOURCE_INCLUDED
+#define IMSMEDIA_AUDIO_SOURCE_INCLUDED
 
 #include <ImsMediaDefine.h>
 #include <ImsMediaAudioDefine.h>
@@ -31,7 +31,7 @@ using android::MediaCodec;
 typedef void (*AudioUplinkCB)(void* pClient, uint8_t* pBitstream, uint32_t nSize,
     int64_t pstUsec, uint32_t flag);
 
-class ImsMediaVoiceSource : public IImsMediaThread {
+class ImsMediaAudioSource : public IImsMediaThread {
 public:
     std::mutex mMutexUplink;
     AAudioStream* mAudioStream;
@@ -53,8 +53,8 @@ private:
     void processOutputBuffer();
 
 public:
-    ImsMediaVoiceSource();
-    virtual ~ImsMediaVoiceSource();
+    ImsMediaAudioSource();
+    virtual ~ImsMediaAudioSource();
     void SetUplinkCallback(void* pClient, AudioUplinkCB pDnlinkCB);
     void SetCodec(int32_t type);
     void SetCodecMode(uint32_t mode);

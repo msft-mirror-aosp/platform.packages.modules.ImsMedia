@@ -5,11 +5,10 @@ package {
 cc_library_shared {
     name: "libimsmediajni",
     defaults: [
-        "libimsmedia_voice_defaults",
+        "libimsmedia_audio_defaults",
     ],
     header_libs: [
         "libimsmedia_header",
-        "libimsmedia_interface",
         "libimsmedia_config_headers",
     ],
     srcs: [

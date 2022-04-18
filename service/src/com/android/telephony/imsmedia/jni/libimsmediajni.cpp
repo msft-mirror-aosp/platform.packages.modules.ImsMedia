@@ -22,7 +22,7 @@
 #include <android_os_Parcel.h>
 #include <nativehelper/JNIHelp.h>
 #include <MediaManagerFactory.h>
-#include <VoiceManager.h>
+#include <AudioManager.h>
 
 #define IMS_MEDIA_JNI_VERSION JNI_VERSION_1_4
 

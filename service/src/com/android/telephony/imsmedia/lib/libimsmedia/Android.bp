@@ -1,11 +1,3 @@
-
-cc_library_headers {
-    name: "libimsmedia_interface",
-    export_include_dirs: [
-        "include/interface",
-    ],
-}
-
 cc_library_headers {
     name: "libimsmedia_header",
     export_include_dirs: [
@@ -18,12 +10,11 @@ cc_library_headers {
 }
 
 cc_library_headers {
-    name: "libimsmedia_voice_header",
+    name: "libimsmedia_audio_header",
     export_include_dirs: [
-        "include",
-        "include/voice",
-        "include/voice/nodes",
-        "include/voice/android",
+        "include/audio",
+        "include/audio/nodes",
+        "include/audio/android",
     ],
 }
 
@@ -38,7 +29,6 @@ cc_defaults {
         "frameworks/native/libs/binder/include/binder",
         "frameworks/av/media",
         "frameworks/av/media/libmedia/include",
-        "frameworks/av/media/libaudioclient/include",
         "frameworks/av/media/libstagefright/include",
         "frameworks/av/media/libstagefright/foundation/include",
         "frameworks/av/drm/libmediadrm/interface",
@@ -46,11 +36,12 @@ cc_defaults {
 }
 
 cc_defaults {
-    name: "libimsmedia_voice_defaults",
+    name: "libimsmedia_audio_defaults",
     cflags: [
     ],
     header_libs: [
-        "libimsmedia_voice_header",
+        "libimsmedia_header",
+        "libimsmedia_audio_header",
         "libimsmedia_config_headers",
     ],
 }
@@ -60,7 +51,7 @@ cc_library_shared {
     defaults: [
         "librtp_defaults",
         "libimsmedia_shared_defaults",
-        "libimsmedia_voice_defaults"
+        "libimsmedia_audio_defaults"
     ],
     srcs: [
         "src/**/*.cpp",
@@ -69,7 +60,6 @@ cc_library_shared {
     ],
     header_libs: [
         "libimsmedia_header",
-        "libimsmedia_interface",
         "libimsmedia_config_headers",
     ],
     include_dirs: [

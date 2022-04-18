@@ -26,7 +26,7 @@
 #include <ImsMediaTrace.h>
 #include <ImsMediaTimer.h>
 #include <ImsMediaAudioFmt.h>
-#include <ImsMediaVoiceRenderer.h>
+#include <ImsMediaAudioPlayer.h>
 #include <utils/Errors.h>
 #include <gui/Surface.h>
 #include <mediadrm/ICrypto.h>
@@ -45,7 +45,7 @@ using android::AString;
 using android::Vector;
 using android::MediaCodecBuffer;
 
-#ifdef ANDROID_VOICE_INTERFACE_V2
+#ifdef ANDROID_AUDIO_INTERFACE_V2
 #include <system/audio.h>
 #endif
 
@@ -71,7 +71,7 @@ int32_t g_iStoredDumpSize_tx; // the size of stored PCM Dump size
 uint32_t g_amr_mode_tx;
 #endif
 
-ImsMediaVoiceRenderer::ImsMediaVoiceRenderer() {
+ImsMediaAudioPlayer::ImsMediaAudioPlayer() {
     mAudioStream = NULL;
     mMediaCodec = NULL;
 
@@ -81,20 +81,20 @@ ImsMediaVoiceRenderer::ImsMediaVoiceRenderer() {
 #endif
 }
 
-ImsMediaVoiceRenderer::~ImsMediaVoiceRenderer() {
+ImsMediaAudioPlayer::~ImsMediaAudioPlayer() {
 #ifdef CALL_AUDIOSYSTEM_SETPHONE_STATE
     AudioSystem::setCallModeInfo(0);
     AudioSystem::setPhoneState(AUDIO_MODE_NORMAL);
 #endif
 }
 
-void ImsMediaVoiceRenderer::SetCodec(int32_t type) {
+void ImsMediaAudioPlayer::SetCodec(int32_t type) {
     IMLOGD_PACKET1(IM_PACKET_LOG_AUDIO,
         "[SetCodec] type[%d]", type);
     mCodecType = type;
 }
 
-void ImsMediaVoiceRenderer::SetCodecMode(uint32_t mode) {
+void ImsMediaAudioPlayer::SetCodecMode(uint32_t mode) {
     IMLOGD1("[SetCodecMode] mode[%d]", mode);
     mCodecMode = mode;
 #ifdef DEBUG_PCM_DUMP
@@ -102,7 +102,7 @@ void ImsMediaVoiceRenderer::SetCodecMode(uint32_t mode) {
 #endif
 }
 
-bool ImsMediaVoiceRenderer::Start() {
+bool ImsMediaAudioPlayer::Start() {
     AAudioStreamBuilder *builder = NULL;
     aaudio_result_t result = AAudio_createStreamBuilder(&builder);
 
@@ -157,7 +157,7 @@ bool ImsMediaVoiceRenderer::Start() {
     }
 
     sp<ALooper> looper = new ALooper;
-    looper->setName("ImsMediaVoiceRenderer");
+    looper->setName("ImsMediaAudioPlayer");
     looper->start();
     IMLOGD1("[Start] Creating codec[%s]", kMimeType);
 
@@ -213,7 +213,7 @@ bool ImsMediaVoiceRenderer::Start() {
     return true;
 }
 
-void ImsMediaVoiceRenderer::Stop() {
+void ImsMediaAudioPlayer::Stop() {
     IMLOGD0("[Stop] enter");
     if (mMediaCodec != NULL) {
         mMediaCodec->stop();
@@ -236,7 +236,7 @@ void ImsMediaVoiceRenderer::Stop() {
     IMLOGD0("[Stop] exit ");
 }
 
-bool ImsMediaVoiceRenderer::onDataFrame(uint8_t* buffer, uint32_t nSize) {
+bool ImsMediaAudioPlayer::onDataFrame(uint8_t* buffer, uint32_t nSize) {
     if (nSize == 0) return false;
     if (mMediaCodec == NULL) return false;
     if (mAudioStream == NULL || AAudioStream_getState(mAudioStream) != AAUDIO_STREAM_STATE_STARTED)

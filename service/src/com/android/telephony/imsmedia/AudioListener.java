@@ -59,7 +59,7 @@ public class AudioListener implements JNIImsMediaListener {
     /**
      * Processes parcel messages from native code and posts messages to {@link AudioSession}
      *
-     * @param parcel A parcel from native @VoiceManager in libimsmedia library
+     * @param parcel A parcel from native @AudioManager in libimsmedia library
      */
     @Override
     public void onMessage(final Parcel parcel) {

@@ -137,7 +137,7 @@ enum ImsMediaSubType {
     MEDIASUBTYPE_MAX
 };
 
-enum ImsMediaVoiceMsgRequest {
+enum ImsMediaAudioMsgRequest {
     OPEN_SESSION = 101,
     CLOSE_SESSION,
     MODIFY_SESSION,
@@ -149,7 +149,7 @@ enum ImsMediaVoiceMsgRequest {
     SET_MEDIA_QUALITY_THRESHOLD,
 };
 
-enum ImsMediaVoiceMsgResponse {
+enum ImsMediaAudioMsgResponse {
     OPEN_SESSION_SUCCESS = 201,
     OPEN_SESSION_FAILURE,
     MODIFY_SESSION_RESPONSE,

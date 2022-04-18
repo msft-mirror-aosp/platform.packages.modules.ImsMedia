@@ -23,7 +23,7 @@
 #include <ImsMediaTimer.h>
 #include <ImsMediaTrace.h>
 #include <ImsMediaAudioFmt.h>
-#include <ImsMediaVoiceSource.h>
+#include <ImsMediaAudioSource.h>
 #include <utils/Errors.h>
 #include <gui/Surface.h>
 #include <mediadrm/ICrypto.h>
@@ -50,38 +50,38 @@ using namespace android;
 #define AMRWB_BUFFER_SIZE 60
 #define DEFAULT_SAMPLING_RATE 8000
 
-ImsMediaVoiceSource::ImsMediaVoiceSource() {
+ImsMediaAudioSource::ImsMediaAudioSource() {
     mUplinkCB = NULL;
     mAudioStream = NULL;
     mBufferSize = 0;
     mSamplingRate = DEFAULT_SAMPLING_RATE;
 }
 
-ImsMediaVoiceSource::~ImsMediaVoiceSource() {
+ImsMediaAudioSource::~ImsMediaAudioSource() {
 }
 
-void ImsMediaVoiceSource::SetUplinkCallback(void* pClient, AudioUplinkCB pUplinkCB) {
+void ImsMediaAudioSource::SetUplinkCallback(void* pClient, AudioUplinkCB pUplinkCB) {
     std::lock_guard<std::mutex> guard(mMutexUplink);
     mUplinkCBClient = pClient;
     mUplinkCB = pUplinkCB;
 }
 
-void ImsMediaVoiceSource::SetCodec(int32_t type) {
+void ImsMediaAudioSource::SetCodec(int32_t type) {
     IMLOGD1("[SetCodec] type[%d]", type);
     mCodecType = type;
 }
 
-void ImsMediaVoiceSource::SetCodecMode(uint32_t mode) {
+void ImsMediaAudioSource::SetCodecMode(uint32_t mode) {
     IMLOGD1("[SetCodecMode] mode[%d]", mode);
     mMode = mode;
 }
 
-void ImsMediaVoiceSource::SetPtime(uint32_t time) {
+void ImsMediaAudioSource::SetPtime(uint32_t time) {
     IMLOGD1("[SetCodecMode] Ptime[%d]", time);
     mPtime = time;
 }
 
-bool ImsMediaVoiceSource::Start() {
+bool ImsMediaAudioSource::Start() {
     status_t err;
     char kMimeType[128] = {'\0'};
     if (mCodecType == AUDIO_G711_PCMU || mCodecType == AUDIO_G711_PCMA) {
@@ -100,7 +100,7 @@ bool ImsMediaVoiceSource::Start() {
     }
 
     sp<ALooper> looper = new ALooper;
-    looper->setName("ImsMediaVoiceSource");
+    looper->setName("ImsMediaAudioSource");
     looper->start();
     IMLOGD1("[Start] Creating codec[%s]", kMimeType);
 
@@ -160,13 +160,13 @@ bool ImsMediaVoiceSource::Start() {
 
     StartThread();
 
-    std::thread t1(&ImsMediaVoiceSource::processOutputBuffer, this);
+    std::thread t1(&ImsMediaAudioSource::processOutputBuffer, this);
     t1.detach();
     IMLOGD0("[Start] exit");
     return true;
 }
 
-void ImsMediaVoiceSource::Stop() {
+void ImsMediaAudioSource::Stop() {
     IMLOGD0("[Stop] Enter");
     std::lock_guard<std::mutex> guard(mMutexUplink);
     StopThread();
@@ -193,23 +193,23 @@ void ImsMediaVoiceSource::Stop() {
     IMLOGD0("[Stop] Exit");
 }
 
-bool ImsMediaVoiceSource::ProcessCMR(uint32_t mode) {
+bool ImsMediaAudioSource::ProcessCMR(uint32_t mode) {
     (void)mode;
     return false;
     // do nothing
 }
 
-aaudio_data_callback_result_t ImsMediaVoiceSource::uplinkCallback(AAudioStream *stream,
+aaudio_data_callback_result_t ImsMediaAudioSource::uplinkCallback(AAudioStream *stream,
     void *userData, void *audioData, int32_t numFrames) {
     (void)stream;
     if (userData == NULL || audioData == NULL) return AAUDIO_CALLBACK_RESULT_STOP;
     IMLOGD1("[uplinkCallback] size[%d]", numFrames);
-    ImsMediaVoiceSource *voice = reinterpret_cast<ImsMediaVoiceSource*>(userData);
+    ImsMediaAudioSource *voice = reinterpret_cast<ImsMediaAudioSource*>(userData);
     voice->queueInputBuffer(reinterpret_cast<uint16_t*>(audioData), numFrames);
     return AAUDIO_CALLBACK_RESULT_CONTINUE;
 }
 
-void ImsMediaVoiceSource::errorCallback(AAudioStream *stream, void *userData,
+void ImsMediaAudioSource::errorCallback(AAudioStream *stream, void *userData,
     aaudio_result_t error) {
     if (stream == NULL || userData == NULL) return;
 
@@ -218,13 +218,13 @@ void ImsMediaVoiceSource::errorCallback(AAudioStream *stream, void *userData,
 
     if (streamState == AAUDIO_STREAM_STATE_DISCONNECTED) {
         // Handle stream restart on a separate thread
-        std::thread streamRestartThread(&ImsMediaVoiceSource::restartAudioStream,
-            reinterpret_cast<ImsMediaVoiceSource*>(userData));
+        std::thread streamRestartThread(&ImsMediaAudioSource::restartAudioStream,
+            reinterpret_cast<ImsMediaAudioSource*>(userData));
         streamRestartThread.detach();
     }
 }
 
-void* ImsMediaVoiceSource::run() {
+void* ImsMediaAudioSource::run() {
     IMLOGD0("[run] enter");
     uint32_t nNextTime = ImsMediaTimer::GetTimeInMilliSeconds();
 
@@ -254,7 +254,7 @@ void* ImsMediaVoiceSource::run() {
     return NULL;
 }
 
-void ImsMediaVoiceSource::openAudioStream() {
+void ImsMediaAudioSource::openAudioStream() {
     AAudioStreamBuilder *builder = NULL;
     aaudio_result_t result = AAudio_createStreamBuilder(&builder);
     if (result != AAUDIO_OK) {
@@ -304,7 +304,7 @@ void ImsMediaVoiceSource::openAudioStream() {
     }
 }
 
-void ImsMediaVoiceSource::restartAudioStream() {
+void ImsMediaAudioSource::restartAudioStream() {
     std::lock_guard<std::mutex> guard(mMutexUplink);
     if (mAudioStream == NULL) return;
 
@@ -335,7 +335,7 @@ void ImsMediaVoiceSource::restartAudioStream() {
         AAudio_convertStreamStateToText(nextState));
 }
 
-void ImsMediaVoiceSource::queueInputBuffer(uint16_t* buffer, int32_t nSize) {
+void ImsMediaAudioSource::queueInputBuffer(uint16_t* buffer, int32_t nSize) {
     std::lock_guard<std::mutex> guard(mMutexUplink);
     static int kTimeout = 100000;   // be responsive on signal
     status_t err;
@@ -371,7 +371,7 @@ void ImsMediaVoiceSource::queueInputBuffer(uint16_t* buffer, int32_t nSize) {
     }
 }
 
-void ImsMediaVoiceSource::processOutputBuffer() {
+void ImsMediaAudioSource::processOutputBuffer() {
     size_t bufIndex, offset, size;
     static int kTimeout = 100000;   // be responsive on signal
     int64_t ptsUsec;

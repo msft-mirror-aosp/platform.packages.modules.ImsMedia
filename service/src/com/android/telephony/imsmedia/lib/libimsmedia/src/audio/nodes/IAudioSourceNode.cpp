@@ -14,43 +14,43 @@
  * limitations under the License.
  */
 
-#include <IVoiceSourceNode.h>
-#include <ImsMediaVoiceSource.h>
+#include <IAudioSourceNode.h>
+#include <ImsMediaAudioSource.h>
 #include <ImsMediaTrace.h>
 #include <string.h>
 #include <AudioConfig.h>
 
-IVoiceSourceNode::IVoiceSourceNode() {
-    std::unique_ptr<ImsMediaVoiceSource> recoder(new ImsMediaVoiceSource());
-    mVoiceSource = std::move(recoder);
+IAudioSourceNode::IAudioSourceNode() {
+    std::unique_ptr<ImsMediaAudioSource> recoder(new ImsMediaAudioSource());
+    mAudioSource = std::move(recoder);
     mCodecType = 0;
     mMode = 0;
     m_bFirstFrame = false;
 }
 
-IVoiceSourceNode::~IVoiceSourceNode() {
+IAudioSourceNode::~IAudioSourceNode() {
 }
 
-BaseNode* IVoiceSourceNode::GetInstance() {
-    return new IVoiceSourceNode();
+BaseNode* IAudioSourceNode::GetInstance() {
+    return new IAudioSourceNode();
 }
 
-void IVoiceSourceNode::ReleaseInstance(BaseNode* pNode) {
-    delete (IVoiceSourceNode*)pNode;
+void IAudioSourceNode::ReleaseInstance(BaseNode* pNode) {
+    delete (IAudioSourceNode*)pNode;
 }
 
-BaseNodeID IVoiceSourceNode::GetNodeID() {
-    return BaseNodeID::NODEID_VOICESOURCE;
+BaseNodeID IAudioSourceNode::GetNodeID() {
+    return BaseNodeID::NODEID_AUDIOSOURCE;
 }
 
-ImsMediaResult IVoiceSourceNode::Start() {
+ImsMediaResult IAudioSourceNode::Start() {
     IMLOGD2("[Start] codec[%d], mode[%d]", mCodecType, mMode);
-    if (mVoiceSource) {
-        mVoiceSource->SetUplinkCallback(this, IVoiceSourceNode::CB_AudioUplink);
-        mVoiceSource->SetCodec(mCodecType);
-        mVoiceSource->SetCodecMode(mMode);
-        mVoiceSource->SetPtime(mPtime);
-        if (mVoiceSource->Start() == true) {
+    if (mAudioSource) {
+        mAudioSource->SetUplinkCallback(this, IAudioSourceNode::CB_AudioUplink);
+        mAudioSource->SetCodec(mCodecType);
+        mAudioSource->SetCodecMode(mMode);
+        mAudioSource->SetPtime(mPtime);
+        if (mAudioSource->Start() == true) {
             m_bFirstFrame = false;
         }
     }
@@ -59,23 +59,23 @@ ImsMediaResult IVoiceSourceNode::Start() {
     return RESULT_SUCCESS;
 }
 
-void IVoiceSourceNode::Stop() {
+void IAudioSourceNode::Stop() {
     IMLOGD0("[Stop]");
-    if (mVoiceSource) {
-        mVoiceSource->Stop();
+    if (mAudioSource) {
+        mAudioSource->Stop();
     }
     mNodeState = NODESTATE_STOPPED;
 }
 
-bool IVoiceSourceNode::IsRunTime() {
+bool IAudioSourceNode::IsRunTime() {
     return true;
 }
 
-bool IVoiceSourceNode::IsSourceNode() {
+bool IAudioSourceNode::IsSourceNode() {
     return true;
 }
 
-void IVoiceSourceNode::SetConfig(void* config) {
+void IAudioSourceNode::SetConfig(void* config) {
     if (config == NULL) return;
     AudioConfig* pConfig = reinterpret_cast<AudioConfig*>(config);
     SetCodec(pConfig->getCodecType());
@@ -85,7 +85,7 @@ void IVoiceSourceNode::SetConfig(void* config) {
     mPtime = pConfig->getPtimeMillis();
 }
 
-bool IVoiceSourceNode::IsSameConfig(void* config) {
+bool IAudioSourceNode::IsSameConfig(void* config) {
     if (config == NULL) return true;
     AudioConfig* pConfig = reinterpret_cast<AudioConfig*>(config);
 
@@ -104,7 +104,7 @@ bool IVoiceSourceNode::IsSameConfig(void* config) {
     return false;
 }
 
-void IVoiceSourceNode::SetCodec(int32_t type) {
+void IAudioSourceNode::SetCodec(int32_t type) {
     switch (type) {
         case AudioConfig::CODEC_AMR:
             mCodecType = AUDIO_AMR;
@@ -126,14 +126,14 @@ void IVoiceSourceNode::SetCodec(int32_t type) {
     }
 }
 
-void IVoiceSourceNode::SetCodecMode(uint32_t mode) {
+void IAudioSourceNode::SetCodecMode(uint32_t mode) {
     mMode = mode;
 }
 
-void IVoiceSourceNode::CB_AudioUplink(void* pClient, uint8_t* pBitstream, uint32_t pnSize,
+void IAudioSourceNode::CB_AudioUplink(void* pClient, uint8_t* pBitstream, uint32_t pnSize,
     int64_t pstUsec, uint32_t flag) {
     (void)flag;
-    IVoiceSourceNode* client = reinterpret_cast<IVoiceSourceNode*>(pClient);
+    IAudioSourceNode* client = reinterpret_cast<IAudioSourceNode*>(pClient);
     if (client != NULL) {
         IMLOGD_PACKET2(IM_PACKET_LOG_AUDIO,
             "[CB_AudioUplink] size[%zu], pts=%" PRId64, pnSize, pstUsec);

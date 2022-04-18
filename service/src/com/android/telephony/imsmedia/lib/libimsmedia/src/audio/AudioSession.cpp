@@ -380,23 +380,23 @@ void AudioSession::onEvent(ImsMediaEventType type, uint64_t param1, uint64_t par
         case EVENT_NOTIFY_ERROR:
             break;
         case EVENT_NOTIFY_FIRST_MEDIA_PACKET_RECEIVED:
-            ImsMediaEventHandler::SendEvent("VOICE_RESPONSE_EVENT",
+            ImsMediaEventHandler::SendEvent("AUDIO_RESPONSE_EVENT",
                 FIRST_MEDIA_PACKET_IND, 0, 0);
             break;
         case EVENT_NOTIFY_HEADER_EXTENSION_RECEIVED:
-            ImsMediaEventHandler::SendEvent("VOICE_RESPONSE_EVENT",
+            ImsMediaEventHandler::SendEvent("AUDIO_RESPONSE_EVENT",
                 RTP_HEADER_EXTENSION_IND, 0, 0);
             break;
         case EVENT_NOTIFY_MEDIA_INACITIVITY:
-            ImsMediaEventHandler::SendEvent("VOICE_RESPONSE_EVENT",
+            ImsMediaEventHandler::SendEvent("AUDIO_RESPONSE_EVENT",
                 MEDIA_INACITIVITY_IND, mSessionId, param1, param2);
             break;
         case EVENT_NOTIFY_PACKET_LOSS:
-            ImsMediaEventHandler::SendEvent("VOICE_RESPONSE_EVENT",
+            ImsMediaEventHandler::SendEvent("AUDIO_RESPONSE_EVENT",
                 PACKET_LOSS_IND, param1, 0);
             break;
         case EVENT_NOTIFY_JITTER:
-            ImsMediaEventHandler::SendEvent("VOICE_RESPONSE_EVENT",
+            ImsMediaEventHandler::SendEvent("AUDIO_RESPONSE_EVENT",
                 JITTER_IND, param1, param2);
             break;
         default:

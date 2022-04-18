@@ -22,9 +22,9 @@
 #if 1
 #define AUDIO_JITTER_BUFFER_SIZE       5
 #define AUDIO_G711_JITTER_BUFFER_SIZE  6
-#define VOICE_JITTER_BUFFER_MIN_SIZE   3
-#define VOICE_JITTER_BUFFER_MAX_SIZE   9
-#define VOICE_JITTER_BUFFER_START_SIZE 4
+#define AUDIO_JITTER_BUFFER_MIN_SIZE   3
+#define AUDIO_JITTER_BUFFER_MAX_SIZE   9
+#define AUDIO_JITTER_BUFFER_START_SIZE 4
 #else
 #define AUDIO_JITTER_BUFFER_SIZE 3
 #define AUDIO_G711_JITTER_BUFFER_SIZE 4
@@ -40,9 +40,9 @@
 #define CODECFILTER_AUDIO_SKIP_READCOUNTER 100
 
 AudioJitterBuffer::AudioJitterBuffer() {
-    mInitJitterBufferSize = VOICE_JITTER_BUFFER_START_SIZE;
-    mMinJitterBufferSize = VOICE_JITTER_BUFFER_MIN_SIZE;
-    mMaxJitterBufferSize = VOICE_JITTER_BUFFER_MAX_SIZE;
+    mInitJitterBufferSize = AUDIO_JITTER_BUFFER_START_SIZE;
+    mMinJitterBufferSize = AUDIO_JITTER_BUFFER_MIN_SIZE;
+    mMaxJitterBufferSize = AUDIO_JITTER_BUFFER_MAX_SIZE;
     AudioJitterBuffer::Reset();
 }
 
@@ -473,7 +473,7 @@ bool AudioJitterBuffer::Get(ImsMediaSubType* psubtype, uint8_t** ppData,
                 }
             } else {
                 uint32_t nTempBuferSize =
-                    (mCurrJitterBufferSize + VOICE_JITTER_BUFFER_MIN_SIZE) / 2;
+                    (mCurrJitterBufferSize + AUDIO_JITTER_BUFFER_MIN_SIZE) / 2;
                 if (mDataQueue.GetCount() >= nTempBuferSize) {
                     mCurrPlayingTS = pEntry->nTimestamp;
                     mCurrPlayingSeq = pEntry->nSeqNum;

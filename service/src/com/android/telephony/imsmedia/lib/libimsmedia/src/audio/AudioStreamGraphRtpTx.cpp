@@ -16,7 +16,7 @@
 
 #include <AudioStreamGraphRtpTx.h>
 #include <ImsMediaNodeList.h>
-#include <ImsMediaVoiceNodeList.h>
+#include <ImsMediaAudioNodeList.h>
 #include <ImsMediaTrace.h>
 #include <ImsMediaNetworkUtil.h>
 #include <AudioConfig.h>
@@ -38,7 +38,7 @@ ImsMediaResult AudioStreamGraphRtpTx::create(void* config){
     IMLOGD0("[create]");
     mConfig = new AudioConfig(reinterpret_cast<AudioConfig*>(config));
 
-    BaseNode* pNodeSource = BaseNode::Load(BaseNodeID::NODEID_VOICESOURCE, mCallback);
+    BaseNode* pNodeSource = BaseNode::Load(BaseNodeID::NODEID_AUDIOSOURCE, mCallback);
     if (pNodeSource == NULL) return RESULT_NOT_READY;
     pNodeSource->SetMediaType(IMS_MEDIA_AUDIO);
     pNodeSource->SetConfig(mConfig);
