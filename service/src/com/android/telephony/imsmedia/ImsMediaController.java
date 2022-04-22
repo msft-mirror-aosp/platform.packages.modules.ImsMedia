@@ -18,26 +18,21 @@ package com.android.telephony.imsmedia;
 
 import android.app.Service;
 import android.content.Intent;
-import android.system.Os;
 import android.os.IBinder;
 import android.os.ParcelFileDescriptor;
-import android.net.Network;
-import android.net.ConnectivityManager;
-import android.net.LinkProperties;
 import android.support.annotation.GuardedBy;
-import android.telephony.imsmedia.RtpConfig;
-import android.telephony.imsmedia.IImsMedia;
+import android.telephony.Rlog;
 import android.telephony.imsmedia.IImsAudioSession;
 import android.telephony.imsmedia.IImsAudioSessionCallback;
+import android.telephony.imsmedia.IImsMedia;
+import android.telephony.imsmedia.IImsVideoSession;
+import android.telephony.imsmedia.IImsVideoSessionCallback;
 import android.telephony.imsmedia.ImsMediaSession;
-import android.telephony.Rlog;
+import android.telephony.imsmedia.RtpConfig;
 import android.util.SparseArray;
+
 import com.android.telephony.imsmedia.Utils.OpenSessionParams;
 
-import java.net.SocketAddress;
-import java.net.InetSocketAddress;
-import java.net.InetAddress;
-import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /** Controller that maintains all IMS Media sessions */
@@ -56,9 +51,8 @@ public class ImsMediaController extends Service {
         public void openSession(
             final ParcelFileDescriptor rtpFd, final ParcelFileDescriptor rtcpFd,
             final int sessionType, final RtpConfig rtpConfig, final IBinder callback) {
-            final IMediaSession session;
             final int sessionId = mSessionId.getAndIncrement();
-
+            IMediaSession session;
             Rlog.d(TAG, "openSession: sessionId = " + sessionId
                     + ", type=" + sessionType + "," + rtpConfig);
             synchronized (mSessions) {
@@ -68,6 +62,9 @@ public class ImsMediaController extends Service {
                                 IImsAudioSessionCallback.Stub.asInterface(callback));
                         break;
                     case ImsMediaSession.SESSION_TYPE_VIDEO:
+                        session = new VideoSession(sessionId,
+                                IImsVideoSessionCallback.Stub.asInterface(callback));
+                        break;
                     case ImsMediaSession.SESSION_TYPE_RTT:
                     default:
                         session = null;
@@ -87,10 +84,17 @@ public class ImsMediaController extends Service {
             Rlog.d(TAG, "closeSession: " + session);
             synchronized (mSessions) {
                 /** TODO handle for all types */
-                final AudioSession audioSession =
-                        (AudioSession) IImsAudioSession.Stub.asInterface(session);
-                audioSession.closeSession();
-                mSessions.remove(audioSession.getSessionId());
+                if (session instanceof AudioSession) {
+                    final AudioSession audioSession =
+                            (AudioSession) IImsAudioSession.Stub.asInterface(session);
+                    audioSession.closeSession();
+                    mSessions.remove(audioSession.getSessionId());
+                } else if (session instanceof VideoSession) {
+                    final VideoSession videoSession =
+                            (VideoSession) IImsVideoSession.Stub.asInterface(session);
+                    videoSession.closeSession();
+                    mSessions.remove(videoSession.getSessionId());
+                }
             }
         }
     }

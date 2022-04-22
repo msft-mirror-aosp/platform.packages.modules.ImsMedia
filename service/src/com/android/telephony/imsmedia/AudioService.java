@@ -16,19 +16,11 @@
 
 package com.android.telephony.imsmedia;
 
-import android.system.Os;
-import android.os.Binder;
 import android.os.Parcel;
-import android.os.Message;
-import android.telephony.imsmedia.AudioConfig;
-import android.telephony.imsmedia.MediaQualityThreshold;
-import android.telephony.ims.RtpHeaderExtension;
 import android.telephony.Rlog;
-import com.android.telephony.imsmedia.Utils.OpenSessionParams;
 import android.telephony.imsmedia.ImsMediaSession;
 
-import java.util.HashSet;
-import java.util.List;
+import com.android.telephony.imsmedia.Utils.OpenSessionParams;
 
 /**
  * Audio service for internal AP based RTP stack. This interacts with native library
@@ -57,15 +49,15 @@ public class AudioService {
     /**
      * Sends request message with the corresponding arguments to libimsmediajni library to operate
      *
-     * @param sessionid : session identifier
+     * @param sessionId : session identifier
      * @param parcel : parcel argument to send to JNI
      */
-    public void sendRequest(final int sessionid, Parcel parcel) {
+    public void sendRequest(final int sessionId, Parcel parcel) {
         if (mNativeObject != 0) {
             byte[] data = parcel.marshall();
             parcel.recycle();
             parcel = null;
-            JNIImsMediaService.sendMessage(mNativeObject, sessionid, data);
+            JNIImsMediaService.sendMessage(mNativeObject, sessionId, data);
         }
     }
 

@@ -17,17 +17,17 @@
 package android.telephony.imsmedia;
 
 import android.annotation.IntDef;
+import android.net.InetAddresses;
+import android.os.Parcel;
+import android.os.Parcelable;
+
 import androidx.annotation.CallSuper;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import android.os.Parcel;
-import android.os.Parcelable;
-import android.telephony.AccessNetworkConstants.AccessNetworkType;
-import android.net.InetAddresses;
+
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.net.InetSocketAddress;
-import java.net.UnknownHostException;
 import java.util.Objects;
 
 /**
@@ -36,6 +36,10 @@ import java.util.Objects;
  * @hide
  */
 public abstract class RtpConfig implements Parcelable {
+    public static final int TYPE_AUDIO = 0;
+    public static final int TYPE_VIDEO = 1;
+    public static final int TYPE_TEXT = 2;
+
     /** Device neither transmits nor receives any media */
     public static final int MEDIA_DIRECTION_NO_FLOW = 0;
     /**
@@ -48,7 +52,7 @@ public abstract class RtpConfig implements Parcelable {
      * Eg. User muted the call
      */
     public static final int MEDIA_DIRECTION_RECEIVE_ONLY = 2;
-    /** Device transmits and receives media in both the directions */
+    /** Device transmits and receives media in both the mDirections */
     public static final int MEDIA_DIRECTION_TRANSMIT_RECEIVE = 3;
     /* definition of uninitialized port number*/
     public static final int UNINITIALIZED_PORT = -1;
@@ -64,42 +68,45 @@ public abstract class RtpConfig implements Parcelable {
     @Retention(RetentionPolicy.SOURCE)
     public @interface MediaDirection {}
 
-    private @MediaDirection int direction;
-    private int accessNetwork;
+    private final int mType;
+    private @MediaDirection int mDirection;
+    private int mAccessNetwork;
     @Nullable
-    private InetSocketAddress remoteRtpAddress;
+    private InetSocketAddress mRemoteRtpAddress;
     @Nullable
-    private RtcpConfig rtcpConfig;
-    private int maxMtuBytes;
-    private byte dscp;
-    private byte rxPayloadTypeNumber;
-    private byte txPayloadTypeNumber;
-    private byte samplingRateKHz;
+    private RtcpConfig mRtcpConfig;
+    private int mMaxMtuBytes;
+    private byte mDscp;
+    private byte mRxPayloadTypeNumber;
+    private byte mTxPayloadTypeNumber;
+    private byte mSamplingRateKHz;
 
     /** @hide */
-    RtpConfig(Parcel in) {
-        direction = in.readInt();
-        accessNetwork = in.readInt();
-        remoteRtpAddress = readSocketAddress(in);
-        rtcpConfig = in.readParcelable(RtcpConfig.class.getClassLoader(), RtcpConfig.class);
-        maxMtuBytes = in.readInt();
-        dscp = in.readByte();
-        rxPayloadTypeNumber = in.readByte();
-        txPayloadTypeNumber = in.readByte();
-        samplingRateKHz = in.readByte();
+    RtpConfig(int type, Parcel in) {
+        mType = type;
+        mDirection = in.readInt();
+        mAccessNetwork = in.readInt();
+        mRemoteRtpAddress = readSocketAddress(in);
+        mRtcpConfig = in.readParcelable(RtcpConfig.class.getClassLoader(), RtcpConfig.class);
+        mMaxMtuBytes = in.readInt();
+        mDscp = in.readByte();
+        mRxPayloadTypeNumber = in.readByte();
+        mTxPayloadTypeNumber = in.readByte();
+        mSamplingRateKHz = in.readByte();
     }
 
     /** @hide **/
-    RtpConfig(AbstractBuilder builder) {
-        direction = builder.direction;
-        accessNetwork = builder.accessNetwork;
-        remoteRtpAddress = builder.remoteRtpAddress;
-        rtcpConfig = builder.rtcpConfig;
-        maxMtuBytes = builder.maxMtuBytes;
-        dscp = builder.dscp;
-        rxPayloadTypeNumber = builder.rxPayloadTypeNumber;
-        txPayloadTypeNumber = builder.txPayloadTypeNumber;
-        samplingRateKHz = builder.samplingRateKHz;
+    RtpConfig(int type, AbstractBuilder builder) {
+        mType = type;
+        mDirection = builder.mDirection;
+        mAccessNetwork = builder.mAccessNetwork;
+        mRemoteRtpAddress = builder.mRemoteRtpAddress;
+        mRtcpConfig = builder.mRtcpConfig;
+        mMaxMtuBytes = builder.mMaxMtuBytes;
+        mDscp = builder.mDscp;
+        mRxPayloadTypeNumber = builder.mRxPayloadTypeNumber;
+        mTxPayloadTypeNumber = builder.mTxPayloadTypeNumber;
+        mSamplingRateKHz = builder.mSamplingRateKHz;
     }
 
     private @NonNull InetSocketAddress readSocketAddress(final Parcel in) {
@@ -113,96 +120,96 @@ public abstract class RtpConfig implements Parcelable {
     }
 
     public int getMediaDirection() {
-        return direction;
+        return mDirection;
     }
 
-    public void setMediaDirection(final @MediaDirection int direction) {
-        this.direction = direction;
+    public void setMediaDirection(final @MediaDirection int mDirection) {
+        this.mDirection = mDirection;
     }
 
     public int getAccessNetwork() {
-        return accessNetwork;
+        return mAccessNetwork;
     }
 
-    public void setAccessNetwork(final int accessNetwork) {
-        this.accessNetwork = accessNetwork;
+    public void setAccessNetwork(final int mAccessNetwork) {
+        this.mAccessNetwork = mAccessNetwork;
     }
 
     public InetSocketAddress getRemoteRtpAddress() {
-        return remoteRtpAddress;
+        return mRemoteRtpAddress;
     }
 
-    public void setRemoteRtpAddress(final InetSocketAddress remoteRtpAddress) {
-        this.remoteRtpAddress = remoteRtpAddress;
+    public void setRemoteRtpAddress(final InetSocketAddress mRemoteRtpAddress) {
+        this.mRemoteRtpAddress = mRemoteRtpAddress;
     }
 
     public RtcpConfig getRtcpConfig() {
-        return rtcpConfig;
+        return mRtcpConfig;
     }
 
-    public void setRtcpConfig(final RtcpConfig rtcpConfig) {
-        this.rtcpConfig = rtcpConfig;
+    public void setRtcpConfig(final RtcpConfig mRtcpConfig) {
+        this.mRtcpConfig = mRtcpConfig;
     }
 
     public int getMaxMtuBytes() {
-        return maxMtuBytes;
+        return mMaxMtuBytes;
     }
 
-    public void setMaxMtuBytes(final int maxMtuBytes) {
-        this.maxMtuBytes = maxMtuBytes;
+    public void setMaxMtuBytes(final int mMaxMtuBytes) {
+        this.mMaxMtuBytes = mMaxMtuBytes;
     }
 
     public byte getDscp() {
-        return dscp;
+        return mDscp;
     }
 
-    public void setDscp(final byte dscp) {
-        this.dscp = dscp;
+    public void setDscp(final byte mDscp) {
+        this.mDscp = mDscp;
     }
 
     public byte getRxPayloadTypeNumber() {
-        return rxPayloadTypeNumber;
+        return mRxPayloadTypeNumber;
     }
 
-    public void setRxPayloadTypeNumber(final byte rxPayloadTypeNumber) {
-        this.rxPayloadTypeNumber = rxPayloadTypeNumber;
+    public void setRxPayloadTypeNumber(final byte mRxPayloadTypeNumber) {
+        this.mRxPayloadTypeNumber = mRxPayloadTypeNumber;
     }
 
     public byte getTxPayloadTypeNumber() {
-        return txPayloadTypeNumber;
+        return mTxPayloadTypeNumber;
     }
 
-    public void setTxPayloadTypeNumber(final byte txPayloadTypeNumber) {
-        this.txPayloadTypeNumber = txPayloadTypeNumber;
+    public void setTxPayloadTypeNumber(final byte mTxPayloadTypeNumber) {
+        this.mTxPayloadTypeNumber = mTxPayloadTypeNumber;
     }
 
     public byte getSamplingRateKHz() {
-        return samplingRateKHz;
+        return mSamplingRateKHz;
     }
 
-    public void setSamplingRateKHz(final byte samplingRateKHz) {
-        this.samplingRateKHz = samplingRateKHz;
+    public void setSamplingRateKHz(final byte mSamplingRateKHz) {
+        this.mSamplingRateKHz = mSamplingRateKHz;
     }
 
     @NonNull
     @Override
     public String toString() {
-        return "RtpConfig: {direction=" + direction
-                + ", accessNetwork=" + accessNetwork
-                + ", remoteRtpAddress=" + remoteRtpAddress
-                + ", rtcpConfig=" + rtcpConfig
-                + ", maxMtuBytes=" + maxMtuBytes
-                + ", dscp=" + dscp
-                + ", rxPayloadTypeNumber=" + rxPayloadTypeNumber
-                + ", txPayloadTypeNumber=" + txPayloadTypeNumber
-                + ", samplingRateKHz=" + samplingRateKHz
-                + " }";
+        return "RtpConfig: {mDirection=" + mDirection
+            + ", mAccessNetwork=" + mAccessNetwork
+            + ", mRemoteRtpAddress=" + mRemoteRtpAddress
+            + ", mRtcpConfig=" + mRtcpConfig
+            + ", mMaxMtuBytes=" + mMaxMtuBytes
+            + ", mDscp=" + mDscp
+            + ", mRxPayloadTypeNumber=" + mRxPayloadTypeNumber
+            + ", mTxPayloadTypeNumber=" + mTxPayloadTypeNumber
+            + ", mSamplingRateKHz=" + mSamplingRateKHz
+            + " }";
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(direction, accessNetwork, remoteRtpAddress, rtcpConfig, maxMtuBytes,
-                dscp, rxPayloadTypeNumber, txPayloadTypeNumber, samplingRateKHz);
+        return Objects.hash(mDirection, mAccessNetwork, mRemoteRtpAddress, mRtcpConfig,
+            mMaxMtuBytes, mDscp, mRxPayloadTypeNumber, mTxPayloadTypeNumber, mSamplingRateKHz);
     }
 
     @Override
@@ -217,15 +224,15 @@ public abstract class RtpConfig implements Parcelable {
 
         RtpConfig s = (RtpConfig) o;
 
-        return (direction == s.direction
-                && accessNetwork == s.accessNetwork
-                && Objects.equals(remoteRtpAddress, s.remoteRtpAddress)
-                && Objects.equals(rtcpConfig, s.rtcpConfig)
-                && maxMtuBytes == s.maxMtuBytes
-                && dscp == s.dscp
-                && rxPayloadTypeNumber == s.rxPayloadTypeNumber
-                && txPayloadTypeNumber == s.txPayloadTypeNumber
-                && samplingRateKHz == s.samplingRateKHz);
+        return (mDirection == s.mDirection
+                && mAccessNetwork == s.mAccessNetwork
+                && Objects.equals(mRemoteRtpAddress, s.mRemoteRtpAddress)
+                && Objects.equals(mRtcpConfig, s.mRtcpConfig)
+                && mMaxMtuBytes == s.mMaxMtuBytes
+                && mDscp == s.mDscp
+                && mRxPayloadTypeNumber == s.mRxPayloadTypeNumber
+                && mTxPayloadTypeNumber == s.mTxPayloadTypeNumber
+                && mSamplingRateKHz == s.mSamplingRateKHz);
     }
 
     /**
@@ -241,101 +248,157 @@ public abstract class RtpConfig implements Parcelable {
      * @hide
      */
     @CallSuper
-    public void writeToParcel(Parcel dest, int flags) {
-        dest.writeInt(direction);
-        dest.writeInt(accessNetwork);
-        if (remoteRtpAddress == null) {
+    public void writeToParcel(Parcel dest, int type) {
+        dest.writeInt(type);
+        dest.writeInt(mDirection);
+        dest.writeInt(mAccessNetwork);
+        if (mRemoteRtpAddress == null) {
             dest.writeString(null);
             dest.writeInt(UNINITIALIZED_PORT);
         } else {
-            dest.writeString(remoteRtpAddress.getAddress().getHostAddress());
-            dest.writeInt(remoteRtpAddress.getPort());
+            dest.writeString(mRemoteRtpAddress.getAddress().getHostAddress());
+            dest.writeInt(mRemoteRtpAddress.getPort());
         }
-        dest.writeParcelable(rtcpConfig, flags);
-        dest.writeInt(maxMtuBytes);
-        dest.writeByte(dscp);
-        dest.writeByte(rxPayloadTypeNumber);
-        dest.writeByte(txPayloadTypeNumber);
-        dest.writeByte(samplingRateKHz);
+        dest.writeParcelable(mRtcpConfig, 0);
+        dest.writeInt(mMaxMtuBytes);
+        dest.writeByte(mDscp);
+        dest.writeByte(mRxPayloadTypeNumber);
+        dest.writeByte(mTxPayloadTypeNumber);
+        dest.writeByte(mSamplingRateKHz);
     }
 
     public static final @NonNull Parcelable.Creator<RtpConfig>
-        CREATOR = new Parcelable.Creator() {
-        public RtpConfig createFromParcel(Parcel in) {
-            /** TODO use builder class so it will validate */
-            /** TODO: Fix for other types */
-            return new AudioConfig(in);
-        }
+            CREATOR = new Parcelable.Creator() {
+                public RtpConfig createFromParcel(Parcel in) {
+                    int type = in.readInt();
+                    switch (type) {
+                        case TYPE_AUDIO:
+                            return new AudioConfig(in);
+                        case TYPE_VIDEO:
+                            return new VideoConfig(in);
+                        default:
+                            throw new IllegalArgumentException("Bad Type Parcel");
+                    }
+                }
 
-        public RtpConfig[] newArray(int size) {
-            return new RtpConfig[size];
-        }
-    };
+                public RtpConfig[] newArray(int size) {
+                    return new RtpConfig[size];
+                }
+            };
 
     /**
      * Provides a convenient way to set the fields of a {@link RtpConfig}
      * when creating a new instance.
      */
     public static abstract class AbstractBuilder<T extends AbstractBuilder<T>> {
-        private @MediaDirection int direction;
-        private int accessNetwork;
+        private @MediaDirection int mDirection;
+        private int mAccessNetwork;
         @Nullable
-        private InetSocketAddress remoteRtpAddress;
+        private InetSocketAddress mRemoteRtpAddress;
         @Nullable
-        private RtcpConfig rtcpConfig;
-        private int maxMtuBytes;
-        private byte dscp;
-        private byte rxPayloadTypeNumber;
-        private byte txPayloadTypeNumber;
-        private byte samplingRateKHz;
+        private RtcpConfig mRtcpConfig;
+        private int mMaxMtuBytes;
+        private byte mDscp;
+        private byte mRxPayloadTypeNumber;
+        private byte mTxPayloadTypeNumber;
+        private byte mSamplingRateKHz;
 
         AbstractBuilder() {}
 
         /** Returns {@code this} */
         abstract T self();
 
+        /**
+         * Sets media flow direction of {@link MediaDirection}
+         * @param direction direction of media.
+         * @return
+         */
         public T setMediaDirection(final @MediaDirection int direction) {
-            this.direction = direction;
+            this.mDirection = direction;
             return self();
         }
 
+        /**
+         * Sets radio access metwork type
+         * @param accessNetwork network type
+         * @return
+         */
         public T setAccessNetwork(final int accessNetwork) {
-            this.accessNetwork = accessNetwork;
+            this.mAccessNetwork = accessNetwork;
             return self();
         }
 
+        /**
+         * Sets Ip address and port number of the other party for RTP media.
+         * @param remoteRtpAddress ip address and port form of InetSocketAddress
+         * @return
+         */
         public T setRemoteRtpAddress(final InetSocketAddress remoteRtpAddress) {
-            this.remoteRtpAddress = remoteRtpAddress;
+            this.mRemoteRtpAddress = remoteRtpAddress;
             return self();
         }
 
+        /**
+         * Sets rtcp configuration
+         * @param rtcpConfig configuration fields of a {@link RtcpConfig}
+         * @return
+         */
         public T setRtcpConfig(final RtcpConfig rtcpConfig) {
-            this.rtcpConfig = rtcpConfig;
+            this.mRtcpConfig = rtcpConfig;
             return self();
         }
 
+        /**
+         * Sets maximum Rtp transfer unit in bytes
+         * @param maxMtuBytes bytes
+         * @return
+         */
         public T setMaxMtuBytes(final int maxMtuBytes) {
-            this.maxMtuBytes = maxMtuBytes;
+            this.mMaxMtuBytes = maxMtuBytes;
             return self();
         }
 
+        /**
+         * Sets a dscp: Differentiated Services Field Code Point value, see RFC 2474
+         * @param dscp dscp value
+         * @return
+         */
         public T setDscp(final byte dscp) {
-            this.dscp = dscp;
+            this.mDscp = dscp;
             return self();
         }
 
+        /**
+         * Sets static or dynamic payload type number negotiated through the SDP for
+         * the incoming RTP packets. This value shall be matched with the PT value
+         * of the incoming RTP header. Values 0 to 127, see RFC 3551 section 6.
+         * @param rxPayloadTypeNumber payload type number.
+         * @return
+         */
         public T setRxPayloadTypeNumber(final byte rxPayloadTypeNumber) {
-            this.rxPayloadTypeNumber = rxPayloadTypeNumber;
+            this.mRxPayloadTypeNumber = rxPayloadTypeNumber;
             return self();
         }
 
+        /**
+         * Sets static or dynamic payload type number negotiated through the SDP for
+         * the outgoing RTP packets. This value shall be set to the PT value
+         * of the outgoing RTP header. Values 0 to 127, see RFC 3551 section 6.
+         * @param txPayloadTypeNumber payload type number.
+         * @return
+         */
         public T setTxPayloadTypeNumber(final byte txPayloadTypeNumber) {
-            this.txPayloadTypeNumber = txPayloadTypeNumber;
+            this.mTxPayloadTypeNumber = txPayloadTypeNumber;
             return self();
         }
 
+        /**
+         * Sets media source sampling rate in kHz.
+         * @param samplingRateKHz sampling rate.
+         * @return
+         */
         public T setSamplingRateKHz(final byte samplingRateKHz) {
-            this.samplingRateKHz = samplingRateKHz;
+            this.mSamplingRateKHz = samplingRateKHz;
             return self();
         }
     }

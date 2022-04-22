@@ -17,13 +17,9 @@
 package com.android.telephony.imsmedia;
 
 import android.os.Parcel;
-import android.os.ParcelFileDescriptor;
 import android.telephony.Rlog;
-import android.telephony.CallQuality;
-import android.telephony.imsmedia.RtpConfig;
-import android.telephony.ims.RtpHeaderExtension;
+import android.view.Surface;
 
-import java.io.FileDescriptor;
 import java.util.Hashtable;
 
 /** JNI interface class to send message to libimsmediajni */
@@ -45,14 +41,32 @@ public class JNIImsMediaService {
     public static native long getInterface(int mediatype);
 
     /**
-     * Send message to libimsmediajni to operate libimsmedia library to operate with corresponding
+     * Send message to libimsmediajni to libimsmedia library to operate with corresponding
      * arguments
      *
      * @param nativeObj An unique object identifier of BaseManager to operate
-     * @param sessionid An unique session identifier
+     * @param sessionId An unique session identifier
      * @param baData A parameter to operate session
      */
-    public static native void sendMessage(long nativeObj, int sessionid, byte[] baData);
+    public static native void sendMessage(long nativeObj, int sessionId, byte[] baData);
+
+    /**
+     * Set preview surface to libimsmediajni and it delivers libimsmedia
+     *
+     * @param nativeObj An unique object identifier of BaseManager to operate
+     * @param sessionId An unique session identifier
+     * @param surface A preview surface
+     */
+    public static native void setPreviewSurface(long nativeObj, int sessionId, Surface surface);
+
+    /**
+     * Set display surface to libimsmediajni and it delivers libimsmedia
+     *
+     * @param nativeObj An unique object identifier of BaseManager to operate
+     * @param sessionId An unique session identifier
+     * @param surface A display surface
+     */
+    public static native void setDisplaySurface(long nativeObj, int sessionId, Surface surface);
 
     /**
      * Gets intance of JNIImsMediaService for jni interface

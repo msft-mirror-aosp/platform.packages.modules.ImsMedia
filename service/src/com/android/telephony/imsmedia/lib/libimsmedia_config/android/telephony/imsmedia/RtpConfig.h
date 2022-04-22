@@ -53,7 +53,8 @@ public:
         MEDIA_DIRECTION_TRANSMIT_RECEIVE,
     };
 
-    RtpConfig();
+    RtpConfig(int32_t type);
+    RtpConfig(RtpConfig *config);
     RtpConfig(RtpConfig& config);
     virtual ~RtpConfig();
     RtpConfig& operator=(const RtpConfig& config);
@@ -63,7 +64,9 @@ public:
     virtual status_t readFromParcel(const Parcel* in);
     void setMediaDirection(const int32_t direction);
     int32_t getMediaDirection();
-    void setRemoteAddress(String8 address);
+    void setAccessNetwork(const int32_t network);
+    int32_t getAccessNetwork();
+    void setRemoteAddress(const String8 address);
     String8 getRemoteAddress();
     void setRemotePort(const int32_t port);
     int32_t getRemotePort();
@@ -84,6 +87,16 @@ public:
 protected:
     /* definition of uninitialized port number*/
     const static int32_t UNINITIALIZED_PORT = -1;
+    /* media types */
+    const static int32_t TYPE_AUDIO = 0;
+    const static int32_t TYPE_VIDEO = 1;
+    const static int32_t TYPE_TEXT = 2;
+
+    /**
+     * @brief media type.
+     */
+    int32_t type;
+
     /**
      * @brief RTP media flow direction
      */
