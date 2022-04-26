@@ -23,10 +23,10 @@
 #include <IImsMediaThread.h>
 #include <ImsMediaCondition.h>
 #include <aaudio/AAudio.h>
-#include <media/stagefright/MediaCodec.h>
+#include <media/NdkMediaCodec.h>
+#include <media/NdkMediaFormat.h>
 
 using android::sp;
-using android::MediaCodec;
 
 typedef void (*AudioUplinkCB)(void* pClient, uint8_t* pBitstream, uint32_t nSize,
     int64_t pstUsec, uint32_t flag);
@@ -35,22 +35,20 @@ class ImsMediaAudioSource : public IImsMediaThread {
 public:
     std::mutex mMutexUplink;
     AAudioStream* mAudioStream;
-    sp<MediaCodec> mMediaCodec;
+    AMediaCodec* mCodec;
+    AMediaFormat* mFormat;
     AudioUplinkCB mUplinkCB;
     void* mUplinkCBClient;
     int32_t mCodecType;
     uint32_t mMode;
     uint32_t mPtime;
     uint32_t mSamplingRate;
-    //it is PCM I16 format
-    uint16_t mBuffer[PCM_BUFFER_SIZE];
     uint32_t mBufferSize;
 
 private:
     void openAudioStream();
     void restartAudioStream();
-    void queueInputBuffer(uint16_t* buffer, int32_t nSize);
-    void processOutputBuffer();
+    static void audioErrorCallback(AAudioStream *stream, void *userData, aaudio_result_t error);
 
 public:
     ImsMediaAudioSource();
@@ -62,11 +60,8 @@ public:
     bool Start();
     void Stop();
     bool ProcessCMR(uint32_t mode);
-    static aaudio_data_callback_result_t uplinkCallback(AAudioStream *stream,
-        void *userData,
-        void *audioData,
-        int32_t numFrames);
-    static void errorCallback(AAudioStream *stream, void *userData, aaudio_result_t error);
+    void queueInputBuffer(int16_t* buffer, uint32_t size);
+    void processOutputBuffer();
     virtual void* run();
 };
 

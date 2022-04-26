@@ -28,10 +28,6 @@ cc_defaults {
         "frameworks/native/include",
         "frameworks/native/libs/binder/include/binder",
         "frameworks/av/media",
-        "frameworks/av/media/libmedia/include",
-        "frameworks/av/media/libstagefright/include",
-        "frameworks/av/media/libstagefright/foundation/include",
-        "frameworks/av/drm/libmediadrm/interface",
     ],
 }
 
@@ -79,10 +75,7 @@ cc_library_shared {
         "libcutils",
         "liblog",
         "libutils",
-        "libmedia",
-        "libmedia_omx",
-        "libstagefright",
-        "libstagefright_foundation",
         "framework-permission-aidl-cpp",
+        "libmediandk",
     ],
 }
