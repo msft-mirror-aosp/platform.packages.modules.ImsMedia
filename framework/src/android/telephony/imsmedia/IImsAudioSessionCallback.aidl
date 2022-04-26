@@ -38,7 +38,7 @@ oneway interface IImsAudioSessionCallback {
     void notifyMediaInactivity(int packetType);
     void notifyPacketLoss(int packetLossPercentage);
     void notifyJitter(int jitter);
-    void onMediaQualityChanged(in CallQuality callQuality);
+    void onCallQualityChanged(in CallQuality callQuality);
     void triggerAnbrQuery(in AudioConfig config);
     void onDtmfReceived(in char dtmfDigit);
 }

@@ -26,6 +26,7 @@ import static org.mockito.Mockito.verify;
 import android.os.Parcel;
 import android.os.ParcelFileDescriptor;
 import android.os.RemoteException;
+import android.telephony.CallQuality;
 import android.telephony.ims.RtpHeaderExtension;
 import android.telephony.imsmedia.AudioConfig;
 import android.telephony.imsmedia.IImsAudioSessionCallback;
@@ -363,6 +364,19 @@ public class AudioSessionTest {
             verify(callback, times(1)).onDtmfReceived(eq(DTMF_DIGIT));
         }  catch (RemoteException e) {
             fail("Failed to notify onDtmfReceived: " + e);
+        }
+    }
+
+    @Test
+    public void testCallQualityChangedInd() {
+        // Receive Call Quality Changed Indication
+        CallQuality callQuality = CallQualityTest.createCallQuality();
+        Utils.sendMessage(handler, AudioSession.EVENT_CALL_QUALITY_CHANGE_IND, callQuality);
+        processAllMessages();
+        try {
+            verify(callback, times(1)).onCallQualityChanged(eq(callQuality));
+        } catch (RemoteException e) {
+            fail("Failed to notify onCallQualityChanged: " + e);
         }
     }
 

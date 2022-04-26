@@ -13,6 +13,7 @@ import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 import android.os.Bundle;
 import android.telephony.AccessNetworkConstants.AccessNetworkType;
+import android.telephony.CallQuality;
 import android.telephony.imsmedia.AmrParams;
 import android.telephony.imsmedia.AudioConfig;
 import android.telephony.imsmedia.AudioSessionCallback;
@@ -714,6 +715,11 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public void onDtmfReceived(char dtmfDigit) {
             Log.d(TAG, "onDtmfReceived");
+        }
+
+        @Override
+        public void onCallQualityChanged(CallQuality callQuality) {
+            Log.d(TAG, "onCallQualityChanged");
         }
     }
 

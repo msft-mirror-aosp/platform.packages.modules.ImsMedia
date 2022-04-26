@@ -25,7 +25,7 @@ import android.net.InetAddresses;
 import android.os.Handler;
 import android.os.Message;
 import android.os.ParcelFileDescriptor;
-import android.support.annotation.VisibleForTesting;
+import android.telephony.CallQuality;
 import android.telephony.ims.RtpHeaderExtension;
 import android.telephony.imsmedia.AmrParams;
 import android.telephony.imsmedia.AudioConfig;
@@ -33,7 +33,9 @@ import android.telephony.imsmedia.EvsParams;
 import android.telephony.imsmedia.MediaQualityThreshold;
 import android.telephony.imsmedia.RtcpConfig;
 import android.telephony.imsmedia.RtpConfig;
+
 import com.android.telephony.imsmedia.ImsMediaController.OpenSessionCallback;
+
 import java.net.InetSocketAddress;
 
 /**
@@ -395,5 +397,33 @@ public final class Utils {
     public static RtpHeaderExtension convertRtpHeaderExtension(
             final android.hardware.radio.ims.media.RtpHeaderExtension in) {
         return (in == null) ? null : new RtpHeaderExtension(in.localId, in.data);
+    }
+
+    /** Converts HAL CallQuality to {@link CallQuality} */
+    public static CallQuality convertCallQuality(
+            final android.hardware.radio.ims.media.CallQuality in) {
+        return (in == null) ? null : new CallQuality.Builder()
+                .setDownlinkCallQualityLevel(in.downlinkCallQualityLevel)
+                .setUplinkCallQualityLevel(in.uplinkCallQualityLevel)
+                .setCallDurationMillis(in.callDuration)
+                .setNumRtpPacketsTransmitted(in.numRtpPacketsTransmitted)
+                .setNumRtpPacketsReceived(in.numRtpPacketsReceived)
+                .setNumRtpPacketsTransmittedLost(in.numRtpPacketsTransmittedLost)
+                .setNumRtpPacketsNotReceived(in.numRtpPacketsNotReceived)
+                .setAverageRelativeJitter(in.averageRelativeJitter)
+                .setMaxRelativeJitter(in.maxRelativeJitter)
+                .setAverageRoundTripTimeMillis(in.averageRoundTripTime)
+                .setCodecType(in.codecType)
+                .setRtpInactivityDetected(in.rtpInactivityDetected)
+                .setIncomingSilenceDetectedAtCallSetup(in.rxSilenceDetected)
+                .setOutgoingSilenceDetectedAtCallSetup(in.txSilenceDetected)
+                .setNumVoiceFrames(in.numVoiceFrames)
+                .setNumNoDataFrames(in.numNoDataFrames)
+                .setNumDroppedRtpPackets(in.numDroppedRtpPackets)
+                .setMinPlayoutDelayMillis(in.minPlayoutDelayMillis)
+                .setMaxPlayoutDelayMillis(in.maxPlayoutDelayMillis)
+                .setNumRtpSidPacketsReceived(in.numRtpSidPacketsReceived)
+                .setNumRtpDuplicatePackets(in.numRtpDuplicatePackets)
+                .build();
     }
 }

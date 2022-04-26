@@ -22,6 +22,7 @@ import android.os.Looper;
 import android.os.Message;
 import android.os.RemoteException;
 import android.support.annotation.VisibleForTesting;
+import android.telephony.CallQuality;
 import android.telephony.Rlog;
 import android.telephony.ims.RtpHeaderExtension;
 import android.telephony.imsmedia.AudioConfig;
@@ -69,6 +70,7 @@ public final class AudioSession extends IImsAudioSession.Stub implements IMediaS
     public static final int EVENT_JITTER_IND = 211;
     public static final int EVENT_TRIGGER_ANBR_QUERY_IND = 212;
     public static final int EVENT_DTMF_RECEIVED_IND = 213;
+    public static final int EVENT_CALL_QUALITY_CHANGE_IND = 214;
 
     private int mSessionId;
     private int mSessionState;
@@ -291,6 +293,9 @@ public final class AudioSession extends IImsAudioSession.Stub implements IMediaS
                     break;
                 case EVENT_DTMF_RECEIVED_IND:
                     handleDtmfReceived((char) msg.obj);
+                    break;
+                case EVENT_CALL_QUALITY_CHANGE_IND:
+                    handleCallQualityChangeInd((CallQuality) msg.obj);
                     break;
                 default:
             }
@@ -518,6 +523,14 @@ public final class AudioSession extends IImsAudioSession.Stub implements IMediaS
             mCallback.onDtmfReceived(dtmfDigit);
         }  catch (RemoteException e) {
             Rlog.e(TAG, "Failed to Dtmf received: " + e);
+        }
+    }
+
+    private void handleCallQualityChangeInd(CallQuality callQuality) {
+        try {
+            mCallback.onCallQualityChanged(callQuality);
+        }  catch (RemoteException e) {
+            Rlog.e(TAG, "Failed to notify call quality changed indication: " + e);
         }
     }
 }

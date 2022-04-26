@@ -16,6 +16,7 @@
 
 package com.android.telephony.imsmedia;
 
+import android.hardware.radio.ims.media.CallQuality;
 import android.hardware.radio.ims.media.IImsMediaSessionListener;
 import android.hardware.radio.ims.media.RtpConfig;
 import android.hardware.radio.ims.media.RtpHeaderExtension;
@@ -103,6 +104,12 @@ final class AudioOffloadListener extends IImsMediaSessionListener.Stub {
     @Override
     public void onDtmfReceived(char dtmfDigit) {
         Utils.sendMessage(handler, AudioSession.EVENT_DTMF_RECEIVED_IND, dtmfDigit);
+    }
+
+    @Override
+    public void onCallQualityChanged(CallQuality callQuality) {
+        Utils.sendMessage(handler, AudioSession.EVENT_CALL_QUALITY_CHANGE_IND,
+                Utils.convertCallQuality(callQuality));
     }
 
     AudioOffloadListener(Handler handler) {
