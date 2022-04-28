@@ -46,3 +46,8 @@ int BaseSession::getLocalRtcpFd() {
 void BaseSession::onEvent(ImsMediaEventType type, uint64_t param1, uint64_t param2) {
     IMLOGD3("[onEvent] type[%d], param1[%d], param2[%d]", type, param1, param2);
 }
+
+void BaseSession::setMediaQualityThreshold(const MediaQualityThreshold& threshold) {
+    IMLOGD0("[setMediaQualityThreshold]");
+    mThreshold = threshold;
+}

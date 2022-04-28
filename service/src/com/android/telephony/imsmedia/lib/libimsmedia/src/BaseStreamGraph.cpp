@@ -108,3 +108,8 @@ ImsMediaResult BaseStreamGraph::stopNodes() {
     }
     return RESULT_SUCCESS;
 }
+
+void BaseStreamGraph::setMediaQualityThreshold(MediaQualityThreshold* threshold) {
+    (void)threshold;
+    //base implementation
+}

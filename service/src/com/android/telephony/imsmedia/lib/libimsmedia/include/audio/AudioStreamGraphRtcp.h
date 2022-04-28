@@ -28,6 +28,7 @@ public:
     virtual ~AudioStreamGraphRtcp();
     virtual ImsMediaResult create(void* config);
     virtual ImsMediaResult update(void* config);
+    virtual void setMediaQualityThreshold(MediaQualityThreshold* threshold);
 };
 
 #endif

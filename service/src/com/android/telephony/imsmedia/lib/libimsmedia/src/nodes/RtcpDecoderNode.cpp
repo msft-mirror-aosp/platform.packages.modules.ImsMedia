@@ -116,8 +116,8 @@ void RtcpDecoderNode::OnRtcpInd(tRtpSvc_IndicationFromStack eIndType, void* pMsg
 
 void RtcpDecoderNode::OnNumReceivedPacket(uint32_t nNumRtcpSRPacket, uint32_t nNumRtcpRRPacket) {
     IMLOGD_PACKET3(IM_PACKET_LOG_RTCP,
-        "[OnNumReceivedPacket] mediaType[%d], numSR[%d], numRR[%d]",
-        mMediaType, nNumRtcpSRPacket, nNumRtcpRRPacket);
+        "[OnNumReceivedPacket] InactivityTime[%d], numRtcpSR[%d], numRtcpRR[%d]",
+        mInactivityTime, nNumRtcpSRPacket, nNumRtcpRRPacket);
 
     if (nNumRtcpSRPacket == 0 && nNumRtcpRRPacket == 0) {
         mNoRtcpTime++;
@@ -141,5 +141,6 @@ void RtcpDecoderNode::SetPeerAddress(const RtpAddress address) {
 }
 
 void RtcpDecoderNode::SetInactivityTimerSec(const uint32_t time) {
+    IMLOGD1("[SetInactivityTimerSec] time[%d]", time);
     mInactivityTime = time;
 }
