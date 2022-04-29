@@ -56,6 +56,16 @@ public class IImsMediaSessionImpl extends IImsMediaSession.Stub {
     }
 
     @Override
+    public String getInterfaceHash() {
+        return IImsMediaSession.HASH;
+    }
+
+    @Override
+    public int getInterfaceVersion() {
+        return IImsMediaSession.VERSION;
+    }
+
+    @Override
     public void setListener(IImsMediaSessionListener mediaSessionListener) {
 
       mNativeListener.setMediaSessionListener(mediaSessionListener);

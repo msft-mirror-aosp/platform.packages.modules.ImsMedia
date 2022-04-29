@@ -14,21 +14,11 @@
  * limitations under the License.
  */
 
-
 package com.android.telephony.testimsmediahal;
 
-import android.content.AttributionSource;
-import android.content.AttributionSource.ScopedParcelState;
-
+import android.os.Parcel;
 import android.telephony.imsmedia.ImsMediaSession;
 import com.android.telephony.imsmedia.JNIImsMediaService;
-
-import java.util.HashSet;
-
-import android.os.Binder;
-import android.os.Parcel;
-
-import android.telephony.Rlog;
 
 /**
  * Connect with {@link libimsmedia} and sending request for opensession
@@ -81,31 +71,7 @@ public class JNIConnector{
 
     public void ConnectJNI() {
         mNativeListener = AudioListenerProxy.getInstance();
-
-        AttributionSource attributionSource = AttributionSource.myAttributionSource();
-
-        if (attributionSource.getPackageName() == null) {
-            // Command line utility
-            attributionSource = attributionSource.withPackageName("uid:" + Binder.getCallingUid());
-        }
-
-        Rlog.d(TAG, "package=" + attributionSource.getPackageName());
-
-        HashSet<String> setPermission = new HashSet<String>();
-
-        setPermission.add("android.permission.RECORD_AUDIO");
-
-        AttributionSource attributionSource2 = new AttributionSource(attributionSource.getUid(),
-            attributionSource.getPackageName(), attributionSource.getAttributionTag(),
-            setPermission, attributionSource.getNext());
-
-        try (ScopedParcelState attributionSourceState = attributionSource2.asScopedParcelState()) {
-            mNativeObject = mJNIServiceInstance.getInterface(
-            ImsMediaSession.SESSION_TYPE_AUDIO, attributionSourceState.getParcel());
-        } catch (Exception e) {
-            Rlog.e(TAG, "exception=" + e);
-        }
-
+        mNativeObject = mJNIServiceInstance.getInterface(ImsMediaSession.SESSION_TYPE_AUDIO);
         mJNIServiceInstance.setListener(mNativeObject, mNativeListener);
     }
 

@@ -17,17 +17,14 @@
 package com.android.telephony.testimsmediahal;
 
 import android.hardware.radio.ims.media.IImsMedia;
+import android.hardware.radio.ims.media.IImsMediaListener;
 import android.hardware.radio.ims.media.LocalEndPoint;
 import android.hardware.radio.ims.media.RtpConfig;
-import android.hardware.radio.ims.media.IImsMediaListener;
-
-import com.android.telephony.imsmedia.AudioSession;
-import com.android.telephony.imsmedia.Utils;
-
-import android.telephony.imsmedia.AudioConfig;
-
 import android.os.Parcel;
 import android.telephony.Rlog;
+import android.telephony.imsmedia.AudioConfig;
+import com.android.telephony.imsmedia.AudioSession;
+import com.android.telephony.imsmedia.Utils;
 
 /**
  * Instantiates the {@link AudioListenerProxy} and {@link JNIConnector}
@@ -47,6 +44,16 @@ public class IImsMediaImpl extends IImsMedia.Stub {
       mMediaResponse = AudioListenerProxy.getInstance();
       connector = JNIConnector.getInstance();
       connector.ConnectJNI();
+    }
+
+    @Override
+    public String getInterfaceHash() {
+        return IImsMedia.HASH;
+    }
+
+    @Override
+    public int getInterfaceVersion() {
+        return IImsMedia.VERSION;
     }
 
     @Override
