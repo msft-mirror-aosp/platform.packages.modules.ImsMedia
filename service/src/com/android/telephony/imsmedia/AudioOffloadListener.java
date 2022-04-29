@@ -27,7 +27,6 @@ import java.util.stream.Collectors;
  * This implements the handlers for all indication messages from media HAL
  */
 final class AudioOffloadListener extends IImsMediaSessionListener.Stub {
-    private static final int UNUSED = -1;
     private Handler handler;
 
     @Override
@@ -49,20 +48,20 @@ final class AudioOffloadListener extends IImsMediaSessionListener.Stub {
     public void onModifySessionResponse(RtpConfig config, int result) {
         Utils.sendMessage(handler,
                 AudioSession.EVENT_MODIFY_SESSION_RESPONSE, result,
-                UNUSED, Utils.convertToAudioConfig(config));
+                Utils.UNUSED, Utils.convertToAudioConfig(config));
     }
 
     @Override
     public void onAddConfigResponse(RtpConfig config, int result) {
         Utils.sendMessage(handler, AudioSession.EVENT_ADD_CONFIG_RESPONSE,
-                result, UNUSED, Utils.convertToAudioConfig(config));
+                result, Utils.UNUSED, Utils.convertToAudioConfig(config));
     }
 
     @Override
     public void onConfirmConfigResponse(RtpConfig config, int result) {
         Utils.sendMessage(handler,
                 AudioSession.EVENT_CONFIRM_CONFIG_RESPONSE, result,
-                UNUSED, Utils.convertToAudioConfig(config));
+                Utils.UNUSED, Utils.convertToAudioConfig(config));
     }
 
     @Override

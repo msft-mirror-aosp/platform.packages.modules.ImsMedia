@@ -26,16 +26,14 @@ import android.os.Handler;
 import android.os.Message;
 import android.os.ParcelFileDescriptor;
 import android.support.annotation.VisibleForTesting;
+import android.telephony.ims.RtpHeaderExtension;
 import android.telephony.imsmedia.AmrParams;
 import android.telephony.imsmedia.AudioConfig;
 import android.telephony.imsmedia.EvsParams;
 import android.telephony.imsmedia.MediaQualityThreshold;
 import android.telephony.imsmedia.RtcpConfig;
 import android.telephony.imsmedia.RtpConfig;
-import android.telephony.ims.RtpHeaderExtension;
-
 import com.android.telephony.imsmedia.ImsMediaController.OpenSessionCallback;
-
 import java.net.InetSocketAddress;
 
 /**
@@ -44,6 +42,9 @@ import java.net.InetSocketAddress;
  * @hide
  */
 public final class Utils {
+
+    static final int UNUSED = -1;
+
     /** Class to encapsulate open session parameters */
     static final class OpenSessionParams {
         private final ParcelFileDescriptor rtpFd;

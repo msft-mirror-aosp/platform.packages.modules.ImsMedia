@@ -179,7 +179,7 @@ public final class AudioSession extends IImsAudioSession.Stub implements IMediaS
     @Override
     public void sendDtmf(char digit, int duration) {
         Rlog.d(TAG, "sendDtmf: digit=" + digit + ",duration=" + duration);
-        Utils.sendMessage(mHandler, CMD_SEND_DTMF, digit, duration);
+        Utils.sendMessage(mHandler, CMD_SEND_DTMF, duration, Utils.UNUSED, digit);
     }
 
     @Override
