@@ -705,6 +705,16 @@ public class MainActivity extends AppCompatActivity {
         public void onFirstMediaPacketReceived(AudioConfig config) {
             Log.d(TAG, "onFirstMediaPacketReceived");
         }
+
+        @Override
+        public void triggerAnbrQuery(AudioConfig config) {
+            Log.d(TAG, "triggerAnbrQuery");
+        }
+
+        @Override
+        public void onDtmfReceived(char dtmfDigit) {
+            Log.d(TAG, "onDtmfReceived");
+        }
     }
 
     private class RtpVideoSessionCallback extends VideoSessionCallback {

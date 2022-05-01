@@ -23,8 +23,8 @@ import android.telephony.ims.RtpHeaderExtension;
 import android.telephony.imsmedia.IImsAudioSession;
 import android.telephony.imsmedia.IImsAudioSessionCallback;
 
-import java.util.concurrent.Executor;
 import java.util.List;
+import java.util.concurrent.Executor;
 
 /**
  * Audio session callback APIs
@@ -203,6 +203,30 @@ public class AudioSessionCallback extends ImsMediaManager.SessionCallback {
             }
         }
 
+        @Override
+        public void triggerAnbrQuery(final AudioConfig config) {
+            if (mLocalCallback == null) return;
+
+            final long callingIdentity = Binder.clearCallingIdentity();
+            try {
+                mExecutor.execute(() -> mLocalCallback.triggerAnbrQuery(config));
+            } finally {
+                restoreCallingIdentity(callingIdentity);
+            }
+        }
+
+        @Override
+        public void onDtmfReceived(final char dtmfDigit) {
+            if (mLocalCallback == null) return;
+
+            final long callingIdentity = Binder.clearCallingIdentity();
+            try {
+                mExecutor.execute(() -> mLocalCallback.onDtmfReceived(dtmfDigit));
+            } finally {
+                restoreCallingIdentity(callingIdentity);
+            }
+        }
+
         private void setExecutor(final Executor executor) {
             mExecutor = executor;
         }
@@ -305,6 +329,24 @@ public class AudioSessionCallback extends ImsMediaManager.SessionCallback {
      * @param callQuality The media quality statistics since last report
      */
     public void onMediaQualityChanged(final CallQuality callQuality) {
+        // Base Implementation
+    }
+
+    /**
+    * Notifies when ImsMedia want to query the desired bitrate to NW
+    *
+    * @param config The config containing desired bitrate and direction
+    */
+    public void triggerAnbrQuery(final AudioConfig config) {
+        // Base Implementation
+    }
+
+    /**
+    * Notifies received DTMF digit to play the tone
+    *
+    * @param dtmfDigit single char having one of 12 values: 0-9, *, #
+    */
+    public void onDtmfReceived(final char dtmfDigit) {
         // Base Implementation
     }
 }

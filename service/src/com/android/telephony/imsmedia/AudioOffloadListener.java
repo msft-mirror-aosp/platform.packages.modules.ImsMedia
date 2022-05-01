@@ -94,6 +94,17 @@ final class AudioOffloadListener extends IImsMediaSessionListener.Stub {
         Utils.sendMessage(handler, AudioSession.EVENT_JITTER_IND, jitter);
     }
 
+    @Override
+    public void triggerAnbrQuery(RtpConfig config) {
+        Utils.sendMessage(handler, AudioSession.EVENT_TRIGGER_ANBR_QUERY_IND,
+                Utils.convertToAudioConfig(config));
+    }
+
+    @Override
+    public void onDtmfReceived(char dtmfDigit) {
+        Utils.sendMessage(handler, AudioSession.EVENT_DTMF_RECEIVED_IND, dtmfDigit);
+    }
+
     AudioOffloadListener(Handler handler) {
         this.handler = handler;
     }

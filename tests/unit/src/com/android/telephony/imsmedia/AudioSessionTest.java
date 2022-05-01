@@ -17,13 +17,12 @@
 package com.android.telephony.imsmedia;
 
 import static com.google.common.truth.Truth.assertThat;
+
 import static org.junit.Assert.fail;
 import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
-import android.os.Looper;
-import android.os.Message;
 import android.os.Parcel;
 import android.os.ParcelFileDescriptor;
 import android.os.RemoteException;
@@ -33,13 +32,12 @@ import android.telephony.imsmedia.IImsAudioSessionCallback;
 import android.telephony.imsmedia.ImsMediaSession;
 import android.telephony.imsmedia.MediaQualityThreshold;
 import android.testing.TestableLooper;
+
 import com.android.telephony.imsmedia.AudioService;
 import com.android.telephony.imsmedia.AudioSession;
 import com.android.telephony.imsmedia.Utils;
 import com.android.telephony.imsmedia.Utils.OpenSessionParams;
-import java.net.DatagramSocket;
-import java.net.SocketException;
-import java.util.ArrayList;
+
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -47,6 +45,10 @@ import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+
+import java.net.DatagramSocket;
+import java.net.SocketException;
+import java.util.ArrayList;
 
 @RunWith(JUnit4.class)
 public class AudioSessionTest {
@@ -336,6 +338,31 @@ public class AudioSessionTest {
             verify(callback, times(1)).onHeaderExtensionReceived(eq(extensions));
         }  catch(RemoteException e) {
             fail("Failed to notify onHeaderExtensionReceived: " + e);
+        }
+    }
+
+    @Test
+    public void testTriggerAnbrQuery() {
+        // Receive triggerAnbrQuery for ANBR
+        AudioConfig config = AudioConfigTest.createAudioConfig();
+        Utils.sendMessage(handler, AudioSession.EVENT_TRIGGER_ANBR_QUERY_IND, config);
+        processAllMessages();
+        try {
+            verify(callback, times(1)).triggerAnbrQuery(eq(config));
+        }  catch (RemoteException e) {
+            fail("Failed to notify triggerAnbrQuery: " + e);
+        }
+    }
+
+    @Test
+    public void testDtmfReceived() {
+        // Receive onDtmfReceived
+        Utils.sendMessage(handler, AudioSession.EVENT_DTMF_RECEIVED_IND, DTMF_DIGIT);
+        processAllMessages();
+        try {
+            verify(callback, times(1)).onDtmfReceived(eq(DTMF_DIGIT));
+        }  catch (RemoteException e) {
+            fail("Failed to notify onDtmfReceived: " + e);
         }
     }
 
