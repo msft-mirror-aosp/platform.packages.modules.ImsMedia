@@ -34,7 +34,6 @@ public:
     virtual ImsMediaResult addGraph(RtpConfig* config);
     virtual ImsMediaResult confirmGraph(RtpConfig* config);
     virtual ImsMediaResult deleteGraph(RtpConfig* config);
-    virtual void setMediaQualityThreshold(MediaQualityThreshold* threshold);
     // BaseSessionCallback
     virtual void onEvent(ImsMediaEventType type, uint64_t param1, uint64_t param2);
     // dtmf method

@@ -100,6 +100,7 @@ ImsMediaResult AudioSession::startGraph(RtpConfig* config) {
         mListGraphRtpRx.push_back(new AudioStreamGraphRtpRx(this, mRtpFd));
         ret = mListGraphRtpRx.back()->create(config);
         if (ret == RESULT_SUCCESS) {
+            mListGraphRtpRx.back()->setMediaQualityThreshold(&mThreshold);
             ret = mListGraphRtpRx.back()->start();
             if (ret != RESULT_SUCCESS) {
                 IMLOGE1("[startGraph] start error[%d]", ret);
@@ -120,6 +121,7 @@ ImsMediaResult AudioSession::startGraph(RtpConfig* config) {
         mListGraphRtcp.push_back(new AudioStreamGraphRtcp(this, mRtcpFd));
         ret = mListGraphRtcp.back()->create(config);
         if (ret == RESULT_SUCCESS) {
+            mListGraphRtcp.back()->setMediaQualityThreshold(&mThreshold);
             ret = mListGraphRtcp.back()->start();
             if (ret != RESULT_SUCCESS) {
                 IMLOGE1("[startGraph] start error[%d]", ret);
@@ -174,6 +176,7 @@ ImsMediaResult AudioSession::addGraph(RtpConfig* config) {
     mListGraphRtpRx.push_back(new AudioStreamGraphRtpRx(this, mRtpFd));
     ret = mListGraphRtpRx.back()->create(config);
     if (ret == RESULT_SUCCESS) {
+        mListGraphRtpRx.back()->setMediaQualityThreshold(&mThreshold);
         ret = mListGraphRtpRx.back()->start();
         if (ret != RESULT_SUCCESS) {
             IMLOGE1("[addGraph] start error[%d]", ret);
@@ -186,6 +189,7 @@ ImsMediaResult AudioSession::addGraph(RtpConfig* config) {
     mListGraphRtcp.push_back(new AudioStreamGraphRtcp(this, mRtcpFd));
     ret = mListGraphRtcp.back()->create(config);
     if (ret == RESULT_SUCCESS) {
+        mListGraphRtcp.back()->setMediaQualityThreshold(&mThreshold);
         ret = mListGraphRtcp.back()->start();
         if (ret != RESULT_SUCCESS) {
             IMLOGE1("[addGraph] start error[%d]", ret);
@@ -353,25 +357,6 @@ ImsMediaResult AudioSession::deleteGraph(RtpConfig* config) {
 
     IMLOGD1("[deleteGraph] mListGraphRtcp size[%d]", mListGraphRtcp.size());
     return RESULT_SUCCESS;
-}
-
-void AudioSession::setMediaQualityThreshold(MediaQualityThreshold* threshold) {
-    IMLOGD0("[setMediaQualityThreshold]");
-    for (std::list<AudioStreamGraphRtpRx*>::iterator iter =
-        mListGraphRtpRx.begin(); iter != mListGraphRtpRx.end(); iter++) {
-        AudioStreamGraphRtpRx* graph = *iter;
-        if (graph != NULL) {
-            graph->setMediaQualityThreshold(*threshold);
-        }
-    }
-
-    for (std::list<AudioStreamGraphRtcp*>::iterator iter =
-        mListGraphRtcp.begin(); iter != mListGraphRtcp.end(); iter++) {
-        AudioStreamGraphRtcp* graph = *iter;
-        if (graph != NULL) {
-            graph->setMediaQualityThreshold(*threshold);
-        }
-    }
 }
 
 void AudioSession::onEvent(ImsMediaEventType type, uint64_t param1, uint64_t param2) {

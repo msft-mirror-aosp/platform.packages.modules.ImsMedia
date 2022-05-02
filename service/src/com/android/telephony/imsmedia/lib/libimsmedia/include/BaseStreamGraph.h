@@ -69,9 +69,13 @@ public:
         }
         return false;
     }
-    virtual void setMediaQualityThreshold(const MediaQualityThreshold& threshold) {
-        mThreshold = threshold;
-    }
+
+    /**
+     * @brief Set the MediaQualityThreshold to the nodes.
+     *
+     * @param threshold threshold parameter to set.
+     */
+    virtual void setMediaQualityThreshold(MediaQualityThreshold* threshold);
 
 protected:
     RtpConfig* mConfig;
@@ -80,7 +84,6 @@ protected:
     StreamState mGraphState;
     std::list<BaseNode*> mListNodeToStart;
     std::list<BaseNode*> mListNodeStarted;
-    MediaQualityThreshold mThreshold;
     std::unique_ptr<StreamScheduler> mScheduler;
 };
 

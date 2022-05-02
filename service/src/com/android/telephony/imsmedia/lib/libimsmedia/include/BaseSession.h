@@ -32,6 +32,7 @@ public:
     int getLocalRtcpFd();
     // BaseSessionCallback
     virtual void onEvent(ImsMediaEventType type, uint64_t param1, uint64_t param2);
+    virtual void setMediaQualityThreshold(const MediaQualityThreshold& threshold);
 
 protected:
     /**
@@ -73,11 +74,11 @@ protected:
      *         no error, it returns RESULT_SUCCESS. check #ImsMediaDefine.h.
      */
     virtual ImsMediaResult deleteGraph(RtpConfig* config) = 0;
-    virtual void setMediaQualityThreshold(MediaQualityThreshold* threshold) = 0;
 
     int mSessionId;
     int mRtpFd;
     int mRtcpFd;
+    MediaQualityThreshold mThreshold;
 };
 
 #endif

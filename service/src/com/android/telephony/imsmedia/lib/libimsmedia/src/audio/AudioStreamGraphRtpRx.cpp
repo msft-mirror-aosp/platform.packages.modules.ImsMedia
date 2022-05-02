@@ -50,9 +50,6 @@ ImsMediaResult AudioStreamGraphRtpRx::create(void* config) {
     pNodeRtpDecoder->SetMediaType(IMS_MEDIA_AUDIO);
     pNodeRtpDecoder->SetConfig(mConfig);
     ((RtpDecoderNode*)pNodeRtpDecoder)->SetLocalAddress(localAddress);
-    ((RtpDecoderNode*)pNodeRtpDecoder)->SetInactivityTimerSec(
-        mThreshold.getRtpInactivityTimerMillis() == 0 ? 0 :
-            mThreshold.getRtpInactivityTimerMillis() / 1000);
     AddNode(pNodeRtpDecoder);
     pNodeSocketReader->ConnectRearNode(pNodeRtpDecoder);
 
@@ -128,4 +125,16 @@ ImsMediaResult AudioStreamGraphRtpRx::update(void* config) {
     }
 
     return ret;
+}
+
+void AudioStreamGraphRtpRx::setMediaQualityThreshold(MediaQualityThreshold* threshold) {
+    if (threshold == NULL) return;
+
+    for (auto&i:mListNodeToStart) {
+        if (i->GetNodeID() == BaseNodeID::NODEID_RTPDECODER) {
+            RtpDecoderNode* pNode = reinterpret_cast<RtpDecoderNode*>(i);
+            pNode->SetInactivityTimerSec(threshold->getRtpInactivityTimerMillis() / 1000);
+            break;
+        }
+    }
 }

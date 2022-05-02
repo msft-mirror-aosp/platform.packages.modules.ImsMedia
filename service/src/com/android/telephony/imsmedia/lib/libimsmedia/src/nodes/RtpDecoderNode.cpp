@@ -136,8 +136,8 @@ void RtpDecoderNode::OnMediaDataInd(unsigned char* pData, uint32_t nDataSize, ui
 }
 
 void RtpDecoderNode::OnNumReceivedPacket(uint32_t nNumRtpPacket) {
-    IMLOGD_PACKET2(IM_PACKET_LOG_RTCP,
-        "[OnNumReceivedPacket] mediaType[%d], numRTP[%d]", mMediaType, nNumRtpPacket);
+    IMLOGD_PACKET2(IM_PACKET_LOG_RTP,
+        "[OnNumReceivedPacket] InactivityTime[%d], numRtp[%d]", mInactivityTime, nNumRtpPacket);
 
     if (nNumRtpPacket == 0) {
         mNoRtpTime++;
@@ -165,5 +165,6 @@ void RtpDecoderNode::SetSamplingRate(const uint32_t data) {
 }
 
 void RtpDecoderNode::SetInactivityTimerSec(const uint32_t time) {
+    IMLOGD1("[SetInactivityTimerSec] time[%d]", time);
     mInactivityTime = time;
 }

@@ -136,7 +136,7 @@ void AudioManager::setMediaQualityThreshold(int sessionId,
     auto session = mSessions.find(sessionId);
     IMLOGD1("setMediaQualityThreshold() - sessionId[%d]", sessionId);
     if (session != mSessions.end()) {
-        (session->second)->setMediaQualityThreshold(threshold);
+        (session->second)->setMediaQualityThreshold(*threshold);
     } else {
         IMLOGE1("setMediaQualityThreshold() - no session id[%d]", sessionId);
     }
