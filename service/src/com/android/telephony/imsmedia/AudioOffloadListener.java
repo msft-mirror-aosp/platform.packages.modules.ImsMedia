@@ -20,6 +20,7 @@ import android.hardware.radio.ims.media.IImsMediaSessionListener;
 import android.hardware.radio.ims.media.RtpConfig;
 import android.hardware.radio.ims.media.RtpHeaderExtension;
 import android.os.Handler;
+
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -79,7 +80,8 @@ final class AudioOffloadListener extends IImsMediaSessionListener.Stub {
 
     @Override
     public void notifyMediaInactivity(int packetType) {
-        Utils.sendMessage(handler, AudioSession.EVENT_MEDIA_INACTIVITY_IND, packetType);
+        Utils.sendMessage(handler, AudioSession.EVENT_MEDIA_INACTIVITY_IND,
+                packetType, Utils.UNUSED);
     }
 
     @Override

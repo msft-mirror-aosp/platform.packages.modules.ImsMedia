@@ -19,9 +19,7 @@ package com.android.telephony.imsmedia;
 import android.os.Handler;
 import android.os.Parcel;
 import android.telephony.Rlog;
-import android.telephony.ims.RtpHeaderExtension;
 import android.telephony.imsmedia.AudioConfig;
-import android.telephony.imsmedia.MediaQualityThreshold;
 
 /**
  * Audio listener to process JNI messages from local AP based RTP stack
@@ -91,7 +89,7 @@ public class AudioListener implements JNIImsMediaListener {
                 Utils.sendMessage(mHandler, event);
                 break;
             case AudioSession.EVENT_MEDIA_INACTIVITY_IND:
-                Utils.sendMessage(mHandler, event, parcel.readInt(), parcel.readInt());
+                Utils.sendMessage(mHandler, event, parcel.readInt(), Utils.UNUSED);
                 break;
             case AudioSession.EVENT_PACKET_LOSS_IND:
             case AudioSession.EVENT_JITTER_IND:
