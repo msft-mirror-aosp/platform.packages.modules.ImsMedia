@@ -44,6 +44,8 @@ AudioJitterBuffer::AudioJitterBuffer() {
     mMinJitterBufferSize = AUDIO_JITTER_BUFFER_MIN_SIZE;
     mMaxJitterBufferSize = AUDIO_JITTER_BUFFER_MAX_SIZE;
     AudioJitterBuffer::Reset();
+    mBufferIgnoreSIDPacket = false;
+    mBufferImprovement = false;
 }
 
 AudioJitterBuffer::~AudioJitterBuffer() {
@@ -71,8 +73,6 @@ void AudioJitterBuffer::Reset() {
     mJitterAnalyser.SetMinMaxJitterBufferSize(mMinJitterBufferSize, mMaxJitterBufferSize);
     mCurrPlayingSeq = 0;
     mBufferUpdateDuration = 0;
-    mBufferIgnoreSIDPacket = false;
-    mBufferImprovement = false;
 }
 
 void AudioJitterBuffer::SetJitterBufferSize(uint32_t nInit, uint32_t nMin, uint32_t nMax) {
@@ -166,8 +166,7 @@ void AudioJitterBuffer::Add(ImsMediaSubType subtype, uint8_t* pbBuffer, uint32_t
 
         mJitterAnalyser.OnInputData(nTimestamp, bMark, nSeqNum,
             ImsMediaTimer::GetTimeInMilliSeconds());
-    }
-    else if ((mBufferIgnoreSIDPacket == true)
+    } else if ((mBufferIgnoreSIDPacket == true)
         && !IsSID(currEntry.pbBuffer, currEntry.nBufferSize)) {
         // first packet delay compensation
         if ((mBaseTS == 0 && mBaseAT == 0) || (mNeedToUpdateBasePacket == true)) {
@@ -357,8 +356,7 @@ bool AudioJitterBuffer::Get(ImsMediaSubType* psubtype, uint8_t** ppData,
     // determin bWait
     if (mIsReceivedFirst == false) {
         bWait = true;
-    }
-    else if (mDtxOn && mDataQueue.GetCount() > 0) {
+    } else if (mDtxOn && mDataQueue.GetCount() > 0) {
         mDataQueue.Get(&pEntry);
         if (pEntry == NULL) return false;
         if (IsSID(pEntry->pbBuffer, pEntry->nBufferSize) == false) {
