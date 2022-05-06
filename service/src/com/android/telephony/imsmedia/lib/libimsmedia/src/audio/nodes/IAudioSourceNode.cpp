@@ -136,7 +136,7 @@ void IAudioSourceNode::CB_AudioUplink(void* pClient, uint8_t* pBitstream, uint32
     IAudioSourceNode* client = reinterpret_cast<IAudioSourceNode*>(pClient);
     if (client != NULL) {
         IMLOGD_PACKET2(IM_PACKET_LOG_AUDIO,
-            "[CB_AudioUplink] size[%zu], pts=%" PRId64, pnSize, pstUsec);
+            "[CB_AudioUplink] size[%zu], pts=%ld", pnSize, pstUsec);
         client->SendDataToRearNode(MEDIASUBTYPE_UNDEFINED, pBitstream, pnSize, pstUsec,
             !client->m_bFirstFrame, MEDIASUBTYPE_UNDEFINED);
         if (!client->m_bFirstFrame) {

@@ -19,19 +19,12 @@
 
 #include <ImsMediaAudioDefine.h>
 #include <aaudio/AAudio.h>
-#include <media/stagefright/MediaCodec.h>
+#include <media/NdkMediaCodec.h>
+#include <media/NdkMediaFormat.h>
 
 using android::sp;
-using android::MediaCodec;
 
 class ImsMediaAudioPlayer {
-private:
-    AAudioStream* mAudioStream;
-    sp<MediaCodec> mMediaCodec;
-    int32_t mCodecType;
-    uint32_t mCodecMode;
-    uint16_t mBuffer[PCM_BUFFER_SIZE];
-
 public:
     ImsMediaAudioPlayer();
     ~ImsMediaAudioPlayer();
@@ -40,6 +33,14 @@ public:
     bool Start();
     void Stop();
     bool onDataFrame(uint8_t* buffer, uint32_t size);
+
+private:
+    AAudioStream* mAudioStream;
+    AMediaCodec* mCodec;
+    AMediaFormat* mFormat;
+    int32_t mCodecType;
+    uint32_t mCodecMode;
+    uint16_t mBuffer[PCM_BUFFER_SIZE];
 };
 
 #endif
