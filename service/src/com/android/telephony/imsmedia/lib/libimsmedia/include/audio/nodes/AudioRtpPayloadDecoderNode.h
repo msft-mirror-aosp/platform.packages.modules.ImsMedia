@@ -47,10 +47,20 @@ public:
     virtual void OnDataFromFrontNode(ImsMediaSubType subtype, uint8_t* pData, uint32_t nDataSize,
             uint32_t nTimestamp, bool bMark, uint32_t nSeqNum,
             ImsMediaSubType nDataType = ImsMediaSubType::MEDIASUBTYPE_UNDEFINED);
+    void SetPayloadMode(bool mode);
+    void setEvsBandwidth(eEVSBandwidth bandwidth);
+    void setEvsMode(eEVSBitrate evsMode);
+    void setEvsPayloadHeaderMode(eRTPPyaloadHeaderMode evsPayloadHeaderMode);
+    void setEvsCodecMode(int32_t evsCodecMode);
+    void setEvsChannelAwareOffset(int32_t EvsChAOffset);
 
 private:
     void Decode_PH_AMR(
             uint8_t* pData, uint32_t nDataSize, uint32_t nTimestamp, bool bMark, uint32_t nSeqNum);
+    void Decode_PH_EVS(
+            uint8_t* pData, uint32_t nDataSize, uint32_t nTimeStamp, bool bMark, uint32_t nSeqNum);
+    bool ProcessCMRForEVS(
+            eRTPPyaloadHeaderMode eEVSPayloadHeaderMode, uint32_t cmr_t, uint32_t cmr_d);
 
 private:
     int32_t mCodecType;
@@ -60,6 +70,13 @@ private:
     ImsMediaBitWriter mBitWriter;
     uint32_t mPrevCMR;
     std::mutex mMutexExit;
+    eEVSBandwidth mEvsBandwidth;
+    eEVSCodecMode mEvsCodecMode;
+    eRTPPyaloadHeaderMode mEvsPayloadHeaderMode;
+    int32_t mEvsModetoBitRate;
+    eEVSBitrate mEvsMode;
+    int32_t mEvsOffset;
+    int32_t EvsChAOffset;
 };
 
 #endif

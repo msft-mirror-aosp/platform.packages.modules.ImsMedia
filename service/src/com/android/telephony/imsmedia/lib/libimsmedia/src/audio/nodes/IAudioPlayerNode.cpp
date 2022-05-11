@@ -19,6 +19,7 @@
 #include <ImsMediaTrace.h>
 #include <ImsMediaTimer.h>
 #include <AudioConfig.h>
+#include <RtpConfig.h>
 #include <string.h>
 
 IAudioPlayerNode::IAudioPlayerNode() :
@@ -60,8 +61,19 @@ ImsMediaResult IAudioPlayerNode::Start()
     {
         mAudioPlayer->SetCodec(mCodecType);
         mAudioPlayer->SetCodecMode(mMode);
+        mAudioPlayer->SetSamplingRate(mSamplingRate);
+
+        if (mCodecType == kAudioCodecEvs)
+        {
+            mAudioPlayer->SetEvsBandwidth(mEvsBandwidth);
+        }
         mAudioPlayer->Start();
     }
+    else
+    {
+        IMLOGE0("[IAudioPlayer] Not able to start AudioPlayer");
+    }
+
     mFirstFrame = false;
     mMutex.unlock();
     mNodeState = kNodeStateRunning;
@@ -103,6 +115,13 @@ void IAudioPlayerNode::SetConfig(void* config)
         {
             SetCodecMode(pConfig->getAmrParams().getAmrMode());
         }
+        else if (mCodecType == kAudioCodecEvs)
+        {
+            SetCodecMode(pConfig->getEvsParams().getEvsMode());
+            SetEvsChannelAwareOffset(pConfig->getEvsParams().getChannelAwareMode());
+            SetEVSBandwidth((eEVSBandwidth)pConfig->getEvsParams().getEvsBandwidth());
+        }
+        SetSamplingRate(pConfig->getSamplingRateKHz());
         // testing parameter
         SetJitterBufferSize(4, 4, 9);
         SetJitterOptions(80, 1, (double)25 / 10, true, true);
@@ -161,6 +180,21 @@ void IAudioPlayerNode::SetCodec(int32_t type)
     }
 }
 
+void IAudioPlayerNode::SetEVSBandwidth(eEVSBandwidth bandwidth)
+{
+    mEvsBandwidth = bandwidth;
+}
+
+void IAudioPlayerNode::SetEvsChannelAwareOffset(int32_t EvsChAOffset)
+{
+    mEvsChannelAwOffset = EvsChAOffset;
+}
+
+void IAudioPlayerNode::SetSamplingRate(int32_t samplingRate)
+{
+    mSamplingRate = samplingRate;
+}
+
 void IAudioPlayerNode::SetCodecMode(uint32_t mode)
 {
     mMode = mode;
@@ -207,6 +241,10 @@ void* IAudioPlayerNode::run()
             }
 
             DeleteData();
+        }
+        else
+        {
+            IMLOGE0("[IAudioPlayerNode] : no data received from jitter buffer {GetData}....");
         }
 
         mMutex.unlock();

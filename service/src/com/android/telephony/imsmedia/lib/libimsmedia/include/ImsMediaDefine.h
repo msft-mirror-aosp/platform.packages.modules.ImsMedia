@@ -88,6 +88,137 @@ enum ImsMediaProtocolType
     RTCP,
 };
 
+typedef enum
+{
+    EVS_VOC_BANDWIDTH_NONE = 0,
+    EVS_VOC_BANDWIDTH_NB = 1,
+    EVS_VOC_BANDWIDTH_WB = 2,
+    EVS_VOC_BANDWIDTH_SWB = 4,
+    EVS_VOC_BANDWIDTH_FB = 8,
+    EVS_VOC_BANDWIDTH_MAX = 0x7FFFFFFF
+} eEVSBandwidth;
+
+typedef enum
+{
+    /* 6.6 kbps, AMR-IO */
+    EVS_AMRIO_MODE_00660 = 0,
+    /* 8.85 kbps, AMR-IO */
+    EVS_AMRIO_MODE_00885 = 1,
+    /* 12.65 kbps, AMR-IO */
+    EVS_AMRIO_MODE_01265 = 2,
+    /* 14.25 kbps, AMR-IO */
+    EVS_AMRIO_MODE_01425 = 3,
+    /* 15.85 kbps, AMR-IO */
+    EVS_AMRIO_MODE_01585 = 4,
+    /* 18.25 kbps, AMR-IO */
+    EVS_AMRIO_MODE_01825 = 5,
+    /* 19.85 kbps, AMR-IO */
+    EVS_AMRIO_MODE_01985 = 6,
+    /* 23.05 kbps, AMR-IO */
+    EVS_AMRIO_MODE_02305 = 7,
+    /* 23.85 kbps, AMR-IO */
+    EVS_AMRIO_MODE_02385 = 8,
+    /* 5.9 kbps, EVS Primary - SC-VBR 2.8kbps, 7.2kbps, 8kbps*/
+    EVS_PRIMARY_MODE_00590 = 9,
+    /* 7.2 kbps, EVS Primary */
+    EVS_PRIMARY_MODE_00720 = 10,
+    /* 8 kbps, EVS Primary */
+    EVS_PRIMARY_MODE_00800 = 11,
+    /* 9.6 kbps, EVS Primary */
+    EVS_PRIMARY_MODE_00960 = 12,
+    /* 13.20 kbps, EVS Primary */
+    EVS_PRIMARY_MODE_01320 = 13,
+    /* 16.4 kbps, EVS Primary */
+    EVS_PRIMARY_MODE_01640 = 14,
+    /* 24.4 kbps, EVS Primary */
+    EVS_PRIMARY_MODE_02440 = 15,
+    /* 32 kbps, EVS Primary */
+    EVS_PRIMARY_MODE_03200 = 16,
+    /* 48 kbps, EVS Primary */
+    EVS_PRIMARY_MODE_04800 = 17,
+    /* 64 kbps, EVS Primary */
+    EVS_PRIMARY_MODE_06400 = 18,
+    /* 96 kbps, EVS Primary */
+    EVS_PRIMARY_MODE_09600 = 19,
+    /* 128 kbps, EVS Primary */
+    EVS_PRIMARY_MODE_12800 = 20,
+    /* 2.4 kbps, EVS Primary */
+    EVS_PRIMARY_MODE_SID = 21,
+
+    /* SPEECH LOST */
+    EVS_PRIMARY_MODE_SPEECH_LOST = 22,
+    /* NO DATA */
+    EVS_PRIMARY_MODE_NO_DATA = 23,
+
+    /* This definition is used to force enums to use 32 bits - required for L4 */
+    EVS_PRIMARY_MODE_MAX = 0x7FFFFFFF
+} eEVSBitrate;
+
+// [EVS] codec mode
+typedef enum _eEVSCodecMode
+{
+    EVS_PRIMARY = 0,    // EVS PRIMARY mode 0
+    EVS_AMR_WB_IO = 1,  // EVS AMR-WB IO mode 1
+
+    EVS_CODEC_MODE_ENUM_MAX = 0x7FFFFFFF
+} eEVSCodecMode;
+
+typedef enum _eEVSCMRCodeType
+{
+    EVS_CMR_CODETYPE_NB = 0,       // 000
+    EVS_CMR_CODETYPE_AMRIO = 1,    // 001
+    EVS_CMR_CODETYPE_WB = 2,       // 010
+    EVS_CMR_CODETYPE_SWB = 3,      // 011
+    EVS_CMR_CODETYPE_FB = 4,       // 100
+    EVS_CMR_CODETYPE_WB_CHA = 5,   // 101
+    EVS_CMR_CODETYPE_SWB_CHA = 6,  // 110
+
+    EVS_CMR_CODETYPE_NO_REQ = 7,  // 111
+
+    EVS_CMR_CODETYPE_ENUM_MAX = 0x7FFFFFFF
+} eEVSCMRCodeType;
+
+typedef enum _eEVSCMRCodeDefine
+{
+    EVS_CMR_CODEDEFINE_59 = 0,     // 0000
+    EVS_CMR_CODEDEFINE_72 = 1,     // 0001
+    EVS_CMR_CODEDEFINE_80 = 2,     // 0010
+    EVS_CMR_CODEDEFINE_96 = 3,     // 0011
+    EVS_CMR_CODEDEFINE_132 = 4,    // 0100
+    EVS_CMR_CODEDEFINE_164 = 5,    // 0101
+    EVS_CMR_CODEDEFINE_244 = 6,    // 0110
+    EVS_CMR_CODEDEFINE_320 = 7,    // 0111
+    EVS_CMR_CODEDEFINE_480 = 8,    // 1000
+    EVS_CMR_CODEDEFINE_640 = 9,    // 1001
+    EVS_CMR_CODEDEFINE_960 = 10,   // 1010
+    EVS_CMR_CODEDEFINE_1280 = 11,  // 1011
+
+    EVS_CMR_CODEDEFINE_NO_REQ = 15,  // 1111
+
+    // Ch-A
+    EVS_CMR_CODEDEFINE_CHA_OFFSET_2 = 0,   // 0000
+    EVS_CMR_CODEDEFINE_CHA_OFFSET_3 = 1,   // 0001
+    EVS_CMR_CODEDEFINE_CHA_OFFSET_5 = 2,   // 0010
+    EVS_CMR_CODEDEFINE_CHA_OFFSET_7 = 3,   // 0011
+    EVS_CMR_CODEDEFINE_CHA_OFFSET_H2 = 4,  // 0100
+    EVS_CMR_CODEDEFINE_CHA_OFFSET_H3 = 5,  // 0101
+    EVS_CMR_CODEDEFINE_CHA_OFFSET_H5 = 6,  // 0110
+    EVS_CMR_CODEDEFINE_CHA_OFFSET_H7 = 7,  // 0111
+
+    // AMR WB-IO
+    EVS_CMR_CODEDEFINE_AMRIO_660 = 0,   // 0000
+    EVS_CMR_CODEDEFINE_AMRIO_885 = 1,   // 0001
+    EVS_CMR_CODEDEFINE_AMRIO_1265 = 2,  // 0010
+    EVS_CMR_CODEDEFINE_AMRIO_1425 = 3,  // 0011
+    EVS_CMR_CODEDEFINE_AMRIO_1585 = 4,  // 0100
+    EVS_CMR_CODEDEFINE_AMRIO_1825 = 5,  // 0101
+    EVS_CMR_CODEDEFINE_AMRIO_1985 = 6,  // 0110
+    EVS_CMR_CODEDEFINE_AMRIO_2305 = 7,  // 0111
+    EVS_CMR_CODEDEFINE_AMRIO_2385 = 8,  // 1000
+
+    EVS_CMR_CODEDEFINE_ENUM_MAX = 0x7FFFFFFF
+} eEVSCMRCodeDefine;
+
 enum ImsMediaSubType
 {
     MEDIASUBTYPE_UNDEFINED,

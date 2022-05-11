@@ -19,6 +19,7 @@
 
 #include <ImsMediaDefine.h>
 #include <stdint.h>
+#include <ImsMediaDefine.h>
 
 #define IMSAMR_FRAME_BYTES              34
 
@@ -225,6 +226,16 @@ public:
     static uint32_t ConvertEVSAMRIOAudioRateToBitLen(uint32_t mode);
     static uint32_t GetBitrateAmr(int mode);
     static uint32_t GetBitrateAmrWb(int mode);
+    static uint32_t GetBitrateEVS(int mode);
+    static eRTPPyaloadHeaderMode Check_EVS_Payload(
+            uint32_t nDataSize, eEVSCodecMode* pEVSCodecMode, uint32_t* pEVSCompactId);
+    static eEVSBandwidth FindMaxEVSBandwidth(uint32_t nEVSBandwidthSet);
+    static eEVSBitrate FindMaxEVSBitrate(uint32_t nEVSBitrateSet, eEVSCodecMode eEVSCodecMode);
+    //  static uint32_t ConvertAmrWbAudioRateToBitLen(IMSVOC_AMRWB_ENTYPE eRate);
+
+    static eEVSCodecMode CheckEVSCodecMode(uint32_t nAudioFrameLength);
+    static int32_t getEVSModeToBitRate(int32_t EvsModeToBitRate);
 };
+// extern IMSVOC_AMRWB_ENTYPE ConvertLenToAmrWbAudioRate(uint32_t nLen);
 
 #endif  // AUDIO_AMRFMT_H_INCLUDED

@@ -45,6 +45,9 @@ public:
     uint32_t mPtime;
     uint32_t mSamplingRate;
     uint32_t mBufferSize;
+    eEVSBandwidth mEvsBandwidth;
+    int32_t mEvsBitRate;
+    int32_t mEvsChAwOffset;
 
 private:
     void openAudioStream();
@@ -58,6 +61,9 @@ public:
     void SetCodec(int32_t type);
     void SetCodecMode(uint32_t mode);
     void SetPtime(uint32_t time);
+    void SetEvsBandwidth(eEVSBandwidth evsBandwidth);
+    void SetSamplingRate(int32_t samplingRate);
+    void SetEvsChAwOffset(int32_t offset);
     bool Start();
     void Stop();
     bool ProcessCMR(uint32_t mode);

@@ -62,27 +62,48 @@ void ImsMediaAudioSource::SetCodecMode(uint32_t mode)
     mMode = mode;
 }
 
+void ImsMediaAudioSource::SetSamplingRate(int32_t samplingRate)
+{
+    mSamplingRate = (samplingRate * 1000);
+}
+
+void ImsMediaAudioSource::SetEvsChAwOffset(int32_t offset)
+{
+    mEvsChAwOffset = offset;
+}
+
 void ImsMediaAudioSource::SetPtime(uint32_t time)
 {
-    IMLOGD1("[SetCodecMode] Ptime[%d]", time);
+    IMLOGD1("[SetPtime] Ptime[%d]", time);
     mPtime = time;
+}
+
+void ImsMediaAudioSource::SetEvsBandwidth(eEVSBandwidth evsBandwidth)
+{
+    mEvsBandwidth = evsBandwidth;
 }
 
 bool ImsMediaAudioSource::Start()
 {
     char kMimeType[128] = {'\0'};
-    mSamplingRate = DEFAULT_SAMPLING_RATE;
+    auto codecResult = 0;
+
     if (mCodecType == kAudioCodecAmr)
     {
         sprintf(kMimeType, "audio/3gpp");
     }
     else if (mCodecType == kAudioCodecAmrWb)
     {
-        mSamplingRate = 16000;
         sprintf(kMimeType, "audio/amr-wb");
+    }
+    else if (mCodecType == kAudioCodecEvs)
+    {
+        sprintf(kMimeType, "audio/evs");
     }
 
     openAudioStream();
+    mEvsBitRate = ImsMediaAudioFmt::getEVSModeToBitRate(mMode);
+
     if (mAudioStream == NULL)
     {
         IMLOGE0("[Start] create audio stream failed");
@@ -116,7 +137,7 @@ bool ImsMediaAudioSource::Start()
     }
 
     IMLOGD0("[Start] configure codec");
-    auto codecResult =
+    codecResult =
             AMediaCodec_configure(mCodec, mFormat, NULL, NULL, AMEDIACODEC_CONFIGURE_FLAG_ENCODE);
     if (codecResult != AMEDIA_OK)
     {
@@ -154,7 +175,6 @@ bool ImsMediaAudioSource::Start()
     }
 
     IMLOGD1("[Start] start stream state[%s]", AAudio_convertStreamStateToText(nextState));
-
     codecResult = AMediaCodec_start(mCodec);
     if (codecResult != AMEDIA_OK)
     {
