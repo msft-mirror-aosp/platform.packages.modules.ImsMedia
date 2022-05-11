@@ -31,6 +31,7 @@ cc_test {
         "imsmedia_tests_defaults",
     ],
     srcs: [
+        "**/*.cpp",
     ],
     test_config: "imsmedia_tests.xml",
     enabled: true,
@@ -45,7 +46,7 @@ cc_test {
         "service/src/com/android/telephony/imsmedia/lib/libimsmedia/src/utils/**/*.cpp",
     ],
     test_config: "imsmediautils_tests.xml",
-    enabled: true,
+    enabled: false,
 }
 
 cc_test {
@@ -69,5 +70,5 @@ cc_test {
         "service/src/com/android/telephony/imsmedia/lib/libimsmedia_config/**/*.cpp",
     ],
     test_config: "imsmedia_config_tests.xml",
-    enabled: true,
+    enabled: false,
 }
