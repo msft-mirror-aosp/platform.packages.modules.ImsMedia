@@ -62,7 +62,6 @@ ImsMediaResult RtpDecoderNode::Start() {
     mRtpSession->SetRtpDecoderListener(this);
     mRtpSession->StartRtp();
     mReceivingSSRC = 0;
-    mInactivityTime = 0;
     mNoRtpTime = 0;
     mNodeState = NODESTATE_RUNNING;
     return RESULT_SUCCESS;

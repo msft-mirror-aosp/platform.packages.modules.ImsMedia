@@ -55,7 +55,6 @@ ImsMediaResult RtcpDecoderNode::Start() {
     }
     mRtpSession->SetRtcpDecoderListener(this);
     mRtpSession->StartRtcp();
-    mInactivityTime = 0;
     mNoRtcpTime = 0;
     mNodeState = NODESTATE_RUNNING;
     return RESULT_SUCCESS;
