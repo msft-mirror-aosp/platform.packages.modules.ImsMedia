@@ -1131,24 +1131,26 @@ public class MainActivity extends AppCompatActivity {
 
         } else if (audioCodec == AudioConfig.CODEC_EVS) {
             config = new AudioConfig.Builder()
-                    .setMediaDirection(RtpConfig.MEDIA_DIRECTION_TRANSMIT_RECEIVE)
-                    .setAccessNetwork(AccessNetworkType.EUTRAN)
-                    .setRemoteRtpAddress(remoteRtpAddress)
-                    .setRtcpConfig(rtcpConfig)
-                    .setMaxMtuBytes(MAX_MTU_BYTES)
-                    .setDscp((byte) DSCP)
-                    .setRxPayloadTypeNumber((byte) AUDIO_RX_PAYLOAD_TYPE_NUMBER)
-                    .setTxPayloadTypeNumber((byte) AUDIO_TX_PAYLOAD_TYPE_NUMBER)
-                    .setSamplingRateKHz((byte) SAMPLING_RATE_KHZ)
-                    .setPtimeMillis((byte) P_TIME_MILLIS)
-                    .setMaxPtimeMillis((byte) MAX_P_TIME_MILLIS)
-                    .setTxCodecModeRequest((byte) TX_CODEC_MODE_REQUEST)
-                    .setDtxEnabled(true)
-                    .setDtmfPayloadTypeNumber((byte) DTMF_PAYLOAD_TYPE_NUMBER)
-                    .setDtmfSamplingRateKHz((byte) DTMF_SAMPLING_RATE_KHZ)
-                    .setCodecType(audioCodec)
-                    .setEvsParams(evsParams)
-                    .build();
+                .setMediaDirection(RtpConfig.MEDIA_DIRECTION_TRANSMIT_RECEIVE)
+                .setAccessNetwork(AccessNetworkType.EUTRAN)
+                .setRemoteRtpAddress(remoteRtpAddress)
+                .setRtcpConfig(rtcpConfig)
+                .setMaxMtuBytes(MAX_MTU_BYTES)
+                .setDscp((byte) DSCP)
+                .setRxPayloadTypeNumber((byte) AUDIO_RX_PAYLOAD_TYPE_NUMBER)
+                .setTxPayloadTypeNumber((byte) AUDIO_TX_PAYLOAD_TYPE_NUMBER)
+                .setSamplingRateKHz((byte) SAMPLING_RATE_KHZ)
+                .setPtimeMillis((byte) P_TIME_MILLIS)
+                .setMaxPtimeMillis((byte) MAX_P_TIME_MILLIS)
+                .setTxCodecModeRequest((byte) TX_CODEC_MODE_REQUEST)
+                .setDtxEnabled(true)
+                .setDtmfPayloadTypeNumber((byte) DTMF_PAYLOAD_TYPE_NUMBER)
+                .setDtmfSamplingRateKHz((byte) DTMF_SAMPLING_RATE_KHZ)
+                .setCodecType(audioCodec)
+                // TODO - audio is currently only working when amr params are set as well
+                .setAmrParams(amrParams)
+                .setEvsParams(evsParams)
+                .build();
 
         } else {
             config = new AudioConfig.Builder()
@@ -1211,12 +1213,12 @@ public class MainActivity extends AppCompatActivity {
      * @param amrMode Integer value of the AmrMode
      * @return AmrParams object with the passed AmrMode value
      */
-    private AmrParams createAmrParams(int amrMode) {
+    private AmrParams createAmrParams(int amrMode, boolean octateAligned, int maxRed) {
         return new AmrParams.Builder()
-                .setAmrMode(amrMode)
-                .setOctetAligned(true)
-                .setMaxRedundancyMillis(0)
-                .build();
+            .setAmrMode(amrMode)
+            .setOctetAligned(octateAligned)
+            .setMaxRedundancyMillis(maxRed)
+            .build();
     }
 
     /**
@@ -1259,8 +1261,8 @@ public class MainActivity extends AppCompatActivity {
             case CodecType.AMR:
             case CodecType.AMR_WB:
                 int amrMode = determineCommonCodecSettings(localDevice.getAmrModes(),
-                        remoteDevice.getAmrModes(), AMR_MODE_ORDER);
-                amrParams = createAmrParams(amrMode);
+                    remoteDevice.getAmrModes(), AMR_MODE_ORDER);
+                amrParams = createAmrParams(amrMode, true, 0);
                 break;
 
             case CodecType.EVS:
@@ -1269,11 +1271,12 @@ public class MainActivity extends AppCompatActivity {
                 int evsBand = determineCommonCodecSettings(localDevice.getEvsBandwidths(),
                         remoteDevice.getEvsBandwidths(), EVS_BANDWIDTH_ORDER);
                 evsParams = createEvsParams(evsBand, evsMode);
+                amrParams = createAmrParams(0, false, 0);
                 break;
 
             case -1:
-                return createAudioConfig(CodecType.AMR_WB, createAmrParams(AmrMode.AMR_MODE_4),
-                        null);
+                return createAudioConfig(CodecType.AMR_WB,
+                    createAmrParams(AmrMode.AMR_MODE_4, true, 0), null);
         }
 
         return createAudioConfig(selectedCodec, amrParams, evsParams);
@@ -1335,7 +1338,7 @@ public class MainActivity extends AppCompatActivity {
 
             case CodecType.EVS:
                 mAudioConfig = createAudioConfig(getRemoteAudioSocketAddress(),
-                        getRemoteRtcpConfig(), audioCodec, null, evsParams);
+                              getRemoteRtcpConfig(), audioCodec, amrParams, evsParams);
                 break;
 
             case CodecType.PCMA:
@@ -1610,9 +1613,18 @@ public class MainActivity extends AppCompatActivity {
         switch (audioCodec) {
             case CodecType.AMR:
             case CodecType.AMR_WB:
-                amrParams = createAmrParams(mBottomSheetAudioCodecSettings.getAmrMode());
+
+                evsParams = new EvsParams.Builder()
+                .setEvsbandwidth(EvsParams.EVS_BAND_NONE)
+                .setEvsMode(EvsParams.EVS_MODE_0)
+                .setChannelAwareMode((byte) 3)
+                .setHeaderFullOnlyOnTx(true)
+                .setHeaderFullOnlyOnRx(true)
+                .build();
+
+                amrParams = createAmrParams(mBottomSheetAudioCodecSettings.getAmrMode(), true, 0);
                 config = createAudioConfig(getRemoteAudioSocketAddress(), getRemoteRtcpConfig(),
-                        audioCodec, amrParams, null);
+                    audioCodec, amrParams, evsParams);
                 Log.d(TAG, String.format("AudioConfig switched to Codec: %s\t Params: %s",
                         mBottomSheetAudioCodecSettings.getAudioCodec(),
                         config.getAmrParams().toString()));
@@ -1620,9 +1632,10 @@ public class MainActivity extends AppCompatActivity {
 
             case CodecType.EVS:
                 evsParams = createEvsParams(mBottomSheetAudioCodecSettings.getEvsBand(),
-                        mBottomSheetAudioCodecSettings.getEvsMode());
+                    mBottomSheetAudioCodecSettings.getEvsMode());
+                amrParams = createAmrParams(0, false, 0);
                 config = createAudioConfig(getRemoteAudioSocketAddress(), getRemoteRtcpConfig(),
-                        audioCodec, null, evsParams);
+                    audioCodec, amrParams, evsParams);
                 Log.d(TAG, String.format("AudioConfig switched to Codec: %s\t Params: %s",
                         mBottomSheetAudioCodecSettings.getAudioCodec(),
                         config.getEvsParams().toString()));
