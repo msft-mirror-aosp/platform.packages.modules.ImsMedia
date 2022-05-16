@@ -31,5 +31,10 @@ android_library {
     static_libs: [
         "android.hardware.radio.ims.media-V1-java",
     ],
+    aidl: {
+        include_dirs: [
+            "frameworks/native/aidl/gui",
+        ],
+    },
     platform_apis: true,
 }

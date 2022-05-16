@@ -25,60 +25,40 @@ namespace imsmedia {
 const android::String8 kClassNameAmrParams("android.telephony.imsmedia.AmrParams");
 const android::String8 kClassNameEvsParams("android.telephony.imsmedia.EvsParams");
 
-AudioConfig::AudioConfig() : RtpConfig() {
-    pTimeMillis = 0;
-    maxPtimeMillis = 0;
-    txCodecModeRequest = 0;
-    dtxEnabled = false;
-    codecType = 0;
-    dtmfPayloadTypeNumber = 0;
-    dtmfsamplingRateKHz = 0;
+AudioConfig::AudioConfig() : RtpConfig(RtpConfig::TYPE_AUDIO) {
+  pTimeMillis = 0;
+  maxPtimeMillis = 0;
+  txCodecModeRequest = 0;
+  dtxEnabled = false;
+  codecType = 0;
+  dtmfPayloadTypeNumber = 0;
+  dtmfsamplingRateKHz = 0;
 }
 
-AudioConfig::AudioConfig(AudioConfig* config) {
-    if (config != NULL) {
-        direction = config->direction;
-        accessNetwork = config->accessNetwork;
-        remoteAddress = config->remoteAddress;
-        remotePort = config->remotePort;
-        rtcpConfig = config->rtcpConfig;
-        maxMtuBytes = config->maxMtuBytes;
-        dscp = config->dscp;
-        rxPayloadTypeNumber = config->rxPayloadTypeNumber;
-        txPayloadTypeNumber = config->txPayloadTypeNumber;
-        samplingRateKHz = config->samplingRateKHz;
-        pTimeMillis = config->pTimeMillis;
-        maxPtimeMillis = config->maxPtimeMillis;
-        txCodecModeRequest = config->txCodecModeRequest;
-        dtxEnabled = config->dtxEnabled;
-        codecType = config->codecType;
-        dtmfPayloadTypeNumber = config->dtmfPayloadTypeNumber;
-        dtmfsamplingRateKHz = config->dtmfsamplingRateKHz;
-        amrParams = config->amrParams;
-        evsParams = config->evsParams;
-    }
+AudioConfig::AudioConfig(AudioConfig *config) : RtpConfig(config) {
+  if (config != NULL) {
+    pTimeMillis = config->pTimeMillis;
+    maxPtimeMillis = config->maxPtimeMillis;
+    txCodecModeRequest = config->txCodecModeRequest;
+    dtxEnabled = config->dtxEnabled;
+    codecType = config->codecType;
+    dtmfPayloadTypeNumber = config->dtmfPayloadTypeNumber;
+    dtmfsamplingRateKHz = config->dtmfsamplingRateKHz;
+    amrParams = config->amrParams;
+    evsParams = config->evsParams;
+  }
 }
 
-AudioConfig::AudioConfig(AudioConfig& config) {
-    direction = config.direction;
-    accessNetwork = config.accessNetwork;
-    remoteAddress = config.remoteAddress;
-    remotePort = config.remotePort;
-    rtcpConfig = config.rtcpConfig;
-    maxMtuBytes = config.maxMtuBytes;
-    dscp = config.dscp;
-    rxPayloadTypeNumber = config.rxPayloadTypeNumber;
-    txPayloadTypeNumber = config.txPayloadTypeNumber;
-    samplingRateKHz = config.samplingRateKHz;
-    pTimeMillis = config.pTimeMillis;
-    maxPtimeMillis = config.maxPtimeMillis;
-    txCodecModeRequest = config.txCodecModeRequest;
-    dtxEnabled = config.dtxEnabled;
-    codecType = config.codecType;
-    dtmfPayloadTypeNumber = config.dtmfPayloadTypeNumber;
-    dtmfsamplingRateKHz = config.dtmfsamplingRateKHz;
-    amrParams = config.amrParams;
-    evsParams = config.evsParams;
+AudioConfig::AudioConfig(AudioConfig &config) : RtpConfig(config) {
+  pTimeMillis = config.pTimeMillis;
+  maxPtimeMillis = config.maxPtimeMillis;
+  txCodecModeRequest = config.txCodecModeRequest;
+  dtxEnabled = config.dtxEnabled;
+  codecType = config.codecType;
+  dtmfPayloadTypeNumber = config.dtmfPayloadTypeNumber;
+  dtmfsamplingRateKHz = config.dtmfsamplingRateKHz;
+  amrParams = config.amrParams;
+  evsParams = config.evsParams;
 }
 
 AudioConfig::~AudioConfig() {
@@ -86,70 +66,43 @@ AudioConfig::~AudioConfig() {
 }
 
 AudioConfig& AudioConfig::operator=(const AudioConfig& config) {
-    direction = config.direction;
-    accessNetwork = config.accessNetwork;
-    remoteAddress = config.remoteAddress;
-    remotePort = config.remotePort;
-    rtcpConfig = config.rtcpConfig;
-    maxMtuBytes = config.maxMtuBytes;
-    dscp = config.dscp;
-    rxPayloadTypeNumber = config.rxPayloadTypeNumber;
-    txPayloadTypeNumber = config.txPayloadTypeNumber;
-    samplingRateKHz = config.samplingRateKHz;
-    pTimeMillis = config.pTimeMillis;
-    maxPtimeMillis = config.maxPtimeMillis;
-    txCodecModeRequest = config.txCodecModeRequest;
-    dtxEnabled = config.dtxEnabled;
-    codecType = config.codecType;
-    dtmfPayloadTypeNumber = config.dtmfPayloadTypeNumber;
-    dtmfsamplingRateKHz = config.dtmfsamplingRateKHz;
-    amrParams = config.amrParams;
-    evsParams = config.evsParams;
-    return *this;
+  RtpConfig::operator=(config);
+  pTimeMillis = config.pTimeMillis;
+  maxPtimeMillis = config.maxPtimeMillis;
+  txCodecModeRequest = config.txCodecModeRequest;
+  dtxEnabled = config.dtxEnabled;
+  codecType = config.codecType;
+  dtmfPayloadTypeNumber = config.dtmfPayloadTypeNumber;
+  dtmfsamplingRateKHz = config.dtmfsamplingRateKHz;
+  amrParams = config.amrParams;
+  evsParams = config.evsParams;
+  return *this;
 }
 
 bool AudioConfig::operator==(const AudioConfig &config) const {
-    return (this->direction == config.direction
-        && this->accessNetwork == config.accessNetwork
-        && this->remoteAddress == config.remoteAddress
-        && this->remotePort == config.remotePort
-        && this->rtcpConfig == config.rtcpConfig
-        && this->maxMtuBytes == config.maxMtuBytes
-        && this->dscp == config.dscp
-        && this->rxPayloadTypeNumber == config.rxPayloadTypeNumber
-        && this->txPayloadTypeNumber == config.txPayloadTypeNumber
-        && this->samplingRateKHz == config.samplingRateKHz
-        && this->pTimeMillis == config.pTimeMillis
-        && this->maxPtimeMillis == config.maxPtimeMillis
-        && this->txCodecModeRequest == config.txCodecModeRequest
-        && this->dtxEnabled == config.dtxEnabled
-        && this->codecType == config.codecType
-        && this->dtmfPayloadTypeNumber == config.dtmfPayloadTypeNumber
-        && this->dtmfsamplingRateKHz == config.dtmfsamplingRateKHz
-        && this->amrParams == config.amrParams
-        && this->evsParams == config.evsParams);
+  return (RtpConfig::operator==(config) &&
+          this->pTimeMillis == config.pTimeMillis &&
+          this->maxPtimeMillis == config.maxPtimeMillis &&
+          this->txCodecModeRequest == config.txCodecModeRequest &&
+          this->dtxEnabled == config.dtxEnabled &&
+          this->codecType == config.codecType &&
+          this->dtmfPayloadTypeNumber == config.dtmfPayloadTypeNumber &&
+          this->dtmfsamplingRateKHz == config.dtmfsamplingRateKHz &&
+          this->amrParams == config.amrParams &&
+          this->evsParams == config.evsParams);
 }
 
 bool AudioConfig::operator!=(const AudioConfig &config) const {
-    return (this->direction != config.direction
-        || this->accessNetwork != config.accessNetwork
-        || this->remoteAddress != config.remoteAddress
-        || this->remotePort != config.remotePort
-        || this->rtcpConfig != config.rtcpConfig
-        || this->maxMtuBytes != config.maxMtuBytes
-        || this->dscp != config.dscp
-        || this->rxPayloadTypeNumber != config.rxPayloadTypeNumber
-        || this->txPayloadTypeNumber != config.txPayloadTypeNumber
-        || this->samplingRateKHz != config.samplingRateKHz
-        || this->pTimeMillis != config.pTimeMillis
-        || this->maxPtimeMillis != config.maxPtimeMillis
-        || this->txCodecModeRequest != config.txCodecModeRequest
-        || this->dtxEnabled != config.dtxEnabled
-        || this->codecType != config.codecType
-        || this->dtmfPayloadTypeNumber != config.dtmfPayloadTypeNumber
-        || this->dtmfsamplingRateKHz != config.dtmfsamplingRateKHz
-        || this->amrParams != config.amrParams
-        || this->evsParams != config.evsParams);
+  return (RtpConfig::operator!=(config) ||
+          this->pTimeMillis != config.pTimeMillis ||
+          this->maxPtimeMillis != config.maxPtimeMillis ||
+          this->txCodecModeRequest != config.txCodecModeRequest ||
+          this->dtxEnabled != config.dtxEnabled ||
+          this->codecType != config.codecType ||
+          this->dtmfPayloadTypeNumber != config.dtmfPayloadTypeNumber ||
+          this->dtmfsamplingRateKHz != config.dtmfsamplingRateKHz ||
+          this->amrParams != config.amrParams ||
+          this->evsParams != config.evsParams);
 }
 
 status_t AudioConfig::writeToParcel(Parcel* out) const {

@@ -16,13 +16,12 @@
 
 package com.android.telephony.imsmedia;
 
-import android.os.Handler;
 import android.os.Parcel;
-import android.telephony.CallQuality;
 import android.telephony.Rlog;
 import android.telephony.ims.RtpHeaderExtension;
 import android.telephony.imsmedia.AudioConfig;
 import android.telephony.imsmedia.MediaQualityThreshold;
+
 import java.util.List;
 
 /** Audio session implementation for internal AP based RTP stack. This handles
@@ -52,14 +51,14 @@ public class AudioLocalSession {
     /**
      * Send request message with the corresponding arguments to libimsmediajni library to operate
      *
-     * @param sessionid : session identifier
+     * @param sessionId : session identifier
      * @param parcel : parcel argument to send to jni
      */
-    public void sendRequest(final int sessionid, final Parcel parcel) {
+    public void sendRequest(final int sessionId, final Parcel parcel) {
         if (mNativeObject != 0) {
             if (parcel == null) return;
             byte[] data = parcel.marshall();
-            JNIImsMediaService.sendMessage(mNativeObject, sessionid, data);
+            JNIImsMediaService.sendMessage(mNativeObject, sessionId, data);
             parcel.recycle();
         }
     }

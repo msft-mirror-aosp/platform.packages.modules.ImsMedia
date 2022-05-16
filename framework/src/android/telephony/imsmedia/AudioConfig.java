@@ -17,11 +17,11 @@
 package android.telephony.imsmedia;
 
 import android.annotation.IntDef;
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import android.os.Parcel;
 import android.os.Parcelable;
-import android.os.ParcelFileDescriptor;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -71,7 +71,7 @@ public final class AudioConfig extends RtpConfig {
 
     /** @hide */
     AudioConfig(Parcel in) {
-        super(in);
+        super(RtpConfig.TYPE_AUDIO, in);
         pTimeMillis = in.readByte();
         maxPtimeMillis = in.readInt();
         txCodecModeRequest = in.readByte();
@@ -85,7 +85,7 @@ public final class AudioConfig extends RtpConfig {
 
     /** @hide */
     AudioConfig(Builder builder) {
-        super(builder);
+        super(RtpConfig.TYPE_AUDIO, builder);
         this.pTimeMillis = builder.pTimeMillis;
         this.maxPtimeMillis = builder.maxPtimeMillis;
         this.txCodecModeRequest = builder.txCodecModeRequest;
@@ -237,7 +237,7 @@ public final class AudioConfig extends RtpConfig {
      * {@link Parcelable#writeToParcel}
      */
     public void writeToParcel(Parcel dest, int flags) {
-        super.writeToParcel(dest, flags);
+        super.writeToParcel(dest, RtpConfig.TYPE_AUDIO);
         dest.writeByte(pTimeMillis);
         dest.writeInt(maxPtimeMillis);
         dest.writeByte(txCodecModeRequest);
@@ -250,16 +250,16 @@ public final class AudioConfig extends RtpConfig {
     }
 
     public static final @NonNull Parcelable.Creator<AudioConfig>
-        CREATOR = new Parcelable.Creator() {
-        public AudioConfig createFromParcel(Parcel in) {
-            // TODO use builder class so it will validate
-            return new AudioConfig(in);
-        }
+            CREATOR = new Parcelable.Creator() {
+                public AudioConfig createFromParcel(Parcel in) {
+                    in.readInt();   //skip
+                    return new AudioConfig(in);
+                }
 
-        public AudioConfig[] newArray(int size) {
-            return new AudioConfig[size];
-        }
-    };
+                public AudioConfig[] newArray(int size) {
+                    return new AudioConfig[size];
+                }
+            };
 
     /**
      * Provides a convenient way to set the fields of a {@link AudioConfig}

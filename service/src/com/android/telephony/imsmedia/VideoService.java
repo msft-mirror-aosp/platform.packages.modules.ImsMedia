@@ -16,33 +16,91 @@
 
 package com.android.telephony.imsmedia;
 
-import android.telephony.imsmedia.RtpConfig;
+import android.os.Parcel;
+import android.telephony.Rlog;
+import android.telephony.imsmedia.ImsMediaSession;
+
+import com.android.telephony.imsmedia.Utils.OpenSessionParams;
 
 /**
- * Video RTP service
- *
- * @hide
+ * Video service for internal AP based RTP stack. This interacts with native library
+ * to open/close {@link VideoLocalSession}
  */
-final class VideoService {
+public class VideoService {
     private static final String LOG_TAG = "VideoService";
-    private ImsMediaController.OpenSessionCallback mMediaControllerCallback;
+    private long mNativeObject = 0;
+    private VideoListener mListener = null;
 
-    VideoService(ImsMediaController.OpenSessionCallback callback) {
-        mMediaControllerCallback = callback;
-
-        // TODO: Initialize audio RTP stack
+    VideoService() {
+        mNativeObject = JNIImsMediaService.getInterface(ImsMediaSession.SESSION_TYPE_VIDEO);
     }
 
-    public void openSession(int sessionId, RtpConfig config) {
-        // TODO
-        // create localEndPoint
-        // covert telephony RtpConfig internal RtpConfig
-        // Invoke internal openSession(sessionId, localEndPoint, config);
-        //
-        // Once openSession is success notify using ImsMediaController.OpenSessionCallback
+    /** Returns the native instance identifier of VideoManager in libimsmedia*/
+    public long getNativeObject() {
+        return mNativeObject;
     }
 
-    public void closeSession(int sessionId) {
-        // TODO: Invoke internal closeSession(sessionId);
+    /** Sets JNI listener to get JNI callback from libimsmediajni library*/
+    public void setListener(final VideoListener listener) {
+        mListener = listener;
+        JNIImsMediaService.setListener(mNativeObject, mListener);
+    }
+
+    /**
+     * Sends request message with the corresponding arguments to libimsmediajni library to operate
+     *
+     * @param sessionId : session identifier
+     * @param parcel : parcel argument to send to JNI
+     */
+    public void sendRequest(final int sessionId, Parcel parcel) {
+        if (mNativeObject != 0) {
+            byte[] data = parcel.marshall();
+            parcel.recycle();
+            parcel = null;
+            JNIImsMediaService.sendMessage(mNativeObject, sessionId, data);
+        }
+    }
+
+    /**
+     * Opens a RTP session based on local the local sockets with the associated
+     * initial remote configuration if there is a valid RtpConfig passed.
+     * It starts the media flow if the media direction in the RtpConfig is set
+     * to any value other than NO_MEDIA_FLOW. If the open session is
+     * successful then a new VideoLocalSession object will be created using
+     * the JNIImsMediaListener#onMessage() API. If the open
+     * session is failed then a error code will be returned using
+     * JNIImsMediaListener#onMessage(int) API.
+     *
+     * @param sessionId A unique RTP session identifier
+     * @param sessionParams Paratmers including rtp, rtcp socket to send and receive incoming
+     * RTP packets and RtpConfig to create session.
+     */
+    public void openSession(final int sessionId, final OpenSessionParams sessionParams) {
+        Rlog.d(LOG_TAG, "openSession");
+        if (sessionParams == null) return;
+        Parcel parcel = Parcel.obtain();
+        parcel.writeInt(VideoSession.CMD_OPEN_SESSION);
+        final int socketFdRtp = sessionParams.getRtpFd().detachFd();
+        final int socketFdRtcp = sessionParams.getRtcpFd().detachFd();
+        parcel.writeInt(socketFdRtp);
+        parcel.writeInt(socketFdRtcp);
+        if (sessionParams.getRtpConfig() != null) {
+            sessionParams.getRtpConfig().writeToParcel(parcel, 0);
+        }
+        sendRequest(sessionId, parcel);
+    }
+
+    /**
+     * Closes the RTP session including cleanup of all the resources
+     * associated with the session. This will also close the session object
+     * and associated callback.
+     *
+     * @param sessionId RTP session to be closed.
+     */
+    public void closeSession(final int sessionId) {
+        Rlog.d(LOG_TAG, "closeSession");
+        Parcel parcel = Parcel.obtain();
+        parcel.writeInt(VideoSession.CMD_CLOSE_SESSION);
+        sendRequest(sessionId, parcel);
     }
 }
