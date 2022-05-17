@@ -181,6 +181,18 @@
       android:onClick="loopbackOnClick"
       android:text="@string/loop_back_mode_switch_text" />
 
+  <androidx.appcompat.widget.SwitchCompat
+      android:id="@+id/speakerModeSwitch"
+      android:layout_width="wrap_content"
+      android:layout_height="wrap_content"
+      android:layout_marginTop="50dp"
+      android:layout_marginStart="15dp"
+      android:layout_below="@id/connectButton"
+      android:layout_toEndOf="@id/loopbackModeSwitch"
+      android:checked="false"
+      android:onClick="setSpeakModeOnClick"
+      android:text="@string/speaker_mode_switch_text" />
+
   <LinearLayout
       android:id="@+id/activeCallActionsLayout"
       android:layout_width="match_parent"

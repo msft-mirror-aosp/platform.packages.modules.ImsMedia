@@ -21,6 +21,7 @@
 #include <aaudio/AAudio.h>
 #include <media/NdkMediaCodec.h>
 #include <media/NdkMediaFormat.h>
+#include <mutex>
 
 using android::sp;
 
@@ -32,15 +33,22 @@ public:
     void SetCodecMode(uint32_t mode);
     bool Start();
     void Stop();
-    bool onDataFrame(uint8_t* buffer, uint32_t size);
+    bool onDataFrame(uint8_t *buffer, uint32_t size);
 
-private:
-    AAudioStream* mAudioStream;
-    AMediaCodec* mCodec;
-    AMediaFormat* mFormat;
+  private:
+    void openAudioStream();
+    void restartAudioStream();
+    static void audioErrorCallback(AAudioStream *stream, void *userData,
+                                   aaudio_result_t error);
+
+    AAudioStream *mAudioStream;
+    AMediaCodec *mCodec;
+    AMediaFormat *mFormat;
     int32_t mCodecType;
     uint32_t mCodecMode;
+    uint32_t mSamplingRate;
     uint16_t mBuffer[PCM_BUFFER_SIZE];
+    std::mutex mMutex;
 };
 
 #endif

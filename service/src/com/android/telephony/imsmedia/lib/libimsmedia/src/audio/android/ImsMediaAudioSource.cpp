@@ -34,361 +34,388 @@
 using namespace android;
 
 ImsMediaAudioSource::ImsMediaAudioSource() {
-    mUplinkCB = NULL;
-    mAudioStream = NULL;
-    mBufferSize = 0;
-    mSamplingRate = DEFAULT_SAMPLING_RATE;
+  mUplinkCB = NULL;
+  mAudioStream = NULL;
+  mBufferSize = 0;
+  mSamplingRate = DEFAULT_SAMPLING_RATE;
 }
 
-ImsMediaAudioSource::~ImsMediaAudioSource() {
-}
+ImsMediaAudioSource::~ImsMediaAudioSource() {}
 
-void ImsMediaAudioSource::SetUplinkCallback(void* pClient, AudioUplinkCB pUplinkCB) {
-    std::lock_guard<std::mutex> guard(mMutexUplink);
-    mUplinkCBClient = pClient;
-    mUplinkCB = pUplinkCB;
+void ImsMediaAudioSource::SetUplinkCallback(void *pClient,
+                                            AudioUplinkCB pUplinkCB) {
+  std::lock_guard<std::mutex> guard(mMutexUplink);
+  mUplinkCBClient = pClient;
+  mUplinkCB = pUplinkCB;
 }
 
 void ImsMediaAudioSource::SetCodec(int32_t type) {
-    IMLOGD1("[SetCodec] type[%d]", type);
-    mCodecType = type;
+  IMLOGD1("[SetCodec] type[%d]", type);
+  mCodecType = type;
 }
 
 void ImsMediaAudioSource::SetCodecMode(uint32_t mode) {
-    IMLOGD1("[SetCodecMode] mode[%d]", mode);
-    mMode = mode;
+  IMLOGD1("[SetCodecMode] mode[%d]", mode);
+  mMode = mode;
 }
 
 void ImsMediaAudioSource::SetPtime(uint32_t time) {
-    IMLOGD1("[SetCodecMode] Ptime[%d]", time);
-    mPtime = time;
+  IMLOGD1("[SetCodecMode] Ptime[%d]", time);
+  mPtime = time;
 }
 
 bool ImsMediaAudioSource::Start() {
-    char kMimeType[128] = {'\0'};
-    mSamplingRate = DEFAULT_SAMPLING_RATE;
-    if (mCodecType == AUDIO_G711_PCMU || mCodecType == AUDIO_G711_PCMA) {
-    } else if (mCodecType == AUDIO_AMR) {
-        sprintf(kMimeType, "audio/3gpp");
-    } else if (mCodecType == AUDIO_AMR_WB) {
-        mSamplingRate = 16000;
-        sprintf(kMimeType, "audio/amr-wb");
-    }
+  char kMimeType[128] = {'\0'};
+  mSamplingRate = DEFAULT_SAMPLING_RATE;
+  if (mCodecType == AUDIO_AMR) {
+    sprintf(kMimeType, "audio/3gpp");
+  } else if (mCodecType == AUDIO_AMR_WB) {
+    mSamplingRate = 16000;
+    sprintf(kMimeType, "audio/amr-wb");
+  }
 
-    openAudioStream();
+  openAudioStream();
+  if (mAudioStream == NULL) {
+    IMLOGE0("[Start] create audio stream failed");
+    return false;
+  }
 
-    if (mAudioStream == NULL) {
-        IMLOGE0("[Start] create audio stream failed");
-        return false;
-    }
+  IMLOGD1("[Start] Creating codec[%s]", kMimeType);
 
-    IMLOGD1("[Start] Creating codec[%s]", kMimeType);
+  mFormat = AMediaFormat_new();
+  AMediaFormat_setString(mFormat, AMEDIAFORMAT_KEY_MIME, kMimeType);
+  AMediaFormat_setInt32(mFormat, AMEDIAFORMAT_KEY_SAMPLE_RATE, mSamplingRate);
+  AMediaFormat_setInt32(mFormat, AMEDIAFORMAT_KEY_CHANNEL_COUNT, 1);
+  if (mCodecType == AUDIO_AMR) {
+    AMediaFormat_setInt32(mFormat, AMEDIAFORMAT_KEY_BIT_RATE,
+                          ImsMediaAudioFmt::GetBitrateAmr(mMode));
+  } else if (mCodecType == AUDIO_AMR_WB) {
+    AMediaFormat_setInt32(mFormat, AMEDIAFORMAT_KEY_BIT_RATE,
+                          ImsMediaAudioFmt::GetBitrateAmrWb(mMode));
+  }
 
-    mFormat = AMediaFormat_new();
-    AMediaFormat_setString(mFormat, AMEDIAFORMAT_KEY_MIME, kMimeType);
-    AMediaFormat_setInt32(mFormat, AMEDIAFORMAT_KEY_SAMPLE_RATE, mSamplingRate);
-    AMediaFormat_setInt32(mFormat, AMEDIAFORMAT_KEY_CHANNEL_COUNT, 1);
-    if (mCodecType == AUDIO_AMR) {
-        AMediaFormat_setInt32(mFormat, AMEDIAFORMAT_KEY_BIT_RATE,
-            ImsMediaAudioFmt::GetBitrateAmr(mMode));
-    } else if (mCodecType == AUDIO_AMR_WB) {
-        AMediaFormat_setInt32(mFormat, AMEDIAFORMAT_KEY_BIT_RATE,
-            ImsMediaAudioFmt::GetBitrateAmrWb(mMode));
-    }
+  mCodec = AMediaCodec_createEncoderByType(kMimeType);
+  if (mCodec == NULL) {
+    IMLOGE1("[Start] unable to create %s codec instance", kMimeType);
+    AMediaFormat_delete(mFormat);
+    mFormat = NULL;
+    return false;
+  }
 
-    mCodec = AMediaCodec_createEncoderByType(kMimeType);
-    if (mCodec == NULL) {
-        IMLOGE1("[Start] unable to create %s codec instance", kMimeType);
-        AMediaFormat_delete(mFormat);
-        mFormat = NULL;
-        return false;
-    }
+  IMLOGD0("[Start] configure codec");
+  auto codecResult = AMediaCodec_configure(mCodec, mFormat, NULL, NULL,
+                                           AMEDIACODEC_CONFIGURE_FLAG_ENCODE);
+  if (codecResult != AMEDIA_OK) {
+    IMLOGE2("[Start] unable to configure[%s] codec - err[%d]", kMimeType,
+            codecResult);
+    AMediaCodec_delete(mCodec);
+    mCodec = NULL;
+    AMediaFormat_delete(mFormat);
+    mFormat = NULL;
+    return false;
+  }
 
-    IMLOGD0("[Start] configure codec");
-    auto codecResult = AMediaCodec_configure(mCodec, mFormat, NULL, NULL,
-        AMEDIACODEC_CONFIGURE_FLAG_ENCODE);
-    if (codecResult != AMEDIA_OK) {
-        IMLOGE2("[Start] unable to configure[%s] codec - err[%d]", kMimeType, codecResult);
-        AMediaCodec_delete(mCodec);
-        mCodec = NULL;
-        AMediaFormat_delete(mFormat);
-        mFormat = NULL;
-        return false;
-    }
+  auto audioResult = AAudioStream_requestStart(mAudioStream);
+  if (audioResult != AAUDIO_OK) {
+    IMLOGE1("[Start] Error start stream[%s]",
+            AAudio_convertResultToText(audioResult));
+    AMediaCodec_delete(mCodec);
+    mCodec = NULL;
+    AMediaFormat_delete(mFormat);
+    mFormat = NULL;
+    return false;
+  }
 
-    auto audioResult = AAudioStream_requestStart(mAudioStream);
-    if (audioResult != AAUDIO_OK) {
-        IMLOGE1("[Start] Error start stream[%s]", AAudio_convertResultToText(audioResult));
-        AMediaCodec_delete(mCodec);
-        mCodec = NULL;
-        AMediaFormat_delete(mFormat);
-        mFormat = NULL;
-        return false;
-    }
+  aaudio_stream_state_t inputState = AAUDIO_STREAM_STATE_STARTING;
+  aaudio_stream_state_t nextState = AAUDIO_STREAM_STATE_UNINITIALIZED;
+  audioResult = AAudioStream_waitForStateChange(
+      mAudioStream, inputState, &nextState, AAUDIO_TIMEOUT_NANO);
+  if (audioResult != AAUDIO_OK) {
+    IMLOGE1("[Start] Error start stream[%s]",
+            AAudio_convertResultToText(audioResult));
+    AMediaCodec_delete(mCodec);
+    mCodec = NULL;
+    AMediaFormat_delete(mFormat);
+    mFormat = NULL;
+    return false;
+  }
 
-    aaudio_stream_state_t inputState = AAUDIO_STREAM_STATE_STARTING;
-    aaudio_stream_state_t nextState = AAUDIO_STREAM_STATE_UNINITIALIZED;
-    audioResult = AAudioStream_waitForStateChange(mAudioStream, inputState, &nextState,
-        AAUDIO_TIMEOUT_NANO);
-    if (audioResult != AAUDIO_OK) {
-        IMLOGE1("[Start] Error start stream[%s]", AAudio_convertResultToText(audioResult));
-        AMediaCodec_delete(mCodec);
-        mCodec = NULL;
-        AMediaFormat_delete(mFormat);
-        mFormat = NULL;
-        return false;
-    }
+  IMLOGD1("[Start] start stream state[%s]",
+          AAudio_convertStreamStateToText(nextState));
 
-    IMLOGD1("[Start] start stream state[%s]", AAudio_convertStreamStateToText(nextState));
+  codecResult = AMediaCodec_start(mCodec);
+  if (codecResult != AMEDIA_OK) {
+    IMLOGE1("[Start] unable to start codec - err[%d]", codecResult);
+    AMediaCodec_delete(mCodec);
+    mCodec = NULL;
+    AMediaFormat_delete(mFormat);
+    mFormat = NULL;
+    return false;
+  }
 
-    codecResult = AMediaCodec_start(mCodec);
-    if (codecResult != AMEDIA_OK) {
-        IMLOGE1("[Start] unable to start codec - err[%d]", codecResult);
-        AMediaCodec_delete(mCodec);
-        mCodec = NULL;
-        AMediaFormat_delete(mFormat);
-        mFormat = NULL;
-        return false;
-    }
+  // start audio read thread
+  StartThread();
 
-    //start audio read thread
-    StartThread();
-
-    //start encoder output thread
-    std::thread t1(&ImsMediaAudioSource::processOutputBuffer, this);
-    t1.detach();
-    IMLOGD0("[Start] exit");
-    return true;
+  // start encoder output thread
+  std::thread t1(&ImsMediaAudioSource::processOutputBuffer, this);
+  t1.detach();
+  IMLOGD0("[Start] exit");
+  return true;
 }
 
 void ImsMediaAudioSource::Stop() {
-    IMLOGD0("[Stop] Enter");
-    std::lock_guard<std::mutex> guard(mMutexUplink);
-    StopThread();
-    aaudio_stream_state_t inputState = AAUDIO_STREAM_STATE_STOPPING;
-    aaudio_stream_state_t nextState = AAUDIO_STREAM_STATE_UNINITIALIZED;
-    aaudio_result_t result = AAudioStream_requestStop(mAudioStream);
-    result = AAudioStream_waitForStateChange(mAudioStream, inputState, &nextState,
-        AAUDIO_TIMEOUT_NANO);
+  IMLOGD0("[Stop] Enter");
+  std::lock_guard<std::mutex> guard(mMutexUplink);
+  StopThread();
+  aaudio_stream_state_t inputState = AAUDIO_STREAM_STATE_STOPPING;
+  aaudio_stream_state_t nextState = AAUDIO_STREAM_STATE_UNINITIALIZED;
+  aaudio_result_t result = AAudioStream_requestStop(mAudioStream);
+  result = AAudioStream_waitForStateChange(mAudioStream, inputState, &nextState,
+                                           AAUDIO_TIMEOUT_NANO);
 
-    if (result != AAUDIO_OK) {
-        IMLOGE1("[Stop] Error stop stream[%s]", AAudio_convertResultToText(result));
-    }
+  if (result != AAUDIO_OK) {
+    IMLOGE1("[Stop] Error stop stream[%s]", AAudio_convertResultToText(result));
+  }
 
-    IMLOGD1("[Stop] Stop stream state[%s]",
-        AAudio_convertStreamStateToText(nextState));
+  IMLOGD1("[Stop] Stop stream state[%s]",
+          AAudio_convertStreamStateToText(nextState));
 
+  if (mAudioStream != NULL) {
     AAudioStream_close(mAudioStream);
-    mAudioStream = NULL;
+  }
+  mAudioStream = NULL;
 
-    if (mCodec != NULL) {
-        AMediaCodec_stop(mCodec);
-        AMediaCodec_delete(mCodec);
-        mCodec = NULL;
-    }
+  if (mCodec != NULL) {
+    AMediaCodec_stop(mCodec);
+    AMediaCodec_delete(mCodec);
+    mCodec = NULL;
+  }
 
-    if (mFormat != NULL) {
-        AMediaFormat_delete(mFormat);
-        mFormat = NULL;
-    }
+  if (mFormat != NULL) {
+    AMediaFormat_delete(mFormat);
+    mFormat = NULL;
+  }
 
-    IMLOGD0("[Stop] Exit");
+  IMLOGD0("[Stop] Exit");
 }
 
 bool ImsMediaAudioSource::ProcessCMR(uint32_t mode) {
-    (void)mode;
-    return false;
-    // do nothing
+  (void)mode;
+  return false;
+  // do nothing
 }
 
-void ImsMediaAudioSource::audioErrorCallback(AAudioStream *stream, void *userData,
-    aaudio_result_t error) {
-    if (stream == NULL || userData == NULL) return;
+void ImsMediaAudioSource::audioErrorCallback(AAudioStream *stream,
+                                             void *userData,
+                                             aaudio_result_t error) {
+  if (stream == NULL || userData == NULL)
+    return;
 
-    aaudio_stream_state_t streamState = AAudioStream_getState(stream);
-    IMLOGW2("[errorCallback] error[%s], state[%d]", AAudio_convertResultToText(error), streamState);
+  aaudio_stream_state_t streamState = AAudioStream_getState(stream);
+  IMLOGW2("[errorCallback] error[%s], state[%d]",
+          AAudio_convertResultToText(error), streamState);
 
-    if (streamState == AAUDIO_STREAM_STATE_DISCONNECTED) {
-        // Handle stream restart on a separate thread
-        std::thread streamRestartThread(&ImsMediaAudioSource::restartAudioStream,
-            reinterpret_cast<ImsMediaAudioSource*>(userData));
-        streamRestartThread.detach();
-    }
+  if (streamState == AAUDIO_STREAM_STATE_DISCONNECTED) {
+    // Handle stream restart on a separate thread
+    std::thread streamRestartThread(
+        &ImsMediaAudioSource::restartAudioStream,
+        reinterpret_cast<ImsMediaAudioSource *>(userData));
+    streamRestartThread.detach();
+  }
 }
 
-void* ImsMediaAudioSource::run() {
-    IMLOGD0("[run] enter");
-    uint32_t nNextTime = ImsMediaTimer::GetTimeInMilliSeconds();
-    int16_t buffer[PCM_BUFFER_SIZE];
+void *ImsMediaAudioSource::run() {
+  IMLOGD0("[run] enter");
+  uint32_t nNextTime = ImsMediaTimer::GetTimeInMilliSeconds();
+  int16_t buffer[PCM_BUFFER_SIZE];
 
-    for (;;) {
-        uint32_t nCurrTime;
-        mMutexUplink.lock();
-        if (IsThreadStopped()) {
-            IMLOGD0("[run] terminated");
-            mMutexUplink.unlock();
-            break;
-        }
-        mMutexUplink.unlock();
+  for (;;) {
+    uint32_t nCurrTime;
+    mMutexUplink.lock();
+    if (IsThreadStopped()) {
+      IMLOGD0("[run] terminated");
+      mMutexUplink.unlock();
+      break;
+    }
+    mMutexUplink.unlock();
 
-        if (mAudioStream != NULL &&
-            AAudioStream_getState(mAudioStream) == AAUDIO_STREAM_STATE_STARTED) {
-            aaudio_result_t readSize = AAudioStream_read(mAudioStream, buffer, mBufferSize, 0);
-            if (readSize > 0) {
-                IMLOGD_PACKET1(IM_PACKET_LOG_AUDIO, "[run] nReadSize[%d]", readSize);
-                queueInputBuffer(buffer, readSize * sizeof(uint16_t));
-            }
-        }
-
-        nNextTime += mPtime;
-        nCurrTime = ImsMediaTimer::GetTimeInMilliSeconds();
-        IMLOGD_PACKET1(IM_PACKET_LOG_AUDIO, "[run] nCurrTime[%u]", nCurrTime);
-        if (nNextTime > nCurrTime) ImsMediaTimer::Sleep(nNextTime - nCurrTime);
+    if (mAudioStream != NULL &&
+        AAudioStream_getState(mAudioStream) == AAUDIO_STREAM_STATE_STARTED) {
+      aaudio_result_t readSize =
+          AAudioStream_read(mAudioStream, buffer, mBufferSize, 0);
+      if (readSize > 0) {
+        IMLOGD_PACKET1(IM_PACKET_LOG_AUDIO, "[run] nReadSize[%d]", readSize);
+        queueInputBuffer(buffer, readSize * sizeof(uint16_t));
+      }
     }
 
-    return NULL;
+    nNextTime += mPtime;
+    nCurrTime = ImsMediaTimer::GetTimeInMilliSeconds();
+    IMLOGD_PACKET1(IM_PACKET_LOG_AUDIO, "[run] nCurrTime[%u]", nCurrTime);
+    if (nNextTime > nCurrTime)
+      ImsMediaTimer::Sleep(nNextTime - nCurrTime);
+  }
+
+  return NULL;
 }
 
 void ImsMediaAudioSource::openAudioStream() {
-    AAudioStreamBuilder *builder = NULL;
-    aaudio_result_t result = AAudio_createStreamBuilder(&builder);
-    if (result != AAUDIO_OK) {
-        IMLOGE1("[openAudioStream] Error creating stream builder[%s]",
+  AAudioStreamBuilder *builder = NULL;
+  aaudio_result_t result = AAudio_createStreamBuilder(&builder);
+  if (result != AAUDIO_OK) {
+    IMLOGE1("[openAudioStream] Error creating stream builder[%s]",
             AAudio_convertResultToText(result));
-        return;
-    }
+    return;
+  }
 
-    //setup builder
-    AAudioStreamBuilder_setInputPreset(builder, AAUDIO_INPUT_PRESET_VOICE_COMMUNICATION);
-    AAudioStreamBuilder_setDirection(builder, AAUDIO_DIRECTION_INPUT);
-    AAudioStreamBuilder_setFormat(builder, AAUDIO_FORMAT_PCM_I16);
-    AAudioStreamBuilder_setChannelCount(builder, 1);
-    AAudioStreamBuilder_setSampleRate(builder, mSamplingRate);
-    AAudioStreamBuilder_setSharingMode(builder, AAUDIO_SHARING_MODE_EXCLUSIVE);
-    AAudioStreamBuilder_setPerformanceMode(builder, AAUDIO_PERFORMANCE_MODE_LOW_LATENCY);
-    AAudioStreamBuilder_setUsage(builder, AAUDIO_USAGE_VOICE_COMMUNICATION);
-    AAudioStreamBuilder_setErrorCallback(builder, audioErrorCallback, this);
+  // setup builder
+  AAudioStreamBuilder_setInputPreset(builder,
+                                     AAUDIO_INPUT_PRESET_VOICE_COMMUNICATION);
+  AAudioStreamBuilder_setDirection(builder, AAUDIO_DIRECTION_INPUT);
+  AAudioStreamBuilder_setFormat(builder, AAUDIO_FORMAT_PCM_I16);
+  AAudioStreamBuilder_setChannelCount(builder, 1);
+  AAudioStreamBuilder_setSampleRate(builder, mSamplingRate);
+  AAudioStreamBuilder_setSharingMode(builder, AAUDIO_SHARING_MODE_EXCLUSIVE);
+  AAudioStreamBuilder_setPerformanceMode(builder,
+                                         AAUDIO_PERFORMANCE_MODE_LOW_LATENCY);
+  AAudioStreamBuilder_setUsage(builder, AAUDIO_USAGE_VOICE_COMMUNICATION);
+  AAudioStreamBuilder_setErrorCallback(builder, audioErrorCallback, this);
 
-    int numFramesPerSec = 0;
-    mPtime == 0 ? numFramesPerSec = NUM_FRAMES_PER_SEC : numFramesPerSec = 1000 / mPtime;
+  int numFramesPerSec = 0;
+  mPtime == 0 ? numFramesPerSec = NUM_FRAMES_PER_SEC
+              : numFramesPerSec = 1000 / mPtime;
 
-    //open stream
-    result = AAudioStreamBuilder_openStream(builder, &mAudioStream);
-    AAudioStreamBuilder_delete(builder);
+  // open stream
+  result = AAudioStreamBuilder_openStream(builder, &mAudioStream);
+  AAudioStreamBuilder_delete(builder);
 
-    if (result == AAUDIO_OK && mAudioStream != NULL) {
-        mBufferSize = AAudioStream_getFramesPerBurst(mAudioStream);
-        IMLOGD3("[openAudioStream] samplingRate[%d], framesPerBurst[%d], performanceMode[%d]",
+  if (result == AAUDIO_OK && mAudioStream != NULL) {
+    mBufferSize = AAudioStream_getFramesPerBurst(mAudioStream);
+    IMLOGD3("[openAudioStream] samplingRate[%d], framesPerBurst[%d], "
+            "performanceMode[%d]",
             AAudioStream_getSampleRate(mAudioStream), mBufferSize,
             AAudioStream_getPerformanceMode(mAudioStream));
-        // Set the buffer size to the burst size - this will give us the minimum possible latency
-        AAudioStream_setBufferSizeInFrames(mAudioStream, mBufferSize);
-    } else {
-        IMLOGE1("[openAudioStream] Failed to openStream. Error[%s]",
+    // Set the buffer size to the burst size - this will give us the minimum
+    // possible latency
+    AAudioStream_setBufferSizeInFrames(mAudioStream, mBufferSize);
+  } else {
+    IMLOGE1("[openAudioStream] Failed to openStream. Error[%s]",
             AAudio_convertResultToText(result));
-    }
+    mAudioStream = NULL;
+  }
 }
 
 void ImsMediaAudioSource::restartAudioStream() {
-    std::lock_guard<std::mutex> guard(mMutexUplink);
-    if (mAudioStream == NULL) return;
+  std::lock_guard<std::mutex> guard(mMutexUplink);
+  if (mAudioStream == NULL)
+    return;
 
-    AAudioStream_requestStop(mAudioStream);
-    AAudioStream_close(mAudioStream);
-    mAudioStream = NULL;
-    openAudioStream();
+  AAudioStream_requestStop(mAudioStream);
+  AAudioStream_close(mAudioStream);
+  mAudioStream = NULL;
+  openAudioStream();
 
-    if (mAudioStream == NULL) return;
+  if (mAudioStream == NULL)
+    return;
 
-    aaudio_stream_state_t inputState = AAUDIO_STREAM_STATE_STARTING;
-    aaudio_stream_state_t nextState = AAUDIO_STREAM_STATE_UNINITIALIZED;
-    aaudio_result_t result = AAudioStream_requestStart(mAudioStream);
-    if (result != AAUDIO_OK) {
-        IMLOGE1("[restartAudioStream] Error start stream[%s]",
+  aaudio_stream_state_t inputState = AAUDIO_STREAM_STATE_STARTING;
+  aaudio_stream_state_t nextState = AAUDIO_STREAM_STATE_UNINITIALIZED;
+  aaudio_result_t result = AAudioStream_requestStart(mAudioStream);
+  if (result != AAUDIO_OK) {
+    IMLOGE1("[restartAudioStream] Error start stream[%s]",
             AAudio_convertResultToText(result));
-        return;
-    }
+    return;
+  }
 
-    result = AAudioStream_waitForStateChange(mAudioStream, inputState, &nextState,
-        3 * AAUDIO_TIMEOUT_NANO);
+  result = AAudioStream_waitForStateChange(mAudioStream, inputState, &nextState,
+                                           3 * AAUDIO_TIMEOUT_NANO);
 
-    if (result != AAUDIO_OK) {
-        IMLOGE1("[restartAudioStream] Error start stream[%s]",
+  if (result != AAUDIO_OK) {
+    IMLOGE1("[restartAudioStream] Error start stream[%s]",
             AAudio_convertResultToText(result));
-        return;
-    }
+    return;
+  }
 
-    IMLOGD1("[restartAudioStream] start stream state[%s]",
-        AAudio_convertStreamStateToText(nextState));
+  IMLOGD1("[restartAudioStream] start stream state[%s]",
+          AAudio_convertStreamStateToText(nextState));
 }
 
-void ImsMediaAudioSource::queueInputBuffer(int16_t* buffer, uint32_t size) {
-    ssize_t index = AMediaCodec_dequeueInputBuffer(mCodec, 0);
-    if (index >= 0) {
-        size_t bufferSize = 0;
-        uint8_t *inputBuffer = AMediaCodec_getInputBuffer(mCodec, index, &bufferSize);
-        if (inputBuffer != NULL) {
-            memcpy(inputBuffer, buffer, size);
-            IMLOGD_PACKET2(IM_PACKET_LOG_AUDIO,
-                "[queueInputBuffer] queue input buffer index[%d], size[%d]", index, size);
+void ImsMediaAudioSource::queueInputBuffer(int16_t *buffer, uint32_t size) {
+  ssize_t index = AMediaCodec_dequeueInputBuffer(mCodec, 0);
+  if (index >= 0) {
+    size_t bufferSize = 0;
+    uint8_t *inputBuffer =
+        AMediaCodec_getInputBuffer(mCodec, index, &bufferSize);
+    if (inputBuffer != NULL) {
+      memcpy(inputBuffer, buffer, size);
+      IMLOGD_PACKET2(
+          IM_PACKET_LOG_AUDIO,
+          "[queueInputBuffer] queue input buffer index[%d], size[%d]", index,
+          size);
 
-            auto err = AMediaCodec_queueInputBuffer(mCodec, index, 0, size,
-                ImsMediaTimer::GetTimeInMicroSeconds(), 0);
-            if (err != AMEDIA_OK) {
-                IMLOGE1("[queueInputBuffer] Unable to queue input buffers - err[%d]", err);
-            }
-        }
+      auto err = AMediaCodec_queueInputBuffer(
+          mCodec, index, 0, size, ImsMediaTimer::GetTimeInMicroSeconds(), 0);
+      if (err != AMEDIA_OK) {
+        IMLOGE1("[queueInputBuffer] Unable to queue input buffers - err[%d]",
+                err);
+      }
     }
+  }
 }
 
 void ImsMediaAudioSource::processOutputBuffer() {
-    static int kTimeout = 100000;   // be responsive on signal
-    uint32_t nNextTime = ImsMediaTimer::GetTimeInMilliSeconds();
+  static int kTimeout = 100000; // be responsive on signal
+  uint32_t nNextTime = ImsMediaTimer::GetTimeInMilliSeconds();
 
-    for (;;) {
-        uint32_t nCurrTime;
-        mMutexUplink.lock();
-        if (IsThreadStopped() || mAudioStream == NULL || mCodec == NULL) {
-            IMLOGD0("[processOutputBuffer] terminated");
-            mMutexUplink.unlock();
-            break;
-        }
-        mMutexUplink.unlock();
-
-        AMediaCodecBufferInfo info;
-        auto index = AMediaCodec_dequeueOutputBuffer(mCodec, &info, kTimeout);
-
-        if (index >= 0) {
-            IMLOGD_PACKET5(IM_PACKET_LOG_AUDIO,
-                "[processOutputBuffer] index[%d], size[%d], offset[%d], time[%ld], flags[%d]",
-                index, info.size, info.offset, info.presentationTimeUs, info.flags);
-
-            if (info.size > 0) {
-                size_t buffCapacity;
-                uint8_t *buf = AMediaCodec_getOutputBuffer(mCodec, index, &buffCapacity);
-                mUplinkCB(mUplinkCBClient, buf, info.size, info.presentationTimeUs,
-                    info.flags);
-            }
-
-            AMediaCodec_releaseOutputBuffer(mCodec, index, false);
-        } else if (index == AMEDIACODEC_INFO_OUTPUT_BUFFERS_CHANGED) {
-            IMLOGD0("[processOutputBuffer] Encoder output buffer changed");
-        } else if (index == AMEDIACODEC_INFO_OUTPUT_FORMAT_CHANGED) {
-            if (mFormat != NULL) {
-                AMediaFormat_delete(mFormat);
-            }
-            mFormat = AMediaCodec_getOutputFormat(mCodec);
-            IMLOGD1("[processOutputBuffer] Encoder format changed, format[%s]",
-                AMediaFormat_toString(mFormat));
-        } else if (index == AMEDIACODEC_INFO_TRY_AGAIN_LATER) {
-            IMLOGD0("[processOutputBuffer] no output buffer");
-        } else {
-            IMLOGD1("[processOutputBuffer] unexpected index[%d]", index);
-        }
-
-        nNextTime += mPtime;
-        nCurrTime = ImsMediaTimer::GetTimeInMilliSeconds();
-        IMLOGD_PACKET1(IM_PACKET_LOG_AUDIO, "[processOutputBuffer] nCurrTime[%u]", nCurrTime);
-        if (nNextTime > nCurrTime) ImsMediaTimer::Sleep(nNextTime - nCurrTime);
+  for (;;) {
+    uint32_t nCurrTime;
+    mMutexUplink.lock();
+    if (IsThreadStopped() || mAudioStream == NULL || mCodec == NULL) {
+      IMLOGD0("[processOutputBuffer] terminated");
+      mMutexUplink.unlock();
+      break;
     }
+    mMutexUplink.unlock();
+
+    AMediaCodecBufferInfo info;
+    auto index = AMediaCodec_dequeueOutputBuffer(mCodec, &info, kTimeout);
+
+    if (index >= 0) {
+      IMLOGD_PACKET5(
+          IM_PACKET_LOG_AUDIO,
+          "[processOutputBuffer] index[%d], size[%d], offset[%d], time[%ld],\
+flags[%d]",
+          index, info.size, info.offset, info.presentationTimeUs, info.flags);
+
+      if (info.size > 0) {
+        size_t buffCapacity;
+        uint8_t *buf =
+            AMediaCodec_getOutputBuffer(mCodec, index, &buffCapacity);
+        mUplinkCB(mUplinkCBClient, buf, info.size, info.presentationTimeUs,
+                  info.flags);
+      }
+
+      AMediaCodec_releaseOutputBuffer(mCodec, index, false);
+    } else if (index == AMEDIACODEC_INFO_OUTPUT_BUFFERS_CHANGED) {
+      IMLOGD0("[processOutputBuffer] Encoder output buffer changed");
+    } else if (index == AMEDIACODEC_INFO_OUTPUT_FORMAT_CHANGED) {
+      if (mFormat != NULL) {
+        AMediaFormat_delete(mFormat);
+      }
+      mFormat = AMediaCodec_getOutputFormat(mCodec);
+      IMLOGD1("[processOutputBuffer] Encoder format changed, format[%s]",
+              AMediaFormat_toString(mFormat));
+    } else if (index == AMEDIACODEC_INFO_TRY_AGAIN_LATER) {
+      IMLOGD0("[processOutputBuffer] no output buffer");
+    } else {
+      IMLOGD1("[processOutputBuffer] unexpected index[%d]", index);
+    }
+
+    nNextTime += mPtime;
+    nCurrTime = ImsMediaTimer::GetTimeInMilliSeconds();
+    IMLOGD_PACKET1(IM_PACKET_LOG_AUDIO, "[processOutputBuffer] nCurrTime[%u]",
+                   nCurrTime);
+    if (nNextTime > nCurrTime)
+      ImsMediaTimer::Sleep(nNextTime - nCurrTime);
+  }
 }

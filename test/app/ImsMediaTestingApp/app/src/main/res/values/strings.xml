@@ -53,6 +53,7 @@
   <string name="save_button_action_toast">Settings saved</string>
   <string name="connected">CONNECTED</string>
   <string name="loop_back_mode_switch_text">LOOP BACK</string>
+  <string name="speaker_mode_switch_text">SPEAKER</string>
 
   <!-- Dialer buttons text -->
   <string name="dialer_button_1_text">1</string>

@@ -35,9 +35,11 @@ import android.widget.ListView;
 import android.widget.PopupMenu;
 import android.widget.TextView;
 import android.widget.Toast;
+
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.SwitchCompat;
+
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
@@ -81,22 +83,24 @@ public class MainActivity extends AppCompatActivity {
     private Set<Integer> selectedEvsModes = new HashSet<>();
     private Set<Integer> selectedVideoCodecs = new HashSet<>();
 
-    // The order of these values determines the priority in which they would be selected if there
-    // is a common match between the two devices' selections during the handshake process.
-    private static final int[] CODEC_ORDER = new int[]{CodecType.AMR, CodecType.AMR_WB,
-        CodecType.EVS, CodecType.PCMA, CodecType.PCMU};
-    private static final int[] EVS_BANDWIDTH_ORDER = new int[]{EvsBandwidth.NONE,
-        EvsBandwidth.NARROW_BAND, EvsBandwidth.WIDE_BAND, EvsBandwidth.SUPER_WIDE_BAND,
-        EvsBandwidth.FULL_BAND};
-    private static final int[] AMR_MODE_ORDER = new int[]{AmrMode.AMR_MODE_0, AmrMode.AMR_MODE_1,
-        AmrMode.AMR_MODE_2, AmrMode.AMR_MODE_3, AmrMode.AMR_MODE_4, AmrMode.AMR_MODE_5,
-        AmrMode.AMR_MODE_6, AmrMode.AMR_MODE_7, AmrMode.AMR_MODE_8};
-    private static final int[] EVS_MODE_ORDER = new int[]{EvsMode.EVS_MODE_0, EvsMode.EVS_MODE_1,
-        EvsMode.EVS_MODE_2, EvsMode.EVS_MODE_3, EvsMode.EVS_MODE_4, EvsMode.EVS_MODE_5,
-        EvsMode.EVS_MODE_6, EvsMode.EVS_MODE_7, EvsMode.EVS_MODE_8, EvsMode.EVS_MODE_9,
-        EvsMode.EVS_MODE_10, EvsMode.EVS_MODE_11, EvsMode.EVS_MODE_12, EvsMode.EVS_MODE_13,
-        EvsMode.EVS_MODE_14, EvsMode.EVS_MODE_15, EvsMode.EVS_MODE_16, EvsMode.EVS_MODE_17,
-        EvsMode.EVS_MODE_18, EvsMode.EVS_MODE_19, EvsMode.EVS_MODE_20};
+    // The order of these values determines the priority in which they would be
+    // selected if there
+    // is a common match between the two devices' selections during the handshake
+    // process.
+    private static final int[] CODEC_ORDER = new int[] { CodecType.AMR, CodecType.AMR_WB,
+            CodecType.EVS, CodecType.PCMA, CodecType.PCMU };
+    private static final int[] EVS_BANDWIDTH_ORDER = new int[] { EvsBandwidth.NONE,
+            EvsBandwidth.NARROW_BAND, EvsBandwidth.WIDE_BAND, EvsBandwidth.SUPER_WIDE_BAND,
+            EvsBandwidth.FULL_BAND };
+    private static final int[] AMR_MODE_ORDER = new int[] { AmrMode.AMR_MODE_0, AmrMode.AMR_MODE_1,
+            AmrMode.AMR_MODE_2, AmrMode.AMR_MODE_3, AmrMode.AMR_MODE_4, AmrMode.AMR_MODE_5,
+            AmrMode.AMR_MODE_6, AmrMode.AMR_MODE_7, AmrMode.AMR_MODE_8 };
+    private static final int[] EVS_MODE_ORDER = new int[] { EvsMode.EVS_MODE_0, EvsMode.EVS_MODE_1,
+            EvsMode.EVS_MODE_2, EvsMode.EVS_MODE_3, EvsMode.EVS_MODE_4, EvsMode.EVS_MODE_5,
+            EvsMode.EVS_MODE_6, EvsMode.EVS_MODE_7, EvsMode.EVS_MODE_8, EvsMode.EVS_MODE_9,
+            EvsMode.EVS_MODE_10, EvsMode.EVS_MODE_11, EvsMode.EVS_MODE_12, EvsMode.EVS_MODE_13,
+            EvsMode.EVS_MODE_14, EvsMode.EVS_MODE_15, EvsMode.EVS_MODE_16, EvsMode.EVS_MODE_17,
+            EvsMode.EVS_MODE_18, EvsMode.EVS_MODE_19, EvsMode.EVS_MODE_20 };
 
     private boolean loopbackModeEnabled = false;
     private boolean isMediaManagerReady = false;
@@ -130,7 +134,8 @@ public class MainActivity extends AppCompatActivity {
     private LinearLayout activeCallToolBar;
 
     /**
-     * Enum of the CodecType from android.hardware.radio.ims.media.CodecType with the matching
+     * Enum of the CodecType from android.hardware.radio.ims.media.CodecType with
+     * the matching
      * Integer value.
      */
     public enum CodecTypeEnum {
@@ -152,7 +157,8 @@ public class MainActivity extends AppCompatActivity {
     }
 
     /**
-     * Enum of the AmrMode from android.hardware.radio.ims.media.AmrMode with the matching
+     * Enum of the AmrMode from android.hardware.radio.ims.media.AmrMode with the
+     * matching
      * Integer value.
      */
     public enum AmrModeEnum {
@@ -179,7 +185,8 @@ public class MainActivity extends AppCompatActivity {
     }
 
     /**
-     * Enum of the EvsBandwidth from android.hardware.radio.ims.media.EvsBandwidth with the
+     * Enum of the EvsBandwidth from android.hardware.radio.ims.media.EvsBandwidth
+     * with the
      * matching Integer value.
      */
     public enum EvsBandwidthEnum {
@@ -201,7 +208,8 @@ public class MainActivity extends AppCompatActivity {
     }
 
     /**
-     * Enum of the EvsMode from android.hardware.radio.ims.media.EvsMode with the matching
+     * Enum of the EvsMode from android.hardware.radio.ims.media.EvsMode with the
+     * matching
      * Integer value.
      */
     public enum EvsModeEnum {
@@ -255,7 +263,8 @@ public class MainActivity extends AppCompatActivity {
     }
 
     /**
-     * Enum of the different states the application can be in. Mainly used to decide how
+     * Enum of the different states the application can be in. Mainly used to decide
+     * how
      * different features of the app UI will be styled.
      */
     public enum ConnectionStatus {
@@ -385,10 +394,9 @@ public class MainActivity extends AppCompatActivity {
             audioSession = (ImsAudioSession) session;
             Log.d(TAG, "onOpenSessionSuccess: id=" + audioSession.getSessionId());
             isOpenSessionSent = true;
-            updateUI(ConnectionStatus.ACTIVE_CALL);
             AudioManager audioManager = getSystemService(AudioManager.class);
             audioManager.setMode(AudioManager.MODE_IN_CALL);
-            audioManager.setSpeakerphoneOn(true);
+            updateUI(ConnectionStatus.ACTIVE_CALL);
         }
 
         @Override
@@ -440,7 +448,7 @@ public class MainActivity extends AppCompatActivity {
 
     private WifiInfo retrieveNetworkConfig() {
         WifiManager wifiManager = (WifiManager) getApplication()
-            .getSystemService(Context.WIFI_SERVICE);
+                .getSystemService(Context.WIFI_SERVICE);
         return wifiManager.getConnectionInfo();
     }
 
@@ -467,8 +475,10 @@ public class MainActivity extends AppCompatActivity {
     }
 
     /**
-     * Opens two datagram sockets for audio rtp and rtcp, and a third for the handshake between
+     * Opens two datagram sockets for audio rtp and rtcp, and a third for the
+     * handshake between
      * devices if true is passed in the parameter.
+     *
      * @param openHandshakePort boolean value to open a port for the handshake.
      */
     private void openRtpPorts(boolean openHandshakePort) {
@@ -495,7 +505,8 @@ public class MainActivity extends AppCompatActivity {
     }
 
     /**
-     * Closes the handshake, rtp, and rtcp ports if they have been opened or instantiated.
+     * Closes the handshake, rtp, and rtcp ports if they have been opened or
+     * instantiated.
      */
     private void closePorts() {
         if (handshakeReceptionSocket != null) {
@@ -512,7 +523,8 @@ public class MainActivity extends AppCompatActivity {
     }
 
     /**
-     * After the ports are open this runnable is called to wait for in incoming handshake to pair
+     * After the ports are open this runnable is called to wait for in incoming
+     * handshake to pair
      * with the remote device.
      */
     Runnable handleIncomingHandshake = new Runnable() {
@@ -528,7 +540,7 @@ public class MainActivity extends AppCompatActivity {
                 remoteDeviceInfo = handshakeReceptionSocket.getReceivedDeviceInfo();
 
                 HandshakeSender handshakeSender = new HandshakeSender(
-                    remoteDeviceInfo.getInetAddress(), remoteDeviceInfo.getHandshakePort());
+                        remoteDeviceInfo.getInetAddress(), remoteDeviceInfo.getHandshakePort());
                 localDeviceInfo = createMyDeviceInfo();
                 handshakeSender.setData(localDeviceInfo);
                 handshakeSender.run();
@@ -540,12 +552,12 @@ public class MainActivity extends AppCompatActivity {
                 }
 
                 handshakeSender = new HandshakeSender(remoteDeviceInfo.getInetAddress(),
-                    remoteDeviceInfo.getHandshakePort());
+                        remoteDeviceInfo.getHandshakePort());
                 handshakeSender.setData(CONFIRMATION_MESSAGE);
                 handshakeSender.run();
                 Log.d(TAG, "Handshake has been completed. Devices are connected.");
                 editor.putString("OTHER_IP_ADDRESS",
-                    remoteDeviceInfo.getInetAddress().getHostName());
+                        remoteDeviceInfo.getInetAddress().getHostName());
                 editor.putInt("OTHER_HANDSHAKE_PORT", remoteDeviceInfo.getRtpPort());
                 editor.apply();
                 updateUI(ConnectionStatus.CONNECTED);
@@ -557,10 +569,14 @@ public class MainActivity extends AppCompatActivity {
     };
 
     /**
-     * This runnable controls the handshake process from the user that is attempting to connect
-     * to the remote device. First it will create and send a DeviceInfo object that contains the
-     * local devices info, and wait until it receives the remote DeviceInfo. After it receives
-     * the remote DeviceInfo it will save it into memory and send a conformation String back, then
+     * This runnable controls the handshake process from the user that is attempting
+     * to connect
+     * to the remote device. First it will create and send a DeviceInfo object that
+     * contains the
+     * local devices info, and wait until it receives the remote DeviceInfo. After
+     * it receives
+     * the remote DeviceInfo it will save it into memory and send a conformation
+     * String back, then
      * wait until it receives a conformation String.
      */
     Runnable initiateHandshake = new Runnable() {
@@ -568,7 +584,7 @@ public class MainActivity extends AppCompatActivity {
         public void run() {
             try {
                 HandshakeSender sender = new HandshakeSender(
-                    InetAddress.getByName(getOtherDeviceIp()), getOtherDevicePort());
+                        InetAddress.getByName(getOtherDeviceIp()), getOtherDevicePort());
                 localDeviceInfo = createMyDeviceInfo();
                 sender.setData(localDeviceInfo);
                 sender.run();
@@ -594,21 +610,23 @@ public class MainActivity extends AppCompatActivity {
     };
 
     /**
-     * Creates and returns a DeviceInfo object with the local port, ip, and audio codec settings
+     * Creates and returns a DeviceInfo object with the local port, ip, and audio
+     * codec settings
+     *
      * @return DeviceInfo object containing the local device's information
      */
     public DeviceInfo createMyDeviceInfo() {
         try {
             return new DeviceInfo.Builder()
-                .setInetAddress(InetAddress.getByName(getLocalIpAddress()))
-                .setHandshakePort(handshakeReceptionSocket.getBoundSocket())
-                .setRtpPort(rtp.getLocalPort())
-                .setRtcpPort(rtcp.getLocalPort())
-                .setAudioCodecs(selectedCodecTypes)
-                .setAmrModes(selectedAmrModes)
-                .setEvsBandwidths(selectedEvsBandwidths)
-                .setEvsModes(selectedEvsModes)
-                .build();
+                    .setInetAddress(InetAddress.getByName(getLocalIpAddress()))
+                    .setHandshakePort(handshakeReceptionSocket.getBoundSocket())
+                    .setRtpPort(rtp.getLocalPort())
+                    .setRtcpPort(rtcp.getLocalPort())
+                    .setAudioCodecs(selectedCodecTypes)
+                    .setAmrModes(selectedAmrModes)
+                    .setEvsBandwidths(selectedEvsBandwidths)
+                    .setEvsModes(selectedEvsModes)
+                    .build();
 
         } catch (UnknownHostException e) {
             e.printStackTrace();
@@ -618,6 +636,7 @@ public class MainActivity extends AppCompatActivity {
 
     /**
      * Updates the connectionStatus and restyles the UI
+     *
      * @param newStatus The new ConnectionStatus used to style the UI
      */
     public void updateUI(ConnectionStatus newStatus) {
@@ -626,8 +645,10 @@ public class MainActivity extends AppCompatActivity {
     }
 
     /**
-     * Creates and returns an InetSocketAddress from the remote device that is connected to the
+     * Creates and returns an InetSocketAddress from the remote device that is
+     * connected to the
      * local device.
+     *
      * @return the InetSocketAddress of the remote device
      */
     private InetSocketAddress getRemoteSocketAddress() {
@@ -637,94 +658,97 @@ public class MainActivity extends AppCompatActivity {
     }
 
     /**
-     * Builds and returns an RtcpConfig for the remote device that is connected to the local device.
+     * Builds and returns an RtcpConfig for the remote device that is connected to
+     * the local device.
+     *
      * @return the RtcpConfig for the remote device
      */
     private RtcpConfig getRemoteRtcpConfig() {
         return new RtcpConfig.Builder()
-            .setCanonicalName("rtp config")
-            .setTransmitPort(remoteDeviceInfo.getRtpPort() + 1)
-            .setIntervalSec(5)
-            .setRtcpXrBlockTypes(0)
-            .build();
+                .setCanonicalName("rtp config")
+                .setTransmitPort(remoteDeviceInfo.getRtpPort() + 1)
+                .setIntervalSec(5)
+                .setRtcpXrBlockTypes(0)
+                .build();
     }
 
     /**
      * Creates and returns a new AudioConfig
+     *
      * @param remoteRtpAddress - InetSocketAddress of the remote device
-     * @param rtcpConfig - RtcpConfig of the remove device
-     * @param audioCodec - the type of AudioCodec
-     * @param amrParams - the settings if the AudioCodec is an AMR variant
-     * @param evsParams - the settings if the AudioCodec is EVS
+     * @param rtcpConfig       - RtcpConfig of the remove device
+     * @param audioCodec       - the type of AudioCodec
+     * @param amrParams        - the settings if the AudioCodec is an AMR variant
+     * @param evsParams        - the settings if the AudioCodec is EVS
      * @return an AudioConfig with the given params
      */
     private AudioConfig createAudioConfig(InetSocketAddress remoteRtpAddress,
-        RtcpConfig rtcpConfig, int audioCodec, AmrParams amrParams, EvsParams evsParams) {
+            RtcpConfig rtcpConfig, int audioCodec, AmrParams amrParams, EvsParams evsParams) {
         AudioConfig config;
 
-        if(audioCodec == AudioConfig.CODEC_AMR || audioCodec == AudioConfig.CODEC_AMR_WB) {
+        if (audioCodec == AudioConfig.CODEC_AMR || audioCodec == AudioConfig.CODEC_AMR_WB) {
             config = new AudioConfig.Builder()
-                .setMediaDirection(RtpConfig.MEDIA_DIRECTION_TRANSMIT_RECEIVE)
-                .setAccessNetwork(AccessNetworkType.EUTRAN)
-                .setRemoteRtpAddress(remoteRtpAddress)
-                .setRtcpConfig(rtcpConfig)
-                .setMaxMtuBytes(MAX_MTU_BYTES)
-                .setDscp((byte) DSCP)
-                .setRxPayloadTypeNumber((byte) RX_PAYLOAD_TYPE_NUMBER)
-                .setTxPayloadTypeNumber((byte) TX_PAYLOAD_TYPE_NUMBER)
-                .setSamplingRateKHz((byte) SAMPLING_RATE_KHZ)
-                .setPtimeMillis((byte) P_TIME_MILLIS)
-                .setMaxPtimeMillis((byte) MAX_P_TIME_MILLIS)
-                .setTxCodecModeRequest((byte) TX_CODEC_MODE_REQUEST)
-                .setDtxEnabled(true)
-                .setDtmfPayloadTypeNumber((byte) DTMF_PAYLOAD_TYPE_NUMBER)
-                .setDtmfSamplingRateKHz((byte) DTMF_SAMPLING_RATE_KHZ)
-                .setCodecType(audioCodec)
-                .setAmrParams(amrParams)
-                // TODO - audio is currently only working when evs params are set as well
-                .setEvsParams(evsParams)
-                .build();
+                    .setMediaDirection(RtpConfig.MEDIA_DIRECTION_TRANSMIT_RECEIVE)
+                    .setAccessNetwork(AccessNetworkType.EUTRAN)
+                    .setRemoteRtpAddress(remoteRtpAddress)
+                    .setRtcpConfig(rtcpConfig)
+                    .setMaxMtuBytes(MAX_MTU_BYTES)
+                    .setDscp((byte) DSCP)
+                    .setRxPayloadTypeNumber((byte) RX_PAYLOAD_TYPE_NUMBER)
+                    .setTxPayloadTypeNumber((byte) TX_PAYLOAD_TYPE_NUMBER)
+                    .setSamplingRateKHz((byte) SAMPLING_RATE_KHZ)
+                    .setPtimeMillis((byte) P_TIME_MILLIS)
+                    .setMaxPtimeMillis((byte) MAX_P_TIME_MILLIS)
+                    .setTxCodecModeRequest((byte) TX_CODEC_MODE_REQUEST)
+                    .setDtxEnabled(true)
+                    .setDtmfPayloadTypeNumber((byte) DTMF_PAYLOAD_TYPE_NUMBER)
+                    .setDtmfSamplingRateKHz((byte) DTMF_SAMPLING_RATE_KHZ)
+                    .setCodecType(audioCodec)
+                    .setAmrParams(amrParams)
+                    // TODO - audio is currently only working when evs params are set as well
+                    .setEvsParams(evsParams)
+                    .build();
 
-        } else if(audioCodec == AudioConfig.CODEC_EVS) {
+        } else if (audioCodec == AudioConfig.CODEC_EVS) {
             config = new AudioConfig.Builder()
-                .setMediaDirection(RtpConfig.MEDIA_DIRECTION_TRANSMIT_RECEIVE)
-                .setAccessNetwork(AccessNetworkType.EUTRAN)
-                .setRemoteRtpAddress(remoteRtpAddress)
-                .setRtcpConfig(rtcpConfig)
-                .setMaxMtuBytes(MAX_MTU_BYTES)
-                .setDscp((byte) DSCP)
-                .setRxPayloadTypeNumber((byte) RX_PAYLOAD_TYPE_NUMBER)
-                .setTxPayloadTypeNumber((byte) TX_PAYLOAD_TYPE_NUMBER)
-                .setSamplingRateKHz((byte) SAMPLING_RATE_KHZ)
-                .setPtimeMillis((byte) P_TIME_MILLIS)
-                .setMaxPtimeMillis((byte) MAX_P_TIME_MILLIS)
-                .setTxCodecModeRequest((byte) TX_CODEC_MODE_REQUEST)
-                .setDtxEnabled(true)
-                .setDtmfPayloadTypeNumber((byte) DTMF_PAYLOAD_TYPE_NUMBER)
-                .setDtmfSamplingRateKHz((byte) DTMF_SAMPLING_RATE_KHZ)
-                .setCodecType(audioCodec)
-                .setEvsParams(evsParams)
-                .build();
+                    .setMediaDirection(RtpConfig.MEDIA_DIRECTION_TRANSMIT_RECEIVE)
+                    .setAccessNetwork(AccessNetworkType.EUTRAN)
+                    .setRemoteRtpAddress(remoteRtpAddress)
+                    .setRtcpConfig(rtcpConfig)
+                    .setMaxMtuBytes(MAX_MTU_BYTES)
+                    .setDscp((byte) DSCP)
+                    .setRxPayloadTypeNumber((byte) RX_PAYLOAD_TYPE_NUMBER)
+                    .setTxPayloadTypeNumber((byte) TX_PAYLOAD_TYPE_NUMBER)
+                    .setSamplingRateKHz((byte) SAMPLING_RATE_KHZ)
+                    .setPtimeMillis((byte) P_TIME_MILLIS)
+                    .setMaxPtimeMillis((byte) MAX_P_TIME_MILLIS)
+                    .setTxCodecModeRequest((byte) TX_CODEC_MODE_REQUEST)
+                    .setDtxEnabled(true)
+                    .setDtmfPayloadTypeNumber((byte) DTMF_PAYLOAD_TYPE_NUMBER)
+                    .setDtmfSamplingRateKHz((byte) DTMF_SAMPLING_RATE_KHZ)
+                    .setCodecType(audioCodec)
+                    .setEvsParams(evsParams)
+                    .build();
 
         } else {
             config = new AudioConfig.Builder()
-                .setMediaDirection(RtpConfig.MEDIA_DIRECTION_TRANSMIT_RECEIVE)
-                .setAccessNetwork(AccessNetworkType.EUTRAN)
-                .setRemoteRtpAddress(remoteRtpAddress)
-                .setRtcpConfig(rtcpConfig)
-                .setMaxMtuBytes(MAX_MTU_BYTES)
-                .setDscp((byte) DSCP)
-                .setRxPayloadTypeNumber((byte) RX_PAYLOAD_TYPE_NUMBER)
-                .setTxPayloadTypeNumber((byte) TX_PAYLOAD_TYPE_NUMBER)
-                .setSamplingRateKHz((byte) SAMPLING_RATE_KHZ)
-                .setPtimeMillis((byte) P_TIME_MILLIS)
-                .setMaxPtimeMillis((byte) MAX_P_TIME_MILLIS)
-                .setTxCodecModeRequest((byte) TX_CODEC_MODE_REQUEST)
-                .setDtxEnabled(true)
-                .setDtmfPayloadTypeNumber((byte) DTMF_PAYLOAD_TYPE_NUMBER)
-                .setDtmfSamplingRateKHz((byte) DTMF_SAMPLING_RATE_KHZ)
-                .setCodecType(audioCodec)
-                .build();
+                    .setMediaDirection(RtpConfig.MEDIA_DIRECTION_TRANSMIT_RECEIVE)
+                    .setAccessNetwork(AccessNetworkType.EUTRAN)
+                    .setRemoteRtpAddress(remoteRtpAddress)
+                    .setRtcpConfig(rtcpConfig)
+                    .setMaxMtuBytes(MAX_MTU_BYTES)
+                    .setDscp((byte) DSCP)
+                    .setRxPayloadTypeNumber((byte) RX_PAYLOAD_TYPE_NUMBER)
+                    .setTxPayloadTypeNumber((byte) TX_PAYLOAD_TYPE_NUMBER)
+                    .setSamplingRateKHz((byte) SAMPLING_RATE_KHZ)
+                    .setPtimeMillis((byte) P_TIME_MILLIS)
+                    .setMaxPtimeMillis((byte) MAX_P_TIME_MILLIS)
+                    .setTxCodecModeRequest((byte) TX_CODEC_MODE_REQUEST)
+                    .setDtxEnabled(true)
+                    .setDtmfPayloadTypeNumber((byte) DTMF_PAYLOAD_TYPE_NUMBER)
+                    .setDtmfSamplingRateKHz((byte) DTMF_SAMPLING_RATE_KHZ)
+                    .setCodecType(audioCodec)
+                    .build();
         }
         return config;
     }
@@ -735,10 +759,10 @@ public class MainActivity extends AppCompatActivity {
      */
     private AmrParams createAmrParams(int amrMode) {
         return new AmrParams.Builder()
-            .setAmrMode(amrMode)
-            .setOctetAligned(true)
-            .setMaxRedundancyMillis(0)
-            .build();
+                .setAmrMode(amrMode)
+                .setOctetAligned(true)
+                .setMaxRedundancyMillis(0)
+                .build();
     }
 
     /**
@@ -748,66 +772,78 @@ public class MainActivity extends AppCompatActivity {
      */
     private EvsParams createEvsParams(int evsBand, int evsMode) {
         return new EvsParams.Builder()
-            .setEvsbandwidth(evsBand)
-            .setEvsMode(evsMode)
-            .setChannelAwareMode((byte) 3)
-            .setHeaderFullOnlyOnTx(true)
-            .setHeaderFullOnlyOnRx(true)
-            .build();
+                .setEvsbandwidth(evsBand)
+                .setEvsMode(evsMode)
+                .setChannelAwareMode((byte) 3)
+                .setHeaderFullOnlyOnTx(true)
+                .setHeaderFullOnlyOnRx(true)
+                .build();
     }
 
     /**
-     * Determines the audio codec to use to configure the AudioConfig object. The function uses
-     * the order arrays of Integers to determine the priority of a given codec, mode, and
+     * Determines the audio codec to use to configure the AudioConfig object. The
+     * function uses
+     * the order arrays of Integers to determine the priority of a given codec,
+     * mode, and
      * bandwidth. Then creates and returns a AudioConfig object containing it.
-     * @param localDevice DeviceInfo object containing the local device's information
-     * @param remoteDevice DeviceInfo object containing the remote device's information
-     * @return AudioConfig containing the selected audio codec, determined by the algorithm
+     *
+     * @param localDevice  DeviceInfo object containing the local device's
+     *                     information
+     * @param remoteDevice DeviceInfo object containing the remote device's
+     *                     information
+     * @return AudioConfig containing the selected audio codec, determined by the
+     *         algorithm
      */
     private AudioConfig determineAudioConfig(DeviceInfo localDevice, DeviceInfo remoteDevice) {
         AmrParams amrParams = null;
         EvsParams evsParams = null;
 
         int selectedCodec = determineCommonCodecSettings(localDevice.getAudioCodecs(),
-            remoteDevice.getAudioCodecs(), CODEC_ORDER);
+                remoteDevice.getAudioCodecs(), CODEC_ORDER);
 
         switch (selectedCodec) {
-            case CodecType.AMR: case CodecType.AMR_WB:
+            case CodecType.AMR:
+            case CodecType.AMR_WB:
                 int amrMode = determineCommonCodecSettings(localDevice.getAmrModes(),
-                    remoteDevice.getAmrModes(), AMR_MODE_ORDER);
+                        remoteDevice.getAmrModes(), AMR_MODE_ORDER);
                 amrParams = createAmrParams(amrMode);
                 break;
 
             case CodecType.EVS:
                 int evsMode = determineCommonCodecSettings(localDevice.getEvsModes(),
-                    remoteDevice.getEvsModes(), EVS_MODE_ORDER);
+                        remoteDevice.getEvsModes(), EVS_MODE_ORDER);
                 int evsBand = determineCommonCodecSettings(localDevice.getEvsBandwidths(),
-                    remoteDevice.getEvsBandwidths(), EVS_BANDWIDTH_ORDER);
+                        remoteDevice.getEvsBandwidths(), EVS_BANDWIDTH_ORDER);
                 evsParams = createEvsParams(evsBand, evsMode);
                 break;
 
             case -1:
                 return createAudioConfig(CodecType.AMR_WB, createAmrParams(AmrMode.AMR_MODE_4),
-                    null);
+                        null);
         }
 
         return createAudioConfig(selectedCodec, amrParams, evsParams);
     }
 
     /**
-     * Helper function used to determine the highest ranking codec, mode, or bandwidth between
+     * Helper function used to determine the highest ranking codec, mode, or
+     * bandwidth between
      * two devices.
-     * @param localSet the set containing the local device's selection of codecs, modes, or
-     * bandwidths
-     * @param remoteSet the set containing the remote device's selection of codecs, modes, or
-     * bandwidths
-     * @param codecSetting the Integer array containing the ranking order of the different values
+     *
+     * @param localSet     the set containing the local device's selection of
+     *                     codecs, modes, or
+     *                     bandwidths
+     * @param remoteSet    the set containing the remote device's selection of
+     *                     codecs, modes, or
+     *                     bandwidths
+     * @param codecSetting the Integer array containing the ranking order of the
+     *                     different values
      * @return highest ranking mode, codec, bandwidth, or -1 if no match is found
      */
     private int determineCommonCodecSettings(Set<Integer> localSet, Set<Integer> remoteSet,
-        int[] codecSetting) {
+            int[] codecSetting) {
         for (int setting : codecSetting) {
-            if(localSet.contains(setting) && remoteSet.contains(setting)) {
+            if (localSet.contains(setting) && remoteSet.contains(setting)) {
                 return setting;
             }
         }
@@ -815,38 +851,43 @@ public class MainActivity extends AppCompatActivity {
     }
 
     /**
-     * Creates an AudioConfig object depending on the passed parameters and returns it.
+     * Creates an AudioConfig object depending on the passed parameters and returns
+     * it.
+     *
      * @param audioCodec Integer value of the CodecType
-     * @param amrParams AmrParams object to be set in the AudioConfig
-     * @param evsParams EvsParams object to be set in the AudioConfig
+     * @param amrParams  AmrParams object to be set in the AudioConfig
+     * @param evsParams  EvsParams object to be set in the AudioConfig
      * @return an AudioConfig with the passed parameters and default values.
      */
     private AudioConfig createAudioConfig(int audioCodec, AmrParams amrParams,
-        EvsParams evsParams) {
+            EvsParams evsParams) {
         AudioConfig audioConfig = null;
-        // TODO - evs params must be present to hear audio currently, regardless of codec
+        // TODO - evs params must be present to hear audio currently, regardless of
+        // codec
         EvsParams mEvs = new EvsParams.Builder()
-            .setEvsbandwidth(EvsParams.EVS_BAND_NONE)
-            .setEvsMode(EvsParams.EVS_MODE_0)
-            .setChannelAwareMode((byte) 3)
-            .setHeaderFullOnlyOnTx(true)
-            .setHeaderFullOnlyOnRx(true)
-            .build();
+                .setEvsbandwidth(EvsParams.EVS_BAND_NONE)
+                .setEvsMode(EvsParams.EVS_MODE_0)
+                .setChannelAwareMode((byte) 3)
+                .setHeaderFullOnlyOnTx(true)
+                .setHeaderFullOnlyOnRx(true)
+                .build();
 
         switch (audioCodec) {
-            case CodecType.AMR: case CodecType.AMR_WB:
+            case CodecType.AMR:
+            case CodecType.AMR_WB:
                 audioConfig = createAudioConfig(getRemoteSocketAddress(), getRemoteRtcpConfig(),
-                    audioCodec, amrParams, mEvs);
+                        audioCodec, amrParams, mEvs);
                 break;
 
             case CodecType.EVS:
                 audioConfig = createAudioConfig(getRemoteSocketAddress(), getRemoteRtcpConfig(),
-                    audioCodec, null, evsParams);
+                        audioCodec, null, evsParams);
                 break;
 
-            case CodecType.PCMA: case CodecType.PCMU:
+            case CodecType.PCMA:
+            case CodecType.PCMU:
                 audioConfig = createAudioConfig(getRemoteSocketAddress(), getRemoteRtcpConfig(),
-                    audioCodec, null, null);
+                        audioCodec, null, null);
                 break;
 
         }
@@ -856,6 +897,7 @@ public class MainActivity extends AppCompatActivity {
 
     /**
      * Displays the dialer BottomSheetDialog when the button is clicked
+     *
      * @param view the view form the button click
      */
     public void openDialer(View view) {
@@ -865,7 +907,9 @@ public class MainActivity extends AppCompatActivity {
     }
 
     /**
-     * Sends a DTMF input to the current AudioSession and updates the TextView to display the input.
+     * Sends a DTMF input to the current AudioSession and updates the TextView to
+     * display the input.
+     *
      * @param view the view from the button click
      */
     public void sendDtmfOnClick(View view) {
@@ -880,6 +924,7 @@ public class MainActivity extends AppCompatActivity {
 
     /**
      * Resets the TextView containing the DTMF input
+     *
      * @param view the view from the button click
      */
     public void clearDtmfInputOnClick(View view) {
@@ -889,7 +934,22 @@ public class MainActivity extends AppCompatActivity {
     }
 
     /**
-     * Calls closeSession() on ImsMediaManager and resets the flag on isOpenSessionSent
+     * Set a speaker mode on/off
+     *
+     * @param view the view from the button click
+     */
+    public void setSpeakModeOnClick(View view) {
+        SwitchCompat speakerMode = findViewById(R.id.speakerModeSwitch);
+        if (speakerMode != null) {
+            AudioManager audioManager = getSystemService(AudioManager.class);
+            audioManager.setSpeakerphoneOn(speakerMode.isChecked());
+        }
+    }
+
+    /**
+     * Calls closeSession() on ImsMediaManager and resets the flag on
+     * isOpenSessionSent
+     *
      * @param view the view from the button click
      */
     public void closeSessionOnClick(View view) {
@@ -898,15 +958,17 @@ public class MainActivity extends AppCompatActivity {
     }
 
     /**
-     * When the button is clicked a menu is opened containing the different media directions and
+     * When the button is clicked a menu is opened containing the different media
+     * directions and
      * the onMenuItemClickListener is set to handle the user's selection.
+     *
      * @param view The view passed in from the button that is clicked
      */
     @SuppressLint("NonConstantResourceId")
     public void mediaDirectionOnClick(View view) {
         PopupMenu mediaDirectionMenu = new PopupMenu(this, findViewById(R.id.mediaDirectionButton));
         mediaDirectionMenu.getMenuInflater()
-            .inflate(R.menu.media_direction_menu, mediaDirectionMenu.getMenu());
+                .inflate(R.menu.media_direction_menu, mediaDirectionMenu.getMenu());
         mediaDirectionMenu.setOnMenuItemClickListener(item -> {
             switch (item.getItemId()) {
 
@@ -938,6 +1000,7 @@ public class MainActivity extends AppCompatActivity {
 
     /**
      * Displays the audio codec change BottomSheetDialog when the button is clicked
+     *
      * @param view the view form the button click
      */
     public void openChangeAudioCodecSheet(View view) {
@@ -948,28 +1011,30 @@ public class MainActivity extends AppCompatActivity {
 
     /**
      * Calls openSession() on the ImsMediaManager
+     *
      * @param view the view from the button click
      */
     public void openSessionOnClick(View view) {
         if (isMediaManagerReady && !isOpenSessionSent) {
 
             Toast.makeText(getApplicationContext(), getString(R.string.connecting_call_toast_text),
-                Toast.LENGTH_SHORT).show();
+                    Toast.LENGTH_SHORT).show();
 
             audioConfig = determineAudioConfig(localDeviceInfo, remoteDeviceInfo);
             Log.d(TAG, audioConfig.toString());
 
             RtpAudioSessionCallback sessionCallback = new RtpAudioSessionCallback();
             imsMediaManager.openSession(rtp, rtcp, ImsMediaSession.SESSION_TYPE_AUDIO,
-                audioConfig, executor, sessionCallback);
+                    audioConfig, executor, sessionCallback);
             Log.d(TAG, "openSession(): " + remoteDeviceInfo.getInetAddress() + ":" +
-                remoteDeviceInfo.getRtpPort());
+                    remoteDeviceInfo.getRtpPort());
             Log.d(TAG, "AudioConfig: " + audioConfig.toString());
         }
     }
 
     /**
      * Saves the inputted ip address and port number to SharedPreferences.
+     *
      * @param view the view from the button click
      */
     public void saveSettingsOnClick(View view) {
@@ -981,12 +1046,14 @@ public class MainActivity extends AppCompatActivity {
         editor.apply();
 
         Toast.makeText(getApplicationContext(), R.string.save_button_action_toast,
-            Toast.LENGTH_SHORT).show();
+                Toast.LENGTH_SHORT).show();
     }
 
     /**
-     * Calls modifySession to change the audio codec on the current AudioSession. Also contains
+     * Calls modifySession to change the audio codec on the current AudioSession.
+     * Also contains
      * the logic to create the new AudioConfig.
+     *
      * @param view the view form the button click
      */
     public void changeAudioCodecOnClick(View view) {
@@ -996,30 +1063,32 @@ public class MainActivity extends AppCompatActivity {
         int audioCodec = bottomSheetAudioCodecSettings.getAudioCodec();
 
         switch (audioCodec) {
-            case CodecType.AMR: case CodecType.AMR_WB:
+            case CodecType.AMR:
+            case CodecType.AMR_WB:
                 amrParams = createAmrParams(bottomSheetAudioCodecSettings.getAmrMode());
                 config = createAudioConfig(getRemoteSocketAddress(), getRemoteRtcpConfig(),
-                    audioCodec, amrParams, null);
+                        audioCodec, amrParams, null);
                 Log.d(TAG, String.format("AudioConfig switched to Codec: %s\t Params: %s",
-                    bottomSheetAudioCodecSettings.getAudioCodec(),
-                    config.getAmrParams().toString()));
+                        bottomSheetAudioCodecSettings.getAudioCodec(),
+                        config.getAmrParams().toString()));
                 break;
 
             case CodecType.EVS:
                 evsParams = createEvsParams(bottomSheetAudioCodecSettings.getEvsBand(),
-                    bottomSheetAudioCodecSettings.getEvsMode());
+                        bottomSheetAudioCodecSettings.getEvsMode());
                 config = createAudioConfig(getRemoteSocketAddress(), getRemoteRtcpConfig(),
-                    audioCodec, null, evsParams);
+                        audioCodec, null, evsParams);
                 Log.d(TAG, String.format("AudioConfig switched to Codec: %s\t Params: %s",
-                    bottomSheetAudioCodecSettings.getAudioCodec(),
-                    config.getEvsParams().toString()));
+                        bottomSheetAudioCodecSettings.getAudioCodec(),
+                        config.getEvsParams().toString()));
                 break;
 
-            case CodecType.PCMA: case CodecType.PCMU:
+            case CodecType.PCMA:
+            case CodecType.PCMU:
                 config = createAudioConfig(getRemoteSocketAddress(), getRemoteRtcpConfig(),
-                    audioCodec, null, null);
+                        audioCodec, null, null);
                 Log.d(TAG, String.format("AudioConfig switched to Codec: %s",
-                    bottomSheetAudioCodecSettings.getAudioCodec()));
+                        bottomSheetAudioCodecSettings.getAudioCodec()));
                 break;
         }
 
@@ -1028,7 +1097,9 @@ public class MainActivity extends AppCompatActivity {
     }
 
     /**
-     * Changes the flag of loopback mode, changes the ConnectionStatus sate, and restyles the UI
+     * Changes the flag of loopback mode, changes the ConnectionStatus sate, and
+     * restyles the UI
+     *
      * @param view the view from, the button click
      */
     public void loopbackOnClick(View view) {
@@ -1048,8 +1119,10 @@ public class MainActivity extends AppCompatActivity {
     }
 
     /**
-     * Opens or closes ports and starts the waiting handshake runnable depending on the current
+     * Opens or closes ports and starts the waiting handshake runnable depending on
+     * the current
      * state of the button.
+     *
      * @param view view from the button click
      */
     public void allowCallsOnClick(View view) {
@@ -1058,8 +1131,8 @@ public class MainActivity extends AppCompatActivity {
             Log.d(TAG, "Closed handshake, rtp, and rtcp ports.");
 
             Toast.makeText(getApplicationContext(),
-                "Closing ports",
-                Toast.LENGTH_SHORT).show();
+                    "Closing ports",
+                    Toast.LENGTH_SHORT).show();
             updateUI(ConnectionStatus.OFFLINE);
         } else {
             openRtpPorts(true);
@@ -1068,7 +1141,7 @@ public class MainActivity extends AppCompatActivity {
             Log.d(TAG, "Handshake, rtp, and rtcp ports have been bound.");
 
             Toast.makeText(getApplicationContext(), getString(R.string.allowing_calls_toast_text),
-                Toast.LENGTH_SHORT).show();
+                    Toast.LENGTH_SHORT).show();
 
             waitForHandshakeThread = new Thread(handleIncomingHandshake);
             waitForHandshakeThread.start();
@@ -1077,7 +1150,9 @@ public class MainActivity extends AppCompatActivity {
     }
 
     /**
-     * Starts the handshake process runnable that attempts to connect to two device together.
+     * Starts the handshake process runnable that attempts to connect to two device
+     * together.
+     *
      * @param view view from the button click
      */
     public void initiateHandshakeOnClick(View view) {
@@ -1101,44 +1176,45 @@ public class MainActivity extends AppCompatActivity {
     }
 
     /**
-     * Gets the saved user selections for the audio codec settings and updates the UI's lists to
+     * Gets the saved user selections for the audio codec settings and updates the
+     * UI's lists to
      * match.
      */
     private void setupAudioCodecSelectionLists() {
         updateCodecSelectionFromPrefs();
 
         ArrayAdapter<CodecTypeEnum> codecTypeAdapter = new ArrayAdapter<>(
-            this, android.R.layout.simple_list_item_multiple_choice, CodecTypeEnum.values());
+                this, android.R.layout.simple_list_item_multiple_choice, CodecTypeEnum.values());
         ListView codecTypeList = findViewById(R.id.audioCodecList);
         codecTypeList.setAdapter(codecTypeAdapter);
-        for(int i = 0; i < codecTypeAdapter.getCount(); i++) {
+        for (int i = 0; i < codecTypeAdapter.getCount(); i++) {
             CodecTypeEnum mode = (CodecTypeEnum) codecTypeList.getItemAtPosition(i);
             codecTypeList.setItemChecked(i, selectedCodecTypes.contains(mode.getValue()));
         }
 
         ArrayAdapter<EvsBandwidthEnum> evsBandAdaptor = new ArrayAdapter<>(
-            this, android.R.layout.simple_list_item_multiple_choice, EvsBandwidthEnum.values());
+                this, android.R.layout.simple_list_item_multiple_choice, EvsBandwidthEnum.values());
         ListView evsBandwidthList = findViewById(R.id.evsBandwidthsList);
         evsBandwidthList.setAdapter(evsBandAdaptor);
-        for(int i = 0; i < evsBandAdaptor.getCount(); i++) {
+        for (int i = 0; i < evsBandAdaptor.getCount(); i++) {
             EvsBandwidthEnum mode = (EvsBandwidthEnum) evsBandwidthList.getItemAtPosition(i);
             evsBandwidthList.setItemChecked(i, selectedEvsBandwidths.contains(mode.getValue()));
         }
 
         ArrayAdapter<AmrModeEnum> amrModeAdapter = new ArrayAdapter<>(
-            this, android.R.layout.simple_list_item_multiple_choice, AmrModeEnum.values());
+                this, android.R.layout.simple_list_item_multiple_choice, AmrModeEnum.values());
         ListView amrModesList = findViewById(R.id.amrModesList);
         amrModesList.setAdapter(amrModeAdapter);
-        for(int i = 0; i < amrModeAdapter.getCount(); i++) {
+        for (int i = 0; i < amrModeAdapter.getCount(); i++) {
             AmrModeEnum mode = (AmrModeEnum) amrModesList.getItemAtPosition(i);
             amrModesList.setItemChecked(i, selectedAmrModes.contains(mode.getValue()));
         }
 
         ArrayAdapter<EvsModeEnum> evsModeAdaptor = new ArrayAdapter<>(
-            this, android.R.layout.simple_list_item_multiple_choice, EvsModeEnum.values());
+                this, android.R.layout.simple_list_item_multiple_choice, EvsModeEnum.values());
         ListView evsModeList = findViewById(R.id.evsModesList);
         evsModeList.setAdapter(evsModeAdaptor);
-        for(int i = 0; i < evsModeAdaptor.getCount(); i++) {
+        for (int i = 0; i < evsModeAdaptor.getCount(); i++) {
             EvsModeEnum mode = (EvsModeEnum) evsModeList.getItemAtPosition(i);
             evsModeList.setItemChecked(i, selectedEvsModes.contains(mode.getValue()));
         }
@@ -1149,14 +1225,15 @@ public class MainActivity extends AppCompatActivity {
      */
     private void updateCodecSelectionFromPrefs() {
         selectedCodecTypes = prefsHandler.getIntegerSetFromPrefs(SharedPrefsHandler.CODECS_PREF);
-        selectedEvsBandwidths =
-            prefsHandler.getIntegerSetFromPrefs(SharedPrefsHandler.EVS_BANDS_PREF);
+        selectedEvsBandwidths = prefsHandler.getIntegerSetFromPrefs(
+                SharedPrefsHandler.EVS_BANDS_PREF);
         selectedAmrModes = prefsHandler.getIntegerSetFromPrefs(SharedPrefsHandler.AMR_MODES_PREF);
         selectedEvsModes = prefsHandler.getIntegerSetFromPrefs(SharedPrefsHandler.EVS_MODES_PREF);
     }
 
     /**
-     * Adds onClickListeners to the 4 check box lists on the settings page, to handle the user input
+     * Adds onClickListeners to the 4 check box lists on the settings page, to
+     * handle the user input
      * of the codec, bandwidth, and mode selections.
      */
     public void setupCodecSelectionOnClickListeners() {
@@ -1170,12 +1247,12 @@ public class MainActivity extends AppCompatActivity {
         audioCodecList.setOnItemClickListener((adapterView, view, position, id) -> {
             CodecTypeEnum item = (CodecTypeEnum) audioCodecList.getItemAtPosition(position);
 
-            if(audioCodecList.isItemChecked(position)) {
+            if (audioCodecList.isItemChecked(position)) {
                 selectedCodecTypes.add(item.getValue());
-                if(item == CodecTypeEnum.AMR || item == CodecTypeEnum.AMR_WB) {
+                if (item == CodecTypeEnum.AMR || item == CodecTypeEnum.AMR_WB) {
                     amrModeList.setAlpha(ENABLED_ALPHA);
                     amrModeList.setEnabled(true);
-                } else if(item == CodecTypeEnum.EVS) {
+                } else if (item == CodecTypeEnum.EVS) {
                     evsBandList.setAlpha(ENABLED_ALPHA);
                     amrModeList.setEnabled(true);
                     evsModeList.setAlpha(ENABLED_ALPHA);
@@ -1183,10 +1260,10 @@ public class MainActivity extends AppCompatActivity {
                 }
             } else {
                 selectedCodecTypes.remove(item.getValue());
-                if(item == CodecTypeEnum.AMR || item == CodecTypeEnum.AMR_WB) {
+                if (item == CodecTypeEnum.AMR || item == CodecTypeEnum.AMR_WB) {
                     amrModeList.setAlpha(0.3f);
                     amrModeList.setEnabled(false);
-                } else if(item == CodecTypeEnum.EVS) {
+                } else if (item == CodecTypeEnum.EVS) {
                     evsBandList.setAlpha(0.3f);
                     evsBandList.setEnabled(false);
                     evsModeList.setAlpha(0.3f);
@@ -1200,19 +1277,19 @@ public class MainActivity extends AppCompatActivity {
         evsBandList.setOnItemClickListener((adapterView, view, position, id) -> {
             EvsBandwidthEnum item = (EvsBandwidthEnum) evsBandList.getItemAtPosition(position);
 
-            if(evsBandList.isItemChecked(position)) {
+            if (evsBandList.isItemChecked(position)) {
                 selectedEvsBandwidths.add(item.getValue());
             } else {
                 selectedEvsBandwidths.remove(item.getValue());
             }
 
             prefsHandler.saveIntegerSetToPrefs(SharedPrefsHandler.EVS_BANDS_PREF,
-                selectedEvsBandwidths);
+                    selectedEvsBandwidths);
         });
         evsModeList.setOnItemClickListener((adapterView, view, position, id) -> {
             EvsModeEnum item = (EvsModeEnum) evsModeList.getItemAtPosition(position);
 
-            if(evsModeList.isItemChecked(position)) {
+            if (evsModeList.isItemChecked(position)) {
                 selectedEvsModes.add(item.getValue());
             } else {
                 selectedEvsModes.remove(item.getValue());
@@ -1223,7 +1300,7 @@ public class MainActivity extends AppCompatActivity {
         amrModeList.setOnItemClickListener((adapterView, view, position, id) -> {
             AmrModeEnum item = (AmrModeEnum) amrModeList.getItemAtPosition(position);
 
-            if(amrModeList.isItemChecked(position)) {
+            if (amrModeList.isItemChecked(position)) {
                 selectedAmrModes.add(item.getValue());
             } else {
                 selectedAmrModes.remove(item.getValue());
@@ -1269,11 +1346,11 @@ public class MainActivity extends AppCompatActivity {
 
         remoteIpLabel = findViewById(R.id.remoteIpLabel);
         remoteIpLabel.setText(getString(R.string.other_device_ip_label,
-            prefs.getString("OTHER_IP_ADDRESS", "null")));
+                prefs.getString("OTHER_IP_ADDRESS", "null")));
 
         remoteHandshakePortLabel = findViewById(R.id.remoteHandshakePortLabel);
         remoteHandshakePortLabel.setText(getString(R.string.handshake_port_label,
-            String.valueOf(getOtherDevicePort())));
+                String.valueOf(getOtherDevicePort())));
     }
 
     private void styleOffline() {
@@ -1298,11 +1375,11 @@ public class MainActivity extends AppCompatActivity {
 
     private void styleDisconnected() {
         localHandshakePortLabel.setText(getString(R.string.handshake_port_label,
-            String.valueOf(handshakeReceptionSocket.getBoundSocket())));
+                String.valueOf(handshakeReceptionSocket.getBoundSocket())));
         localRtpPortLabel.setText(getString(R.string.rtp_reception_port_label,
-            String.valueOf(rtp.getLocalPort())));
+                String.valueOf(rtp.getLocalPort())));
         localRtcpPortLabel.setText(getString(R.string.rtcp_reception_port_label,
-            String.valueOf(rtcp.getLocalPort())));
+                String.valueOf(rtcp.getLocalPort())));
         remoteRtpPortLabel.setText(getString(R.string.port_closed_label));
         remoteRtcpPortLabel.setText(getString(R.string.port_closed_label));
 
@@ -1342,21 +1419,21 @@ public class MainActivity extends AppCompatActivity {
         }
 
         localHandshakePortLabel.setText(getString(R.string.reception_port_label,
-            String.valueOf(handshakeReceptionSocket.getBoundSocket())));
+                String.valueOf(handshakeReceptionSocket.getBoundSocket())));
         localRtpPortLabel.setText(getString(R.string.rtp_reception_port_label,
-            String.valueOf(rtp.getLocalPort())));
+                String.valueOf(rtp.getLocalPort())));
         localRtcpPortLabel.setText(getString(R.string.rtcp_reception_port_label,
-            String.valueOf(rtcp.getLocalPort())));
+                String.valueOf(rtcp.getLocalPort())));
         remoteRtpPortLabel.setText(getString(R.string.rtp_reception_port_label,
-            String.valueOf(remoteDeviceInfo.getRtpPort())));
+                String.valueOf(remoteDeviceInfo.getRtpPort())));
         remoteRtcpPortLabel.setText(getString(R.string.rtcp_reception_port_label,
-            String.valueOf(remoteDeviceInfo.getRtcpPort())));
+                String.valueOf(remoteDeviceInfo.getRtcpPort())));
         styleButtonEnabled(openSessionButton);
         styleLayoutChildrenDisabled(activeCallToolBar);
     }
 
     private void styleActiveCall() {
-        if(loopbackModeEnabled) {
+        if (loopbackModeEnabled) {
             styleLoopbackSwitchEnabled();
 
             allowCallsButton.setText(R.string.allow_calls_button_text);
@@ -1368,7 +1445,7 @@ public class MainActivity extends AppCompatActivity {
             styleButtonDisabled(connectButton);
             styleLoopbackSwitchEnabled();
 
-        } else  {
+        } else {
             styleLoopbackSwitchDisabled();
 
             allowCallsButton.setText(R.string.disable_calls_button_text);
@@ -1382,15 +1459,15 @@ public class MainActivity extends AppCompatActivity {
         }
 
         localHandshakePortLabel
-            .setText(getString(R.string.reception_port_label, getString(R.string.connected)));
+                .setText(getString(R.string.reception_port_label, getString(R.string.connected)));
         localRtpPortLabel.setText(getString(R.string.rtp_reception_port_label,
-            String.valueOf(rtp.getLocalPort())));
+                String.valueOf(rtp.getLocalPort())));
         localRtcpPortLabel.setText(getString(R.string.rtcp_reception_port_label,
-            String.valueOf(rtcp.getLocalPort())));
+                String.valueOf(rtcp.getLocalPort())));
         remoteRtpPortLabel.setText(getString(R.string.rtp_reception_port_label,
-            String.valueOf(remoteDeviceInfo.getRtpPort())));
+                String.valueOf(remoteDeviceInfo.getRtpPort())));
         remoteRtcpPortLabel.setText(getString(R.string.rtcp_reception_port_label,
-            String.valueOf(remoteDeviceInfo.getRtcpPort())));
+                String.valueOf(remoteDeviceInfo.getRtcpPort())));
 
         styleButtonDisabled(openSessionButton);
         styleLayoutChildrenEnabled(activeCallToolBar);
