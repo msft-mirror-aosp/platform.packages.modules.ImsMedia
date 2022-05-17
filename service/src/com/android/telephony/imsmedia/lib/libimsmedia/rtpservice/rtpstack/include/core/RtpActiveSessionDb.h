@@ -25,36 +25,36 @@
 #include <list>
 
 /**
-* @class    RtpActiveSessionDb
-* @brief    It maintains the active session count
-*/
+ * @class    RtpActiveSessionDb
+ * @brief    It maintains the active session count
+ */
 class RtpActiveSessionDb
 {
-    private:
-        // RtpActiveSessionDb pointer.
-        static RtpActiveSessionDb* m_pInstance;
+private:
+    // RtpActiveSessionDb pointer.
+    static RtpActiveSessionDb* m_pInstance;
 
-        // It maintains the list of active rtp sessions
-        std::list<RtpDt_Void*> m_objActiveSessionList;
+    // It maintains the list of active rtp sessions
+    std::list<RtpDt_Void*> m_objActiveSessionList;
 
-        // constructor
-        RtpActiveSessionDb();
+    // constructor
+    RtpActiveSessionDb();
 
-        // destructor
-        ~RtpActiveSessionDb();
+    // destructor
+    ~RtpActiveSessionDb();
 
-    public:
-        // it creates RtpActiveSessionDb instance.
-        static RtpActiveSessionDb* getInstance();
+public:
+    // it creates RtpActiveSessionDb instance.
+    static RtpActiveSessionDb* getInstance();
 
-        // add rtp session
-        eRtp_Bool addRtpSession(IN RtpDt_Void* pvData);
+    // add rtp session
+    eRtp_Bool addRtpSession(IN RtpDt_Void* pvData);
 
-        // it validates the rtp session pointer
-        eRtp_Bool validateRtpSession(IN RtpDt_Void* pvData, OUT RtpDt_UInt16* pusPosition);
+    // it validates the rtp session pointer
+    eRtp_Bool validateRtpSession(IN RtpDt_Void* pvData, OUT RtpDt_UInt16* pusPosition);
 
-        // it deletes the rtp session pointer from db
-        eRtp_Bool deleteRtpSession(IN RtpDt_Void* pvData);
+    // it deletes the rtp session pointer from db
+    eRtp_Bool deleteRtpSession(IN RtpDt_Void* pvData);
 };
 
 #endif /* __RTP_ACTIVE_SESSIONDB_H__*/

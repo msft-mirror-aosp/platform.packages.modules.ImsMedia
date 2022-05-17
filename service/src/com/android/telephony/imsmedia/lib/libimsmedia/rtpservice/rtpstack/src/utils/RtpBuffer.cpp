@@ -17,38 +17,36 @@
 #include <RtpBuffer.h>
 #include <string.h>
 
-RtpBuffer::RtpBuffer():
-    m_uiLength(RTP_ZERO),
-    m_pBuffer(RTP_NULL)
+RtpBuffer::RtpBuffer() :
+        m_uiLength(RTP_ZERO),
+        m_pBuffer(RTP_NULL)
 {
 }
 
-RtpBuffer::RtpBuffer(IN RtpDt_UInt32 uiLength,
-                     IN RtpDt_UChar* pBuffer)
+RtpBuffer::RtpBuffer(IN RtpDt_UInt32 uiLength, IN RtpDt_UChar* pBuffer)
 {
     m_uiLength = 0;
     m_pBuffer = RTP_NULL;
 
-    if(uiLength > RTP_ZERO)
+    if (uiLength > RTP_ZERO)
     {
         m_uiLength = uiLength;
         m_pBuffer = new RtpDt_UChar[m_uiLength];
 
-        if(pBuffer != RTP_NULL)
+        if (pBuffer != RTP_NULL)
         {
-            memcpy(m_pBuffer, pBuffer,m_uiLength);
+            memcpy(m_pBuffer, pBuffer, m_uiLength);
         }
         else
         {
             memset(m_pBuffer, RTP_ZERO, m_uiLength);
         }
     }
-
 }
 
 RtpBuffer::~RtpBuffer()
 {
-    if(m_pBuffer != RTP_NULL)
+    if (m_pBuffer != RTP_NULL)
     {
         delete[] m_pBuffer;
     }
@@ -74,10 +72,8 @@ RtpDt_UChar* RtpBuffer::getBuffer()
     return m_pBuffer;
 }
 
-RtpDt_Void RtpBuffer::setBufferInfo(IN RtpDt_UInt32 uiLength,
-                              IN RtpDt_UChar* pBuffer)
+RtpDt_Void RtpBuffer::setBufferInfo(IN RtpDt_UInt32 uiLength, IN RtpDt_UChar* pBuffer)
 {
     m_uiLength = uiLength;
     m_pBuffer = pBuffer;
-
 }

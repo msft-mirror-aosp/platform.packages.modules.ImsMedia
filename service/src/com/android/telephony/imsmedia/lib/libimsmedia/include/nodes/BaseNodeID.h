@@ -17,31 +17,32 @@
 #ifndef BASE_NODE_ID_H
 #define BASE_NODE_ID_H
 
-enum BaseNodeID {
-    //for socket
+enum BaseNodeID
+{
+    // for socket
     NODEID_SOCKETWRITER,
     NODEID_SOCKETREADER,
-    //NODEID_PCAPPARSER,
-    //for rtp
+    // NODEID_PCAPPARSER,
+    // for rtp
     NODEID_RTPENCODER,
     NODEID_RTPDECODER,
-    //for rtcp
+    // for rtcp
     NODEID_RTCPENCODER,
     NODEID_RTCPDECODER,
-    //for audio
+    // for audio
     NODEID_AUDIOSOURCE,
     NODEID_AUDIOPLAYER,
     NODEID_DTMFENCODER,
     NODEID_DTMFSENDER,
     NODEID_RTPPAYLOAD_ENCODER_AUDIO,
     NODEID_RTPPAYLOAD_DECODER_AUDIO,
-    //for video
+    // for video
     // NODEID_VIDEOSOURCE,
     // NODEID_VIDEORENDERER,
     // NODEID_VIDEODECODER,
     // NODEID_RTPPAYLOAD_ENCODER_VIDEO,
     // NODEID_RTPPAYLOAD_DECODER_VIDEO,
-    //for text
+    // for text
     // NODEID_TEXTSOURCE,
     // NODEID_TEXTRENDERER,
     // NODEID_RTPPAYLOAD_ENCODER_TEXT,

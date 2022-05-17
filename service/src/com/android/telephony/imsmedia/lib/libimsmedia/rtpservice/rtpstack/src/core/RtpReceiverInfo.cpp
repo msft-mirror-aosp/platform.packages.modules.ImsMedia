@@ -18,24 +18,24 @@
 #include <RtpStackUtil.h>
 #include <rtp_trace.h>
 
-RtpReceiverInfo::RtpReceiverInfo():
-                    m_uiSsrc(RTP_ZERO),
-                    m_bSender(eRTP_FALSE),
-                    m_uiTotalRcvdRtpPkts(RTP_ZERO),
-                    m_uiTotalRcvdRtpOcts(RTP_ZERO),
-                    m_pobjIpAddr(RTP_NULL),
-                    m_usPort(RTP_ZERO),
-                    m_bIsCsrcFlag(eRTP_FALSE),
-                    m_prevRtpTimestamp(RTP_ZERO),
-                    m_stPreSrTimestamp(RTP_ZERO),
-                    m_stLastSrNtpTimestamp(RTP_ZERO),
-                    m_bIsFirstRtp(eRTP_TRUE)
+RtpReceiverInfo::RtpReceiverInfo() :
+        m_uiSsrc(RTP_ZERO),
+        m_bSender(eRTP_FALSE),
+        m_uiTotalRcvdRtpPkts(RTP_ZERO),
+        m_uiTotalRcvdRtpOcts(RTP_ZERO),
+        m_pobjIpAddr(RTP_NULL),
+        m_usPort(RTP_ZERO),
+        m_bIsCsrcFlag(eRTP_FALSE),
+        m_prevRtpTimestamp(RTP_ZERO),
+        m_stPreSrTimestamp(RTP_ZERO),
+        m_stLastSrNtpTimestamp(RTP_ZERO),
+        m_bIsFirstRtp(eRTP_TRUE)
 
 {
-    //m_stPrevNtpTimestamp
+    // m_stPrevNtpTimestamp
     m_stPrevNtpTimestamp.m_uiNtpHigh32Bits = RTP_ZERO;
     m_stPrevNtpTimestamp.m_uiNtpLow32Bits = RTP_ZERO;
-    //m_stRtpSource
+    // m_stRtpSource
     memset(&m_stRtpSource, RTP_ZERO, sizeof(tRTP_SOURCE));
     m_stRtpSource.uiProbation = RTP_MIN_SEQUENTIAL;
     m_stRtpSource.uiTransit = RTP_MIN_SEQUENTIAL;
@@ -43,7 +43,7 @@ RtpReceiverInfo::RtpReceiverInfo():
 
 RtpReceiverInfo::~RtpReceiverInfo()
 {
-    if(m_pobjIpAddr != RTP_NULL)
+    if (m_pobjIpAddr != RTP_NULL)
     {
         delete m_pobjIpAddr;
         m_pobjIpAddr = RTP_NULL;
@@ -55,7 +55,6 @@ eRtp_Bool RtpReceiverInfo::getCsrcFlag()
     return m_bIsCsrcFlag;
 }
 
-
 RtpDt_Void RtpReceiverInfo::setCsrcFlag(IN eRtp_Bool bIsCsrcFlag)
 {
     m_bIsCsrcFlag = bIsCsrcFlag;
@@ -63,75 +62,69 @@ RtpDt_Void RtpReceiverInfo::setCsrcFlag(IN eRtp_Bool bIsCsrcFlag)
 
 RtpDt_UInt32 RtpReceiverInfo::findLostRtpPkts()
 {
-    RtpDt_UInt32 uiExtendedMax = (m_stRtpSource.uiCycles << RTP_BYTE2_BIT_SIZE) \
-                                                            + m_stRtpSource.usMaxSeq;
+    RtpDt_UInt32 uiExtendedMax =
+            (m_stRtpSource.uiCycles << RTP_BYTE2_BIT_SIZE) + m_stRtpSource.usMaxSeq;
     RtpDt_UInt32 uiExpected = (uiExtendedMax - m_stRtpSource.uiBaseSeq) + RTP_ONE;
 
-    //The number of packets received includes any that are late or duplicated, and hence may
-    //be greater than the number expected, so the cumulative number of packets lost may be negative
+    // The number of packets received includes any that are late or duplicated, and hence may
+    // be greater than the number expected, so the cumulative number of packets lost may be negative
     RtpDt_Int32 uiLostRtpPkts = uiExpected - m_stRtpSource.uiReceived;
 
-    //Restrict cumulative lost number to 24-bits
-    if(uiLostRtpPkts > RTP_HEX_24_BIT_MAX)
-          uiLostRtpPkts = RTP_HEX_24_BIT_MAX;
+    // Restrict cumulative lost number to 24-bits
+    if (uiLostRtpPkts > RTP_HEX_24_BIT_MAX)
+        uiLostRtpPkts = RTP_HEX_24_BIT_MAX;
     else if (uiLostRtpPkts < (RtpDt_Int32)RTP_HEX_24_BIT_MIN)
-          uiLostRtpPkts = RTP_HEX_24_BIT_MIN;
+        uiLostRtpPkts = RTP_HEX_24_BIT_MIN;
     return uiLostRtpPkts;
-}//findLostRtpPkts
+}  // findLostRtpPkts
 
 RtpDt_UInt32 RtpReceiverInfo::getExtSeqNum()
 {
     RtpDt_UInt32 uiExtSeqNum = (m_stRtpSource.uiCycles << RTP_BYTE2_BIT_SIZE);
     uiExtSeqNum = uiExtSeqNum | m_stRtpSource.usMaxSeq;
     return uiExtSeqNum;
-}//getExtSeqNum
+}  // getExtSeqNum
 
-
-RtpDt_Void RtpReceiverInfo::calcJitter(IN RtpDt_UInt32 uiRcvRtpTs,
-                                      IN RtpDt_UInt32 uiSamplingRate)
+RtpDt_Void RtpReceiverInfo::calcJitter(IN RtpDt_UInt32 uiRcvRtpTs, IN RtpDt_UInt32 uiSamplingRate)
 {
     tRTP_NTP_TIME stCurNtpTimestamp;
 
-    //get current NTP Timestamp
+    // get current NTP Timestamp
     RtpOsUtil::GetNtpTime(&stCurNtpTimestamp);
-    RtpDt_UInt32 uiCurRtpTimestamp = RtpStackUtil::calcRtpTimestamp(m_prevRtpTimestamp,
-                                        &stCurNtpTimestamp,
-                                        &m_stPrevNtpTimestamp,
-                                        uiSamplingRate);
-    //calculate arrival
+    RtpDt_UInt32 uiCurRtpTimestamp = RtpStackUtil::calcRtpTimestamp(
+            m_prevRtpTimestamp, &stCurNtpTimestamp, &m_stPrevNtpTimestamp, uiSamplingRate);
+    // calculate arrival
     RtpDt_UInt32 uiArrival = uiCurRtpTimestamp;
     RtpDt_Int32 iTransit = uiArrival - uiRcvRtpTs;
     RtpDt_Int32 iDifference = iTransit - m_stRtpSource.uiTransit;
     m_stRtpSource.uiTransit = iTransit;
-    if(iDifference < RTP_ZERO)
+    if (iDifference < RTP_ZERO)
     {
         iDifference = -iDifference;
     }
 
-
     /*m_stRtpSource.uiJitter += iDifference -
                                 ((m_stRtpSource.uiJitter + RTP_EIGHT) >> RTP_FOUR);*/
-    //Alternate division logic as per RFC 3550 sec A.8
-    if(m_bIsFirstRtp == eRTP_TRUE)
+    // Alternate division logic as per RFC 3550 sec A.8
+    if (m_bIsFirstRtp == eRTP_TRUE)
     {
         m_stRtpSource.uiJitter = RTP_ZERO;
         m_bIsFirstRtp = eRTP_FALSE;
     }
     else
     {
-        m_stRtpSource.uiJitter+= (1./16.) * ((RtpDt_Double)iDifference - m_stRtpSource.uiJitter);
+        m_stRtpSource.uiJitter += (1. / 16.) * ((RtpDt_Double)iDifference - m_stRtpSource.uiJitter);
     }
 
     m_stPrevNtpTimestamp = stCurNtpTimestamp;
     m_prevRtpTimestamp = uiCurRtpTimestamp;
     return;
-}//calcJitter
+}  // calcJitter
 
 RtpDt_UInt16 RtpReceiverInfo::fractionLost()
 {
-
-    RtpDt_UInt32 uiExtendedMax = (m_stRtpSource.uiCycles << RTP_BYTE2_BIT_SIZE) \
-                                                    + m_stRtpSource.usMaxSeq;
+    RtpDt_UInt32 uiExtendedMax =
+            (m_stRtpSource.uiCycles << RTP_BYTE2_BIT_SIZE) + m_stRtpSource.usMaxSeq;
     RtpDt_UInt32 uiExpected = (uiExtendedMax - m_stRtpSource.uiBaseSeq) + RTP_ONE;
     RtpDt_UInt32 iExpIntvl = uiExpected - m_stRtpSource.uiExpectedPrior;
 
@@ -142,7 +135,7 @@ RtpDt_UInt16 RtpReceiverInfo::fractionLost()
     RtpDt_Int32 iLostIntvl = iExpIntvl - uiRcvdIntvl;
     RtpDt_UInt16 ucFraction = RTP_ZERO;
 
-    if((iExpIntvl == RTP_ZERO) || (iLostIntvl <= RTP_ZERO))
+    if ((iExpIntvl == RTP_ZERO) || (iLostIntvl <= RTP_ZERO))
     {
         ucFraction = RTP_ZERO;
     }
@@ -151,28 +144,28 @@ RtpDt_UInt16 RtpReceiverInfo::fractionLost()
         ucFraction = (iLostIntvl << RTP_BYTE_BIT_SIZE) / iExpIntvl;
     }
     return ucFraction;
-}//fractionLost
+}  // fractionLost
 
 RtpDt_Void RtpReceiverInfo::initSeq(IN RtpDt_UInt16 usSeq)
 {
     m_stRtpSource.uiBaseSeq = usSeq;
     m_stRtpSource.usMaxSeq = usSeq;
-    m_stRtpSource.uiBadSeq = RTP_SEQ_MOD + RTP_ONE;   /* so seq == bad_seq is false */
+    m_stRtpSource.uiBadSeq = RTP_SEQ_MOD + RTP_ONE; /* so seq == bad_seq is false */
     m_stRtpSource.uiCycles = RTP_ZERO;
     m_stRtpSource.uiReceived = RTP_ZERO;
     m_stRtpSource.uiReceivedPrior = RTP_ZERO;
     m_stRtpSource.uiExpectedPrior = RTP_ZERO;
     /* other initialization */
-}//initSeq
+}  // initSeq
 
 RtpDt_UInt32 RtpReceiverInfo::updateSeq(IN RtpDt_UInt16 usSeq)
 {
     RtpDt_UInt16 usDelta = usSeq - m_stRtpSource.usMaxSeq;
 
-   /*
-    * Source is not valid until RTP_MIN_SEQUENTIAL packets with
-    * sequential sequence numbers have been received.
-    */
+    /*
+     * Source is not valid until RTP_MIN_SEQUENTIAL packets with
+     * sequential sequence numbers have been received.
+     */
     if (m_stRtpSource.uiProbation)
     {
         /* packet is in sequence */
@@ -194,35 +187,33 @@ RtpDt_UInt32 RtpReceiverInfo::updateSeq(IN RtpDt_UInt16 usSeq)
         }
         return RTP_ZERO;
     }
-    else
-    if (usDelta < RTP_MAX_DROPOUT)
+    else if (usDelta < RTP_MAX_DROPOUT)
     {
         /* in order, with permissible gap */
         if (usSeq < m_stRtpSource.usMaxSeq)
         {
             /*
-            * Sequence number wrapped - count another 64K cycle.
-            */
+             * Sequence number wrapped - count another 64K cycle.
+             */
             m_stRtpSource.uiCycles += RTP_ONE;
         }
         m_stRtpSource.usMaxSeq = usSeq;
     }
-    else
-    if (usDelta <= RTP_SEQ_MOD - RTP_MAX_MISORDER)
+    else if (usDelta <= RTP_SEQ_MOD - RTP_MAX_MISORDER)
     {
         /* the sequence number made a very large jump */
         if (usSeq == m_stRtpSource.uiBadSeq)
         {
             /*
-            * Two sequential packets -- assume that the other side
-            * restarted without telling us so just re-sync
-            * (i.e., pretend this was the first packet).
-            */
+             * Two sequential packets -- assume that the other side
+             * restarted without telling us so just re-sync
+             * (i.e., pretend this was the first packet).
+             */
             initSeq(usSeq);
         }
         else
         {
-            m_stRtpSource.uiBadSeq = (usSeq + RTP_ONE) & (RTP_SEQ_MOD-RTP_ONE);
+            m_stRtpSource.uiBadSeq = (usSeq + RTP_ONE) & (RTP_SEQ_MOD - RTP_ONE);
             return RTP_ZERO;
         }
     }
@@ -232,7 +223,7 @@ RtpDt_UInt32 RtpReceiverInfo::updateSeq(IN RtpDt_UInt16 usSeq)
     }
     m_stRtpSource.uiReceived++;
     return RTP_ONE;
-} //updateSeq
+}  // updateSeq
 
 RtpDt_UInt32 RtpReceiverInfo::getSsrc()
 {
@@ -274,15 +265,14 @@ RtpBuffer* RtpReceiverInfo::getIpAddr()
     return m_pobjIpAddr;
 }
 
-eRTP_STATUS_CODE RtpReceiverInfo::setIpAddr(IN RtpBuffer *pobjIpAddr)
+eRTP_STATUS_CODE RtpReceiverInfo::setIpAddr(IN RtpBuffer* pobjIpAddr)
 {
-    RtpDt_UChar *pBuffer = pobjIpAddr->getBuffer();
+    RtpDt_UChar* pBuffer = pobjIpAddr->getBuffer();
     RtpDt_UInt32 uiLength = pobjIpAddr->getLength();
     m_pobjIpAddr = new RtpBuffer(uiLength, pBuffer);
-    if(m_pobjIpAddr == RTP_NULL)
+    if (m_pobjIpAddr == RTP_NULL)
     {
-        RTP_TRACE_WARNING("setIpAddr, new returned NULL...!",
-            RTP_ZERO,RTP_ZERO);
+        RTP_TRACE_WARNING("setIpAddr, new returned NULL...!", RTP_ZERO, RTP_ZERO);
         return RTP_MEMORY_FAIL;
     }
     return RTP_SUCCESS;
@@ -298,12 +288,12 @@ RtpDt_Void RtpReceiverInfo::setPort(IN RtpDt_UInt16 usPort)
     m_usPort = usPort;
 }
 
-RtpDt_Void RtpReceiverInfo::setpreSrTimestamp(IN tRTP_NTP_TIME *pstNtpTs)
+RtpDt_Void RtpReceiverInfo::setpreSrTimestamp(IN tRTP_NTP_TIME* pstNtpTs)
 {
     m_stPreSrTimestamp = RtpStackUtil::getMidFourOctets(pstNtpTs);
 }
 
-RtpDt_Void RtpReceiverInfo::setLastSrNtpTimestamp(IN tRTP_NTP_TIME *pstNtpTs)
+RtpDt_Void RtpReceiverInfo::setLastSrNtpTimestamp(IN tRTP_NTP_TIME* pstNtpTs)
 {
     m_stLastSrNtpTimestamp = RtpStackUtil::getMidFourOctets(pstNtpTs);
 }
@@ -313,18 +303,18 @@ RtpDt_Void RtpReceiverInfo::setprevRtpTimestamp(IN RtpDt_UInt32 pstRtpTs)
     m_prevRtpTimestamp = pstRtpTs;
 }
 
-RtpDt_Void RtpReceiverInfo::setprevNtpTimestamp(IN tRTP_NTP_TIME *pstNtpTs)
+RtpDt_Void RtpReceiverInfo::setprevNtpTimestamp(IN tRTP_NTP_TIME* pstNtpTs)
 {
-       m_stPrevNtpTimestamp.m_uiNtpHigh32Bits = pstNtpTs->m_uiNtpHigh32Bits;
+    m_stPrevNtpTimestamp.m_uiNtpHigh32Bits = pstNtpTs->m_uiNtpHigh32Bits;
     m_stPrevNtpTimestamp.m_uiNtpLow32Bits = pstNtpTs->m_uiNtpLow32Bits;
 }
 
 RtpDt_UInt32 RtpReceiverInfo::delaySinceLastSR()
 {
-    tRTP_NTP_TIME stCurNtpTimestamp = {RTP_ZERO,RTP_ZERO};
+    tRTP_NTP_TIME stCurNtpTimestamp = {RTP_ZERO, RTP_ZERO};
     RtpDt_UInt32 dDifference = RTP_ZERO;
 
-    if(m_stLastSrNtpTimestamp == RTP_ZERO)
+    if (m_stLastSrNtpTimestamp == RTP_ZERO)
     {
         return RTP_ZERO;
     }
@@ -332,29 +322,29 @@ RtpDt_UInt32 RtpReceiverInfo::delaySinceLastSR()
     stCurNtpTimestamp.m_uiNtpHigh32Bits = RtpStackUtil::getMidFourOctets(&stCurNtpTimestamp);
     dDifference = stCurNtpTimestamp.m_uiNtpHigh32Bits - m_stLastSrNtpTimestamp;
     return dDifference;
-}//delaySinceLastSR
+}  // delaySinceLastSR
 
-eRTP_STATUS_CODE RtpReceiverInfo::populateReportBlock(IN RtcpReportBlock *pobjRepBlk)
+eRTP_STATUS_CODE RtpReceiverInfo::populateReportBlock(IN RtcpReportBlock* pobjRepBlk)
 {
-    //ssrc
+    // ssrc
     pobjRepBlk->setSsrc(m_uiSsrc);
-    //jitter
+    // jitter
     RtpDt_UInt32 uiJitter = (RtpDt_UInt32)m_stRtpSource.uiJitter;
     pobjRepBlk->setJitter(uiJitter);
-    //uiJitter = uiJitter >> RTP_FOUR; // as per second logic
+    // uiJitter = uiJitter >> RTP_FOUR; // as per second logic
 
-    //fraction lost
+    // fraction lost
     pobjRepBlk->setFracLost((RtpDt_UChar)fractionLost());
-    //cumulative number of packets lost
+    // cumulative number of packets lost
     pobjRepBlk->setCumNumPktLost(findLostRtpPkts());
-    //extensible highest sequence number
+    // extensible highest sequence number
     pobjRepBlk->setExtHighSeqRcv(getExtSeqNum());
 
-    //Last SR timestamp
+    // Last SR timestamp
     RtpDt_UInt32 uiLSR = m_stPreSrTimestamp;
     pobjRepBlk->setLastSR(uiLSR);
-    //delay since last sr
+    // delay since last sr
     pobjRepBlk->setDelayLastSR(delaySinceLastSR());
 
     return RTP_SUCCESS;
-}//populateReportBlock
+}  // populateReportBlock

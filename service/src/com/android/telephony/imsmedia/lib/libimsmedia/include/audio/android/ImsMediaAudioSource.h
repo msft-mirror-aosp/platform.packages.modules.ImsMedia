@@ -28,17 +28,18 @@
 
 using android::sp;
 
-typedef void (*AudioUplinkCB)(void *pClient, uint8_t *pBitstream,
-                              uint32_t nSize, int64_t pstUsec, uint32_t flag);
+typedef void (*AudioUplinkCB)(
+        void* pClient, uint8_t* pBitstream, uint32_t nSize, int64_t pstUsec, uint32_t flag);
 
-class ImsMediaAudioSource : public IImsMediaThread {
+class ImsMediaAudioSource : public IImsMediaThread
+{
 public:
     std::mutex mMutexUplink;
-    AAudioStream *mAudioStream;
-    AMediaCodec *mCodec;
-    AMediaFormat *mFormat;
+    AAudioStream* mAudioStream;
+    AMediaCodec* mCodec;
+    AMediaFormat* mFormat;
     AudioUplinkCB mUplinkCB;
-    void *mUplinkCBClient;
+    void* mUplinkCBClient;
     int32_t mCodecType;
     uint32_t mMode;
     uint32_t mPtime;
@@ -48,21 +49,21 @@ public:
 private:
     void openAudioStream();
     void restartAudioStream();
-    static void audioErrorCallback(AAudioStream *stream, void *userData, aaudio_result_t error);
+    static void audioErrorCallback(AAudioStream* stream, void* userData, aaudio_result_t error);
 
 public:
     ImsMediaAudioSource();
     virtual ~ImsMediaAudioSource();
-    void SetUplinkCallback(void *pClient, AudioUplinkCB pDnlinkCB);
+    void SetUplinkCallback(void* pClient, AudioUplinkCB pDnlinkCB);
     void SetCodec(int32_t type);
     void SetCodecMode(uint32_t mode);
     void SetPtime(uint32_t time);
     bool Start();
     void Stop();
     bool ProcessCMR(uint32_t mode);
-    void queueInputBuffer(int16_t *buffer, uint32_t size);
+    void queueInputBuffer(int16_t* buffer, uint32_t size);
     void processOutputBuffer();
-    virtual void *run();
+    virtual void* run();
 };
 
 #endif

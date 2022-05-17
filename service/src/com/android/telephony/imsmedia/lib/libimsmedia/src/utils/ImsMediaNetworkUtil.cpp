@@ -19,30 +19,34 @@
 #include <ImsMediaNetworkUtil.h>
 #include <ImsMediaTrace.h>
 
-#define V4MAPPED_OFFSET 12
+#define V4MAPPED_OFFSET   12
 #define NUM_OF_BYTES_IPV4 4
 #define NUM_OF_BYTES_IPV6 6
 
-bool ImsMediaNetworkUtil::ConvertIPStrToBin(char* pszSourceIP, char* pszDestBin,
-    eIPVersion eIPver) {
-    if (pszSourceIP == NULL || pszDestBin == NULL) return false;
+bool ImsMediaNetworkUtil::ConvertIPStrToBin(char* pszSourceIP, char* pszDestBin, eIPVersion eIPver)
+{
+    if (pszSourceIP == NULL || pszDestBin == NULL)
+        return false;
 
-    if (eIPver == IPV4) {
+    if (eIPver == IPV4)
+    {
         inet_pton(AF_INET, pszSourceIP, pszDestBin);
-        IMLOGD_PACKET1(IM_PACKET_LOG_SOCKET,
-            "[ConvertIPStrToBin] inet_ntop(INET6) %d", pszDestBin);
-    } else {    //ipv6
+        IMLOGD_PACKET1(IM_PACKET_LOG_SOCKET, "[ConvertIPStrToBin] inet_ntop(INET6) %d", pszDestBin);
+    }
+    else
+    {  // ipv6
         inet_pton(AF_INET6, pszSourceIP, pszDestBin);
-        IMLOGD_PACKET1(IM_PACKET_LOG_SOCKET,
-            "[ConvertIPStrToBin] inet_ntop(INET6) %d", pszDestBin);
+        IMLOGD_PACKET1(IM_PACKET_LOG_SOCKET, "[ConvertIPStrToBin] inet_ntop(INET6) %d", pszDestBin);
     }
     return true;
 }
 
-static bool GetIpPortFromSockAddr(const sockaddr_storage& ss,
-    char* ipAddress, int len, unsigned int& port) {
+static bool GetIpPortFromSockAddr(
+        const sockaddr_storage& ss, char* ipAddress, int len, unsigned int& port)
+{
     const sockaddr_in6& sin6 = reinterpret_cast<const sockaddr_in6&>(ss);
-    if (ss.ss_family == AF_INET6 && IN6_IS_ADDR_V4MAPPED(&sin6.sin6_addr)) {
+    if (ss.ss_family == AF_INET6 && IN6_IS_ADDR_V4MAPPED(&sin6.sin6_addr))
+    {
         // Copy the IPv6 address into the temporary sockaddr_storage.
         sockaddr_storage tmp;
         memset(&tmp, 0, sizeof(tmp));
@@ -56,15 +60,20 @@ static bool GetIpPortFromSockAddr(const sockaddr_storage& ss,
         return GetIpPortFromSockAddr(tmp, ipAddress, len, port);
     }
 
-    if (ss.ss_family == AF_INET) {
+    if (ss.ss_family == AF_INET)
+    {
         const sockaddr_in& sin = reinterpret_cast<const sockaddr_in&>(ss);
         strncpy(ipAddress, inet_ntoa(sin.sin_addr), len);
-        //memcpy(ipAddress, &(sin.sin_addr.s_addr), sizeof(struct in_addr));
+        // memcpy(ipAddress, &(sin.sin_addr.s_addr), sizeof(struct in_addr));
         port = ntohs(sin.sin_port);
-    } else if (ss.ss_family == AF_INET6) {
+    }
+    else if (ss.ss_family == AF_INET6)
+    {
         inet_ntop(AF_INET6, sin6.sin6_addr.s6_addr, ipAddress, len);
         port = ntohs(sin6.sin6_port);
-    } else {
+    }
+    else
+    {
         return false;
     }
 
@@ -73,9 +82,10 @@ static bool GetIpPortFromSockAddr(const sockaddr_storage& ss,
 }
 
 bool ImsMediaNetworkUtil::GetLocalIPPortFromSocketFD(
-    int nSocketFD, char *pIPAddress, int len, unsigned int &port) {
-
-    if (pIPAddress == NULL) {
+        int nSocketFD, char* pIPAddress, int len, unsigned int& port)
+{
+    if (pIPAddress == NULL)
+    {
         return false;
     }
 
@@ -84,7 +94,8 @@ bool ImsMediaNetworkUtil::GetLocalIPPortFromSocketFD(
     socklen_t byteCount = sizeof(ss);
     errno = 0;
     int res = getsockname(nSocketFD, sa, &byteCount);
-    if (res == -1) {
+    if (res == -1)
+    {
         IMLOGE1("[GetLocalIPPortFromSocketFD] getsockname failed. Error[%d]", errno);
         return false;
     }
@@ -93,9 +104,10 @@ bool ImsMediaNetworkUtil::GetLocalIPPortFromSocketFD(
 }
 
 bool ImsMediaNetworkUtil::GetRemoteIPPortFromSocketFD(
-    int nSocketFD, char *pIPAddress, int len, unsigned int &port) {
-
-    if (pIPAddress == NULL) {
+        int nSocketFD, char* pIPAddress, int len, unsigned int& port)
+{
+    if (pIPAddress == NULL)
+    {
         return false;
     }
 
@@ -104,7 +116,8 @@ bool ImsMediaNetworkUtil::GetRemoteIPPortFromSocketFD(
     socklen_t byteCount = sizeof(ss);
     errno = 0;
     int res = getpeername(nSocketFD, sa, &byteCount);
-    if (res == -1) {
+    if (res == -1)
+    {
         IMLOGE1("[GetRemoteIPPortFromSocketFD] getpeername failed. Error[%d]", errno);
         return false;
     }

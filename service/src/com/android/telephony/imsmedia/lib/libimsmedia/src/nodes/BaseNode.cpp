@@ -50,55 +50,72 @@ tNodeListEntry gNodeList[] = {
 
 static const char* gNullNodeName = "NODEID_NULL";
 static uint32_t g_NumOfNodeList = 0;
-uint32_t GetNumOfNodeList() {
+uint32_t GetNumOfNodeList()
+{
     uint32_t i;
-    if (g_NumOfNodeList > 0) return g_NumOfNodeList;
-    for (i = 0; i < NODEID_MAX; i ++) {
-        if (gNodeList[i].NodeID == NODEID_MAX) break;
+    if (g_NumOfNodeList > 0)
+        return g_NumOfNodeList;
+    for (i = 0; i < NODEID_MAX; i++)
+    {
+        if (gNodeList[i].NodeID == NODEID_MAX)
+            break;
     }
     g_NumOfNodeList = i;
     return g_NumOfNodeList;
 }
 
-BaseNode::BaseNode() {
+BaseNode::BaseNode()
+{
     mNodeState = NODESTATE_STOPPED;
 }
 
-BaseNode::~BaseNode() {
+BaseNode::~BaseNode()
+{
     mNodeState = NODESTATE_STOPPED;
 }
 
-BaseNode* BaseNode::Load(BaseNodeID eID, BaseSessionCallback* callback) {
+BaseNode* BaseNode::Load(BaseNodeID eID, BaseSessionCallback* callback)
+{
     BaseNode* pNode = NULL;
     uint32_t nNumOfTotalNode = GetNumOfNodeList();
     uint32_t i;
     IMLOGD1("eID[%d]", eID);
-    for (i = 0; i < nNumOfTotalNode; i ++) {
-        if (gNodeList[i].NodeID == eID) {
+    for (i = 0; i < nNumOfTotalNode; i++)
+    {
+        if (gNodeList[i].NodeID == eID)
+        {
             pNode = gNodeList[i].GetInstance();
             pNode->SetSessionCallback(callback);
             break;
         }
     }
-    if (pNode == NULL) {
+    if (pNode == NULL)
+    {
         IMLOGE1("Can't Load Node [%d]", eID);
-    } else {
+    }
+    else
+    {
         IMLOGD1("success [%s]", pNode->GetNodeName());
     }
     return pNode;
 }
 
-void BaseNode::UnLoad(BaseNode* pNode) {
+void BaseNode::UnLoad(BaseNode* pNode)
+{
     BaseNodeID eID = pNode->GetNodeID();
     uint32_t nNumOfTotalNode = GetNumOfNodeList();
     uint32_t i;
-    for (i = 0 ; i < nNumOfTotalNode ; i ++) {
-        if (gNodeList[i].NodeID == eID) {
+    for (i = 0; i < nNumOfTotalNode; i++)
+    {
+        if (gNodeList[i].NodeID == eID)
+        {
             // disconnect front/rear nodes
-            for (auto&i:*pNode->GetFrontNodeList()) {
+            for (auto& i : *pNode->GetFrontNodeList())
+            {
                 pNode->DisconnectFrontNode(i);
             }
-            for (auto&i:*pNode->GetRearNodeList()) {
+            for (auto& i : *pNode->GetRearNodeList())
+            {
                 pNode->DisconnectRearNode(i);
             }
             // delete object
@@ -107,193 +124,246 @@ void BaseNode::UnLoad(BaseNode* pNode) {
     }
 }
 
-void BaseNode::SetSessionCallback(BaseSessionCallback* callback) {
+void BaseNode::SetSessionCallback(BaseSessionCallback* callback)
+{
     mCallback = callback;
 }
 
-void BaseNode::SetSchedulerCallback(std::shared_ptr<StreamSchedulerCallback> callback) {
+void BaseNode::SetSchedulerCallback(std::shared_ptr<StreamSchedulerCallback> callback)
+{
     mScheduler = callback;
 }
 
-void BaseNode::ConnectRearNode(BaseNode *pRearNode) {
-    if (pRearNode == NULL) {
+void BaseNode::ConnectRearNode(BaseNode* pRearNode)
+{
+    if (pRearNode == NULL)
+    {
         IMLOGE0("Error - pRearNode is NULL");
         return;
     }
 
-    IMLOGD3("type[%d] connect nodes [%s] -> [%s]",
-        this->GetMediaType(), this->GetNodeName(), pRearNode->GetNodeName());
+    IMLOGD3("type[%d] connect nodes [%s] -> [%s]", this->GetMediaType(), this->GetNodeName(),
+            pRearNode->GetNodeName());
     mRearNodeList.push_back(pRearNode);
     pRearNode->mFrontNodeList.push_back(this);
 }
 
-void BaseNode::DisconnectRearNode(BaseNode *pRearNode) {
-    if (pRearNode == NULL) {
+void BaseNode::DisconnectRearNode(BaseNode* pRearNode)
+{
+    if (pRearNode == NULL)
+    {
         IMLOGE0("DisConnnectRearNode - pRearNode is NULL");
         return;
     }
 
-    IMLOGD3("DisConnnectRearNode] type[%s] disconnect nodes[%s] from[%s]",
-        this->GetMediaType(), this->GetNodeName(), pRearNode->GetNodeName());
+    IMLOGD3("DisConnnectRearNode] type[%s] disconnect nodes[%s] from[%s]", this->GetMediaType(),
+            this->GetNodeName(), pRearNode->GetNodeName());
 
     mRearNodeList.pop_front();
     pRearNode->mFrontNodeList.pop_front();
 }
 
-void BaseNode::DisconnectFrontNode(BaseNode *pFrontNode) {
-    if (pFrontNode == NULL) {
+void BaseNode::DisconnectFrontNode(BaseNode* pFrontNode)
+{
+    if (pFrontNode == NULL)
+    {
         IMLOGE0("DisconnectFrontNode - pFrontNode is NULL");
         return;
     }
-    IMLOGD3("DisconnectFrontNode - type[%s] disconnect nodes[%s] from[%s]",
-        this->GetMediaType(), pFrontNode->GetNodeName(), this->GetNodeName());
+    IMLOGD3("DisconnectFrontNode - type[%s] disconnect nodes[%s] from[%s]", this->GetMediaType(),
+            pFrontNode->GetNodeName(), this->GetNodeName());
     mFrontNodeList.pop_front();
     pFrontNode->mRearNodeList.pop_front();
 }
 
-std::list<BaseNode*>* BaseNode::GetFrontNodeList() {
+std::list<BaseNode*>* BaseNode::GetFrontNodeList()
+{
     return &mFrontNodeList;
 }
 
-std::list<BaseNode*>* BaseNode::GetRearNodeList() {
+std::list<BaseNode*>* BaseNode::GetRearNodeList()
+{
     return &mRearNodeList;
 }
 
-void BaseNode::ConnectRearNodeList(std::list<BaseNode*>* pRearNodeList) {
-    if (pRearNodeList == NULL) {
+void BaseNode::ConnectRearNodeList(std::list<BaseNode*>* pRearNodeList)
+{
+    if (pRearNodeList == NULL)
+    {
         IMLOGE0("ConnectRearNodeList] Error - pRearNodeList is NULL");
         return;
     }
-    for (auto&i:*pRearNodeList) {
+    for (auto& i : *pRearNodeList)
+    {
         ConnectRearNode(i);
     }
 }
 
-void BaseNode::ClearDataQueue() {
+void BaseNode::ClearDataQueue()
+{
     mDataQueue.Clear();
 }
 
-void BaseNode::SetConfig(void* config) {
+void BaseNode::SetConfig(void* config)
+{
     (void)config;
     IMLOGE0("[SetConfig] Error - base method");
 }
 
-bool BaseNode::IsSameConfig(void* config) {
+bool BaseNode::IsSameConfig(void* config)
+{
     (void)config;
     IMLOGE0("[IsSameConfig] Error - base method");
     return true;
 }
 
-ImsMediaResult BaseNode::UpdateConfig(void* config) {
-    //check config items updates
+ImsMediaResult BaseNode::UpdateConfig(void* config)
+{
+    // check config items updates
     bool isUpdateNode = false;
-    if (IsSameConfig(config)) {
+    if (IsSameConfig(config))
+    {
         IMLOGD0("[UpdateConfig] no update");
         return RESULT_SUCCESS;
-    } else {
+    }
+    else
+    {
         isUpdateNode = true;
     }
 
     BaseNodeState prevState = mNodeState;
-    if (isUpdateNode && mNodeState == NODESTATE_RUNNING) {
+    if (isUpdateNode && mNodeState == NODESTATE_RUNNING)
+    {
         Stop();
     }
 
-    //reset the parameters
+    // reset the parameters
     SetConfig(config);
 
-    if (isUpdateNode && prevState == NODESTATE_RUNNING) {
+    if (isUpdateNode && prevState == NODESTATE_RUNNING)
+    {
         return Start();
     }
 
     return RESULT_SUCCESS;
 }
 
-void BaseNode::ProcessData() {
+void BaseNode::ProcessData()
+{
     IMLOGE0("ProcessData] Error - base method");
 }
 
-const char* BaseNode::GetNodeName() {
+const char* BaseNode::GetNodeName()
+{
     const char* ret = NULL;
     BaseNodeID eID = GetNodeID();
     uint32_t nNumOfTotalNode = GetNumOfNodeList();
     uint32_t i;
 
-    for (i = 0 ; i < nNumOfTotalNode ; i ++) {
-        if (gNodeList[i].NodeID == eID) {
+    for (i = 0; i < nNumOfTotalNode; i++)
+    {
+        if (gNodeList[i].NodeID == eID)
+        {
             ret = gNodeList[i].NodeName;
             break;
         }
     }
 
-    if (ret == NULL) ret = gNullNodeName;
+    if (ret == NULL)
+        ret = gNullNodeName;
 
     return ret;
 }
 
-void BaseNode::SetMediaType(ImsMediaType eType) {
+void BaseNode::SetMediaType(ImsMediaType eType)
+{
     mMediaType = eType;
 }
 
-ImsMediaType BaseNode::GetMediaType() {
+ImsMediaType BaseNode::GetMediaType()
+{
     return mMediaType;
 }
 
 // Graph Interface
-BaseNodeState BaseNode::GetState() {
+BaseNodeState BaseNode::GetState()
+{
     return mNodeState;
 }
 
-uint32_t BaseNode::GetDataCount() {
+uint32_t BaseNode::GetDataCount()
+{
     return mDataQueue.GetCount();
 }
 
-bool BaseNode::GetData(ImsMediaSubType* psubtype, uint8_t** ppData,
-    uint32_t* pnDataSize, uint32_t* pnTimestamp, bool *pbMark, uint32_t* pnSeqNum,
-    ImsMediaSubType* peDataType) {
+bool BaseNode::GetData(ImsMediaSubType* psubtype, uint8_t** ppData, uint32_t* pnDataSize,
+        uint32_t* pnTimestamp, bool* pbMark, uint32_t* pnSeqNum, ImsMediaSubType* peDataType)
+{
     DataEntry* pEntry;
-    if (mDataQueue.Get(&pEntry)) {
-        if (psubtype) *psubtype = pEntry->subtype;
-        if (ppData) *ppData = pEntry->pbBuffer;
-        if (pnDataSize) *pnDataSize = pEntry->nBufferSize;
-        if (pnTimestamp) *pnTimestamp = pEntry->nTimestamp;
-        if (pbMark) *pbMark = pEntry->bMark;
-        if (pnSeqNum) *pnSeqNum = pEntry->nSeqNum;
-        if (peDataType) *peDataType = pEntry->eDataType;
+    if (mDataQueue.Get(&pEntry))
+    {
+        if (psubtype)
+            *psubtype = pEntry->subtype;
+        if (ppData)
+            *ppData = pEntry->pbBuffer;
+        if (pnDataSize)
+            *pnDataSize = pEntry->nBufferSize;
+        if (pnTimestamp)
+            *pnTimestamp = pEntry->nTimestamp;
+        if (pbMark)
+            *pbMark = pEntry->bMark;
+        if (pnSeqNum)
+            *pnSeqNum = pEntry->nSeqNum;
+        if (peDataType)
+            *peDataType = pEntry->eDataType;
         return true;
-    } else {
-        if (psubtype) *psubtype = MEDIASUBTYPE_UNDEFINED;
-        if (ppData) *ppData = NULL;
-        if (pnDataSize) *pnDataSize = 0;
-        if (pnTimestamp) *pnTimestamp = 0;
-        if (pbMark) *pbMark = false;
-        if (pnSeqNum) *pnSeqNum = 0;
-        if (peDataType) *peDataType = MEDIASUBTYPE_UNDEFINED;
+    }
+    else
+    {
+        if (psubtype)
+            *psubtype = MEDIASUBTYPE_UNDEFINED;
+        if (ppData)
+            *ppData = NULL;
+        if (pnDataSize)
+            *pnDataSize = 0;
+        if (pnTimestamp)
+            *pnTimestamp = 0;
+        if (pbMark)
+            *pbMark = false;
+        if (pnSeqNum)
+            *pnSeqNum = 0;
+        if (peDataType)
+            *peDataType = MEDIASUBTYPE_UNDEFINED;
         return false;
     }
 }
 
-void BaseNode::DeleteData() {
+void BaseNode::DeleteData()
+{
     mDataQueue.Delete();
 }
 
-void BaseNode::SendDataToRearNode(ImsMediaSubType subtype, uint8_t* pData,
-    uint32_t nDataSize, uint32_t nTimestamp, bool bMark, uint32_t nSeqNum,
-    ImsMediaSubType nDataType) {
+void BaseNode::SendDataToRearNode(ImsMediaSubType subtype, uint8_t* pData, uint32_t nDataSize,
+        uint32_t nTimestamp, bool bMark, uint32_t nSeqNum, ImsMediaSubType nDataType)
+{
     bool nNeedRunCount = false;
-    for(auto&i:mRearNodeList) {
-        if (i->mNodeState == NODESTATE_RUNNING) {
-            i->OnDataFromFrontNode(subtype, pData, nDataSize,
-                nTimestamp, bMark, nSeqNum, nDataType);
-            if (i->IsRunTime() == false) nNeedRunCount = true;
+    for (auto& i : mRearNodeList)
+    {
+        if (i->mNodeState == NODESTATE_RUNNING)
+        {
+            i->OnDataFromFrontNode(
+                    subtype, pData, nDataSize, nTimestamp, bMark, nSeqNum, nDataType);
+            if (i->IsRunTime() == false)
+                nNeedRunCount = true;
         }
     }
-    if (nNeedRunCount == true && mScheduler != NULL) mScheduler->onAwakeScheduler();
+    if (nNeedRunCount == true && mScheduler != NULL)
+        mScheduler->onAwakeScheduler();
 }
 
-void BaseNode::OnDataFromFrontNode(ImsMediaSubType subtype,
-    uint8_t* pData, uint32_t nDataSize, uint32_t nTimestamp, bool bMark,
-    uint32_t nSeqNum, ImsMediaSubType nDataType) {
+void BaseNode::OnDataFromFrontNode(ImsMediaSubType subtype, uint8_t* pData, uint32_t nDataSize,
+        uint32_t nTimestamp, bool bMark, uint32_t nSeqNum, ImsMediaSubType nDataType)
+{
     DataEntry entry;
     memset(&entry, 0, sizeof(DataEntry));
     entry.pbBuffer = pData;

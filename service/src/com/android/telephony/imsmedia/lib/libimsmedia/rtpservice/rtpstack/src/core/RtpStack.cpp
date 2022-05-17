@@ -27,9 +27,9 @@
  * Preconditions        : None
  * Side Effects            : None
  ********************************************************/
-RtpStack::RtpStack():
-    m_objRtpSessionList(std::list<RtpSession *>()),
-    m_pobjStackProfile(RTP_NULL)
+RtpStack::RtpStack() :
+        m_objRtpSessionList(std::list<RtpSession*>()),
+        m_pobjStackProfile(RTP_NULL)
 {
 }
 
@@ -43,15 +43,14 @@ RtpStack::RtpStack():
  ********************************************************/
 RtpStack::~RtpStack()
 {
-
-    //clear stack profile
-    if(m_pobjStackProfile != RTP_NULL)
+    // clear stack profile
+    if (m_pobjStackProfile != RTP_NULL)
     {
         delete m_pobjStackProfile;
     }
 
-    //delete all RTP session objects.
-    for(auto&pobjRtpSession:m_objRtpSessionList)
+    // delete all RTP session objects.
+    for (auto& pobjRtpSession : m_objRtpSessionList)
     {
         pobjRtpSession->deleteRtpSession();
     }
@@ -70,9 +69,7 @@ RtpStack::~RtpStack()
  ********************************************************/
 RtpStack::RtpStack(IN RtpStackProfile* pobjStackProfile)
 {
-
     m_pobjStackProfile = pobjStackProfile;
-
 }
 
 /*********************************************************
@@ -86,21 +83,19 @@ RtpStack::RtpStack(IN RtpStackProfile* pobjStackProfile)
  ********************************************************/
 RtpSession* RtpStack::createRtpSession()
 {
-
     RtpDt_UInt32 uiTermNum = m_pobjStackProfile->getTermNumber();
 
-    RtpSession *pobjRtpSession = new RtpSession(this);
-    if(pobjRtpSession == RTP_NULL)
+    RtpSession* pobjRtpSession = new RtpSession(this);
+    if (pobjRtpSession == RTP_NULL)
     {
-        RTP_TRACE_WARNING("Memory allocation error ..!",
-                RTP_ZERO,RTP_ZERO);
+        RTP_TRACE_WARNING("Memory allocation error ..!", RTP_ZERO, RTP_ZERO);
         return RTP_NULL;
     }
 
-    //add session into m_objRtpSessionList
+    // add session into m_objRtpSessionList
     m_objRtpSessionList.push_back(pobjRtpSession);
 
-    //generate SSRC
+    // generate SSRC
     RtpDt_UInt32 uiSsrc = RtpStackUtil::generateNewSsrc(uiTermNum);
     pobjRtpSession->setSsrc(uiSsrc);
 
@@ -121,11 +116,10 @@ RtpSession* RtpStack::createRtpSession()
  ********************************************************/
 eRtp_Bool RtpStack::isRtpSessionPresent(IN RtpSession* pobjSession)
 {
-
-    for(auto&pobjRtpSesItem:m_objRtpSessionList)
+    for (auto& pobjRtpSesItem : m_objRtpSessionList)
     {
-        //get Rtp Session from list
-        if(pobjRtpSesItem->compareRtpSessions(pobjSession) == eRTP_SUCCESS)
+        // get Rtp Session from list
+        if (pobjRtpSesItem->compareRtpSessions(pobjSession) == eRTP_SUCCESS)
         {
             return eRTP_SUCCESS;
         }
@@ -133,7 +127,6 @@ eRtp_Bool RtpStack::isRtpSessionPresent(IN RtpSession* pobjSession)
 
     return eRTP_FAILURE;
 }
-
 
 /*********************************************************
  * Function name        : deleteRtpSession
@@ -147,17 +140,16 @@ eRtp_Bool RtpStack::isRtpSessionPresent(IN RtpSession* pobjSession)
  ********************************************************/
 eRTP_STATUS_CODE RtpStack::deleteRtpSession(IN RtpSession* pobjRtpSession)
 {
-    if(pobjRtpSession == RTP_NULL)
+    if (pobjRtpSession == RTP_NULL)
     {
-        RTP_TRACE_WARNING("deleteRtpSession, pobjRtpSession is NULL ...!",
-                RTP_ZERO,RTP_ZERO);
+        RTP_TRACE_WARNING("deleteRtpSession, pobjRtpSession is NULL ...!", RTP_ZERO, RTP_ZERO);
         return RTP_INVALID_PARAMS;
     }
 
     eRtp_Bool bisRtpSes = eRTP_SUCCESS;
     bisRtpSes = isRtpSessionPresent(pobjRtpSession);
 
-    if(bisRtpSes == eRTP_SUCCESS)
+    if (bisRtpSes == eRTP_SUCCESS)
     {
         pobjRtpSession->deleteRtpSession();
         m_objRtpSessionList.remove(pobjRtpSession);
@@ -181,7 +173,6 @@ RtpStackProfile* RtpStack::getStackProfile()
 {
     return m_pobjStackProfile;
 }
-
 
 /*********************************************************
  * Function name        : setStackProfile

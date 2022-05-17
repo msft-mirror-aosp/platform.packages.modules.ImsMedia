@@ -18,12 +18,12 @@
 #include <rtp_trace.h>
 #include <RtpSession.h>
 
-#define NTP2MSEC  65.555555
-#define SET16BIT_ENDIAN(ptr,p_offset,value) \
- (ptr)[(*(p_offset))++] = (value >> 8) & 0x00ff, \
- (ptr)[(*(p_offset))++] = (value & 0x00ff)
+#define NTP2MSEC 65.555555
+#define SET16BIT_ENDIAN(ptr, p_offset, value) \
+    (ptr)[(*(p_offset))++] = (value >> 8) & 0x00ff, (ptr)[(*(p_offset))++] = (value & 0x00ff)
 
-RtcpXrPacket::RtcpXrPacket() : m_reportBlk(RTP_NULL)
+RtcpXrPacket::RtcpXrPacket() :
+        m_reportBlk(RTP_NULL)
 {
 }
 
@@ -31,7 +31,7 @@ RtcpXrPacket::~RtcpXrPacket()
 {
     if (m_reportBlk)
     {
-        delete(m_reportBlk);
+        delete (m_reportBlk);
         m_reportBlk = RTP_NULL;
     }
 }
@@ -71,77 +71,76 @@ RtpDt_Void RtcpXrPacket::setReportBlk(IN RtpBuffer* reportBlk)
     m_reportBlk = reportBlk;
 }
 
-eRTP_STATUS_CODE RtcpXrPacket::decodeRtcpXrPacket(IN RtpDt_UChar* pucRtcpXrBuf,
-    IN RtpDt_UInt16 usRtcpXrLen, IN RtpDt_UChar ucPktType)
+eRTP_STATUS_CODE RtcpXrPacket::decodeRtcpXrPacket(
+        IN RtpDt_UChar* pucRtcpXrBuf, IN RtpDt_UInt16 usRtcpXrLen, IN RtpDt_UChar ucPktType)
 {
-    (RtpDt_Void)pucRtcpXrBuf;
-    (RtpDt_Void)usRtcpXrLen;
-    (RtpDt_Void)ucPktType;
-    RTP_TRACE_ERROR("decodeRtcpXrPacket not implemented..!!!",RTP_ZERO, RTP_ZERO);
+    (RtpDt_Void) pucRtcpXrBuf;
+    (RtpDt_Void) usRtcpXrLen;
+    (RtpDt_Void) ucPktType;
+    RTP_TRACE_ERROR("decodeRtcpXrPacket not implemented..!!!", RTP_ZERO, RTP_ZERO);
 
     return RTP_FAILURE;
 }
 
 eRTP_STATUS_CODE RtcpXrPacket::formRtcpXrPacket(OUT RtpBuffer* pobjRtcpPktBuf)
 {
-        RtpDt_UInt32 uiXrPktPos = pobjRtcpPktBuf->getLength();
-        RtpDt_UInt32 uiCurPos = pobjRtcpPktBuf->getLength();
-        RtpDt_UChar *pucBuffer = pobjRtcpPktBuf->getBuffer();
+    RtpDt_UInt32 uiXrPktPos = pobjRtcpPktBuf->getLength();
+    RtpDt_UInt32 uiCurPos = pobjRtcpPktBuf->getLength();
+    RtpDt_UChar* pucBuffer = pobjRtcpPktBuf->getBuffer();
 
-        if (!pucBuffer)
-        {
-            RTP_TRACE_ERROR("formXrPacket with null buffer"
-                            ,RTP_ZERO, RTP_ZERO);
-            return RTP_FAILURE;
-        }
+    if (!pucBuffer)
+    {
+        RTP_TRACE_ERROR("formXrPacket with null buffer", RTP_ZERO, RTP_ZERO);
+        return RTP_FAILURE;
+    }
 
-        uiCurPos = uiCurPos + RTCP_FIXED_HDR_LEN;
-        pucBuffer = pucBuffer + uiCurPos;
+    uiCurPos = uiCurPos + RTCP_FIXED_HDR_LEN;
+    pucBuffer = pucBuffer + uiCurPos;
 
-        RtpDt_UInt16 uiRttdOffset = getRttdOffset();
-        RtpDt_UInt32 msecRTTD = getRTTD()/NTP2MSEC;
+    RtpDt_UInt16 uiRttdOffset = getRttdOffset();
+    RtpDt_UInt32 msecRTTD = getRTTD() / NTP2MSEC;
 
-        // set the report block buffer
-        RtpBuffer *pReportBlk = this->getReportBlk();
-        memcpy(pucBuffer, pReportBlk->getBuffer(), pReportBlk->getLength());
-        SET16BIT_ENDIAN(pucBuffer,&uiRttdOffset,msecRTTD);
+    // set the report block buffer
+    RtpBuffer* pReportBlk = this->getReportBlk();
+    memcpy(pucBuffer, pReportBlk->getBuffer(), pReportBlk->getLength());
+    SET16BIT_ENDIAN(pucBuffer, &uiRttdOffset, msecRTTD);
 
-        pucBuffer = pucBuffer + pReportBlk->getLength();
-        uiCurPos = uiCurPos + pReportBlk->getLength();
+    pucBuffer = pucBuffer + pReportBlk->getLength();
+    uiCurPos = uiCurPos + pReportBlk->getLength();
 
-        // padding
-        RtpDt_UInt32 uiXrPktLen = uiCurPos - uiXrPktPos;
+    // padding
+    RtpDt_UInt32 uiXrPktLen = uiCurPos - uiXrPktPos;
 #ifdef ENABLE_PADDING
-        RtpDt_UInt32 uiPadLen = RTP_ZERO;
-        uiPadLen = uiXrPktLen % RTP_WORD_SIZE;
-        if (uiPadLen > RTP_ZERO)
-        {
-            uiPadLen = RTP_WORD_SIZE - uiPadLen;
-            uiXrPktLen = uiXrPktLen + uiPadLen;
-            uiCurPos = uiCurPos + uiPadLen;
-            memset(pucBuffer, RTP_ZERO, uiPadLen);
+    RtpDt_UInt32 uiPadLen = RTP_ZERO;
+    uiPadLen = uiXrPktLen % RTP_WORD_SIZE;
+    if (uiPadLen > RTP_ZERO)
+    {
+        uiPadLen = RTP_WORD_SIZE - uiPadLen;
+        uiXrPktLen = uiXrPktLen + uiPadLen;
+        uiCurPos = uiCurPos + uiPadLen;
+        memset(pucBuffer, RTP_ZERO, uiPadLen);
 
-            pucBuffer = pucBuffer + uiPadLen;
-            pucBuffer = pucBuffer - RTP_ONE;
-            *(RtpDt_UChar*)pucBuffer = (RtpDt_UChar)uiPadLen;
+        pucBuffer = pucBuffer + uiPadLen;
+        pucBuffer = pucBuffer - RTP_ONE;
+        *(RtpDt_UChar*)pucBuffer = (RtpDt_UChar)uiPadLen;
 
-            //set pad bit in header
-            m_objRtcpHdr.setPadding();
-            //set length in header
-            m_objRtcpHdr.setLength(uiXrPktLen);
-        }
-        else
+        // set pad bit in header
+        m_objRtcpHdr.setPadding();
+        // set length in header
+        m_objRtcpHdr.setLength(uiXrPktLen);
+    }
+    else
 #endif
-        {
-            //set length in header
-            m_objRtcpHdr.setLength(uiXrPktLen);
-        }
+    {
+        // set length in header
+        m_objRtcpHdr.setLength(uiXrPktLen);
+    }
 
-        pobjRtcpPktBuf->setLength(uiXrPktPos);
-        m_objRtcpHdr.formRtcpHeader(pobjRtcpPktBuf);
+    pobjRtcpPktBuf->setLength(uiXrPktPos);
+    m_objRtcpHdr.formRtcpHeader(pobjRtcpPktBuf);
 
-        //set the current position of the RTCP compound packet
-        pobjRtcpPktBuf->setLength(uiCurPos);
+    // set the current position of the RTCP compound packet
+    pobjRtcpPktBuf->setLength(uiCurPos);
 
-        return RTP_SUCCESS;
+    return RTP_SUCCESS;
 }

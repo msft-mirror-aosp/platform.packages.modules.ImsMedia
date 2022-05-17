@@ -2,7 +2,6 @@
  *  @{
  */
 
-
 /**
  * @class   RtpStackUtl
  * @brief   This class provides RTP utility functions
@@ -30,34 +29,30 @@
 #include <RtpGlobal.h>
 #include <RtpBuffer.h>
 
-
 class RtpStackUtil
 {
-
 public:
     // Constructor
     RtpStackUtil();
     // Destructor
     ~RtpStackUtil();
 
-/**
-    Parse and retrieve seq number from a RTP packet
-    @param[in] pobjRecvdPkt RTCP packet from network
-    */
+    /**
+        Parse and retrieve seq number from a RTP packet
+        @param[in] pobjRecvdPkt RTCP packet from network
+        */
     static RtpDt_UInt16 getSeqNum(IN RtpDt_UChar* pcRtpHdrBuf);
-/**
-    Parse and retrieve ssrc from a RTP packet
-    @param[in] pobjRecvdPkt RTP packet from network
-*/
+    /**
+        Parse and retrieve ssrc from a RTP packet
+        @param[in] pobjRecvdPkt RTP packet from network
+    */
     static RtpDt_UInt32 getRtpSsrc(IN RtpBuffer* pobjRecvdPkt);
 
-
-/**
-    Parse and retrieve ssrc from a RTCP packet
-    @param[in] pobjRecvdPkt RTCP packet from network
-*/
+    /**
+        Parse and retrieve ssrc from a RTCP packet
+        @param[in] pobjRecvdPkt RTCP packet from network
+    */
     static RtpDt_UInt32 getRtcpSsrc(IN RtpBuffer* pobjRecvdPkt);
-
 
     /**
     Utility to generate new ssrc
@@ -66,12 +61,9 @@ public:
     static RtpDt_UInt32 generateNewSsrc(IN RtpDt_UInt32 uiTermNum);
 
     /** It calculates RTP time stamp
-    */
-    static RtpDt_UInt32 calcRtpTimestamp(
-                    IN RtpDt_UInt32        uiPrevRtpTs,
-                    IN tRTP_NTP_TIME    *stCurRtpTs,
-                    IN tRTP_NTP_TIME    *stPrevRtpTs,
-                    IN RtpDt_UInt32    uiSamplingRate);
+     */
+    static RtpDt_UInt32 calcRtpTimestamp(IN RtpDt_UInt32 uiPrevRtpTs, IN tRTP_NTP_TIME* stCurRtpTs,
+            IN tRTP_NTP_TIME* stPrevRtpTs, IN RtpDt_UInt32 uiSamplingRate);
 
     /**
     It gets middle four octets from Ntp timestamp
@@ -79,5 +71,5 @@ public:
     static RtpDt_UInt32 getMidFourOctets(IN tRTP_NTP_TIME* pstNtpTs);
 };
 
-#endif    //__RTP_STACK_UTIL_H__
+#endif  //__RTP_STACK_UTIL_H__
 /** @}*/

@@ -20,13 +20,15 @@
 
 #include <stdint.h>
 
-enum NETWORK_STATUS {
+enum NETWORK_STATUS
+{
     NETWORK_STATUS_BAD,
     NETWORK_STATUS_NORMAL,
     NETWORK_STATUS_GOOD
 };
 
-class JitterNetworkAnalyser {
+class JitterNetworkAnalyser
+{
 public:
     JitterNetworkAnalyser();
     virtual ~JitterNetworkAnalyser();
@@ -46,7 +48,7 @@ public:
 
 private:
     bool JitterCalc(uint32_t nTimestamp, uint32_t nInputTime);
-    double DevCalc(double *pMean);
+    double DevCalc(double* pMean);
     uint32_t GetMaxJitterValue();
 
     uint32_t mMinJitterBufferSize;
@@ -66,4 +68,4 @@ private:
     bool mImprovement;
 };
 
-#endif // JITTERNETWORKANALYSER_H_INCLUDED
+#endif  // JITTERNETWORKANALYSER_H_INCLUDED

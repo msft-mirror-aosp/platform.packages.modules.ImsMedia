@@ -27,7 +27,6 @@
 #ifndef __RTP_TIMER_INFO_H__
 #define __RTP_TIMER_INFO_H__
 
-
 #include <RtpGlobal.h>
 
 class RtpTimerInfo
@@ -36,7 +35,7 @@ class RtpTimerInfo
     RtpDt_UInt32 m_uiTp;
     // the current time; TBD..replace with system time
     RtpDt_UInt32 m_uiTc;
-    //the next scheduled transmission time of an RTCP packet
+    // the next scheduled transmission time of an RTCP packet
     RtpDt_UInt32 m_uiTn;
     /** the estimated number of session members at the time tn
     was last recomputed
@@ -129,7 +128,6 @@ public:
     RtpDt_Void cleanUp();
 };
 
-#endif    //__RTP_TIMER_INFO_H__
-
+#endif  //__RTP_TIMER_INFO_H__
 
 /** @}*/

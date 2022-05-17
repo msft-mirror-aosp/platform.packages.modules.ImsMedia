@@ -24,9 +24,10 @@
 #include <StreamSchedulerCallback.h>
 
 #define MAX_AUDIO_PAYLOAD_SIZE 1500
-#define MAX_FRAME_IN_PACKET (MAX_AUDIO_PAYLOAD_SIZE - 1)/32
+#define MAX_FRAME_IN_PACKET    (MAX_AUDIO_PAYLOAD_SIZE - 1) / 32
 
-enum BaseNodeState {
+enum BaseNodeState
+{
     /* the state after stop method called normally*/
     NODESTATE_STOPPED,
     /* the state after start without error*/
@@ -36,7 +37,8 @@ enum BaseNodeState {
 /*!
  *    @class        BaseNode
  */
-class BaseNode {
+class BaseNode
+{
 protected:
     BaseNode();
     virtual ~BaseNode();
@@ -46,9 +48,9 @@ public:
     static void UnLoad(BaseNode* pNode);
     void SetSessionCallback(BaseSessionCallback* callback);
     void SetSchedulerCallback(std::shared_ptr<StreamSchedulerCallback> callback);
-    void ConnectRearNode(BaseNode *pRearNode);
-    void DisconnectFrontNode(BaseNode *pFrontNode);
-    void DisconnectRearNode(BaseNode *pRearNode);
+    void ConnectRearNode(BaseNode* pRearNode);
+    void DisconnectFrontNode(BaseNode* pFrontNode);
+    void DisconnectRearNode(BaseNode* pRearNode);
     std::list<BaseNode*>* GetFrontNodeList();
     std::list<BaseNode*>* GetRearNodeList();
     void ConnectRearNodeList(std::list<BaseNode*>* pRearNodeList);
@@ -72,17 +74,16 @@ public:
     // Methods for Child Node
     // Child Node can/should use methods below to access the queue.
     virtual uint32_t GetDataCount();
-    virtual bool GetData(ImsMediaSubType* psubtype, uint8_t** ppData,
-        uint32_t* pnDataSize, uint32_t* pnTimestamp, bool *pbMark, uint32_t* pnSeqNum,
-        ImsMediaSubType* pnDataType);
+    virtual bool GetData(ImsMediaSubType* psubtype, uint8_t** ppData, uint32_t* pnDataSize,
+            uint32_t* pnTimestamp, bool* pbMark, uint32_t* pnSeqNum, ImsMediaSubType* pnDataType);
     virtual void DeleteData();
-    void SendDataToRearNode(ImsMediaSubType subtype, uint8_t* pData,
-        uint32_t nDataSize, uint32_t nTimestamp, bool bMark, uint32_t nSeqNum,
-        ImsMediaSubType nDataType = ImsMediaSubType::MEDIASUBTYPE_UNDEFINED);
+    void SendDataToRearNode(ImsMediaSubType subtype, uint8_t* pData, uint32_t nDataSize,
+            uint32_t nTimestamp, bool bMark, uint32_t nSeqNum,
+            ImsMediaSubType nDataType = ImsMediaSubType::MEDIASUBTYPE_UNDEFINED);
     // front node call this method to send data
-    virtual void OnDataFromFrontNode(ImsMediaSubType subtype,
-        uint8_t* pData, uint32_t nDataSize, uint32_t nTimestamp, bool bMark,
-        uint32_t nSeqNum, ImsMediaSubType nDataType = ImsMediaSubType::MEDIASUBTYPE_UNDEFINED);
+    virtual void OnDataFromFrontNode(ImsMediaSubType subtype, uint8_t* pData, uint32_t nDataSize,
+            uint32_t nTimestamp, bool bMark, uint32_t nSeqNum,
+            ImsMediaSubType nDataType = ImsMediaSubType::MEDIASUBTYPE_UNDEFINED);
 
 protected:
     std::shared_ptr<StreamSchedulerCallback> mScheduler;

@@ -17,29 +17,27 @@
 #include <RtcpConfigInfo.h>
 #include <string.h>
 
-RtcpConfigInfo::RtcpConfigInfo():
-                    m_uiSdesItemCnt(RTP_ZERO),
-                    m_uiByeReasonSize(RTP_ZERO),
-                    m_uiAppDepDataSize(RTP_ZERO),
-                    m_bEnaRtcpAppPktSend(eRTP_FALSE)
+RtcpConfigInfo::RtcpConfigInfo() :
+        m_uiSdesItemCnt(RTP_ZERO),
+        m_uiByeReasonSize(RTP_ZERO),
+        m_uiAppDepDataSize(RTP_ZERO),
+        m_bEnaRtcpAppPktSend(eRTP_FALSE)
 {
-    for(RtpDt_UInt32 uiCount= RTP_ZERO;
-                        uiCount < RTP_MAX_SDES_TYPE; uiCount++)
+    for (RtpDt_UInt32 uiCount = RTP_ZERO; uiCount < RTP_MAX_SDES_TYPE; uiCount++)
     {
         m_arrSdesInfo[uiCount].pValue = RTP_NULL;
         m_arrSdesInfo[uiCount].ucType = RTP_ZERO;
         m_arrSdesInfo[uiCount].ucLength = RTP_ZERO;
     }
-}//RtcpConfigInfo
+}  // RtcpConfigInfo
 
 RtcpConfigInfo::~RtcpConfigInfo()
 {
-    for(RtpDt_UInt32 uiCount= RTP_ZERO;
-                uiCount < RTP_MAX_SDES_TYPE; uiCount++)
+    for (RtpDt_UInt32 uiCount = RTP_ZERO; uiCount < RTP_MAX_SDES_TYPE; uiCount++)
     {
-        if(m_arrSdesInfo[uiCount].pValue != RTP_NULL)
+        if (m_arrSdesInfo[uiCount].pValue != RTP_NULL)
         {
-            delete [] m_arrSdesInfo[uiCount].pValue;
+            delete[] m_arrSdesInfo[uiCount].pValue;
             m_arrSdesInfo[uiCount].pValue = RTP_NULL;
             m_arrSdesInfo[uiCount].ucLength = 0;
         }
@@ -69,44 +67,42 @@ RtpDt_UInt32 RtcpConfigInfo::getAppDepDataSize()
 RtpDt_UInt32 RtcpConfigInfo::estimateSdesPktSize()
 {
     RtpDt_UInt32 uiSdesPktSize = RTP_WORD_SIZE;
-    for(RtpDt_UInt32 uiCount= RTP_ZERO;
-                        uiCount < RTP_MAX_SDES_TYPE; uiCount++)
+    for (RtpDt_UInt32 uiCount = RTP_ZERO; uiCount < RTP_MAX_SDES_TYPE; uiCount++)
     {
-        if(m_arrSdesInfo[uiCount].pValue != RTP_NULL)
+        if (m_arrSdesInfo[uiCount].pValue != RTP_NULL)
         {
             uiSdesPktSize += m_arrSdesInfo[uiCount].ucLength;
             uiSdesPktSize += RTP_TWO;
         }
     }
     RtpDt_UInt32 uiTmpSize = uiSdesPktSize % RTP_WORD_SIZE;
-    if(uiTmpSize != RTP_ZERO)
+    if (uiTmpSize != RTP_ZERO)
     {
-        uiTmpSize =  RTP_WORD_SIZE - uiTmpSize;
+        uiTmpSize = RTP_WORD_SIZE - uiTmpSize;
     }
     uiSdesPktSize = uiSdesPktSize + uiTmpSize;
     return uiSdesPktSize;
-}//estimateSdesPktSize
+}  // estimateSdesPktSize
 
-eRtp_Bool RtcpConfigInfo::addRtcpSdesItem(IN tRTCP_SDES_ITEM *pstSdesItem,
-                                              IN RtpDt_UInt32 uiIndex)
+eRtp_Bool RtcpConfigInfo::addRtcpSdesItem(IN tRTCP_SDES_ITEM* pstSdesItem, IN RtpDt_UInt32 uiIndex)
 {
-    if(pstSdesItem == RTP_NULL)
+    if (pstSdesItem == RTP_NULL)
     {
         return eRTP_FAILURE;
     }
     m_arrSdesInfo[uiIndex].ucType = pstSdesItem->ucType;
     m_arrSdesInfo[uiIndex].ucLength = pstSdesItem->ucLength;
-    if(pstSdesItem->ucLength > RTP_ZERO)
+    if (pstSdesItem->ucLength > RTP_ZERO)
     {
-        RtpDt_UChar *pcBuffer = new RtpDt_UChar[pstSdesItem->ucLength];
-        if(pcBuffer == RTP_NULL)
+        RtpDt_UChar* pcBuffer = new RtpDt_UChar[pstSdesItem->ucLength];
+        if (pcBuffer == RTP_NULL)
         {
             return eRTP_FALSE;
         }
         memcpy(pcBuffer, pstSdesItem->pValue, pstSdesItem->ucLength);
-        if(m_arrSdesInfo[uiIndex].pValue != RTP_NULL)
+        if (m_arrSdesInfo[uiIndex].pValue != RTP_NULL)
         {
-            delete [] m_arrSdesInfo[uiIndex].pValue;
+            delete[] m_arrSdesInfo[uiIndex].pValue;
         }
 
         m_arrSdesInfo[uiIndex].pValue = pcBuffer;
@@ -143,7 +139,7 @@ RtpDt_Void RtcpConfigInfo::setSdesItemCount(IN RtpDt_UInt32 uiSdesItemCnt)
 
 tRTCP_SDES_ITEM* RtcpConfigInfo::getRtcpSdesItem(IN RtpDt_UInt32 uiIndex)
 {
-    if(uiIndex >= RTP_MAX_SDES_TYPE)
+    if (uiIndex >= RTP_MAX_SDES_TYPE)
         return RTP_NULL;
 
     return &m_arrSdesInfo[uiIndex];

@@ -25,7 +25,7 @@ private:
     uint8_t* m_pbBuffer;
     uint32_t m_nMaxBufferSize;
     uint32_t m_nBytePos;
-    uint32_t m_nBitPos;        // start bit position of valid data in m_nBitBuffer
+    uint32_t m_nBitPos;  // start bit position of valid data in m_nBitBuffer
     uint32_t m_nBitBuffer;
     bool m_bBufferEOF;
 

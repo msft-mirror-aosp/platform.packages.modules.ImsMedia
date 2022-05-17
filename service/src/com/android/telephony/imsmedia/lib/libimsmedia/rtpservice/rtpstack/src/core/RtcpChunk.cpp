@@ -17,19 +17,17 @@
 #include <RtcpChunk.h>
 #include <rtp_trace.h>
 
-RtcpChunk::RtcpChunk():
-    m_uiSsrc(RTP_ZERO),
-    m_stSdesItemList(std::list<tRTCP_SDES_ITEM *>())
+RtcpChunk::RtcpChunk() :
+        m_uiSsrc(RTP_ZERO),
+        m_stSdesItemList(std::list<tRTCP_SDES_ITEM*>())
 {
-
 }
 
 RtcpChunk::~RtcpChunk()
 {
-
-    for(auto&pstSdesItem:m_stSdesItemList)
+    for (auto& pstSdesItem : m_stSdesItemList)
     {
-	    if(pstSdesItem->pValue != RTP_NULL)
+        if (pstSdesItem->pValue != RTP_NULL)
         {
             delete[] pstSdesItem->pValue;
         }
@@ -48,47 +46,44 @@ RtpDt_UInt32 RtcpChunk::getSsrc()
     return m_uiSsrc;
 }
 
-std::list<tRTCP_SDES_ITEM *>& RtcpChunk::getSdesItemList()
+std::list<tRTCP_SDES_ITEM*>& RtcpChunk::getSdesItemList()
 {
     return m_stSdesItemList;
 }
 
 eRTP_STATUS_CODE RtcpChunk::decodeRtcpChunk(IN RtpDt_UChar* pucChunkBuf,
-                                         IN RtpDt_UInt16 &usChunkLen,
-                                         IN RtcpConfigInfo *pobjRtcpCfgInfo)
+        IN RtpDt_UInt16& usChunkLen, IN RtcpConfigInfo* pobjRtcpCfgInfo)
 {
-
-    //SSRC
+    // SSRC
     m_uiSsrc = RtpOsUtil::Ntohl(*((RtpDt_UInt32*)pucChunkBuf));
     pucChunkBuf = pucChunkBuf + RTP_WORD_SIZE;
     usChunkLen = usChunkLen + RTP_WORD_SIZE;
 
-    //SDES items
+    // SDES items
     RtpDt_UInt32 uiSdesItemCnt = pobjRtcpCfgInfo->getSdesItemCount();
-    tRTCP_SDES_ITEM *pstSdesItem = RTP_NULL;
+    tRTCP_SDES_ITEM* pstSdesItem = RTP_NULL;
     eRtp_Bool bCName = eRTP_FALSE;
 
-    while(uiSdesItemCnt > RTP_ZERO)
+    while (uiSdesItemCnt > RTP_ZERO)
     {
         pstSdesItem = new tRTCP_SDES_ITEM();
-        if(pstSdesItem == RTP_NULL)
+        if (pstSdesItem == RTP_NULL)
         {
-            RTP_TRACE_WARNING("decodeRtcpChunk, new returned NULL...!",
-                RTP_ZERO,RTP_ZERO);
+            RTP_TRACE_WARNING("decodeRtcpChunk, new returned NULL...!", RTP_ZERO, RTP_ZERO);
             return RTP_MEMORY_FAIL;
         }
         memset(pstSdesItem, RTP_ZERO, sizeof(tRTCP_SDES_ITEM));
 
-        //type
+        // type
         pstSdesItem->ucType = *(RtpDt_UChar*)pucChunkBuf;
         pucChunkBuf = pucChunkBuf + RTP_ONE;
         usChunkLen = usChunkLen + RTP_ONE;
 
-        if(pstSdesItem->ucType == RTP_ONE)
+        if (pstSdesItem->ucType == RTP_ONE)
         {
             bCName = eRTP_TRUE;
         }
-        //length
+        // length
         pstSdesItem->ucLength = *(RtpDt_UChar*)pucChunkBuf;
         pucChunkBuf = pucChunkBuf + RTP_ONE;
         usChunkLen = usChunkLen + RTP_ONE;
@@ -96,12 +91,11 @@ eRTP_STATUS_CODE RtcpChunk::decodeRtcpChunk(IN RtpDt_UChar* pucChunkBuf,
         RTP_TRACE_NORMAL("decodeRtcpChunk , [Sdes item type =%d], [Sdes item length = %d]",
                 pstSdesItem->ucType, pstSdesItem->ucLength);
 
-        //value
-        RtpDt_UChar    *pcSdesBuf = new RtpDt_UChar[pstSdesItem->ucLength];
-        if(pcSdesBuf == RTP_NULL)
+        // value
+        RtpDt_UChar* pcSdesBuf = new RtpDt_UChar[pstSdesItem->ucLength];
+        if (pcSdesBuf == RTP_NULL)
         {
-            RTP_TRACE_WARNING("decodeRtcpChunk, new returned NULL...!",
-                RTP_ZERO,RTP_ZERO);
+            RTP_TRACE_WARNING("decodeRtcpChunk, new returned NULL...!", RTP_ZERO, RTP_ZERO);
             delete pstSdesItem;
             return RTP_MEMORY_FAIL;
         }
@@ -113,79 +107,77 @@ eRTP_STATUS_CODE RtcpChunk::decodeRtcpChunk(IN RtpDt_UChar* pucChunkBuf,
 
         m_stSdesItemList.push_back(pstSdesItem);
 
-        //decrement uiSdesItemCnt by 1
+        // decrement uiSdesItemCnt by 1
         uiSdesItemCnt = uiSdesItemCnt - RTP_ONE;
-    }//while
+    }  // while
 
-    if(bCName == eRTP_FALSE)
+    if (bCName == eRTP_FALSE)
     {
         return RTP_DECODE_ERROR;
     }
 
     return RTP_SUCCESS;
-}//decodeRtcpChunk
-
+}  // decodeRtcpChunk
 
 eRTP_STATUS_CODE RtcpChunk::formRtcpChunk(OUT RtpBuffer* pobjRtcpPktBuf)
 {
     RtpDt_UInt32 uiCurPos = pobjRtcpPktBuf->getLength();
-    RtpDt_UChar *pucBuffer =  pobjRtcpPktBuf->getBuffer();
+    RtpDt_UChar* pucBuffer = pobjRtcpPktBuf->getBuffer();
 
     pucBuffer = pucBuffer + uiCurPos;
 
-    //m_uiSsrc
+    // m_uiSsrc
     *(RtpDt_UInt32*)pucBuffer = RtpOsUtil::Ntohl(m_uiSsrc);
     pucBuffer = pucBuffer + RTP_WORD_SIZE;
     uiCurPos = uiCurPos + RTP_WORD_SIZE;
 
-    //m_stSdesItemList
+    // m_stSdesItemList
     eRtp_Bool bCName = eRTP_FALSE;
 
-    for(auto&pstSdesItem:m_stSdesItemList)
+    for (auto& pstSdesItem : m_stSdesItemList)
     {
-
-        //ucType
+        // ucType
         *(RtpDt_UChar*)pucBuffer = pstSdesItem->ucType;
         pucBuffer = pucBuffer + RTP_ONE;
         uiCurPos = uiCurPos + RTP_ONE;
 
-        if(pstSdesItem->ucType == RTP_ONE)
+        if (pstSdesItem->ucType == RTP_ONE)
         {
             bCName = eRTP_TRUE;
         }
 
-        //ucLength
+        // ucLength
         *(RtpDt_UChar*)pucBuffer = pstSdesItem->ucLength;
         pucBuffer = pucBuffer + RTP_ONE;
         uiCurPos = uiCurPos + RTP_ONE;
 
-        //pValue
+        // pValue
         memcpy(pucBuffer, pstSdesItem->pValue, pstSdesItem->ucLength);
         pucBuffer = pucBuffer + pstSdesItem->ucLength;
         uiCurPos = uiCurPos + pstSdesItem->ucLength;
 
-       //to add type(0)
+        // to add type(0)
         uiCurPos = uiCurPos + RTP_ONE;
-        pucBuffer[0]=(RtpDt_UChar)RTP_ZERO;
+        pucBuffer[0] = (RtpDt_UChar)RTP_ZERO;
         pucBuffer = pucBuffer + RTP_ONE;
 
-        //to align the memory
+        // to align the memory
         RtpDt_UInt32 uiPadLen = uiCurPos % RTP_WORD_SIZE;
-        if(uiPadLen > RTP_ZERO)
+        if (uiPadLen > RTP_ZERO)
         {
             uiPadLen = RTP_WORD_SIZE - uiPadLen;
             uiCurPos = uiCurPos + uiPadLen;
             memset(pucBuffer, RTP_ZERO, uiPadLen);
             pucBuffer = pucBuffer + uiPadLen;
         }
-    }//for
+    }  // for
 
     pobjRtcpPktBuf->setLength(uiCurPos);
 
-    if(bCName == eRTP_FALSE)
+    if (bCName == eRTP_FALSE)
     {
         return RTP_ENCODE_ERROR;
     }
 
     return RTP_SUCCESS;
-}//formRtcpChunk
+}  // formRtcpChunk

@@ -28,86 +28,83 @@
 #include <list>
 
 /**
-* @class         rtcp_rr_packet
-* @brief         It holds RR packet information
-*/
+ * @class         rtcp_rr_packet
+ * @brief         It holds RR packet information
+ */
 class RtcpRrPacket
 {
-    private:
-        // RTCP header information
-        RtcpHeader m_objRtcpHdr;
+private:
+    // RTCP header information
+    RtcpHeader m_objRtcpHdr;
 
-        // List of RtcpReportBlock objects
-        std::list<RtcpReportBlock *> m_objReportBlkList;
+    // List of RtcpReportBlock objects
+    std::list<RtcpReportBlock*> m_objReportBlkList;
 
-        /**
-         * Extension header buffer. This is encoded and given by app.
-         * After decoding, ExtractExtHeaders, will update this with the extension
-         * header buffer
-         */
-        RtpBuffer* m_pobjExt;
+    /**
+     * Extension header buffer. This is encoded and given by app.
+     * After decoding, ExtractExtHeaders, will update this with the extension
+     * header buffer
+     */
+    RtpBuffer* m_pobjExt;
 
-        /**
-         * It adds RtcpReportBlock object to m_objReportBlkList
-         */
-        RtpDt_Void addReportBlkElm(IN RtcpReportBlock* pobjReptBlk);
+    /**
+     * It adds RtcpReportBlock object to m_objReportBlkList
+     */
+    RtpDt_Void addReportBlkElm(IN RtcpReportBlock* pobjReptBlk);
 
-    public:
-        // Constructor
-        RtcpRrPacket();
-        // Destructor
-        ~RtcpRrPacket();
+public:
+    // Constructor
+    RtcpRrPacket();
+    // Destructor
+    ~RtcpRrPacket();
 
-        /**
-         * get method for m_objRtcpHdr
-         */
-        RtcpHeader* getRtcpHdrInfo();
+    /**
+     * get method for m_objRtcpHdr
+     */
+    RtcpHeader* getRtcpHdrInfo();
 
-        /**
-         * get method for m_objReportBlkList
-         */
-        std::list<RtcpReportBlock *>& getReportBlkList();
+    /**
+     * get method for m_objReportBlkList
+     */
+    std::list<RtcpReportBlock*>& getReportBlkList();
 
-        /**
-         * get method for m_pobjExt
-         */
-        RtpBuffer* getExtHdrInfo();
+    /**
+     * get method for m_pobjExt
+     */
+    RtpBuffer* getExtHdrInfo();
 
-        /**
-         * set method for m_pobjExt
-         */
-        RtpDt_Void setExtHdrInfo(IN RtpBuffer* pobjExtHdr);
+    /**
+     * set method for m_pobjExt
+     */
+    RtpDt_Void setExtHdrInfo(IN RtpBuffer* pobjExtHdr);
 
-        /**
-         * Decodes and stores the information of the RTCP RR packet
-         * This function does not allocate memory required for decoding.
-         *
-         * @param pucRrBuf      Rr packet buffer
-         * @param usRrLen       Rr packet length
-         * @param usExtHdrLen   RTCP extension header length
-         * @param bIsRrPkt      It tells the packet belongs to RR packet or to Report block
-         *
-         * @return RTP_SUCCESS on successful decoding
-         */
-        eRTP_STATUS_CODE decodeRrPacket(IN RtpDt_UChar* pucRrBuf,
-                           IN RtpDt_UInt16 &usRrLen,
-                           IN RtpDt_UInt16 usProfExtLen,
-                           IN eRtp_Bool bIsRrPkt);
+    /**
+     * Decodes and stores the information of the RTCP RR packet
+     * This function does not allocate memory required for decoding.
+     *
+     * @param pucRrBuf      Rr packet buffer
+     * @param usRrLen       Rr packet length
+     * @param usExtHdrLen   RTCP extension header length
+     * @param bIsRrPkt      It tells the packet belongs to RR packet or to Report block
+     *
+     * @return RTP_SUCCESS on successful decoding
+     */
+    eRTP_STATUS_CODE decodeRrPacket(IN RtpDt_UChar* pucRrBuf, IN RtpDt_UInt16& usRrLen,
+            IN RtpDt_UInt16 usProfExtLen, IN eRtp_Bool bIsRrPkt);
 
-        /**
-         * Performs the encoding of the RTCP RR packet.
-         * This function does not allocate memory required for encoding.
-         *
-         * @param pobjRtcpPktBuf    Memory for the buffer is pre-allocated by caller
-         * @param bHdrInfo          tells RTCP header shall be encoded or not.
-         *
-         * @return RTP_SUCCESS on successful encoding
-         */
-        eRTP_STATUS_CODE formRrPacket(OUT RtpBuffer* pobjRtcpPktBuf,
-                                 IN eRtp_Bool bHdrInfo);
+    /**
+     * Performs the encoding of the RTCP RR packet.
+     * This function does not allocate memory required for encoding.
+     *
+     * @param pobjRtcpPktBuf    Memory for the buffer is pre-allocated by caller
+     * @param bHdrInfo          tells RTCP header shall be encoded or not.
+     *
+     * @return RTP_SUCCESS on successful encoding
+     */
+    eRTP_STATUS_CODE formRrPacket(OUT RtpBuffer* pobjRtcpPktBuf, IN eRtp_Bool bHdrInfo);
 
-}; // end of RtcpRrPacket
+};  // end of RtcpRrPacket
 
-#endif    //__RTCP_RR_PACKET_H__
+#endif  //__RTCP_RR_PACKET_H__
 
 /** @}*/

@@ -20,37 +20,44 @@
 #include <ImsMediaDefine.h>
 #include <stdint.h>
 
-enum eSocketMode {
+enum eSocketMode
+{
     SOCKET_MODE_TX,
     SOCKET_MODE_RX,
 };
 
-class ISocketListener {
+class ISocketListener
+{
 public:
     ISocketListener() {}
     virtual ~ISocketListener() {}
     virtual void OnReceiveEnabled() = 0;
 };
 
-class ISocketBridgeDataListener {
+class ISocketBridgeDataListener
+{
 public:
     ISocketBridgeDataListener() {}
     virtual ~ISocketBridgeDataListener() {}
     virtual void OnSocketDataFromBridge(uint8_t* pData, uint32_t nDataSize) = 0;
 };
 
-enum eSocketClass {
-    SOCKET_CLASS_DEFAULT   = 0,
-    SOCKET_CLASS_PROXY     = 1,
+enum eSocketClass
+{
+    SOCKET_CLASS_DEFAULT = 0,
+    SOCKET_CLASS_PROXY = 1,
 };
 
-class ISocket {
+class ISocket
+{
 public:
-    static ISocket* GetInstance(uint32_t localPort,
-        const char* peerIpAddress, uint32_t peerPort, eSocketClass eSocket = SOCKET_CLASS_DEFAULT);
+    static ISocket* GetInstance(uint32_t localPort, const char* peerIpAddress, uint32_t peerPort,
+            eSocketClass eSocket = SOCKET_CLASS_DEFAULT);
     static void ReleaseInstance(ISocket* pSocket);
+
 protected:
     virtual ~ISocket() {}
+
 public:
     virtual void SetLocalEndpoint(const char* ipAddress, const uint32_t port) = 0;
     virtual void SetPeerEndpoint(const char* ipAddress, const uint32_t port) = 0;

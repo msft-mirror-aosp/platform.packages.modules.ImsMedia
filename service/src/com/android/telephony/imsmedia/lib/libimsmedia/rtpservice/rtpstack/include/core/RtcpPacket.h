@@ -31,145 +31,143 @@
 #include <RtcpXrPacket.h>
 #include <RtcpFbPacket.h>
 
- /**
+/**
  * @class   RtcpPacket.h
  * @brief   It holds RTCP information
  */
 class RtcpPacket
 {
-    private:
-        // list of RtcpSrPacket
-        std::list<RtcpSrPacket *>  m_objSrPktList;
+private:
+    // list of RtcpSrPacket
+    std::list<RtcpSrPacket*> m_objSrPktList;
 
-        // list of RtcpRrPacket
-        std::list<RtcpRrPacket *>  m_objRrPktList;
+    // list of RtcpRrPacket
+    std::list<RtcpRrPacket*> m_objRrPktList;
 
-        // list of RtcpFbPacket
-        std::list<RtcpFbPacket *>  m_objFbPktList;
+    // list of RtcpFbPacket
+    std::list<RtcpFbPacket*> m_objFbPktList;
 
-        // SDES packet information
-        RtcpSdesPacket *m_pobjSdesPkt;
+    // SDES packet information
+    RtcpSdesPacket* m_pobjSdesPkt;
 
-        // Bye packet information
-        RtcpByePacket *m_pobjByePkt;
+    // Bye packet information
+    RtcpByePacket* m_pobjByePkt;
 
-        // App packet information
-        RtcpAppPacket *m_pobjAppPkt;
-        RtcpFbPacket *m_pobjRtcpFbPkt;
+    // App packet information
+    RtcpAppPacket* m_pobjAppPkt;
+    RtcpFbPacket* m_pobjRtcpFbPkt;
 
-        // XR packet information
-        RtcpXrPacket *m_pobjRtcpXrPkt;
+    // XR packet information
+    RtcpXrPacket* m_pobjRtcpXrPkt;
 
-        /**
-         * It adds RtcpFbPacket pointer to m_objFbPktList
-         */
-        eRTP_STATUS_CODE addFbPacketData(IN RtcpFbPacket *pobjFbPkt);
+    /**
+     * It adds RtcpFbPacket pointer to m_objFbPktList
+     */
+    eRTP_STATUS_CODE addFbPacketData(IN RtcpFbPacket* pobjFbPkt);
 
-    public:
+public:
+    RtcpPacket();
+    ~RtcpPacket();
 
-        RtcpPacket();
-        ~RtcpPacket();
+    /**
+     * get method for m_objSrPktList
+     */
+    std::list<RtcpSrPacket*>& getSrPacketList();
 
-        /**
-         * get method for m_objSrPktList
-         */
-        std::list<RtcpSrPacket *>& getSrPacketList();
+    /**
+     * get method for m_objRrPktList
+     */
+    std::list<RtcpRrPacket*>& getRrPacketList();
 
-        /**
-         * get method for m_objRrPktList
-         */
-        std::list<RtcpRrPacket *>& getRrPacketList();
+    /**
+     * get method for m_objFbPktList
+     */
+    std::list<RtcpFbPacket*>& getFbPacketList();
 
-        /**
-         * get method for m_objFbPktList
-         */
-        std::list<RtcpFbPacket *>& getFbPacketList();
+    /**
+     * get method for m_pobjSdesPkt
+     */
+    RtcpSdesPacket* getSdesPacket();
 
-        /**
-         * get method for m_pobjSdesPkt
-         */
-        RtcpSdesPacket* getSdesPacket();
+    /**
+     * set method for m_pobjSdesPkt
+     */
+    RtpDt_Void setSdesPacketData(IN RtcpSdesPacket* pobjSdesData);
 
-        /**
-         * set method for m_pobjSdesPkt
-         */
-        RtpDt_Void setSdesPacketData(IN RtcpSdesPacket* pobjSdesData);
+    /**
+     * get method for m_pobjByePkt
+     */
+    RtcpByePacket* getByePacket();
 
-        /**
-         * get method for m_pobjByePkt
-         */
-        RtcpByePacket* getByePacket();
+    /**
+     * set method for m_pobjByePkt
+     */
+    RtpDt_Void setByePacketData(IN RtcpByePacket* pobjByePktData);
 
-        /**
-         * set method for m_pobjByePkt
-         */
-        RtpDt_Void setByePacketData(IN RtcpByePacket* pobjByePktData);
+    /**
+     * get method for m_pobjAppPkt
+     */
+    RtcpAppPacket* getAppPacket();
 
-        /**
-         * get method for m_pobjAppPkt
-         */
-        RtcpAppPacket* getAppPacket();
+    /**
+     * set method for m_pobjAppPkt
+     */
+    RtpDt_Void setAppPktData(IN RtcpAppPacket* pobjAppData);
 
-        /**
-         * set method for m_pobjAppPkt
-         */
-        RtpDt_Void setAppPktData(IN RtcpAppPacket* pobjAppData);
+    /**
+     * get method for m_pobjRtcpFbPkt
+     */
+    RtcpFbPacket* getRtcpFbPacket();
 
-        /**
-         * get method for m_pobjRtcpFbPkt
-         */
-        RtcpFbPacket* getRtcpFbPacket();
+    /**
+     * set method for m_pobjRtcpFbPkt
+     */
+    RtpDt_Void setRtcpFbPktData(IN RtcpFbPacket* pobjRtcpFbData);
 
-        /**
-         * set method for m_pobjRtcpFbPkt
-         */
-        RtpDt_Void setRtcpFbPktData(IN RtcpFbPacket* pobjRtcpFbData);
+    /**
+     * It adds RtcpRrPacket pointer to m_objRrPktList
+     */
+    eRTP_STATUS_CODE addRrPacketData(IN RtcpRrPacket* pobjRrPkt);
 
-        /**
-         * It adds RtcpRrPacket pointer to m_objRrPktList
-         */
-        eRTP_STATUS_CODE addRrPacketData(IN RtcpRrPacket *pobjRrPkt);
+    /**
+     * It adds RtcpSrPacket pointer to m_objSrPktList
+     */
+    eRTP_STATUS_CODE addSrPacketData(IN RtcpSrPacket* pobjSrPkt);
 
-        /**
-         * It adds RtcpSrPacket pointer to m_objSrPktList
-         */
-        eRTP_STATUS_CODE addSrPacketData(IN RtcpSrPacket *pobjSrPkt);
+    /**
+     * get method for m_pobjRtcpXrPkt
+     */
+    RtcpXrPacket* getXrPacket();
 
-        /**
-         * get method for m_pobjRtcpXrPkt
-         */
-        RtcpXrPacket* getXrPacket();
+    /**
+     * set method for m_pobjRtcpXrPkt
+     */
+    RtpDt_Void setXrPktData(IN RtcpXrPacket* pobjRtcpXrData);
 
-        /**
-         * set method for m_pobjRtcpXrPkt
-         */
-        RtpDt_Void setXrPktData(IN RtcpXrPacket* pobjRtcpXrData);
+    /**
+     * Decodes and stores the information of the RTCP packet
+     * This function does not allocate memory required for decoding.
+     *
+     * @param   pobjRtcpPktBuf  Memory for the buffer is pre-allocated by caller
+     * @param   usExtHdrLen     RTCP extension header length
+     *
+     * @return  RTP_SUCCESS on successful decoding
+     */
+    eRTP_STATUS_CODE decodeRtcpPacket(IN RtpBuffer* pobjRtcpPktBuf, IN RtpDt_UInt16 usExtHdrLen,
+            IN RtcpConfigInfo* pobjRtcpCfgInfo);
 
-        /**
-         * Decodes and stores the information of the RTCP packet
-         * This function does not allocate memory required for decoding.
-         *
-         * @param   pobjRtcpPktBuf  Memory for the buffer is pre-allocated by caller
-         * @param   usExtHdrLen     RTCP extension header length
-         *
-         * @return  RTP_SUCCESS on successful decoding
-         */
-        eRTP_STATUS_CODE decodeRtcpPacket(IN RtpBuffer* pobjRtcpPktBuf,
-                                     IN RtpDt_UInt16 usExtHdrLen,
-                                     IN RtcpConfigInfo *pobjRtcpCfgInfo);
-
-        /**
-         * Performs the encoding of the RTCP packet.
-         * This function does not allocate memory required for encoding.
-         *
-         * @param pobjRtcpPktBuf    Memory for the buffer is pre-allocated by caller
-         *
-         * @return RTP_SUCCESS on successful encoding
-         */
-        eRTP_STATUS_CODE formRtcpPacket(OUT RtpBuffer* pobjRtcpPktBuf);
+    /**
+     * Performs the encoding of the RTCP packet.
+     * This function does not allocate memory required for encoding.
+     *
+     * @param pobjRtcpPktBuf    Memory for the buffer is pre-allocated by caller
+     *
+     * @return RTP_SUCCESS on successful encoding
+     */
+    eRTP_STATUS_CODE formRtcpPacket(OUT RtpBuffer* pobjRtcpPktBuf);
 
 };  // end of RtcpPacket
 
-#endif    //__RTCP_PACKET_H__
+#endif  //__RTCP_PACKET_H__
 
 /** @}*/

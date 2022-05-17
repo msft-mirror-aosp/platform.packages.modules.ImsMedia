@@ -39,13 +39,12 @@ public:
     virtual bool IsSourceNode();
     virtual void SetConfig(void* config);
     virtual bool IsSameConfig(void* config);
-    virtual void OnDataFromFrontNode(ImsMediaSubType subtype, uint8_t* pData,
-        uint32_t nDataSize, uint32_t nTimestamp, bool bMark, uint32_t nSeqNum,
-        ImsMediaSubType nDataType);
-    virtual void OnMediaDataInd(unsigned char* pData, uint32_t nDataSize,
-        uint32_t nTimestamp, bool bMark, uint16_t nSeqNum,
-        uint32_t nPayloadType, uint32_t nSSRC, bool bExtension, uint16_t nExtensionData);
-    //IRtpDecoderListener
+    virtual void OnDataFromFrontNode(ImsMediaSubType subtype, uint8_t* pData, uint32_t nDataSize,
+            uint32_t nTimestamp, bool bMark, uint32_t nSeqNum, ImsMediaSubType nDataType);
+    virtual void OnMediaDataInd(unsigned char* pData, uint32_t nDataSize, uint32_t nTimestamp,
+            bool bMark, uint16_t nSeqNum, uint32_t nPayloadType, uint32_t nSSRC, bool bExtension,
+            uint16_t nExtensionData);
+    // IRtpDecoderListener
     void OnNumReceivedPacket(uint32_t nNumRtpPacket);
     void SetLocalAddress(const RtpAddress address);
     void SetPeerAddress(const RtpAddress address);

@@ -30,8 +30,7 @@
  * - Child class should implement processEvent() method.
  * - processEvent() method will be called when an event is received.
  */
-class ImsMediaEventHandler
-    : public IImsMediaThread
+class ImsMediaEventHandler : public IImsMediaThread
 {
 private:
     std::list<uint32_t> mListevent;
@@ -49,15 +48,15 @@ private:
 public:
     ImsMediaEventHandler(const char* strName);
     virtual ~ImsMediaEventHandler();
-    static void SendEvent(const char* strEventHandlerName, uint32_t event,
-        uint64_t paramA, uint64_t paramB = 0, uint64_t paramC = 0);
+    static void SendEvent(const char* strEventHandlerName, uint32_t event, uint64_t paramA,
+            uint64_t paramB = 0, uint64_t paramC = 0);
     char* getName();
 
 private:
     void AddEvent(uint32_t event, uint64_t paramA, uint64_t paramB, uint64_t paramC);
-    virtual void processEvent(uint32_t event, uint64_t paramA, uint64_t paramB,
-        uint64_t paramC) = 0;
-    virtual void* run();    //thread method
+    virtual void processEvent(
+            uint32_t event, uint64_t paramA, uint64_t paramB, uint64_t paramC) = 0;
+    virtual void* run();  // thread method
 };
 
 #endif

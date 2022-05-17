@@ -17,7 +17,8 @@
 #ifndef STREAM_SCHEDULER_CALLBACK
 #define STREAM_SCHEDULER_CALLBACK
 
-class StreamSchedulerCallback {
+class StreamSchedulerCallback
+{
 public:
     StreamSchedulerCallback() {}
     virtual ~StreamSchedulerCallback() {}

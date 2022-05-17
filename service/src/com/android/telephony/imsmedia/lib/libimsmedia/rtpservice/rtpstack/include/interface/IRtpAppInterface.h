@@ -21,11 +21,10 @@
 #ifndef __IRTP_APPINTERFACE_H__
 #define __IRTP_APPINTERFACE_H__
 
-
 #include <RtpGlobal.h>
 #include <RtpBuffer.h>
 
-typedef RtpDt_Void (*RTPCB_TIMERHANDLER) (RtpDt_Void *pvTimerId, RtpDt_Void *pvData);
+typedef RtpDt_Void (*RTPCB_TIMERHANDLER)(RtpDt_Void* pvTimerId, RtpDt_Void* pvData);
 
 class RtpSession;
 
@@ -52,32 +51,31 @@ public:
      * @param uiOldSsrc Old SSRC received as part of RTP packets header.
      * @param uiNewSsrc New SSRC received as part of latest RTP packet header.
      */
-    virtual eRtp_Bool rtpSsrcCollisionInd(IN RtpDt_Int32 uiOldSsrc,
-                                            IN RtpDt_Int32 uiNewSsrc)=0;
+    virtual eRtp_Bool rtpSsrcCollisionInd(IN RtpDt_Int32 uiOldSsrc, IN RtpDt_Int32 uiNewSsrc) = 0;
 
     /**
-    * Store appdata that can be used when the call back is called on this object
-    *
-    * @param    pvAppdata pointer to app data which must be stored/associated with the RTP session.
-    */
-    virtual RtpDt_Void setAppdata(IN RtpDt_Void* pvAppdata)=0;
+     * Store appdata that can be used when the call back is called on this object
+     *
+     * @param    pvAppdata pointer to app data which must be stored/associated with the RTP session.
+     */
+    virtual RtpDt_Void setAppdata(IN RtpDt_Void* pvAppdata) = 0;
 
     /**
-    * Get method to fetch app data associated with the RTP session.
-    *
-    * @return   pointer to app associated with the RTP session which was previously set using
-    * setAppdata.
-    *
-    * @see setAppdata
-    */
-    virtual RtpDt_Void* getAppdata()=0;
+     * Get method to fetch app data associated with the RTP session.
+     *
+     * @return   pointer to app associated with the RTP session which was previously set using
+     * setAppdata.
+     *
+     * @see setAppdata
+     */
+    virtual RtpDt_Void* getAppdata() = 0;
 
     /**
      * This Callback function is called by RTP stack when an RTP packet with new SSRC is received.
      *
      * @uiSsrc  SSRC of the member who joined the session.
      */
-    virtual eRtp_Bool rtpNewMemberJoinInd(IN RtpDt_Int32 uiSsrc)=0;
+    virtual eRtp_Bool rtpNewMemberJoinInd(IN RtpDt_Int32 uiSsrc) = 0;
 
     /**
      * Callback function called by RTP stack when a participant has left the conference or
@@ -89,8 +87,8 @@ public:
      *
      * @param uiSsrc    SSRC of the participant.
      */
-    virtual eRtp_Bool rtpMemberLeaveInd(IN eRTP_LEAVE_REASON eLeaveReason,
-                                          IN RtpDt_Int32 uiSsrc)=0;
+    virtual eRtp_Bool rtpMemberLeaveInd(
+            IN eRTP_LEAVE_REASON eLeaveReason, IN RtpDt_Int32 uiSsrc) = 0;
     /**
      * This Callback is called when stack wants to send RTCP packet buffer
      * received to the network node.
@@ -99,7 +97,8 @@ public:
      *
      * @param pobjRtpSession RTP Session which is sending the RTCP packet.
      */
-    virtual eRtp_Bool rtcpPacketSendInd(IN RtpBuffer* pobjRtcpPkt, IN RtpSession *pobjRtpSession)=0;
+    virtual eRtp_Bool rtcpPacketSendInd(
+            IN RtpBuffer* pobjRtcpPkt, IN RtpSession* pobjRtpSession) = 0;
 
     /**
      * This callback is called by RTP Stack when it is forming app packet and the App
@@ -112,16 +111,15 @@ public:
      *
      * @param pobjPayload App Payload Data.
      */
-    virtual eRtp_Bool rtcpAppPayloadReqInd(OUT RtpDt_UInt16 &usSubType,
-                                            OUT RtpDt_UInt32& uiName,
-                                            OUT RtpBuffer* pobjPayload)=0;
+    virtual eRtp_Bool rtcpAppPayloadReqInd(
+            OUT RtpDt_UInt16& usSubType, OUT RtpDt_UInt32& uiName, OUT RtpBuffer* pobjPayload) = 0;
     /**
      * This function is called when RTP Stack is preparing RTCP report block.
      * App need to fill the RTP extension header buffer.
      *
      * @param pobjExtHdrInfo RTP extension header buffer to be filled by the app.
      */
-    virtual  eRtp_Bool getRtpHdrExtInfo(OUT RtpBuffer* pobjExtHdrInfo)=0;
+    virtual eRtp_Bool getRtpHdrExtInfo(OUT RtpBuffer* pobjExtHdrInfo) = 0;
 
     /**
      * This callback is called when receiver has left the rtp session or when the rtp session is
@@ -133,9 +131,8 @@ public:
      *
      * @param usRemotePort RTP port of the participant.
      */
-    virtual eRtp_Bool deleteRcvrInfo(IN RtpDt_UInt32 uiRemoteSsrc,
-                                        IN RtpBuffer *pobjDestAddr,
-                                        IN RtpDt_UInt16 usRemotePort)=0;
+    virtual eRtp_Bool deleteRcvrInfo(IN RtpDt_UInt32 uiRemoteSsrc, IN RtpBuffer* pobjDestAddr,
+            IN RtpDt_UInt16 usRemotePort) = 0;
 
     /**
      * This callback is called when there is any error while processing (packing or parsing)
@@ -143,7 +140,7 @@ public:
      *
      * @param eStatus error enum indicating the error type.
      */
-    virtual eRtp_Bool rtcpTimerHdlErrorInd(IN eRTP_STATUS_CODE eStatus)=0;
+    virtual eRtp_Bool rtcpTimerHdlErrorInd(IN eRTP_STATUS_CODE eStatus) = 0;
 
     /**
      * This callback is called whenever RTP stacks needs to start the timer for sending periodic
@@ -161,22 +158,17 @@ public:
      *
      * @return returns timer-id.
      */
-    virtual RtpDt_Void* RtpStartTimer(IN RtpDt_UInt32 uiDuration,
-                                        IN eRtp_Bool bRepeat,
-                                        IN RTPCB_TIMERHANDLER pfnTimerCb,
-                                        IN RtpDt_Void *pvData)=0;
+    virtual RtpDt_Void* RtpStartTimer(IN RtpDt_UInt32 uiDuration, IN eRtp_Bool bRepeat,
+            IN RTPCB_TIMERHANDLER pfnTimerCb, IN RtpDt_Void* pvData) = 0;
 
     /**
      * This callback is called when the RTCP timer need to be cancelled.
      *
      * @param pTimerId Id of the timer to be stopeed.
      */
-    virtual eRtp_Bool RtpStopTimer(IN RtpDt_Void* pTimerId,
-                                      OUT RtpDt_Void** pUserData)=0;
+    virtual eRtp_Bool RtpStopTimer(IN RtpDt_Void* pTimerId, OUT RtpDt_Void** pUserData) = 0;
 };
 
-
-#endif    //__IRTP_APPINTERFACE_H__
-
+#endif  //__IRTP_APPINTERFACE_H__
 
 /** @}*/

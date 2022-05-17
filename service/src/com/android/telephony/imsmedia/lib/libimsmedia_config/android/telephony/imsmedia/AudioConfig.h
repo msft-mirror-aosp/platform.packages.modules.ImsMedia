@@ -24,20 +24,25 @@
 #include <EvsParams.h>
 #include <AmrParams.h>
 
-namespace android {
+namespace android
+{
 
-namespace telephony {
+namespace telephony
+{
 
-namespace imsmedia {
+namespace imsmedia
+{
 
 /** Native representation of android.telephony.imsmedia.AudioConfig */
 
 /**
  * The class represents RTP (Real Time Control) configuration for audio stream.
  */
-class AudioConfig : public RtpConfig {
+class AudioConfig : public RtpConfig
+{
 public:
-    enum CodecType {
+    enum CodecType
+    {
         /** Adaptive Multi-Rate */
         CODEC_AMR = 1 << 0,
         /** Adaptive Multi-Rate Wide Band */
@@ -55,8 +60,8 @@ public:
     AudioConfig(AudioConfig& config);
     virtual ~AudioConfig();
     AudioConfig& operator=(const AudioConfig& config);
-    bool operator==(const AudioConfig &config) const;
-    bool operator!=(const AudioConfig &config) const;
+    bool operator==(const AudioConfig& config) const;
+    bool operator!=(const AudioConfig& config) const;
     virtual status_t writeToParcel(Parcel* parcel) const;
     virtual status_t readFromParcel(const Parcel* in);
     void setPtimeMillis(const int8_t ptime);

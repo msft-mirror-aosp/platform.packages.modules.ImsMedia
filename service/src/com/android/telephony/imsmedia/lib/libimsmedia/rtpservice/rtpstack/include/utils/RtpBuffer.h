@@ -24,67 +24,68 @@
 #include <RtpGlobal.h>
 
 /**
-* @class    RtpBuffer
-* @brief    It contains buffer with length
-*/
+ * @class    RtpBuffer
+ * @brief    It contains buffer with length
+ */
 class RtpBuffer
 {
-    private:
-        // It holds the length of the buffer
-        RtpDt_UInt32 m_uiLength;
-        // It holds the actual data
-        RtpDt_UChar* m_pBuffer;
-    public:
-        // Constructor
-        RtpBuffer();
+private:
+    // It holds the length of the buffer
+    RtpDt_UInt32 m_uiLength;
+    // It holds the actual data
+    RtpDt_UChar* m_pBuffer;
 
-        /**
-         * Constructor
-         *
-         * @param uiLength Length of the buffer
-         *
-         * @param pBuffer value of the buffer.
-         */
-        RtpBuffer(IN RtpDt_UInt32 uiLength, IN RtpDt_UChar* pBuffer);
+public:
+    // Constructor
+    RtpBuffer();
 
-        // Destructor
-        ~RtpBuffer();
+    /**
+     * Constructor
+     *
+     * @param uiLength Length of the buffer
+     *
+     * @param pBuffer value of the buffer.
+     */
+    RtpBuffer(IN RtpDt_UInt32 uiLength, IN RtpDt_UChar* pBuffer);
 
-        /**
-         * It sets length to the RtpBuffer
-         * @param uiLen     Length of the buffer
-         */
-        RtpDt_Void setLength(IN RtpDt_UInt32 uiLen);
+    // Destructor
+    ~RtpBuffer();
 
-        /**
-         * It gets length from the RtpBuffer
-         *
-         * @return It returns the length
-         */
-        RtpDt_UInt32 getLength();
+    /**
+     * It sets length to the RtpBuffer
+     * @param uiLen     Length of the buffer
+     */
+    RtpDt_Void setLength(IN RtpDt_UInt32 uiLen);
 
-        /**
-         * It creates the buffer and cp input data to it
-         *
-         * @param   pBuff   Input buffer pointer.
-         */
-        RtpDt_Void setBuffer(IN RtpDt_UChar* pBuff);
+    /**
+     * It gets length from the RtpBuffer
+     *
+     * @return It returns the length
+     */
+    RtpDt_UInt32 getLength();
 
-        /**
-         * It gets the value from the RtpBuffer
-         *
-         * @return  It returns the buffer value pointer.
-         */
-        RtpDt_UChar* getBuffer();
+    /**
+     * It creates the buffer and cp input data to it
+     *
+     * @param   pBuff   Input buffer pointer.
+     */
+    RtpDt_Void setBuffer(IN RtpDt_UChar* pBuff);
 
-        /**
-         * Utility function to set buffer information.
-         *
-         * @param uiLength  Length of the buffer
-         *
-         * @param pBuffer   Buffer pointer.
-         */
-        RtpDt_Void setBufferInfo(IN RtpDt_UInt32 uiLength,IN RtpDt_UChar* pBuffer);
+    /**
+     * It gets the value from the RtpBuffer
+     *
+     * @return  It returns the buffer value pointer.
+     */
+    RtpDt_UChar* getBuffer();
+
+    /**
+     * Utility function to set buffer information.
+     *
+     * @param uiLength  Length of the buffer
+     *
+     * @param pBuffer   Buffer pointer.
+     */
+    RtpDt_Void setBufferInfo(IN RtpDt_UInt32 uiLength, IN RtpDt_UChar* pBuffer);
 };
 
 #endif /* _RTP_BUFFER_H_ */

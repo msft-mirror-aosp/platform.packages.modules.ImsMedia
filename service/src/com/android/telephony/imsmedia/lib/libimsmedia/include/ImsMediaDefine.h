@@ -23,7 +23,8 @@
 
 using namespace android::telephony::imsmedia;
 
-enum ImsMediaResult {
+enum ImsMediaResult
+{
     RESULT_SUCCESS = 0,
     RESULT_INVALID_PARAM,
     RESULT_NOT_READY,
@@ -33,7 +34,8 @@ enum ImsMediaResult {
     RESULT_NOT_SUPPORTED,
 };
 
-enum ImsMediaEventType {
+enum ImsMediaEventType
+{
     EVENT_NOTIFY_ERROR,
     EVENT_NOTIFY_FIRST_MEDIA_PACKET_RECEIVED,
     EVENT_NOTIFY_HEADER_EXTENSION_RECEIVED,
@@ -42,7 +44,8 @@ enum ImsMediaEventType {
     EVENT_NOTIFY_JITTER,
 };
 
-enum ImsMediaNotifyType {
+enum ImsMediaNotifyType
+{
     RECV_AUDIO_RX_PACKET_RECEIVED = 0,
     SEND_AUDIO_TX_FIRST_PACKET_SENT = 1,
     ERROR_RTP_TIMEOUT_NO_AUDIO_RX_PACKET,
@@ -65,24 +68,28 @@ enum ImsMediaNotifyType {
     DTMF_KEY_D,
 };
 
-enum ImsMediaStreamType {
+enum ImsMediaStreamType
+{
     STREAM_MODE_RTP_TX,
     STREAM_MODE_RTP_RX,
     STREAM_MODE_RTCP,
 };
 
-enum ImsMediaType {
+enum ImsMediaType
+{
     IMS_MEDIA_AUDIO = 0,
     IMS_MEDIA_VIDEO,
     IMS_MEDIA_TEXT,
 };
 
-enum ImsMediaProtocolType {
+enum ImsMediaProtocolType
+{
     RTP = 0,
     RTCP,
 };
 
-enum ImsMediaSubType {
+enum ImsMediaSubType
+{
     MEDIASUBTYPE_UNDEFINED,
     // rtp payload header + encoded bitstream
     MEDIASUBTYPE_RTPPAYLOAD,
@@ -125,9 +132,9 @@ enum ImsMediaSubType {
     MEDIASUBTYPE_BITSTREAM_EVRC_B,
     MEDIASUBTYPE_BITSTREAM_AMR_WB,
     MEDIASUBTYPE_BITSTREAM_AMR,
-    //rtt bitstream of t.140 format
+    // rtt bitstream of t.140 format
     MEDIASUBTYPE_BITSTREAM_T140,
-    //rtt bitstream of t.140 redundant format
+    // rtt bitstream of t.140 redundant format
     MEDIASUBTYPE_BITSTREAM_T140_RED,
     MEDIASUBTYPE_PCM_DATA,
     MEDIASUBTYPE_PCM_NO_DATA,
@@ -137,7 +144,8 @@ enum ImsMediaSubType {
     MEDIASUBTYPE_MAX
 };
 
-enum ImsMediaAudioMsgRequest {
+enum ImsMediaAudioMsgRequest
+{
     OPEN_SESSION = 101,
     CLOSE_SESSION,
     MODIFY_SESSION,
@@ -149,7 +157,8 @@ enum ImsMediaAudioMsgRequest {
     SET_MEDIA_QUALITY_THRESHOLD,
 };
 
-enum ImsMediaAudioMsgResponse {
+enum ImsMediaAudioMsgResponse
+{
     OPEN_SESSION_SUCCESS = 201,
     OPEN_SESSION_FAILURE,
     MODIFY_SESSION_RESPONSE,
@@ -163,28 +172,35 @@ enum ImsMediaAudioMsgResponse {
     JITTER_IND,
 };
 
-struct EventParamOpenSession {
+struct EventParamOpenSession
+{
 public:
     AudioConfig* mConfig;
     int rtpFd;
     int rtcpFd;
-    EventParamOpenSession(int rtp, int rtcp, AudioConfig* config)
-        : mConfig(config), rtpFd(rtp), rtcpFd(rtcp) {
+    EventParamOpenSession(int rtp, int rtcp, AudioConfig* config) :
+            mConfig(config),
+            rtpFd(rtp),
+            rtcpFd(rtcp)
+    {
     }
 };
 
-struct EventParamDtmf {
+struct EventParamDtmf
+{
 public:
     char digit;
     int duration;
 
-    EventParamDtmf(char dig, int d) {
+    EventParamDtmf(char dig, int d)
+    {
         digit = dig;
         duration = d;
     }
 };
 
-enum eAudioCodecType {
+enum eAudioCodecType
+{
     AUDIO_CODEC_NONE = 0,
     AUDIO_EVRC,
     AUDIO_EVRC_B,
@@ -197,76 +213,86 @@ enum eAudioCodecType {
     AUDIO_MAX,
 };
 
-enum eRTPPyaloadHeaderMode {
+enum eRTPPyaloadHeaderMode
+{
     // evrc mode
     RTPPAYLOADHEADER_MODE_EVRC_BUNDLE = 0,
-    RTPPAYLOADHEADER_MODE_EVRC_COMPACT = 1, // evrc encoder should generate fixed rate stream
+    RTPPAYLOADHEADER_MODE_EVRC_COMPACT = 1,  // evrc encoder should generate fixed rate stream
     RTPPAYLOADHEADER_MODE_EVRC_FREEHEADER = 2,
     // amr mode
-    RTPPAYLOADHEADER_MODE_AMR_OCTETALIGNED = 0, // octet aligned mode
-    RTPPAYLOADHEADER_MODE_AMR_EFFICIENT = 1, // efficient mode
-    // h.264 mode
-    RTPPAYLOADHEADER_MODE_H264_SINGLE_NAL_UNIT = 0, // packet mode 0
-    RTPPAYLOADHEADER_MODE_H264_NON_INTERLEAVED = 1, // packet mode 1
-    // evs mode
-    RTPPAYLOADHEADER_MODE_EVS_COMPACT = 0, // EVS compact format 0
-    RTPPAYLOADHEADER_MODE_EVS_HEADER_FULL = 1, // EVS header-full format 1
+    RTPPAYLOADHEADER_MODE_AMR_OCTETALIGNED = 0,      // octet aligned mode
+    RTPPAYLOADHEADER_MODE_AMR_EFFICIENT = 1,         // efficient mode
+                                                     // h.264 mode
+    RTPPAYLOADHEADER_MODE_H264_SINGLE_NAL_UNIT = 0,  // packet mode 0
+    RTPPAYLOADHEADER_MODE_H264_NON_INTERLEAVED = 1,  // packet mode 1
+                                                     // evs mode
+    RTPPAYLOADHEADER_MODE_EVS_COMPACT = 0,           // EVS compact format 0
+    RTPPAYLOADHEADER_MODE_EVS_HEADER_FULL = 1,       // EVS header-full format 1
     RTPPAYLOADHEADER_MODE_MAX
 };
 
-enum eIPVersion {
+enum eIPVersion
+{
     IPV4,
     IPV6,
 };
 
-enum StreamState {
+enum StreamState
+{
     STATE_NULL,
     STATE_CREATED,
     STATE_RUN,
 };
 
-enum eSocketOpt {
+enum eSocketOpt
+{
     SOCKET_OPT_BASE = 0,
     SOCKET_OPT_IP_QOS = 1,
 };
 
-struct tRtpHeaderExtensionInfo {
+struct tRtpHeaderExtensionInfo
+{
     uint16_t nDefinedByProfile;
     uint16_t nLength;
     uint16_t nExtensionData;
 };
 
-#define MAX_IP_LEN 128
+#define MAX_IP_LEN       128
 #define MAX_REMOTE_POINT 40
 
-class RtpAddress {
+class RtpAddress
+{
 public:
-    RtpAddress(const char* ip = NULL, uint32_t p = 0) {
+    RtpAddress(const char* ip = NULL, uint32_t p = 0)
+    {
         memset(this->ipAddress, 0, MAX_IP_LEN);
-        if (ip != NULL) {
+        if (ip != NULL)
+        {
             std::strncpy(ipAddress, ip, MAX_IP_LEN);
         }
         port = p;
     }
-    ~RtpAddress() {
-    }
-    RtpAddress(const RtpAddress& address) : port(address.port) {
+    ~RtpAddress() {}
+    RtpAddress(const RtpAddress& address) :
+            port(address.port)
+    {
         memset(this->ipAddress, 0, MAX_IP_LEN);
         std::strncpy(this->ipAddress, address.ipAddress, MAX_IP_LEN);
     }
-    RtpAddress& operator=(const RtpAddress& address) {
+    RtpAddress& operator=(const RtpAddress& address)
+    {
         memset(this->ipAddress, 0, MAX_IP_LEN);
         std::strncpy(this->ipAddress, address.ipAddress, MAX_IP_LEN);
         this->port = address.port;
         return *this;
     }
-    bool operator==(const RtpAddress& address) {
-        return (std::strcmp(this->ipAddress, address.ipAddress) == 0
-            && this->port == address.port);
+    bool operator==(const RtpAddress& address)
+    {
+        return (std::strcmp(this->ipAddress, address.ipAddress) == 0 && this->port == address.port);
     }
-    bool operator!=(const RtpAddress& address) {
-        return (std::strcmp(this->ipAddress, address.ipAddress) != 0
-            || this->port != address.port);
+    bool operator!=(const RtpAddress& address)
+    {
+        return (std::strcmp(this->ipAddress, address.ipAddress) != 0 || this->port != address.port);
     }
     char ipAddress[MAX_IP_LEN];
     uint32_t port;

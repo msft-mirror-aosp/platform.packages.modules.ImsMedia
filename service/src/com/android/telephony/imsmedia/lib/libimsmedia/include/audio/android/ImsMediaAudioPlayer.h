@@ -25,7 +25,8 @@
 
 using android::sp;
 
-class ImsMediaAudioPlayer {
+class ImsMediaAudioPlayer
+{
 public:
     ImsMediaAudioPlayer();
     ~ImsMediaAudioPlayer();
@@ -33,17 +34,16 @@ public:
     void SetCodecMode(uint32_t mode);
     bool Start();
     void Stop();
-    bool onDataFrame(uint8_t *buffer, uint32_t size);
+    bool onDataFrame(uint8_t* buffer, uint32_t size);
 
-  private:
+private:
     void openAudioStream();
     void restartAudioStream();
-    static void audioErrorCallback(AAudioStream *stream, void *userData,
-                                   aaudio_result_t error);
+    static void audioErrorCallback(AAudioStream* stream, void* userData, aaudio_result_t error);
 
-    AAudioStream *mAudioStream;
-    AMediaCodec *mCodec;
-    AMediaFormat *mFormat;
+    AAudioStream* mAudioStream;
+    AMediaCodec* mCodec;
+    AMediaFormat* mFormat;
     int32_t mCodecType;
     uint32_t mCodecMode;
     uint32_t mSamplingRate;

@@ -26,24 +26,24 @@
 class ImsMediaCondition
 {
 private:
-    void*    mCond;
-    void*    mMutex;
+    void* mCond;
+    void* mMutex;
     uint32_t mWaitFlag;
     uint32_t mSignalFlag;
     uint32_t mWaitCount;
     uint32_t mSignalCount;
 
 private:
-    ImsMediaCondition(const ImsMediaCondition &objRHS);
-    ImsMediaCondition& operator=(const ImsMediaCondition &objRHS);
+    ImsMediaCondition(const ImsMediaCondition& objRHS);
+    ImsMediaCondition& operator=(const ImsMediaCondition& objRHS);
 
 public:
     ImsMediaCondition();
     ~ImsMediaCondition();
     void wait();
     /*
-    *@param nRelativeTime : unit msec
-    */
+     *@param nRelativeTime : unit msec
+     */
     bool wait_timeout(int64_t nRelativeTime);
     void signal();
     void reset();
@@ -52,4 +52,4 @@ private:
     void IncCount(uint32_t* pnCount);
 };
 
-#endif // IMS_MEDIA_CONDITION_H
+#endif  // IMS_MEDIA_CONDITION_H

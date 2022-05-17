@@ -22,20 +22,25 @@
 #include <binder/Status.h>
 #include <stdint.h>
 
-namespace android {
+namespace android
+{
 
-namespace telephony {
+namespace telephony
+{
 
-namespace imsmedia {
+namespace imsmedia
+{
 
 /** Native representation of android.telephony.imsmedia.AmrParams */
 
 /**
  * The class represents AMR (Adaptive Multi-Rate) codec parameters.
  */
-class AmrParams : public Parcelable {
+class AmrParams : public Parcelable
+{
 public:
-    enum AmrMode {
+    enum AmrMode
+    {
         /** 4.75 kbps for AMR / 6.6 kbps for AMR-WB */
         AMR_MODE_0,
         /** 5.15 kbps for AMR / 8.855 kbps for AMR-WB */

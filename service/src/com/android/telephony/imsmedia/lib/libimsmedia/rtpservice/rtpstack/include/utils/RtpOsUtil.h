@@ -29,47 +29,47 @@
  */
 class RtpOsUtil
 {
-    private:
-        RtpOsUtil();
-        ~RtpOsUtil();
+private:
+    RtpOsUtil();
+    ~RtpOsUtil();
 
-    public:
-        /**
-         * It gets the Ntp time stamp
-         *
-         * @param pstNtpTime    Calculated NTP Timestamp
-         */
-        static RtpDt_Void  GetNtpTime(tRTP_NTP_TIME *pstNtpTime);
+public:
+    /**
+     * It gets the Ntp time stamp
+     *
+     * @param pstNtpTime    Calculated NTP Timestamp
+     */
+    static RtpDt_Void GetNtpTime(tRTP_NTP_TIME* pstNtpTime);
 
-        /**
-         *  Initializes pseudo-random number generator using system time as seed
-         */
-        static RtpDt_Void Srand();
+    /**
+     *  Initializes pseudo-random number generator using system time as seed
+     */
+    static RtpDt_Void Srand();
 
-        /**
-         * Generates a pseudo-random integral number using a new seed.
-         *
-         * @return Random number
-         */
-        static RtpDt_UInt32 Rand();
+    /**
+     * Generates a pseudo-random integral number using a new seed.
+     *
+     * @return Random number
+     */
+    static RtpDt_UInt32 Rand();
 
-        /**
-         * converts the unsigned integer from network byte order to host byte order.
-         *
-         * @param uiNetlong Network byte order number
-         * @return host byte order converted number
-         */
-        static RtpDt_UInt32 Ntohl(RtpDt_UInt32 uiNetlong);
+    /**
+     * converts the unsigned integer from network byte order to host byte order.
+     *
+     * @param uiNetlong Network byte order number
+     * @return host byte order converted number
+     */
+    static RtpDt_UInt32 Ntohl(RtpDt_UInt32 uiNetlong);
 
-        /**
-         * It returns Random number between 0 and 1
-         *
-         * @return Generated random fraction
-         */
-        static RtpDt_Double RRand();
+    /**
+     * It returns Random number between 0 and 1
+     *
+     * @return Generated random fraction
+     */
+    static RtpDt_Double RRand();
 
-}; // end RtpOsUtil
+};  // end RtpOsUtil
 
-#endif // _RtpOsUtil_h_
+#endif  // _RtpOsUtil_h_
 
 /** @}*/

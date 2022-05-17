@@ -24,10 +24,10 @@
  * Preconditions        : None
  * Side Effects            : None
  ********************************************************/
-RtpStackProfile::RtpStackProfile():
-                m_uiRtcpSessionBw(RTP_DEF_RTCP_BW_SIZE),
-                m_uiMTUSize(RTP_CONF_MTU_SIZE),
-                m_uiTermNum(RTP_ZERO)
+RtpStackProfile::RtpStackProfile() :
+        m_uiRtcpSessionBw(RTP_DEF_RTCP_BW_SIZE),
+        m_uiMTUSize(RTP_CONF_MTU_SIZE),
+        m_uiTermNum(RTP_ZERO)
 {
 }
 
@@ -39,9 +39,7 @@ RtpStackProfile::RtpStackProfile():
  * Preconditions        : None
  * Side Effects            : None
  ********************************************************/
-RtpStackProfile::~RtpStackProfile()
-{
-}
+RtpStackProfile::~RtpStackProfile() {}
 
 /*********************************************************
  * Function name        : setRtcpBw

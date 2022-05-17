@@ -17,46 +17,54 @@
 #include <SocketWriterNode.h>
 #include <ImsMediaTrace.h>
 
-SocketWriterNode::SocketWriterNode() {
+SocketWriterNode::SocketWriterNode()
+{
     mSocket = NULL;
     mbSocketOpened = false;
     mDisableSocket = false;
 }
 
-SocketWriterNode::~SocketWriterNode() {
-    if (mSocket != NULL) {
+SocketWriterNode::~SocketWriterNode()
+{
+    if (mSocket != NULL)
+    {
         Stop();
     }
 }
 
-BaseNode* SocketWriterNode::GetInstance() {
+BaseNode* SocketWriterNode::GetInstance()
+{
     return new SocketWriterNode();
 }
 
-void SocketWriterNode::ReleaseInstance(BaseNode* pNode) {
+void SocketWriterNode::ReleaseInstance(BaseNode* pNode)
+{
     delete (SocketWriterNode*)pNode;
 }
 
-BaseNodeID SocketWriterNode::GetNodeID() {
+BaseNodeID SocketWriterNode::GetNodeID()
+{
     return BaseNodeID::NODEID_SOCKETWRITER;
 }
 
-ImsMediaResult SocketWriterNode::Start() {
+ImsMediaResult SocketWriterNode::Start()
+{
     IMLOGD0("[Start]");
-    mSocket = ISocket::GetInstance(mLocalAddress.port,
-        mPeerAddress.ipAddress, mPeerAddress.port);
+    mSocket = ISocket::GetInstance(mLocalAddress.port, mPeerAddress.ipAddress, mPeerAddress.port);
 
-    if (mSocket == NULL) {
+    if (mSocket == NULL)
+    {
         IMLOGE0("[Start] can't create socket instance");
         mbSocketOpened = false;
         return RESULT_NOT_READY;
     }
 
-    //set local/peer address here
+    // set local/peer address here
     mSocket->SetLocalEndpoint(mLocalAddress.ipAddress, mLocalAddress.port);
     mSocket->SetPeerEndpoint(mPeerAddress.ipAddress, mPeerAddress.port);
 
-    if (mSocket->Open(mLocalFd) == false) {
+    if (mSocket->Open(mLocalFd) == false)
+    {
         IMLOGE0("[Start] can't open socket");
         mbSocketOpened = false;
         return RESULT_PORT_UNAVAILABLE;
@@ -67,9 +75,11 @@ ImsMediaResult SocketWriterNode::Start() {
     return RESULT_SUCCESS;
 }
 
-void SocketWriterNode::Stop() {
+void SocketWriterNode::Stop()
+{
     IMLOGD0("[Stop]");
-    if (mSocket != NULL) {
+    if (mSocket != NULL)
+    {
         mSocket->Close();
         ISocket::ReleaseInstance(mSocket);
         mSocket = NULL;
@@ -78,72 +88,86 @@ void SocketWriterNode::Stop() {
     mNodeState = NODESTATE_STOPPED;
 }
 
-bool SocketWriterNode::IsRunTime() {
+bool SocketWriterNode::IsRunTime()
+{
     return true;
 }
 
-bool SocketWriterNode::IsSourceNode() {
+bool SocketWriterNode::IsSourceNode()
+{
     return true;
 }
 
-void SocketWriterNode::SetConfig(void* config) {
-    if (config == NULL) return;
+void SocketWriterNode::SetConfig(void* config)
+{
+    if (config == NULL)
+        return;
     RtpConfig* pConfig = reinterpret_cast<RtpConfig*>(config);
-    if (mProtocolType == RTP) {
+    if (mProtocolType == RTP)
+    {
         mPeerAddress = RtpAddress(pConfig->getRemoteAddress().c_str(), pConfig->getRemotePort());
-    } else if (mProtocolType == RTCP) {
-        mPeerAddress = RtpAddress(pConfig->getRemoteAddress().c_str(),
-            pConfig->getRemotePort() + 1);
+    }
+    else if (mProtocolType == RTCP)
+    {
+        mPeerAddress =
+                RtpAddress(pConfig->getRemoteAddress().c_str(), pConfig->getRemotePort() + 1);
     }
 }
 
-bool SocketWriterNode::IsSameConfig(void* config) {
-    if (config == NULL) return true;
+bool SocketWriterNode::IsSameConfig(void* config)
+{
+    if (config == NULL)
+        return true;
     RtpConfig* pConfig = reinterpret_cast<RtpConfig*>(config);
     RtpAddress peerAddress;
 
-    if (mProtocolType == RTP) {
-        peerAddress = RtpAddress(pConfig->getRemoteAddress().c_str(),
-            pConfig->getRemotePort());
-    } else if (mProtocolType == RTCP) {
-        peerAddress = RtpAddress(pConfig->getRemoteAddress().c_str(),
-            pConfig->getRemotePort() + 1);
+    if (mProtocolType == RTP)
+    {
+        peerAddress = RtpAddress(pConfig->getRemoteAddress().c_str(), pConfig->getRemotePort());
+    }
+    else if (mProtocolType == RTCP)
+    {
+        peerAddress = RtpAddress(pConfig->getRemoteAddress().c_str(), pConfig->getRemotePort() + 1);
     }
 
     return (mPeerAddress == peerAddress);
 }
 
-void SocketWriterNode::OnDataFromFrontNode(ImsMediaSubType subtype,
-    uint8_t* pData, uint32_t nDataSize, uint32_t nTimestamp, bool bMark, uint32_t nSeqNum,
-    ImsMediaSubType nDataType) {
+void SocketWriterNode::OnDataFromFrontNode(ImsMediaSubType subtype, uint8_t* pData,
+        uint32_t nDataSize, uint32_t nTimestamp, bool bMark, uint32_t nSeqNum,
+        ImsMediaSubType nDataType)
+{
     (void)nDataType;
     (void)bMark;
 
-    if (mDisableSocket == true
-        && subtype != MEDIASUBTYPE_RTCPPACKET_BYE) {
+    if (mDisableSocket == true && subtype != MEDIASUBTYPE_RTCPPACKET_BYE)
+    {
         IMLOGW3("[OnDataFromFrontNode] mediatype[%d] subtype[%d] socket is disabled, bytes[%d]",
-            mMediaType, subtype, nDataSize);
+                mMediaType, subtype, nDataSize);
     }
 
-    IMLOGD_PACKET3(IM_PACKET_LOG_SOCKET,
-        "[OnDataFromFrontNode] TS[%d], SeqNum[%u], size[%u]",
-        nTimestamp, nSeqNum, nDataSize);
+    IMLOGD_PACKET3(IM_PACKET_LOG_SOCKET, "[OnDataFromFrontNode] TS[%d], SeqNum[%u], size[%u]",
+            nTimestamp, nSeqNum, nDataSize);
 
-    if (mSocket == NULL) {
+    if (mSocket == NULL)
+    {
         return;
     }
 
     mSocket->SendTo(pData, nDataSize);
 }
 
-void SocketWriterNode::SetLocalFd(int fd) {
+void SocketWriterNode::SetLocalFd(int fd)
+{
     mLocalFd = fd;
 }
 
-void SocketWriterNode::SetLocalAddress(const RtpAddress address) {
+void SocketWriterNode::SetLocalAddress(const RtpAddress address)
+{
     mLocalAddress = address;
 }
 
-void SocketWriterNode::SetPeerAddress(const RtpAddress address) {
+void SocketWriterNode::SetPeerAddress(const RtpAddress address)
+{
     mPeerAddress = address;
 }

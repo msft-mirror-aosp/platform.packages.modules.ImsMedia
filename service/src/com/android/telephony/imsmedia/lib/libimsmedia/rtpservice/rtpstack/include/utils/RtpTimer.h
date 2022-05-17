@@ -21,16 +21,17 @@
 
 typedef void* hTimerHandler;
 typedef void (*fn_TimerCb)(hTimerHandler hTimer, void* pUserData);
-struct IMNtpTime{
+struct IMNtpTime
+{
     uint32_t ntpHigh32Bits;
     uint32_t ntpLow32Bits;
 };
 
-
-class RtpTimer {
+class RtpTimer
+{
 public:
-    static hTimerHandler TimerStart(uint32_t nDuration, bool bRepeat,
-        fn_TimerCb pTimerCb, void* pUserData);
+    static hTimerHandler TimerStart(
+            uint32_t nDuration, bool bRepeat, fn_TimerCb pTimerCb, void* pUserData);
     static bool TimerStop(hTimerHandler hTimer, void** ppUserData);
 };
 

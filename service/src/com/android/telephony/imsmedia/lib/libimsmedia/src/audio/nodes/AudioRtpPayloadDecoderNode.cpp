@@ -19,27 +19,33 @@
 #include <ImsMediaTrace.h>
 #include <AudioConfig.h>
 
-AudioRtpPayloadDecoderNode::AudioRtpPayloadDecoderNode() {
+AudioRtpPayloadDecoderNode::AudioRtpPayloadDecoderNode()
+{
     mPrevCMR = 15;
 }
 
-AudioRtpPayloadDecoderNode::~AudioRtpPayloadDecoderNode() {
+AudioRtpPayloadDecoderNode::~AudioRtpPayloadDecoderNode()
+{
     std::lock_guard<std::mutex> guard(mMutexExit);
 }
 
-BaseNode* AudioRtpPayloadDecoderNode::GetInstance() {
+BaseNode* AudioRtpPayloadDecoderNode::GetInstance()
+{
     return new AudioRtpPayloadDecoderNode();
 }
 
-void AudioRtpPayloadDecoderNode::ReleaseInstance(BaseNode* pNode) {
+void AudioRtpPayloadDecoderNode::ReleaseInstance(BaseNode* pNode)
+{
     delete (AudioRtpPayloadDecoderNode*)pNode;
 }
 
-BaseNodeID AudioRtpPayloadDecoderNode::GetNodeID() {
+BaseNodeID AudioRtpPayloadDecoderNode::GetNodeID()
+{
     return BaseNodeID::NODEID_RTPPAYLOAD_DECODER_AUDIO;
 }
 
-ImsMediaResult AudioRtpPayloadDecoderNode::Start() {
+ImsMediaResult AudioRtpPayloadDecoderNode::Start()
+{
     IMLOGD0("[Start]");
     std::lock_guard<std::mutex> guard(mMutexExit);
     mPrevCMR = 15;
@@ -47,38 +53,46 @@ ImsMediaResult AudioRtpPayloadDecoderNode::Start() {
     return RESULT_SUCCESS;
 }
 
-void AudioRtpPayloadDecoderNode::Stop() {
+void AudioRtpPayloadDecoderNode::Stop()
+{
     IMLOGD0("[Stop]");
     std::lock_guard<std::mutex> guard(mMutexExit);
     mNodeState = NODESTATE_STOPPED;
 }
 
-bool AudioRtpPayloadDecoderNode::IsRunTime() {
+bool AudioRtpPayloadDecoderNode::IsRunTime()
+{
     return true;
 }
 
-bool AudioRtpPayloadDecoderNode::IsSourceNode() {
+bool AudioRtpPayloadDecoderNode::IsSourceNode()
+{
     return false;
 }
 
-void AudioRtpPayloadDecoderNode::SetConfig(void* config) {
-    AudioConfig *pConfig = reinterpret_cast<AudioConfig*>(config);
-    if (pConfig != NULL) {
+void AudioRtpPayloadDecoderNode::SetConfig(void* config)
+{
+    AudioConfig* pConfig = reinterpret_cast<AudioConfig*>(config);
+    if (pConfig != NULL)
+    {
         SetCodec(pConfig->getCodecType());
-        if (mCodecType == AUDIO_AMR || mCodecType == AUDIO_AMR_WB) {
+        if (mCodecType == AUDIO_AMR || mCodecType == AUDIO_AMR_WB)
+        {
             SetPayloadMode(pConfig->getAmrParams().getOctetAligned());
         }
     }
 }
 
-void AudioRtpPayloadDecoderNode::OnDataFromFrontNode(ImsMediaSubType subtype,
-    uint8_t* pData, uint32_t nDataSize, uint32_t nTimestamp, bool bMark,
-    uint32_t nSeqNum, ImsMediaSubType nDataType) {
+void AudioRtpPayloadDecoderNode::OnDataFromFrontNode(ImsMediaSubType subtype, uint8_t* pData,
+        uint32_t nDataSize, uint32_t nTimestamp, bool bMark, uint32_t nSeqNum,
+        ImsMediaSubType nDataType)
+{
     (void)subtype;
-    switch (mCodecType) {
+    switch (mCodecType)
+    {
         case AUDIO_EVRC:
         case AUDIO_EVRC_B:
-            //Decode_PH_EVRCB(pData, nDataSize, nTimestamp, bMark, nSeqNum);
+            // Decode_PH_EVRCB(pData, nDataSize, nTimestamp, bMark, nSeqNum);
             break;
         case AUDIO_AMR:
         case AUDIO_AMR_WB:
@@ -86,22 +100,24 @@ void AudioRtpPayloadDecoderNode::OnDataFromFrontNode(ImsMediaSubType subtype,
             break;
         case AUDIO_G711_PCMU:
         case AUDIO_G711_PCMA:
-            SendDataToRearNode(MEDIASUBTYPE_RTPPAYLOAD,
-                pData, nDataSize, nTimestamp, bMark, nSeqNum);
+            SendDataToRearNode(
+                    MEDIASUBTYPE_RTPPAYLOAD, pData, nDataSize, nTimestamp, bMark, nSeqNum);
             break;
         case AUDIO_EVS:
-            //Decode_PH_EVS(pData, nDataSize, nTimestamp, bMark, nSeqNum);
+            // Decode_PH_EVS(pData, nDataSize, nTimestamp, bMark, nSeqNum);
             break;
         default:
             IMLOGE1("[OnDataFromFrontNode] invalid codec type[%d]", mCodecType);
-            SendDataToRearNode(MEDIASUBTYPE_RTPPAYLOAD, pData, nDataSize, nTimestamp,
-                bMark, nSeqNum, nDataType);
+            SendDataToRearNode(MEDIASUBTYPE_RTPPAYLOAD, pData, nDataSize, nTimestamp, bMark,
+                    nSeqNum, nDataType);
             break;
     }
 }
 
-void AudioRtpPayloadDecoderNode::SetCodec(int32_t type) {
-    switch (type) {
+void AudioRtpPayloadDecoderNode::SetCodec(int32_t type)
+{
+    switch (type)
+    {
         case AudioConfig::CODEC_AMR:
             mCodecType = AUDIO_AMR;
             break;
@@ -122,16 +138,18 @@ void AudioRtpPayloadDecoderNode::SetCodec(int32_t type) {
     }
 }
 
-void AudioRtpPayloadDecoderNode::SetPayloadMode(bool mode) {
+void AudioRtpPayloadDecoderNode::SetPayloadMode(bool mode)
+{
     IMLOGD1("[SetPayloadMode] mode[%d]", mode);
     mOctetAligned = mode;
 }
 
-void AudioRtpPayloadDecoderNode::Decode_PH_AMR(uint8_t* pData,
-    uint32_t nDataSize, uint32_t nTimestamp, bool bMark, uint32_t nSeqNum) {
+void AudioRtpPayloadDecoderNode::Decode_PH_AMR(
+        uint8_t* pData, uint32_t nDataSize, uint32_t nTimestamp, bool bMark, uint32_t nSeqNum)
+{
     (void)bMark;
     uint32_t timestamp = nTimestamp;
-    static std::list<uint32_t> listFrameType;    // defined as static variable for memory management
+    static std::list<uint32_t> listFrameType;  // defined as static variable for memory management
     uint32_t eRate;
     uint32_t f;
     uint32_t cmr;
@@ -140,75 +158,87 @@ void AudioRtpPayloadDecoderNode::Decode_PH_AMR(uint8_t* pData,
     std::lock_guard<std::mutex> guard(mMutexExit);
 
     IMLOGD_PACKET4(IM_PACKET_LOG_PH,
-        "[Decode_PH_AMR] GetCodectype[%d], octetAligned[%d], nSeqNum[%d], timestamp[%u]",
-        mCodecType, mOctetAligned, nSeqNum, timestamp);
+            "[Decode_PH_AMR] GetCodectype[%d], octetAligned[%d], nSeqNum[%d], timestamp[%u]",
+            mCodecType, mOctetAligned, nSeqNum, timestamp);
 
     mBitReader.SetBuffer(pData, nDataSize);
     // read cmr
     cmr = mBitReader.Read(4);
 
-    if (mOctetAligned == true) {
+    if (mOctetAligned == true)
+    {
         mBitReader.Read(4);
     }
 
-    if (cmr != 15 && cmr != mPrevCMR) {
-        if ((mCodecType == AUDIO_AMR && cmr <= 7) || (mCodecType == AUDIO_AMR_WB && cmr <= 8)) {
+    if (cmr != 15 && cmr != mPrevCMR)
+    {
+        if ((mCodecType == AUDIO_AMR && cmr <= 7) || (mCodecType == AUDIO_AMR_WB && cmr <= 8))
+        {
             IMLOGD2("[Decode_PH_AMR] CMR %d->%d", mPrevCMR, cmr);
-            //send internal event to operate cmr operation in encoder side
+            // send internal event to operate cmr operation in encoder side
             mPrevCMR = cmr;
-        } else {
+        }
+        else
+        {
             IMLOGE1("[Decode_PH_AMR] invalid cmr value %d", cmr);
         }
     }
-    else if (cmr == 15) {
-        //send internal event to operate cmr operation in encoder side
-    } else {
+    else if (cmr == 15)
+    {
+        // send internal event to operate cmr operation in encoder side
+    }
+    else
+    {
         IMLOGE0("[Decode_PH_AMR] Can't find Highest Negotiated Mode in negotiated mode-set");
     }
 
     // get num of frame
-    do {
-        f = mBitReader.Read(1);   // f(1)
-        eRate = mBitReader.Read(4);   // ft(4)
-        QbitPos = mBitReader.Read(1);   // q(2)
-        IMLOGD_PACKET2(IM_PACKET_LOG_PH,
-            "[Decode_PH_AMR] f[%d], ft[%d]", f, eRate);
+    do
+    {
+        f = mBitReader.Read(1);        // f(1)
+        eRate = mBitReader.Read(4);    // ft(4)
+        QbitPos = mBitReader.Read(1);  // q(2)
+        IMLOGD_PACKET2(IM_PACKET_LOG_PH, "[Decode_PH_AMR] f[%d], ft[%d]", f, eRate);
         listFrameType.push_back(eRate);
-        if (mOctetAligned == true) {
-            mBitReader.Read(2);   //padding
+        if (mOctetAligned == true)
+        {
+            mBitReader.Read(2);  // padding
         }
-    }
-    while (f == 1);
+    } while (f == 1);
 
-    IMLOGD3("[Decode_PH_AMR] Q_Speech_SID <Q_Speech_SID> f[%d] eRate[%d] QbitPos[%d]",
-        f, eRate, QbitPos); // Q_Speech_SID
+    IMLOGD3("[Decode_PH_AMR] Q_Speech_SID <Q_Speech_SID> f[%d] eRate[%d] QbitPos[%d]", f, eRate,
+            QbitPos);  // Q_Speech_SID
 
     // read speech frames
-    while (listFrameType.size() > 0) {
+    while (listFrameType.size() > 0)
+    {
         uint32_t nDataBitSize;
         uint32_t mode = listFrameType.front();
-        if (mCodecType == AUDIO_AMR) {
+        if (mCodecType == AUDIO_AMR)
+        {
             nDataBitSize = ImsMediaAudioFmt::ConvertAmrModeToBitLen(mode);
-        } else {
+        }
+        else
+        {
             nDataBitSize = ImsMediaAudioFmt::ConvertAmrWbModeToBitLen(mode);
         }
 
         listFrameType.pop_front();
         mBitWriter.SetBuffer(mPayload, MAX_AUDIO_PAYLOAD_SIZE);
-        //set payload header
+        // set payload header
         mBitWriter.Write(f, 1);
         mBitWriter.Write(eRate, 4);
         mBitWriter.Write(QbitPos, 1);
         mBitWriter.Write(0, 2);
         mBitReader.ReadByteBuffer(mPayload + 1, nDataBitSize);
-        //add payload header to payload size
+        // add payload header to payload size
         uint32_t nBufferSize = ((nDataBitSize + 7) >> 3) + 1;
         IMLOGD_PACKET6(IM_PACKET_LOG_PH,
-            "[Decode_PH_AMR] result = %02X %02X %02X %02X, len[%d], eRate[%d]",
-            mPayload[0], mPayload[1], mPayload[2], mPayload[3], nBufferSize, eRate);
+                "[Decode_PH_AMR] result = %02X %02X %02X %02X, len[%d], eRate[%d]", mPayload[0],
+                mPayload[1], mPayload[2], mPayload[3], nBufferSize, eRate);
         // send remaining packet number in bundle as bMark value
-        SendDataToRearNode(MEDIASUBTYPE_RTPPAYLOAD, mPayload, nBufferSize,
-            timestamp, listFrameType.size(), nSeqNum);
+        SendDataToRearNode(MEDIASUBTYPE_RTPPAYLOAD, mPayload, nBufferSize, timestamp,
+                listFrameType.size(), nSeqNum);
 
         timestamp += 20;
     }

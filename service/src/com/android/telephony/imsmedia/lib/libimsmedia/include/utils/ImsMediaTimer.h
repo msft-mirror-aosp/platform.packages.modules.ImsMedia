@@ -21,26 +21,26 @@
 
 typedef void* hTimerHandler;
 typedef void (*fn_TimerCb)(hTimerHandler hTimer, void* pUserData);
-struct IMNtpTime{
+struct IMNtpTime
+{
     uint32_t ntpHigh32Bits;
     uint32_t ntpLow32Bits;
 };
 
-
-class ImsMediaTimer {
+class ImsMediaTimer
+{
 public:
-    static hTimerHandler TimerStart(uint32_t nDuration, bool bRepeat,
-        fn_TimerCb pTimerCb, void* pUserData);
+    static hTimerHandler TimerStart(
+            uint32_t nDuration, bool bRepeat, fn_TimerCb pTimerCb, void* pUserData);
     static bool TimerStop(hTimerHandler hTimer, void** ppUserData);
-    static void GetNtpTime(IMNtpTime *pNtpTime);
+    static void GetNtpTime(IMNtpTime* pNtpTime);
     static uint32_t GetRtpTsFromNtpTs(IMNtpTime* initNtpTimestamp, uint32_t samplingRate);
     static uint32_t GetTimeInMilliSeconds(void);
     static uint64_t GetTimeInMicroSeconds(void);
     static uint32_t GenerateRandom(uint32_t nRange);
     static int32_t Atomic_Inc(int32_t* v);
     static int32_t Atomic_Dec(int32_t* v);
-    static void Sleep(unsigned int t);     // milliseconds
-    static void USleep(unsigned int t); //microseconds
-
+    static void Sleep(unsigned int t);   // milliseconds
+    static void USleep(unsigned int t);  // microseconds
 };
 #endif

@@ -20,37 +20,40 @@
 #include <ImsMediaDataQueue.h>
 #include <mutex>
 
-#define SEQ_ROUND_QUARD 655 // 1% of FFFF
-#define USHORT_SEQ_ROUND_COMPARE(a,b) (((a>=b)&&((b>=SEQ_ROUND_QUARD)\
-||((a<=0xffff-SEQ_ROUND_QUARD))))||((a<=SEQ_ROUND_QUARD)&&(b>=0xffff-SEQ_ROUND_QUARD)))
+#define SEQ_ROUND_QUARD 655  // 1% of FFFF
+#define USHORT_SEQ_ROUND_COMPARE(a, b)                                              \
+    (((a >= b) && ((b >= SEQ_ROUND_QUARD) || ((a <= 0xffff - SEQ_ROUND_QUARD)))) || \
+            ((a <= SEQ_ROUND_QUARD) && (b >= 0xffff - SEQ_ROUND_QUARD)))
 #define TS_ROUND_QUARD 3000
-#define USHORT_TS_ROUND_COMPARE(a,b) (((a>=b)&&((b>=TS_ROUND_QUARD)\
-||((a<=0xffff-TS_ROUND_QUARD))))||((a<=TS_ROUND_QUARD)&&(b>=0xffff-TS_ROUND_QUARD)))
+#define USHORT_TS_ROUND_COMPARE(a, b)                                             \
+    (((a >= b) && ((b >= TS_ROUND_QUARD) || ((a <= 0xffff - TS_ROUND_QUARD)))) || \
+            ((a <= TS_ROUND_QUARD) && (b >= 0xffff - TS_ROUND_QUARD)))
 
 /*!
  *    @class        BaseJitterBuffer
  */
-class BaseJitterBuffer {
+class BaseJitterBuffer
+{
 public:
     BaseJitterBuffer();
     virtual ~BaseJitterBuffer();
     virtual void SetCodecType(uint32_t type);
     virtual void SetJitterBufferSize(uint32_t nInit, uint32_t nMin, uint32_t nMax);
     virtual void SetJitterOptions(uint32_t nReduceTH, uint32_t nStepSize, double zValue,
-        bool bIgnoreSID, bool bImprovement) = 0;
+            bool bIgnoreSID, bool bImprovement) = 0;
     virtual uint32_t GetCount();
     virtual void Reset();
     virtual void Delete();
     virtual void Add(ImsMediaSubType subtype, uint8_t* pbBuffer, uint32_t nBufferSize,
-        uint32_t nTimestamp, bool bMark, uint32_t nSeqNum,
-        ImsMediaSubType nDataType = ImsMediaSubType::MEDIASUBTYPE_UNDEFINED) = 0;
-    virtual bool Get(ImsMediaSubType* psubtype, uint8_t** ppData,
-        uint32_t* pnDataSize, uint32_t* pnTimestamp, bool* pbMark, uint32_t*
-        pnSeqNum, uint32_t* pnChecker = NULL) = 0;
+            uint32_t nTimestamp, bool bMark, uint32_t nSeqNum,
+            ImsMediaSubType nDataType = ImsMediaSubType::MEDIASUBTYPE_UNDEFINED) = 0;
+    virtual bool Get(ImsMediaSubType* psubtype, uint8_t** ppData, uint32_t* pnDataSize,
+            uint32_t* pnTimestamp, bool* pbMark, uint32_t* pnSeqNum,
+            uint32_t* pnChecker = NULL) = 0;
 
 private:
-    BaseJitterBuffer(const BaseJitterBuffer &objRHS);
-    BaseJitterBuffer& operator=(const BaseJitterBuffer &objRHS);
+    BaseJitterBuffer(const BaseJitterBuffer& objRHS);
+    BaseJitterBuffer& operator=(const BaseJitterBuffer& objRHS);
 
 protected:
     uint32_t mCodecType;

@@ -28,7 +28,8 @@
 /**
  * @class BaseStreamGraph
  */
-class BaseStreamGraph {
+class BaseStreamGraph
+{
 protected:
     virtual ImsMediaResult create(void* config) = 0;
     virtual ImsMediaResult update(void* config) = 0;
@@ -40,20 +41,12 @@ protected:
 public:
     BaseStreamGraph(BaseSessionCallback* callback, int localFd = 0);
     virtual ~BaseStreamGraph();
-    void setLocalFd(int localFd) {
-        mLocalFd = localFd;
-    }
-    int getLocalFd() {
-        return mLocalFd;
-    }
+    void setLocalFd(int localFd) { mLocalFd = localFd; }
+    int getLocalFd() { return mLocalFd; }
     virtual ImsMediaResult start();
     virtual ImsMediaResult stop();
-    void setState(StreamState state) {
-        mGraphState = state;
-    }
-    StreamState getState() {
-        return mGraphState;
-    }
+    void setState(StreamState state) { mGraphState = state; }
+    StreamState getState() { return mGraphState; }
     /**
      * @brief Checks StreamGraph has a config is same with argument
      *
@@ -61,10 +54,13 @@ public:
      * @return true The remote IP address and port number is same
      * @return false The remote IP address or port number is not the same
      */
-    virtual bool isSameConfig(RtpConfig* config) {
-        if (mConfig == NULL || config == NULL) return false;
+    virtual bool isSameConfig(RtpConfig* config)
+    {
+        if (mConfig == NULL || config == NULL)
+            return false;
         if (mConfig->getRemoteAddress() == config->getRemoteAddress() &&
-            mConfig->getRemotePort() == config->getRemotePort()) {
+                mConfig->getRemotePort() == config->getRemotePort())
+        {
             return true;
         }
         return false;

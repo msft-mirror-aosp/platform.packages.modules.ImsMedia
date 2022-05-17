@@ -25,7 +25,8 @@ const int8_t kChannelAwareMode = 3;
 const bool kUseHeaderFullOnlyOnTx = false;
 const bool kUseHeaderFullOnlyOnRx = false;
 
-TEST(EvsParamsTest, TestGetterSetter) {
+TEST(EvsParamsTest, TestGetterSetter)
+{
     EvsParams* param = new EvsParams();
     param->setEvsBandwidth(kEvsBandwidth);
     param->setEvsMode(kEvsMode);
@@ -39,7 +40,8 @@ TEST(EvsParamsTest, TestGetterSetter) {
     delete param;
 }
 
-TEST(EvsParamsTest, TestParcel) {
+TEST(EvsParamsTest, TestParcel)
+{
     EvsParams* param = new EvsParams();
     param->setEvsBandwidth(kEvsBandwidth);
     param->setEvsMode(kEvsMode);
@@ -59,7 +61,8 @@ TEST(EvsParamsTest, TestParcel) {
     delete param2;
 }
 
-TEST(EvsParamsTest, TestAssign) {
+TEST(EvsParamsTest, TestAssign)
+{
     EvsParams param;
     param.setEvsBandwidth(kEvsBandwidth);
     param.setEvsMode(kEvsMode);
@@ -72,7 +75,8 @@ TEST(EvsParamsTest, TestAssign) {
     EXPECT_EQ(param, param2);
 }
 
-TEST(EvsParamsTest, TestEqual) {
+TEST(EvsParamsTest, TestEqual)
+{
     EvsParams* param = new EvsParams();
     param->setEvsBandwidth(kEvsBandwidth);
     param->setEvsMode(kEvsMode);
@@ -92,7 +96,8 @@ TEST(EvsParamsTest, TestEqual) {
     delete param2;
 }
 
-TEST(EvsParamsTest, TestNotEqual) {
+TEST(EvsParamsTest, TestNotEqual)
+{
     EvsParams* param = new EvsParams();
     param->setEvsBandwidth(kEvsBandwidth);
     param->setEvsMode(kEvsMode);

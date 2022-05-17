@@ -23,10 +23,11 @@
 #include <ImsMediaTimer.h>
 #include <mutex>
 
-#define BLOCK_LENGTH_STATISTICS 40
+#define BLOCK_LENGTH_STATISTICS   40
 #define BLOCK_LENGTH_VOIP_METRICS 36
 
-class RtcpEncoderNode : public BaseNode, public IRtcpEncoderListener {
+class RtcpEncoderNode : public BaseNode, public IRtcpEncoderListener
+{
 private:
     RtcpEncoderNode();
     ~RtcpEncoderNode();
@@ -46,7 +47,7 @@ public:
     virtual bool IsSourceNode();
     virtual void SetConfig(void* config);
     virtual bool IsSameConfig(void* config);
-    virtual void OnRtcpPacket(unsigned char *pData, uint32_t wLen);
+    virtual void OnRtcpPacket(unsigned char* pData, uint32_t wLen);
     void ProcessTimer();
     void SetLocalAddress(const RtpAddress address);
     void SetPeerAddress(const RtpAddress address);
@@ -63,9 +64,9 @@ private:
     bool mEnableRtcpBye;
     uint32_t mRtcpXrBlockType;
     int32_t mRtcpXrCounter;
-    //ImsMediaBitWriter m_objBitWriter;
+    // ImsMediaBitWriter m_objBitWriter;
     hTimerHandler m_hTimer;
     std::mutex mMutexTimer;
 };
 
-#endif // RTCPENCODERNODE_H_INCLUDED
+#endif  // RTCPENCODERNODE_H_INCLUDED

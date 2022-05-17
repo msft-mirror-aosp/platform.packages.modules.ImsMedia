@@ -28,6 +28,7 @@ class IAudioSourceNode : public BaseNode
 private:
     IAudioSourceNode();
     ~IAudioSourceNode();
+
 public:
     static BaseNode* GetInstance();
     static void ReleaseInstance(BaseNode* pNode);
@@ -40,8 +41,8 @@ public:
     virtual bool IsSameConfig(void* config);
     void SetCodec(int32_t type);
     void SetCodecMode(uint32_t mode);
-    static void CB_AudioUplink(void* pClient, uint8_t* pBitstream, uint32_t pnSize,
-        int64_t pstUsec, uint32_t flag);
+    static void CB_AudioUplink(
+            void* pClient, uint8_t* pBitstream, uint32_t pnSize, int64_t pstUsec, uint32_t flag);
 
 public:
     uint64_t m_uiTimestamp;

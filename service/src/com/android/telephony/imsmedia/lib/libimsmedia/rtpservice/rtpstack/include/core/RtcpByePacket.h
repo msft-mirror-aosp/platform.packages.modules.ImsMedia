@@ -27,58 +27,57 @@
 #include <list>
 
 /**
-* @class    RtcpByePacket
-* @brief    It holds RTCP BYE information. Provides rtcp BYE packet packing and parsing function.
-*/
+ * @class    RtcpByePacket
+ * @brief    It holds RTCP BYE information. Provides rtcp BYE packet packing and parsing function.
+ */
 class RtcpByePacket
 {
-    private:
-        RtcpHeader m_objRtcpHdr;
-        std::list<RtpDt_UInt32 *> m_uiSsrcList;
-        RtpBuffer *m_pReason;
+private:
+    RtcpHeader m_objRtcpHdr;
+    std::list<RtpDt_UInt32*> m_uiSsrcList;
+    RtpBuffer* m_pReason;
 
-    public:
-        RtcpByePacket();
-        ~RtcpByePacket();
+public:
+    RtcpByePacket();
+    ~RtcpByePacket();
 
-        /**
-         *  get method for m_objRtcpHdr
-         */
-        RtcpHeader* getRtcpHdrInfo();
+    /**
+     *  get method for m_objRtcpHdr
+     */
+    RtcpHeader* getRtcpHdrInfo();
 
-        /**
-         * get method for m_uiSsrcList
-         */
-        std::list<RtpDt_UInt32 *>& getSsrcList();
+    /**
+     * get method for m_uiSsrcList
+     */
+    std::list<RtpDt_UInt32*>& getSsrcList();
 
-        /**
-         * get method for m_pReason
-         */
-        RtpBuffer* getReason();
+    /**
+     * get method for m_pReason
+     */
+    RtpBuffer* getReason();
 
-        /**
-         * set method for m_pAppData
-         */
-        RtpDt_Void setReason(IN RtpBuffer* pobjReason);
+    /**
+     * set method for m_pAppData
+     */
+    RtpDt_Void setReason(IN RtpBuffer* pobjReason);
 
-        /**
-         * Decodes and stores the information of the RTCP BYE packet
-         * This function does not allocate memory required for decoding.
-         * @param pucByeBuf received RTCP BYE packet
-         * @param usByeLen length of the RTCP BYE packet
-         */
-        eRTP_STATUS_CODE decodeByePacket(IN RtpDt_UChar* pucByeBuf,
-                                     IN RtpDt_UInt16 usByeLen);
+    /**
+     * Decodes and stores the information of the RTCP BYE packet
+     * This function does not allocate memory required for decoding.
+     * @param pucByeBuf received RTCP BYE packet
+     * @param usByeLen length of the RTCP BYE packet
+     */
+    eRTP_STATUS_CODE decodeByePacket(IN RtpDt_UChar* pucByeBuf, IN RtpDt_UInt16 usByeLen);
 
-        /**
-         * Performs the encoding of the RTCP BYE packet.
-         * This function does not allocate memory required for encoding.
-         * @param pobjRtcpPktBuf Memory for the buffer is pre-allocated by caller
-         */
-        eRTP_STATUS_CODE formByePacket(OUT RtpBuffer* pobjRtcpPktBuf);
+    /**
+     * Performs the encoding of the RTCP BYE packet.
+     * This function does not allocate memory required for encoding.
+     * @param pobjRtcpPktBuf Memory for the buffer is pre-allocated by caller
+     */
+    eRTP_STATUS_CODE formByePacket(OUT RtpBuffer* pobjRtcpPktBuf);
 
-}; // end of RtcpByePacket
+};  // end of RtcpByePacket
 
-#endif    //__RTCP_BYE_PACKET_H__
+#endif  //__RTCP_BYE_PACKET_H__
 
 /** @}*/

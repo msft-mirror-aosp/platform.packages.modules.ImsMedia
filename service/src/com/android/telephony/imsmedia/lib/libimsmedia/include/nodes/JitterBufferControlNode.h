@@ -28,22 +28,20 @@ protected:
 
 public:
     void SetJitterBufferSize(uint32_t nInit, uint32_t nMin, uint32_t nMax);
-    void SetJitterOptions(uint32_t nReduceTH, uint32_t nStepSize,
-        double zValue, bool bIgnoreSID, bool bImprovement);
+    void SetJitterOptions(uint32_t nReduceTH, uint32_t nStepSize, double zValue, bool bIgnoreSID,
+            bool bImprovement);
     void Reset();
     virtual uint32_t GetDataCount();
-    virtual void OnDataFromFrontNode(ImsMediaSubType subtype,
-        uint8_t* pData, uint32_t nDataSize, uint32_t nTimestamp,
-        bool bMark, uint32_t nSeqNum,
-        ImsMediaSubType nDataType = ImsMediaSubType::MEDIASUBTYPE_UNDEFINED);
-    virtual bool GetData(ImsMediaSubType* psubtype, uint8_t** ppData,
-        uint32_t* pnDataSize, uint32_t* pnTimestamp, bool *pbMark, uint32_t* pnSeqNum,
-        ImsMediaSubType* pnDataType);
+    virtual void OnDataFromFrontNode(ImsMediaSubType subtype, uint8_t* pData, uint32_t nDataSize,
+            uint32_t nTimestamp, bool bMark, uint32_t nSeqNum,
+            ImsMediaSubType nDataType = ImsMediaSubType::MEDIASUBTYPE_UNDEFINED);
+    virtual bool GetData(ImsMediaSubType* psubtype, uint8_t** ppData, uint32_t* pnDataSize,
+            uint32_t* pnTimestamp, bool* pbMark, uint32_t* pnSeqNum, ImsMediaSubType* pnDataType);
     virtual void DeleteData();
 
-private :
-    JitterBufferControlNode(const JitterBufferControlNode &objRHS);
-    JitterBufferControlNode& operator=(const JitterBufferControlNode &objRHS);
+private:
+    JitterBufferControlNode(const JitterBufferControlNode& objRHS);
+    JitterBufferControlNode& operator=(const JitterBufferControlNode& objRHS);
 
 protected:
     std::unique_ptr<BaseJitterBuffer> mJitterBuffer;

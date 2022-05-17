@@ -27,8 +27,8 @@
 class ImsMediaSocket : public ISocket
 {
 public:
-    static ImsMediaSocket* GetInstance(uint32_t localPort,
-        const char* peerIpAddress, uint32_t peerPort);
+    static ImsMediaSocket* GetInstance(
+            uint32_t localPort, const char* peerIpAddress, uint32_t peerPort);
     static void ReleaseInstance(ImsMediaSocket* node);
 
 private:
@@ -66,14 +66,14 @@ private:
     static std::mutex sMutexSocketList;
     static std::mutex sMutexSocketMonitorThread;
     static ImsMediaCondition mCondExit;
-    //local end point
+    // local end point
     char mPeerIPBin[MAX_IP_LEN];
     int32_t mSocketFd;
     int32_t mRefCount;
     bool mbReceivingIPFiltering;
     int32_t mToS;
     ISocketListener* mListener;
-    //eSocketClass mSocketClass;
+    // eSocketClass mSocketClass;
     eIPVersion mLocalIPVersion;
     eIPVersion mPeerIPVersion;
     char mLocalIP[MAX_IP_LEN];

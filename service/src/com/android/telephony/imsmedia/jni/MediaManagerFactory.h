@@ -19,13 +19,15 @@
 
 #include <BaseManager.h>
 
-enum IMS_MEDIA_TYPE {
+enum IMS_MEDIA_TYPE
+{
     MEDIA_TYPE_AUDIO = 0,
     MEDIA_TYPE_VIDEO,
     MEDIA_TYPE_RTT,
 };
 
-class MediaManagerFactory {
+class MediaManagerFactory
+{
 private:
     MediaManagerFactory();
     ~MediaManagerFactory();

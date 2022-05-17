@@ -19,35 +19,43 @@
 #include <ImsMediaEventHandler.h>
 #include <string.h>
 
-BaseSession::BaseSession() : mRtpFd(-1), mRtcpFd(-1) {
+BaseSession::BaseSession() :
+        mRtpFd(-1),
+        mRtcpFd(-1)
+{
 }
 
-BaseSession::~BaseSession() {
-}
+BaseSession::~BaseSession() {}
 
-void BaseSession::setSessionId(int sessionId) {
+void BaseSession::setSessionId(int sessionId)
+{
     mSessionId = sessionId;
 }
 
-void BaseSession::setLocalEndPoint(int rtpFd, int rtcpFd) {
+void BaseSession::setLocalEndPoint(int rtpFd, int rtcpFd)
+{
     IMLOGD2("setLocalEndPoint() - rtpFd[%d], rtcpFd[%d]", rtpFd, rtcpFd);
     mRtpFd = rtpFd;
     mRtcpFd = rtcpFd;
 }
 
-int BaseSession::getLocalRtpFd() {
+int BaseSession::getLocalRtpFd()
+{
     return mRtpFd;
 }
 
-int BaseSession::getLocalRtcpFd() {
+int BaseSession::getLocalRtcpFd()
+{
     return mRtcpFd;
 }
 
-void BaseSession::onEvent(ImsMediaEventType type, uint64_t param1, uint64_t param2) {
+void BaseSession::onEvent(ImsMediaEventType type, uint64_t param1, uint64_t param2)
+{
     IMLOGD3("[onEvent] type[%d], param1[%d], param2[%d]", type, param1, param2);
 }
 
-void BaseSession::setMediaQualityThreshold(const MediaQualityThreshold& threshold) {
+void BaseSession::setMediaQualityThreshold(const MediaQualityThreshold& threshold)
+{
     IMLOGD0("[setMediaQualityThreshold]");
     mThreshold = threshold;
 }

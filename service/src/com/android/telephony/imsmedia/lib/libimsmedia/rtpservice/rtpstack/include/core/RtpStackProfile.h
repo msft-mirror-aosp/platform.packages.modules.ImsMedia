@@ -28,48 +28,42 @@
 
 #include <RtpGlobal.h>
 
-
 class RtpStackProfile
 {
-    private:
+private:
+    // Percentage of Bandwidth decidated for RTCP packets. Defaults to RTP_DEF_RTCP_BW_SIZE
+    RtpDt_UInt32 m_uiRtcpSessionBw;
 
-        //Percentage of Bandwidth decidated for RTCP packets. Defaults to RTP_DEF_RTCP_BW_SIZE
-        RtpDt_UInt32     m_uiRtcpSessionBw;
+    /** MTU size will be used for validation. If generated Packet is larger than the
+     * MTU size, send will fail with RTP_MTU_EXCEEDED as return status
+     */
+    RtpDt_UInt32 m_uiMTUSize;
+    // Terminal number. Used in SSRC generation to make it more unique
+    RtpDt_UInt32 m_uiTermNum;
 
-        /** MTU size will be used for validation. If generated Packet is larger than the
-         * MTU size, send will fail with RTP_MTU_EXCEEDED as return status
-         */
-        RtpDt_UInt32 m_uiMTUSize;
-        // Terminal number. Used in SSRC generation to make it more unique
-        RtpDt_UInt32    m_uiTermNum;
+public:
+    // Constructor
+    RtpStackProfile();
+    // Destructor
+    ~RtpStackProfile();
 
-    public:
-        // Constructor
-        RtpStackProfile();
-        // Destructor
-        ~RtpStackProfile();
+    // set method for rtcpBwFraction
+    RtpDt_Void setRtcpBw(IN RtpDt_UInt32 uiRtcpBwFrac);
+    // get method for rtcpBwFraction
+    RtpDt_UInt32 getRtcpBw();
 
-        // set method for rtcpBwFraction
-        RtpDt_Void setRtcpBw(IN RtpDt_UInt32 uiRtcpBwFrac);
-        // get method for rtcpBwFraction
-        RtpDt_UInt32 getRtcpBw();
+    // set method for m_uiMTUSize
+    RtpDt_Void setMtuSize(IN RtpDt_UInt32 uiMtuSize);
+    // get method for m_uiMTUSize
+    RtpDt_UInt32 getMtuSize();
 
-        // set method for m_uiMTUSize
-        RtpDt_Void setMtuSize(IN RtpDt_UInt32 uiMtuSize);
-        // get method for m_uiMTUSize
-        RtpDt_UInt32 getMtuSize();
+    // set method for m_uiTermNum
+    RtpDt_Void setTermNumber(IN RtpDt_UInt32 uiTermNum);
+    // get method for m_uiTermNum
+    RtpDt_UInt32 getTermNumber();
 
-        // set method for m_uiTermNum
-        RtpDt_Void setTermNumber(IN RtpDt_UInt32 uiTermNum);
-        // get method for m_uiTermNum
-        RtpDt_UInt32 getTermNumber();
+};  // end of RtpStackProfile
 
-}; // end of RtpStackProfile
-
-
-
-
-#endif    //__RTP_STACK_PROFILE_H__
-
+#endif  //__RTP_STACK_PROFILE_H__
 
 /** @}*/

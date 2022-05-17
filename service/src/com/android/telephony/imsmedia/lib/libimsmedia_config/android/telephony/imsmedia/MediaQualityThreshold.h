@@ -22,14 +22,18 @@
 #include <binder/Status.h>
 #include <stdint.h>
 
-namespace android {
+namespace android
+{
 
-namespace telephony {
+namespace telephony
+{
 
-namespace imsmedia {
+namespace imsmedia
+{
 
 /** Native representation of android.telephony.imsmedia.MediaQualityThreshold */
-class MediaQualityThreshold : public Parcelable {
+class MediaQualityThreshold : public Parcelable
+{
 public:
     MediaQualityThreshold();
     MediaQualityThreshold(Parcel& in);

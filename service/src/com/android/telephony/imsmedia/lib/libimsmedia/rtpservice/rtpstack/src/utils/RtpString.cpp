@@ -19,13 +19,11 @@
 #include <rtp_trace.h>
 #include <string.h>
 
-RtpDt_UInt32 Rtp_Strlen(const RtpDt_Char *pszStr)
+RtpDt_UInt32 Rtp_Strlen(const RtpDt_Char* pszStr)
 {
-
     if (pszStr == RTP_NULL)
     {
-        RTP_TRACE_WARNING("Rtp_Strlen::pszStr == RTP_NULL",
-                RTP_ZERO,RTP_ZERO);
+        RTP_TRACE_WARNING("Rtp_Strlen::pszStr == RTP_NULL", RTP_ZERO, RTP_ZERO);
         return 0;
     }
 
@@ -40,31 +38,29 @@ RtpDt_UInt32 Rtp_Strlen(const RtpDt_Char *pszStr)
     return nCount;
 }
 
-
-RtpDt_Char* Rtp_Strrchr(RtpDt_Char *pszSrc, RtpDt_Char cChar)
+RtpDt_Char* Rtp_Strrchr(RtpDt_Char* pszSrc, RtpDt_Char cChar)
 {
-    RtpDt_Char *pszDest = RTP_NULL;
+    RtpDt_Char* pszDest = RTP_NULL;
 
     do
     {
         if (*pszSrc == cChar)
-            pszDest = (RtpDt_Char*) pszSrc;
+            pszDest = (RtpDt_Char*)pszSrc;
 
-        if((*pszSrc) ==  RTP_NULL)
+        if ((*pszSrc) == RTP_NULL)
         {
             break;
         }
         pszSrc++;
 
-    }while (1);
+    } while (1);
 
     return (pszDest);
 }
 
-RtpDt_Char* Rtp_StripFileName(RtpDt_Char *pcFileName)
+RtpDt_Char* Rtp_StripFileName(RtpDt_Char* pcFileName)
 {
-
-    RtpDt_Char *pcTemp = Rtp_Strrchr(pcFileName,'/');
+    RtpDt_Char* pcTemp = Rtp_Strrchr(pcFileName, '/');
     if (pcTemp)
     {
         pcTemp++;

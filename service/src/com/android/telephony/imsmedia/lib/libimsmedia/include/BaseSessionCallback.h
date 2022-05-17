@@ -19,11 +19,13 @@
 
 #include <ImsMediaDefine.h>
 
-class BaseSessionCallback {
+class BaseSessionCallback
+{
 public:
     BaseSessionCallback() {}
     virtual ~BaseSessionCallback() {}
-    virtual void SendEvent(ImsMediaEventType type, uint64_t param1 = 0, uint64_t param2 = 0) {
+    virtual void SendEvent(ImsMediaEventType type, uint64_t param1 = 0, uint64_t param2 = 0)
+    {
         onEvent(type, param1, param2);
     }
 

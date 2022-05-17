@@ -28,58 +28,56 @@
 #include <RtcpChunk.h>
 
 /**
-* @class    RtcpSdesPacket
-* @brief    It holds sdes packet information
-*/
+ * @class    RtcpSdesPacket
+ * @brief    It holds sdes packet information
+ */
 class RtcpSdesPacket
 {
-    private:
-        // Rtcp header. m_uiSsrc member of m_objRtcpHdr is not applicable to SDES packet.
-        RtcpHeader m_objRtcpHdr;
+private:
+    // Rtcp header. m_uiSsrc member of m_objRtcpHdr is not applicable to SDES packet.
+    RtcpHeader m_objRtcpHdr;
 
-        // List of SDES chunks (RtcpChunk)
-        std::list<RtcpChunk *> m_objSdesChunkList;
+    // List of SDES chunks (RtcpChunk)
+    std::list<RtcpChunk*> m_objSdesChunkList;
 
-    public:
+public:
+    RtcpSdesPacket();
 
-        RtcpSdesPacket();
+    ~RtcpSdesPacket();
 
-        ~RtcpSdesPacket();
+    /**
+     * get method for m_objRtcpHdr
+     */
+    RtcpHeader* getRtcpHdrInfo();
 
-        /**
-         * get method for m_objRtcpHdr
-         */
-        RtcpHeader* getRtcpHdrInfo();
+    /**
+     * get method for m_objSdesChunkList
+     */
+    std::list<RtcpChunk*>& getSdesChunkList();
 
-        /**
-         * get method for m_objSdesChunkList
-         */
-        std::list<RtcpChunk *>& getSdesChunkList();
+    /**
+     * Decodes and stores the information of the RTCP SDES packet
+     * This function does not allocate memory required for decoding.
+     *
+     * @param[in] pucSdesBuf RTCP SDES packet buffer
+     * @param[in] usSdesLen length of the SDES RTCP packet
+     * @return RTP_SUCCESS on successful decoding
+     */
+    eRTP_STATUS_CODE decodeSdesPacket(IN RtpDt_UChar* pucSdesBuf, IN RtpDt_UInt16 usSdesLen,
+            IN RtcpConfigInfo* pobjRtcpCfgInfo);
 
-        /**
-         * Decodes and stores the information of the RTCP SDES packet
-         * This function does not allocate memory required for decoding.
-         *
-         * @param[in] pucSdesBuf RTCP SDES packet buffer
-         * @param[in] usSdesLen length of the SDES RTCP packet
-         * @return RTP_SUCCESS on successful decoding
-         */
-        eRTP_STATUS_CODE decodeSdesPacket(IN RtpDt_UChar* pucSdesBuf,
-                           IN RtpDt_UInt16 usSdesLen,
-                           IN RtcpConfigInfo *pobjRtcpCfgInfo);
+    /**
+     * Performs the encoding of the RTCP SDES packet.
+     * This function does not allocate memory required for encoding.
+     *
+     * @param[out] pobjRtcpPktBuf Memory for the buffer is pre-allocated by caller
+     *
+     * @return RTP_SUCCESS on successful encoding
+     */
+    eRTP_STATUS_CODE formSdesPacket(OUT RtpBuffer* pobjRtcpPktBuf);
 
-        /**
-         * Performs the encoding of the RTCP SDES packet.
-         * This function does not allocate memory required for encoding.
-         *
-         * @param[out] pobjRtcpPktBuf Memory for the buffer is pre-allocated by caller
-         *
-         * @return RTP_SUCCESS on successful encoding
-        */
-        eRTP_STATUS_CODE formSdesPacket(OUT RtpBuffer* pobjRtcpPktBuf);
+};  // end of RtcpSdesPacket
 
-}; // end of RtcpSdesPacket
-
-#endif    //__RTCP_SDES_PACKET_H__
+#endif  //__RTCP_SDES_PACKET_H__
 
 /** @}*/

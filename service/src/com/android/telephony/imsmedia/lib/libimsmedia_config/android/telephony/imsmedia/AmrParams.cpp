@@ -16,121 +16,141 @@
 
 #include <AmrParams.h>
 
-namespace android {
+namespace android
+{
 
-namespace telephony {
+namespace telephony
+{
 
-namespace imsmedia {
+namespace imsmedia
+{
 
 /** Native representation of android.telephony.imsmedia.AmrParams */
-AmrParams::AmrParams() {
+AmrParams::AmrParams()
+{
     amrMode = 0;
     octetAligned = false;
     maxRedundancyMillis = 0;
 }
 
-AmrParams::AmrParams(AmrParams& param) {
+AmrParams::AmrParams(AmrParams& param)
+{
     this->amrMode = param.amrMode;
     this->octetAligned = param.octetAligned;
     this->maxRedundancyMillis = param.maxRedundancyMillis;
 }
 
-AmrParams::~AmrParams() {
+AmrParams::~AmrParams() {}
 
-}
-
-AmrParams& AmrParams::operator=(const AmrParams& param) {
+AmrParams& AmrParams::operator=(const AmrParams& param)
+{
     this->amrMode = param.amrMode;
     this->octetAligned = param.octetAligned;
     this->maxRedundancyMillis = param.maxRedundancyMillis;
     return *this;
 }
 
-bool AmrParams::operator==(const AmrParams& param) const {
-    return (this->amrMode == param.amrMode
-        && this->octetAligned == param.octetAligned
-        && this->maxRedundancyMillis == param.maxRedundancyMillis);
+bool AmrParams::operator==(const AmrParams& param) const
+{
+    return (this->amrMode == param.amrMode && this->octetAligned == param.octetAligned &&
+            this->maxRedundancyMillis == param.maxRedundancyMillis);
 }
 
-bool AmrParams::operator!=(const AmrParams& param) const {
-    return (this->amrMode != param.amrMode
-        || this->octetAligned != param.octetAligned
-        || this->maxRedundancyMillis != param.maxRedundancyMillis);
+bool AmrParams::operator!=(const AmrParams& param) const
+{
+    return (this->amrMode != param.amrMode || this->octetAligned != param.octetAligned ||
+            this->maxRedundancyMillis != param.maxRedundancyMillis);
 }
 
-status_t AmrParams::writeToParcel(Parcel* out) const {
+status_t AmrParams::writeToParcel(Parcel* out) const
+{
     status_t err;
-    if (out == NULL) {
+    if (out == NULL)
+    {
         return BAD_VALUE;
     }
 
     err = out->writeInt32(amrMode);
-    if (err != NO_ERROR) {
+    if (err != NO_ERROR)
+    {
         return err;
     }
 
     int32_t value = 0;
     octetAligned ? value = 1 : value = 0;
     err = out->writeInt32(value);
-    if (err != NO_ERROR) {
+    if (err != NO_ERROR)
+    {
         return err;
     }
 
     err = out->writeInt32(maxRedundancyMillis);
-    if (err != NO_ERROR) {
+    if (err != NO_ERROR)
+    {
         return err;
     }
     return NO_ERROR;
 }
 
-status_t AmrParams::readFromParcel(const Parcel* in) {
+status_t AmrParams::readFromParcel(const Parcel* in)
+{
     status_t err;
-    if (in == NULL) {
+    if (in == NULL)
+    {
         return BAD_VALUE;
     }
 
     err = in->readInt32(&amrMode);
-    if (err != NO_ERROR) {
+    if (err != NO_ERROR)
+    {
         return err;
     }
 
     int32_t value = 0;
     err = in->readInt32(&value);
-    if (err != NO_ERROR) {
+    if (err != NO_ERROR)
+    {
         return err;
     }
 
     value == 0 ? octetAligned = false : octetAligned = true;
 
     err = in->readInt32(&maxRedundancyMillis);
-    if (err != NO_ERROR) {
+    if (err != NO_ERROR)
+    {
         return err;
     }
 
     return NO_ERROR;
 }
 
-void AmrParams::setAmrMode(const int32_t mode) {
+void AmrParams::setAmrMode(const int32_t mode)
+{
     amrMode = mode;
 }
 
-int32_t AmrParams::getAmrMode() {
+int32_t AmrParams::getAmrMode()
+{
     return amrMode;
 }
 
-void AmrParams::setOctetAligned(const bool enable) {
+void AmrParams::setOctetAligned(const bool enable)
+{
     octetAligned = enable;
 }
 
-bool AmrParams::getOctetAligned() {
+bool AmrParams::getOctetAligned()
+{
     return octetAligned;
 }
 
-void AmrParams::setMaxRedundancyMillis(const int32_t value) {
+void AmrParams::setMaxRedundancyMillis(const int32_t value)
+{
     maxRedundancyMillis = value;
 }
 
-int32_t AmrParams::getMaxRedundancyMillis() {
+int32_t AmrParams::getMaxRedundancyMillis()
+{
     return maxRedundancyMillis;
 }
 

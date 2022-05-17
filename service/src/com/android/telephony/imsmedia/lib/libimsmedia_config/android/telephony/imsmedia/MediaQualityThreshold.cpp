@@ -16,13 +16,17 @@
 
 #include <MediaQualityThreshold.h>
 
-namespace android {
+namespace android
+{
 
-namespace telephony {
+namespace telephony
+{
 
-namespace imsmedia {
+namespace imsmedia
+{
 
-MediaQualityThreshold::MediaQualityThreshold() {
+MediaQualityThreshold::MediaQualityThreshold()
+{
     mRtpInactivityTimerMillis = 0;
     mRtcpInactivityTimerMillis = 0;
     mRtpPacketLossDurationMillis = 0;
@@ -31,7 +35,8 @@ MediaQualityThreshold::MediaQualityThreshold() {
     mRtpJitterMillis = 0;
 }
 
-MediaQualityThreshold::MediaQualityThreshold(Parcel& in) {
+MediaQualityThreshold::MediaQualityThreshold(Parcel& in)
+{
     mRtpInactivityTimerMillis = in.readInt32();
     mRtcpInactivityTimerMillis = in.readInt32();
     mRtpPacketLossDurationMillis = in.readInt32();
@@ -40,10 +45,10 @@ MediaQualityThreshold::MediaQualityThreshold(Parcel& in) {
     mRtpJitterMillis = in.readInt32();
 }
 
-MediaQualityThreshold::~MediaQualityThreshold() {
-}
+MediaQualityThreshold::~MediaQualityThreshold() {}
 
-MediaQualityThreshold& MediaQualityThreshold::operator=(const MediaQualityThreshold& threshold) {
+MediaQualityThreshold& MediaQualityThreshold::operator=(const MediaQualityThreshold& threshold)
+{
     mRtpInactivityTimerMillis = threshold.mRtpInactivityTimerMillis;
     mRtcpInactivityTimerMillis = threshold.mRtcpInactivityTimerMillis;
     mRtpPacketLossDurationMillis = threshold.mRtpPacketLossDurationMillis;
@@ -53,140 +58,167 @@ MediaQualityThreshold& MediaQualityThreshold::operator=(const MediaQualityThresh
     return *this;
 }
 
-bool MediaQualityThreshold::operator==(const MediaQualityThreshold& threshold) const {
-    return (mRtpInactivityTimerMillis == threshold.mRtpInactivityTimerMillis
-        && mRtcpInactivityTimerMillis == threshold.mRtcpInactivityTimerMillis
-        && mRtpPacketLossDurationMillis == threshold.mRtpPacketLossDurationMillis
-        && mRtpPacketLossRate == threshold.mRtpPacketLossRate
-        && mJitterDurationMillis == threshold.mJitterDurationMillis
-        && mRtpJitterMillis == threshold.mRtpJitterMillis);
+bool MediaQualityThreshold::operator==(const MediaQualityThreshold& threshold) const
+{
+    return (mRtpInactivityTimerMillis == threshold.mRtpInactivityTimerMillis &&
+            mRtcpInactivityTimerMillis == threshold.mRtcpInactivityTimerMillis &&
+            mRtpPacketLossDurationMillis == threshold.mRtpPacketLossDurationMillis &&
+            mRtpPacketLossRate == threshold.mRtpPacketLossRate &&
+            mJitterDurationMillis == threshold.mJitterDurationMillis &&
+            mRtpJitterMillis == threshold.mRtpJitterMillis);
 }
 
-bool MediaQualityThreshold::operator!=(const MediaQualityThreshold& threshold) const {
-    return (mRtpInactivityTimerMillis != threshold.mRtpInactivityTimerMillis
-        || mRtcpInactivityTimerMillis != threshold.mRtcpInactivityTimerMillis
-        || mRtpPacketLossDurationMillis != threshold.mRtpPacketLossDurationMillis
-        || mRtpPacketLossRate != threshold.mRtpPacketLossRate
-        || mJitterDurationMillis != threshold.mJitterDurationMillis
-        || mRtpJitterMillis != threshold.mRtpJitterMillis);
+bool MediaQualityThreshold::operator!=(const MediaQualityThreshold& threshold) const
+{
+    return (mRtpInactivityTimerMillis != threshold.mRtpInactivityTimerMillis ||
+            mRtcpInactivityTimerMillis != threshold.mRtcpInactivityTimerMillis ||
+            mRtpPacketLossDurationMillis != threshold.mRtpPacketLossDurationMillis ||
+            mRtpPacketLossRate != threshold.mRtpPacketLossRate ||
+            mJitterDurationMillis != threshold.mJitterDurationMillis ||
+            mRtpJitterMillis != threshold.mRtpJitterMillis);
 }
 
-status_t MediaQualityThreshold::writeToParcel(Parcel* out) const {
+status_t MediaQualityThreshold::writeToParcel(Parcel* out) const
+{
     status_t err;
     err = out->writeInt32(mRtpInactivityTimerMillis);
-    if (err != NO_ERROR) {
+    if (err != NO_ERROR)
+    {
         return err;
     }
 
     err = out->writeInt32(mRtcpInactivityTimerMillis);
-    if (err != NO_ERROR) {
+    if (err != NO_ERROR)
+    {
         return err;
     }
 
     err = out->writeInt32(mRtpPacketLossDurationMillis);
-    if (err != NO_ERROR) {
+    if (err != NO_ERROR)
+    {
         return err;
     }
 
     err = out->writeInt32(mRtpPacketLossRate);
-    if (err != NO_ERROR) {
+    if (err != NO_ERROR)
+    {
         return err;
     }
 
     err = out->writeInt32(mJitterDurationMillis);
-    if (err != NO_ERROR) {
+    if (err != NO_ERROR)
+    {
         return err;
     }
 
     err = out->writeInt32(mRtpJitterMillis);
-    if (err != NO_ERROR) {
+    if (err != NO_ERROR)
+    {
         return err;
     }
 
     return NO_ERROR;
 }
 
-
-status_t MediaQualityThreshold::readFromParcel(const Parcel* in) {
+status_t MediaQualityThreshold::readFromParcel(const Parcel* in)
+{
     status_t err;
     err = in->readInt32(&mRtpInactivityTimerMillis);
-    if (err != NO_ERROR) {
+    if (err != NO_ERROR)
+    {
         return err;
     }
 
     err = in->readInt32(&mRtcpInactivityTimerMillis);
-    if (err != NO_ERROR) {
+    if (err != NO_ERROR)
+    {
         return err;
     }
 
     err = in->readInt32(&mRtpPacketLossDurationMillis);
-    if (err != NO_ERROR) {
+    if (err != NO_ERROR)
+    {
         return err;
     }
 
     err = in->readInt32(&mRtpPacketLossRate);
-    if (err != NO_ERROR) {
+    if (err != NO_ERROR)
+    {
         return err;
     }
 
     err = in->readInt32(&mJitterDurationMillis);
-    if (err != NO_ERROR) {
+    if (err != NO_ERROR)
+    {
         return err;
     }
 
     err = in->readInt32(&mRtpJitterMillis);
-    if (err != NO_ERROR) {
+    if (err != NO_ERROR)
+    {
         return err;
     }
 
     return NO_ERROR;
 }
 
-void MediaQualityThreshold::setRtpInactivityTimerMillis(int32_t time) {
+void MediaQualityThreshold::setRtpInactivityTimerMillis(int32_t time)
+{
     mRtpInactivityTimerMillis = time;
 }
 
-int32_t MediaQualityThreshold::getRtpInactivityTimerMillis() {
+int32_t MediaQualityThreshold::getRtpInactivityTimerMillis()
+{
     return mRtpInactivityTimerMillis;
 }
 
-void MediaQualityThreshold::setRtcpInactivityTimerMillis(int32_t time) {
+void MediaQualityThreshold::setRtcpInactivityTimerMillis(int32_t time)
+{
     mRtcpInactivityTimerMillis = time;
 }
 
-int32_t MediaQualityThreshold::getRtcpInactivityTimerMillis() {
+int32_t MediaQualityThreshold::getRtcpInactivityTimerMillis()
+{
     return mRtcpInactivityTimerMillis;
 }
 
-void MediaQualityThreshold::setRtpPacketLossDurationMillis(int32_t time) {
+void MediaQualityThreshold::setRtpPacketLossDurationMillis(int32_t time)
+{
     mRtpPacketLossDurationMillis = time;
 }
 
-int32_t MediaQualityThreshold::getRtpPacketLossDurationMillis() {
+int32_t MediaQualityThreshold::getRtpPacketLossDurationMillis()
+{
     return mRtpPacketLossDurationMillis;
 }
 
-void MediaQualityThreshold::setRtpPacketLossRate(int32_t rate) {
+void MediaQualityThreshold::setRtpPacketLossRate(int32_t rate)
+{
     mRtpPacketLossRate = rate;
 }
 
-int32_t MediaQualityThreshold::getRtpPacketLossRate() {
+int32_t MediaQualityThreshold::getRtpPacketLossRate()
+{
     return mRtpPacketLossRate;
 }
 
-void MediaQualityThreshold::setJitterDurationMillis(int32_t rate) {
+void MediaQualityThreshold::setJitterDurationMillis(int32_t rate)
+{
     mJitterDurationMillis = rate;
 }
 
-int32_t MediaQualityThreshold::getJitterDurationMillis() {
+int32_t MediaQualityThreshold::getJitterDurationMillis()
+{
     return mJitterDurationMillis;
 }
 
-void MediaQualityThreshold::setRtpJitterMillis(int32_t jitter) {
+void MediaQualityThreshold::setRtpJitterMillis(int32_t jitter)
+{
     mRtpJitterMillis = jitter;
 }
 
-int32_t MediaQualityThreshold::getRtpJitterMillis() {
+int32_t MediaQualityThreshold::getRtpJitterMillis()
+{
     return mRtpJitterMillis;
 }
 

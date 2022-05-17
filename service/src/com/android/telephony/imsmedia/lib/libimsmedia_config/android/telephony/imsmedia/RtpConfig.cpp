@@ -16,317 +16,376 @@
 
 #include <RtpConfig.h>
 
-namespace android {
+namespace android
+{
 
-namespace telephony {
+namespace telephony
+{
 
-namespace imsmedia {
+namespace imsmedia
+{
 
 const android::String8 kClassNameRtcpConfig("android.telephony.imsmedia.RtcpConfig");
 
 /** Native representation of android.telephony.imsmedia.RtpConfig */
-RtpConfig::RtpConfig(int32_t mediaType)
-    : type(mediaType), direction(0), accessNetwork(0), remoteAddress(""),
-      remotePort(UNINITIALIZED_PORT), maxMtuBytes(0), dscp(0),
-      rxPayloadTypeNumber(0), txPayloadTypeNumber(0), samplingRateKHz(0) {}
-
-RtpConfig::~RtpConfig() {
-
+RtpConfig::RtpConfig(int32_t mediaType) :
+        type(mediaType),
+        direction(0),
+        accessNetwork(0),
+        remoteAddress(""),
+        remotePort(UNINITIALIZED_PORT),
+        maxMtuBytes(0),
+        dscp(0),
+        rxPayloadTypeNumber(0),
+        txPayloadTypeNumber(0),
+        samplingRateKHz(0)
+{
 }
 
-RtpConfig::RtpConfig(RtpConfig *config) {
-  if (config == NULL)
-    return;
-  type = config->type;
-  direction = config->direction;
-  accessNetwork = config->accessNetwork;
-  remoteAddress = config->remoteAddress;
-  remotePort = config->remotePort;
-  rtcpConfig = config->rtcpConfig;
-  maxMtuBytes = config->maxMtuBytes;
-  dscp = config->dscp;
-  rxPayloadTypeNumber = config->rxPayloadTypeNumber;
-  txPayloadTypeNumber = config->txPayloadTypeNumber;
-  samplingRateKHz = config->samplingRateKHz;
+RtpConfig::~RtpConfig() {}
+
+RtpConfig::RtpConfig(RtpConfig* config)
+{
+    if (config == NULL)
+        return;
+    type = config->type;
+    direction = config->direction;
+    accessNetwork = config->accessNetwork;
+    remoteAddress = config->remoteAddress;
+    remotePort = config->remotePort;
+    rtcpConfig = config->rtcpConfig;
+    maxMtuBytes = config->maxMtuBytes;
+    dscp = config->dscp;
+    rxPayloadTypeNumber = config->rxPayloadTypeNumber;
+    txPayloadTypeNumber = config->txPayloadTypeNumber;
+    samplingRateKHz = config->samplingRateKHz;
 }
 
-RtpConfig::RtpConfig(RtpConfig& config) {
-  type = config.type;
-  direction = config.direction;
-  accessNetwork = config.accessNetwork;
-  remoteAddress = config.remoteAddress;
-  remotePort = config.remotePort;
-  rtcpConfig = config.rtcpConfig;
-  maxMtuBytes = config.maxMtuBytes;
-  dscp = config.dscp;
-  rxPayloadTypeNumber = config.rxPayloadTypeNumber;
-  txPayloadTypeNumber = config.txPayloadTypeNumber;
-  samplingRateKHz = config.samplingRateKHz;
+RtpConfig::RtpConfig(RtpConfig& config)
+{
+    type = config.type;
+    direction = config.direction;
+    accessNetwork = config.accessNetwork;
+    remoteAddress = config.remoteAddress;
+    remotePort = config.remotePort;
+    rtcpConfig = config.rtcpConfig;
+    maxMtuBytes = config.maxMtuBytes;
+    dscp = config.dscp;
+    rxPayloadTypeNumber = config.rxPayloadTypeNumber;
+    txPayloadTypeNumber = config.txPayloadTypeNumber;
+    samplingRateKHz = config.samplingRateKHz;
 }
 
-RtpConfig& RtpConfig::operator=(const RtpConfig& config) {
-  type = config.type;
-  direction = config.direction;
-  accessNetwork = config.accessNetwork;
-  remoteAddress = config.remoteAddress;
-  remotePort = config.remotePort;
-  rtcpConfig = config.rtcpConfig;
-  maxMtuBytes = config.maxMtuBytes;
-  dscp = config.dscp;
-  rxPayloadTypeNumber = config.rxPayloadTypeNumber;
-  txPayloadTypeNumber = config.txPayloadTypeNumber;
-  samplingRateKHz = config.samplingRateKHz;
-  return *this;
+RtpConfig& RtpConfig::operator=(const RtpConfig& config)
+{
+    type = config.type;
+    direction = config.direction;
+    accessNetwork = config.accessNetwork;
+    remoteAddress = config.remoteAddress;
+    remotePort = config.remotePort;
+    rtcpConfig = config.rtcpConfig;
+    maxMtuBytes = config.maxMtuBytes;
+    dscp = config.dscp;
+    rxPayloadTypeNumber = config.rxPayloadTypeNumber;
+    txPayloadTypeNumber = config.txPayloadTypeNumber;
+    samplingRateKHz = config.samplingRateKHz;
+    return *this;
 }
 
-bool RtpConfig::operator==(const RtpConfig &config) const{
-  return (this->type == config.type && this->direction == config.direction &&
-          this->accessNetwork == config.accessNetwork &&
-          this->remoteAddress == config.remoteAddress &&
-          this->remotePort == config.remotePort &&
-          this->rtcpConfig == config.rtcpConfig &&
-          this->maxMtuBytes == config.maxMtuBytes &&
-          this->dscp == config.dscp &&
-          this->rxPayloadTypeNumber == config.rxPayloadTypeNumber &&
-          this->txPayloadTypeNumber == config.txPayloadTypeNumber &&
-          this->samplingRateKHz == config.samplingRateKHz);
+bool RtpConfig::operator==(const RtpConfig& config) const
+{
+    return (this->type == config.type && this->direction == config.direction &&
+            this->accessNetwork == config.accessNetwork &&
+            this->remoteAddress == config.remoteAddress && this->remotePort == config.remotePort &&
+            this->rtcpConfig == config.rtcpConfig && this->maxMtuBytes == config.maxMtuBytes &&
+            this->dscp == config.dscp && this->rxPayloadTypeNumber == config.rxPayloadTypeNumber &&
+            this->txPayloadTypeNumber == config.txPayloadTypeNumber &&
+            this->samplingRateKHz == config.samplingRateKHz);
 }
 
-bool RtpConfig::operator!=(const RtpConfig &config) const{
-  return (this->type != config.type || this->direction != config.direction ||
-          this->accessNetwork != config.accessNetwork ||
-          this->remoteAddress != config.remoteAddress ||
-          this->remotePort != config.remotePort ||
-          this->rtcpConfig != config.rtcpConfig ||
-          this->maxMtuBytes != config.maxMtuBytes ||
-          this->dscp != config.dscp ||
-          this->rxPayloadTypeNumber != config.rxPayloadTypeNumber ||
-          this->txPayloadTypeNumber != config.txPayloadTypeNumber ||
-          this->samplingRateKHz != config.samplingRateKHz);
+bool RtpConfig::operator!=(const RtpConfig& config) const
+{
+    return (this->type != config.type || this->direction != config.direction ||
+            this->accessNetwork != config.accessNetwork ||
+            this->remoteAddress != config.remoteAddress || this->remotePort != config.remotePort ||
+            this->rtcpConfig != config.rtcpConfig || this->maxMtuBytes != config.maxMtuBytes ||
+            this->dscp != config.dscp || this->rxPayloadTypeNumber != config.rxPayloadTypeNumber ||
+            this->txPayloadTypeNumber != config.txPayloadTypeNumber ||
+            this->samplingRateKHz != config.samplingRateKHz);
 }
 
-status_t RtpConfig::writeToParcel(Parcel* out) const {
+status_t RtpConfig::writeToParcel(Parcel* out) const
+{
     status_t err;
-    if (out == NULL) {
+    if (out == NULL)
+    {
         return BAD_VALUE;
     }
 
     err = out->writeInt32(type);
-    if (err != NO_ERROR) {
-      return err;
+    if (err != NO_ERROR)
+    {
+        return err;
     }
 
     err = out->writeInt32(direction);
-    if (err != NO_ERROR) {
+    if (err != NO_ERROR)
+    {
         return err;
     }
 
     err = out->writeInt32(accessNetwork);
-    if (err != NO_ERROR) {
+    if (err != NO_ERROR)
+    {
         return err;
     }
 
     String16 address(remoteAddress);
     err = out->writeString16(address);
-    if (err != NO_ERROR) {
+    if (err != NO_ERROR)
+    {
         return err;
     }
 
     err = out->writeInt32(remotePort);
-    if (err != NO_ERROR) {
+    if (err != NO_ERROR)
+    {
         return err;
     }
 
     String16 className(kClassNameRtcpConfig);
     err = out->writeString16(className);
-    if (err != NO_ERROR) {
+    if (err != NO_ERROR)
+    {
         return err;
     }
 
     err = rtcpConfig.writeToParcel(out);
-    //err = out->writeParcelable(rtcpConfig);
-    if (err != NO_ERROR) {
+    // err = out->writeParcelable(rtcpConfig);
+    if (err != NO_ERROR)
+    {
         return err;
     }
 
     err = out->writeInt32(maxMtuBytes);
-    if (err != NO_ERROR) {
+    if (err != NO_ERROR)
+    {
         return err;
     }
 
     err = out->writeByte(dscp);
-    if (err != NO_ERROR) {
+    if (err != NO_ERROR)
+    {
         return err;
     }
 
     err = out->writeByte(rxPayloadTypeNumber);
-    if (err != NO_ERROR) {
+    if (err != NO_ERROR)
+    {
         return err;
     }
 
     err = out->writeByte(txPayloadTypeNumber);
-    if (err != NO_ERROR) {
+    if (err != NO_ERROR)
+    {
         return err;
     }
 
     err = out->writeByte(samplingRateKHz);
-    if (err != NO_ERROR) {
+    if (err != NO_ERROR)
+    {
         return err;
     }
 
     return NO_ERROR;
 }
 
-status_t RtpConfig::readFromParcel(const Parcel* in) {
+status_t RtpConfig::readFromParcel(const Parcel* in)
+{
     status_t err;
-    if (in == NULL) {
+    if (in == NULL)
+    {
         return BAD_VALUE;
     }
 
     err = in->readInt32(&type);
-    if (err != NO_ERROR) {
-      return err;
+    if (err != NO_ERROR)
+    {
+        return err;
     }
 
     err = in->readInt32(&direction);
-    if (err != NO_ERROR) {
+    if (err != NO_ERROR)
+    {
         return err;
     }
 
     err = in->readInt32(&accessNetwork);
-    if (err != NO_ERROR) {
+    if (err != NO_ERROR)
+    {
         return err;
     }
 
     String16 address;
     err = in->readString16(&address);
-    if (err != NO_ERROR) {
+    if (err != NO_ERROR)
+    {
         return err;
     }
 
     remoteAddress = String8(address.string());
 
     err = in->readInt32(&remotePort);
-    if (err != NO_ERROR) {
+    if (err != NO_ERROR)
+    {
         return err;
     }
 
     String16 className;
     err = in->readString16(&className);
-    if (err != NO_ERROR) {
+    if (err != NO_ERROR)
+    {
         return err;
     }
 
-    //read RtcpConfig
+    // read RtcpConfig
     String8 className2 = String8(className.string());
     err = rtcpConfig.readFromParcel(in);
-    if (err != NO_ERROR) {
+    if (err != NO_ERROR)
+    {
         return err;
     }
 
     err = in->readInt32(&maxMtuBytes);
-    if (err != NO_ERROR) {
+    if (err != NO_ERROR)
+    {
         return err;
     }
 
     err = in->readByte(&dscp);
-    if (err != NO_ERROR) {
+    if (err != NO_ERROR)
+    {
         return err;
     }
 
     err = in->readByte(&rxPayloadTypeNumber);
-    if (err != NO_ERROR) {
+    if (err != NO_ERROR)
+    {
         return err;
     }
 
     err = in->readByte(&txPayloadTypeNumber);
-    if (err != NO_ERROR) {
+    if (err != NO_ERROR)
+    {
         return err;
     }
 
     err = in->readByte(&samplingRateKHz);
-    if (err != NO_ERROR) {
+    if (err != NO_ERROR)
+    {
         return err;
     }
 
     return NO_ERROR;
 }
 
-void RtpConfig::setMediaDirection(const int32_t direction) {
+void RtpConfig::setMediaDirection(const int32_t direction)
+{
     this->direction = direction;
 }
 
-int32_t RtpConfig::getMediaDirection() {
+int32_t RtpConfig::getMediaDirection()
+{
     return direction;
 }
 
-void RtpConfig::setAccessNetwork(const int32_t network) {
-  accessNetwork = network;
+void RtpConfig::setAccessNetwork(const int32_t network)
+{
+    accessNetwork = network;
 }
 
-int32_t RtpConfig::getAccessNetwork() { return accessNetwork; }
-
-void RtpConfig::setRemoteAddress(const String8 address) {
-  this->remoteAddress = address;
+int32_t RtpConfig::getAccessNetwork()
+{
+    return accessNetwork;
 }
 
-String8 RtpConfig::getRemoteAddress() {
+void RtpConfig::setRemoteAddress(const String8 address)
+{
+    this->remoteAddress = address;
+}
+
+String8 RtpConfig::getRemoteAddress()
+{
     return remoteAddress;
 }
 
-void RtpConfig::setRemotePort(const int32_t port) {
+void RtpConfig::setRemotePort(const int32_t port)
+{
     this->remotePort = port;
 }
 
-int32_t RtpConfig::getRemotePort() {
+int32_t RtpConfig::getRemotePort()
+{
     return remotePort;
 }
 
-void RtpConfig::setRtcpConfig(const RtcpConfig& config) {
+void RtpConfig::setRtcpConfig(const RtcpConfig& config)
+{
     this->rtcpConfig = config;
 }
 
-RtcpConfig RtpConfig::getRtcpConfig() {
+RtcpConfig RtpConfig::getRtcpConfig()
+{
     return rtcpConfig;
 }
 
-void RtpConfig::setMaxMtuBytes(const int32_t mtu) {
+void RtpConfig::setMaxMtuBytes(const int32_t mtu)
+{
     this->maxMtuBytes = mtu;
 }
 
-int32_t RtpConfig::getmaxMtuBytes() {
+int32_t RtpConfig::getmaxMtuBytes()
+{
     return maxMtuBytes;
 }
 
-void RtpConfig::setDscp(const int8_t dscp) {
+void RtpConfig::setDscp(const int8_t dscp)
+{
     this->dscp = dscp;
 }
 
-int8_t RtpConfig::getDscp() {
+int8_t RtpConfig::getDscp()
+{
     return dscp;
 }
 
-void RtpConfig::setRxPayloadTypeNumber(const int8_t num) {
+void RtpConfig::setRxPayloadTypeNumber(const int8_t num)
+{
     this->rxPayloadTypeNumber = num;
 }
 
-int8_t RtpConfig::getRxPayloadTypeNumber() {
+int8_t RtpConfig::getRxPayloadTypeNumber()
+{
     return rxPayloadTypeNumber;
 }
 
-void RtpConfig::setTxPayloadTypeNumber(const int8_t num) {
+void RtpConfig::setTxPayloadTypeNumber(const int8_t num)
+{
     this->txPayloadTypeNumber = num;
 }
 
-int8_t RtpConfig::getTxPayloadTypeNumber() {
+int8_t RtpConfig::getTxPayloadTypeNumber()
+{
     return txPayloadTypeNumber;
 }
 
-void RtpConfig::setSamplingRateKHz(const int8_t sample) {
+void RtpConfig::setSamplingRateKHz(const int8_t sample)
+{
     this->samplingRateKHz = sample;
 }
 
-int8_t RtpConfig::getSamplingRateKHz() {
+int8_t RtpConfig::getSamplingRateKHz()
+{
     return samplingRateKHz;
 }
 

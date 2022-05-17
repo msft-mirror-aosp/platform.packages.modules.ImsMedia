@@ -23,37 +23,44 @@
 #include <stdlib.h>
 #include <string.h>
 
-AudioStreamGraphRtpTx::AudioStreamGraphRtpTx(BaseSessionCallback* callback, int localFd)
-    : BaseStreamGraph(callback, localFd) {
+AudioStreamGraphRtpTx::AudioStreamGraphRtpTx(BaseSessionCallback* callback, int localFd) :
+        BaseStreamGraph(callback, localFd)
+{
     mConfig = NULL;
 }
 
-AudioStreamGraphRtpTx::~AudioStreamGraphRtpTx() {
-    if (mConfig) {
+AudioStreamGraphRtpTx::~AudioStreamGraphRtpTx()
+{
+    if (mConfig)
+    {
         delete mConfig;
     }
 }
 
-ImsMediaResult AudioStreamGraphRtpTx::create(void* config){
+ImsMediaResult AudioStreamGraphRtpTx::create(void* config)
+{
     IMLOGD0("[create]");
     mConfig = new AudioConfig(reinterpret_cast<AudioConfig*>(config));
 
     BaseNode* pNodeSource = BaseNode::Load(BaseNodeID::NODEID_AUDIOSOURCE, mCallback);
-    if (pNodeSource == NULL) return RESULT_NOT_READY;
+    if (pNodeSource == NULL)
+        return RESULT_NOT_READY;
     pNodeSource->SetMediaType(IMS_MEDIA_AUDIO);
     pNodeSource->SetConfig(mConfig);
     AddNode(pNodeSource);
 
-    BaseNode* pNodeRtpPayloadEncoder = BaseNode::Load(BaseNodeID::NODEID_RTPPAYLOAD_ENCODER_AUDIO,
-        mCallback);
-    if (pNodeRtpPayloadEncoder == NULL) return RESULT_NOT_READY;
+    BaseNode* pNodeRtpPayloadEncoder =
+            BaseNode::Load(BaseNodeID::NODEID_RTPPAYLOAD_ENCODER_AUDIO, mCallback);
+    if (pNodeRtpPayloadEncoder == NULL)
+        return RESULT_NOT_READY;
     pNodeRtpPayloadEncoder->SetMediaType(IMS_MEDIA_AUDIO);
     pNodeRtpPayloadEncoder->SetConfig(mConfig);
     AddNode(pNodeRtpPayloadEncoder);
     pNodeSource->ConnectRearNode(pNodeRtpPayloadEncoder);
 
     BaseNode* pNodeRtpEncoder = BaseNode::Load(BaseNodeID::NODEID_RTPENCODER, mCallback);
-    if (pNodeRtpEncoder == NULL) return RESULT_NOT_READY;
+    if (pNodeRtpEncoder == NULL)
+        return RESULT_NOT_READY;
     pNodeRtpEncoder->SetMediaType(IMS_MEDIA_AUDIO);
     char localIp[MAX_IP_LEN];
     uint32_t localPort = 0;
@@ -65,7 +72,8 @@ ImsMediaResult AudioStreamGraphRtpTx::create(void* config){
     pNodeRtpPayloadEncoder->ConnectRearNode(pNodeRtpEncoder);
 
     BaseNode* pNodeSocketWriter = BaseNode::Load(BaseNodeID::NODEID_SOCKETWRITER, mCallback);
-    if (pNodeSocketWriter == NULL) return RESULT_NOT_READY;
+    if (pNodeSocketWriter == NULL)
+        return RESULT_NOT_READY;
     pNodeSocketWriter->SetMediaType(IMS_MEDIA_AUDIO);
     ((SocketWriterNode*)pNodeSocketWriter)->SetLocalFd(mLocalFd);
     ((SocketWriterNode*)pNodeSocketWriter)->SetLocalAddress(localAddress);
@@ -77,11 +85,13 @@ ImsMediaResult AudioStreamGraphRtpTx::create(void* config){
 
     AudioConfig* audioConfig = reinterpret_cast<AudioConfig*>(mConfig);
 
-    if (audioConfig->getDtmfPayloadTypeNumber() != 0) {
+    if (audioConfig->getDtmfPayloadTypeNumber() != 0)
+    {
         BaseNode* pDtmfEncoderNode = BaseNode::Load(BaseNodeID::NODEID_DTMFENCODER, mCallback);
         BaseNode* pDtmfSenderNode = BaseNode::Load(BaseNodeID::NODEID_DTMFSENDER, mCallback);
 
-        if (pDtmfEncoderNode != NULL && pDtmfSenderNode != NULL) {
+        if (pDtmfEncoderNode != NULL && pDtmfSenderNode != NULL)
+        {
             AddNode(pDtmfEncoderNode);
             mListDtmfNodes.push_back(pDtmfEncoderNode);
             pDtmfEncoderNode->SetMediaType(IMS_MEDIA_AUDIO);
@@ -96,56 +106,67 @@ ImsMediaResult AudioStreamGraphRtpTx::create(void* config){
     return RESULT_SUCCESS;
 }
 
-ImsMediaResult AudioStreamGraphRtpTx::update(void* config)  {
+ImsMediaResult AudioStreamGraphRtpTx::update(void* config)
+{
     IMLOGD0("[update]");
-    if (config == NULL) return RESULT_INVALID_PARAM;
+    if (config == NULL)
+        return RESULT_INVALID_PARAM;
 
     AudioConfig* pConfig = reinterpret_cast<AudioConfig*>(config);
 
-    if (*mConfig == *pConfig) {
+    if (*mConfig == *pConfig)
+    {
         IMLOGD0("[update] no update");
         return RESULT_SUCCESS;
     }
 
-    if (mConfig != NULL) {
+    if (mConfig != NULL)
+    {
         delete mConfig;
     }
 
     mConfig = new AudioConfig(pConfig);
 
-    if (mConfig->getMediaDirection() == RtpConfig::MEDIA_DIRECTION_NO_FLOW
-        || mConfig->getMediaDirection() == RtpConfig::MEDIA_DIRECTION_RECEIVE_ONLY) {
+    if (mConfig->getMediaDirection() == RtpConfig::MEDIA_DIRECTION_NO_FLOW ||
+            mConfig->getMediaDirection() == RtpConfig::MEDIA_DIRECTION_RECEIVE_ONLY)
+    {
         IMLOGD0("[update] pause TX");
         return stop();
     }
 
     ImsMediaResult ret = RESULT_NOT_READY;
 
-    if (mGraphState == STATE_RUN) {
+    if (mGraphState == STATE_RUN)
+    {
         mScheduler->Stop();
-        for (auto& node:mListNodeStarted) {
+        for (auto& node : mListNodeStarted)
+        {
             IMLOGD1("[update] update node[%s]", node->GetNodeName());
             ret = node->UpdateConfig(mConfig);
-            if (ret != RESULT_SUCCESS) {
-                IMLOGE2("[update] error in update node[%s], ret[%d]",
-                    node->GetNodeName(), ret);
+            if (ret != RESULT_SUCCESS)
+            {
+                IMLOGE2("[update] error in update node[%s], ret[%d]", node->GetNodeName(), ret);
             }
         }
         mScheduler->Start();
-    } else if (mGraphState == STATE_CREATED) {
-        for (auto& node:mListNodeToStart) {
+    }
+    else if (mGraphState == STATE_CREATED)
+    {
+        for (auto& node : mListNodeToStart)
+        {
             IMLOGD1("[update] update node[%s]", node->GetNodeName());
             ret = node->UpdateConfig(mConfig);
-            if (ret != RESULT_SUCCESS) {
-                IMLOGE2("[update] error in update node[%s], ret[%d]",
-                    node->GetNodeName(), ret);
+            if (ret != RESULT_SUCCESS)
+            {
+                IMLOGE2("[update] error in update node[%s], ret[%d]", node->GetNodeName(), ret);
             }
         }
     }
 
     if (mGraphState == STATE_CREATED &&
-        (pConfig->getMediaDirection() == RtpConfig::MEDIA_DIRECTION_TRANSMIT_ONLY
-        || pConfig->getMediaDirection() == RtpConfig::MEDIA_DIRECTION_TRANSMIT_RECEIVE)) {
+            (pConfig->getMediaDirection() == RtpConfig::MEDIA_DIRECTION_TRANSMIT_ONLY ||
+                    pConfig->getMediaDirection() == RtpConfig::MEDIA_DIRECTION_TRANSMIT_RECEIVE))
+    {
         IMLOGD0("[update] resume TX");
         return start();
     }
@@ -153,17 +174,22 @@ ImsMediaResult AudioStreamGraphRtpTx::update(void* config)  {
     return ret;
 }
 
-void AudioStreamGraphRtpTx::sendDtmf(char digit, int duration) {
+void AudioStreamGraphRtpTx::sendDtmf(char digit, int duration)
+{
     IMLOGD0("[sendDtmf]");
     BaseNode* pDTMFNode = mListDtmfNodes.front();
-    if (pDTMFNode != NULL) {
+    if (pDTMFNode != NULL)
+    {
         IMLOGD2("[sendDtmf] %c, duration[%d]", digit, duration);
         ImsMediaSubType subtype = MEDIASUBTYPE_DTMF_PAYLOAD;
-        if (duration == 0) {
+        if (duration == 0)
+        {
             subtype = MEDIASUBTYPE_DTMFSTART;
         }
         pDTMFNode->OnDataFromFrontNode(subtype, (uint8_t*)&digit, 1, 0, 0, duration);
-    } else {
+    }
+    else
+    {
         IMLOGE0("[sendDtmf] DTMF is not enabled");
     }
 }

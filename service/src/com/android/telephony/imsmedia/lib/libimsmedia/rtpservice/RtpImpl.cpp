@@ -14,24 +14,18 @@
  * limitations under the License.
  */
 
-
 #include <RtpImpl.h>
 #include <RtpService.h>
 #include <rtp_trace.h>
 #include <RtpTimer.h>
 
-RtpImpl::RtpImpl()
-{
-}
+RtpImpl::RtpImpl() {}
 
-RtpImpl::~RtpImpl()
-{
-}
+RtpImpl::~RtpImpl() {}
 
-eRtp_Bool RtpImpl::rtpSsrcCollisionInd(IN RtpDt_Int32 uiOldSsrc,
-                                IN RtpDt_Int32 uiNewSsrc)
+eRtp_Bool RtpImpl::rtpSsrcCollisionInd(IN RtpDt_Int32 uiOldSsrc, IN RtpDt_Int32 uiNewSsrc)
 {
-    (RtpDt_Void)uiOldSsrc,(RtpDt_Void)uiNewSsrc;
+    (RtpDt_Void) uiOldSsrc, (RtpDt_Void)uiNewSsrc;
     return eRTP_FALSE;
 }
 
@@ -47,41 +41,36 @@ RtpDt_Void* RtpImpl::getAppdata()
 
 eRtp_Bool RtpImpl::rtpNewMemberJoinInd(IN RtpDt_Int32 uiSsrc)
 {
-    (RtpDt_Void)uiSsrc;
+    (RtpDt_Void) uiSsrc;
     return eRTP_FALSE;
 }
 
-eRtp_Bool RtpImpl::rtpMemberLeaveInd(IN eRTP_LEAVE_REASON eLeaveReason,
-                                IN RtpDt_Int32 uiSsrc)
+eRtp_Bool RtpImpl::rtpMemberLeaveInd(IN eRTP_LEAVE_REASON eLeaveReason, IN RtpDt_Int32 uiSsrc)
 {
-    (RtpDt_Void)eLeaveReason,(RtpDt_Void)uiSsrc;
+    (RtpDt_Void) eLeaveReason, (RtpDt_Void)uiSsrc;
     return eRTP_FALSE;
 }
 
-
-eRtp_Bool RtpImpl::rtcpPacketSendInd(IN RtpBuffer* pobjRtcpBuf, IN RtpSession *pobjRtpSession)
+eRtp_Bool RtpImpl::rtcpPacketSendInd(IN RtpBuffer* pobjRtcpBuf, IN RtpSession* pobjRtpSession)
 {
-
-    RtpServiceListener *pobjIRtpSession = (RtpServiceListener*)getAppdata();
-    if(pobjIRtpSession == RTP_NULL || pobjRtcpBuf == RTP_NULL || pobjRtpSession == RTP_NULL)
+    RtpServiceListener* pobjIRtpSession = (RtpServiceListener*)getAppdata();
+    if (pobjIRtpSession == RTP_NULL || pobjRtcpBuf == RTP_NULL || pobjRtpSession == RTP_NULL)
         return eRTP_FALSE;
 
-    //dispatch to peer
-    if(pobjIRtpSession->OnRtcpPacket(pobjRtcpBuf->getBuffer(),
-                                    pobjRtcpBuf->getLength()) == -1)
+    // dispatch to peer
+    if (pobjIRtpSession->OnRtcpPacket(pobjRtcpBuf->getBuffer(), pobjRtcpBuf->getLength()) == -1)
     {
-        pobjRtcpBuf->setBufferInfo(RTP_ZERO,RTP_NULL);
+        pobjRtcpBuf->setBufferInfo(RTP_ZERO, RTP_NULL);
         return eRTP_FALSE;
     }
 
     return eRTP_TRUE;
 }
 
-eRtp_Bool RtpImpl::rtcpAppPayloadReqInd(OUT RtpDt_UInt16& pusSubType,
-                                    OUT RtpDt_UInt32& uiName,
-                                    OUT RtpBuffer* pobjPayload)
+eRtp_Bool RtpImpl::rtcpAppPayloadReqInd(
+        OUT RtpDt_UInt16& pusSubType, OUT RtpDt_UInt32& uiName, OUT RtpBuffer* pobjPayload)
 {
-    if(pobjPayload == RTP_NULL)
+    if (pobjPayload == RTP_NULL)
     {
         return eRTP_FALSE;
     }
@@ -89,10 +78,10 @@ eRtp_Bool RtpImpl::rtcpAppPayloadReqInd(OUT RtpDt_UInt16& pusSubType,
     /* App packet is not used by IMS application and below is only a test data */
     pusSubType = 1;
     uiName = 1111;
-    //allocated memory will be released by the RTP stack
-    RtpDt_UChar *pcAppData = new RtpDt_UChar[25];
+    // allocated memory will be released by the RTP stack
+    RtpDt_UChar* pcAppData = new RtpDt_UChar[25];
     memset(pcAppData, 0, 25);
-    memcpy(pcAppData,"application specific data",25);
+    memcpy(pcAppData, "application specific data", 25);
     pobjPayload->setBufferInfo(25, pcAppData);
 
     return eRTP_TRUE;
@@ -100,43 +89,38 @@ eRtp_Bool RtpImpl::rtcpAppPayloadReqInd(OUT RtpDt_UInt16& pusSubType,
 
 eRtp_Bool RtpImpl::getRtpHdrExtInfo(OUT RtpBuffer* pobjExtHdrInfo)
 {
-    if(pobjExtHdrInfo == RTP_NULL)
+    if (pobjExtHdrInfo == RTP_NULL)
     {
         return eRTP_FALSE;
     }
-    //allocated memory will be released by the RTP stack
-    RtpDt_UChar *pcExtHdrInfo = new RtpDt_UChar[21];
+    // allocated memory will be released by the RTP stack
+    RtpDt_UChar* pcExtHdrInfo = new RtpDt_UChar[21];
     memset(pcExtHdrInfo, 0, 21);
-    memcpy(pcExtHdrInfo,"extension header info",21);
+    memcpy(pcExtHdrInfo, "extension header info", 21);
     pobjExtHdrInfo->setBufferInfo(21, pcExtHdrInfo);
     return eRTP_TRUE;
 }
 
-eRtp_Bool RtpImpl::deleteRcvrInfo(RtpDt_UInt32 uiRemoteSsrc,
-                            RtpBuffer *pobjDestAddr,
-                            RtpDt_UInt16 usRemotePort)
+eRtp_Bool RtpImpl::deleteRcvrInfo(
+        RtpDt_UInt32 uiRemoteSsrc, RtpBuffer* pobjDestAddr, RtpDt_UInt16 usRemotePort)
 {
-    (RtpDt_Void)uiRemoteSsrc,(RtpDt_Void)pobjDestAddr,(RtpDt_Void)usRemotePort;
+    (RtpDt_Void) uiRemoteSsrc, (RtpDt_Void)pobjDestAddr, (RtpDt_Void)usRemotePort;
     return eRTP_TRUE;
 }
 
 eRtp_Bool RtpImpl::rtcpTimerHdlErrorInd(IN eRTP_STATUS_CODE eStatus)
 {
-    (RtpDt_Void)eStatus;
+    (RtpDt_Void) eStatus;
     return eRTP_TRUE;
 }
 
-RtpDt_Void* RtpImpl::RtpStartTimer(IN RtpDt_UInt32 uiDuration,
-                                               IN eRtp_Bool bRepeat,
-                                               IN RTPCB_TIMERHANDLER pfnTimerCb,
-                                               IN RtpDt_Void *pvData)
+RtpDt_Void* RtpImpl::RtpStartTimer(IN RtpDt_UInt32 uiDuration, IN eRtp_Bool bRepeat,
+        IN RTPCB_TIMERHANDLER pfnTimerCb, IN RtpDt_Void* pvData)
 {
-    RtpDt_Void* pvTimerId =	(RtpDt_Void*)RtpTimer::TimerStart((RtpDt_UInt32)uiDuration,
-                                         (bool)bRepeat,
-                                         (fn_TimerCb)pfnTimerCb,
-                                         pvData);
+    RtpDt_Void* pvTimerId = (RtpDt_Void*)RtpTimer::TimerStart(
+            (RtpDt_UInt32)uiDuration, (bool)bRepeat, (fn_TimerCb)pfnTimerCb, pvData);
 
-    RTP_TRACE_NORMAL("RtpStartTimer pvTimerId[%x], Duration= [%d]",pvTimerId, uiDuration);
+    RTP_TRACE_NORMAL("RtpStartTimer pvTimerId[%x], Duration= [%d]", pvTimerId, uiDuration);
     return pvTimerId;
     (void)uiDuration;
     (void)bRepeat;
@@ -145,11 +129,9 @@ RtpDt_Void* RtpImpl::RtpStartTimer(IN RtpDt_UInt32 uiDuration,
     return RTP_NULL;
 }
 
-eRtp_Bool RtpImpl::RtpStopTimer(IN RtpDt_Void* pTimerId,
-                                              OUT RtpDt_Void** ppUserData)
+eRtp_Bool RtpImpl::RtpStopTimer(IN RtpDt_Void* pTimerId, OUT RtpDt_Void** ppUserData)
 {
-
-    RTP_TRACE_NORMAL("RtpStopTimer pvTimerId[%x]",pTimerId, 0);
+    RTP_TRACE_NORMAL("RtpStopTimer pvTimerId[%x]", pTimerId, 0);
     RtpTimer::TimerStop((hTimerHandler)pTimerId, ppUserData);
     (void)ppUserData;
     return eRTP_TRUE;

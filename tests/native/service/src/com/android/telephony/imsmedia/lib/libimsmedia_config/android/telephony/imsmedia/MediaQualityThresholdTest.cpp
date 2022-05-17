@@ -26,7 +26,8 @@ const int32_t kRtpPacketLossRate = 5;
 const int32_t kJitterDurationMillis = 5000;
 const int32_t kRtpJitterMillis = 300;
 
-TEST(MediaQualityThresholdTest, TestGetterSetter) {
+TEST(MediaQualityThresholdTest, TestGetterSetter)
+{
     MediaQualityThreshold* threshold = new MediaQualityThreshold();
     threshold->setRtpInactivityTimerMillis(kRtpInactivityTimerMillis);
     threshold->setRtcpInactivityTimerMillis(kRtcpInactivityTimerMillis);
@@ -43,7 +44,8 @@ TEST(MediaQualityThresholdTest, TestGetterSetter) {
     delete threshold;
 }
 
-TEST(MediaQualityThresholdTest, TestParcel) {
+TEST(MediaQualityThresholdTest, TestParcel)
+{
     MediaQualityThreshold* threshold = new MediaQualityThreshold();
     threshold->setRtpInactivityTimerMillis(kRtpInactivityTimerMillis);
     threshold->setRtcpInactivityTimerMillis(kRtcpInactivityTimerMillis);
@@ -64,7 +66,8 @@ TEST(MediaQualityThresholdTest, TestParcel) {
     delete threshold2;
 }
 
-TEST(MediaQualityThresholdTest, TestAssign) {
+TEST(MediaQualityThresholdTest, TestAssign)
+{
     MediaQualityThreshold threshold;
     threshold.setRtpInactivityTimerMillis(kRtpInactivityTimerMillis);
     threshold.setRtcpInactivityTimerMillis(kRtcpInactivityTimerMillis);
@@ -78,7 +81,8 @@ TEST(MediaQualityThresholdTest, TestAssign) {
     EXPECT_EQ(threshold, threshold2);
 }
 
-TEST(MediaQualityThresholdTest, TestEqual) {
+TEST(MediaQualityThresholdTest, TestEqual)
+{
     MediaQualityThreshold* threshold = new MediaQualityThreshold();
     threshold->setRtpInactivityTimerMillis(kRtpInactivityTimerMillis);
     threshold->setRtcpInactivityTimerMillis(kRtcpInactivityTimerMillis);
@@ -100,7 +104,8 @@ TEST(MediaQualityThresholdTest, TestEqual) {
     delete threshold2;
 }
 
-TEST(MediaQualityThresholdTest, TestNotEqual) {
+TEST(MediaQualityThresholdTest, TestNotEqual)
+{
     MediaQualityThreshold* threshold = new MediaQualityThreshold();
     threshold->setRtpInactivityTimerMillis(kRtpInactivityTimerMillis);
     threshold->setRtcpInactivityTimerMillis(kRtcpInactivityTimerMillis);

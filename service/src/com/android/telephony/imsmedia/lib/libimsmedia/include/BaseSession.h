@@ -22,7 +22,8 @@
 #include <MediaQualityThreshold.h>
 #include <stdint.h>
 
-class BaseSession : public BaseSessionCallback {
+class BaseSession : public BaseSessionCallback
+{
 public:
     BaseSession();
     virtual ~BaseSession();

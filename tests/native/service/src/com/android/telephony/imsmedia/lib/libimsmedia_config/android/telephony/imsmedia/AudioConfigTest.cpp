@@ -18,7 +18,7 @@
 #include <gtest/gtest.h>
 
 using namespace android::telephony::imsmedia;
-//RtpConfig
+// RtpConfig
 const int32_t kMediaDirection = RtpConfig::MEDIA_DIRECTION_NO_FLOW;
 const android::String8 kRemoteAddress("0.0.0.0");
 const int32_t kRemotePort = 1000;
@@ -28,14 +28,14 @@ const int8_t kRxPayload = 96;
 const int8_t kTxPayload = 96;
 const int8_t kSamplingRate = 8;
 
-//RtcpConfig
+// RtcpConfig
 const android::String8 kCanonicalName("name");
 const int32_t kTransmitPort = 1001;
 const int32_t kIntervalSec = 1500;
 const int32_t kRtcpXrBlockTypes = RtcpConfig::FLAG_RTCPXR_STATISTICS_SUMMARY_REPORT_BLOCK |
-    RtcpConfig::FLAG_RTCPXR_VOIP_METRICS_REPORT_BLOCK;
+        RtcpConfig::FLAG_RTCPXR_VOIP_METRICS_REPORT_BLOCK;
 
-//AudioConfig
+// AudioConfig
 const int8_t kPTimeMillis = 20;
 const int32_t kMaxPtimeMillis = 100;
 const int8_t kTxCodecModeRequest = 15;
@@ -44,20 +44,20 @@ const int32_t kCodecType = AudioConfig::CODEC_AMR_WB;
 const int8_t kDtmfPayloadTypeNumber = 100;
 const int8_t kDtmfsamplingRateKHz = 16;
 
-//AmrParam
+// AmrParam
 const int32_t kAmrMode = 8;
 const bool kOctetAligned = false;
 const int32_t kMaxRedundancyMillis = 240;
 
-//EvsParam
+// EvsParam
 const int32_t kEvsBandwidth = EvsParams::EVS_BAND_NONE;
 const int32_t kEvsMode = 8;
 const int8_t kChannelAwareMode = 3;
 const bool kUseHeaderFullOnlyOnTx = false;
 const bool kUseHeaderFullOnlyOnRx = false;
 
-
-class AudioConfigTest : public ::testing::Test {
+class AudioConfigTest : public ::testing::Test
+{
 public:
     RtcpConfig rtcp;
     AmrParams amr;
@@ -67,7 +67,8 @@ public:
     AudioConfig config3;
 
 protected:
-    virtual void SetUp() override {
+    virtual void SetUp() override
+    {
         rtcp.setCanonicalName(kCanonicalName);
         rtcp.setTransmitPort(kTransmitPort);
         rtcp.setIntervalSec(kIntervalSec);
@@ -103,11 +104,11 @@ protected:
         config1.setEvsParams(evs);
     }
 
-    virtual void TearDown() override {
-    }
+    virtual void TearDown() override {}
 };
 
-TEST_F(AudioConfigTest, TestGetterSetter) {
+TEST_F(AudioConfigTest, TestGetterSetter)
+{
     EXPECT_EQ(config1.getPtimeMillis(), kPTimeMillis);
     EXPECT_EQ(config1.getMaxPtimeMillis(), kMaxPtimeMillis);
     EXPECT_EQ(config1.getTxCodecModeRequest(), kTxCodecModeRequest);
@@ -119,7 +120,8 @@ TEST_F(AudioConfigTest, TestGetterSetter) {
     EXPECT_EQ(config1.getEvsParams(), evs);
 }
 
-TEST_F(AudioConfigTest, TestParcel) {
+TEST_F(AudioConfigTest, TestParcel)
+{
     android::Parcel parcel;
     config1.writeToParcel(&parcel);
     parcel.setDataPosition(0);
@@ -129,12 +131,14 @@ TEST_F(AudioConfigTest, TestParcel) {
     EXPECT_EQ(configTest, config1);
 }
 
-TEST_F(AudioConfigTest, TestAssign) {
+TEST_F(AudioConfigTest, TestAssign)
+{
     AudioConfig testConfig = config1;
     EXPECT_EQ(config1, testConfig);
 }
 
-TEST_F(AudioConfigTest, TestEqual) {
+TEST_F(AudioConfigTest, TestEqual)
+{
     config2.setMediaDirection(kMediaDirection);
     config2.setRemoteAddress(kRemoteAddress);
     config2.setRemotePort(kRemotePort);
@@ -156,7 +160,8 @@ TEST_F(AudioConfigTest, TestEqual) {
     EXPECT_EQ(config2, config1);
 }
 
-TEST_F(AudioConfigTest, TestNotEqual) {
+TEST_F(AudioConfigTest, TestNotEqual)
+{
     config2.setMediaDirection(kMediaDirection);
     config2.setRemoteAddress(kRemoteAddress);
     config2.setRemotePort(2000);

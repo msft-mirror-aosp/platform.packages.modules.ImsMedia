@@ -22,7 +22,8 @@
 
 using namespace std;
 
-struct DataEntry {
+struct DataEntry
+{
     uint8_t* pbBuffer;
     uint32_t nBufferSize;
     uint32_t nTimestamp;
@@ -40,14 +41,15 @@ struct DataEntry {
  *    @class ImsMediaDataQueue
  *    @brief
  */
-class ImsMediaDataQueue {
+class ImsMediaDataQueue
+{
 public:
     ImsMediaDataQueue();
     virtual ~ImsMediaDataQueue();
 
 private:
-    ImsMediaDataQueue(const ImsMediaDataQueue &obj);
-    ImsMediaDataQueue& operator=(const ImsMediaDataQueue &obj);
+    ImsMediaDataQueue(const ImsMediaDataQueue& obj);
+    ImsMediaDataQueue& operator=(const ImsMediaDataQueue& obj);
 
 public:
     void Add(DataEntry* pEntry);
@@ -62,7 +64,7 @@ public:
     bool GetNext(DataEntry** ppEntry);
 
 private:
-    list<uint8_t*> m_List;        // data list
+    list<uint8_t*> m_List;  // data list
     list<uint8_t*>::iterator m_ListIter;
 };
 

@@ -17,55 +17,70 @@
 #include <ImsMediaTrace.h>
 #include <BaseStreamGraph.h>
 
-BaseStreamGraph::BaseStreamGraph(BaseSessionCallback* callback, int localFd)
-    : mCallback(callback), mLocalFd(localFd) {
+BaseStreamGraph::BaseStreamGraph(BaseSessionCallback* callback, int localFd) :
+        mCallback(callback),
+        mLocalFd(localFd)
+{
     IMLOGD0("[BaseStreamGraph]");
     std::unique_ptr<StreamScheduler> scheduler(new StreamScheduler());
     mScheduler = std::move(scheduler);
 }
 
-BaseStreamGraph::~BaseStreamGraph() {
+BaseStreamGraph::~BaseStreamGraph()
+{
     IMLOGD0("[~BaseStreamGraph]");
 }
 
-ImsMediaResult BaseStreamGraph::start() {
+ImsMediaResult BaseStreamGraph::start()
+{
     IMLOGD0("startGraph]");
     ImsMediaResult ret = startNodes();
-    if (ret != RESULT_SUCCESS) {
+    if (ret != RESULT_SUCCESS)
+    {
         return ret;
     }
     setState(StreamState::STATE_RUN);
     return RESULT_SUCCESS;
 }
 
-ImsMediaResult BaseStreamGraph::stop() {
+ImsMediaResult BaseStreamGraph::stop()
+{
     IMLOGD0("stopGraph]");
     ImsMediaResult ret = stopNodes();
-    if (ret != RESULT_SUCCESS) {
+    if (ret != RESULT_SUCCESS)
+    {
         return ret;
     }
     setState(StreamState::STATE_CREATED);
     return RESULT_SUCCESS;
 }
 
-void BaseStreamGraph::AddNode(BaseNode* pNode, bool bReverse) {
-
-    if (pNode == NULL) return;
+void BaseStreamGraph::AddNode(BaseNode* pNode, bool bReverse)
+{
+    if (pNode == NULL)
+        return;
     IMLOGD1("AddNode[%s]", pNode->GetNodeName());
-    if (bReverse == true) {
-        mListNodeToStart.push_front(pNode); //reverse direction
-    } else {
+    if (bReverse == true)
+    {
+        mListNodeToStart.push_front(pNode);  // reverse direction
+    }
+    else
+    {
         mListNodeToStart.push_back(pNode);
     }
-    if (pNode->IsRunTime() == false) {
+    if (pNode->IsRunTime() == false)
+    {
         IMLOGD1("Add to scheduler[%s]", pNode->GetNodeName());
         mScheduler->RegisterNode(pNode);
     }
 }
 
-void BaseStreamGraph::RemoveNode(BaseNode* pNode) {
-    if (pNode == NULL) return;
-    if (pNode->IsRunTime() == false) {
+void BaseStreamGraph::RemoveNode(BaseNode* pNode)
+{
+    if (pNode == NULL)
+        return;
+    if (pNode->IsRunTime() == false)
+    {
         mScheduler->DeRegisterNode(pNode);
     }
 
@@ -74,18 +89,21 @@ void BaseStreamGraph::RemoveNode(BaseNode* pNode) {
     BaseNode::UnLoad(pNode);
 }
 
-ImsMediaResult BaseStreamGraph::startNodes() {
+ImsMediaResult BaseStreamGraph::startNodes()
+{
     BaseNode* pNode = NULL;
     std::list<BaseNode*>::iterator iter;
     ImsMediaResult ret = ImsMediaResult::RESULT_NOT_READY;
-    while (mListNodeToStart.size() > 0) {
+    while (mListNodeToStart.size() > 0)
+    {
         pNode = mListNodeToStart.front();
         IMLOGD1("[startNodes] Start node[%s]", pNode->GetNodeName());
         ret = pNode->Start();
         mListNodeToStart.pop_front();
         mListNodeStarted.push_front(pNode);
         IMLOGD2("[startNodes] Start node[%s], ret[%d]", pNode->GetNodeName(), ret);
-        if (ret != RESULT_SUCCESS) {
+        if (ret != RESULT_SUCCESS)
+        {
             return ret;
         }
     }
@@ -94,11 +112,13 @@ ImsMediaResult BaseStreamGraph::startNodes() {
     return RESULT_SUCCESS;
 }
 
-ImsMediaResult BaseStreamGraph::stopNodes() {
+ImsMediaResult BaseStreamGraph::stopNodes()
+{
     BaseNode* pNode;
     mScheduler->Stop();
     std::list<BaseNode*>::iterator iter;
-    while (mListNodeStarted.size() > 0) {
+    while (mListNodeStarted.size() > 0)
+    {
         pNode = mListNodeStarted.front();
         IMLOGD1("[stopNodes] Stop node[%s]", pNode->GetNodeName());
         pNode->Stop();
@@ -109,7 +129,8 @@ ImsMediaResult BaseStreamGraph::stopNodes() {
     return RESULT_SUCCESS;
 }
 
-void BaseStreamGraph::setMediaQualityThreshold(MediaQualityThreshold* threshold) {
+void BaseStreamGraph::setMediaQualityThreshold(MediaQualityThreshold* threshold)
+{
     (void)threshold;
-    //base implementation
+    // base implementation
 }

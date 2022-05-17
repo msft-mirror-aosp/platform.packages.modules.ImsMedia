@@ -22,20 +22,25 @@
 #include <binder/Status.h>
 #include <stdint.h>
 
-namespace android {
+namespace android
+{
 
-namespace telephony {
+namespace telephony
+{
 
-namespace imsmedia {
+namespace imsmedia
+{
 
 /** Native representation of android.telephony.imsmedia.EvsParams */
 
 /**
  * The class represents EVS (Enhanced Voice Services) codec parameters.
  */
-class EvsParams : public Parcelable {
+class EvsParams : public Parcelable
+{
 public:
-    enum EvsMode {
+    enum EvsMode
+    {
         /** 6.6 kbps for EVS AMR-WB IO */
         EVS_MODE_0,
         /** 8.855 kbps for AMR-WB IO */
@@ -80,7 +85,8 @@ public:
         EVS_MODE_20 = 20,
     };
 
-    enum EvsBandwidth {
+    enum EvsBandwidth
+    {
         EVS_BAND_NONE = 0,
         EVS_NARROW_BAND = 1 << 0,
         EVS_WIDE_BAND = 1 << 1,

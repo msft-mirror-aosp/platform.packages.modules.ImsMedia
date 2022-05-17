@@ -18,7 +18,8 @@
 #include <ImsMediaTrace.h>
 #include <string.h>
 
-ImsMediaBitReader::ImsMediaBitReader() {
+ImsMediaBitReader::ImsMediaBitReader()
+{
     m_pbBuffer = NULL;
     m_nMaxBufferSize = 0;
     m_nBytePos = 0;
@@ -27,10 +28,10 @@ ImsMediaBitReader::ImsMediaBitReader() {
     m_bBufferEOF = false;
 }
 
-ImsMediaBitReader::~ImsMediaBitReader() {
-}
+ImsMediaBitReader::~ImsMediaBitReader() {}
 
-void ImsMediaBitReader::SetBuffer(uint8_t* pbBuffer, uint32_t nBufferSize) {
+void ImsMediaBitReader::SetBuffer(uint8_t* pbBuffer, uint32_t nBufferSize)
+{
     m_nBytePos = 0;
     m_nBitPos = 32;
     m_nBitBuffer = 0;
@@ -39,21 +40,25 @@ void ImsMediaBitReader::SetBuffer(uint8_t* pbBuffer, uint32_t nBufferSize) {
     m_nMaxBufferSize = nBufferSize;
 }
 
-uint32_t ImsMediaBitReader::Read(uint32_t nSize) {
+uint32_t ImsMediaBitReader::Read(uint32_t nSize)
+{
     uint32_t value;
-    if (nSize == 0) return 0;
-    if (m_pbBuffer == NULL || nSize > 24 || m_bBufferEOF) {
-        IMLOGE2("[ImsMediaBitReader::GetBit] nSize[%d], bBufferEOF[%d]",
-            nSize, m_bBufferEOF);
+    if (nSize == 0)
+        return 0;
+    if (m_pbBuffer == NULL || nSize > 24 || m_bBufferEOF)
+    {
+        IMLOGE2("[ImsMediaBitReader::GetBit] nSize[%d], bBufferEOF[%d]", nSize, m_bBufferEOF);
         return 0;
     }
 
     // read from byte buffer
-    while ((32-m_nBitPos) < nSize) {
-        if (m_nBytePos >= m_nMaxBufferSize) {
+    while ((32 - m_nBitPos) < nSize)
+    {
+        if (m_nBytePos >= m_nMaxBufferSize)
+        {
             m_bBufferEOF = true;
             IMLOGE2("[ImsMediaBitReader::GetBit] End of Buffer : nBytePos[%d], nMaxBufferSize[%d]",
-                m_nBytePos, m_nMaxBufferSize);
+                    m_nBytePos, m_nMaxBufferSize);
             return 0;
         }
 
@@ -63,43 +68,51 @@ uint32_t ImsMediaBitReader::Read(uint32_t nSize) {
     }
 
     // read from bit buffer
-    value = m_nBitBuffer << m_nBitPos >> (32-nSize);
+    value = m_nBitBuffer << m_nBitPos >> (32 - nSize);
     m_nBitPos += nSize;
     return value;
 }
 
-void ImsMediaBitReader::ReadByteBuffer(uint8_t* pbDst, uint32_t nBitSize) {
+void ImsMediaBitReader::ReadByteBuffer(uint8_t* pbDst, uint32_t nBitSize)
+{
     uint32_t dst_pos = 0;
     uint32_t nByteSize;
     uint32_t nRemainBitSize;
     nByteSize = nBitSize >> 3;
     nRemainBitSize = nBitSize & 0x07;
 
-    if (m_nBitPos == 32) {
-        memcpy(pbDst, m_pbBuffer+m_nBytePos, nByteSize);
+    if (m_nBitPos == 32)
+    {
+        memcpy(pbDst, m_pbBuffer + m_nBytePos, nByteSize);
         m_nBytePos += nByteSize;
         dst_pos += nByteSize;
-    } else {
-        for (dst_pos = 0 ; dst_pos < nByteSize ; dst_pos ++) {
+    }
+    else
+    {
+        for (dst_pos = 0; dst_pos < nByteSize; dst_pos++)
+        {
             pbDst[dst_pos] = Read(8);
         }
     }
 
-    if (nRemainBitSize > 0) {
+    if (nRemainBitSize > 0)
+    {
         uint32_t v;
         v = Read(nRemainBitSize);
-        v <<= (8-nRemainBitSize);
+        v <<= (8 - nRemainBitSize);
         pbDst[dst_pos] = (unsigned char)v;
     }
 }
 
-uint32_t ImsMediaBitReader::ReadByUEMode() {
+uint32_t ImsMediaBitReader::ReadByUEMode()
+{
     uint32_t i = 0;
     uint32_t j = 0;
-    uint32_t k =1;
+    uint32_t k = 1;
     uint32_t result = 0;
 
-    while(Read(1) == 0 && m_bBufferEOF == false) {
+    while (Read(1) == 0 && m_bBufferEOF == false)
+    {
         i++;
     }
 

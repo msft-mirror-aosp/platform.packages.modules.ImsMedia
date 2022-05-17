@@ -36,59 +36,59 @@
 
 class RtpHeader
 {
-    private:
-        // m_ucVersion identifies the version of RTP
-        RtpDt_UChar    m_ucVersion;
+private:
+    // m_ucVersion identifies the version of RTP
+    RtpDt_UChar m_ucVersion;
 
-        // m_ucPadding identifies the padding bit.
-        /**
-         * If the padding bit is set, the packet contains one or more
-         * additional padding octets at the end which are not part of the
-         * payload.
-         */
-        RtpDt_UChar    m_ucPadding;
+    // m_ucPadding identifies the padding bit.
+    /**
+     * If the padding bit is set, the packet contains one or more
+     * additional padding octets at the end which are not part of the
+     * payload.
+     */
+    RtpDt_UChar m_ucPadding;
 
-        /**
-         * If the extension bit is set, the fixed header MUST be followed by
-         * exactly one header extension. Refer RFC 3550 Section 5.1 for more details.
-         */
-        RtpDt_UChar    m_ucExtension;
+    /**
+     * If the extension bit is set, the fixed header MUST be followed by
+     * exactly one header extension. Refer RFC 3550 Section 5.1 for more details.
+     */
+    RtpDt_UChar m_ucExtension;
 
-        /**
-         * m_ucCsrcCnt contains the number of CSRC identifiers that follow the fixed header.
-         */
-        RtpDt_UChar    m_ucCsrcCnt;
+    /**
+     * m_ucCsrcCnt contains the number of CSRC identifiers that follow the fixed header.
+     */
+    RtpDt_UChar m_ucCsrcCnt;
 
-        /**
-         * It contains CSRC list.
-         */
-        std::list<RtpDt_UInt32 *> m_uiCsrcList;
+    /**
+     * It contains CSRC list.
+     */
+    std::list<RtpDt_UInt32*> m_uiCsrcList;
 
-        /**
-         * m_ucMarker contains marker bit.
-         */
-        RtpDt_UChar    m_ucMarker;
+    /**
+     * m_ucMarker contains marker bit.
+     */
+    RtpDt_UChar m_ucMarker;
 
-        /**
-         * m_ucPldType identifies the format of the Rtp payload.
-         */
-        RtpDt_UChar    m_ucPldType;
+    /**
+     * m_ucPldType identifies the format of the Rtp payload.
+     */
+    RtpDt_UChar m_ucPldType;
 
-        /**
-         * Sequence number
-         */
-        RtpDt_UInt16    m_usSeqNum;
+    /**
+     * Sequence number
+     */
+    RtpDt_UInt16 m_usSeqNum;
 
-        /**
-         * The m_uiTimestamp reflects the sampling instant of the first octet
-         * in the RTP data packet.
-         */
-        RtpDt_UInt32    m_uiTimestamp;
+    /**
+     * The m_uiTimestamp reflects the sampling instant of the first octet
+     * in the RTP data packet.
+     */
+    RtpDt_UInt32 m_uiTimestamp;
 
-        /**
-         * Synchronization source.
-         */
-        RtpDt_UInt32    m_uiSsrc;
+    /**
+     * Synchronization source.
+     */
+    RtpDt_UInt32 m_uiSsrc;
 
     /**
      * add element to m_uiCsrcList
@@ -145,7 +145,7 @@ public:
     /**
      * get method for m_uiCsrcList
      */
-    std::list<RtpDt_UInt32 *>& getCsrcList();
+    std::list<RtpDt_UInt32*>& getCsrcList();
 
     /**
      * set method for m_ucMarker
@@ -211,8 +211,7 @@ public:
      * @param pobjRtpPktBuf Memory for the buffer is pre-allocated by caller
      * @param uiBufPos returns current buffer position
      */
-    eRtp_Bool decodeHeader(IN RtpBuffer* pobjRtpPktBuf,
-                             OUT RtpDt_UInt32 &uiBufPos);
+    eRtp_Bool decodeHeader(IN RtpBuffer* pobjRtpPktBuf, OUT RtpDt_UInt32& uiBufPos);
 };
 
 #endif /* __RTP_HEADER_H__ */

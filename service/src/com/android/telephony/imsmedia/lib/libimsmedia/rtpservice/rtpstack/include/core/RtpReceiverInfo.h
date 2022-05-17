@@ -24,12 +24,12 @@
 #include <RtpGlobal.h>
 #include <RtcpReportBlock.h>
 
-#define RTP_SEQ_MOD (RTP_ONE<<RTP_16)
-#define RTP_MAX_DROPOUT  3000
-#define RTP_MAX_MISORDER  100
-#define RTP_MIN_SEQUENTIAL  0
+#define RTP_SEQ_MOD        (RTP_ONE << RTP_16)
+#define RTP_MAX_DROPOUT    3000
+#define RTP_MAX_MISORDER   100
+#define RTP_MIN_SEQUENTIAL 0
 
- /**
+/**
  * @class   RtpReceiverInfo
  * @brief   It maintains the receiver list for RTP session.
  * This class stores the content of a RTP packet.
@@ -38,7 +38,7 @@
 class RtpReceiverInfo
 {
     // SSRC of the source
-    RtpDt_UInt32    m_uiSsrc;
+    RtpDt_UInt32 m_uiSsrc;
 
     // Status of this SSRC as a sender or receiver
     eRtp_Bool m_bSender;
@@ -50,7 +50,7 @@ class RtpReceiverInfo
     RtpDt_UInt32 m_uiTotalRcvdRtpOcts;
 
     // IPaddr of this ssrc
-    RtpBuffer*     m_pobjIpAddr;
+    RtpBuffer* m_pobjIpAddr;
 
     // Port of this ssrc
     RtpDt_UInt16 m_usPort;
@@ -61,7 +61,6 @@ class RtpReceiverInfo
     /** enables m_bIsCsrcFlag if the entry is creted @
         processing of CSRC list in RTP processing */
     eRtp_Bool m_bIsCsrcFlag;
-
 
     // Previous Ntp Timestamp
     tRTP_NTP_TIME m_stPrevNtpTimestamp;
@@ -74,10 +73,10 @@ class RtpReceiverInfo
      * received as part of the most recent RTCP sender report
      * (SR) packet.
      */
-    //tRTP_NTP_TIME m_stPreSrTimestamp;
+    // tRTP_NTP_TIME m_stPreSrTimestamp;
     RtpDt_UInt32 m_stPreSrTimestamp;
 
-    //previous SR NtpTimestamp
+    // previous SR NtpTimestamp
     RtpDt_UInt32 m_stLastSrNtpTimestamp;
 
     // check for first RTP packet
@@ -97,7 +96,6 @@ class RtpReceiverInfo
     RtpDt_UInt32 delaySinceLastSR();
 
 public:
-
     RtpReceiverInfo();
 
     ~RtpReceiverInfo();
@@ -124,7 +122,7 @@ public:
 
     RtpBuffer* getIpAddr();
 
-    eRTP_STATUS_CODE setIpAddr(IN RtpBuffer *pobjIpAddr);
+    eRTP_STATUS_CODE setIpAddr(IN RtpBuffer* pobjIpAddr);
 
     RtpDt_UInt16 getPort();
 
@@ -136,28 +134,25 @@ public:
 
     tRTP_NTP_TIME* getpreSrTimestamp();
 
-    RtpDt_Void setpreSrTimestamp(IN tRTP_NTP_TIME *pstNtpTs);
+    RtpDt_Void setpreSrTimestamp(IN tRTP_NTP_TIME* pstNtpTs);
 
-    RtpDt_Void setLastSrNtpTimestamp(IN tRTP_NTP_TIME *pstNtpTs);
+    RtpDt_Void setLastSrNtpTimestamp(IN tRTP_NTP_TIME* pstNtpTs);
 
     RtpDt_Void setprevRtpTimestamp(IN RtpDt_UInt32 pstRtpTs);
 
-    RtpDt_Void setprevNtpTimestamp(IN tRTP_NTP_TIME *pstNtpTs);
+    RtpDt_Void setprevNtpTimestamp(IN tRTP_NTP_TIME* pstNtpTs);
 
     /**
      * It populates Report Block information
      */
-    eRTP_STATUS_CODE populateReportBlock(IN RtcpReportBlock *pobjRepBlk);
+    eRTP_STATUS_CODE populateReportBlock(IN RtcpReportBlock* pobjRepBlk);
 
     /**
      * It calculates the inter arrival jitter after receiving the RTP packet
      */
-    RtpDt_Void calcJitter(IN RtpDt_UInt32 uiRcvRtpTs,
-                                      IN RtpDt_UInt32 uiSamplingRate);
-
+    RtpDt_Void calcJitter(IN RtpDt_UInt32 uiRcvRtpTs, IN RtpDt_UInt32 uiSamplingRate);
 };
 
-#endif    //__RTP_RECEIVER_INFO_H__
-
+#endif  //__RTP_RECEIVER_INFO_H__
 
 /** @}*/

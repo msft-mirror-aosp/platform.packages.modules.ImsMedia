@@ -33,49 +33,48 @@
  */
 class RtcpChunk
 {
-    private:
-        RtpDt_UInt32    m_uiSsrc;
-        std::list<tRTCP_SDES_ITEM *> m_stSdesItemList;
+private:
+    RtpDt_UInt32 m_uiSsrc;
+    std::list<tRTCP_SDES_ITEM*> m_stSdesItemList;
 
-    public:
-        RtcpChunk();
-        ~RtcpChunk();
+public:
+    RtcpChunk();
+    ~RtcpChunk();
 
-        /**
-         * set method for m_uiSsrc
-         */
-        RtpDt_Void setSsrc(IN RtpDt_UInt32 uiSsrc);
+    /**
+     * set method for m_uiSsrc
+     */
+    RtpDt_Void setSsrc(IN RtpDt_UInt32 uiSsrc);
 
-        /**
-         * get method for m_uiSsrc
-         */
-        RtpDt_UInt32 getSsrc();
+    /**
+     * get method for m_uiSsrc
+     */
+    RtpDt_UInt32 getSsrc();
 
-        /**
-         * get method for m_stSdesItemList
-         */
-        std::list<tRTCP_SDES_ITEM *>& getSdesItemList();
+    /**
+     * get method for m_stSdesItemList
+     */
+    std::list<tRTCP_SDES_ITEM*>& getSdesItemList();
 
-        /**
-         * Decodes and stores the information of the RTCP CHUNKS
-         * This function does not allocate memory required for decoding.
-         * @param pucChunkBuf Received RTCP chunk buffer
-         * @param usChunkLen Length of the RTCP chunk
-         * @param pobjRtcpCfgInfo RTCP configuration information
-         */
-        eRTP_STATUS_CODE decodeRtcpChunk(IN RtpDt_UChar* pucChunkBuf,
-                                    IN RtpDt_UInt16 &usChunkLen,
-                                    IN RtcpConfigInfo *pobjRtcpCfgInfo);
+    /**
+     * Decodes and stores the information of the RTCP CHUNKS
+     * This function does not allocate memory required for decoding.
+     * @param pucChunkBuf Received RTCP chunk buffer
+     * @param usChunkLen Length of the RTCP chunk
+     * @param pobjRtcpCfgInfo RTCP configuration information
+     */
+    eRTP_STATUS_CODE decodeRtcpChunk(IN RtpDt_UChar* pucChunkBuf, IN RtpDt_UInt16& usChunkLen,
+            IN RtcpConfigInfo* pobjRtcpCfgInfo);
 
-        /**
-         * Performs the encoding of the RTCP CHUNKS.
-         * This function does not allocate memory required for encoding.
-         * @param pobjRtcpPktBuf Memory for the buffer is pre-allocated by caller
-         * @param uiStartPos from which RTCP CHUNKS shall be encoded.
-         */
-        eRTP_STATUS_CODE formRtcpChunk(OUT RtpBuffer* pobjRtcpPktBuf);
+    /**
+     * Performs the encoding of the RTCP CHUNKS.
+     * This function does not allocate memory required for encoding.
+     * @param pobjRtcpPktBuf Memory for the buffer is pre-allocated by caller
+     * @param uiStartPos from which RTCP CHUNKS shall be encoded.
+     */
+    eRTP_STATUS_CODE formRtcpChunk(OUT RtpBuffer* pobjRtcpPktBuf);
 
-}; // end of RtcpChunk
+};  // end of RtcpChunk
 
-#endif    //__RTCP_CHUNK_H__
+#endif  //__RTCP_CHUNK_H__
 /** @}*/

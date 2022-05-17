@@ -33,9 +33,7 @@ public:
     void Start();
     void Stop();
     void Awake();
-    virtual void onAwakeScheduler() {
-        this->Awake();
-    }
+    virtual void onAwakeScheduler() { this->Awake(); }
     virtual void* run();
 
 private:

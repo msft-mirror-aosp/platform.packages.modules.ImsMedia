@@ -36,15 +36,13 @@ public:
     virtual bool IsSourceNode();
     virtual void SetConfig(void* config);
     virtual bool IsSameConfig(void* config);
-    virtual void OnDataFromFrontNode(ImsMediaSubType subtype,
-        uint8_t* pData, uint32_t nDataSize, uint32_t nTimestamp, bool bMark, uint32_t nSeqNum,
-        ImsMediaSubType nDataType = ImsMediaSubType::MEDIASUBTYPE_UNDEFINED);
+    virtual void OnDataFromFrontNode(ImsMediaSubType subtype, uint8_t* pData, uint32_t nDataSize,
+            uint32_t nTimestamp, bool bMark, uint32_t nSeqNum,
+            ImsMediaSubType nDataType = ImsMediaSubType::MEDIASUBTYPE_UNDEFINED);
     void SetLocalFd(int fd);
     void SetLocalAddress(const RtpAddress address);
     void SetPeerAddress(const RtpAddress address);
-    void SetProtocolType(ImsMediaProtocolType type) {
-        mProtocolType = type;
-    }
+    void SetProtocolType(ImsMediaProtocolType type) { mProtocolType = type; }
 
 private:
     int mLocalFd;

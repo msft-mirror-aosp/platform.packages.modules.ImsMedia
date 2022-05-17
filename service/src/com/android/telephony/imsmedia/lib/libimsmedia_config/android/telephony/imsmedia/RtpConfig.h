@@ -23,20 +23,25 @@
 #include <RtcpConfig.h>
 #include <stdint.h>
 
-namespace android {
+namespace android
+{
 
-namespace telephony {
+namespace telephony
+{
 
-namespace imsmedia {
+namespace imsmedia
+{
 
 /** Native representation of android.telephony.imsmedia.RtpConfig */
 
 /**
  * The class to encapsulate RTP (Real Time Protocol) configurations
  */
-class RtpConfig : public Parcelable {
+class RtpConfig : public Parcelable
+{
 public:
-    enum MediaDirection {
+    enum MediaDirection
+    {
         /** Device neither transmits nor receives any media */
         MEDIA_DIRECTION_NO_FLOW,
         /**
@@ -54,12 +59,12 @@ public:
     };
 
     RtpConfig(int32_t type);
-    RtpConfig(RtpConfig *config);
+    RtpConfig(RtpConfig* config);
     RtpConfig(RtpConfig& config);
     virtual ~RtpConfig();
     RtpConfig& operator=(const RtpConfig& config);
-    bool operator==(const RtpConfig &c2) const;
-    bool operator!=(const RtpConfig &c2) const;
+    bool operator==(const RtpConfig& c2) const;
+    bool operator!=(const RtpConfig& c2) const;
     virtual status_t writeToParcel(Parcel* parcel) const;
     virtual status_t readFromParcel(const Parcel* in);
     void setMediaDirection(const int32_t direction);
@@ -73,7 +78,7 @@ public:
     void setRtcpConfig(const RtcpConfig& config);
     RtcpConfig getRtcpConfig();
     void setMaxMtuBytes(const int32_t mtu);
-    //TODO : change method name
+    // TODO : change method name
     int32_t getmaxMtuBytes();
     void setDscp(const int8_t dscp);
     int8_t getDscp();

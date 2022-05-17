@@ -19,22 +19,17 @@
 #include <netinet/in.h>
 #include <RtpOsUtil.h>
 
-RtpOsUtil::RtpOsUtil()
-{
-}
+RtpOsUtil::RtpOsUtil() {}
 
+RtpOsUtil::~RtpOsUtil() {}
 
-RtpOsUtil::~RtpOsUtil()
-{
-}
-
-RtpDt_Void RtpOsUtil::GetNtpTime(tRTP_NTP_TIME *pstNtpTime)
+RtpDt_Void RtpOsUtil::GetNtpTime(tRTP_NTP_TIME* pstNtpTime)
 {
     struct timeval stAndrodTp;
 
-    if(gettimeofday(&stAndrodTp, RTP_NULL) != -1)
+    if (gettimeofday(&stAndrodTp, RTP_NULL) != -1)
     {
-        //To convert a UNIX timestamp (seconds since 1970) to NTP time, add 2,208,988,800 seconds
+        // To convert a UNIX timestamp (seconds since 1970) to NTP time, add 2,208,988,800 seconds
         pstNtpTime->m_uiNtpHigh32Bits = stAndrodTp.tv_sec + 2208988800UL;
         pstNtpTime->m_uiNtpLow32Bits = (RtpDt_UInt32)(stAndrodTp.tv_usec * 4294UL);
     }
@@ -45,7 +40,7 @@ RtpDt_Void RtpOsUtil::Srand()
     struct timeval stSysTime;
     gettimeofday(&stSysTime, RTP_NULL);
     RtpDt_UInt32 uiSeed = stSysTime.tv_usec * 1000;
-     srand(uiSeed);
+    srand(uiSeed);
 }
 
 RtpDt_UInt32 RtpOsUtil::Rand()
@@ -63,13 +58,13 @@ RtpDt_Double RtpOsUtil::RRand()
 {
     tRTP_NTP_TIME stNtpTs;
     RtpOsUtil::Srand();
-    RtpDt_Double dRandNum = rand()/RAND_MAX;
+    RtpDt_Double dRandNum = rand() / RAND_MAX;
     RtpOsUtil::GetNtpTime(&stNtpTs);
-    RtpDt_Double dTemp = ((dRandNum * stNtpTs.m_uiNtpHigh32Bits)
-        + (stNtpTs.m_uiNtpLow32Bits / RTP_MILLISEC_MICRO));
-    if(dTemp > RTP_ZERO)
+    RtpDt_Double dTemp = ((dRandNum * stNtpTs.m_uiNtpHigh32Bits) +
+            (stNtpTs.m_uiNtpLow32Bits / RTP_MILLISEC_MICRO));
+    if (dTemp > RTP_ZERO)
     {
-        return 1.0/dTemp;
+        return 1.0 / dTemp;
     }
     else
     {

@@ -27,19 +27,22 @@
 using namespace std;
 using namespace android::telephony::imsmedia;
 
-class AudioManager : public BaseManager {
+class AudioManager : public BaseManager
+{
 public:
     /**
      * @class   RequestHandler
      * @brief   request serialization
      */
-    class RequestHandler : public ImsMediaEventHandler {
+    class RequestHandler : public ImsMediaEventHandler
+    {
     public:
         RequestHandler();
         virtual ~RequestHandler();
+
     protected:
-        virtual void processEvent(uint32_t event,
-            uint64_t sessionId, uint64_t paramA, uint64_t paramB);
+        virtual void processEvent(
+                uint32_t event, uint64_t sessionId, uint64_t paramA, uint64_t paramB);
     };
 
     /**
@@ -47,13 +50,15 @@ public:
      * @brief   ResponseHandler
      *                  has its own thread and sent the response to the client in its own thread
      */
-    class ResponseHandler : public ImsMediaEventHandler {
+    class ResponseHandler : public ImsMediaEventHandler
+    {
     public:
         ResponseHandler();
         virtual ~ResponseHandler();
+
     protected:
-        virtual void processEvent(uint32_t event,
-            uint64_t sessionId, uint64_t paramA, uint64_t paramB);
+        virtual void processEvent(
+                uint32_t event, uint64_t sessionId, uint64_t paramA, uint64_t paramB);
     };
 
     static AudioManager* getInstance();
@@ -69,7 +74,7 @@ private:
     ImsMediaResult deleteConfig(int sessionId, AudioConfig* config);
     ImsMediaResult confirmConfig(int sessionId, AudioConfig* config);
     void sendDtmf(int sessionId, char dtmfDigit, int duration);
-    //void sendHeaderExtension(int sessionId, RtpHeaderExtension* data);
+    // void sendHeaderExtension(int sessionId, RtpHeaderExtension* data);
     void setMediaQualityThreshold(int sessionId, MediaQualityThreshold* threshold);
 
     static AudioManager* sManager;

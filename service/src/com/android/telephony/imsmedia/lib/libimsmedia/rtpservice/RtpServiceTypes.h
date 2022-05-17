@@ -8,7 +8,6 @@
  *
  */
 
-
 /**
  * Copyright (C) 2022 The Android Open Source Project
  *
@@ -30,20 +29,21 @@
 
 #include <RtpPfDatatypes.h>
 
-typedef void*    RTPSESSIONID;
+typedef void* RTPSESSIONID;
 
-typedef enum {
+typedef enum
+{
     RTPSVC_RECEIVE_RTP_IND,
     RTPSVC_RECEIVE_RTCP_SR_IND,
     RTPSVC_RECEIVE_RTCP_RR_IND,
     RTPSVC_RECEIVE_RTCP_SDES_IND,
     RTPSVC_RECEIVE_RTCP_BYE_IND,
-    RTPSVC_RECEIVE_RTCP_APP_IND,           //5
+    RTPSVC_RECEIVE_RTCP_APP_IND,  // 5
     RTPSVC_SESS_READY_DEL_IND,
     RTPSVC_CREATE_MEMBER_IND,
     RTPSVC_DELETE_MEMBER_IND,
     RTPSVC_SSRC_COLLISION_CHANGED_IND,
-    RTPSVC_MEMBER_COLLISION_IND,          //10
+    RTPSVC_MEMBER_COLLISION_IND,  // 10
     RTPSVC_RECEIVE_RTCP_TIMER_EXPIRY_IND,
     RTPSVC_UNKNOWN_ERR_IND,
     RTPSVC_RECEIVE_RTCP_FB_IND,
@@ -51,8 +51,8 @@ typedef enum {
     RTPSVC_LAST_IND_FROM_STACK = 0x7fff
 } tRtpSvc_IndicationFromStack;
 
-typedef RtpDt_Void (*RtpSvc_AppIndCbFunc)(tRtpSvc_IndicationFromStack eIndType,
-                                           RtpDt_Void* pData, RtpDt_Void* pvUserData);
+typedef RtpDt_Void (*RtpSvc_AppIndCbFunc)(
+        tRtpSvc_IndicationFromStack eIndType, RtpDt_Void* pData, RtpDt_Void* pvUserData);
 
 typedef RtpDt_Void (*RtpSvc_AppIndCbRtcp)(RtpDt_Void* pData, RtpDt_Void* pvUserData);
 typedef RtpDt_Int32 (*RtpSvc_SendToPeerCb)(RtpDt_UChar*, RtpSvc_Length, RtpDt_Void* pvUserData);
@@ -63,21 +63,21 @@ typedef struct
     RtpDt_UInt32 payloadType;
     RtpDt_UInt32 samplingRate;
     RtpDt_UInt32 frameInterval;
-}tRtpSvc_SetPayloadParam;
+} tRtpSvc_SetPayloadParam;
 
 typedef struct
 {
-    eRtp_Bool  bMbit;
-    RtpDt_UChar     byPayLoadType;
-    eRtp_Bool  bUseLastTimestamp;
-    RtpDt_UInt32    diffFromLastRtpTimestamp;
+    eRtp_Bool bMbit;
+    RtpDt_UChar byPayLoadType;
+    eRtp_Bool bUseLastTimestamp;
+    RtpDt_UInt32 diffFromLastRtpTimestamp;
 
     // [CVO] for extension header
-    eRtp_Bool  bXbit;
-    RtpDt_UInt16    nDefinedByProfile;
-    RtpDt_UInt16    nLength;
-    RtpDt_UInt16    nExtensionData;
-}tRtpSvc_SendRtpPacketParm;
+    eRtp_Bool bXbit;
+    RtpDt_UInt16 nDefinedByProfile;
+    RtpDt_UInt16 nLength;
+    RtpDt_UInt16 nExtensionData;
+} tRtpSvc_SendRtpPacketParm;
 
 /*
 typedef struct
@@ -90,74 +90,77 @@ typedef struct
 
 typedef struct
 {
-    eRtp_Bool      bMbit;
-    RtpDt_ULong         dwTimestamp;
-    RtpDt_UInt32        dwPayloadType;
-    RtpDt_UInt16        dwSeqNum;
+    eRtp_Bool bMbit;
+    RtpDt_ULong dwTimestamp;
+    RtpDt_UInt32 dwPayloadType;
+    RtpDt_UInt16 dwSeqNum;
 
-    RtpDt_UInt16        wMsgHdrLen;
-    RtpDt_UChar        *pMsgHdr;
+    RtpDt_UInt16 wMsgHdrLen;
+    RtpDt_UChar* pMsgHdr;
 
-    RtpDt_UInt16        wMsgBodyLen;
-    RtpDt_UChar        *pMsgBody;
+    RtpDt_UInt16 wMsgBodyLen;
+    RtpDt_UChar* pMsgBody;
 
     /* [CVO] for RTP Header Extension, seokhwan.chung@, 2013.05.22 */
-    RtpDt_UInt16        extensionData;
-    eRtp_Bool      bExtension;
+    RtpDt_UInt16 extensionData;
+    eRtp_Bool bExtension;
 
-}tRtpSvcIndSt_ReceiveRtpInd;
+} tRtpSvcIndSt_ReceiveRtpInd;
 
 typedef struct
 {
-    RtpDt_UInt16        wSubType;
-    RtpDt_ULong         dwName;
-    RtpDt_UInt16        wMsgLen;        //total RTCP length
-    RtpDt_UChar        *pMsg;    //total RTCP Packet(Hdr + App Info)
-}tRtpSvcIndSt_ReceiveRtcpAppInd;
+    RtpDt_UInt16 wSubType;
+    RtpDt_ULong dwName;
+    RtpDt_UInt16 wMsgLen;  // total RTCP length
+    RtpDt_UChar* pMsg;     // total RTCP Packet(Hdr + App Info)
+} tRtpSvcIndSt_ReceiveRtcpAppInd;
 
 // To support RTCP Feedback
 typedef struct
 {
-    RtpDt_UInt16        wPayloadType;
-    RtpDt_UInt16        wFmt;
-    RtpDt_ULong         dwMediaSsrc;
-    RtpDt_UInt16        wMsgLen;        //total RTCP length
-    RtpDt_UChar        *pMsg;            //total RTCP Packet(Hdr + App Info)
-}tRtpSvcIndSt_ReceiveRtcpFeedbackInd;
+    RtpDt_UInt16 wPayloadType;
+    RtpDt_UInt16 wFmt;
+    RtpDt_ULong dwMediaSsrc;
+    RtpDt_UInt16 wMsgLen;  // total RTCP length
+    RtpDt_UChar* pMsg;     // total RTCP Packet(Hdr + App Info)
+} tRtpSvcIndSt_ReceiveRtcpFeedbackInd;
 
 typedef struct
 {
-    RtpDt_UInt16        wMsgLen;
-    RtpDt_UChar        *pMsg;
-}tRtpSvcIndSt_ReceiveOtherRtcpInd;
+    RtpDt_UInt16 wMsgLen;
+    RtpDt_UChar* pMsg;
+} tRtpSvcIndSt_ReceiveOtherRtcpInd;
 
 typedef struct
 {
-    RtpDt_UInt32        dwOldSsrc;
-    RtpDt_UInt32        dwNewSsrc;
-}tRtpSvcIndSt_SsrcCollisionInd;
+    RtpDt_UInt32 dwOldSsrc;
+    RtpDt_UInt32 dwNewSsrc;
+} tRtpSvcIndSt_SsrcCollisionInd;
 
-typedef struct {
-    unsigned int        ssrc;
-    unsigned int        fractionLost;
-    unsigned int        cumPktsLost;
-    unsigned int        extHighSeqNum;
-    unsigned int        jitter;
-    unsigned int        lsr;
-    unsigned int        delayLsr;
+typedef struct
+{
+    unsigned int ssrc;
+    unsigned int fractionLost;
+    unsigned int cumPktsLost;
+    unsigned int extHighSeqNum;
+    unsigned int jitter;
+    unsigned int lsr;
+    unsigned int delayLsr;
 } tRtpSvcRecvReport;
 
-typedef struct {
+typedef struct
+{
     unsigned int ntpTimestampMsw;
     unsigned int ntpTimestampLsw;
     unsigned int rtpTimestamp;
     unsigned int sendPktCount;
     unsigned int sendOctCount;
-    tRtpSvcRecvReport stRecvRpt; //only one RR block is supported.
+    tRtpSvcRecvReport stRecvRpt;  // only one RR block is supported.
 } tNotifyReceiveRtcpSrInd;
 
-typedef struct {
-    tRtpSvcRecvReport stRecvRpt; //only one RR block is supported.
+typedef struct
+{
+    tRtpSvcRecvReport stRecvRpt;  // only one RR block is supported.
 } tNotifyReceiveRtcpRrInd;
 
 #endif /* End of _RTP_SERVICE_TYPES_H_*/

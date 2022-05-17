@@ -31,74 +31,72 @@
  */
 class RtcpXrPacket
 {
-    private:
-        // RTCP Xr header information
-        RtcpHeader m_objRtcpHdr; // making use of RTCP header
+private:
+    // RTCP Xr header information
+    RtcpHeader m_objRtcpHdr;  // making use of RTCP header
 
-        // round trip time delay
-        RtpDt_UInt32 m_uiRTTD;
+    // round trip time delay
+    RtpDt_UInt32 m_uiRTTD;
 
-        //RTTD offset
-        RtpDt_UInt16 m_uiRttdOffset;
+    // RTTD offset
+    RtpDt_UInt16 m_uiRttdOffset;
 
-        // Extended report block Information
-        RtpBuffer *m_reportBlk;
+    // Extended report block Information
+    RtpBuffer* m_reportBlk;
 
-    public:
+public:
+    RtcpXrPacket();
 
-        RtcpXrPacket();
+    ~RtcpXrPacket();
 
-        ~RtcpXrPacket();
+    /**
+     * get method for m_objRtcpHdr
+     */
+    RtcpHeader* getRtcpHdrInfo();
 
-        /**
-         * get method for m_objRtcpHdr
-         */
-        RtcpHeader* getRtcpHdrInfo();
+    /**
+     * set RTTD method
+     */
+    RtpDt_Void setRTTD(RtpDt_UInt32 rttd);
 
-        /**
-         * set RTTD method
-         */
-        RtpDt_Void setRTTD(RtpDt_UInt32 rttd);
+    /**
+     * get RTTD method
+     */
+    RtpDt_UInt32 getRTTD();
 
-        /**
-         * get RTTD method
-         */
-        RtpDt_UInt32 getRTTD();
+    RtpDt_Void setRttdOffset(RtpDt_UInt16 rttdoffset);
 
-        RtpDt_Void setRttdOffset(RtpDt_UInt16 rttdoffset);
+    RtpDt_UInt16 getRttdOffset();
 
-        RtpDt_UInt16 getRttdOffset();
+    /**
+     * get method for report block for the RTCP XR packet
+     */
+    RtpBuffer* getReportBlk();
 
-        /**
-         * get method for report block for the RTCP XR packet
-         */
-        RtpBuffer* getReportBlk();
+    /**
+     * set method for  report block for the RTCP XR packet
+     */
+    RtpDt_Void setReportBlk(IN RtpBuffer* m_reportBlk);
 
-        /**
-         * set method for  report block for the RTCP XR packet
-         */
-        RtpDt_Void setReportBlk(IN RtpBuffer* m_reportBlk);
+    /**
+     * Decodes and stores the information of the RTCP XR packet
+     * This function does not allocate memory required for decoding.
+     * @param[in] pucByeBuf received RTCP XR packet
+     * @param[in] usByeLen length of the RTCP XR packet
+     * @return RTP_SUCCESS on successful decoding
+     */
+    eRTP_STATUS_CODE decodeRtcpXrPacket(IN RtpDt_UChar*, IN RtpDt_UInt16, IN RtpDt_UChar ucPktType);
 
-        /**
-         * Decodes and stores the information of the RTCP XR packet
-         * This function does not allocate memory required for decoding.
-         * @param[in] pucByeBuf received RTCP XR packet
-         * @param[in] usByeLen length of the RTCP XR packet
-         * @return RTP_SUCCESS on successful decoding
-         */
-        eRTP_STATUS_CODE decodeRtcpXrPacket(IN RtpDt_UChar* ,
-                                     IN RtpDt_UInt16 , IN RtpDt_UChar ucPktType);
+    /**
+     * Performs the encoding of the RTCP XR packet.
+     * This function does not allocate memory required for encoding.
+     * @param[out] pobjRtcpPktBuf Memory for the buffer is pre-allocated by caller
+     * @return RTP_SUCCESS on successful encoding
+     */
+    eRTP_STATUS_CODE formRtcpXrPacket(OUT RtpBuffer* pobjRtcpPktBuf);
 
-        /**
-         * Performs the encoding of the RTCP XR packet.
-         * This function does not allocate memory required for encoding.
-         * @param[out] pobjRtcpPktBuf Memory for the buffer is pre-allocated by caller
-         * @return RTP_SUCCESS on successful encoding
-         */
-        eRTP_STATUS_CODE formRtcpXrPacket(OUT RtpBuffer* pobjRtcpPktBuf);
+};  // end of RtcpXrPacket
 
-}; // end of RtcpXrPacket
-
-#endif    //__RTCP_XR_PACKET_H__
+#endif  //__RTCP_XR_PACKET_H__
 
 /** @}*/

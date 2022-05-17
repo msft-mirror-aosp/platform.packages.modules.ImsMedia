@@ -20,7 +20,8 @@
 #include <BaseNode.h>
 #include <IRtpSession.h>
 
-class RtcpDecoderNode : public BaseNode, public IRtcpDecoderListener {
+class RtcpDecoderNode : public BaseNode, public IRtcpDecoderListener
+{
 private:
     RtcpDecoderNode();
     ~RtcpDecoderNode();
@@ -31,14 +32,14 @@ public:
     virtual BaseNodeID GetNodeID();
     virtual ImsMediaResult Start();
     virtual void Stop();
-    virtual void OnDataFromFrontNode(ImsMediaSubType subtype,
-        uint8_t* pData, uint32_t nDataSize, uint32_t nTimeStamp, bool bMark, uint32_t nSeqNum,
-        ImsMediaSubType nDataType = MEDIASUBTYPE_UNDEFINED);
+    virtual void OnDataFromFrontNode(ImsMediaSubType subtype, uint8_t* pData, uint32_t nDataSize,
+            uint32_t nTimeStamp, bool bMark, uint32_t nSeqNum,
+            ImsMediaSubType nDataType = MEDIASUBTYPE_UNDEFINED);
     virtual bool IsRunTime();
     virtual bool IsSourceNode();
     void SetConfig(void* config);
     virtual bool IsSameConfig(void* config);
-    virtual void OnRtcpInd(tRtpSvc_IndicationFromStack eIndType, void *pMsg);
+    virtual void OnRtcpInd(tRtpSvc_IndicationFromStack eIndType, void* pMsg);
     virtual void OnNumReceivedPacket(uint32_t nNumRTCPSRPacket, uint32_t nNumRTCPRRPacket);
     void SetLocalAddress(const RtpAddress address);
     void SetPeerAddress(const RtpAddress address);
@@ -52,4 +53,4 @@ private:
     uint32_t mNoRtcpTime;
 };
 
-#endif // RTCPDECODERNODE_H
+#endif  // RTCPDECODERNODE_H

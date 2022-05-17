@@ -17,19 +17,17 @@
 #include <RtcpHeader.h>
 #include <rtp_trace.h>
 
-RtcpHeader::RtcpHeader():
-                    m_ucVersion(RTP_ZERO),
-                    m_ucIsPadding(RTP_ZERO),
-                    m_ucRecepRepCnt(RTP_ZERO),
-                    m_ucPktType(RTP_ZERO),
-                    m_usLength(RTP_ZERO),
-                    m_uiSsrc(RTP_ZERO)
+RtcpHeader::RtcpHeader() :
+        m_ucVersion(RTP_ZERO),
+        m_ucIsPadding(RTP_ZERO),
+        m_ucRecepRepCnt(RTP_ZERO),
+        m_ucPktType(RTP_ZERO),
+        m_usLength(RTP_ZERO),
+        m_uiSsrc(RTP_ZERO)
 {
 }
 
-RtcpHeader::~RtcpHeader()
-{
-}
+RtcpHeader::~RtcpHeader() {}
 
 RtpDt_Void RtcpHeader::setVersion(IN RtpDt_UChar ucVersion)
 {
@@ -91,34 +89,34 @@ RtpDt_UInt32 RtcpHeader::getSsrc()
     return m_uiSsrc;
 }
 
-eRtp_Bool RtcpHeader::decodeRtcpHeader(IN RtpDt_UChar *pucRtcpHdr)
+eRtp_Bool RtcpHeader::decodeRtcpHeader(IN RtpDt_UChar* pucRtcpHdr)
 {
     RtpDt_UInt32 uiTemp4Data = RtpOsUtil::Ntohl(*((RtpDt_UInt32*)pucRtcpHdr));
     pucRtcpHdr = pucRtcpHdr + RTP_WORD_SIZE;
 
     uiTemp4Data = uiTemp4Data >> RTP_24;
-    //version
+    // version
     m_ucVersion = RtpDt_UChar(uiTemp4Data & 0x000000C0) >> RTP_SIX;
-    //padding
+    // padding
     m_ucIsPadding = RtpDt_UChar(uiTemp4Data & 0x00000020) >> RTP_FIVE;
-    //RC
+    // RC
     m_ucRecepRepCnt = RtpDt_UChar(uiTemp4Data & 0x0000001F);
 
     m_uiSsrc = RtpOsUtil::Ntohl(*((RtpDt_UInt32*)pucRtcpHdr));
 
     return eRTP_SUCCESS;
-}//decodeRtcpHeader
+}  // decodeRtcpHeader
 
 eRtp_Bool RtcpHeader::formRtcpHeader(OUT RtpBuffer* pobjRtcpPktBuf)
 {
-    //do partial encoding
+    // do partial encoding
     formPartialRtcpHeader(pobjRtcpPktBuf);
 
-    RtpDt_UChar *pcRtcpHdrBuf = pobjRtcpPktBuf->getBuffer();
+    RtpDt_UChar* pcRtcpHdrBuf = pobjRtcpPktBuf->getBuffer();
     RtpDt_UInt32 uiBufPos = pobjRtcpPktBuf->getLength();
     pcRtcpHdrBuf = pcRtcpHdrBuf + uiBufPos;
 
-    //ssrc
+    // ssrc
     *(RtpDt_UInt32*)pcRtcpHdrBuf = RtpOsUtil::Ntohl(m_uiSsrc);
     pcRtcpHdrBuf = pcRtcpHdrBuf + RTP_WORD_SIZE;
 
@@ -126,34 +124,34 @@ eRtp_Bool RtcpHeader::formRtcpHeader(OUT RtpBuffer* pobjRtcpPktBuf)
     pobjRtcpPktBuf->setLength(uiBufPos);
 
     return eRTP_SUCCESS;
-}//formRtcpHeader
+}  // formRtcpHeader
 
 eRtp_Bool RtcpHeader::formPartialRtcpHeader(OUT RtpBuffer* pobjRtcpPktBuf)
 {
     RtpDt_UInt16 usUtlData = RTP_ZERO;
-    RtpDt_UInt16 usTmpData    = RTP_ZERO;
-    RtpDt_UChar *pcRtcpHdrBuf = pobjRtcpPktBuf->getBuffer();
+    RtpDt_UInt16 usTmpData = RTP_ZERO;
+    RtpDt_UChar* pcRtcpHdrBuf = pobjRtcpPktBuf->getBuffer();
     RtpDt_UInt32 uiBufPos = pobjRtcpPktBuf->getLength();
 
     pcRtcpHdrBuf = pcRtcpHdrBuf + uiBufPos;
 
-    //version 2 bits
+    // version 2 bits
     RTP_FORM_HDR_UTL(usUtlData, m_ucVersion, RTP_VER_SHIFT_VAL, usTmpData);
-    //padding 1 bit
+    // padding 1 bit
     RTP_FORM_HDR_UTL(usUtlData, m_ucIsPadding, RTP_PAD_SHIFT_VAL, usTmpData);
-    //RC 5 bits
+    // RC 5 bits
     RTP_FORM_HDR_UTL(usUtlData, m_ucRecepRepCnt, RTCP_RC_SHIFT_VAL, usTmpData);
-    //PT 8 bits
+    // PT 8 bits
     RTP_FORM_HDR_UTL(usUtlData, m_ucPktType, RTCP_PT_SHIFT_VAL, usTmpData);
 
     RtpDt_UInt32 uiByte4Data = usTmpData;
     uiByte4Data = uiByte4Data << RTP_SIXTEEN;
 
-    //convert m_usLength into words - 1
+    // convert m_usLength into words - 1
     m_usLength = m_usLength / RTP_WORD_SIZE;
     m_usLength = m_usLength - RTP_ONE;
 
-    //length 16 bits
+    // length 16 bits
     uiByte4Data = uiByte4Data | m_usLength;
 
     *(RtpDt_UInt32*)pcRtcpHdrBuf = RtpOsUtil::Ntohl(uiByte4Data);
@@ -164,11 +162,10 @@ eRtp_Bool RtcpHeader::formPartialRtcpHeader(OUT RtpBuffer* pobjRtcpPktBuf)
 
     return eRTP_SUCCESS;
 
-} //end formPartialRtcpHeader
+}  // end formPartialRtcpHeader
 
-RtpDt_Void RtcpHeader::populateRtcpHeader(IN RtpDt_UChar ucRecepRepCnt,
-                                             IN RtpDt_UChar ucPktType,
-                                             IN RtpDt_UInt32 uiSsrc)
+RtpDt_Void RtcpHeader::populateRtcpHeader(
+        IN RtpDt_UChar ucRecepRepCnt, IN RtpDt_UChar ucPktType, IN RtpDt_UInt32 uiSsrc)
 {
     m_ucVersion = RTP_VERSION_NUM;
     m_ucRecepRepCnt = ucRecepRepCnt;

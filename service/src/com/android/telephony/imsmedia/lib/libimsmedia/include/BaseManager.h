@@ -24,22 +24,17 @@
 
 typedef int (*CBManager)(long nNativeObj, const android::Parcel& pParcel);
 
-class BaseManager {
+class BaseManager
+{
 public:
     BaseManager() {}
     virtual ~BaseManager() {}
     virtual void sendMessage(const int sessionId, const android::Parcel& parcel) = 0;
-    virtual void setCallback(CBManager pfnCallback) {
-        mfnCallback = pfnCallback;
-    }
-    virtual CBManager getCallback() {
-        return mfnCallback;
-    }
+    virtual void setCallback(CBManager pfnCallback) { mfnCallback = pfnCallback; }
+    virtual CBManager getCallback() { return mfnCallback; }
 
 protected:
     CBManager mfnCallback;
-
-
 };
 
 #endif

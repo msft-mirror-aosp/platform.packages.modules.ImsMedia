@@ -19,22 +19,19 @@
 
 RtpActiveSessionDb* RtpActiveSessionDb::m_pInstance = RTP_NULL;
 
-
 // constructor
-RtpActiveSessionDb::RtpActiveSessionDb():
-    m_objActiveSessionList(std::list<RtpDt_Void*>())
+RtpActiveSessionDb::RtpActiveSessionDb() :
+        m_objActiveSessionList(std::list<RtpDt_Void*>())
 {
 }
 
 // destructor
-RtpActiveSessionDb::~RtpActiveSessionDb()
-{
-}
+RtpActiveSessionDb::~RtpActiveSessionDb() {}
 
 // it creates RtpActiveSessionDb instance.
 RtpActiveSessionDb* RtpActiveSessionDb::getInstance()
 {
-    if(m_pInstance == RTP_NULL)
+    if (m_pInstance == RTP_NULL)
     {
         m_pInstance = new RtpActiveSessionDb();
     }
@@ -49,19 +46,19 @@ eRtp_Bool RtpActiveSessionDb::addRtpSession(IN RtpDt_Void* pvData)
 }
 
 // it validates the rtp session pointer
-eRtp_Bool RtpActiveSessionDb::validateRtpSession(IN RtpDt_Void* pvData,
-                                               OUT RtpDt_UInt16* pusPosition)
+eRtp_Bool RtpActiveSessionDb::validateRtpSession(
+        IN RtpDt_Void* pvData, OUT RtpDt_UInt16* pusPosition)
 {
     *pusPosition = RTP_ZERO;
     RtpDt_UInt16 usPos = RTP_ZERO;
-    for (auto&pobjActiveSession:m_objActiveSessionList)
+    for (auto& pobjActiveSession : m_objActiveSessionList)
     {
-        if(pobjActiveSession == RTP_NULL)
+        if (pobjActiveSession == RTP_NULL)
         {
             return eRTP_FALSE;
         }
 
-        if(pobjActiveSession == pvData)
+        if (pobjActiveSession == pvData)
         {
             *pusPosition = usPos;
             return eRTP_TRUE;

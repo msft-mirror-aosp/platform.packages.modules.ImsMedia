@@ -16,14 +16,18 @@
 
 #include <EvsParams.h>
 
-namespace android {
+namespace android
+{
 
-namespace telephony {
+namespace telephony
+{
 
-namespace imsmedia {
+namespace imsmedia
+{
 
 /** Native representation of android.telephony.imsmedia.EvsParams */
-EvsParams::EvsParams() {
+EvsParams::EvsParams()
+{
     this->evsBandwidth = 0;
     this->evsMode = 0;
     this->channelAwareMode = 0;
@@ -31,7 +35,8 @@ EvsParams::EvsParams() {
     this->useHeaderFullOnlyOnRx = false;
 }
 
-EvsParams::EvsParams(EvsParams& params) {
+EvsParams::EvsParams(EvsParams& params)
+{
     this->evsBandwidth = params.evsBandwidth;
     this->evsMode = params.evsMode;
     this->channelAwareMode = params.channelAwareMode;
@@ -39,11 +44,10 @@ EvsParams::EvsParams(EvsParams& params) {
     this->useHeaderFullOnlyOnRx = params.useHeaderFullOnlyOnRx;
 }
 
-EvsParams::~EvsParams() {
+EvsParams::~EvsParams() {}
 
-}
-
-EvsParams& EvsParams::operator=(const EvsParams& param) {
+EvsParams& EvsParams::operator=(const EvsParams& param)
+{
     this->evsBandwidth = param.evsBandwidth;
     this->evsMode = param.evsMode;
     this->channelAwareMode = param.channelAwareMode;
@@ -52,91 +56,105 @@ EvsParams& EvsParams::operator=(const EvsParams& param) {
     return *this;
 }
 
-bool EvsParams::operator==(const EvsParams& param) const {
-    return (this->evsBandwidth == param.evsBandwidth
-        && this->evsMode == param.evsMode
-        && this->channelAwareMode == param.channelAwareMode
-        && this->useHeaderFullOnlyOnTx == param.useHeaderFullOnlyOnTx
-        && this->useHeaderFullOnlyOnRx == param.useHeaderFullOnlyOnRx);
+bool EvsParams::operator==(const EvsParams& param) const
+{
+    return (this->evsBandwidth == param.evsBandwidth && this->evsMode == param.evsMode &&
+            this->channelAwareMode == param.channelAwareMode &&
+            this->useHeaderFullOnlyOnTx == param.useHeaderFullOnlyOnTx &&
+            this->useHeaderFullOnlyOnRx == param.useHeaderFullOnlyOnRx);
 }
 
-bool EvsParams::operator!=(const EvsParams& param) const {
-    return (this->evsBandwidth != param.evsBandwidth
-        || this->evsMode != param.evsMode
-        || this->channelAwareMode != param.channelAwareMode
-        || this->useHeaderFullOnlyOnTx != param.useHeaderFullOnlyOnTx
-        || this->useHeaderFullOnlyOnRx != param.useHeaderFullOnlyOnRx);
+bool EvsParams::operator!=(const EvsParams& param) const
+{
+    return (this->evsBandwidth != param.evsBandwidth || this->evsMode != param.evsMode ||
+            this->channelAwareMode != param.channelAwareMode ||
+            this->useHeaderFullOnlyOnTx != param.useHeaderFullOnlyOnTx ||
+            this->useHeaderFullOnlyOnRx != param.useHeaderFullOnlyOnRx);
 }
 
-status_t EvsParams::writeToParcel(Parcel* out) const {
+status_t EvsParams::writeToParcel(Parcel* out) const
+{
     status_t err;
-    if (out == NULL) {
+    if (out == NULL)
+    {
         return BAD_VALUE;
     }
 
     err = out->writeInt32(evsBandwidth);
-    if (err != NO_ERROR) {
+    if (err != NO_ERROR)
+    {
         return err;
     }
 
     err = out->writeInt32(evsMode);
-    if (err != NO_ERROR) {
+    if (err != NO_ERROR)
+    {
         return err;
     }
 
     err = out->writeByte(channelAwareMode);
-    if (err != NO_ERROR) {
+    if (err != NO_ERROR)
+    {
         return err;
     }
 
     int32_t value = 0;
     useHeaderFullOnlyOnTx ? value = 1 : value = 0;
     err = out->writeInt32(value);
-    if (err != NO_ERROR) {
+    if (err != NO_ERROR)
+    {
         return err;
     }
 
     useHeaderFullOnlyOnRx ? value = 1 : value = 0;
 
     err = out->writeInt32(value);
-    if (err != NO_ERROR) {
+    if (err != NO_ERROR)
+    {
         return err;
     }
 
     return NO_ERROR;
 }
 
-status_t EvsParams::readFromParcel(const Parcel* in) {
+status_t EvsParams::readFromParcel(const Parcel* in)
+{
     status_t err;
-    if (in == NULL) {
+    if (in == NULL)
+    {
         return BAD_VALUE;
     }
 
     err = in->readInt32(&evsBandwidth);
-    if (err != NO_ERROR) {
+    if (err != NO_ERROR)
+    {
         return err;
     }
 
     err = in->readInt32(&evsMode);
-    if (err != NO_ERROR) {
+    if (err != NO_ERROR)
+    {
         return err;
     }
 
     err = in->readByte(&channelAwareMode);
-    if (err != NO_ERROR) {
+    if (err != NO_ERROR)
+    {
         return err;
     }
 
     int32_t value = 0;
     err = in->readInt32(&value);
-    if (err != NO_ERROR) {
+    if (err != NO_ERROR)
+    {
         return err;
     }
 
     value == 0 ? useHeaderFullOnlyOnTx = false : useHeaderFullOnlyOnTx = true;
 
     err = in->readInt32(&value);
-    if (err != NO_ERROR) {
+    if (err != NO_ERROR)
+    {
         return err;
     }
 
@@ -144,43 +162,53 @@ status_t EvsParams::readFromParcel(const Parcel* in) {
     return NO_ERROR;
 }
 
-void EvsParams::setEvsBandwidth(const int32_t bandwidth) {
+void EvsParams::setEvsBandwidth(const int32_t bandwidth)
+{
     evsBandwidth = bandwidth;
 }
 
-int32_t EvsParams::getEvsBandwidth() {
+int32_t EvsParams::getEvsBandwidth()
+{
     return evsBandwidth;
 }
 
-void EvsParams::setEvsMode(const int32_t mode) {
+void EvsParams::setEvsMode(const int32_t mode)
+{
     evsMode = mode;
 }
 
-int32_t EvsParams::getEvsMode() {
+int32_t EvsParams::getEvsMode()
+{
     return evsMode;
 }
 
-void EvsParams::setChannelAwareMode(int8_t mode) {
+void EvsParams::setChannelAwareMode(int8_t mode)
+{
     channelAwareMode = mode;
 }
 
-int8_t EvsParams::getChannelAwareMode() {
+int8_t EvsParams::getChannelAwareMode()
+{
     return channelAwareMode;
 }
 
-void EvsParams::setUseHeaderFullOnlyOnTx(const bool enable) {
+void EvsParams::setUseHeaderFullOnlyOnTx(const bool enable)
+{
     useHeaderFullOnlyOnTx = enable;
 }
 
-bool EvsParams::getUseHeaderFullOnlyOnTx() {
+bool EvsParams::getUseHeaderFullOnlyOnTx()
+{
     return useHeaderFullOnlyOnTx;
 }
 
-void EvsParams::setUseHeaderFullOnlyOnRx(const bool enable) {
+void EvsParams::setUseHeaderFullOnlyOnRx(const bool enable)
+{
     useHeaderFullOnlyOnRx = enable;
 }
 
-bool EvsParams::getUseHeaderFullOnlyOnRx() {
+bool EvsParams::getUseHeaderFullOnlyOnRx()
+{
     return useHeaderFullOnlyOnRx;
 }
 

@@ -26,72 +26,70 @@
 #include <RtcpHeader.h>
 
 /**
-* @class RtcpAppPacket
-* @brief It holds RTCP APP information
-*/
+ * @class RtcpAppPacket
+ * @brief It holds RTCP APP information
+ */
 class RtcpAppPacket
 {
-    private:
-        RtcpHeader m_objRtcpHdr;
+private:
+    RtcpHeader m_objRtcpHdr;
 
-        /**
-         * A name chosen by the person defining the set of APP packets to be
-         * unique with respect to other APP packets this application might
-         * receive.
-         */
-        RtpDt_UInt32 m_uiName;
+    /**
+     * A name chosen by the person defining the set of APP packets to be
+     * unique with respect to other APP packets this application might
+     * receive.
+     */
+    RtpDt_UInt32 m_uiName;
 
-        RtpBuffer *m_pAppData;
+    RtpBuffer* m_pAppData;
 
-    public:
-        RtcpAppPacket();
+public:
+    RtcpAppPacket();
 
-        ~RtcpAppPacket();
+    ~RtcpAppPacket();
 
-        /**
-         *  get method for m_objRtcpHdr
-         */
-        RtcpHeader* getRtcpHdrInfo();
+    /**
+     *  get method for m_objRtcpHdr
+     */
+    RtcpHeader* getRtcpHdrInfo();
 
-        /**
-         * get method for m_uiName
-         */
-        RtpDt_UInt32 getName();
+    /**
+     * get method for m_uiName
+     */
+    RtpDt_UInt32 getName();
 
-        /**
-         * set method for m_uiName
-         */
-        RtpDt_Void setName(IN RtpDt_UInt32 uiName);
+    /**
+     * set method for m_uiName
+     */
+    RtpDt_Void setName(IN RtpDt_UInt32 uiName);
 
-        /**
-         * get method for m_pAppData
-         */
-        RtpBuffer* getAppData();
+    /**
+     * get method for m_pAppData
+     */
+    RtpBuffer* getAppData();
 
-        /**
-         * set method for m_pAppData
-         */
-        RtpDt_Void setAppData(IN RtpBuffer* pobjAppData);
+    /**
+     * set method for m_pAppData
+     */
+    RtpDt_Void setAppData(IN RtpBuffer* pobjAppData);
 
-        /**
-         * Decodes and stores the information of the RTCP APP packet
-         * This function does not allocate memory required for decoding.
-         * @param pucAppBuf received RTCP APP packet
-         * @param usAppLen length of the APP packet
-         */
-        eRTP_STATUS_CODE decodeAppPacket(IN RtpDt_UChar* pucAppBuf,
-                                    IN RtpDt_UInt16 usAppLen);
+    /**
+     * Decodes and stores the information of the RTCP APP packet
+     * This function does not allocate memory required for decoding.
+     * @param pucAppBuf received RTCP APP packet
+     * @param usAppLen length of the APP packet
+     */
+    eRTP_STATUS_CODE decodeAppPacket(IN RtpDt_UChar* pucAppBuf, IN RtpDt_UInt16 usAppLen);
 
-        /**
-         * Performs the encoding of the RTCP APP packet.
-         * This function does not allocate memory required for encoding.
-         * @param pobjRtcpPktBuf Memory for the buffer is pre-allocated by caller
-         */
-        eRTP_STATUS_CODE formAppPacket(OUT RtpBuffer* pobjRtcpPktBuf);
+    /**
+     * Performs the encoding of the RTCP APP packet.
+     * This function does not allocate memory required for encoding.
+     * @param pobjRtcpPktBuf Memory for the buffer is pre-allocated by caller
+     */
+    eRTP_STATUS_CODE formAppPacket(OUT RtpBuffer* pobjRtcpPktBuf);
 
-}; // end of RtcpAppPacket
+};  // end of RtcpAppPacket
 
-
-#endif    //__RTCP_APP_PACKET_H__
+#endif  //__RTCP_APP_PACKET_H__
 
 /** @}*/

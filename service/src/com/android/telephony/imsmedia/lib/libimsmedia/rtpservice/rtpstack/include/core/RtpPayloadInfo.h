@@ -24,20 +24,20 @@
 #include <RtpGlobal.h>
 
 /**
-* @class    RtpPayloadInfo
-* @brief    It defines the RTP payload information.(ex:- payload type, sampling rate).
-*/
+ * @class    RtpPayloadInfo
+ * @brief    It defines the RTP payload information.(ex:- payload type, sampling rate).
+ */
 class RtpPayloadInfo
 {
-    private:
-        // payload type
-        RtpDt_UInt32    m_uiPayloadType[RTP_MAX_PAYLOAD_TYPE];
-        RtpDt_UInt32    m_uiSamplingRate;
-public:
+private:
+    // payload type
+    RtpDt_UInt32 m_uiPayloadType[RTP_MAX_PAYLOAD_TYPE];
+    RtpDt_UInt32 m_uiSamplingRate;
 
+public:
     RtpPayloadInfo();
-    RtpPayloadInfo(IN RtpDt_UInt32* uiPayloadType,IN RtpDt_UInt32 uiSamplingRate,
-                   IN RtpDt_UInt32 nNumOfPayloadParam);
+    RtpPayloadInfo(IN RtpDt_UInt32* uiPayloadType, IN RtpDt_UInt32 uiSamplingRate,
+            IN RtpDt_UInt32 nNumOfPayloadParam);
 
     ~RtpPayloadInfo();
 
@@ -47,7 +47,6 @@ public:
 
     RtpDt_Void setRtpPayloadInfo(IN RtpPayloadInfo* pobjRlInfo);
 };
-
 
 #endif /* __RTP_PAYLOAD_INFO_H__ */
 

@@ -33,7 +33,7 @@ class IRtpEncoderListener
 public:
     IRtpEncoderListener() {}
     virtual ~IRtpEncoderListener() {}
-    virtual void OnRtpPacket(unsigned char *pData, uint32_t wLen) = 0;
+    virtual void OnRtpPacket(unsigned char* pData, uint32_t wLen) = 0;
 };
 
 /*!
@@ -44,7 +44,7 @@ class IRtcpEncoderListener
 public:
     IRtcpEncoderListener() {}
     virtual ~IRtcpEncoderListener() {}
-    virtual void OnRtcpPacket(unsigned char *pData, uint32_t wLen) = 0;
+    virtual void OnRtcpPacket(unsigned char* pData, uint32_t wLen) = 0;
 };
 
 /*!
@@ -55,9 +55,9 @@ class IRtpDecoderListener
 public:
     IRtpDecoderListener() {}
     virtual ~IRtpDecoderListener() {}
-    virtual void OnMediaDataInd(unsigned char *pData, uint32_t nDataSize, uint32_t nTimestamp,
-        bool bMark, uint16_t nSeqNum, uint32_t nPayloadType, uint32_t nSSRC, bool bExtension,
-        uint16_t nExtensionData) = 0;
+    virtual void OnMediaDataInd(unsigned char* pData, uint32_t nDataSize, uint32_t nTimestamp,
+            bool bMark, uint16_t nSeqNum, uint32_t nPayloadType, uint32_t nSSRC, bool bExtension,
+            uint16_t nExtensionData) = 0;
     virtual void OnNumReceivedPacket(uint32_t nNumRtpPacket) = 0;
 };
 
@@ -69,7 +69,7 @@ class IRtcpDecoderListener
 public:
     IRtcpDecoderListener() {}
     virtual ~IRtcpDecoderListener() {}
-    virtual void OnRtcpInd(tRtpSvc_IndicationFromStack eIndType, void *pMsg) = 0;
+    virtual void OnRtcpInd(tRtpSvc_IndicationFromStack eIndType, void* pMsg) = 0;
     virtual void OnNumReceivedPacket(uint32_t nNumRtcpSRPacket, uint32_t nNumRtcpRRPacket) = 0;
 };
 
@@ -81,19 +81,19 @@ public:
 class IRtpSession : public RtpServiceListener
 {
 public:
-    static IRtpSession* GetInstance(ImsMediaType eMediaType,
-        const RtpAddress local, const RtpAddress peer);
+    static IRtpSession* GetInstance(
+            ImsMediaType eMediaType, const RtpAddress local, const RtpAddress peer);
     static void ReleaseInstance(IRtpSession* pSession);
     IRtpSession(ImsMediaType eMediaType, const RtpAddress local, const RtpAddress peer);
     ~IRtpSession();
-    IRtpSession(const IRtpSession &obj);
-    IRtpSession &operator=(const IRtpSession &obj);
-    bool operator==(const IRtpSession &obj2);
+    IRtpSession(const IRtpSession& obj);
+    IRtpSession& operator=(const IRtpSession& obj);
+    bool operator==(const IRtpSession& obj2);
     bool isSameInstance(ImsMediaType eMediaType, const RtpAddress local, const RtpAddress peer);
-    void SetRtpEncoderListener(IRtpEncoderListener *pRtpEncoderListener);
-    void SetRtpDecoderListener(IRtpDecoderListener *pRtpDecoderListener);
-    void SetRtcpEncoderListener(IRtcpEncoderListener *pRtcpEncoderListener);
-    void SetRtcpDecoderListener(IRtcpDecoderListener *pRtcpDecoderListener);
+    void SetRtpEncoderListener(IRtpEncoderListener* pRtpEncoderListener);
+    void SetRtpDecoderListener(IRtpDecoderListener* pRtpDecoderListener);
+    void SetRtcpEncoderListener(IRtcpEncoderListener* pRtcpEncoderListener);
+    void SetRtcpDecoderListener(IRtcpDecoderListener* pRtcpDecoderListener);
     void SetRtpPayloadParam(RtpConfig* config);
     void SetRtpDtmfPayloadParam(AudioConfig* config);
     void SetRtcpInterval(int32_t nInterval);
@@ -101,23 +101,23 @@ public:
     void StopRtp();
     void StartRtcp(bool bSendRtcpBye = false);
     void StopRtcp();
-    bool SendRtpPacket(uint32_t nPayloadType, uint8_t *pData, uint32_t nDataSize,
-        uint32_t nTimestamp, bool bMark, uint32_t nTimeDiff,
-        bool bExtension = false, void* pExtensionInfo = NULL);
-    bool ProcRtpPacket(uint8_t *pData, uint32_t nDataSize);
-    bool ProcRtcpPacket(uint8_t *pData, uint32_t nDataSize);
+    bool SendRtpPacket(uint32_t nPayloadType, uint8_t* pData, uint32_t nDataSize,
+            uint32_t nTimestamp, bool bMark, uint32_t nTimeDiff, bool bExtension = false,
+            void* pExtensionInfo = NULL);
+    bool ProcRtpPacket(uint8_t* pData, uint32_t nDataSize);
+    bool ProcRtcpPacket(uint8_t* pData, uint32_t nDataSize);
     void OnTimer();
-    void SendRtcpXr(uint8_t *pPayload, uint32_t nSize, uint32_t nRttdOffset);
+    void SendRtcpXr(uint8_t* pPayload, uint32_t nSize, uint32_t nRttdOffset);
     ImsMediaType getMediaType();
     void increaseRefCounter();
     void decreaseRefCounter();
     uint32_t getRefCounter();
     // receive Rtp packet, send it to rtp tx node
-    virtual int OnRtpPacket(unsigned char *pData, RtpSvc_Length wLen);
+    virtual int OnRtpPacket(unsigned char* pData, RtpSvc_Length wLen);
     // receive Rtcp packet, send it to rtcp node
-    virtual int OnRtcpPacket(unsigned char *pData, RtpSvc_Length wLen);
+    virtual int OnRtcpPacket(unsigned char* pData, RtpSvc_Length wLen);
     // indication from stack
-    virtual void OnPeerInd(tRtpSvc_IndicationFromStack eIndType, void *pMsg);
+    virtual void OnPeerInd(tRtpSvc_IndicationFromStack eIndType, void* pMsg);
 
 private:
     static std::list<IRtpSession*> mListRtpSession;
@@ -127,11 +127,11 @@ private:
     RtpAddress mLocalAddress;
     RtpAddress mPeerAddress;
     // Listener
-    IRtpEncoderListener *mRtpEncoderListener;
-    IRtpDecoderListener *mRtpDecoderListener;
-    IRtcpEncoderListener *mRtcpEncoderListener;
-    IRtcpDecoderListener *mRtcpDecoderListener;
-    //payload parameter
+    IRtpEncoderListener* mRtpEncoderListener;
+    IRtpDecoderListener* mRtpDecoderListener;
+    IRtcpEncoderListener* mRtcpEncoderListener;
+    IRtcpDecoderListener* mRtcpDecoderListener;
+    // payload parameter
     tRtpSvc_SetPayloadParam mPayloadParam[MAX_NUM_PAYLOAD_PARAM];
     uint32_t mNumPayloadParam;
     // Rtp configure
@@ -144,11 +144,11 @@ private:
     uint32_t mPrevTimestamp;
     uint32_t mRtpStarted;
     uint32_t mRtcpStarted;
-    uint32_t mNumRtpProcPacket;  // received packet
-    uint32_t mNumRtcpProcPacket; // received packet
-    uint32_t mNumRtpPacket;      // received packet
-    uint32_t mNumSRPacket;       // received packet
-    uint32_t mNumRRPacket;       // received packet
+    uint32_t mNumRtpProcPacket;   // received packet
+    uint32_t mNumRtcpProcPacket;  // received packet
+    uint32_t mNumRtpPacket;       // received packet
+    uint32_t mNumSRPacket;        // received packet
+    uint32_t mNumRRPacket;        // received packet
     uint32_t mNumRtpDataToSend;
     uint32_t mNumRtpPacketSent;
     uint32_t mNumRtcpPacketSent;

@@ -17,9 +17,11 @@
 #include <MediaManagerFactory.h>
 #include <AudioManager.h>
 
-BaseManager* MediaManagerFactory::getInterface(int mediatype){
+BaseManager* MediaManagerFactory::getInterface(int mediatype)
+{
     BaseManager* pManager = NULL;
-    switch ((IMS_MEDIA_TYPE)mediatype) {
+    switch ((IMS_MEDIA_TYPE)mediatype)
+    {
         case MEDIA_TYPE_AUDIO:
             pManager = AudioManager::getInstance();
             break;

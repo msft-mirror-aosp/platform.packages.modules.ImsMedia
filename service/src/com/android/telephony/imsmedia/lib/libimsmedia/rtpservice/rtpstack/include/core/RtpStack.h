@@ -2,11 +2,11 @@
  *  @{
  */
 
- /**
-  * @brief This represents the RTP stack. This class stores one instance of a the stack.
-  * RTP sessions should be created as part of an RtpStack instance.
-  * Each instance can have any number of unrelated RTP sessions which share only the profile as
-  * defined by RtpStackProfile.
+/**
+ * @brief This represents the RTP stack. This class stores one instance of a the stack.
+ * RTP sessions should be created as part of an RtpStack instance.
+ * Each instance can have any number of unrelated RTP sessions which share only the profile as
+ * defined by RtpStackProfile.
  */
 
 /**
@@ -40,7 +40,7 @@ class RtpStack
     /**
     list of Rtp_Session currently active in the stack
     */
-    std::list<RtpSession *> m_objRtpSessionList;
+    std::list<RtpSession*> m_objRtpSessionList;
     /**
     Profile for this stack
     */
@@ -62,7 +62,6 @@ public:
      * @param[in] pobjStackProfile Configure the stack as per profile.
      */
     RtpStack(IN RtpStackProfile* pobjStackProfile);
-
 
     /**
      * Create a RTP session.
@@ -86,6 +85,6 @@ public:
     eRtp_Bool isRtpSessionPresent(IN RtpSession* pobjSession);
 };
 
-#endif    //__RTP_STACK_H__
+#endif  //__RTP_STACK_H__
 
 /** @}*/

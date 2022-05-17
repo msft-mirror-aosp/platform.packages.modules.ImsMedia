@@ -17,35 +17,34 @@
 #include <RtcpByePacket.h>
 #include <rtp_trace.h>
 
-RtcpByePacket::RtcpByePacket():
-    m_uiSsrcList(std::list<RtpDt_UInt32 *>()),
-    m_pReason(RTP_NULL)
+RtcpByePacket::RtcpByePacket() :
+        m_uiSsrcList(std::list<RtpDt_UInt32*>()),
+        m_pReason(RTP_NULL)
 {
-}//Constructor
+}  // Constructor
 
 RtcpByePacket::~RtcpByePacket()
 {
-
-    for(auto&puiSsrc:m_uiSsrcList)
+    for (auto& puiSsrc : m_uiSsrcList)
     {
         delete puiSsrc;
     }
     m_uiSsrcList.clear();
 
-    //m_pReason
-    if(m_pReason != RTP_NULL)
+    // m_pReason
+    if (m_pReason != RTP_NULL)
     {
         delete m_pReason;
         m_pReason = RTP_NULL;
     }
-}//Destructor
+}  // Destructor
 
 RtcpHeader* RtcpByePacket::getRtcpHdrInfo()
 {
     return &m_objRtcpHdr;
 }
 
-std::list<RtpDt_UInt32 *>& RtcpByePacket::getSsrcList()
+std::list<RtpDt_UInt32*>& RtcpByePacket::getSsrcList()
 {
     return m_uiSsrcList;
 }
@@ -60,8 +59,7 @@ RtpDt_Void RtcpByePacket::setReason(IN RtpBuffer* pobjReason)
     m_pReason = pobjReason;
 }
 
-eRTP_STATUS_CODE RtcpByePacket::decodeByePacket(IN RtpDt_UChar* pucByeBuf,
-                                             IN RtpDt_UInt16 usByeLen)
+eRTP_STATUS_CODE RtcpByePacket::decodeByePacket(IN RtpDt_UChar* pucByeBuf, IN RtpDt_UInt16 usByeLen)
 {
     m_objRtcpHdr.setLength(usByeLen);
     m_objRtcpHdr.setPacketType((RtpDt_UChar)RTCP_BYE);
@@ -72,14 +70,13 @@ eRTP_STATUS_CODE RtcpByePacket::decodeByePacket(IN RtpDt_UChar* pucByeBuf,
 
     RtpDt_UChar ucSsrcCnt = m_objRtcpHdr.getRecepRepCnt();
     // m_uiSsrcList
-    while(ucSsrcCnt > RTP_ONE)
+    while (ucSsrcCnt > RTP_ONE)
     {
-        RtpDt_UInt32 *puiRcvdSsrc = RTP_NULL;
+        RtpDt_UInt32* puiRcvdSsrc = RTP_NULL;
         puiRcvdSsrc = new RtpDt_UInt32();
-        if(puiRcvdSsrc == RTP_NULL)
+        if (puiRcvdSsrc == RTP_NULL)
         {
-            RTP_TRACE_WARNING("decodeByePacket, new returned NULL...!",
-                RTP_ZERO,RTP_ZERO);
+            RTP_TRACE_WARNING("decodeByePacket, new returned NULL...!", RTP_ZERO, RTP_ZERO);
             return RTP_MEMORY_FAIL;
         }
 
@@ -88,59 +85,56 @@ eRTP_STATUS_CODE RtcpByePacket::decodeByePacket(IN RtpDt_UChar* pucByeBuf,
 
         m_uiSsrcList.push_back(puiRcvdSsrc);
         ucSsrcCnt = ucSsrcCnt - RTP_ONE;
-    }//while
+    }  // while
 
     // m_pReason
     RtpDt_UInt32 uiByte4Data = RtpOsUtil::Ntohl(*((RtpDt_UInt32*)pucByeBuf));
     pucByeBuf = pucByeBuf + RTP_ONE;
     uiByte4Data = uiByte4Data >> RTP_24;
-    if(uiByte4Data > RTP_ZERO)
+    if (uiByte4Data > RTP_ZERO)
     {
-        RtpDt_UChar *pucReason = new RtpDt_UChar[uiByte4Data];
-        if(pucReason == RTP_NULL)
+        RtpDt_UChar* pucReason = new RtpDt_UChar[uiByte4Data];
+        if (pucReason == RTP_NULL)
         {
-            RTP_TRACE_WARNING("decodeByePacket, new returned NULL...!",
-                RTP_ZERO,RTP_ZERO);
+            RTP_TRACE_WARNING("decodeByePacket, new returned NULL...!", RTP_ZERO, RTP_ZERO);
             return RTP_MEMORY_FAIL;
         }
 
         m_pReason = new RtpBuffer();
-        if(m_pReason == RTP_NULL)
+        if (m_pReason == RTP_NULL)
         {
-            RTP_TRACE_WARNING("decodeByePacket, new returned NULL...!",
-                RTP_ZERO,RTP_ZERO);
+            RTP_TRACE_WARNING("decodeByePacket, new returned NULL...!", RTP_ZERO, RTP_ZERO);
             delete[] pucReason;
             return RTP_MEMORY_FAIL;
         }
         memset(pucReason, RTP_ZERO, uiByte4Data);
         memcpy(pucReason, pucByeBuf, uiByte4Data);
         m_pReason->setBufferInfo(uiByte4Data, pucReason);
-    }//if
-
+    }  // if
 
     return RTP_SUCCESS;
-}//decodeByePacket
+}  // decodeByePacket
 
 eRTP_STATUS_CODE RtcpByePacket::formByePacket(OUT RtpBuffer* pobjRtcpPktBuf)
 {
     RtpDt_UInt32 uiCurPos = pobjRtcpPktBuf->getLength();
-    RtpDt_UChar *pucBuffer = pobjRtcpPktBuf->getBuffer();
+    RtpDt_UChar* pucBuffer = pobjRtcpPktBuf->getBuffer();
 
     uiCurPos = uiCurPos + RTCP_FIXED_HDR_LEN;
     pucBuffer = pucBuffer + uiCurPos;
 
-    for(auto&puiSsrc:m_uiSsrcList)
+    for (auto& puiSsrc : m_uiSsrcList)
     {
-        //ssrc
+        // ssrc
         *(RtpDt_UInt32*)pucBuffer = RtpOsUtil::Ntohl(*puiSsrc);
         pucBuffer = pucBuffer + RTP_WORD_SIZE;
         uiCurPos = uiCurPos + RTP_WORD_SIZE;
     }
 
-    //m_pReason
-    if(m_pReason != RTP_NULL)
+    // m_pReason
+    if (m_pReason != RTP_NULL)
     {
-        //length
+        // length
         *(RtpDt_UChar*)pucBuffer = (RtpDt_UChar)m_pReason->getLength();
         pucBuffer = pucBuffer + RTP_ONE;
         uiCurPos = uiCurPos + RTP_ONE;
@@ -157,7 +151,7 @@ eRTP_STATUS_CODE RtcpByePacket::formByePacket(OUT RtpBuffer* pobjRtcpPktBuf)
 
 #ifdef ENABLE_PADDING
         RtpDt_UInt32 uiPadLen = uiByePktLen % RTP_WORD_SIZE;
-        if(uiPadLen > RTP_ZERO)
+        if (uiPadLen > RTP_ZERO)
         {
             uiPadLen = RTP_WORD_SIZE - uiPadLen;
             uiByePktLen = uiByePktLen + uiPadLen;
@@ -168,25 +162,24 @@ eRTP_STATUS_CODE RtcpByePacket::formByePacket(OUT RtpBuffer* pobjRtcpPktBuf)
             pucBuffer = pucBuffer - RTP_ONE;
             *(RtpDt_UChar*)pucBuffer = (RtpDt_UChar)uiPadLen;
 
-            //set pad bit in header
+            // set pad bit in header
             m_objRtcpHdr.setPadding();
-            //set length in header
+            // set length in header
             m_objRtcpHdr.setLength(uiByePktLen);
         }
         else
 #endif
         {
-            //set length in header
+            // set length in header
             m_objRtcpHdr.setLength(uiByePktLen);
         }
 
         pobjRtcpPktBuf->setLength(uiByePktPos);
         m_objRtcpHdr.formRtcpHeader(pobjRtcpPktBuf);
-    }//padding
+    }  // padding
 
-    //set the current position of the RTCP compound packet
+    // set the current position of the RTCP compound packet
     pobjRtcpPktBuf->setLength(uiCurPos);
 
-
     return RTP_SUCCESS;
-}//formByePacket
+}  // formByePacket

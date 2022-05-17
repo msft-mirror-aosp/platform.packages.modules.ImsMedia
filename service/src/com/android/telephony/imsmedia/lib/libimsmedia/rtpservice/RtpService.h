@@ -19,8 +19,8 @@
  */
 
 /**
-* @brief Integration layer for RTP Protocol stack integration with ImsMedia (IRtpSession)
-*/
+ * @brief Integration layer for RTP Protocol stack integration with ImsMedia (IRtpSession)
+ */
 
 #ifndef __RTP_SERVICE_H_
 #define __RTP_SERVICE_H_
@@ -30,16 +30,17 @@
 
 #define GLOBAL
 
-class RtpServiceListener {
+class RtpServiceListener
+{
 public:
-  RtpServiceListener() {}
-  virtual ~RtpServiceListener() {}
-  // receive RTP packet, send it to rtp tx node
-  virtual int OnRtpPacket(unsigned char* pData, RtpSvc_Length wLen) = 0;
-  // receive RTCP packet, send it to rtcp node
-  virtual int OnRtcpPacket(unsigned char* pData, RtpSvc_Length wLen) = 0;
-  // indication from stack
-  virtual void OnPeerInd(tRtpSvc_IndicationFromStack eIndType, void* pMsg) = 0;
+    RtpServiceListener() {}
+    virtual ~RtpServiceListener() {}
+    // receive RTP packet, send it to rtp tx node
+    virtual int OnRtpPacket(unsigned char* pData, RtpSvc_Length wLen) = 0;
+    // receive RTCP packet, send it to rtcp node
+    virtual int OnRtcpPacket(unsigned char* pData, RtpSvc_Length wLen) = 0;
+    // indication from stack
+    virtual void OnPeerInd(tRtpSvc_IndicationFromStack eIndType, void* pMsg) = 0;
 };
 
 /**
@@ -69,11 +70,8 @@ GLOBAL eRtp_Bool IMS_RtpSvc_Deinitialize();
  *
  * @param hRtpSession handle of the newly created session.
  */
-GLOBAL eRtp_Bool IMS_RtpSvc_CreateSession(IN RtpDt_Char* szLocalIP,
-                                             IN RtpDt_UInt32 uiPort,
-                                             IN RtpDt_Void* pAppData,
-                                             OUT RtpDt_UInt32 *puSsrc,
-                                             OUT RTPSESSIONID* hRtpSession);
+GLOBAL eRtp_Bool IMS_RtpSvc_CreateSession(IN RtpDt_Char* szLocalIP, IN RtpDt_UInt32 uiPort,
+        IN RtpDt_Void* pAppData, OUT RtpDt_UInt32* puSsrc, OUT RTPSESSIONID* hRtpSession);
 
 /**
  * This API should be called to set payload info of the RTP packets to be processed but
@@ -90,9 +88,8 @@ GLOBAL eRtp_Bool IMS_RtpSvc_CreateSession(IN RtpDt_Char* szLocalIP,
  * than one payload types like Audio Frames and telephony-events then this array can be used.
  */
 GLOBAL eRtp_Bool IMS_RtpSvc_SetPayload(IN RTPSESSIONID hRtpSession,
-                                         IN tRtpSvc_SetPayloadParam *pstPayloadInfo,
-                                         IN eRtp_Bool bEnableXHdr,
-                                         IN RtpDt_UInt32 nNumOfPayloadParam);
+        IN tRtpSvc_SetPayloadParam* pstPayloadInfo, IN eRtp_Bool bEnableXHdr,
+        IN RtpDt_UInt32 nNumOfPayloadParam);
 
 /**
  * This API can be used to set RTCP send interval.
@@ -101,8 +98,7 @@ GLOBAL eRtp_Bool IMS_RtpSvc_SetPayload(IN RTPSESSIONID hRtpSession,
  *
  * @param nInterval time difference between RTCP packets in seconds.
  */
-GLOBAL eRtp_Bool IMS_RtpSvc_SetRTCPInterval(IN RTPSESSIONID hRtpSession,
-                                              IN RtpDt_UInt32 nInterval);
+GLOBAL eRtp_Bool IMS_RtpSvc_SetRTCPInterval(IN RTPSESSIONID hRtpSession, IN RtpDt_UInt32 nInterval);
 
 /**
  * API to delete RTP session.
@@ -129,10 +125,8 @@ GLOBAL eRtp_Bool IMS_RtpSvc_DeleteSession(IN RTPSESSIONID hRtpSession);
  * time difference since last media packet/buffer.
  */
 GLOBAL eRtp_Bool IMS_RtpSvc_SendRtpPacket(IN RtpServiceListener* pobjIRtpSession,
-                                            IN RTPSESSIONID hRtpSession,
-                                            IN RtpDt_Char *pBuffer,
-                                            IN RtpDt_UInt16 wBufferLength,
-                                            IN tRtpSvc_SendRtpPacketParm* pstRtpParam);
+        IN RTPSESSIONID hRtpSession, IN RtpDt_Char* pBuffer, IN RtpDt_UInt16 wBufferLength,
+        IN tRtpSvc_SendRtpPacketParm* pstRtpParam);
 
 /**
  * This API processes the received RTP packet. Processed information is sent using
@@ -154,12 +148,8 @@ GLOBAL eRtp_Bool IMS_RtpSvc_SendRtpPacket(IN RtpServiceListener* pobjIRtpSession
  * @param uiDestSsrc SSRC of the Sender.
  */
 GLOBAL eRtp_Bool IMS_RtpSvc_ProcRtpPacket(IN RtpServiceListener* pobjIRtpSession,
-                                            IN RTPSESSIONID hRtpSession,
-                                            IN RtpDt_UChar * pMsg,
-                                            IN RtpDt_UInt16 wMsgLength,
-                                            IN RtpDt_Char *pDestIp,
-                                            IN RtpDt_UInt16 wDestPort,
-                                            IN RtpDt_UInt32 *uiDestSsrc);
+        IN RTPSESSIONID hRtpSession, IN RtpDt_UChar* pMsg, IN RtpDt_UInt16 wMsgLength,
+        IN RtpDt_Char* pDestIp, IN RtpDt_UInt16 wDestPort, IN RtpDt_UInt32* uiDestSsrc);
 
 /**
  * This API starts the RTP session. After successful return, stack is ready to send and
@@ -184,8 +174,8 @@ GLOBAL eRtp_Bool IMS_RtpSvc_SessionDisableRTP(IN RTPSESSIONID rtpSessionId);
  *
  * @param enableRTCPBye Flag to control sending RTCP BYE packet when session is stopped.
  */
-GLOBAL eRtp_Bool IMS_RtpSvc_SessionEnableRTCP(IN RTPSESSIONID hRtpSession,
-                                               IN eRtp_Bool enableRTCPBye);
+GLOBAL eRtp_Bool IMS_RtpSvc_SessionEnableRTCP(
+        IN RTPSESSIONID hRtpSession, IN eRtp_Bool enableRTCPBye);
 
 /**
  * This API stops RTCP timer and hence sending periodic RTCP packets.
@@ -199,35 +189,31 @@ GLOBAL eRtp_Bool IMS_RtpSvc_SessionDisableRTCP(IN RTPSESSIONID hRtpSession);
  */
 GLOBAL eRtp_Bool IMS_RtpSvc_SendRtcpByePacket(IN RTPSESSIONID hRtpSession);
 
- /**
-  * Method for sending RTP Fb message.
-  *
-  * @param hRtpSession     pointer RtpSession
-  * @param uiFbType         Feedback Type
-  * @param pcBuff           FCI buffer
-  * @param uiLen            FCI buffer length
-  * @param uiMediaSsrc      SSRC of media source
-  */
+/**
+ * Method for sending RTP Fb message.
+ *
+ * @param hRtpSession     pointer RtpSession
+ * @param uiFbType         Feedback Type
+ * @param pcBuff           FCI buffer
+ * @param uiLen            FCI buffer length
+ * @param uiMediaSsrc      SSRC of media source
+ */
 GLOBAL eRtp_Bool IMS_RtpSvc_SendRtcpRtpFbPacket(IN RTPSESSIONID hRtpSession,
-                                                  IN RtpDt_UInt32 uiFbType,
-                                                  IN RtpDt_Char *buff,
-                                                  IN RtpDt_UInt32 len,
-                                                  IN RtpDt_UInt32 mediaSsrc);
+        IN RtpDt_UInt32 uiFbType, IN RtpDt_Char* buff, IN RtpDt_UInt32 len,
+        IN RtpDt_UInt32 mediaSsrc);
 
 /**
-  * Method for sending RTCP Fb message.
-  *
-  * @param hRtpSession      RtpSession
-  * @param uiFbType         Feedback Type
-  * @param pcBuff           FCI buffer
-  * @param uiLen            FCI buffer length
-  * @param uiMediaSsrc      SSRC of media source
-  */
+ * Method for sending RTCP Fb message.
+ *
+ * @param hRtpSession      RtpSession
+ * @param uiFbType         Feedback Type
+ * @param pcBuff           FCI buffer
+ * @param uiLen            FCI buffer length
+ * @param uiMediaSsrc      SSRC of media source
+ */
 GLOBAL eRtp_Bool IMS_RtpSvc_SendRtcpPayloadFbPacket(IN RTPSESSIONID hRtpSession,
-                                                      IN RtpDt_UInt32 uiFbType,
-                                                      IN RtpDt_Char *buff,
-                                                      IN RtpDt_UInt32 len,
-                                                      IN RtpDt_UInt32 mediaSsrc);
+        IN RtpDt_UInt32 uiFbType, IN RtpDt_Char* buff, IN RtpDt_UInt32 len,
+        IN RtpDt_UInt32 mediaSsrc);
 
 /**
  * Method for processing incoming RTCP packets.
@@ -241,12 +227,8 @@ GLOBAL eRtp_Bool IMS_RtpSvc_SendRtcpPayloadFbPacket(IN RTPSESSIONID hRtpSession,
  * @param uiDestSsrc        SSRC of the Source
  */
 GLOBAL eRtp_Bool IMS_RtpSvc_ProcRtcpPacket(IN RtpServiceListener* pobjIRtpSession,
-                                             IN RTPSESSIONID hRtpSession,
-                                             IN RtpDt_UChar * pMsg,
-                                             IN RtpDt_UInt16 wMsgLength,
-                                             IN RtpDt_Char *pcIpAddr,
-                                             IN RtpDt_UInt32 uiRtcpPort,
-                                             OUT RtpDt_UInt32 *uiDestSsrc);
+        IN RTPSESSIONID hRtpSession, IN RtpDt_UChar* pMsg, IN RtpDt_UInt16 wMsgLength,
+        IN RtpDt_Char* pcIpAddr, IN RtpDt_UInt32 uiRtcpPort, OUT RtpDt_UInt32* uiDestSsrc);
 /**
  * Method to set RTCP XR info.
  *
@@ -256,9 +238,7 @@ GLOBAL eRtp_Bool IMS_RtpSvc_ProcRtcpPacket(IN RtpServiceListener* pobjIRtpSessio
  * @param nRttdOffset       RTTD offset info
  */
 GLOBAL eRtp_Bool IMS_RtpSvc_SendRtcpXrPacket(IN RTPSESSIONID hRtpSession,
-                                               IN RtpDt_UChar* m_pBlockBuffer,
-                                               IN RtpDt_UInt16 nblockLength,
-                                               IN RtpDt_UInt16 nRttdOffset);
+        IN RtpDt_UChar* m_pBlockBuffer, IN RtpDt_UInt16 nblockLength, IN RtpDt_UInt16 nRttdOffset);
 
 #endif /* __RTP_SERVICE_H_ */
 

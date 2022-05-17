@@ -22,54 +22,63 @@
 
 #define DEFAULT_INTERVAL 3
 
-DtmfSenderNode::DtmfSenderNode() {
+DtmfSenderNode::DtmfSenderNode()
+{
     mNextTime = 0;
     mPrevTime = 0;
     mInterval = DEFAULT_INTERVAL;
 }
 
-DtmfSenderNode::~DtmfSenderNode() {
-}
+DtmfSenderNode::~DtmfSenderNode() {}
 
-BaseNode* DtmfSenderNode::GetInstance() {
+BaseNode* DtmfSenderNode::GetInstance()
+{
     BaseNode* pNode;
     pNode = new DtmfSenderNode();
 
-    if (pNode == NULL) {
+    if (pNode == NULL)
+    {
         IMLOGE0("[GetInstance] Can't create DtmfSenderNode");
     }
 
     return pNode;
 }
 
-void DtmfSenderNode::ReleaseInstance(BaseNode* pNode) {
+void DtmfSenderNode::ReleaseInstance(BaseNode* pNode)
+{
     delete (DtmfSenderNode*)pNode;
 }
 
-BaseNodeID DtmfSenderNode::GetNodeID() {
+BaseNodeID DtmfSenderNode::GetNodeID()
+{
     return NODEID_DTMFSENDER;
 }
 
-ImsMediaResult DtmfSenderNode::Start() {
+ImsMediaResult DtmfSenderNode::Start()
+{
     mNextTime = 0;
     mNodeState = NODESTATE_RUNNING;
     return RESULT_SUCCESS;
 }
 
-void DtmfSenderNode::Stop() {
+void DtmfSenderNode::Stop()
+{
     mNextTime = 0;
     mNodeState = NODESTATE_STOPPED;
 }
 
-bool DtmfSenderNode::IsRunTime() {
+bool DtmfSenderNode::IsRunTime()
+{
     return false;
 }
 
-bool DtmfSenderNode::IsSourceNode() {
+bool DtmfSenderNode::IsSourceNode()
+{
     return false;
 }
 
-void DtmfSenderNode::ProcessData() {
+void DtmfSenderNode::ProcessData()
+{
     ImsMediaSubType subtype;
     uint8_t* pData;
     uint32_t nDataSize;
@@ -77,48 +86,55 @@ void DtmfSenderNode::ProcessData() {
     bool bMark;
     uint32_t nCurrTime;
 
-    if (GetData(&subtype, &pData, &nDataSize, &nTimeStamp, &bMark, NULL, NULL) == false) {
+    if (GetData(&subtype, &pData, &nDataSize, &nTimeStamp, &bMark, NULL, NULL) == false)
+    {
         return;
     }
 
     nCurrTime = ImsMediaTimer::GetTimeInMilliSeconds();
 
-    if (mNextTime &&  !(nCurrTime >= mNextTime
-        || nCurrTime < mPrevTime || mNextTime < mPrevTime)) {
+    if (mNextTime && !(nCurrTime >= mNextTime || nCurrTime < mPrevTime || mNextTime < mPrevTime))
+    {
         mPrevTime = nCurrTime;
         return;
     }
 
-    if (subtype == MEDIASUBTYPE_DTMFSTART) {
-        SendDataToRearNode(subtype, pData,
-            nDataSize, nTimeStamp, bMark, 0);
+    if (subtype == MEDIASUBTYPE_DTMFSTART)
+    {
+        SendDataToRearNode(subtype, pData, nDataSize, nTimeStamp, bMark, 0);
         DeleteData();
         mNextTime = nCurrTime;
 
         // send the first dtmf packet
-        if (GetData(&subtype, &pData, &nDataSize, &nTimeStamp, &bMark, NULL, NULL)
-            && subtype == MEDIASUBTYPE_DTMF_PAYLOAD) {
+        if (GetData(&subtype, &pData, &nDataSize, &nTimeStamp, &bMark, NULL, NULL) &&
+                subtype == MEDIASUBTYPE_DTMF_PAYLOAD)
+        {
             SendDataToRearNode(subtype, pData, nDataSize, nTimeStamp, bMark, 0);
 
-            if (nDataSize >= 4) {
-                IMLOGD4("[ProcessData] Send DTMF packet %02X %02X %02X %02X",
-                    pData[0], pData[1], pData[2], pData[3]);
+            if (nDataSize >= 4)
+            {
+                IMLOGD4("[ProcessData] Send DTMF packet %02X %02X %02X %02X", pData[0], pData[1],
+                        pData[2], pData[3]);
             }
 
             DeleteData();
             mNextTime += 20;
         }
     }
-    else if (subtype == MEDIASUBTYPE_DTMFEND) {
+    else if (subtype == MEDIASUBTYPE_DTMFEND)
+    {
         SendDataToRearNode(subtype, pData, nDataSize, nTimeStamp, bMark, 0);
         DeleteData();
         mNextTime += mInterval;
-    } else {
+    }
+    else
+    {
         SendDataToRearNode(subtype, pData, nDataSize, nTimeStamp, bMark, 0);
 
-        if (nDataSize >= 4) {
-            IMLOGD4("[ProcessData] Send DTMF packet %02X %02X %02X %02X",
-                pData[0], pData[1], pData[2], pData[3]);
+        if (nDataSize >= 4)
+        {
+            IMLOGD4("[ProcessData] Send DTMF packet %02X %02X %02X %02X", pData[0], pData[1],
+                    pData[2], pData[3]);
         }
 
         DeleteData();
@@ -128,6 +144,7 @@ void DtmfSenderNode::ProcessData() {
     mPrevTime = nCurrTime;
 }
 
-void DtmfSenderNode::SetInterval(uint32_t interval) {
+void DtmfSenderNode::SetInterval(uint32_t interval)
+{
     mInterval = interval;
 }

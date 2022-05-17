@@ -26,17 +26,17 @@
  * Preconditions        : None
  * Side Effects            : None
  ********************************************************/
-RtpTimerInfo::RtpTimerInfo():
-                m_uiTp(RTP_ZERO),
-                m_uiTc(RTP_ZERO),
-                m_uiTn(RTP_ZERO),
-                m_uiPmembers(RTP_ONE),
-                m_uiMembers(RTP_ONE),
-                m_uiSenders(RTP_ZERO),
-                m_uiRtcpBw(RTP_ZERO),
-                m_uiWeSent(RTP_ZERO),
-                m_ulAvgRtcpSize(RTP_ZERO),
-                m_bInitial(eRTP_TRUE)
+RtpTimerInfo::RtpTimerInfo() :
+        m_uiTp(RTP_ZERO),
+        m_uiTc(RTP_ZERO),
+        m_uiTn(RTP_ZERO),
+        m_uiPmembers(RTP_ONE),
+        m_uiMembers(RTP_ONE),
+        m_uiSenders(RTP_ZERO),
+        m_uiRtcpBw(RTP_ZERO),
+        m_uiWeSent(RTP_ZERO),
+        m_ulAvgRtcpSize(RTP_ZERO),
+        m_bInitial(eRTP_TRUE)
 {
 }
 
@@ -48,9 +48,7 @@ RtpTimerInfo::RtpTimerInfo():
  * Preconditions        : None
  * Side Effects            : None
  ********************************************************/
-RtpTimerInfo::~RtpTimerInfo()
-{
-}
+RtpTimerInfo::~RtpTimerInfo() {}
 
 /*********************************************************
  * Function name        : cleanUp
@@ -98,8 +96,8 @@ RtpDt_Void RtpTimerInfo::incrSndrCount(IN RtpDt_UInt32 uiIncrVal)
  ********************************************************/
 RtpDt_Void RtpTimerInfo::updateAvgRtcpSize(IN RtpDt_UInt32 uiRcvdPktSize)
 {
-    //avg_rtcp_size = (1/16) * packet_size + (15/16) * avg_rtcp_size
-    m_ulAvgRtcpSize = (1.0/16) * uiRcvdPktSize + (15.0/16) * m_ulAvgRtcpSize;
+    // avg_rtcp_size = (1/16) * packet_size + (15/16) * avg_rtcp_size
+    m_ulAvgRtcpSize = (1.0 / 16) * uiRcvdPktSize + (15.0 / 16) * m_ulAvgRtcpSize;
 }
 
 /*********************************************************
@@ -113,7 +111,6 @@ RtpDt_Void RtpTimerInfo::updateAvgRtcpSize(IN RtpDt_UInt32 uiRcvdPktSize)
  ********************************************************/
 eRtp_Bool RtpTimerInfo::updateByePktInfo(IN RtpDt_UInt32 uiMemSize)
 {
-
     m_uiMembers = uiMemSize;
     /*
         if (*members < *pmembers) {
@@ -125,17 +122,17 @@ eRtp_Bool RtpTimerInfo::updateByePktInfo(IN RtpDt_UInt32 uiMemSize)
         }
     */
 
-    //Reference: RFC 3550, section A.7, page 93
-    if(m_uiMembers < m_uiPmembers)
+    // Reference: RFC 3550, section A.7, page 93
+    if (m_uiMembers < m_uiPmembers)
     {
-        m_uiTn = getTc() + (m_uiMembers/m_uiPmembers)*(m_uiTn - getTc());
-        m_uiTp = getTc() - (m_uiMembers/m_uiPmembers)*(getTc() - m_uiTp);
+        m_uiTn = getTc() + (m_uiMembers / m_uiPmembers) * (m_uiTn - getTc());
+        m_uiTp = getTc() - (m_uiMembers / m_uiPmembers) * (getTc() - m_uiTp);
         m_uiPmembers = m_uiMembers;
         return eRTP_TRUE;
     }
 
     return eRTP_FALSE;
-}//updateByePktInfo
+}  // updateByePktInfo
 
 /*********************************************************
  * Function name        : getTp
@@ -149,7 +146,6 @@ RtpDt_UInt32 RtpTimerInfo::getTp()
 {
     return m_uiTp;
 }
-
 
 /*********************************************************
  * Function name        : setTp
@@ -175,15 +171,14 @@ RtpDt_Void RtpTimerInfo::setTp(IN RtpDt_UInt32 uiTp)
  ********************************************************/
 RtpDt_UInt32 RtpTimerInfo::getTc()
 {
-
-    tRTP_NTP_TIME stCurNtpRtcpTs = {RTP_ZERO,RTP_ZERO};
+    tRTP_NTP_TIME stCurNtpRtcpTs = {RTP_ZERO, RTP_ZERO};
     RtpOsUtil::GetNtpTime(&stCurNtpRtcpTs);
     RtpDt_UInt32 uiMidOctets = RtpStackUtil::getMidFourOctets(&stCurNtpRtcpTs);
     RtpDt_UInt32 uiHigh = uiMidOctets >> RTP_BYTE2_BIT_SIZE;
     uiHigh = uiHigh * RTP_SEC_TO_MILLISEC;
-    RtpDt_Double uiLow =  uiMidOctets & RTP_HEX_16_BIT_MAX;
+    RtpDt_Double uiLow = uiMidOctets & RTP_HEX_16_BIT_MAX;
     uiLow = uiLow / RTP_MILLISEC_MICRO;
-    uiMidOctets =  uiHigh + (RtpDt_UInt32)uiLow; //it is in milliseconds
+    uiMidOctets = uiHigh + (RtpDt_UInt32)uiLow;  // it is in milliseconds
     return uiMidOctets;
 }
 
@@ -238,7 +233,6 @@ RtpDt_Void RtpTimerInfo::setPmembers(IN RtpDt_UInt32 uiPmembers)
 {
     m_uiPmembers = uiPmembers;
 }
-
 
 /*********************************************************
  * Function name        : getRtcpBw
@@ -315,7 +309,7 @@ RtpDt_Int32 RtpTimerInfo::getAvgRtcpSize()
  ********************************************************/
 RtpDt_Void RtpTimerInfo::setAvgRtcpSize(IN RtpDt_Int32 uiAvgRtcpSize)
 {
-    m_ulAvgRtcpSize =  uiAvgRtcpSize;
+    m_ulAvgRtcpSize = uiAvgRtcpSize;
 }
 
 /*********************************************************

@@ -46,8 +46,8 @@ class RtpStack;
  * The destructor is made private so that this notification mechanism cannot be bypassed while
  * deleting the session object.
  */
-class  RtpSession{
-
+class RtpSession
+{
     /**
      * The default constructor is blocked to ensure the RTP session is always part of a stack
      * instance
@@ -57,7 +57,7 @@ class  RtpSession{
     std::mutex m_objRtpSessionLock;
 
     // Ip address assigned to RTP session
-    RtpBuffer *m_pobjTransAddr;
+    RtpBuffer* m_pobjTransAddr;
 
     // RTP Port number assigned to RTP session
     RtpDt_UInt16 m_usRtpPort;
@@ -66,36 +66,36 @@ class  RtpSession{
     RtpDt_UInt16 m_usRtcpPort;
 
     // The stack context for this session. This is got from constructor
-    RtpStack *m_pobjRtpStack;
+    RtpStack* m_pobjRtpStack;
 
     // It tells RTP extension header support
     RtpDt_UInt16 m_usExtHdrLen;
 
     // RtcpConfigInfo
-    RtcpConfigInfo *m_pobjRtcpCfgInfo;
+    RtcpConfigInfo* m_pobjRtcpCfgInfo;
 
     // Process RTP in this session
-    eRtp_Bool        m_bEnableRTP;
+    eRtp_Bool m_bEnableRTP;
 
     // Use RTCP in this session
-    eRtp_Bool        m_bEnableRTCP;
+    eRtp_Bool m_bEnableRTCP;
 
-   //Enable RTCP Bye
-   eRtp_Bool      m_bEnableRTCPBye;
+    // Enable RTCP Bye
+    eRtp_Bool m_bEnableRTCPBye;
 
-    //App configured RTCP timer value
+    // App configured RTCP timer value
     RtpDt_UInt16 m_usRTCPTimerVal;
 
     // current sequence number that the will be used for next packet that will constructed.
-    RtpDt_UInt16   m_usSeqNum;
+    RtpDt_UInt16 m_usSeqNum;
 
     // Number of times the seqNum has wrapped at 2^16
-    RtpDt_UInt16    m_usSeqNumCycles;
+    RtpDt_UInt16 m_usSeqNumCycles;
 
     /**
      * Payload descriptions used in the session
      */
-    RtpPayloadInfo*    m_pobjPayloadInfo;
+    RtpPayloadInfo* m_pobjPayloadInfo;
 
     /**
      * Interface for app callbacks. These call backs will be used to notify app
@@ -104,44 +104,44 @@ class  RtpSession{
     IRtpAppInterface* m_pobjAppInterface;
 
     // our SSRC for this session
-    RtpDt_UInt32    m_uiSsrc;
+    RtpDt_UInt32 m_uiSsrc;
 
     // contains the state variables required for calculating RTCP Transmission Timer
     RtpTimerInfo m_objTimerInfo;
 
     // list of RtpReceiverInfo
-    std::list<RtpReceiverInfo*> *m_pobjRtpRcvrInfoList;
+    std::list<RtpReceiverInfo*>* m_pobjRtpRcvrInfoList;
 
     // list of RtpReceiverInfo
-    std::list<RtpReceiverInfo*> *m_pobjUtlRcvrList;
+    std::list<RtpReceiverInfo*>* m_pobjUtlRcvrList;
 
     // MTU size to be used for this session. This will be used when preparing a
     // compound RTCP packet to limit the number of sources for which we are sending
     // the report
-    RtpDt_UInt32            m_uiSessionMtu;
+    RtpDt_UInt32 m_uiSessionMtu;
 
     // Count of number of RTP packets I have sent
-    RtpDt_UInt32             m_uiRtpSendPktCount;
+    RtpDt_UInt32 m_uiRtpSendPktCount;
 
     // Count of number of octets of RTP I have sent
-    RtpDt_UInt32            m_uiRtpSendOctCount;
+    RtpDt_UInt32 m_uiRtpSendOctCount;
 
     // Count of number of RTCP packets I have sent
-    RtpDt_UInt32             m_uiRtcpSendPktCount;
+    RtpDt_UInt32 m_uiRtcpSendPktCount;
 
     // Count of number of octets of RTCP I have sent
-    RtpDt_UInt32            m_uiRtcpSendOctCount;
+    RtpDt_UInt32 m_uiRtcpSendOctCount;
 
     /* SPR # 473 END */
     /*as per spec, if we receive our own packets then send bye once, change ssrc,
     and then ignore the received packets if they continue to loop back to us
     due to a faulty mixer/translator implementation.
     */
-    eRtp_Bool                m_bSelfCollisionByeSent;
+    eRtp_Bool m_bSelfCollisionByeSent;
 
     // Timer Id
-    RtpDt_Void*                m_pTimerId;/* Storing Timer Id to stop while deleting
-                                       session*/
+    RtpDt_Void* m_pTimerId; /* Storing Timer Id to stop while deleting
+                         session*/
 
     // Previous RTP timestamp
     RtpDt_UInt32 m_prevRtpTimestamp;
@@ -199,33 +199,30 @@ class  RtpSession{
     /**
      * It processes the Received CSRC list after receiving the RTP packet
      */
-    eRTP_STATUS_CODE processCsrcList(IN RtpHeader *pobjRtpHeader,
-                                          IN RtpDt_UChar ucCsrcCount);
+    eRTP_STATUS_CODE processCsrcList(IN RtpHeader* pobjRtpHeader, IN RtpDt_UChar ucCsrcCount);
 
     /**
      * Decodes received RTCP packet and adds entry to Receiver list
      * if SSRC is not present.
      */
-    RtpReceiverInfo* processRtcpPkt(IN RtpDt_UInt32 uiRcvdSsrc,
-                                                IN RtpBuffer* pobjRtcpAddr,
-                                                IN RtpDt_UInt16 usPort);
+    RtpReceiverInfo* processRtcpPkt(
+            IN RtpDt_UInt32 uiRcvdSsrc, IN RtpBuffer* pobjRtcpAddr, IN RtpDt_UInt16 usPort);
 
     /**
      * It deletes entry from Receiver list
      */
-    RtpDt_Void delEntryFromRcvrList(IN RtpDt_UInt32 *puiSsrc);
+    RtpDt_Void delEntryFromRcvrList(IN RtpDt_UInt32* puiSsrc);
 
     /**
      * It processes the Received RTCP BYE packet. Deletes entry from Receiver list.
      */
-    eRTP_STATUS_CODE processByePacket(IN RtcpByePacket *pobjByePkt,
-                                                    IN RtpBuffer* pobjRtcpAddr,
-                                                    IN RtpDt_UInt16 usPort);
+    eRTP_STATUS_CODE processByePacket(
+            IN RtcpByePacket* pobjByePkt, IN RtpBuffer* pobjRtcpAddr, IN RtpDt_UInt16 usPort);
 
     /**
      * It processes the Received SDES packet
      */
-    eRTP_STATUS_CODE processSdesPacket(IN RtcpSdesPacket *pobjSdesPkt);
+    eRTP_STATUS_CODE processSdesPacket(IN RtcpSdesPacket* pobjSdesPkt);
 
     /**
      * Calculate the timer interval for RTCP
@@ -235,16 +232,14 @@ class  RtpSession{
     /**
      * It iterates through the pobjCsrcList to find uiSsrc.
      */
-    eRtp_Bool findEntryInCsrcList(IN std::list<RtpDt_UInt32 *>& pobjCsrcList,
-                                              IN RtpDt_UInt32 uiSsrc);
+    eRtp_Bool findEntryInCsrcList(
+            IN std::list<RtpDt_UInt32*>& pobjCsrcList, IN RtpDt_UInt32 uiSsrc);
 
     /**
      * Checks if the received packet has the same ssrc as ours.
      */
-    RtpReceiverInfo* checkSsrcCollisionOnRcv(IN RtpBuffer* pobjRtpAddr,
-                                IN RtpDt_UInt16 usPort,
-                                IN RtpDt_UInt32 uiRcvdSsrc,
-                                OUT eRTP_STATUS_CODE &eResult);
+    RtpReceiverInfo* checkSsrcCollisionOnRcv(IN RtpBuffer* pobjRtpAddr, IN RtpDt_UInt16 usPort,
+            IN RtpDt_UInt32 uiRcvdSsrc, OUT eRTP_STATUS_CODE& eResult);
 
     /**
      * It sends the RTCP bye packet to  uiReceivedSsrc
@@ -254,9 +249,8 @@ class  RtpSession{
     /**
      * It populates Rtp header
      */
-    eRTP_STATUS_CODE populateRtpHeader(IN RtpHeader* pobjRtpHdr,
-                                           IN eRtp_Bool eSetMarker,
-                                           IN RtpDt_UChar ucPayloadType);
+    eRTP_STATUS_CODE populateRtpHeader(
+            IN RtpHeader* pobjRtpHdr, IN eRtp_Bool eSetMarker, IN RtpDt_UChar ucPayloadType);
 
     /**
      * It calculates number of senders in the receiver list
@@ -266,43 +260,36 @@ class  RtpSession{
     /**
      * It populates RTCP SR packet
      */
-    eRTP_STATUS_CODE populateSrpacket(OUT RtcpSrPacket *pobjSrPkt,
-                                        IN RtpDt_UInt32 uiRecepCount);
+    eRTP_STATUS_CODE populateSrpacket(OUT RtcpSrPacket* pobjSrPkt, IN RtpDt_UInt32 uiRecepCount);
 
     /**
      * It populates RTCP RR packet
      */
-    eRTP_STATUS_CODE populateReportPacket(OUT RtcpRrPacket *pobjRrPkt,
-                                            IN eRtp_Bool bRrPkt,
-                                            IN RtpDt_UInt32 uiRecepCount);
+    eRTP_STATUS_CODE populateReportPacket(
+            OUT RtcpRrPacket* pobjRrPkt, IN eRtp_Bool bRrPkt, IN RtpDt_UInt32 uiRecepCount);
 
     /**
      * It populates RTCP BYE packet
      */
-    eRTP_STATUS_CODE populateByePacket(IN_OUT RtcpPacket *pobjRtcpPkt);
+    eRTP_STATUS_CODE populateByePacket(IN_OUT RtcpPacket* pobjRtcpPkt);
 
     /**
      * It populates RTCP APP packet
      */
-    eRTP_STATUS_CODE populateAppPacket(IN_OUT RtcpPacket *pobjRtcpPkt);
+    eRTP_STATUS_CODE populateAppPacket(IN_OUT RtcpPacket* pobjRtcpPkt);
 
-    eRTP_STATUS_CODE populateRtcpFbPacket(IN_OUT RtcpPacket *pobjRtcpPkt,
-                                              IN RtpDt_UInt32 uiFbType,
-                                              IN RtpDt_Char *pcBuff,
-                                              IN RtpDt_UInt32 uiLen,
-                                              IN RtpDt_UInt32 uiMediaSSRC,
-                                              IN RtpDt_UInt32 uiPayloadType);
+    eRTP_STATUS_CODE populateRtcpFbPacket(IN_OUT RtcpPacket* pobjRtcpPkt, IN RtpDt_UInt32 uiFbType,
+            IN RtpDt_Char* pcBuff, IN RtpDt_UInt32 uiLen, IN RtpDt_UInt32 uiMediaSSRC,
+            IN RtpDt_UInt32 uiPayloadType);
 
     /**
      * It constructs SR packet list
      */
-    eRTP_STATUS_CODE formSrList(IN RtpDt_UInt32 uiSndrCount,
-                                              OUT RtcpPacket *pobjRtcpPkt);
+    eRTP_STATUS_CODE formSrList(IN RtpDt_UInt32 uiSndrCount, OUT RtcpPacket* pobjRtcpPkt);
     /**
      * It constructs RR packet list
      */
-    eRTP_STATUS_CODE formRrList(IN RtpDt_UInt32 uiSndrCount,
-                                              OUT RtcpPacket *pobjRtcpPkt);
+    eRTP_STATUS_CODE formRrList(IN RtpDt_UInt32 uiSndrCount, OUT RtcpPacket* pobjRtcpPkt);
 
     /**
      * It estimates the total size of APP, SDES and BYE
@@ -317,9 +304,8 @@ class  RtpSession{
     /**
      * it will set RTTD value
      */
-    RtpDt_Void calculateAndSetRTTD(IN RtpDt_UInt32 currentTime,
-                                   IN RtpDt_UInt32 lsr,
-                                   IN RtpDt_UInt32 dlsr);
+    RtpDt_Void calculateAndSetRTTD(
+            IN RtpDt_UInt32 currentTime, IN RtpDt_UInt32 lsr, IN RtpDt_UInt32 dlsr);
 
     eRTP_STATUS_CODE updatePayload(IN RtpPayloadInfo* pstPayloadInfo);
 
@@ -329,9 +315,8 @@ class  RtpSession{
      * @param[in] usPort port number associated to uiRcvdSsrc
      * @param[in] uiRcvdSsrc received synchronization source.
      */
-    eRTP_STATUS_CODE chkRcvdSsrcStatus(IN RtpBuffer* pobjRtpAddr,
-                                IN RtpDt_UInt16 usPort,
-                                IN RtpDt_UInt32 uiRcvdSsrc);
+    eRTP_STATUS_CODE chkRcvdSsrcStatus(
+            IN RtpBuffer* pobjRtpAddr, IN RtpDt_UInt16 usPort, IN RtpDt_UInt32 uiRcvdSsrc);
 
     RtpDt_UInt16 getRtpPort();
 
@@ -342,7 +327,7 @@ class  RtpSession{
     /**
      * method for sending rtcp packet
      */
-    eRTP_STATUS_CODE rtpSendRtcpPacket(IN_OUT RtcpPacket *objRtcpPkt);
+    eRTP_STATUS_CODE rtpSendRtcpPacket(IN_OUT RtcpPacket* objRtcpPkt);
 
     /**
      * method for setting timestamp for RTCP packet
@@ -352,29 +337,27 @@ class  RtpSession{
     /**
      * method for making compound rtcp packet
      */
-    eRTP_STATUS_CODE rtpMakeCompoundRtcpPacket(IN_OUT RtcpPacket *objRtcpPkt);
+    eRTP_STATUS_CODE rtpMakeCompoundRtcpPacket(IN_OUT RtcpPacket* objRtcpPkt);
 
     /**
      * method for calculating total rtcp packet size
      */
-    RtpDt_UInt32 calculateTotalRtcpSize(IN RtpDt_UInt32 uiSndrCount,
-                                        IN RtpDt_UInt32 uiEstRtcpSize,
-                                        IN eRtp_Bool isSR);
+    RtpDt_UInt32 calculateTotalRtcpSize(
+            IN RtpDt_UInt32 uiSndrCount, IN RtpDt_UInt32 uiEstRtcpSize, IN eRtp_Bool isSR);
 
     /**
      * method for calculating number of report block in SR/RR
      */
-    RtpDt_UInt32 numberOfReportBlocks(IN RtpDt_UInt32 uiMtuSize,IN RtpDt_UInt32 uiEstRtcpSize);
+    RtpDt_UInt32 numberOfReportBlocks(IN RtpDt_UInt32 uiMtuSize, IN RtpDt_UInt32 uiEstRtcpSize);
 
-    eRTP_STATUS_CODE constructSdesPkt(IN_OUT RtcpPacket *pobjRtcpPkt);
+    eRTP_STATUS_CODE constructSdesPkt(IN_OUT RtcpPacket* pobjRtcpPkt);
 
-    eRTP_STATUS_CODE populateRtcpXrPacket(IN_OUT RtcpPacket *pobjRtcpPkt);
+    eRTP_STATUS_CODE populateRtcpXrPacket(IN_OUT RtcpPacket* pobjRtcpPkt);
 
-    eRtp_Bool checkRtpPayloadType(IN RtpHeader* pobjRtpHeader,
-                                   IN RtpPayloadInfo* m_pobjPayloadInfo);
+    eRtp_Bool checkRtpPayloadType(
+            IN RtpHeader* pobjRtpHeader, IN RtpPayloadInfo* m_pobjPayloadInfo);
 
 public:
-
     ~RtpSession();
 
     /**
@@ -404,15 +387,14 @@ public:
      * - Frequency at which each SDES info shall be sent.
      * - Frequency at which the App packet shall be sent
      */
-    eRTP_STATUS_CODE initSession(IN IRtpAppInterface* pobjAppInterface,
-                                     IN RtcpConfigInfo* pobjRtcpConfigInfo);
+    eRTP_STATUS_CODE initSession(
+            IN IRtpAppInterface* pobjAppInterface, IN RtcpConfigInfo* pobjRtcpConfigInfo);
     /**
      * Update the payload info for this stream if it changes after initSession().
      *
      * @param pstPayloadInfo: payload type and sampling rate
      */
-    eRTP_STATUS_CODE setPayload(IN RtpPayloadInfo* pstPayloadInfo,
-                                    IN RtpDt_UInt16 usExtHdrLen);
+    eRTP_STATUS_CODE setPayload(IN RtpPayloadInfo* pstPayloadInfo, IN RtpDt_UInt16 usExtHdrLen);
 
     eRTP_STATUS_CODE setRTCPTimerValue(IN RtpDt_UInt16 usRTCPTimerVal);
 
@@ -445,11 +427,8 @@ public:
      * @param[in] pobjRTPPacket Buffer from network and the number of bytes in the buffer
      * @param[out] pobjRtpPkt Decoded RTP packet
      */
-    eRTP_STATUS_CODE processRcvdRtpPkt(
-                                IN RtpBuffer* pobjRtpAddr,
-                                IN RtpDt_UInt16 usPort,
-                                IN RtpBuffer* pobjRTPPacket,
-                                OUT RtpPacket *pobjRtpPkt);
+    eRTP_STATUS_CODE processRcvdRtpPkt(IN RtpBuffer* pobjRtpAddr, IN RtpDt_UInt16 usPort,
+            IN RtpBuffer* pobjRTPPacket, OUT RtpPacket* pobjRtpPkt);
 
     /**
      * It constructs the RTP packet.
@@ -467,13 +446,9 @@ public:
      * @param[in] eSetMarker if marker flag is set, marker bit will be set in RTP header.
      * @param[out] pRtpPkt Rtp packet with length.
      */
-    eRTP_STATUS_CODE createRtpPacket(IN RtpBuffer* pobjPayload,
-                                         IN eRtp_Bool eSetMarker,
-                                         IN RtpDt_UChar ucPayloadType,
-                                         IN eRtp_Bool bUseLastTimestamp,
-                                         IN RtpDt_UInt32 uiRtpTimestampDiff,
-                                         IN RtpBuffer* pobjXHdr,
-                                         OUT RtpBuffer* pRtpPkt);
+    eRTP_STATUS_CODE createRtpPacket(IN RtpBuffer* pobjPayload, IN eRtp_Bool eSetMarker,
+            IN RtpDt_UChar ucPayloadType, IN eRtp_Bool bUseLastTimestamp,
+            IN RtpDt_UInt32 uiRtpTimestampDiff, IN RtpBuffer* pobjXHdr, OUT RtpBuffer* pRtpPkt);
 
     /**
      * - Decode a received RTCP packet.
@@ -487,23 +462,16 @@ public:
      * @param[in] pobjRTCPPacket Buffer from network and the number of bytes in the buffer
      * @param[out] pobjRtcpPkt Decoded RTCP packet
      */
-    eRTP_STATUS_CODE processRcvdRtcpPkt(
-                                IN RtpBuffer* pobjRtcpAddr,
-                                IN RtpDt_UInt16 usPort,
-                                IN RtpBuffer* pobjRTCPPacket,
-                                OUT RtcpPacket *pobjRtcpPkt);
+    eRTP_STATUS_CODE processRcvdRtcpPkt(IN RtpBuffer* pobjRtcpAddr, IN RtpDt_UInt16 usPort,
+            IN RtpBuffer* pobjRTCPPacket, OUT RtcpPacket* pobjRtcpPkt);
 
-    eRtp_Bool    sendRtcpByePacket();
+    eRtp_Bool sendRtcpByePacket();
 
-    eRtp_Bool    sendRtcpRtpFbPacket(IN RtpDt_UInt32 uiFbType,
-                                     IN RtpDt_Char *pcBuff,
-                                     IN RtpDt_UInt32 uiLen,
-                                     IN RtpDt_UInt32 uiMediaSsrc);
+    eRtp_Bool sendRtcpRtpFbPacket(IN RtpDt_UInt32 uiFbType, IN RtpDt_Char* pcBuff,
+            IN RtpDt_UInt32 uiLen, IN RtpDt_UInt32 uiMediaSsrc);
 
-    eRtp_Bool sendRtcpPayloadFbPacket(IN RtpDt_UInt32 uiFbType,
-                                     IN RtpDt_Char *pcBuff,
-                                     IN RtpDt_UInt32 uiLen,
-                                     IN RtpDt_UInt32 uiMediaSsrc);
+    eRtp_Bool sendRtcpPayloadFbPacket(IN RtpDt_UInt32 uiFbType, IN RtpDt_Char* pcBuff,
+            IN RtpDt_UInt32 uiLen, IN RtpDt_UInt32 uiMediaSsrc);
 
     /**
      * It sets the m_bRtcpTxFlag to control the RTCP data transmission.
@@ -551,7 +519,7 @@ public:
      * It constructs the RTCP compound packet after rtcp timer expiry.
      * It re-calculates the RTCP timer value and starts the timer.
      */
-    RtpDt_Void rtcpTimerExpiry(IN RtpDt_Void *pvTimerId);
+    RtpDt_Void rtcpTimerExpiry(IN RtpDt_Void* pvTimerId);
 
     eRTP_STATUS_CODE disableRtcp();
 
@@ -572,13 +540,12 @@ public:
      */
     eRtp_Bool isRtpEnabled();
 
-    eRTP_STATUS_CODE sendRtcpXrPacket(IN RtpDt_UChar* m_pBlockBuffer,
-                                          IN RtpDt_UInt16 nblockLength,
-                                          IN RtpDt_UInt16 nRttdOffset);
+    eRTP_STATUS_CODE sendRtcpXrPacket(IN RtpDt_UChar* m_pBlockBuffer, IN RtpDt_UInt16 nblockLength,
+            IN RtpDt_UInt16 nRttdOffset);
 
     RtpDt_UInt32 getRTTD();
 };
 
-#endif //__RTP_SESSION_H__
+#endif  //__RTP_SESSION_H__
 
 /** @}*/

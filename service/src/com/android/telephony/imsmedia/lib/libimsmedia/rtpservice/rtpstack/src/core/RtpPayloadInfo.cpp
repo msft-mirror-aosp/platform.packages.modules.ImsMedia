@@ -16,30 +16,27 @@
 
 #include <RtpPayloadInfo.h>
 
-RtpPayloadInfo::RtpPayloadInfo():
-                        m_uiSamplingRate(RTP_ZERO)
+RtpPayloadInfo::RtpPayloadInfo() :
+        m_uiSamplingRate(RTP_ZERO)
 {
-        for(RtpDt_UInt32 i=0;i<RTP_MAX_PAYLOAD_TYPE;i++)
-            m_uiPayloadType[i] = RTP_ZERO;
+    for (RtpDt_UInt32 i = 0; i < RTP_MAX_PAYLOAD_TYPE; i++)
+        m_uiPayloadType[i] = RTP_ZERO;
 }
 
-RtpPayloadInfo::RtpPayloadInfo(IN RtpDt_UInt32* uiPayloadType,
-                               IN RtpDt_UInt32 uiSamplingRate,
-                               IN RtpDt_UInt32 nNumOfPayloadParam):
-                        m_uiSamplingRate(uiSamplingRate)
+RtpPayloadInfo::RtpPayloadInfo(IN RtpDt_UInt32* uiPayloadType, IN RtpDt_UInt32 uiSamplingRate,
+        IN RtpDt_UInt32 nNumOfPayloadParam) :
+        m_uiSamplingRate(uiSamplingRate)
 {
-    for(RtpDt_UInt32 i=0;i<nNumOfPayloadParam;i++)
-            m_uiPayloadType[i] = uiPayloadType[i];
+    for (RtpDt_UInt32 i = 0; i < nNumOfPayloadParam; i++)
+        m_uiPayloadType[i] = uiPayloadType[i];
 }
 
-RtpPayloadInfo::~RtpPayloadInfo()
-{
-}
+RtpPayloadInfo::~RtpPayloadInfo() {}
 
 RtpDt_Void RtpPayloadInfo::setRtpPayloadInfo(IN RtpPayloadInfo* pobjRlInfo)
 {
-    for(RtpDt_UInt32 i=0;i<RTP_MAX_PAYLOAD_TYPE;i++)
-            m_uiPayloadType[i] = pobjRlInfo->getPayloadType(i);
+    for (RtpDt_UInt32 i = 0; i < RTP_MAX_PAYLOAD_TYPE; i++)
+        m_uiPayloadType[i] = pobjRlInfo->getPayloadType(i);
 
     m_uiSamplingRate = pobjRlInfo->getSamplingRate();
 }

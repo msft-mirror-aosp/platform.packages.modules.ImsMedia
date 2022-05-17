@@ -25,7 +25,6 @@
 #include <RtpBuffer.h>
 #include <RtcpHeader.h>
 
-
 typedef enum eRCTFBType
 {
     FEEDBACK_NONE = 0,
@@ -48,117 +47,113 @@ typedef enum eRCTFBType
 
     FB_FEEDBACK_MAX
 
-}eRCTFBType_t;
+} eRCTFBType_t;
 
 /**
-* @class    RtcpFbPacket
-* @brief    It holds RTCP Feedback Message information
-*
-*/
+ * @class    RtcpFbPacket
+ * @brief    It holds RTCP Feedback Message information
+ *
+ */
 class RtcpFbPacket
 {
-    private:
-        // RTCP Fb header information
-        RtcpHeader m_objRtcpHdr;
+private:
+    // RTCP Fb header information
+    RtcpHeader m_objRtcpHdr;
 
-        // Fb payload type
-        eRTCP_TYPE m_ePayloadType;
+    // Fb payload type
+    eRTCP_TYPE m_ePayloadType;
 
-        // Media SSRC
-        RtpDt_UInt32 m_uiMediaSsrc;
+    // Media SSRC
+    RtpDt_UInt32 m_uiMediaSsrc;
 
-        // Feedback Control Information
-        RtpBuffer *m_pFCI;
+    // Feedback Control Information
+    RtpBuffer* m_pFCI;
 
-        /**
-         * Performs the encoding of the RTCP RTP FB packet.
-         * This function does not allocate memory required for encoding.
-         * @param[out] pobjRtcpPktBuf Memory for the buffer is pre-allocated by caller
-         * @return RTP_SUCCESS on successful encoding
-         */
-        eRTP_STATUS_CODE formRtcpRtpFbPacket(OUT RtpBuffer* pobjRtcpPktBuf);
+    /**
+     * Performs the encoding of the RTCP RTP FB packet.
+     * This function does not allocate memory required for encoding.
+     * @param[out] pobjRtcpPktBuf Memory for the buffer is pre-allocated by caller
+     * @return RTP_SUCCESS on successful encoding
+     */
+    eRTP_STATUS_CODE formRtcpRtpFbPacket(OUT RtpBuffer* pobjRtcpPktBuf);
 
-        /**
-         * Performs the encoding of the RTCP payload FB packet.
-         * This function does not allocate memory required for encoding.
-         * @param[out] pobjRtcpPktBuf Memory for the buffer is pre-allocated by caller
-         * @return RTP_SUCCESS on successful encoding
-         */
-        eRTP_STATUS_CODE formRtcpPayloadFbPacket(OUT RtpBuffer* pobjRtcpPktBuf);
+    /**
+     * Performs the encoding of the RTCP payload FB packet.
+     * This function does not allocate memory required for encoding.
+     * @param[out] pobjRtcpPktBuf Memory for the buffer is pre-allocated by caller
+     * @return RTP_SUCCESS on successful encoding
+     */
+    eRTP_STATUS_CODE formRtcpPayloadFbPacket(OUT RtpBuffer* pobjRtcpPktBuf);
 
-    public:
+public:
+    RtcpFbPacket();
 
-        RtcpFbPacket();
+    ~RtcpFbPacket();
 
-        ~RtcpFbPacket();
+    /**
+     * get method for m_objRtcpHdr
+     */
+    RtcpHeader* getRtcpHdrInfo();
 
-        /**
-         * get method for m_objRtcpHdr
-         */
-        RtcpHeader* getRtcpHdrInfo();
+    /**
+     * set method for SSRC
+     */
+    RtpDt_Void setSsrc(RtpDt_UInt32);
 
-        /**
-         * set method for SSRC
-         */
-        RtpDt_Void setSsrc(RtpDt_UInt32);
+    /**
+     * set method for Media SSRC
+     */
+    RtpDt_Void setMediaSsrc(RtpDt_UInt32);
 
-        /**
-         * set method for Media SSRC
-         */
-        RtpDt_Void setMediaSsrc(RtpDt_UInt32);
+    /**
+     * get method for SSRC
+     */
+    RtpDt_UInt32 getSsrc();
 
-        /**
-         * get method for SSRC
-         */
-        RtpDt_UInt32 getSsrc();
+    /**
+     * get method for Media SSRC
+     */
+    RtpDt_UInt32 getMediaSsrc();
 
-        /**
-         * get method for Media SSRC
-         */
-        RtpDt_UInt32 getMediaSsrc();
+    /**
+     * get method for FCI info from the RTCP packet
+     */
+    RtpBuffer* getFCI();
 
-        /**
-         * get method for FCI info from the RTCP packet
-         */
-        RtpBuffer* getFCI();
+    /**
+     * set method for  FCI info from the RTCP packet
+     */
+    RtpDt_Void setFCI(IN RtpBuffer* m_pFCI);
 
-        /**
-         * set method for  FCI info from the RTCP packet
-         */
-        RtpDt_Void setFCI(IN RtpBuffer* m_pFCI);
+    /**
+     * get method for Feedback payload type info from the RTCP packet
+     */
+    eRTCP_TYPE getPayloadType();
 
-        /**
-         * get method for Feedback payload type info from the RTCP packet
-         */
-        eRTCP_TYPE getPayloadType();
+    /**
+     * set method for  Feedback payload type info from the RTCP packet
+     */
+    RtpDt_Void setPayloadType(IN eRTCP_TYPE ePayloadType);
 
-        /**
-         * set method for  Feedback payload type info from the RTCP packet
-         */
-        RtpDt_Void setPayloadType(IN eRTCP_TYPE ePayloadType);
+    /**
+     * Decodes and stores the information of the RTCP FB packet
+     * This function does not allocate memory required for decoding.
+     *
+     * @param pucByeBuf received RTCP FB packet
+     * @param usByeLen length of the RTCP FB packet
+     */
+    eRTP_STATUS_CODE decodeRtcpFbPacket(IN RtpDt_UChar*, IN RtpDt_UInt16, IN RtpDt_UChar ucPktType);
 
-        /**
-         * Decodes and stores the information of the RTCP FB packet
-         * This function does not allocate memory required for decoding.
-         *
-         * @param pucByeBuf received RTCP FB packet
-         * @param usByeLen length of the RTCP FB packet
-         */
-        eRTP_STATUS_CODE decodeRtcpFbPacket(IN RtpDt_UChar* ,
-                                     IN RtpDt_UInt16 , IN RtpDt_UChar ucPktType);
+    /**
+     * Performs the encoding of the RTCP FB packet.
+     * This function does not allocate memory required for encoding.
+     * @param[out] pobjRtcpPktBuf Memory for the buffer is pre-allocated by caller
+     * @return RTP_SUCCESS on successful encoding
+     */
+    eRTP_STATUS_CODE formRtcpFbPacket(OUT RtpBuffer* pobjRtcpPktBuf);
 
-        /**
-         * Performs the encoding of the RTCP FB packet.
-         * This function does not allocate memory required for encoding.
-         * @param[out] pobjRtcpPktBuf Memory for the buffer is pre-allocated by caller
-         * @return RTP_SUCCESS on successful encoding
-        */
-        eRTP_STATUS_CODE formRtcpFbPacket(OUT RtpBuffer* pobjRtcpPktBuf);
+};  // end of RtcpFbPacket
 
-}; // end of RtcpFbPacket
-
-
-#endif    //__RTCP_FB_PACKET_H__
-
+#endif  //__RTCP_FB_PACKET_H__
 
 /** @}*/

@@ -2,7 +2,7 @@
  *  @{
  */
 
-//RTP_TRACE_ENABLE to be set in settings to enable tracing
+// RTP_TRACE_ENABLE to be set in settings to enable tracing
 /**
  * Copyright (C) 2022 The Android Open Source Project
  *
@@ -25,36 +25,37 @@
 #include <RtpPfDatatypes.h>
 #include <RtpString.h>
 #define RTP_PACKET_LOG_RTPSTACK 0x00000100
-#define RTP_TRACE_WARNING(a,b,c)\
-RtpTrace::RTPLOGW_ARG("[%s:%d]" a, RtpTrace::RTP_StripFileName((char*)__FILE__), __LINE__, b, c)
-#define RTP_TRACE_ERROR(a,b,c)\
-RtpTrace::RTPLOGE_ARG("[%s:%d]" a, RtpTrace::RTP_StripFileName((char*)__FILE__), __LINE__, b, c)
-#define RTP_TRACE_MESSAGE(a,b,c) RtpTrace::RTPLOGD_PACKET_ARG\
-(RTP_PACKET_LOG_RTPSTACK, "[%s:%d]" a, Rtp_StripFileName((char*)__FILE__), __LINE__, b, c)
-#define RTP_TRACE_FXNENTRY RtpTrace::RTPLOGD_PACKET_ARG\
-(RTP_PACKET_LOG_RTPSTACK, "[%s:%d] FIN %s", Rtp_StripFileName((char*)__FILE__),\
-__LINE__, __FUNCTION__)
-#define RTP_TRACE_FXNEXIT RtpTrace::RTPLOGD_PACKET_ARG\
-(RTP_PACKET_LOG_RTPSTACK, "[%s:%d] FOUT %s", Rtp_StripFileName((char*)__FILE__),\
-__LINE__, __FUNCTION__)
-#define RTP_TRACE_NORMAL(a,b,c)\
-RtpTrace::RTPLOGD_PACKET_ARG(RTP_PACKET_LOG_RTPSTACK, "[%s:%d]" a,\
-Rtp_StripFileName((char*)__FILE__), __LINE__, b, c)
-#define RTP_TRACE_BINARY(a,b) //RTPLOGD2("[%s] %s %d %d", #a,b);
+#define RTP_TRACE_WARNING(a, b, c) \
+    RtpTrace::RTPLOGW_ARG("[%s:%d]" a, RtpTrace::RTP_StripFileName((char*)__FILE__), __LINE__, b, c)
+#define RTP_TRACE_ERROR(a, b, c) \
+    RtpTrace::RTPLOGE_ARG("[%s:%d]" a, RtpTrace::RTP_StripFileName((char*)__FILE__), __LINE__, b, c)
+#define RTP_TRACE_MESSAGE(a, b, c)                                     \
+    RtpTrace::RTPLOGD_PACKET_ARG(RTP_PACKET_LOG_RTPSTACK, "[%s:%d]" a, \
+            Rtp_StripFileName((char*)__FILE__), __LINE__, b, c)
+#define RTP_TRACE_FXNENTRY                                                  \
+    RtpTrace::RTPLOGD_PACKET_ARG(RTP_PACKET_LOG_RTPSTACK, "[%s:%d] FIN %s", \
+            Rtp_StripFileName((char*)__FILE__), __LINE__, __FUNCTION__)
+#define RTP_TRACE_FXNEXIT                                                    \
+    RtpTrace::RTPLOGD_PACKET_ARG(RTP_PACKET_LOG_RTPSTACK, "[%s:%d] FOUT %s", \
+            Rtp_StripFileName((char*)__FILE__), __LINE__, __FUNCTION__)
+#define RTP_TRACE_NORMAL(a, b, c)                                      \
+    RtpTrace::RTPLOGD_PACKET_ARG(RTP_PACKET_LOG_RTPSTACK, "[%s:%d]" a, \
+            Rtp_StripFileName((char*)__FILE__), __LINE__, b, c)
+#define RTP_TRACE_BINARY(a, b)  // RTPLOGD2("[%s] %s %d %d", #a,b);
 
 namespace RtpTrace
 {
-void RTPLOGD_PACKET_ARG(int type, const char* format,...);
-void RTPLOGD_ARG(const char* format,...);
-void RTPLOGE_ARG(const char* format,...);
-void RTPLOGW_ARG(const char* format,...);
+void RTPLOGD_PACKET_ARG(int type, const char* format, ...);
+void RTPLOGD_ARG(const char* format, ...);
+void RTPLOGE_ARG(const char* format, ...);
+void RTPLOGW_ARG(const char* format, ...);
 void RTPSetDebugLog(int type);
 int RTPGetDebugLog();
-char *RTPTrace_Bin2String(void *s, int length);
-void RTPLOGD_BINARY(const char* msg, const void *s, int length);
-char* RTP_StripFileName(char *pcFileName);
-}
+char* RTPTrace_Bin2String(void* s, int length);
+void RTPLOGD_BINARY(const char* msg, const void* s, int length);
+char* RTP_StripFileName(char* pcFileName);
+}  // namespace RtpTrace
 
-#endif // __RTP_TRACE_H__
+#endif  // __RTP_TRACE_H__
 
 /** @}*/

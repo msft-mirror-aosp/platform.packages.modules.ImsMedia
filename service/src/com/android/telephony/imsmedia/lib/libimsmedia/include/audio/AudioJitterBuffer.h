@@ -20,25 +20,25 @@
 #include <BaseJitterBuffer.h>
 #include <JitterNetworkAnalyser.h>
 
-class AudioJitterBuffer : public BaseJitterBuffer {
+class AudioJitterBuffer : public BaseJitterBuffer
+{
 public:
     AudioJitterBuffer();
     virtual ~AudioJitterBuffer();
     virtual void Reset();
     virtual void SetJitterBufferSize(uint32_t nInit, uint32_t nMin, uint32_t nMax);
-    void SetJitterOptions(uint32_t nReduceTH, uint32_t nStepSize, double zValue,
-        bool bIgnoreSID, bool bImprovement);
+    void SetJitterOptions(uint32_t nReduceTH, uint32_t nStepSize, double zValue, bool bIgnoreSID,
+            bool bImprovement);
     virtual void Add(ImsMediaSubType subtype, uint8_t* pbBuffer, uint32_t nBufferSize,
-        uint32_t nTimestamp, bool bMark, uint32_t nSeqNum,
-        ImsMediaSubType nDataType = ImsMediaSubType::MEDIASUBTYPE_UNDEFINED);
-    virtual bool Get(ImsMediaSubType* psubtype, uint8_t** ppData,
-        uint32_t* pnDataSize, uint32_t* pnTimestamp, bool* pbMark, uint32_t*
-        pnSeqNum, uint32_t* pnChecker = NULL);
+            uint32_t nTimestamp, bool bMark, uint32_t nSeqNum,
+            ImsMediaSubType nDataType = ImsMediaSubType::MEDIASUBTYPE_UNDEFINED);
+    virtual bool Get(ImsMediaSubType* psubtype, uint8_t** ppData, uint32_t* pnDataSize,
+            uint32_t* pnTimestamp, bool* pbMark, uint32_t* pnSeqNum, uint32_t* pnChecker = NULL);
 
 private:
-    bool CheckPartialRedundancyFrame(ImsMediaSubType* psubtype,
-        uint8_t** ppData, uint32_t* pnDataSize, uint32_t* pnTimestamp, bool* pbMark,
-        uint32_t* pnSeqNum, uint32_t* pnChecker = NULL);
+    bool CheckPartialRedundancyFrame(ImsMediaSubType* psubtype, uint8_t** ppData,
+            uint32_t* pnDataSize, uint32_t* pnTimestamp, bool* pbMark, uint32_t* pnSeqNum,
+            uint32_t* pnChecker = NULL);
     bool IsSID(uint8_t* pbBuffer, uint32_t nBufferSize);
 
     JitterNetworkAnalyser mJitterAnalyser;
@@ -63,7 +63,6 @@ private:
     uint32_t mDeleteCount;
     uint32_t mRedundancyOffSet;
     uint32_t mNextJitterBufferSize;
-
 };
 
 #endif

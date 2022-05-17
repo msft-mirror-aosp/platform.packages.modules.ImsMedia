@@ -21,20 +21,21 @@
 #include <string.h>
 
 #ifdef DEBUG_JITTER_GEN_SIMULATION_DELAY
-#define DEBUG_JITTER_MAX_PACKET_INTERVAL    70     // msec, minimum value is 30
+#define DEBUG_JITTER_MAX_PACKET_INTERVAL 70  // msec, minimum value is 30
 #endif
 #ifdef DEBUG_JITTER_GEN_SIMULATION_REORDER
-    #include <ImsMediaDataQueue.h>
-    #define DEBUG_JITTER_REORDER_MAX 4
-    #define DEBUG_JITTER_REORDER_MIN     4
-    #define DEBUG_JITTER_NORMAL             2
+#include <ImsMediaDataQueue.h>
+#define DEBUG_JITTER_REORDER_MAX 4
+#define DEBUG_JITTER_REORDER_MIN 4
+#define DEBUG_JITTER_NORMAL      2
 #endif
 #ifdef DEBUG_JITTER_GEN_SIMULATION_LOSS
-    #define DEBUG_JITTER_LOSS_NORMAT_PACKET    49
-    #define DEBUG_JITTER_LOSS_LOSS_PACKET        1
+#define DEBUG_JITTER_LOSS_NORMAT_PACKET 49
+#define DEBUG_JITTER_LOSS_LOSS_PACKET   1
 #endif
 
-RtpEncoderNode::RtpEncoderNode() {
+RtpEncoderNode::RtpEncoderNode()
+{
     mRtpSession = NULL;
     mConfig = NULL;
     mDTMFMode = false;
@@ -52,45 +53,55 @@ RtpEncoderNode::RtpEncoderNode() {
 #endif
 }
 
-RtpEncoderNode::~RtpEncoderNode() {
-    if (mRtpSession) {
+RtpEncoderNode::~RtpEncoderNode()
+{
+    if (mRtpSession)
+    {
         mRtpSession->SetRtpEncoderListener(NULL);
         mRtpSession->StopRtp();
         IRtpSession::ReleaseInstance(mRtpSession);
     }
 
     mRtpSession = NULL;
-    if (mConfig != NULL) {
+    if (mConfig != NULL)
+    {
         delete mConfig;
         mConfig = NULL;
     }
 }
 
-BaseNode* RtpEncoderNode::GetInstance() {
+BaseNode* RtpEncoderNode::GetInstance()
+{
     return new RtpEncoderNode();
 }
 
-void RtpEncoderNode::ReleaseInstance(BaseNode* pNode) {
+void RtpEncoderNode::ReleaseInstance(BaseNode* pNode)
+{
     delete (RtpEncoderNode*)pNode;
 }
 
-BaseNodeID RtpEncoderNode::GetNodeID() {
+BaseNodeID RtpEncoderNode::GetNodeID()
+{
     return BaseNodeID::NODEID_RTPENCODER;
 }
 
-ImsMediaResult RtpEncoderNode::Start() {
-    //start here
+ImsMediaResult RtpEncoderNode::Start()
+{
+    // start here
     IMLOGD0("[Start]");
-    if (mRtpSession == NULL) {
+    if (mRtpSession == NULL)
+    {
         mRtpSession = IRtpSession::GetInstance(mMediaType, mLocalAddress, mPeerAddress);
-        if (mRtpSession == NULL) {
+        if (mRtpSession == NULL)
+        {
             IMLOGE0("[Start] Can't create rtp session");
             return RESULT_NOT_READY;
         }
     }
     mRtpSession->SetRtpEncoderListener(this);
     mRtpSession->SetRtpPayloadParam(mConfig);
-    if (mMediaType == IMS_MEDIA_AUDIO) {
+    if (mMediaType == IMS_MEDIA_AUDIO)
+    {
         mRtpSession->SetRtpDtmfPayloadParam(reinterpret_cast<AudioConfig*>(mConfig));
     }
     mRtpSession->StartRtp();
@@ -98,7 +109,7 @@ ImsMediaResult RtpEncoderNode::Start() {
     mAudioMark = true;
     mPrevTimestamp = 0;
     mDTMFTimestamp = 0;
-    //mRtpSession->EnableRtpMonitoring(true);
+    // mRtpSession->EnableRtpMonitoring(true);
 #ifdef DEBUG_JITTER_GEN_SIMULATION_DELAY
     mNextTime = 0;
 #endif
@@ -110,14 +121,16 @@ ImsMediaResult RtpEncoderNode::Start() {
     return RESULT_SUCCESS;
 }
 
-void RtpEncoderNode::Stop() {
+void RtpEncoderNode::Stop()
+{
     IMLOGD0("[Stop]");
-    //mRtpSession->EnableRtpMonitoring(false);
-    //mRtpSession->EnableRtcpTx(true);
+    // mRtpSession->EnableRtpMonitoring(false);
+    // mRtpSession->EnableRtcpTx(true);
     mNodeState = NODESTATE_STOPPED;
 }
 
-void RtpEncoderNode::ProcessData() {
+void RtpEncoderNode::ProcessData()
+{
     ImsMediaSubType eSubType;
     uint8_t* pData = NULL;
     uint32_t nDataSize = 0;
@@ -125,54 +138,65 @@ void RtpEncoderNode::ProcessData() {
     bool bMark = false;
     uint32_t nSeqNum = 0;
 
-    if (GetData(&eSubType, &pData, &nDataSize, &nTimestamp, &bMark, &nSeqNum, NULL) == false) {
+    if (GetData(&eSubType, &pData, &nDataSize, &nTimestamp, &bMark, &nSeqNum, NULL) == false)
+    {
         return;
     }
 #ifdef DEBUG_JITTER_GEN_SIMULATION_DELAY
     {
         uint32_t nCurrTime = ImsMediaTimer::GetTimeInMilliSeconds();
-        if ((GetDataCount(mMediaType) <= 1)
-            && mNextTime && nCurrTime < mNextTime) {
+        if ((GetDataCount(mMediaType) <= 1) && mNextTime && nCurrTime < mNextTime)
+        {
             return;
-        } else {
-            uint32_t max_interval_1 =
-                GenerateRandom((DEBUG_JITTER_MAX_PACKET_INTERVAL-30) / GetDataCount(mMediaType));
+        }
+        else
+        {
+            uint32_t max_interval_1 = GenerateRandom(
+                    (DEBUG_JITTER_MAX_PACKET_INTERVAL - 30) / GetDataCount(mMediaType));
             uint32_t max_interval_2 = 30 + max_interval_1;
             mNextTime = nCurrTime + GenerateRandom(max_interval_2);
         }
     }
 #endif
-    if (mMediaType == IMS_MEDIA_AUDIO) {
+    if (mMediaType == IMS_MEDIA_AUDIO)
+    {
         ProcessAudioData(eSubType, pData, nDataSize, nTimestamp);
     }
 
     DeleteData();
 }
 
-bool RtpEncoderNode::IsRunTime() {
+bool RtpEncoderNode::IsRunTime()
+{
     return false;
 }
 
-bool RtpEncoderNode::IsSourceNode() {
+bool RtpEncoderNode::IsSourceNode()
+{
     return false;
 }
 
-void RtpEncoderNode::SetConfig(void* config) {
+void RtpEncoderNode::SetConfig(void* config)
+{
     IMLOGD0("[SetConfig]");
-    if (config == NULL) return;
-    if (mMediaType == IMS_MEDIA_AUDIO) {
+    if (config == NULL)
+        return;
+    if (mMediaType == IMS_MEDIA_AUDIO)
+    {
         mConfig = new AudioConfig(reinterpret_cast<AudioConfig*>(config));
         mPeerAddress = RtpAddress(mConfig->getRemoteAddress().c_str(), mConfig->getRemotePort());
         mRtpPayload = mConfig->getTxPayloadTypeNumber();
         mDtmfPayload = ((AudioConfig*)mConfig)->getDtmfPayloadTypeNumber();
-        IMLOGD2("[SetConfig] peer Ip[%s], port[%d]", mPeerAddress.ipAddress,
-            mPeerAddress.port);
+        IMLOGD2("[SetConfig] peer Ip[%s], port[%d]", mPeerAddress.ipAddress, mPeerAddress.port);
     }
 }
 
-bool RtpEncoderNode::IsSameConfig(void* config) {
-    if (config == NULL) return true;
-    if (mMediaType == IMS_MEDIA_AUDIO) {
+bool RtpEncoderNode::IsSameConfig(void* config)
+{
+    if (config == NULL)
+        return true;
+    if (mMediaType == IMS_MEDIA_AUDIO)
+    {
         AudioConfig* pConfig = reinterpret_cast<AudioConfig*>(config);
         return (*mConfig == *pConfig);
     }
@@ -180,20 +204,27 @@ bool RtpEncoderNode::IsSameConfig(void* config) {
     return false;
 }
 
-//IRtpEncoderListener
-void RtpEncoderNode::OnRtpPacket(unsigned char* pData, uint32_t nSize) {
+// IRtpEncoderListener
+void RtpEncoderNode::OnRtpPacket(unsigned char* pData, uint32_t nSize)
+{
 #ifdef DEBUG_JITTER_GEN_SIMULATION_LOSS
     bool nLossFlag = false;
     {
         static uint32_t nLossNormalCount = 0;
         static uint32_t nLossLossCount = 0;
-        if (nLossNormalCount < DEBUG_JITTER_LOSS_NORMAT_PACKET) {
+        if (nLossNormalCount < DEBUG_JITTER_LOSS_NORMAT_PACKET)
+        {
             nLossNormalCount++;
-        } else {
-            if (nLossLossCount < DEBUG_JITTER_LOSS_LOSS_PACKET) {
+        }
+        else
+        {
+            if (nLossLossCount < DEBUG_JITTER_LOSS_LOSS_PACKET)
+            {
                 nLossLossCount++;
                 nLossFlag = true;
-            } else {
+            }
+            else
+            {
                 nLossNormalCount = 0;
                 nLossLossCount = 0;
             }
@@ -211,46 +242,57 @@ void RtpEncoderNode::OnRtpPacket(unsigned char* pData, uint32_t nSize) {
         entry.bMark = 0;
         entry.nSeqNum = 0;
 
-        if (mReorderDataCount < DEBUG_JITTER_NORMAL) {
+        if (mReorderDataCount < DEBUG_JITTER_NORMAL)
+        {
             jitterData.push_back(&entry);
         }
-        else if (mReorderDataCount < DEBUG_JITTER_NORMAL+DEBUG_JITTER_REORDER_MAX) {
+        else if (mReorderDataCount < DEBUG_JITTER_NORMAL + DEBUG_JITTER_REORDER_MAX)
+        {
             int32_t nCurrReorderSize;
             int32_t nInsertPos;
             uint32_t nCurrJitterBufferSize;
             nCurrJitterBufferSize = jitterData.GetCount();
-            if (DEBUG_JITTER_REORDER_MAX > DEBUG_JITTER_REORDER_MIN) {
+            if (DEBUG_JITTER_REORDER_MAX > DEBUG_JITTER_REORDER_MIN)
+            {
                 nCurrReorderSize = mReorderDataCount - DEBUG_JITTER_NORMAL + 1 -
-                    GenerateRandom(DEBUG_JITTER_REORDER_MAX-DEBUG_JITTER_REORDER_MIN+1);
-            } else {
+                        GenerateRandom(DEBUG_JITTER_REORDER_MAX - DEBUG_JITTER_REORDER_MIN + 1);
+            }
+            else
+            {
                 nCurrReorderSize = mReorderDataCount - DEBUG_JITTER_NORMAL + 1;
             }
 
-            if (nCurrReorderSize > 0) nCurrReorderSize = GenerateRandom(nCurrReorderSize+1);
+            if (nCurrReorderSize > 0)
+                nCurrReorderSize = GenerateRandom(nCurrReorderSize + 1);
 
-            nInsertPos = nCurrJitterBufferSize-nCurrReorderSize;
-            if (nInsertPos < 0) nInsertPos = 0;
+            nInsertPos = nCurrJitterBufferSize - nCurrReorderSize;
+            if (nInsertPos < 0)
+                nInsertPos = 0;
             jitterData.InsertAt(nInsertPos, &entry);
         }
 
         mReorderDataCount++;
 
-        if (mReorderDataCount >= DEBUG_JITTER_NORMAL+DEBUG_JITTER_REORDER_MAX) {
+        if (mReorderDataCount >= DEBUG_JITTER_NORMAL + DEBUG_JITTER_REORDER_MAX)
+        {
             mReorderDataCount = 0;
         }
 
         // send
-        while (jitterData.GetCount() >= DEBUG_JITTER_REORDER_MAX) {
+        while (jitterData.GetCount() >= DEBUG_JITTER_REORDER_MAX)
+        {
             DataEntry* pEntry;
-            if (jitterData.Get(&pEntry)) {
+            if (jitterData.Get(&pEntry))
+            {
 #ifdef DEBUG_JITTER_GEN_SIMULATION_LOSS
-                if (nLossFlag == false) {
-                    SendDataToRearNode(MEDIASUBTYPE_RTPPACKET,
-                        pEntry->pbBuffer, pEntry->nBufferSize, 0, 0, 0);
+                if (nLossFlag == false)
+                {
+                    SendDataToRearNode(
+                            MEDIASUBTYPE_RTPPACKET, pEntry->pbBuffer, pEntry->nBufferSize, 0, 0, 0);
                 }
 #else
-                SendDataToRearNode(MEDIASUBTYPE_RTPPACKET,
-                    pEntry->pbBuffer, pEntry->nBufferSize, 0, 0, 0);
+                SendDataToRearNode(
+                        MEDIASUBTYPE_RTPPACKET, pEntry->pbBuffer, pEntry->nBufferSize, 0, 0, 0);
 #endif
                 jitterData.Delete();
             }
@@ -259,7 +301,8 @@ void RtpEncoderNode::OnRtpPacket(unsigned char* pData, uint32_t nSize) {
 #else
 
 #ifdef DEBUG_JITTER_GEN_SIMULATION_LOSS
-    if (nLossFlag == false) {
+    if (nLossFlag == false)
+    {
         SendDataToRearNode(MEDIASUBTYPE_RTPPACKET, pData, nSize, 0, 0, 0);
     }
 #else
@@ -268,83 +311,105 @@ void RtpEncoderNode::OnRtpPacket(unsigned char* pData, uint32_t nSize) {
 #endif
 }
 
-void RtpEncoderNode::SetLocalAddress(const RtpAddress address) {
+void RtpEncoderNode::SetLocalAddress(const RtpAddress address)
+{
     mLocalAddress = address;
 }
 
-void RtpEncoderNode::SetPeerAddress(const RtpAddress address) {
+void RtpEncoderNode::SetPeerAddress(const RtpAddress address)
+{
     mPeerAddress = address;
 }
 
-void RtpEncoderNode::ProcessAudioData(ImsMediaSubType eSubType, uint8_t* pData, uint32_t nDataSize,
-    uint32_t nTimestamp) {
+void RtpEncoderNode::ProcessAudioData(
+        ImsMediaSubType eSubType, uint8_t* pData, uint32_t nDataSize, uint32_t nTimestamp)
+{
     uint32_t nCurrTimestamp;
     uint32_t nTimeDiff;
     uint32_t nTimeDiff_RTPTSUnit;
 
-    if (eSubType == MEDIASUBTYPE_DTMFSTART) {
+    if (eSubType == MEDIASUBTYPE_DTMFSTART)
+    {
         IMLOGD0("[ProcessData] SetDTMF mode true");
         mDTMFMode = true;
         mAudioMark = true;
     }
-    else if (eSubType == MEDIASUBTYPE_DTMFEND) {
+    else if (eSubType == MEDIASUBTYPE_DTMFEND)
+    {
         IMLOGD0("[ProcessData] SetDTMF mode false");
         mDTMFMode = false;
         mAudioMark = true;
     }
-    else if (eSubType == MEDIASUBTYPE_DTMF_PAYLOAD) {
-        if (mDTMFMode) {
-            IMLOGD_PACKET2(IM_PACKET_LOG_RTP,
-                "[ProcessData] DTMF - nSize[%d], TS[%d]",
-                nDataSize, mDTMFTimestamp);
+    else if (eSubType == MEDIASUBTYPE_DTMF_PAYLOAD)
+    {
+        if (mDTMFMode)
+        {
+            IMLOGD_PACKET2(IM_PACKET_LOG_RTP, "[ProcessData] DTMF - nSize[%d], TS[%d]", nDataSize,
+                    mDTMFTimestamp);
             // the first dtmf event
-            if (nTimestamp == 0) {
+            if (nTimestamp == 0)
+            {
                 nCurrTimestamp = ImsMediaTimer::GetTimeInMilliSeconds();
                 mDTMFTimestamp = nCurrTimestamp;
                 nTimeDiff = ((nCurrTimestamp - mPrevTimestamp) + 10) / 20 * 20;
 
-                if (nTimeDiff == 0) nTimeDiff = 20;
+                if (nTimeDiff == 0)
+                    nTimeDiff = 20;
 
                 mPrevTimestamp += nTimeDiff;
-            } else {
+            }
+            else
+            {
                 nTimeDiff = 0;
             }
 
             nTimeDiff_RTPTSUnit = nTimeDiff * (mSamplingRate / 1000);
-            mRtpSession->SendRtpPacket(mDtmfPayload, pData,
-                nDataSize, mDTMFTimestamp, mAudioMark, nTimeDiff_RTPTSUnit);
+            mRtpSession->SendRtpPacket(mDtmfPayload, pData, nDataSize, mDTMFTimestamp, mAudioMark,
+                    nTimeDiff_RTPTSUnit);
 
-            if (mAudioMark) mAudioMark = false;
+            if (mAudioMark)
+                mAudioMark = false;
         }
-    } else {
-        if (mDTMFMode == false) {
+    }
+    else
+    {
+        if (mDTMFMode == false)
+        {
             nCurrTimestamp = ImsMediaTimer::GetTimeInMilliSeconds();
 
-            if (mPrevTimestamp == 0) {
+            if (mPrevTimestamp == 0)
+            {
                 nTimeDiff = 0;
                 mPrevTimestamp = nCurrTimestamp;
-            } else {
+            }
+            else
+            {
                 nTimeDiff = ((nCurrTimestamp - mPrevTimestamp) + 10) / 20 * 20;
 
-                if (nTimeDiff > 20) {
+                if (nTimeDiff > 20)
+                {
                     mPrevTimestamp = nCurrTimestamp;
-                } else if (nTimeDiff == 0) {
-                    IMLOGW2("[ProcessData] skip this turn orev[%u] curr[%u]",
-                        mPrevTimestamp, nCurrTimestamp);
+                }
+                else if (nTimeDiff == 0)
+                {
+                    IMLOGW2("[ProcessData] skip this turn orev[%u] curr[%u]", mPrevTimestamp,
+                            nCurrTimestamp);
                     return;
-                } else {
+                }
+                else
+                {
                     mPrevTimestamp += nTimeDiff;
                 }
             }
 
             nTimeDiff_RTPTSUnit = nTimeDiff * (mSamplingRate / 1000);
-            IMLOGD_PACKET3(IM_PACKET_LOG_RTP,
-                "[ProcessData] mRtpPayload[%d], nSize[%d], nTS[%d]",
-                mRtpPayload, nDataSize, nCurrTimestamp);
-            mRtpSession->SendRtpPacket(mRtpPayload, pData, nDataSize, nCurrTimestamp,
-                mAudioMark, nTimeDiff_RTPTSUnit);
+            IMLOGD_PACKET3(IM_PACKET_LOG_RTP, "[ProcessData] mRtpPayload[%d], nSize[%d], nTS[%d]",
+                    mRtpPayload, nDataSize, nCurrTimestamp);
+            mRtpSession->SendRtpPacket(
+                    mRtpPayload, pData, nDataSize, nCurrTimestamp, mAudioMark, nTimeDiff_RTPTSUnit);
 
-            if (mAudioMark) mAudioMark = false;
+            if (mAudioMark)
+                mAudioMark = false;
         }
     }
 }

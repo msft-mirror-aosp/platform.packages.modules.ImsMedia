@@ -18,66 +18,82 @@
 #include <AudioJitterBuffer.h>
 #include <ImsMediaTrace.h>
 
-JitterBufferControlNode::JitterBufferControlNode(ImsMediaType type) : mMediaType(type) {
-    if (mMediaType == IMS_MEDIA_AUDIO) {
+JitterBufferControlNode::JitterBufferControlNode(ImsMediaType type) :
+        mMediaType(type)
+{
+    if (mMediaType == IMS_MEDIA_AUDIO)
+    {
         std::unique_ptr<BaseJitterBuffer> buffer(new AudioJitterBuffer());
         mJitterBuffer = std::move(buffer);
     }
 }
 
-JitterBufferControlNode::~JitterBufferControlNode() {
-}
+JitterBufferControlNode::~JitterBufferControlNode() {}
 
-void JitterBufferControlNode::SetJitterBufferSize(uint32_t nInit, uint32_t nMin, uint32_t nMax) {
+void JitterBufferControlNode::SetJitterBufferSize(uint32_t nInit, uint32_t nMin, uint32_t nMax)
+{
     IMLOGD3("[SetJitterBufferSize] init[%d], min[%d], max[%d]", nInit, nMin, nMax);
-    if (mJitterBuffer) {
+    if (mJitterBuffer)
+    {
         mJitterBuffer->SetJitterBufferSize(nInit, nMin, nMax);
     }
 }
 
-void JitterBufferControlNode::SetJitterOptions(uint32_t nReduceTH, uint32_t nStepSize,
-    double zValue, bool bIgnoreSID, bool bImprovement) {
+void JitterBufferControlNode::SetJitterOptions(
+        uint32_t nReduceTH, uint32_t nStepSize, double zValue, bool bIgnoreSID, bool bImprovement)
+{
     IMLOGD5("[SetJitterOptions] nReduceTH[%d], nStepSize[%d], zValue[%lf], bSID[%d], bImprove[%d]",
-        nReduceTH, nStepSize, zValue, bIgnoreSID, bImprovement);
-    if (mJitterBuffer) {
+            nReduceTH, nStepSize, zValue, bIgnoreSID, bImprovement);
+    if (mJitterBuffer)
+    {
         mJitterBuffer->SetJitterOptions(nReduceTH, nStepSize, zValue, bIgnoreSID, bImprovement);
     }
 }
 
-void JitterBufferControlNode::Reset() {
+void JitterBufferControlNode::Reset()
+{
     IMLOGD0("[Reset]");
-    if (mJitterBuffer) {
+    if (mJitterBuffer)
+    {
         mJitterBuffer->Reset();
     }
 }
 
-uint32_t JitterBufferControlNode::GetDataCount() {
-    if (mJitterBuffer) {
+uint32_t JitterBufferControlNode::GetDataCount()
+{
+    if (mJitterBuffer)
+    {
         return mJitterBuffer->GetCount();
     }
     return 0;
 }
 
-void JitterBufferControlNode::OnDataFromFrontNode(ImsMediaSubType subtype,
-    uint8_t* pData, uint32_t nDataSize, uint32_t nTimestamp,
-    bool bMark, uint32_t nSeqNum, ImsMediaSubType nDataType) {
-    if (mJitterBuffer) {
+void JitterBufferControlNode::OnDataFromFrontNode(ImsMediaSubType subtype, uint8_t* pData,
+        uint32_t nDataSize, uint32_t nTimestamp, bool bMark, uint32_t nSeqNum,
+        ImsMediaSubType nDataType)
+{
+    if (mJitterBuffer)
+    {
         mJitterBuffer->Add(subtype, pData, nDataSize, nTimestamp, bMark, nSeqNum, nDataType);
     }
 }
 
 bool JitterBufferControlNode::GetData(ImsMediaSubType* pSubtype, uint8_t** ppData,
-    uint32_t* pnDataSize, uint32_t* pnTimestamp, bool *pbMark, uint32_t* pnSeqNum,
-    ImsMediaSubType* pnDataType) {
+        uint32_t* pnDataSize, uint32_t* pnTimestamp, bool* pbMark, uint32_t* pnSeqNum,
+        ImsMediaSubType* pnDataType)
+{
     (void)pnDataType;
-    if (mJitterBuffer) {
+    if (mJitterBuffer)
+    {
         return mJitterBuffer->Get(pSubtype, ppData, pnDataSize, pnTimestamp, pbMark, pnSeqNum);
     }
     return false;
 }
 
-void JitterBufferControlNode::DeleteData() {
-    if (mJitterBuffer) {
+void JitterBufferControlNode::DeleteData()
+{
+    if (mJitterBuffer)
+    {
         mJitterBuffer->Delete();
     }
 }

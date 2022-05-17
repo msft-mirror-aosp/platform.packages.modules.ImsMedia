@@ -21,38 +21,43 @@
 #include <AudioConfig.h>
 #include <string.h>
 
-IAudioPlayerNode::IAudioPlayerNode()
-    : JitterBufferControlNode(IMS_MEDIA_AUDIO){
+IAudioPlayerNode::IAudioPlayerNode() :
+        JitterBufferControlNode(IMS_MEDIA_AUDIO)
+{
     std::unique_ptr<ImsMediaAudioPlayer> track(new ImsMediaAudioPlayer());
     mAudioPlayer = std::move(track);
 }
 
-IAudioPlayerNode::~IAudioPlayerNode() {
+IAudioPlayerNode::~IAudioPlayerNode() {}
 
-}
-
-BaseNode* IAudioPlayerNode::GetInstance() {
+BaseNode* IAudioPlayerNode::GetInstance()
+{
     return new IAudioPlayerNode();
 }
 
-void IAudioPlayerNode::ReleaseInstance(BaseNode* pNode) {
+void IAudioPlayerNode::ReleaseInstance(BaseNode* pNode)
+{
     delete (IAudioPlayerNode*)pNode;
 }
 
-BaseNodeID IAudioPlayerNode::GetNodeID() {
+BaseNodeID IAudioPlayerNode::GetNodeID()
+{
     return BaseNodeID::NODEID_AUDIOPLAYER;
 }
 
-ImsMediaResult IAudioPlayerNode::Start() {
+ImsMediaResult IAudioPlayerNode::Start()
+{
     IMLOGD2("[Start] codec[%d], mode[%d]", mCodecType, mMode);
-    if (mJitterBuffer) {
+    if (mJitterBuffer)
+    {
         mJitterBuffer->SetCodecType(mCodecType);
     }
 
-    //reset the jitter
+    // reset the jitter
     Reset();
     mMutex.lock();
-    if (mAudioPlayer) {
+    if (mAudioPlayer)
+    {
         mAudioPlayer->SetCodec(mCodecType);
         mAudioPlayer->SetCodecMode(mMode);
         mAudioPlayer->Start();
@@ -64,10 +69,12 @@ ImsMediaResult IAudioPlayerNode::Start() {
     return RESULT_SUCCESS;
 }
 
-void IAudioPlayerNode::Stop() {
+void IAudioPlayerNode::Stop()
+{
     IMLOGD0("[Stop]");
     mMutex.lock();
-    if (mAudioPlayer) {
+    if (mAudioPlayer)
+    {
         mAudioPlayer->Stop();
     }
     StopThread();
@@ -76,49 +83,64 @@ void IAudioPlayerNode::Stop() {
     mNodeState = NODESTATE_STOPPED;
 }
 
-bool IAudioPlayerNode::IsRunTime() {
+bool IAudioPlayerNode::IsRunTime()
+{
     return true;
 }
 
-bool IAudioPlayerNode::IsSourceNode() {
+bool IAudioPlayerNode::IsSourceNode()
+{
     return false;
 }
 
-void IAudioPlayerNode::SetConfig(void* config) {
-    AudioConfig *pConfig = reinterpret_cast<AudioConfig*>(config);
-    if (pConfig != NULL) {
+void IAudioPlayerNode::SetConfig(void* config)
+{
+    AudioConfig* pConfig = reinterpret_cast<AudioConfig*>(config);
+    if (pConfig != NULL)
+    {
         SetCodec(pConfig->getCodecType());
-        if (mCodecType == AUDIO_AMR || mCodecType == AUDIO_AMR_WB) {
+        if (mCodecType == AUDIO_AMR || mCodecType == AUDIO_AMR_WB)
+        {
             SetCodecMode(pConfig->getAmrParams().getAmrMode());
         }
-        //testing parameter
+        // testing parameter
         SetJitterBufferSize(4, 4, 9);
         SetJitterOptions(80, 1, (double)25 / 10, true, true);
     }
 }
 
-bool IAudioPlayerNode::IsSameConfig(void* config) {
-    if (config == NULL) return true;
+bool IAudioPlayerNode::IsSameConfig(void* config)
+{
+    if (config == NULL)
+        return true;
     AudioConfig* pConfig = reinterpret_cast<AudioConfig*>(config);
 
-    if (mCodecType == pConfig->getCodecType()) {
-        if (mCodecType == AUDIO_AMR || mCodecType == AUDIO_AMR_WB) {
-            if (mMode == pConfig->getAmrParams().getAmrMode()) {
+    if (mCodecType == pConfig->getCodecType())
+    {
+        if (mCodecType == AUDIO_AMR || mCodecType == AUDIO_AMR_WB)
+        {
+            if (mMode == pConfig->getAmrParams().getAmrMode())
+            {
                 return true;
             }
-        } else if (mCodecType == AUDIO_EVS) {
-            if (mMode == pConfig->getEvsParams().getEvsMode()) {
+        }
+        else if (mCodecType == AUDIO_EVS)
+        {
+            if (mMode == pConfig->getEvsParams().getEvsMode())
+            {
                 return true;
             }
         }
     }
 
-    //TBD later jitter configuration compare
+    // TBD later jitter configuration compare
     return false;
 }
 
-void IAudioPlayerNode::SetCodec(int32_t type) {
-    switch (type) {
+void IAudioPlayerNode::SetCodec(int32_t type)
+{
+    switch (type)
+    {
         case AudioConfig::CODEC_AMR:
             mCodecType = AUDIO_AMR;
             break;
@@ -139,11 +161,13 @@ void IAudioPlayerNode::SetCodec(int32_t type) {
     }
 }
 
-void IAudioPlayerNode::SetCodecMode(uint32_t mode) {
+void IAudioPlayerNode::SetCodecMode(uint32_t mode)
+{
     mMode = mode;
 }
 
-void* IAudioPlayerNode::run() {
+void* IAudioPlayerNode::run()
+{
     ImsMediaSubType subtype = MEDIASUBTYPE_UNDEFINED;
     ImsMediaSubType datatype = MEDIASUBTYPE_UNDEFINED;
     uint8_t* pData = NULL;
@@ -155,22 +179,27 @@ void* IAudioPlayerNode::run() {
     uint64_t nCurrTime = 0;
     int64_t nTime = 0;
 
-    while (true) {
+    while (true)
+    {
         mMutex.lock();
-        if (IsThreadStopped()) {
+        if (IsThreadStopped())
+        {
             IMLOGD0("[run] exit");
             mMutex.unlock();
             mCond.signal();
             break;
         }
 
-        if (GetData(&subtype, &pData, &nDataSize, &nTimestamp, &bMark,
-            &nSeqNum, &datatype) == true) {
-            if (nDataSize != 0) {
+        if (GetData(&subtype, &pData, &nDataSize, &nTimestamp, &bMark, &nSeqNum, &datatype) == true)
+        {
+            if (nDataSize != 0)
+            {
                 IMLOGD2("[run] write buffer size[%d], timestamp[%u]", nDataSize, nTimestamp);
-                if (mAudioPlayer->onDataFrame(pData, nDataSize)) {
+                if (mAudioPlayer->onDataFrame(pData, nDataSize))
+                {
                     // send buffering complete message to client
-                    if (mFirstFrame == false) {
+                    if (mFirstFrame == false)
+                    {
                         mCallback->SendEvent(EVENT_NOTIFY_FIRST_MEDIA_PACKET_RECEIVED);
                         mFirstFrame = true;
                     }
@@ -185,7 +214,8 @@ void* IAudioPlayerNode::run() {
         nCurrTime = ImsMediaTimer::GetTimeInMicroSeconds();
         nTime = nNextTime - nCurrTime;
 
-        if (nTime < 0) {
+        if (nTime < 0)
+        {
             continue;
         }
 

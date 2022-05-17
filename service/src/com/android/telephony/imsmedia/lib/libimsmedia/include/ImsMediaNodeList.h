@@ -34,11 +34,12 @@
 typedef BaseNode* (*fn_GetNodeInstance)();
 typedef void (*fn_ReleaseNodeInstance)(BaseNode* pNode);
 
-typedef struct _tNodeListEntry {
+typedef struct _tNodeListEntry
+{
     BaseNodeID NodeID;
     const char* NodeName;
-    fn_GetNodeInstance         GetInstance;
-    fn_ReleaseNodeInstance     DeleteInstance;
+    fn_GetNodeInstance GetInstance;
+    fn_ReleaseNodeInstance DeleteInstance;
 } tNodeListEntry;
 
 #endif

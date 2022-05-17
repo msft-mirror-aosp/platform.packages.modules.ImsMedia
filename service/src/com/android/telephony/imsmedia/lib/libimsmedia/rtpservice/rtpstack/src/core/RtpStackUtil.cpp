@@ -25,9 +25,7 @@
  * Preconditions        : None
  * Side Effects            : None
  ********************************************************/
-RtpStackUtil::RtpStackUtil()
-{
-}
+RtpStackUtil::RtpStackUtil() {}
 
 /*********************************************************
  * Function name        : ~RtpStackUtil
@@ -37,9 +35,7 @@ RtpStackUtil::RtpStackUtil()
  * Preconditions        : None
  * Side Effects            : None
  ********************************************************/
-RtpStackUtil::~RtpStackUtil()
-{
-}
+RtpStackUtil::~RtpStackUtil() {}
 
 /*********************************************************
  * Function name        : getSeqNum
@@ -57,7 +53,7 @@ RtpDt_UInt16 RtpStackUtil::getSeqNum(IN RtpDt_UChar* pcRtpHdrBuf)
     RtpDt_UInt16 usSeqNum = RTP_ZERO;
 
     uiByte4Data = RtpOsUtil::Ntohl(*((RtpDt_UInt32*)pcRtpHdrBuf));
-    usSeqNum = (RtpDt_UInt16) (uiByte4Data & RTP_HEX_16_BIT_MAX);
+    usSeqNum = (RtpDt_UInt16)(uiByte4Data & RTP_HEX_16_BIT_MAX);
 
     return usSeqNum;
 }
@@ -75,7 +71,7 @@ RtpDt_UInt16 RtpStackUtil::getSeqNum(IN RtpDt_UChar* pcRtpHdrBuf)
 RtpDt_UInt32 RtpStackUtil::getRtpSsrc(IN RtpBuffer* pobjRecvdPkt)
 {
     RtpDt_UInt32 uiByte4Data = RTP_ZERO;
-    RtpDt_UChar *pcRtpHdrBuf = pobjRecvdPkt->getBuffer();
+    RtpDt_UChar* pcRtpHdrBuf = pobjRecvdPkt->getBuffer();
     pcRtpHdrBuf = pcRtpHdrBuf + RTP_EIGHT;
 
     uiByte4Data = RtpOsUtil::Ntohl(*((RtpDt_UInt32*)pcRtpHdrBuf));
@@ -94,7 +90,7 @@ RtpDt_UInt32 RtpStackUtil::getRtpSsrc(IN RtpBuffer* pobjRecvdPkt)
  ********************************************************/
 RtpDt_UInt32 RtpStackUtil::getRtcpSsrc(IN RtpBuffer* pobjRecvdPkt)
 {
-    RtpDt_UChar *pcRtpHdrBuf = pobjRecvdPkt->getBuffer();
+    RtpDt_UChar* pcRtpHdrBuf = pobjRecvdPkt->getBuffer();
     pcRtpHdrBuf = pcRtpHdrBuf + RTP_WORD_SIZE;
 
     RtpDt_UInt32 uiByte4Data = RtpOsUtil::Ntohl(*((RtpDt_UInt32*)pcRtpHdrBuf));
@@ -139,7 +135,7 @@ RtpDt_UInt32 RtpStackUtil::getMidFourOctets(IN tRTP_NTP_TIME* pstNtpTs)
     uiNtpLowTs = uiNtpLowTs >> RTP_BYTE2_BIT_SIZE;
     uiNtpTs = uiNtpTs | uiNtpLowTs;
     return uiNtpTs;
-}//getMidFourOctets
+}  // getMidFourOctets
 
 /*********************************************************
  * Function name        : generateNewSsrc
@@ -151,23 +147,19 @@ RtpDt_UInt32 RtpStackUtil::getMidFourOctets(IN tRTP_NTP_TIME* pstNtpTs)
  * Preconditions        : None
  * Side Effects            : None
  ********************************************************/
-RtpDt_UInt32 RtpStackUtil::calcRtpTimestamp(
-                    IN RtpDt_UInt32        uiPrevRtpTs,
-                    IN tRTP_NTP_TIME    *pstCurNtpTs,
-                    IN tRTP_NTP_TIME    *pstPrevNtpTs,
-                    IN RtpDt_UInt32    uiSamplingRate)
+RtpDt_UInt32 RtpStackUtil::calcRtpTimestamp(IN RtpDt_UInt32 uiPrevRtpTs,
+        IN tRTP_NTP_TIME* pstCurNtpTs, IN tRTP_NTP_TIME* pstPrevNtpTs,
+        IN RtpDt_UInt32 uiSamplingRate)
 {
-    RtpDt_Int32    iTimeDiffHigh32Bits = RTP_ZERO;
-    RtpDt_Int32    iTimeDiffLow32Bits = RTP_ZERO;
+    RtpDt_Int32 iTimeDiffHigh32Bits = RTP_ZERO;
+    RtpDt_Int32 iTimeDiffLow32Bits = RTP_ZERO;
 
-
-    if((RTP_ZERO != pstPrevNtpTs->m_uiNtpHigh32Bits) ||
-        (RTP_ZERO != pstPrevNtpTs->m_uiNtpLow32Bits))
+    if ((RTP_ZERO != pstPrevNtpTs->m_uiNtpHigh32Bits) ||
+            (RTP_ZERO != pstPrevNtpTs->m_uiNtpLow32Bits))
     {
-        iTimeDiffHigh32Bits =
-            pstCurNtpTs->m_uiNtpHigh32Bits - pstPrevNtpTs->m_uiNtpHigh32Bits;
-        iTimeDiffLow32Bits =
-            (pstCurNtpTs->m_uiNtpLow32Bits / 4294UL) - (pstPrevNtpTs->m_uiNtpLow32Bits / 4294UL);
+        iTimeDiffHigh32Bits = pstCurNtpTs->m_uiNtpHigh32Bits - pstPrevNtpTs->m_uiNtpHigh32Bits;
+        iTimeDiffLow32Bits = (pstCurNtpTs->m_uiNtpLow32Bits / 4294UL) -
+                (pstPrevNtpTs->m_uiNtpLow32Bits / 4294UL);
     }
     else
     {
@@ -175,13 +167,13 @@ RtpDt_UInt32 RtpStackUtil::calcRtpTimestamp(
         iTimeDiffLow32Bits = RTP_ZERO;
     }
 
-    //calc iTimeDiff in millisec
+    // calc iTimeDiff in millisec
     RtpDt_Int32 iTimeDiff = (iTimeDiffHigh32Bits * 1000 * 1000) + iTimeDiffLow32Bits;
 
     /* the time diff high bit is in seconds and
        the time diff low bit is in micro seconds */
 
-    RtpDt_UInt32    uiNewRtpTs = RTP_ZERO;
+    RtpDt_UInt32 uiNewRtpTs = RTP_ZERO;
 
     if (RTP_ZERO == iTimeDiff)
     {
@@ -190,7 +182,7 @@ RtpDt_UInt32 RtpStackUtil::calcRtpTimestamp(
     else
     {
         RTP_TRACE_MESSAGE("PTime:", iTimeDiff, 0);
-        RtpDt_Int32 temp = uiSamplingRate/1000;
+        RtpDt_Int32 temp = uiSamplingRate / 1000;
         uiNewRtpTs = uiPrevRtpTs + (temp * iTimeDiff / 1000);
     }
     return uiNewRtpTs;

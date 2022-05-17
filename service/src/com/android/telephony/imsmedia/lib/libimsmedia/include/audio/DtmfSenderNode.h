@@ -20,7 +20,8 @@
 #include <ImsMediaDefine.h>
 #include <BaseNode.h>
 
-class DtmfSenderNode : public BaseNode {
+class DtmfSenderNode : public BaseNode
+{
 private:
     DtmfSenderNode();
     ~DtmfSenderNode();
@@ -39,8 +40,7 @@ public:
 private:
     uint32_t mNextTime;
     uint32_t mPrevTime;
-    uint32_t mInterval; // msec unit, interval of two DTMF signals
+    uint32_t mInterval;  // msec unit, interval of two DTMF signals
 };
 
-
-#endif // DTMFSENDERNODE_H_INCLUDED
+#endif  // DTMFSENDERNODE_H_INCLUDED

@@ -22,20 +22,25 @@
 #include <binder/Status.h>
 #include <stdint.h>
 
-namespace android {
+namespace android
+{
 
-namespace telephony {
+namespace telephony
+{
 
-namespace imsmedia {
+namespace imsmedia
+{
 
 /** Native representation of android.telephony.imsmedia.RtcpConfig */
 
 /**
  * The class represents RTCP (Real Time Control Protocol) configurations.
  */
-class RtcpConfig : public Parcelable {
+class RtcpConfig : public Parcelable
+{
 public:
-    enum RtcpXrBlockType {
+    enum RtcpXrBlockType
+    {
         /**
          * RTCP XR (extended report) types are not specified,
          * See RFC 3611 section 4

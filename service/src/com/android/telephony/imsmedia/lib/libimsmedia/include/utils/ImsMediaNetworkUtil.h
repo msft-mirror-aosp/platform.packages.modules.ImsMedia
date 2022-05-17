@@ -19,13 +19,14 @@
 
 #include <ImsMediaDefine.h>
 
-class ImsMediaNetworkUtil {
+class ImsMediaNetworkUtil
+{
 public:
     static bool ConvertIPStrToBin(char* pszSourceIP, char* pszDestBin, eIPVersion eIPver);
     static bool GetLocalIPPortFromSocketFD(
-        int nSocketFD, char *pIPAddress, int len,unsigned int &port);
+            int nSocketFD, char* pIPAddress, int len, unsigned int& port);
     static bool GetRemoteIPPortFromSocketFD(
-        int nSocketFD, char *pIPAddress, int len,unsigned int &port);
+            int nSocketFD, char* pIPAddress, int len, unsigned int& port);
 };
 
-#endif //IMS_MEDIA_NW_UTIL_H
+#endif  // IMS_MEDIA_NW_UTIL_H

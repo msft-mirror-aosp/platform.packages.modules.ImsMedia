@@ -17,14 +17,17 @@
 #include <ISocket.h>
 #include <ImsMediaSocket.h>
 
-ISocket* ISocket::GetInstance(uint32_t localPort,
-    const char* peerIpAddress, uint32_t peerPort, eSocketClass eSocket) {
+ISocket* ISocket::GetInstance(
+        uint32_t localPort, const char* peerIpAddress, uint32_t peerPort, eSocketClass eSocket)
+{
     ISocket* pSocket = NULL;
-    if (eSocket == SOCKET_CLASS_DEFAULT) {
+    if (eSocket == SOCKET_CLASS_DEFAULT)
+    {
         pSocket = (ISocket*)ImsMediaSocket::GetInstance(localPort, peerIpAddress, peerPort);
-        if (pSocket) pSocket->mSocketClass = SOCKET_CLASS_DEFAULT;
+        if (pSocket)
+            pSocket->mSocketClass = SOCKET_CLASS_DEFAULT;
     }
-    //for socket bridge
+    // for socket bridge
     /*
     pSocket = (ISocket*)SocketBridgeProxy::GetInstance(pNetworkInfo, pPortInfo);
     if (pSocket) pSocket->mSocketClass = _SOCKET_CLASS_PROXY;*/
@@ -32,8 +35,10 @@ ISocket* ISocket::GetInstance(uint32_t localPort,
     return pSocket;
 }
 
-void ISocket::ReleaseInstance(ISocket* pSocket) {
-    if (pSocket->mSocketClass == SOCKET_CLASS_DEFAULT) {
+void ISocket::ReleaseInstance(ISocket* pSocket)
+{
+    if (pSocket->mSocketClass == SOCKET_CLASS_DEFAULT)
+    {
         ImsMediaSocket::ReleaseInstance((ImsMediaSocket*)pSocket);
     } /*else {
         SocketBridgeProxy::ReleaseInstance((SocketBridgeProxy*)pSocket);

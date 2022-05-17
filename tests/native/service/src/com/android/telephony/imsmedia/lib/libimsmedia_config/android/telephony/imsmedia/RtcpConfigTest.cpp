@@ -23,9 +23,10 @@ const android::String8 kCanonicalName("name");
 const int32_t kTransmitPort = 1000;
 const int32_t kIntervalSec = 1500;
 const int32_t kRtcpXrBlockTypes = RtcpConfig::FLAG_RTCPXR_STATISTICS_SUMMARY_REPORT_BLOCK |
-    RtcpConfig::FLAG_RTCPXR_VOIP_METRICS_REPORT_BLOCK;
+        RtcpConfig::FLAG_RTCPXR_VOIP_METRICS_REPORT_BLOCK;
 
-TEST(RtcpConfigTest, TestGetterSetter) {
+TEST(RtcpConfigTest, TestGetterSetter)
+{
     RtcpConfig* rtcp = new RtcpConfig();
     rtcp->setCanonicalName(kCanonicalName);
     rtcp->setTransmitPort(kTransmitPort);
@@ -38,7 +39,8 @@ TEST(RtcpConfigTest, TestGetterSetter) {
     delete rtcp;
 }
 
-TEST(RtcpConfigTest, TestParcel) {
+TEST(RtcpConfigTest, TestParcel)
+{
     RtcpConfig* rtcp = new RtcpConfig();
     rtcp->setCanonicalName(kCanonicalName);
     rtcp->setTransmitPort(kTransmitPort);
@@ -57,7 +59,8 @@ TEST(RtcpConfigTest, TestParcel) {
     delete rtcp2;
 }
 
-TEST(RtcpConfigTest, TestAssign) {
+TEST(RtcpConfigTest, TestAssign)
+{
     RtcpConfig config;
     config.setCanonicalName(kCanonicalName);
     config.setTransmitPort(kTransmitPort);
@@ -69,7 +72,8 @@ TEST(RtcpConfigTest, TestAssign) {
     EXPECT_EQ(config, config2);
 }
 
-TEST(RtcpConfigTest, TestEqual) {
+TEST(RtcpConfigTest, TestEqual)
+{
     RtcpConfig* rtcp = new RtcpConfig();
     rtcp->setCanonicalName(kCanonicalName);
     rtcp->setTransmitPort(kTransmitPort);
@@ -86,7 +90,8 @@ TEST(RtcpConfigTest, TestEqual) {
     delete rtcp2;
 }
 
-TEST(RtcpConfigTest, TestNotEqual) {
+TEST(RtcpConfigTest, TestNotEqual)
+{
     RtcpConfig* rtcp = new RtcpConfig();
     rtcp->setCanonicalName(kCanonicalName);
     rtcp->setTransmitPort(kTransmitPort);

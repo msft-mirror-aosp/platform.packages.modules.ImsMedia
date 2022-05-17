@@ -17,38 +17,45 @@
 #include <RtcpDecoderNode.h>
 #include <ImsMediaTrace.h>
 
-RtcpDecoderNode::RtcpDecoderNode() {
+RtcpDecoderNode::RtcpDecoderNode()
+{
     mRtpSession = NULL;
     mInactivityTime = 0;
     mNoRtcpTime = 0;
 }
 
-RtcpDecoderNode::~RtcpDecoderNode() {
-}
+RtcpDecoderNode::~RtcpDecoderNode() {}
 
-BaseNode* RtcpDecoderNode::GetInstance() {
+BaseNode* RtcpDecoderNode::GetInstance()
+{
     BaseNode* pNode;
     pNode = new RtcpDecoderNode();
 
-    if (pNode == NULL) {
+    if (pNode == NULL)
+    {
         IMLOGE0("[GetInstance] Can't create RtcpDecoderNode");
     }
     return pNode;
 }
 
-void RtcpDecoderNode::ReleaseInstance(BaseNode* pNode) {
+void RtcpDecoderNode::ReleaseInstance(BaseNode* pNode)
+{
     delete (RtcpDecoderNode*)pNode;
 }
 
-BaseNodeID RtcpDecoderNode::GetNodeID() {
+BaseNodeID RtcpDecoderNode::GetNodeID()
+{
     return NODEID_RTCPDECODER;
 }
 
-ImsMediaResult RtcpDecoderNode::Start() {
+ImsMediaResult RtcpDecoderNode::Start()
+{
     IMLOGD0("[Start]");
-    if (mRtpSession == NULL) {
+    if (mRtpSession == NULL)
+    {
         mRtpSession = IRtpSession::GetInstance(mMediaType, mLocalAddress, mPeerAddress);
-        if (mRtpSession == NULL) {
+        if (mRtpSession == NULL)
+        {
             IMLOGE0("[Start] Can't create rtp session");
             return RESULT_NOT_READY;
         }
@@ -60,9 +67,11 @@ ImsMediaResult RtcpDecoderNode::Start() {
     return RESULT_SUCCESS;
 }
 
-void RtcpDecoderNode::Stop() {
+void RtcpDecoderNode::Stop()
+{
     IMLOGD0("[Stop]");
-    if (mRtpSession) {
+    if (mRtpSession)
+    {
         mRtpSession->StopRtcp();
         mRtpSession->SetRtcpDecoderListener(NULL);
         IRtpSession::ReleaseInstance(mRtpSession);
@@ -71,75 +80,91 @@ void RtcpDecoderNode::Stop() {
     mNodeState = NODESTATE_STOPPED;
 }
 
-void RtcpDecoderNode::OnDataFromFrontNode(ImsMediaSubType subtype,
-    uint8_t* pData, uint32_t nDataSize, uint32_t nTimeStamp, bool bMark, uint32_t nSeqNum,
-    ImsMediaSubType nDataType) {
+void RtcpDecoderNode::OnDataFromFrontNode(ImsMediaSubType subtype, uint8_t* pData,
+        uint32_t nDataSize, uint32_t nTimeStamp, bool bMark, uint32_t nSeqNum,
+        ImsMediaSubType nDataType)
+{
     (void)nDataType;
 
     IMLOGD_PACKET6(IM_PACKET_LOG_RTCP,
-        "[OnMediaDataInd] MediaType[%d] subtype[%d], Size[%d], timestamp[%u], Mark[%d], Seq[%d]",
-        mMediaType, subtype, nDataSize, nTimeStamp, bMark, nSeqNum);
+            "[OnMediaDataInd] MediaType[%d] subtype[%d], Size[%d], timestamp[%u], Mark[%d], "
+            "Seq[%d]",
+            mMediaType, subtype, nDataSize, nTimeStamp, bMark, nSeqNum);
     mRtpSession->ProcRtcpPacket(pData, nDataSize);
 }
 
-bool RtcpDecoderNode::IsRunTime() {
+bool RtcpDecoderNode::IsRunTime()
+{
     return true;
 }
 
-bool RtcpDecoderNode::IsSourceNode() {
+bool RtcpDecoderNode::IsSourceNode()
+{
     return false;
 }
 
-void RtcpDecoderNode::SetConfig(void* config) {
-    if (config == NULL) return;
+void RtcpDecoderNode::SetConfig(void* config)
+{
+    if (config == NULL)
+        return;
     RtpConfig* pConfig = reinterpret_cast<RtpConfig*>(config);
     mPeerAddress = RtpAddress(pConfig->getRemoteAddress().c_str(), pConfig->getRemotePort());
-    IMLOGD2("[SetConfig] peer Ip[%s], port[%d]", mPeerAddress.ipAddress,
-        mPeerAddress.port);
+    IMLOGD2("[SetConfig] peer Ip[%s], port[%d]", mPeerAddress.ipAddress, mPeerAddress.port);
 }
 
-bool RtcpDecoderNode::IsSameConfig(void* config) {
-    if (config == NULL) return true;
+bool RtcpDecoderNode::IsSameConfig(void* config)
+{
+    if (config == NULL)
+        return true;
     RtpConfig* pConfig = reinterpret_cast<RtpConfig*>(config);
-    RtpAddress peerAddress = RtpAddress(pConfig->getRemoteAddress().c_str(),
-        pConfig->getRemotePort());
+    RtpAddress peerAddress =
+            RtpAddress(pConfig->getRemoteAddress().c_str(), pConfig->getRemotePort());
 
     return (mPeerAddress == peerAddress);
 }
 
-void RtcpDecoderNode::OnRtcpInd(tRtpSvc_IndicationFromStack eIndType, void* pMsg) {
+void RtcpDecoderNode::OnRtcpInd(tRtpSvc_IndicationFromStack eIndType, void* pMsg)
+{
     (void)pMsg;
-    IMLOGD_PACKET1(IM_PACKET_LOG_RTCP,
-        "[OnRtcpInd] type[%d]", eIndType);
+    IMLOGD_PACKET1(IM_PACKET_LOG_RTCP, "[OnRtcpInd] type[%d]", eIndType);
 }
 
-void RtcpDecoderNode::OnNumReceivedPacket(uint32_t nNumRtcpSRPacket, uint32_t nNumRtcpRRPacket) {
+void RtcpDecoderNode::OnNumReceivedPacket(uint32_t nNumRtcpSRPacket, uint32_t nNumRtcpRRPacket)
+{
     IMLOGD_PACKET3(IM_PACKET_LOG_RTCP,
-        "[OnNumReceivedPacket] InactivityTime[%d], numRtcpSR[%d], numRtcpRR[%d]",
-        mInactivityTime, nNumRtcpSRPacket, nNumRtcpRRPacket);
+            "[OnNumReceivedPacket] InactivityTime[%d], numRtcpSR[%d], numRtcpRR[%d]",
+            mInactivityTime, nNumRtcpSRPacket, nNumRtcpRRPacket);
 
-    if (nNumRtcpSRPacket == 0 && nNumRtcpRRPacket == 0) {
+    if (nNumRtcpSRPacket == 0 && nNumRtcpRRPacket == 0)
+    {
         mNoRtcpTime++;
-    } else{
+    }
+    else
+    {
         mNoRtcpTime = 0;
     }
 
-    if (mInactivityTime != 0 && mNoRtcpTime == mInactivityTime) {
-        if (mCallback != NULL) {
+    if (mInactivityTime != 0 && mNoRtcpTime == mInactivityTime)
+    {
+        if (mCallback != NULL)
+        {
             mCallback->SendEvent(EVENT_NOTIFY_MEDIA_INACITIVITY, RTCP, mInactivityTime);
         }
     }
 }
 
-void RtcpDecoderNode::SetLocalAddress(const RtpAddress address) {
+void RtcpDecoderNode::SetLocalAddress(const RtpAddress address)
+{
     mLocalAddress = address;
 }
 
-void RtcpDecoderNode::SetPeerAddress(const RtpAddress address) {
+void RtcpDecoderNode::SetPeerAddress(const RtpAddress address)
+{
     mPeerAddress = address;
 }
 
-void RtcpDecoderNode::SetInactivityTimerSec(const uint32_t time) {
+void RtcpDecoderNode::SetInactivityTimerSec(const uint32_t time)
+{
     IMLOGD1("[SetInactivityTimerSec] time[%d]", time);
     mInactivityTime = time;
 }

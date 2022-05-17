@@ -23,7 +23,8 @@ const int32_t kAmrMode = 8;
 const bool kOctetAligned = false;
 const int32_t kMaxRedundancyMillis = 240;
 
-TEST(AmrParamsTest, TestGetterSetter) {
+TEST(AmrParamsTest, TestGetterSetter)
+{
     AmrParams* param = new AmrParams();
     param->setAmrMode(kAmrMode);
     param->setOctetAligned(kOctetAligned);
@@ -34,7 +35,8 @@ TEST(AmrParamsTest, TestGetterSetter) {
     delete param;
 }
 
-TEST(AmrParamsTest, TestParcel) {
+TEST(AmrParamsTest, TestParcel)
+{
     AmrParams* param = new AmrParams();
     param->setAmrMode(kAmrMode);
     param->setOctetAligned(kOctetAligned);
@@ -51,7 +53,8 @@ TEST(AmrParamsTest, TestParcel) {
     delete param2;
 }
 
-TEST(AmrParamsTest, TestAssign) {
+TEST(AmrParamsTest, TestAssign)
+{
     AmrParams param;
     param.setAmrMode(kAmrMode);
     param.setOctetAligned(kOctetAligned);
@@ -62,7 +65,8 @@ TEST(AmrParamsTest, TestAssign) {
     EXPECT_EQ(param, param2);
 }
 
-TEST(AmrParamsTest, TestEqual) {
+TEST(AmrParamsTest, TestEqual)
+{
     AmrParams* param = new AmrParams();
     param->setAmrMode(kAmrMode);
     param->setOctetAligned(kOctetAligned);
@@ -77,7 +81,8 @@ TEST(AmrParamsTest, TestEqual) {
     delete param2;
 }
 
-TEST(AmrParamsTest, TestNotEqual) {
+TEST(AmrParamsTest, TestNotEqual)
+{
     AmrParams* param = new AmrParams();
     param->setAmrMode(kAmrMode);
     param->setOctetAligned(kOctetAligned);

@@ -22,34 +22,38 @@
 /**
  *    IImsMediaThread
  */
-IImsMediaThread::IImsMediaThread() {
+IImsMediaThread::IImsMediaThread()
+{
     mThread = NULL;
     mStopped = false;
 }
 
-IImsMediaThread::~IImsMediaThread() {
-}
+IImsMediaThread::~IImsMediaThread() {}
 
-bool IImsMediaThread::StartThread() {
+bool IImsMediaThread::StartThread()
+{
     IMLOGD0("[IImsMediaThread::StartThread]");
     pthread_t thr;
     pthread_attr_t attr;
     mStopped = false;
 
-    if (pthread_attr_init(&attr) < 0) {
+    if (pthread_attr_init(&attr) < 0)
+    {
         IMLOGD0("[IImsMediaThread::StartThread] pthread_attr_init error");
         mStopped = true;
         return false;
     }
 
-    if (pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED) < 0) {
+    if (pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED) < 0)
+    {
         IMLOGD0("[IImsMediaThread::StartThread] pthread_attr_setdetachstate error");
         pthread_attr_destroy(&attr);
         mStopped = true;
         return false;
     }
 
-    if (pthread_create(&thr, &attr, thread_fn, (void*)this) < 0) {
+    if (pthread_create(&thr, &attr, thread_fn, (void*)this) < 0)
+    {
         IMLOGD0("[IImsMediaThread::StartThread] pthread_create error");
         pthread_attr_destroy(&attr);
         mStopped = true;
@@ -61,20 +65,24 @@ bool IImsMediaThread::StartThread() {
     return true;
 }
 
-void IImsMediaThread::StopThread() {
+void IImsMediaThread::StopThread()
+{
     mStopped = true;
 }
 
-bool IImsMediaThread::IsMyThread() {
+bool IImsMediaThread::IsMyThread()
+{
     pthread_t tid = reinterpret_cast<pthread_t>(mThread);
     return (tid == pthread_self()) ? true : false;
 }
 
-bool IImsMediaThread::IsThreadStopped() {
+bool IImsMediaThread::IsThreadStopped()
+{
     return mStopped;
 }
 
-void* IImsMediaThread::thread_fn(void* arg) {
+void* IImsMediaThread::thread_fn(void* arg)
+{
     IImsMediaThread* thread = (IImsMediaThread*)arg;
 #if 1
     void* exitCode = thread->run_base();
@@ -85,6 +93,7 @@ void* IImsMediaThread::thread_fn(void* arg) {
 #endif
 }
 
-void* IImsMediaThread::run_base() {
+void* IImsMediaThread::run_base()
+{
     return run();
 }

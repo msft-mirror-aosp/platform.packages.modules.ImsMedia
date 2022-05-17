@@ -29,7 +29,7 @@ private:
 public:
     static BaseNode* GetInstance();
     static void ReleaseInstance(BaseNode* pNode);
-    //BaseNode methods
+    // BaseNode methods
     virtual BaseNodeID GetNodeID();
     virtual ImsMediaResult Start();
     virtual void Stop();
@@ -38,14 +38,14 @@ public:
     virtual bool IsSourceNode();
     virtual void SetConfig(void* config);
     virtual bool IsSameConfig(void* config);
-    //IRtpEncoderListener method
+    // IRtpEncoderListener method
     virtual void OnRtpPacket(unsigned char* pData, uint32_t nSize);
     void SetLocalAddress(const RtpAddress address);
     void SetPeerAddress(const RtpAddress address);
 
 private:
-    void ProcessAudioData(ImsMediaSubType eSubType, uint8_t* pData, uint32_t nDataSize,
-        uint32_t nTimestamp);
+    void ProcessAudioData(
+            ImsMediaSubType eSubType, uint8_t* pData, uint32_t nDataSize, uint32_t nTimestamp);
     IRtpSession* mRtpSession;
     RtpConfig* mConfig;
     RtpAddress mLocalAddress;

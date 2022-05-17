@@ -17,50 +17,50 @@
 #include <RtpBuffer.h>
 #include <gtest/gtest.h>
 
-namespace android {
+namespace android
+{
 
-class RtpBufferTest : public ::testing::Test {
-
+class RtpBufferTest : public ::testing::Test
+{
 public:
-    RtpBuffer *testBuf;
+    RtpBuffer* testBuf;
 
 protected:
-    virtual void SetUp() override {
-
+    virtual void SetUp() override
+    {
         testBuf = new RtpBuffer();
         ASSERT_TRUE(testBuf != nullptr);
-
     }
 
-    virtual void TearDown() override {
-
-        if(testBuf)
+    virtual void TearDown() override
+    {
+        if (testBuf)
         {
             delete testBuf;
             testBuf = nullptr;
         }
-
     }
-
 };
 
-TEST_F(RtpBufferTest, InitTest) {
+TEST_F(RtpBufferTest, InitTest)
+{
     EXPECT_EQ(0, testBuf->getLength());
     ASSERT_TRUE(testBuf->getBuffer() == nullptr);
 }
 
-TEST_F(RtpBufferTest, SetLengthTest) {
+TEST_F(RtpBufferTest, SetLengthTest)
+{
     testBuf->setLength(10);
     EXPECT_EQ(10, testBuf->getLength());
 }
 
-TEST_F(RtpBufferTest, SetBufferInfoTest) {
-    RtpDt_UChar *pBuf = new RtpDt_UChar[8];
-    memcpy(pBuf, (RtpDt_UChar []){ 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08}, sizeof pBuf);
+TEST_F(RtpBufferTest, SetBufferInfoTest)
+{
+    RtpDt_UChar* pBuf = new RtpDt_UChar[8];
+    memcpy(pBuf, (RtpDt_UChar[]){0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08}, sizeof pBuf);
     testBuf->setBufferInfo(sizeof pBuf, pBuf);
     EXPECT_EQ(8, testBuf->getLength());
     EXPECT_EQ(0, memcmp(testBuf->getBuffer(), pBuf, 8));
 }
 
-
-} // namespace android
+}  // namespace android

@@ -28,6 +28,7 @@ class AudioRtpPayloadDecoderNode : public BaseNode
 private:
     AudioRtpPayloadDecoderNode();
     virtual ~AudioRtpPayloadDecoderNode();
+
 public:
     static BaseNode* GetInstance();
     static void ReleaseInstance(BaseNode* pNode);
@@ -37,15 +38,15 @@ public:
     virtual bool IsRunTime();
     virtual bool IsSourceNode();
     virtual void SetConfig(void* config);
-    virtual void OnDataFromFrontNode(ImsMediaSubType subtype,
-        uint8_t* pData, uint32_t nDataSize, uint32_t nTimestamp, bool bMark,
-        uint32_t nSeqNum, ImsMediaSubType nDataType = ImsMediaSubType::MEDIASUBTYPE_UNDEFINED);
+    virtual void OnDataFromFrontNode(ImsMediaSubType subtype, uint8_t* pData, uint32_t nDataSize,
+            uint32_t nTimestamp, bool bMark, uint32_t nSeqNum,
+            ImsMediaSubType nDataType = ImsMediaSubType::MEDIASUBTYPE_UNDEFINED);
     void SetCodec(int32_t type);
     void SetPayloadMode(bool mode);
 
 private:
-    void Decode_PH_AMR(uint8_t* pData, uint32_t nDataSize, uint32_t nTimestamp,
-        bool bMark, uint32_t nSeqNum);
+    void Decode_PH_AMR(
+            uint8_t* pData, uint32_t nDataSize, uint32_t nTimestamp, bool bMark, uint32_t nSeqNum);
 
 private:
     int32_t mCodecType;

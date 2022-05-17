@@ -14,19 +14,19 @@
  * limitations under the License.
  */
 
-
 #include <RtcpFbPacket.h>
 #include <rtp_trace.h>
 
-RtcpFbPacket::RtcpFbPacket() : m_pFCI(RTP_NULL)
+RtcpFbPacket::RtcpFbPacket() :
+        m_pFCI(RTP_NULL)
 {
 }
 
 RtcpFbPacket::~RtcpFbPacket()
 {
-    if(m_pFCI)
+    if (m_pFCI)
     {
-        delete(m_pFCI);
+        delete (m_pFCI);
         m_pFCI = RTP_NULL;
     }
 }
@@ -76,11 +76,10 @@ eRTCP_TYPE RtcpFbPacket::getPayloadType()
     return m_ePayloadType;
 }
 
-
-eRTP_STATUS_CODE RtcpFbPacket::decodeRtcpFbPacket(IN RtpDt_UChar* pucRtcpFbBuf,
-                                             IN RtpDt_UInt16 usRtcpFbLen, IN RtpDt_UChar ucPktType)
+eRTP_STATUS_CODE RtcpFbPacket::decodeRtcpFbPacket(
+        IN RtpDt_UChar* pucRtcpFbBuf, IN RtpDt_UInt16 usRtcpFbLen, IN RtpDt_UChar ucPktType)
 {
-    RtpDt_UInt32 ufciLength = usRtcpFbLen - RTP_12; //Exclude Headers length to get FCI Length
+    RtpDt_UInt32 ufciLength = usRtcpFbLen - RTP_12;  // Exclude Headers length to get FCI Length
 
     m_objRtcpHdr.setLength(usRtcpFbLen);
     m_objRtcpHdr.setPacketType(ucPktType);
@@ -91,7 +90,7 @@ eRTP_STATUS_CODE RtcpFbPacket::decodeRtcpFbPacket(IN RtpDt_UChar* pucRtcpFbBuf,
         pucRtcpFbBuf = pucRtcpFbBuf + RTCP_FIXED_HDR_LEN;
     }
 
-    //get media/peer SSRC
+    // get media/peer SSRC
     {
         RtpDt_UInt32 uiMediaSsrc = RtpOsUtil::Ntohl(*((RtpDt_UInt32*)pucRtcpFbBuf));
         setMediaSsrc(uiMediaSsrc);
@@ -101,11 +100,10 @@ eRTP_STATUS_CODE RtcpFbPacket::decodeRtcpFbPacket(IN RtpDt_UChar* pucRtcpFbBuf,
     // get the FCI buffer
     if (ufciLength > 0)
     {
-        RtpBuffer *pFCI = new RtpBuffer(ufciLength, (RtpDt_UChar *)pucRtcpFbBuf);
-        if(pFCI == RTP_NULL)
+        RtpBuffer* pFCI = new RtpBuffer(ufciLength, (RtpDt_UChar*)pucRtcpFbBuf);
+        if (pFCI == RTP_NULL)
         {
-            RTP_TRACE_WARNING("decodeRtcpRtpFbPacket, new returned NULL...!",
-                RTP_ZERO,RTP_ZERO);
+            RTP_TRACE_WARNING("decodeRtcpRtpFbPacket, new returned NULL...!", RTP_ZERO, RTP_ZERO);
             return RTP_MEMORY_FAIL;
         }
         setFCI(pFCI);
@@ -116,11 +114,11 @@ eRTP_STATUS_CODE RtcpFbPacket::decodeRtcpFbPacket(IN RtpDt_UChar* pucRtcpFbBuf,
 
 eRTP_STATUS_CODE RtcpFbPacket::formRtcpFbPacket(OUT RtpBuffer* pobjRtcpPktBuf)
 {
-    if(getPayloadType() == RTCP_RTPFB)
+    if (getPayloadType() == RTCP_RTPFB)
     {
         return formRtcpRtpFbPacket(pobjRtcpPktBuf);
     }
-    else if(getPayloadType() == RTCP_PSFB)
+    else if (getPayloadType() == RTCP_PSFB)
     {
         return formRtcpPayloadFbPacket(pobjRtcpPktBuf);
     }
@@ -132,11 +130,11 @@ eRTP_STATUS_CODE RtcpFbPacket::formRtcpRtpFbPacket(OUT RtpBuffer* pobjRtcpPktBuf
 {
     RtpDt_UInt32 uiFbPktPos = pobjRtcpPktBuf->getLength();
     RtpDt_UInt32 uiCurPos = pobjRtcpPktBuf->getLength();
-    RtpDt_UChar * pucBuffer = pobjRtcpPktBuf->getBuffer();
+    RtpDt_UChar* pucBuffer = pobjRtcpPktBuf->getBuffer();
 
-    if(!pucBuffer)
+    if (!pucBuffer)
     {
-        RTP_TRACE_ERROR("formFbPacket with null buffer",RTP_ZERO, RTP_ZERO);
+        RTP_TRACE_ERROR("formFbPacket with null buffer", RTP_ZERO, RTP_ZERO);
         return RTP_FAILURE;
     }
 
@@ -154,9 +152,9 @@ eRTP_STATUS_CODE RtcpFbPacket::formRtcpRtpFbPacket(OUT RtpBuffer* pobjRtcpPktBuf
 
     // set the FCI buffer
     {
-        RtpBuffer *pFCI = this->getFCI();
+        RtpBuffer* pFCI = this->getFCI();
 
-        memcpy(pucBuffer, pFCI->getBuffer(), pFCI->getLength());//copy buffer not Fci object
+        memcpy(pucBuffer, pFCI->getBuffer(), pFCI->getLength());  // copy buffer not Fci object
         pucBuffer = pucBuffer + pFCI->getLength();
         uiCurPos = uiCurPos + pFCI->getLength();
     }
@@ -167,7 +165,7 @@ eRTP_STATUS_CODE RtcpFbPacket::formRtcpRtpFbPacket(OUT RtpBuffer* pobjRtcpPktBuf
 
 #ifdef ENABLE_PADDING
         RtpDt_UInt32 uiPadLen = uiFbPktLen % RTP_WORD_SIZE;
-        if(uiPadLen > RTP_ZERO)
+        if (uiPadLen > RTP_ZERO)
         {
             uiPadLen = RTP_WORD_SIZE - uiPadLen;
             uiFbPktLen = uiFbPktLen + uiPadLen;
@@ -178,38 +176,37 @@ eRTP_STATUS_CODE RtcpFbPacket::formRtcpRtpFbPacket(OUT RtpBuffer* pobjRtcpPktBuf
             pucBuffer = pucBuffer - RTP_ONE;
             *(RtpDt_UChar*)pucBuffer = (RtpDt_UChar)uiPadLen;
 
-            //set pad bit in header
+            // set pad bit in header
             m_objRtcpHdr.setPadding();
-            //set length in header
+            // set length in header
             m_objRtcpHdr.setLength(uiFbPktLen);
         }
         else
 #endif
         {
-            //set length in header
+            // set length in header
             m_objRtcpHdr.setLength(uiFbPktLen);
         }
 
         pobjRtcpPktBuf->setLength(uiFbPktPos);
         m_objRtcpHdr.formRtcpHeader(pobjRtcpPktBuf);
-    }//padding
+    }  // padding
 
-    //set the current position of the RTCP compound packet
+    // set the current position of the RTCP compound packet
     pobjRtcpPktBuf->setLength(uiCurPos);
 
-
     return RTP_SUCCESS;
-}//formFbPacket
+}  // formFbPacket
 
 eRTP_STATUS_CODE RtcpFbPacket::formRtcpPayloadFbPacket(OUT RtpBuffer* pobjRtcpPktBuf)
 {
     RtpDt_UInt32 uiFbPktPos = pobjRtcpPktBuf->getLength();
     RtpDt_UInt32 uiCurPos = pobjRtcpPktBuf->getLength();
-    RtpDt_UChar *pucBuffer = pobjRtcpPktBuf->getBuffer();
+    RtpDt_UChar* pucBuffer = pobjRtcpPktBuf->getBuffer();
 
-    if(!pucBuffer)
+    if (!pucBuffer)
     {
-        RTP_TRACE_ERROR("formFbPacket with null buffer",RTP_ZERO, RTP_ZERO);
+        RTP_TRACE_ERROR("formFbPacket with null buffer", RTP_ZERO, RTP_ZERO);
         return RTP_FAILURE;
     }
 
@@ -227,7 +224,7 @@ eRTP_STATUS_CODE RtcpFbPacket::formRtcpPayloadFbPacket(OUT RtpBuffer* pobjRtcpPk
 
     // set the FCI buffer
     {
-        RtpBuffer *pFCI = this->getFCI();
+        RtpBuffer* pFCI = this->getFCI();
 
         memcpy(pucBuffer, pFCI, pFCI->getLength());
         pucBuffer = pucBuffer + pFCI->getLength();
@@ -239,9 +236,8 @@ eRTP_STATUS_CODE RtcpFbPacket::formRtcpPayloadFbPacket(OUT RtpBuffer* pobjRtcpPk
         RtpDt_UInt32 uiFbPktLen = uiCurPos - uiFbPktPos;
         RtpDt_UInt32 uiPadLen = RTP_ZERO;
 
-
         uiPadLen = uiFbPktLen % RTP_WORD_SIZE;
-        if(uiPadLen > RTP_ZERO)
+        if (uiPadLen > RTP_ZERO)
         {
             uiPadLen = RTP_WORD_SIZE - uiPadLen;
             uiFbPktLen = uiFbPktLen + uiPadLen;
@@ -252,24 +248,23 @@ eRTP_STATUS_CODE RtcpFbPacket::formRtcpPayloadFbPacket(OUT RtpBuffer* pobjRtcpPk
             pucBuffer = pucBuffer - RTP_ONE;
             *(RtpDt_UChar*)pucBuffer = (RtpDt_UChar)uiPadLen;
 
-            //set pad bit in header
+            // set pad bit in header
             m_objRtcpHdr.setPadding();
-            //set length in header
+            // set length in header
             m_objRtcpHdr.setLength(uiFbPktLen);
         }
         else
         {
-            //set length in header
+            // set length in header
             m_objRtcpHdr.setLength(uiFbPktLen);
         }
 
         pobjRtcpPktBuf->setLength(uiFbPktPos);
         m_objRtcpHdr.formRtcpHeader(pobjRtcpPktBuf);
-    }//padding
+    }  // padding
 
-    //set the current position of the RTCP compound packet
+    // set the current position of the RTCP compound packet
     pobjRtcpPktBuf->setLength(uiCurPos);
 
-
     return RTP_SUCCESS;
-}//formRtcpPayloadFbPacket
+}  // formRtcpPayloadFbPacket
