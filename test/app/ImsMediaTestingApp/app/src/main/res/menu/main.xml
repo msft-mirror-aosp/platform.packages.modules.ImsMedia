@@ -2,11 +2,17 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
   <item
-      android:title="@string/settings"
-      android:id="@+id/settingsMenuButton"
-      android:orderInCategory="2"
-      android:icon="@drawable/ic_baseline_network_check_24"
-      app:showAsAction="ifRoom" />
+    android:title="@string/settings"
+    android:id="@+id/settingsMenuButton"
+    android:orderInCategory="2"
+    android:icon="@drawable/ic_baseline_network_check_24"
+    app:showAsAction="ifRoom" />
+  <item
+    android:title="@string/settings_video"
+    android:id="@+id/settingsVideoMenuButton"
+    android:orderInCategory="3"
+    android:icon="@drawable/ic_baseline_network_check_24"
+    app:showAsAction="ifRoom" />
   <item
     android:title="@string/home"
     android:id="@+id/homeMenuButton"

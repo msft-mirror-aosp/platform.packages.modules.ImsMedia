@@ -2,6 +2,7 @@ package com.example.imsmediatestingapp;
 
 import android.content.SharedPreferences;
 import android.util.Log;
+
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -9,8 +10,9 @@ import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 
 /**
- *  The HandshakeReceiver handles and stores information about incoming packets during the
- *  handshake process.
+ * The HandshakeReceiver handles and stores information about incoming packets
+ * during the
+ * handshake process.
  */
 public class HandshakeReceiver implements Runnable {
 
@@ -45,7 +47,7 @@ public class HandshakeReceiver implements Runnable {
                 socket.receive(packet);
                 Object dataReceived = deserializePacket(packet.getData());
 
-                if(dataReceived instanceof DeviceInfo && !isHandshakeReceived) {
+                if (dataReceived instanceof DeviceInfo && !isHandshakeReceived) {
                     deviceInfo = (DeviceInfo) dataReceived;
                     if (verifyHandshakePacket(deviceInfo)) {
                         isHandshakeReceived = true;
@@ -53,9 +55,9 @@ public class HandshakeReceiver implements Runnable {
                         Log.d(LOG_PREFIX, "RECEIVED: Device Info");
                     }
 
-                } else if(dataReceived instanceof String && !isConfirmationReceived) {
+                } else if (dataReceived instanceof String && !isConfirmationReceived) {
                     confirmation = (String) dataReceived;
-                    if(verifyConfirmationPacket(confirmation)) {
+                    if (verifyConfirmationPacket(confirmation)) {
                         isConfirmationReceived = true;
                         Log.d(LOG_PREFIX, "RECEIVED: Confirmation");
                         running = false;
@@ -70,10 +72,10 @@ public class HandshakeReceiver implements Runnable {
     }
 
     /**
-     * Reads the data into a ByteArrayInputStream and ObjectInputStream to determine the type of
-     * the data, then casts it to the correct type and returns it.
+     * Reads the data into a ByteArrayInputStream and ObjectInputStream to determine
+     * the type of the data, then casts it to the correct type and returns it
      * @param data byte array from the packet received from the DatagramSocket
-     * @param <T> either a String or DeviceInfo
+     * @param <T>  either a String or DeviceInfo
      * @return string value of hte conformation string, or the DeviceInfo
      */
     private <T> T deserializePacket(byte[] data) {
@@ -83,11 +85,11 @@ public class HandshakeReceiver implements Runnable {
         try {
             ObjectInputStream objectInputStream = new ObjectInputStream(byteArrayInputStream);
             Object readObject = objectInputStream.readObject();
-            if(readObject instanceof DeviceInfo) {
+            if (readObject instanceof DeviceInfo) {
                 deviceInfo = (DeviceInfo) readObject;
                 return (T) deviceInfo;
 
-            } else if(readObject instanceof String) {
+            } else if (readObject instanceof String) {
                 confirmationMessage = (String) readObject;
                 return (T) confirmationMessage;
             }
@@ -117,8 +119,7 @@ public class HandshakeReceiver implements Runnable {
      * @return boolean if the DeviceInfo has all the right info
      */
     private boolean verifyHandshakePacket(DeviceInfo deviceInfo) {
-        if(deviceInfo.getHandshakePort() == -1 || deviceInfo.getRtpPort() == -1
-            || deviceInfo.getRtcpPort() == -1) {
+        if (deviceInfo.getHandshakePort() == -1 || deviceInfo.getAudioRtpPort() == -1) {
             Log.d("", "One or more of the ports sent in the handshake have not been opened.");
             return false;
         }

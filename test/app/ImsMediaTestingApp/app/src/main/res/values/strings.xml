@@ -2,6 +2,7 @@
 
   <string name="app_name">IMS Media Testing App</string>
   <string name="settings">settings_button</string>
+  <string name="settings_video">settings_video_button</string>
   <string name="home">home_button</string>
 
   <!-- MainActivity page Strings -->
@@ -42,9 +43,22 @@
   <string name="port_number_placeholder">port number</string>
   <string name="ip_address_placeholder">ip address</string>
   <string name="audio_codec_settings">Audio Codecs</string>
-  <string name="video_codec_settings">Amr Modes</string>
+  <string name="amr_modes">Amr Modes</string>
   <string name="evs_modes">EVS Modes</string>
   <string name="evs_bandwidths">EVS Bandwidths</string>
+
+  <!-- Settings_video page Strings -->
+  <string name="video_codec_setting">Video Codecs</string>
+  <string name="video_codec_profile">Codec Profile</string>
+  <string name="video_codec_level">Codec Level</string>
+  <string name="video_modes">Video Modes</string>
+  <string name="video_camera_id">Camera Id</string>
+  <string name="video_camera_zoom">Camera Zoom Level</string>
+  <string name="video_framerate">Video Framerate</string>
+  <string name="video_bitrate">Video Bitrate</string>
+  <string name="video_device_orientation">Device Orientation</string>
+  <string name="video_pause_image_path">Pause Image Path</string>
+  <string name="video_cvo_value">CVO Value</string>
 
   <!-- Save button text -->
   <string name="save">SAVE</string>
