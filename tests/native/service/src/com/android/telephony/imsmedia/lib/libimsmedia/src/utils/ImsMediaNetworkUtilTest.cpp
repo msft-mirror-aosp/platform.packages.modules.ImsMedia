@@ -107,24 +107,6 @@ TEST(ImsMediaNetworkUtilTest, GetLocalIPPortFromSocketFDUsingLoopBackIPAddress)
     closeSocketFD(nTestSocFD);
 }
 
-TEST(ImsMediaNetworkUtilTest, GetLocalIPPortFromSocketFDUsingAnyIPAddress)
-{
-    const char szTestIP[] = "192.168.219.130";
-    unsigned int nTestPort = 56780;
-    int nTestSocFD = createSocketFD(szTestIP, nTestPort, AF_INET);
-    ASSERT_NE(nTestSocFD, -1);
-
-    char IPAddr[32] = {'\0'};
-    unsigned int port;
-    bool res = ImsMediaNetworkUtil::GetLocalIPPortFromSocketFD(nTestSocFD, IPAddr, 32, port);
-
-    ASSERT_EQ(res, true);
-    ASSERT_EQ(strncmp(IPAddr, szTestIP, strlen(szTestIP)), 0);
-    ASSERT_EQ(port, nTestPort);
-
-    closeSocketFD(nTestSocFD);
-}
-
 TEST(ImsMediaNetworkUtilTest, GetLocalIPPortFromSocketFDUsingIpv6Address)
 {
     const char szTestIP[] = "::1";
