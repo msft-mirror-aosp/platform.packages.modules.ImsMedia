@@ -95,7 +95,7 @@
         android:layout_marginTop="30dp"
         android:layout_marginStart="15dp"
         android:layout_below="@id/audioCodecList"
-        android:text="@string/video_codec_settings"
+        android:text="@string/amr_modes"
         android:textAlignment="center" />
 
     <ListView

@@ -3,6 +3,7 @@ package com.example.imsmediatestingapp;
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.graphics.SurfaceTexture;
 import android.hardware.radio.ims.media.AmrMode;
 import android.hardware.radio.ims.media.CodecType;
 import android.hardware.radio.ims.media.EvsBandwidth;
@@ -11,7 +12,6 @@ import android.media.AudioManager;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 import android.os.Bundle;
-import android.os.IBinder;
 import android.telephony.AccessNetworkConstants.AccessNetworkType;
 import android.telephony.imsmedia.AmrParams;
 import android.telephony.imsmedia.AudioConfig;
@@ -20,19 +20,27 @@ import android.telephony.imsmedia.EvsParams;
 import android.telephony.imsmedia.ImsAudioSession;
 import android.telephony.imsmedia.ImsMediaManager;
 import android.telephony.imsmedia.ImsMediaSession;
+import android.telephony.imsmedia.ImsVideoSession;
 import android.telephony.imsmedia.RtcpConfig;
 import android.telephony.imsmedia.RtpConfig;
+import android.telephony.imsmedia.VideoConfig;
+import android.telephony.imsmedia.VideoSessionCallback;
 import android.text.format.Formatter;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.Surface;
+import android.view.TextureView;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.PopupMenu;
+import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -64,8 +72,10 @@ public class MainActivity extends AppCompatActivity {
 
     private static final int MAX_MTU_BYTES = 1500;
     private static final int DSCP = 0;
-    private static final int RX_PAYLOAD_TYPE_NUMBER = 96;
-    private static final int TX_PAYLOAD_TYPE_NUMBER = 96;
+    private static final int AUDIO_RX_PAYLOAD_TYPE_NUMBER = 96;
+    private static final int AUDIO_TX_PAYLOAD_TYPE_NUMBER = 96;
+    private static final int VIDEO_RX_PAYLOAD_TYPE_NUMBER = 106;
+    private static final int VIDEO_TX_PAYLOAD_TYPE_NUMBER = 106;
     private static final int SAMPLING_RATE_KHZ = 16;
     private static final int P_TIME_MILLIS = 20;
     private static final int MAX_P_TIME_MILLIS = 240;
@@ -73,15 +83,33 @@ public class MainActivity extends AppCompatActivity {
     private static final int DTMF_PAYLOAD_TYPE_NUMBER = 100;
     private static final int DTMF_SAMPLING_RATE_KHZ = 16;
     private static final int DTMF_DURATION = 140;
-
+    private static final int IDR_INTERVAL = 1;
+    private static final int RESOLUTION_WIDTH = 640;
+    private static final int RESOLUTION_HEIGHT = 480;
+    private static final String IMAGE = "data/user_de/0/com.android.telephony.imsmedia/test.jpg";
     private static final float DISABLED_ALPHA = 0.3f;
     private static final float ENABLED_ALPHA = 1.0f;
+    private static final int VIDEO_FRAMERATE = 15;
+    private static final int VIDEO_BITRATE = 384;
+    private static final int CAMERA_ID = 0;
+    private static final int CAMERA_ZOOM = 10;
 
-    private Set<Integer> selectedCodecTypes = new HashSet<>();
-    private Set<Integer> selectedAmrModes = new HashSet<>();
-    private Set<Integer> selectedEvsBandwidths = new HashSet<>();
-    private Set<Integer> selectedEvsModes = new HashSet<>();
-    private Set<Integer> selectedVideoCodecs = new HashSet<>();
+    private Set<Integer> mSelectedCodecTypes = new HashSet<>();
+    private Set<Integer> mSelectedAmrModes = new HashSet<>();
+    private Set<Integer> mSelectedEvsBandwidths = new HashSet<>();
+    private Set<Integer> mSelectedEvsModes = new HashSet<>();
+    private int mSelectedVideoCodec = VideoConfig.VIDEO_CODEC_AVC;
+    private int mSelectedVideoMode = VideoConfig.VIDEO_MODE_RECORDING;
+    private int mSelectedFramerate = VIDEO_FRAMERATE;
+    private int mSelectedBitrate = VIDEO_BITRATE;
+    private int mSelectedCodecProfile = VideoConfig.AVC_PROFILE_BASELINE;
+    private int mSelectedCodecLevel = VideoConfig.AVC_LEVEL_12;
+    private int mSelectedCameraId = CAMERA_ID;
+    private int mSelectedCameraZoom = CAMERA_ZOOM;
+    private int mSelectedDeviceOrientationDegree = 0;
+    private int mRtcpFbTypes = VideoConfig.RTP_FB_NONE;
+    private int mSelectedCvoValue = -1;
+    private Set<Integer> mSelectedRtcpFbTypes = new HashSet<>();
 
     // The order of these values determines the priority in which they would be
     // selected if there
@@ -102,36 +130,45 @@ public class MainActivity extends AppCompatActivity {
             EvsMode.EVS_MODE_14, EvsMode.EVS_MODE_15, EvsMode.EVS_MODE_16, EvsMode.EVS_MODE_17,
             EvsMode.EVS_MODE_18, EvsMode.EVS_MODE_19, EvsMode.EVS_MODE_20 };
 
-    private boolean loopbackModeEnabled = false;
-    private boolean isMediaManagerReady = false;
-    private boolean isOpenSessionSent = false;
-    private final StringBuilder dtmfInput = new StringBuilder();
+    private boolean mLoopbackModeEnabled = false;
+    private boolean mIsMediaManagerReady = false;
+    private boolean mIsOpenSessionSent = false;
+    private boolean mIsVideoSessionOpened = false;
+    private boolean mIsPreviewSurfaceSet = false;
+    private boolean mIsDisplaySurfaceSet = false;
+    private final StringBuilder mDtmfInput = new StringBuilder();
 
-    private ConnectionStatus connectionStatus;
-    private ImsAudioSession audioSession;
-    private AudioConfig audioConfig;
-    private ImsMediaManager imsMediaManager;
-    private Executor executor;
-    private Thread waitForHandshakeThread;
-    private HandshakeReceiver handshakeReceptionSocket;
-    private DatagramSocket rtp;
-    private DatagramSocket rtcp;
-    private DeviceInfo remoteDeviceInfo;
-    private DeviceInfo localDeviceInfo;
-    private BottomSheetDialer bottomSheetDialog;
-    private BottomSheetAudioCodecSettings bottomSheetAudioCodecSettings;
-    private TextView localHandshakePortLabel;
-    private TextView localRtpPortLabel;
-    private TextView localRtcpPortLabel;
-    private TextView remoteIpLabel;
-    private TextView remoteHandshakePortLabel;
-    private TextView remoteRtpPortLabel;
-    private TextView remoteRtcpPortLabel;
-    private Button allowCallsButton;
-    private Button connectButton;
-    private Button openSessionButton;
-    private SwitchCompat loopbackSwitch;
-    private LinearLayout activeCallToolBar;
+    private ConnectionStatus mConnectionStatus;
+    private ImsAudioSession mAudioSession;
+    private ImsVideoSession mVideoSession;
+    private AudioConfig mAudioConfig;
+    private VideoConfig mVideoConfig;
+    private ImsMediaManager mImsMediaManager;
+    private Executor mExecutor;
+    private Thread mWaitForHandshakeThread;
+    private HandshakeReceiver mHandshakeReceptionSocket;
+    private DatagramSocket mAudioRtp;
+    private DatagramSocket mAudioRtcp;
+    private DatagramSocket mVideoRtp;
+    private DatagramSocket mVideoRtcp;
+    private DeviceInfo mRemoteDeviceInfo;
+    private DeviceInfo mLocalDeviceInfo;
+    private BottomSheetDialer mBottomSheetDialog;
+    private BottomSheetAudioCodecSettings mBottomSheetAudioCodecSettings;
+    private TextView mLocalHandshakePortLabel;
+    private TextView mLocalRtpPortLabel;
+    private TextView mLocalRtcpPortLabel;
+    private TextView mRemoteIpLabel;
+    private TextView mRemoteHandshakePortLabel;
+    private TextView mRemoteRtpPortLabel;
+    private TextView mRemoteRtcpPortLabel;
+    private Button mAllowCallsButton;
+    private Button mConnectButton;
+    private Button mOpenSessionButton;
+    private SwitchCompat mLoopbackSwitch;
+    private LinearLayout mActiveCallToolBar;
+    private TextureView mTexturePreview;
+    private TextureView mTextureDisplay;
 
     /**
      * Enum of the CodecType from android.hardware.radio.ims.media.CodecType with
@@ -145,14 +182,14 @@ public class MainActivity extends AppCompatActivity {
         PCMA(CodecType.PCMA),
         PCMU(CodecType.PCMU);
 
-        private final int value;
+        private final int mValue;
 
         CodecTypeEnum(int value) {
-            this.value = value;
+            mValue = value;
         }
 
         public int getValue() {
-            return value;
+            return mValue;
         }
     }
 
@@ -172,14 +209,14 @@ public class MainActivity extends AppCompatActivity {
         AMR_MODE_7(AmrMode.AMR_MODE_7),
         AMR_MODE_8(AmrMode.AMR_MODE_8);
 
-        private final int value;
+        private final int mValue;
 
         AmrModeEnum(int value) {
-            this.value = value;
+            mValue = value;
         }
 
         public int getValue() {
-            return value;
+            return mValue;
         }
 
     }
@@ -196,14 +233,14 @@ public class MainActivity extends AppCompatActivity {
         SUPER_WIDE_BAND(EvsBandwidth.SUPER_WIDE_BAND),
         FULL_BAND(EvsBandwidth.FULL_BAND);
 
-        private final int value;
+        private final int mValue;
 
         EvsBandwidthEnum(int value) {
-            this.value = value;
+            mValue = value;
         }
 
         public int getValue() {
-            return value;
+            return mValue;
         }
     }
 
@@ -235,30 +272,266 @@ public class MainActivity extends AppCompatActivity {
         EVS_MODE_19(EvsMode.EVS_MODE_19),
         EVS_MODE_20(EvsMode.EVS_MODE_20);
 
-        private final int value;
+        private final int mValue;
 
         EvsModeEnum(int value) {
-            this.value = value;
+            mValue = value;
         }
 
         public int getValue() {
-            return value;
+            return mValue;
         }
-
     }
 
+    /**
+     * Enum of the video codecs from VideoConfig with the matching
+     * Integer value.
+     */
     public enum VideoCodecEnum {
-        H264(0),
-        HEVC(1);
+        H264(VideoConfig.VIDEO_CODEC_AVC),
+        HEVC(VideoConfig.VIDEO_CODEC_HEVC);
 
-        private final int value;
+        private final int mValue;
 
         VideoCodecEnum(int value) {
-            this.value = value;
+            mValue = value;
         }
 
         public int getValue() {
-            return value;
+            return mValue;
+        }
+    }
+
+    /**
+     * Enum of the video modes from VideoConfig with the matching
+     * Integer value.
+     */
+    public enum VideoModeEnum {
+        VIDEO_MODE_PREVIEW(VideoConfig.VIDEO_MODE_PREVIEW),
+        VIDEO_MODE_RECORDING(VideoConfig.VIDEO_MODE_RECORDING),
+        VIDEO_MODE_PAUSE_IMAGE(VideoConfig.VIDEO_MODE_PAUSE_IMAGE);
+
+        private final int mValue;
+
+        VideoModeEnum(int value) {
+            mValue = value;
+        }
+
+        public int getValue() {
+            return mValue;
+        }
+    }
+
+    /**
+     * Enum of the video codec profiles from VideoConfig with the matching
+     * Integer value.
+     */
+    public enum VideoCodecProfileEnum {
+        CODEC_PROFILE_NONE(VideoConfig.CODEC_PROFILE_NONE),
+        AVC_PROFILE_BASELINE(VideoConfig.AVC_PROFILE_BASELINE),
+        AVC_PROFILE_CONSTRAINED_BASELINE(VideoConfig.AVC_PROFILE_CONSTRAINED_BASELINE),
+        AVC_PROFILE_CONSTRAINED_HIGH(VideoConfig.AVC_PROFILE_CONSTRAINED_HIGH),
+        AVC_PROFILE_HIGH(VideoConfig.AVC_PROFILE_HIGH),
+        AVC_PROFILE_MAIN(VideoConfig.AVC_PROFILE_MAIN),
+        HEVC_PROFILE_MAIN(VideoConfig.HEVC_PROFILE_MAIN),
+        HEVC_PROFILE_MAIN10(VideoConfig.HEVC_PROFILE_MAIN10);
+
+        private final int mValue;
+
+        VideoCodecProfileEnum(int value) {
+            mValue = value;
+        }
+
+        public int getValue() {
+            return mValue;
+        }
+    }
+
+    /**
+     * Enum of the video codec levels from VideoConfig with the matching
+     * Integer value.
+     */
+    public enum VideoCodecLevelEnum {
+        CODEC_LEVEL_NONE(VideoConfig.CODEC_LEVEL_NONE),
+        AVC_LEVEL_1(VideoConfig.AVC_LEVEL_1),
+        AVC_LEVEL_1B(VideoConfig.AVC_LEVEL_1B),
+        AVC_LEVEL_11(VideoConfig.AVC_LEVEL_11),
+        AVC_LEVEL_12(VideoConfig.AVC_LEVEL_12),
+        AVC_LEVEL_13(VideoConfig.AVC_LEVEL_13),
+        AVC_LEVEL_2(VideoConfig.AVC_LEVEL_2),
+        AVC_LEVEL_21(VideoConfig.AVC_LEVEL_21),
+        AVC_LEVEL_22(VideoConfig.AVC_LEVEL_22),
+        AVC_LEVEL_3(VideoConfig.AVC_LEVEL_3),
+        AVC_LEVEL_31(VideoConfig.AVC_LEVEL_31),
+        HEVC_HIGHTIER_LEVEL_1(VideoConfig.HEVC_HIGHTIER_LEVEL_1),
+        HEVC_HIGHTIER_LEVEL_2(VideoConfig.HEVC_HIGHTIER_LEVEL_2),
+        HEVC_HIGHTIER_LEVEL_21(VideoConfig.HEVC_HIGHTIER_LEVEL_21),
+        HEVC_HIGHTIER_LEVEL_3(VideoConfig.HEVC_HIGHTIER_LEVEL_3),
+        HEVC_HIGHTIER_LEVEL_31(VideoConfig.HEVC_HIGHTIER_LEVEL_31),
+        HEVC_HIGHTIER_LEVEL_4(VideoConfig.HEVC_HIGHTIER_LEVEL_4),
+        HEVC_HIGHTIER_LEVEL_41(VideoConfig.HEVC_HIGHTIER_LEVEL_41),
+        HEVC_MAINTIER_LEVEL_1(VideoConfig.HEVC_MAINTIER_LEVEL_1),
+        HEVC_MAINTIER_LEVEL_2(VideoConfig.HEVC_MAINTIER_LEVEL_2),
+        HEVC_MAINTIER_LEVEL_21(VideoConfig.HEVC_MAINTIER_LEVEL_21),
+        HEVC_MAINTIER_LEVEL_3(VideoConfig.HEVC_MAINTIER_LEVEL_3),
+        HEVC_MAINTIER_LEVEL_31(VideoConfig.HEVC_MAINTIER_LEVEL_31),
+        HEVC_MAINTIER_LEVEL_4(VideoConfig.HEVC_MAINTIER_LEVEL_4),
+        HEVC_MAINTIER_LEVEL_41(VideoConfig.HEVC_MAINTIER_LEVEL_41);
+
+        private final int mValue;
+
+        VideoCodecLevelEnum(int value) {
+            mValue = value;
+        }
+
+        public int getValue() {
+            return mValue;
+        }
+    }
+
+    /**
+     * Enum of the video camera ids from VideoConfig
+     * Integer value.
+     */
+    public enum VideoCameraIdEnum {
+        ID_0(0),
+        ID_1(1),
+        ID_2(2),
+        ID_3(3),
+        ID_4(4);
+
+        private final int mValue;
+
+        VideoCameraIdEnum(int value) {
+            mValue = value;
+        }
+
+        public int getValue() {
+            return mValue;
+        }
+    }
+
+    /**
+     * Enum of the video zoom levels from VideoConfig
+     * Integer value.
+     */
+    public enum VideoCameraZoomEnum {
+        LEVEL_0(0),
+        LEVEL_1(1),
+        LEVEL_2(2),
+        LEVEL_3(3),
+        LEVEL_4(4),
+        LEVEL_5(5),
+        LEVEL_6(6),
+        LEVEL_7(7),
+        LEVEL_8(8),
+        LEVEL_9(9);
+
+        private final int mValue;
+
+        VideoCameraZoomEnum(int value) {
+            mValue = value;
+        }
+
+        public int getValue() {
+            return mValue;
+        }
+    }
+
+    /**
+     * Enum of the video framerate from VideoConfig
+     * Integer value.
+     */
+    public enum VideoFramerateEnum {
+        FPS_10(10),
+        FPS_15(15),
+        FPS_20(20),
+        FPS_24(24),
+        FPS_30(30);
+
+        private final int mValue;
+
+        VideoFramerateEnum(int value) {
+            mValue = value;
+        }
+
+        public int getValue() {
+            return mValue;
+        }
+    }
+
+    /**
+     * Enum of the video bitrate from VideoConfig
+     * Integer value.
+     */
+    public enum VideoBitrateEnum {
+        BITRATE_192kbps(192),
+        BITRATE_256kbps(256),
+        BITRATE_384kbps(384),
+        BITRATE_512kbps(512),
+        BITRATE_640kbps(640);
+
+        private final int mValue;
+
+        VideoBitrateEnum(int value) {
+            mValue = value;
+        }
+
+        public int getValue() {
+            return mValue;
+        }
+    }
+
+    /**
+     * Enum of the video device orientation from VideoConfig
+     * Integer value.
+     */
+    public enum VideoDeviceOrientationEnum {
+        DEGREE_0(0),
+        DEGREE_90(90),
+        DEGREE_180(180),
+        DEGREE_270(270);
+
+        private final int mValue;
+
+        VideoDeviceOrientationEnum(int value) {
+            mValue = value;
+        }
+
+        public int getValue() {
+            return mValue;
+        }
+    }
+
+    /**
+     * Enum of the video cvo offset value from VideoConfig
+     * Integer value.
+     */
+    public enum VideoCvoValueEnum {
+        CVO_DISABLE(-1),
+        CVO_OFFSET_1(1),
+        CVO_OFFSET_2(2),
+        CVO_OFFSET_3(3),
+        CVO_OFFSET_4(4),
+        CVO_OFFSET_5(5),
+        CVO_OFFSET_6(6),
+        CVO_OFFSET_7(7),
+        CVO_OFFSET_8(8),
+        CVO_OFFSET_9(9),
+        CVO_OFFSET_10(10),
+        CVO_OFFSET_11(11),
+        CVO_OFFSET_12(12),
+        CVO_OFFSET_13(13),
+        CVO_OFFSET_14(14);
+
+        private final int mValue;
+
+        VideoCvoValueEnum(int value) {
+            mValue = value;
+        }
+
+        public int getValue() {
+            return mValue;
         }
     }
 
@@ -274,22 +547,24 @@ public class MainActivity extends AppCompatActivity {
         CONNECTED(3),
         ACTIVE_CALL(4);
 
-        private final int value;
+        private final int mValue;
 
         ConnectionStatus(int value) {
-            this.value = value;
+            mValue = value;
         }
 
         public int getValue() {
-            return value;
+            return mValue;
         }
     }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        Log.d(TAG, "onCreate");
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        createTextureView();
         prefs = getSharedPreferences(PREF_NAME, MODE_PRIVATE);
         prefsHandler = new SharedPrefsHandler(prefs);
         editor = prefs.edit();
@@ -298,14 +573,14 @@ public class MainActivity extends AppCompatActivity {
 
         Context context = getApplicationContext();
         MediaManagerCallback callback = new MediaManagerCallback();
-        executor = Executors.newSingleThreadExecutor();
-        imsMediaManager = new ImsMediaManager(context, executor, callback);
+        mExecutor = Executors.newSingleThreadExecutor();
+        mImsMediaManager = new ImsMediaManager(context, mExecutor, callback);
 
-        bottomSheetDialog = new BottomSheetDialer(this);
-        bottomSheetDialog.setContentView(R.layout.dialer);
+        mBottomSheetDialog = new BottomSheetDialer(this);
+        mBottomSheetDialog.setContentView(R.layout.dialer);
 
-        bottomSheetAudioCodecSettings = new BottomSheetAudioCodecSettings(this);
-        bottomSheetAudioCodecSettings.setContentView(R.layout.audio_codec_change);
+        mBottomSheetAudioCodecSettings = new BottomSheetAudioCodecSettings(this);
+        mBottomSheetAudioCodecSettings.setContentView(R.layout.audio_codec_change);
 
         updateCodecSelectionFromPrefs();
 
@@ -320,6 +595,7 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onResume() {
+        Log.d(TAG, "onResume");
         super.onResume();
         styleMainActivity();
     }
@@ -327,11 +603,17 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        if (rtp != null) {
-            rtp.close();
+        if (mAudioRtp != null) {
+            mAudioRtp.close();
         }
-        if (rtcp != null) {
-            rtcp.close();
+        if (mAudioRtcp != null) {
+            mAudioRtcp.close();
+        }
+        if (mVideoRtp != null) {
+            mVideoRtp.close();
+        }
+        if (mVideoRtcp != null) {
+            mVideoRtcp.close();
         }
     }
 
@@ -355,6 +637,11 @@ public class MainActivity extends AppCompatActivity {
                 setupSettingsPage();
                 break;
 
+            case R.id.settingsVideoMenuButton:
+                setContentView(R.layout.settings_video);
+                setupVideoSettingsPage();
+                break;
+
             default:
                 throw new IllegalStateException("Unexpected value: " + item.getItemId());
         }
@@ -366,13 +653,13 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public void onConnected() {
             Log.d(TAG, "ImsMediaManager - connected");
-            isMediaManagerReady = true;
+            mIsMediaManagerReady = true;
         }
 
         @Override
         public void onDisconnected() {
             Log.d(TAG, "ImsMediaManager - disconnected");
-            isMediaManagerReady = false;
+            mIsMediaManagerReady = false;
             updateUI(ConnectionStatus.CONNECTED);
         }
     }
@@ -391,9 +678,9 @@ public class MainActivity extends AppCompatActivity {
 
         @Override
         public void onOpenSessionSuccess(ImsMediaSession session) {
-            audioSession = (ImsAudioSession) session;
-            Log.d(TAG, "onOpenSessionSuccess: id=" + audioSession.getSessionId());
-            isOpenSessionSent = true;
+            mAudioSession = (ImsAudioSession) session;
+            Log.d(TAG, "onOpenSessionSuccess: id=" + mAudioSession.getSessionId());
+            mIsOpenSessionSent = true;
             AudioManager audioManager = getSystemService(AudioManager.class);
             audioManager.setMode(AudioManager.MODE_IN_CALL);
             updateUI(ConnectionStatus.ACTIVE_CALL);
@@ -418,32 +705,35 @@ public class MainActivity extends AppCompatActivity {
         public void onFirstMediaPacketReceived(AudioConfig config) {
             Log.d(TAG, "onFirstMediaPacketReceived");
         }
+    }
 
+    private class RtpVideoSessionCallback extends VideoSessionCallback {
         @Override
-        public IBinder getBinder() {
-            return super.getBinder();
+        public void onOpenSessionFailure(int error) {
+            Log.e(TAG, "onOpenSessionFailure - error=" + error);
         }
 
         @Override
-        public void setExecutor(Executor executor) {
-            super.setExecutor(executor);
-        }
+        public void onOpenSessionSuccess(ImsMediaSession session) {
+            mVideoSession = (ImsVideoSession) session;
+            Log.d(TAG, "onOpenSessionSuccess: id=" + mVideoSession.getSessionId());
+            mIsVideoSessionOpened = true;
+            mIsPreviewSurfaceSet = false;
+            mIsDisplaySurfaceSet = false;
 
-        @Override
-        public void notifyMediaInactivity(int packetType) {
-            super.notifyMediaInactivity(packetType);
+            Thread updateSurface = new Thread(new Runnable() {
+                public void run() {
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            createTextureView();
+                        }
+                    });
+                }
+            });
+            updateSurface.start();
+            updateUI(ConnectionStatus.ACTIVE_CALL);
         }
-
-        @Override
-        public void notifyPacketLoss(int packetLossPercentage) {
-            super.notifyPacketLoss(packetLossPercentage);
-        }
-
-        @Override
-        public void notifyJitter(int jitter) {
-            super.notifyJitter(jitter);
-        }
-
     }
 
     private WifiInfo retrieveNetworkConfig() {
@@ -474,6 +764,39 @@ public class MainActivity extends AppCompatActivity {
         return ipBox.getText().toString();
     }
 
+    private int getVideoRemoteDevicePortEditText() {
+        EditText portBox = findViewById(R.id.remoteVideoPortNumberEditText);
+        return Integer.parseInt(portBox.getText().toString());
+    }
+
+    private String getVideoRemoteDeviceIpEditText() {
+        EditText ipBox = findViewById(R.id.videoRemoteDeviceIpEditText);
+        return ipBox.getText().toString();
+    }
+
+    private void createTextureView() {
+        mTexturePreview = (TextureView) findViewById(R.id.texturePreview);
+        assert mTexturePreview != null;
+        mTexturePreview.setSurfaceTextureListener(mPreviewListener);
+        if (mTexturePreview.isAvailable()) {
+            mTexturePreview.setLayoutParams(
+                    new FrameLayout.LayoutParams(RESOLUTION_WIDTH, RESOLUTION_HEIGHT,
+                            Gravity.CENTER));
+            mTexturePreview.getSurfaceTexture().setDefaultBufferSize(
+                    RESOLUTION_WIDTH, RESOLUTION_HEIGHT);
+        }
+        mTextureDisplay = (TextureView) findViewById(R.id.textureDisplay);
+        assert mTextureDisplay != null;
+        mTextureDisplay.setSurfaceTextureListener(mDisplayListener);
+        if (mTextureDisplay.isAvailable()) {
+            mTextureDisplay.setLayoutParams(
+                    new FrameLayout.LayoutParams(RESOLUTION_WIDTH, RESOLUTION_HEIGHT,
+                            Gravity.CENTER));
+            mTextureDisplay.getSurfaceTexture().setDefaultBufferSize(
+                    RESOLUTION_WIDTH, RESOLUTION_HEIGHT);
+        }
+    }
+
     /**
      * Opens two datagram sockets for audio rtp and rtcp, and a third for the
      * handshake between
@@ -481,20 +804,24 @@ public class MainActivity extends AppCompatActivity {
      *
      * @param openHandshakePort boolean value to open a port for the handshake.
      */
-    private void openRtpPorts(boolean openHandshakePort) {
+    private void openPorts(boolean openHandshakePort) {
+        Log.d(TAG, "openPorts");
         Executor socketBindingExecutor = Executors.newSingleThreadExecutor();
 
         Runnable bindSockets = () -> {
             try {
-                rtp = new DatagramSocket();
-                rtp.setReuseAddress(true);
-
-                rtcp = new DatagramSocket(rtp.getLocalPort() + 1);
-                rtcp.setReuseAddress(true);
+                mAudioRtp = new DatagramSocket();
+                mAudioRtp.setReuseAddress(true);
+                mAudioRtcp = new DatagramSocket(mAudioRtp.getLocalPort() + 1);
+                mAudioRtcp.setReuseAddress(true);
+                mVideoRtp = new DatagramSocket();
+                mVideoRtp.setReuseAddress(true);
+                mVideoRtcp = new DatagramSocket(mVideoRtp.getLocalPort() + 1);
+                mVideoRtcp.setReuseAddress(true);
 
                 if (openHandshakePort) {
-                    handshakeReceptionSocket = new HandshakeReceiver(prefs);
-                    handshakeReceptionSocket.run();
+                    mHandshakeReceptionSocket = new HandshakeReceiver(prefs);
+                    mHandshakeReceptionSocket.run();
                 }
             } catch (SocketException e) {
                 Log.e(TAG, e.toString());
@@ -509,18 +836,101 @@ public class MainActivity extends AppCompatActivity {
      * instantiated.
      */
     private void closePorts() {
-        if (handshakeReceptionSocket != null) {
-            handshakeReceptionSocket.close();
+        Log.d(TAG, "closePorts");
+        if (mHandshakeReceptionSocket != null) {
+            mHandshakeReceptionSocket.close();
         }
-
-        if (rtp != null) {
-            rtp.close();
+        if (mAudioRtp != null) {
+            mAudioRtp.close();
         }
-
-        if (rtcp != null) {
-            rtcp.close();
+        if (mAudioRtcp != null) {
+            mAudioRtcp.close();
+        }
+        if (mVideoRtp != null) {
+            mVideoRtp.close();
+        }
+        if (mVideoRtcp != null) {
+            mVideoRtcp.close();
         }
     }
+
+    /**
+     * texture view listener for preview
+     */
+    TextureView.SurfaceTextureListener mPreviewListener =
+            new TextureView.SurfaceTextureListener() {
+        @Override
+        public void onSurfaceTextureAvailable(SurfaceTexture surface, int width, int height) {
+            Log.d(TAG, "onSurfaceTextureAvailable - preview");
+
+            if (mIsVideoSessionOpened) {
+                surface.setDefaultBufferSize(RESOLUTION_WIDTH, RESOLUTION_HEIGHT);
+                Surface preview = new Surface(surface);
+                mVideoSession.setPreviewSurface(preview);
+            }
+        }
+
+        @Override
+        public void onSurfaceTextureSizeChanged(SurfaceTexture surface, int width, int height) {
+            Log.d(TAG, "onSurfaceTextureSizeChanged, width=" + width + ", height=" + height);
+        }
+
+        @Override
+        public boolean onSurfaceTextureDestroyed(SurfaceTexture surface) {
+            Log.d(TAG, "onSurfaceTextureDestroyed");
+            return false;
+        }
+
+        @Override
+        public void onSurfaceTextureUpdated(SurfaceTexture surface) {
+            Log.d(TAG, "onSurfaceTextureUpdated");
+            if (mIsVideoSessionOpened && !mIsPreviewSurfaceSet) {
+                surface.setDefaultBufferSize(RESOLUTION_WIDTH, RESOLUTION_HEIGHT);
+                Surface preview = new Surface(surface);
+                mVideoSession.setPreviewSurface(preview);
+                mIsPreviewSurfaceSet = true;
+            }
+        }
+    };
+
+    /**
+     * texture view listener for display
+     */
+    TextureView.SurfaceTextureListener mDisplayListener =
+            new TextureView.SurfaceTextureListener() {
+        @Override
+        public void onSurfaceTextureAvailable(SurfaceTexture surface, int width, int height) {
+            Log.d(TAG, "onSurfaceTextureAvailable - display");
+
+            if (mIsVideoSessionOpened) {
+                surface.setDefaultBufferSize(RESOLUTION_WIDTH, RESOLUTION_HEIGHT);
+                Surface display = new Surface(surface);
+                mVideoSession.setDisplaySurface(display);
+            }
+        }
+
+        @Override
+        public void onSurfaceTextureSizeChanged(SurfaceTexture surface, int width, int height) {
+            Log.d(TAG, "onSurfaceTextureSizeChanged, width=" + width + ", height=" + height);
+        }
+
+        @Override
+        public boolean onSurfaceTextureDestroyed(SurfaceTexture surface) {
+            Log.d(TAG, "onSurfaceTextureDestroyed");
+            return false;
+        }
+
+        @Override
+        public void onSurfaceTextureUpdated(SurfaceTexture surface) {
+            Log.d(TAG, "onSurfaceTextureUpdated");
+            if (mIsVideoSessionOpened && !mIsDisplaySurfaceSet) {
+                surface.setDefaultBufferSize(RESOLUTION_WIDTH, RESOLUTION_HEIGHT);
+                Surface display = new Surface(surface);
+                mVideoSession.setDisplaySurface(display);
+                mIsDisplaySurfaceSet = true;
+            }
+        }
+    };
 
     /**
      * After the ports are open this runnable is called to wait for in incoming
@@ -531,34 +941,36 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public void run() {
             try {
-                while (!handshakeReceptionSocket.isHandshakeReceived()) {
+                while (!mHandshakeReceptionSocket.isHandshakeReceived()) {
                     if (Thread.currentThread().isInterrupted()) {
                         throw new InterruptedException();
                     }
                 }
 
-                remoteDeviceInfo = handshakeReceptionSocket.getReceivedDeviceInfo();
+                mRemoteDeviceInfo = mHandshakeReceptionSocket.getReceivedDeviceInfo();
 
                 HandshakeSender handshakeSender = new HandshakeSender(
-                        remoteDeviceInfo.getInetAddress(), remoteDeviceInfo.getHandshakePort());
-                localDeviceInfo = createMyDeviceInfo();
-                handshakeSender.setData(localDeviceInfo);
+                        mRemoteDeviceInfo.getInetAddress(),
+                        mRemoteDeviceInfo.getHandshakePort());
+                mLocalDeviceInfo = createMyDeviceInfo();
+                handshakeSender.setData(mLocalDeviceInfo);
                 handshakeSender.run();
 
-                while (!handshakeReceptionSocket.isConfirmationReceived()) {
+                while (!mHandshakeReceptionSocket.isConfirmationReceived()) {
                     if (Thread.currentThread().isInterrupted()) {
                         throw new InterruptedException();
                     }
                 }
 
-                handshakeSender = new HandshakeSender(remoteDeviceInfo.getInetAddress(),
-                        remoteDeviceInfo.getHandshakePort());
+                handshakeSender = new HandshakeSender(mRemoteDeviceInfo.getInetAddress(),
+                        mRemoteDeviceInfo.getHandshakePort());
                 handshakeSender.setData(CONFIRMATION_MESSAGE);
                 handshakeSender.run();
                 Log.d(TAG, "Handshake has been completed. Devices are connected.");
                 editor.putString("OTHER_IP_ADDRESS",
-                        remoteDeviceInfo.getInetAddress().getHostName());
-                editor.putInt("OTHER_HANDSHAKE_PORT", remoteDeviceInfo.getRtpPort());
+                        mRemoteDeviceInfo.getInetAddress().getHostName());
+                editor.putInt("OTHER_HANDSHAKE_PORT",
+                        mRemoteDeviceInfo.getAudioRtpPort());
                 editor.apply();
                 updateUI(ConnectionStatus.CONNECTED);
             } catch (InterruptedException e) {
@@ -583,24 +995,14 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public void run() {
             try {
-                HandshakeSender sender = new HandshakeSender(
-                        InetAddress.getByName(getOtherDeviceIp()), getOtherDevicePort());
-                localDeviceInfo = createMyDeviceInfo();
-                sender.setData(localDeviceInfo);
+                HandshakeSender sender = new HandshakeSender(InetAddress.getByName(
+                        getOtherDeviceIp()), getOtherDevicePort());
+                mLocalDeviceInfo = createMyDeviceInfo();
+                sender.setData(mLocalDeviceInfo);
                 sender.run();
-
-                while (!handshakeReceptionSocket.isHandshakeReceived()) {
-
-                }
-                remoteDeviceInfo = handshakeReceptionSocket.getReceivedDeviceInfo();
-
+                mRemoteDeviceInfo = mHandshakeReceptionSocket.getReceivedDeviceInfo();
                 sender.setData(CONFIRMATION_MESSAGE);
                 sender.run();
-
-                while (!handshakeReceptionSocket.isConfirmationReceived()) {
-
-                }
-
                 Log.d(TAG, "Handshake successful, devices connected.");
                 updateUI(ConnectionStatus.CONNECTED);
             } catch (Exception e) {
@@ -619,13 +1021,18 @@ public class MainActivity extends AppCompatActivity {
         try {
             return new DeviceInfo.Builder()
                     .setInetAddress(InetAddress.getByName(getLocalIpAddress()))
-                    .setHandshakePort(handshakeReceptionSocket.getBoundSocket())
-                    .setRtpPort(rtp.getLocalPort())
-                    .setRtcpPort(rtcp.getLocalPort())
-                    .setAudioCodecs(selectedCodecTypes)
-                    .setAmrModes(selectedAmrModes)
-                    .setEvsBandwidths(selectedEvsBandwidths)
-                    .setEvsModes(selectedEvsModes)
+                    .setHandshakePort(mHandshakeReceptionSocket.getBoundSocket())
+                    .setAudioRtpPort(mAudioRtp.getLocalPort())
+                    .setVideoRtpPort(mVideoRtp.getLocalPort())
+                    .setAudioCodecs(mSelectedCodecTypes)
+                    .setAmrModes(mSelectedAmrModes)
+                    .setEvsBandwidths(mSelectedEvsBandwidths)
+                    .setEvsModes(mSelectedEvsModes)
+                    .setVideoCodec(mSelectedVideoCodec)
+                    .setVideoResolutionWidth(RESOLUTION_WIDTH)
+                    .setVideoResolutionHeight(RESOLUTION_HEIGHT)
+                    .setVideoCvoValue(mSelectedCvoValue)
+                    .setRtcpFbTypes(mSelectedRtcpFbTypes)
                     .build();
 
         } catch (UnknownHostException e) {
@@ -635,12 +1042,12 @@ public class MainActivity extends AppCompatActivity {
     }
 
     /**
-     * Updates the connectionStatus and restyles the UI
+     * Updates the mConnectionStatus and restyles the UI
      *
      * @param newStatus The new ConnectionStatus used to style the UI
      */
     public void updateUI(ConnectionStatus newStatus) {
-        connectionStatus = newStatus;
+        mConnectionStatus = newStatus;
         styleMainActivity();
     }
 
@@ -651,9 +1058,22 @@ public class MainActivity extends AppCompatActivity {
      *
      * @return the InetSocketAddress of the remote device
      */
-    private InetSocketAddress getRemoteSocketAddress() {
-        int remotePort = remoteDeviceInfo.getRtpPort();
-        InetAddress remoteInetAddress = remoteDeviceInfo.getInetAddress();
+    private InetSocketAddress getRemoteAudioSocketAddress() {
+        int remotePort = mRemoteDeviceInfo.getAudioRtpPort();
+        InetAddress remoteInetAddress = mRemoteDeviceInfo.getInetAddress();
+        return new InetSocketAddress(remoteInetAddress, remotePort);
+    }
+
+    /**
+     * Creates and returns an InetSocketAddress from the remote device that is
+     * connected to the
+     * local device.
+     *
+     * @return the InetSocketAddress of the remote device
+     */
+    private InetSocketAddress getRemoteVideoSocketAddress() {
+        int remotePort = mRemoteDeviceInfo.getVideoRtpPort();
+        InetAddress remoteInetAddress = mRemoteDeviceInfo.getInetAddress();
         return new InetSocketAddress(remoteInetAddress, remotePort);
     }
 
@@ -666,7 +1086,7 @@ public class MainActivity extends AppCompatActivity {
     private RtcpConfig getRemoteRtcpConfig() {
         return new RtcpConfig.Builder()
                 .setCanonicalName("rtp config")
-                .setTransmitPort(remoteDeviceInfo.getRtpPort() + 1)
+                .setTransmitPort(mRemoteDeviceInfo.getAudioRtpPort() + 1)
                 .setIntervalSec(5)
                 .setRtcpXrBlockTypes(0)
                 .build();
@@ -694,8 +1114,8 @@ public class MainActivity extends AppCompatActivity {
                     .setRtcpConfig(rtcpConfig)
                     .setMaxMtuBytes(MAX_MTU_BYTES)
                     .setDscp((byte) DSCP)
-                    .setRxPayloadTypeNumber((byte) RX_PAYLOAD_TYPE_NUMBER)
-                    .setTxPayloadTypeNumber((byte) TX_PAYLOAD_TYPE_NUMBER)
+                    .setRxPayloadTypeNumber((byte) AUDIO_RX_PAYLOAD_TYPE_NUMBER)
+                    .setTxPayloadTypeNumber((byte) AUDIO_TX_PAYLOAD_TYPE_NUMBER)
                     .setSamplingRateKHz((byte) SAMPLING_RATE_KHZ)
                     .setPtimeMillis((byte) P_TIME_MILLIS)
                     .setMaxPtimeMillis((byte) MAX_P_TIME_MILLIS)
@@ -717,8 +1137,8 @@ public class MainActivity extends AppCompatActivity {
                     .setRtcpConfig(rtcpConfig)
                     .setMaxMtuBytes(MAX_MTU_BYTES)
                     .setDscp((byte) DSCP)
-                    .setRxPayloadTypeNumber((byte) RX_PAYLOAD_TYPE_NUMBER)
-                    .setTxPayloadTypeNumber((byte) TX_PAYLOAD_TYPE_NUMBER)
+                    .setRxPayloadTypeNumber((byte) AUDIO_RX_PAYLOAD_TYPE_NUMBER)
+                    .setTxPayloadTypeNumber((byte) AUDIO_TX_PAYLOAD_TYPE_NUMBER)
                     .setSamplingRateKHz((byte) SAMPLING_RATE_KHZ)
                     .setPtimeMillis((byte) P_TIME_MILLIS)
                     .setMaxPtimeMillis((byte) MAX_P_TIME_MILLIS)
@@ -738,8 +1158,8 @@ public class MainActivity extends AppCompatActivity {
                     .setRtcpConfig(rtcpConfig)
                     .setMaxMtuBytes(MAX_MTU_BYTES)
                     .setDscp((byte) DSCP)
-                    .setRxPayloadTypeNumber((byte) RX_PAYLOAD_TYPE_NUMBER)
-                    .setTxPayloadTypeNumber((byte) TX_PAYLOAD_TYPE_NUMBER)
+                    .setRxPayloadTypeNumber((byte) AUDIO_RX_PAYLOAD_TYPE_NUMBER)
+                    .setTxPayloadTypeNumber((byte) AUDIO_TX_PAYLOAD_TYPE_NUMBER)
                     .setSamplingRateKHz((byte) SAMPLING_RATE_KHZ)
                     .setPtimeMillis((byte) P_TIME_MILLIS)
                     .setMaxPtimeMillis((byte) MAX_P_TIME_MILLIS)
@@ -750,6 +1170,40 @@ public class MainActivity extends AppCompatActivity {
                     .setCodecType(audioCodec)
                     .build();
         }
+        return config;
+    }
+
+    private VideoConfig createVideoConfig(InetSocketAddress remoteRtpAddress,
+            RtcpConfig rtcpConfig, int codecType, int videoMode, int framerate, int bitrate,
+            int profile, int level, int cameraId, int cameraZoom, int deviceOrientation, int cvo,
+            int rtcpFbTypes) {
+        VideoConfig config = new VideoConfig.Builder()
+                .setMediaDirection(RtpConfig.MEDIA_DIRECTION_TRANSMIT_RECEIVE)
+                .setAccessNetwork(AccessNetworkType.EUTRAN)
+                .setRemoteRtpAddress(remoteRtpAddress)
+                .setRtcpConfig(rtcpConfig)
+                .setMaxMtuBytes(MAX_MTU_BYTES)
+                .setDscp((byte) DSCP)
+                .setRxPayloadTypeNumber((byte) VIDEO_RX_PAYLOAD_TYPE_NUMBER)
+                .setTxPayloadTypeNumber((byte) VIDEO_TX_PAYLOAD_TYPE_NUMBER)
+                .setSamplingRateKHz((byte) 90)
+                .setCodecType(codecType)
+                .setVideoMode(videoMode)
+                .setFramerate(framerate)
+                .setBitrate(bitrate)
+                .setCodecProfile(profile)
+                .setCodecLevel(level)
+                .setIntraFrameIntervalSec(IDR_INTERVAL)
+                .setPacketizationMode(VideoConfig.MODE_NON_INTERLEAVED)
+                .setCameraId(cameraId)
+                .setCameraZoom(cameraZoom)
+                .setResolutionWidth(RESOLUTION_WIDTH)
+                .setResolutionHeight(RESOLUTION_HEIGHT)
+                .setPauseImagePath(IMAGE)
+                .setDeviceOrientationDegree(deviceOrientation)
+                .setCvoValue(cvo)
+                .setRtcpFbTypes(rtcpFbTypes)
+                .build();
         return config;
     }
 
@@ -861,7 +1315,7 @@ public class MainActivity extends AppCompatActivity {
      */
     private AudioConfig createAudioConfig(int audioCodec, AmrParams amrParams,
             EvsParams evsParams) {
-        AudioConfig audioConfig = null;
+        AudioConfig mAudioConfig = null;
         // TODO - evs params must be present to hear audio currently, regardless of
         // codec
         EvsParams mEvs = new EvsParams.Builder()
@@ -875,24 +1329,48 @@ public class MainActivity extends AppCompatActivity {
         switch (audioCodec) {
             case CodecType.AMR:
             case CodecType.AMR_WB:
-                audioConfig = createAudioConfig(getRemoteSocketAddress(), getRemoteRtcpConfig(),
-                        audioCodec, amrParams, mEvs);
+                mAudioConfig = createAudioConfig(getRemoteAudioSocketAddress(),
+                        getRemoteRtcpConfig(), audioCodec, amrParams, mEvs);
                 break;
 
             case CodecType.EVS:
-                audioConfig = createAudioConfig(getRemoteSocketAddress(), getRemoteRtcpConfig(),
-                        audioCodec, null, evsParams);
+                mAudioConfig = createAudioConfig(getRemoteAudioSocketAddress(),
+                        getRemoteRtcpConfig(), audioCodec, null, evsParams);
                 break;
 
             case CodecType.PCMA:
             case CodecType.PCMU:
-                audioConfig = createAudioConfig(getRemoteSocketAddress(), getRemoteRtcpConfig(),
-                        audioCodec, null, null);
+                mAudioConfig = createAudioConfig(getRemoteAudioSocketAddress(),
+                        getRemoteRtcpConfig(), audioCodec, null, null);
                 break;
 
         }
 
-        return audioConfig;
+        return mAudioConfig;
+    }
+
+    /**
+     * Creates an VideoConfig object depending on the passed parameters and returns
+     * it.
+     *
+     * @param videoCodec Integer value of the CodecType
+     * @return an VideoConfig with the passed parameters and default values.
+     */
+    private VideoConfig createVideoConfig(int codecType, int videoMode, int framerate, int bitrate,
+            int profile, int level, int cameraId, int cameraZoom, int deviceOrientation, int cvo,
+            int rtcpFbTypes) {
+        VideoConfig mVideoConfig = null;
+
+        switch (codecType) {
+            case VideoConfig.VIDEO_CODEC_AVC:
+            case VideoConfig.VIDEO_CODEC_HEVC:
+                mVideoConfig = createVideoConfig(getRemoteVideoSocketAddress(),
+                        getRemoteRtcpConfig(), codecType, videoMode, framerate, bitrate, profile,
+                        level, cameraId, cameraZoom, deviceOrientation, cvo, rtcpFbTypes);
+                break;
+        }
+
+        return mVideoConfig;
     }
 
     /**
@@ -901,8 +1379,8 @@ public class MainActivity extends AppCompatActivity {
      * @param view the view form the button click
      */
     public void openDialer(View view) {
-        if (!bottomSheetDialog.isOpen()) {
-            bottomSheetDialog.show();
+        if (!mBottomSheetDialog.isOpen()) {
+            mBottomSheetDialog.show();
         }
     }
 
@@ -914,12 +1392,12 @@ public class MainActivity extends AppCompatActivity {
      */
     public void sendDtmfOnClick(View view) {
         char digit = ((Button) view).getText().toString().charAt(0);
-        dtmfInput.append(digit);
+        mDtmfInput.append(digit);
 
-        TextView dtmfInputBox = bottomSheetDialog.getDtmfInput();
-        dtmfInputBox.setText(dtmfInput.toString());
+        TextView mDtmfInputBox = mBottomSheetDialog.getDtmfInput();
+        mDtmfInputBox.setText(mDtmfInput.toString());
 
-        audioSession.sendDtmf(digit, DTMF_DURATION);
+        mAudioSession.sendDtmf(digit, DTMF_DURATION);
     }
 
     /**
@@ -928,9 +1406,9 @@ public class MainActivity extends AppCompatActivity {
      * @param view the view from the button click
      */
     public void clearDtmfInputOnClick(View view) {
-        dtmfInput.setLength(0);
-        TextView dtmfInputBox = bottomSheetDialog.getDtmfInput();
-        dtmfInputBox.setText(getString(R.string.dtmfInputPlaceholder));
+        mDtmfInput.setLength(0);
+        TextView mDtmfInputBox = mBottomSheetDialog.getDtmfInput();
+        mDtmfInputBox.setText(getString(R.string.dtmfInputPlaceholder));
     }
 
     /**
@@ -948,13 +1426,20 @@ public class MainActivity extends AppCompatActivity {
 
     /**
      * Calls closeSession() on ImsMediaManager and resets the flag on
-     * isOpenSessionSent
+     * mIsOpenSessionSent
      *
      * @param view the view from the button click
      */
     public void closeSessionOnClick(View view) {
-        imsMediaManager.closeSession(audioSession);
-        isOpenSessionSent = false;
+        Log.d(TAG, "closeSessionOnClick");
+        if (mIsOpenSessionSent) {
+            mImsMediaManager.closeSession(mAudioSession);
+            mIsOpenSessionSent = false;
+        }
+        if (mIsVideoSessionOpened) {
+            mImsMediaManager.closeSession(mVideoSession);
+            mIsVideoSessionOpened = false;
+        }
     }
 
     /**
@@ -971,28 +1456,22 @@ public class MainActivity extends AppCompatActivity {
                 .inflate(R.menu.media_direction_menu, mediaDirectionMenu.getMenu());
         mediaDirectionMenu.setOnMenuItemClickListener(item -> {
             switch (item.getItemId()) {
-
                 case R.id.noFlowDirectionMenuItem:
-                    audioConfig.setMediaDirection(AudioConfig.MEDIA_DIRECTION_NO_FLOW);
+                    mAudioConfig.setMediaDirection(AudioConfig.MEDIA_DIRECTION_NO_FLOW);
                     break;
-
                 case R.id.transmitReceiveDirectionMenuItem:
-                    audioConfig.setMediaDirection(AudioConfig.MEDIA_DIRECTION_TRANSMIT_RECEIVE);
+                    mAudioConfig.setMediaDirection(AudioConfig.MEDIA_DIRECTION_TRANSMIT_RECEIVE);
                     break;
-
                 case R.id.receiveOnlyDirectionMenuItem:
-                    audioConfig.setMediaDirection(AudioConfig.MEDIA_DIRECTION_RECEIVE_ONLY);
+                    mAudioConfig.setMediaDirection(AudioConfig.MEDIA_DIRECTION_RECEIVE_ONLY);
                     break;
-
                 case R.id.transmitOnlyDirectionMenuItem:
-                    audioConfig.setMediaDirection(AudioConfig.MEDIA_DIRECTION_TRANSMIT_ONLY);
+                    mAudioConfig.setMediaDirection(AudioConfig.MEDIA_DIRECTION_TRANSMIT_ONLY);
                     break;
-
                 default:
                     return false;
             }
-
-            audioSession.modifySession(audioConfig);
+            mAudioSession.modifySession(mAudioConfig);
             return true;
         });
         mediaDirectionMenu.show();
@@ -1004,8 +1483,8 @@ public class MainActivity extends AppCompatActivity {
      * @param view the view form the button click
      */
     public void openChangeAudioCodecSheet(View view) {
-        if (!bottomSheetAudioCodecSettings.isOpen()) {
-            bottomSheetAudioCodecSettings.show();
+        if (!mBottomSheetAudioCodecSettings.isOpen()) {
+            mBottomSheetAudioCodecSettings.show();
         }
     }
 
@@ -1015,20 +1494,39 @@ public class MainActivity extends AppCompatActivity {
      * @param view the view from the button click
      */
     public void openSessionOnClick(View view) {
-        if (isMediaManagerReady && !isOpenSessionSent) {
+        Log.d(TAG, "openSessionOnClick()");
+        if (mIsMediaManagerReady && !mIsOpenSessionSent) {
 
             Toast.makeText(getApplicationContext(), getString(R.string.connecting_call_toast_text),
                     Toast.LENGTH_SHORT).show();
 
-            audioConfig = determineAudioConfig(localDeviceInfo, remoteDeviceInfo);
-            Log.d(TAG, audioConfig.toString());
+            mAudioConfig = determineAudioConfig(mLocalDeviceInfo, mRemoteDeviceInfo);
+            Log.d(TAG, "AudioConfig: " + mAudioConfig.toString());
 
-            RtpAudioSessionCallback sessionCallback = new RtpAudioSessionCallback();
-            imsMediaManager.openSession(rtp, rtcp, ImsMediaSession.SESSION_TYPE_AUDIO,
-                    audioConfig, executor, sessionCallback);
-            Log.d(TAG, "openSession(): " + remoteDeviceInfo.getInetAddress() + ":" +
-                    remoteDeviceInfo.getRtpPort());
-            Log.d(TAG, "AudioConfig: " + audioConfig.toString());
+            int rtcpfbTypes = 0;
+            for (int types : mSelectedRtcpFbTypes) {
+                rtcpfbTypes |= types;
+            }
+
+            mVideoConfig = createVideoConfig(mSelectedVideoCodec, mSelectedVideoMode,
+                    mSelectedFramerate, mSelectedBitrate, mSelectedCodecProfile,
+                    mSelectedCodecLevel, mSelectedCameraId, mSelectedCameraZoom,
+                    mSelectedDeviceOrientationDegree,
+                    mSelectedCvoValue, rtcpfbTypes);
+            Log.d(TAG, "VideoConfig: " + mVideoConfig.toString());
+
+            RtpAudioSessionCallback sessionAudioCallback = new RtpAudioSessionCallback();
+            mImsMediaManager.openSession(mAudioRtp, mAudioRtcp,
+                    ImsMediaSession.SESSION_TYPE_AUDIO,
+                    mAudioConfig, mExecutor, sessionAudioCallback);
+            Log.d(TAG, "openSession(): audio=" + mRemoteDeviceInfo.getInetAddress() + ":"
+                    + mRemoteDeviceInfo.getAudioRtpPort());
+
+            RtpVideoSessionCallback sessionVideoCallback = new RtpVideoSessionCallback();
+            mImsMediaManager.openSession(mVideoRtp, mVideoRtcp, ImsMediaSession.SESSION_TYPE_VIDEO,
+                    mVideoConfig, mExecutor, sessionVideoCallback);
+            Log.d(TAG, "openSession(): video=" + mRemoteDeviceInfo.getInetAddress() + ":"
+                    + mRemoteDeviceInfo.getVideoRtpPort());
         }
     }
 
@@ -1040,11 +1538,58 @@ public class MainActivity extends AppCompatActivity {
     public void saveSettingsOnClick(View view) {
         int port = getRemoteDevicePortEditText();
         String ip = getRemoteDeviceIpEditText();
-
         editor.putInt("OTHER_HANDSHAKE_PORT", port);
         editor.putString("OTHER_IP_ADDRESS", ip);
         editor.apply();
+        Toast.makeText(getApplicationContext(), R.string.save_button_action_toast,
+                Toast.LENGTH_SHORT).show();
+    }
 
+    /**
+     * Saves the inputted ip address and video port number to SharedPreferences.
+     *
+     * @param view the view from the button click
+     */
+    public void saveVideoSettingsOnClick(View view) {
+        int port = getVideoRemoteDevicePortEditText();
+        String ip = getVideoRemoteDeviceIpEditText();
+        editor.putInt("OTHER_HANDSHAKE_VIDEO_PORT", port);
+        editor.putString("OTHER_VIDEO_IP_ADDRESS", ip);
+        editor.apply();
+
+        Spinner videoCodecSpinner = findViewById(R.id.spinnerVideoCodecs);
+        Spinner videoCodecProfileSpinner = findViewById(R.id.spinnerVideoCodecProfiles);
+        Spinner videoCodecLevelSpinner = findViewById(R.id.spinnerVideoCodecLevels);
+        Spinner videoModeSpinner = findViewById(R.id.spinnerVideoModes);
+        Spinner videoCameraIdSpinner = findViewById(R.id.spinnerVideoCameraIds);
+        Spinner videoCameraZoomSpinner = findViewById(R.id.spinnerVideoCameraZoom);
+        Spinner videoFramerateSpinner = findViewById(R.id.spinnerVideoFramerates);
+        Spinner videoBitrateSpinner = findViewById(R.id.spinnerVideoBitrates);
+        Spinner videoDeviceOrientationSpinner = findViewById(R.id.spinnerVideoDeviceOrientations);
+        Spinner videoCvoValueSpinner = findViewById(R.id.spinnerVideoCvoValues);
+
+        mSelectedVideoCodec =
+                ((VideoCodecEnum) videoCodecSpinner.getSelectedItem()).getValue();
+        mSelectedCodecProfile =
+                ((VideoCodecProfileEnum) videoCodecProfileSpinner.getSelectedItem()).getValue();
+        mSelectedCodecLevel =
+                ((VideoCodecLevelEnum) videoCodecLevelSpinner.getSelectedItem()).getValue();
+        mSelectedVideoMode =
+                ((VideoModeEnum) videoModeSpinner.getSelectedItem()).getValue();
+        mSelectedCameraId =
+                ((VideoCameraIdEnum) videoCameraIdSpinner.getSelectedItem()).getValue();
+        mSelectedCameraZoom =
+                ((VideoCameraZoomEnum) videoCameraZoomSpinner.getSelectedItem()).getValue();
+        mSelectedFramerate =
+                ((VideoFramerateEnum) videoFramerateSpinner.getSelectedItem()).getValue();
+        mSelectedBitrate =
+                ((VideoBitrateEnum) videoBitrateSpinner.getSelectedItem()).getValue();
+        mSelectedDeviceOrientationDegree =
+                ((VideoDeviceOrientationEnum) videoDeviceOrientationSpinner
+                .getSelectedItem())
+                .getValue();
+        mSelectedCvoValue = ((VideoCvoValueEnum) videoCvoValueSpinner.getSelectedItem())
+                .getValue();
         Toast.makeText(getApplicationContext(), R.string.save_button_action_toast,
                 Toast.LENGTH_SHORT).show();
     }
@@ -1060,40 +1605,40 @@ public class MainActivity extends AppCompatActivity {
         AudioConfig config = null;
         AmrParams amrParams;
         EvsParams evsParams;
-        int audioCodec = bottomSheetAudioCodecSettings.getAudioCodec();
+        int audioCodec = mBottomSheetAudioCodecSettings.getAudioCodec();
 
         switch (audioCodec) {
             case CodecType.AMR:
             case CodecType.AMR_WB:
-                amrParams = createAmrParams(bottomSheetAudioCodecSettings.getAmrMode());
-                config = createAudioConfig(getRemoteSocketAddress(), getRemoteRtcpConfig(),
+                amrParams = createAmrParams(mBottomSheetAudioCodecSettings.getAmrMode());
+                config = createAudioConfig(getRemoteAudioSocketAddress(), getRemoteRtcpConfig(),
                         audioCodec, amrParams, null);
                 Log.d(TAG, String.format("AudioConfig switched to Codec: %s\t Params: %s",
-                        bottomSheetAudioCodecSettings.getAudioCodec(),
+                        mBottomSheetAudioCodecSettings.getAudioCodec(),
                         config.getAmrParams().toString()));
                 break;
 
             case CodecType.EVS:
-                evsParams = createEvsParams(bottomSheetAudioCodecSettings.getEvsBand(),
-                        bottomSheetAudioCodecSettings.getEvsMode());
-                config = createAudioConfig(getRemoteSocketAddress(), getRemoteRtcpConfig(),
+                evsParams = createEvsParams(mBottomSheetAudioCodecSettings.getEvsBand(),
+                        mBottomSheetAudioCodecSettings.getEvsMode());
+                config = createAudioConfig(getRemoteAudioSocketAddress(), getRemoteRtcpConfig(),
                         audioCodec, null, evsParams);
                 Log.d(TAG, String.format("AudioConfig switched to Codec: %s\t Params: %s",
-                        bottomSheetAudioCodecSettings.getAudioCodec(),
+                        mBottomSheetAudioCodecSettings.getAudioCodec(),
                         config.getEvsParams().toString()));
                 break;
 
             case CodecType.PCMA:
             case CodecType.PCMU:
-                config = createAudioConfig(getRemoteSocketAddress(), getRemoteRtcpConfig(),
+                config = createAudioConfig(getRemoteAudioSocketAddress(), getRemoteRtcpConfig(),
                         audioCodec, null, null);
                 Log.d(TAG, String.format("AudioConfig switched to Codec: %s",
-                        bottomSheetAudioCodecSettings.getAudioCodec()));
+                        mBottomSheetAudioCodecSettings.getAudioCodec()));
                 break;
         }
 
-        audioSession.modifySession(config);
-        bottomSheetAudioCodecSettings.dismiss();
+        mAudioSession.modifySession(config);
+        mBottomSheetAudioCodecSettings.dismiss();
     }
 
     /**
@@ -1103,17 +1648,17 @@ public class MainActivity extends AppCompatActivity {
      * @param view the view from, the button click
      */
     public void loopbackOnClick(View view) {
-        SwitchCompat loopbackSwitch = findViewById(R.id.loopbackModeSwitch);
-        if (loopbackSwitch.isChecked()) {
-            openRtpPorts(true);
+        SwitchCompat mLoopbackSwitch = findViewById(R.id.loopbackModeSwitch);
+        if (mLoopbackSwitch.isChecked()) {
+            openPorts(true);
             editor.putString("OTHER_IP_ADDRESS", getLocalIpAddress()).apply();
-            remoteDeviceInfo = createMyDeviceInfo();
-            localDeviceInfo = createMyDeviceInfo();
-            loopbackModeEnabled = true;
+            mRemoteDeviceInfo = createMyDeviceInfo();
+            mLocalDeviceInfo = createMyDeviceInfo();
+            mLoopbackModeEnabled = true;
             updateUI(ConnectionStatus.CONNECTED);
         } else {
             closePorts();
-            loopbackModeEnabled = false;
+            mLoopbackModeEnabled = false;
             updateUI(ConnectionStatus.OFFLINE);
         }
     }
@@ -1135,7 +1680,7 @@ public class MainActivity extends AppCompatActivity {
                     Toast.LENGTH_SHORT).show();
             updateUI(ConnectionStatus.OFFLINE);
         } else {
-            openRtpPorts(true);
+            openPorts(true);
             while (!prefs.getBoolean(HANDSHAKE_PORT_PREF, false)) {
             }
             Log.d(TAG, "Handshake, rtp, and rtcp ports have been bound.");
@@ -1143,8 +1688,8 @@ public class MainActivity extends AppCompatActivity {
             Toast.makeText(getApplicationContext(), getString(R.string.allowing_calls_toast_text),
                     Toast.LENGTH_SHORT).show();
 
-            waitForHandshakeThread = new Thread(handleIncomingHandshake);
-            waitForHandshakeThread.start();
+            mWaitForHandshakeThread = new Thread(handleIncomingHandshake);
+            mWaitForHandshakeThread.start();
             updateUI(ConnectionStatus.DISCONNECTED);
         }
     }
@@ -1156,7 +1701,7 @@ public class MainActivity extends AppCompatActivity {
      * @param view view from the button click
      */
     public void initiateHandshakeOnClick(View view) {
-        waitForHandshakeThread.interrupt();
+        mWaitForHandshakeThread.interrupt();
         Thread initiateHandshakeThread = new Thread(initiateHandshake);
         initiateHandshakeThread.start();
         updateUI(ConnectionStatus.CONNECTING);
@@ -1175,6 +1720,28 @@ public class MainActivity extends AppCompatActivity {
         setupCodecSelectionOnClickListeners();
     }
 
+    private int getSpinnerIndex(Spinner spinner, int value) {
+        int index = 0;
+        for (int i = 0; i < spinner.getCount(); i++) {
+            if (spinner.getItemAtPosition(i).equals(value)) {
+                index = i;
+            }
+        }
+        return index;
+    }
+
+    /**
+     * Handles the styling of the video settings layout.
+     */
+    public void setupVideoSettingsPage() {
+        EditText ipAddress = findViewById(R.id.videoRemoteDeviceIpEditText);
+        EditText portNumber = findViewById(R.id.remoteVideoPortNumberEditText);
+        ipAddress.setText(prefs.getString("OTHER_IP_ADDRESS", ""));
+        portNumber.setText(String.valueOf(prefs.getInt("OTHER_HANDSHAKE_PORT", 0)));
+
+        setupVideoCodecSelectionLists();
+    }
+
     /**
      * Gets the saved user selections for the audio codec settings and updates the
      * UI's lists to
@@ -1189,7 +1756,7 @@ public class MainActivity extends AppCompatActivity {
         codecTypeList.setAdapter(codecTypeAdapter);
         for (int i = 0; i < codecTypeAdapter.getCount(); i++) {
             CodecTypeEnum mode = (CodecTypeEnum) codecTypeList.getItemAtPosition(i);
-            codecTypeList.setItemChecked(i, selectedCodecTypes.contains(mode.getValue()));
+            codecTypeList.setItemChecked(i, mSelectedCodecTypes.contains(mode.getValue()));
         }
 
         ArrayAdapter<EvsBandwidthEnum> evsBandAdaptor = new ArrayAdapter<>(
@@ -1198,7 +1765,7 @@ public class MainActivity extends AppCompatActivity {
         evsBandwidthList.setAdapter(evsBandAdaptor);
         for (int i = 0; i < evsBandAdaptor.getCount(); i++) {
             EvsBandwidthEnum mode = (EvsBandwidthEnum) evsBandwidthList.getItemAtPosition(i);
-            evsBandwidthList.setItemChecked(i, selectedEvsBandwidths.contains(mode.getValue()));
+            evsBandwidthList.setItemChecked(i, mSelectedEvsBandwidths.contains(mode.getValue()));
         }
 
         ArrayAdapter<AmrModeEnum> amrModeAdapter = new ArrayAdapter<>(
@@ -1207,7 +1774,7 @@ public class MainActivity extends AppCompatActivity {
         amrModesList.setAdapter(amrModeAdapter);
         for (int i = 0; i < amrModeAdapter.getCount(); i++) {
             AmrModeEnum mode = (AmrModeEnum) amrModesList.getItemAtPosition(i);
-            amrModesList.setItemChecked(i, selectedAmrModes.contains(mode.getValue()));
+            amrModesList.setItemChecked(i, mSelectedAmrModes.contains(mode.getValue()));
         }
 
         ArrayAdapter<EvsModeEnum> evsModeAdaptor = new ArrayAdapter<>(
@@ -1216,19 +1783,109 @@ public class MainActivity extends AppCompatActivity {
         evsModeList.setAdapter(evsModeAdaptor);
         for (int i = 0; i < evsModeAdaptor.getCount(); i++) {
             EvsModeEnum mode = (EvsModeEnum) evsModeList.getItemAtPosition(i);
-            evsModeList.setItemChecked(i, selectedEvsModes.contains(mode.getValue()));
+            evsModeList.setItemChecked(i, mSelectedEvsModes.contains(mode.getValue()));
         }
+    }
+
+    private void setupVideoCodecSelectionLists() {
+        Spinner videoCodecSpinner = findViewById(R.id.spinnerVideoCodecs);
+        ArrayAdapter<VideoCodecEnum> videoCodecAdaptor = new ArrayAdapter<>(
+                this, android.R.layout.simple_spinner_item, VideoCodecEnum.values());
+        videoCodecAdaptor.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        videoCodecSpinner.setAdapter(videoCodecAdaptor);
+        videoCodecSpinner.setSelection(getSpinnerIndex(videoCodecSpinner, mSelectedVideoCodec));
+
+        Spinner videoCodecProfileSpinner = findViewById(R.id.spinnerVideoCodecProfiles);
+        ArrayAdapter<VideoCodecProfileEnum> videoCodecProfileAdaptor = new ArrayAdapter<>(
+                this, android.R.layout.simple_spinner_item, VideoCodecProfileEnum.values());
+        videoCodecProfileAdaptor.setDropDownViewResource(
+                android.R.layout.simple_spinner_dropdown_item);
+        videoCodecProfileSpinner.setAdapter(videoCodecProfileAdaptor);
+        videoCodecProfileSpinner.setSelection(getSpinnerIndex(videoCodecProfileSpinner,
+                mSelectedCodecProfile));
+
+        Spinner videoCodecLevelSpinner = findViewById(R.id.spinnerVideoCodecLevels);
+        ArrayAdapter<VideoCodecLevelEnum> videoCodecLevelAdaptor = new ArrayAdapter<>(
+                this, android.R.layout.simple_spinner_item, VideoCodecLevelEnum.values());
+        videoCodecLevelAdaptor.setDropDownViewResource(
+                android.R.layout.simple_spinner_dropdown_item);
+        videoCodecLevelSpinner.setAdapter(videoCodecLevelAdaptor);
+        videoCodecLevelSpinner.setSelection(getSpinnerIndex(videoCodecLevelSpinner,
+                mSelectedCodecLevel));
+
+        Spinner videoModeSpinner = findViewById(R.id.spinnerVideoModes);
+        ArrayAdapter<VideoModeEnum> videoModeAdapter = new ArrayAdapter<>(
+                this, android.R.layout.simple_spinner_item, VideoModeEnum.values());
+        videoModeAdapter.setDropDownViewResource(
+                android.R.layout.simple_spinner_dropdown_item);
+        videoModeSpinner.setAdapter(videoModeAdapter);
+        videoModeSpinner.setSelection(getSpinnerIndex(videoModeSpinner, mSelectedVideoMode));
+
+        Spinner videoCameraIdSpinner = findViewById(R.id.spinnerVideoCameraIds);
+        ArrayAdapter<VideoCameraIdEnum> videoCameraIdAdaptor = new ArrayAdapter<>(
+                this, android.R.layout.simple_spinner_item, VideoCameraIdEnum.values());
+        videoCameraIdAdaptor.setDropDownViewResource(
+                android.R.layout.simple_spinner_dropdown_item);
+        videoCameraIdSpinner.setAdapter(videoCameraIdAdaptor);
+        videoCameraIdSpinner.setSelection(getSpinnerIndex(videoCameraIdSpinner, mSelectedCameraId));
+
+        Spinner videoCameraZoomSpinner = findViewById(R.id.spinnerVideoCameraZoom);
+        ArrayAdapter<VideoCameraZoomEnum> videoCameraZoomAdaptor = new ArrayAdapter<>(
+                this, android.R.layout.simple_spinner_item, VideoCameraZoomEnum.values());
+        videoCameraZoomAdaptor.setDropDownViewResource(
+                android.R.layout.simple_spinner_dropdown_item);
+        videoCameraZoomSpinner.setAdapter(videoCameraZoomAdaptor);
+        videoCameraZoomSpinner.setSelection(getSpinnerIndex(videoCameraZoomSpinner,
+                mSelectedCameraZoom));
+
+        Spinner videoFramerateSpinner = findViewById(R.id.spinnerVideoFramerates);
+        ArrayAdapter<VideoFramerateEnum> videoFramerateAdaptor = new ArrayAdapter<>(
+                this, android.R.layout.simple_spinner_item, VideoFramerateEnum.values());
+        videoFramerateAdaptor.setDropDownViewResource(
+                android.R.layout.simple_spinner_dropdown_item);
+        videoFramerateSpinner.setAdapter(videoFramerateAdaptor);
+        videoFramerateSpinner.setSelection(getSpinnerIndex(videoFramerateSpinner,
+                mSelectedFramerate));
+
+        Spinner videoBitrateSpinner = findViewById(R.id.spinnerVideoBitrates);
+        ArrayAdapter<VideoBitrateEnum> videoBitrateAdaptor = new ArrayAdapter<>(
+                this, android.R.layout.simple_spinner_item, VideoBitrateEnum.values());
+        videoBitrateAdaptor.setDropDownViewResource(
+                android.R.layout.simple_spinner_dropdown_item);
+        videoBitrateSpinner.setAdapter(videoBitrateAdaptor);
+        videoBitrateSpinner.setSelection(getSpinnerIndex(videoBitrateSpinner, mSelectedBitrate));
+
+        Spinner videoDeviceOrientationSpinner = findViewById(R.id.spinnerVideoDeviceOrientations);
+        ArrayAdapter<VideoDeviceOrientationEnum> videoDeviceOrientationAdaptor = new ArrayAdapter<>(
+                this, android.R.layout.simple_spinner_item, VideoDeviceOrientationEnum.values());
+        videoDeviceOrientationAdaptor.setDropDownViewResource(
+                android.R.layout.simple_spinner_dropdown_item);
+        videoDeviceOrientationSpinner.setAdapter(videoDeviceOrientationAdaptor);
+        videoDeviceOrientationSpinner.setSelection(getSpinnerIndex(videoDeviceOrientationSpinner,
+                mSelectedDeviceOrientationDegree));
+
+        Spinner videoCvoValueSpinner = findViewById(R.id.spinnerVideoCvoValues);
+        ArrayAdapter<VideoCvoValueEnum> videoCvoValueAdaptor = new ArrayAdapter<>(
+                this, android.R.layout.simple_spinner_item, VideoCvoValueEnum.values());
+        videoCvoValueAdaptor.setDropDownViewResource(
+                android.R.layout.simple_spinner_dropdown_item);
+        videoCvoValueSpinner.setAdapter(videoCvoValueAdaptor);
+        videoCvoValueSpinner.setSelection(getSpinnerIndex(videoCvoValueSpinner,
+                mSelectedCvoValue));
     }
 
     /**
      * Updates all of the lists containing the user's codecs selections.
      */
     private void updateCodecSelectionFromPrefs() {
-        selectedCodecTypes = prefsHandler.getIntegerSetFromPrefs(SharedPrefsHandler.CODECS_PREF);
-        selectedEvsBandwidths = prefsHandler.getIntegerSetFromPrefs(
-                SharedPrefsHandler.EVS_BANDS_PREF);
-        selectedAmrModes = prefsHandler.getIntegerSetFromPrefs(SharedPrefsHandler.AMR_MODES_PREF);
-        selectedEvsModes = prefsHandler.getIntegerSetFromPrefs(SharedPrefsHandler.EVS_MODES_PREF);
+        mSelectedCodecTypes =
+                prefsHandler.getIntegerSetFromPrefs(SharedPrefsHandler.CODECS_PREF);
+        mSelectedEvsBandwidths =
+                prefsHandler.getIntegerSetFromPrefs(SharedPrefsHandler.EVS_BANDS_PREF);
+        mSelectedAmrModes =
+                prefsHandler.getIntegerSetFromPrefs(SharedPrefsHandler.AMR_MODES_PREF);
+        mSelectedEvsModes =
+                prefsHandler.getIntegerSetFromPrefs(SharedPrefsHandler.EVS_MODES_PREF);
     }
 
     /**
@@ -1248,7 +1905,7 @@ public class MainActivity extends AppCompatActivity {
             CodecTypeEnum item = (CodecTypeEnum) audioCodecList.getItemAtPosition(position);
 
             if (audioCodecList.isItemChecked(position)) {
-                selectedCodecTypes.add(item.getValue());
+                mSelectedCodecTypes.add(item.getValue());
                 if (item == CodecTypeEnum.AMR || item == CodecTypeEnum.AMR_WB) {
                     amrModeList.setAlpha(ENABLED_ALPHA);
                     amrModeList.setEnabled(true);
@@ -1259,7 +1916,7 @@ public class MainActivity extends AppCompatActivity {
                     evsModeList.setEnabled(true);
                 }
             } else {
-                selectedCodecTypes.remove(item.getValue());
+                mSelectedCodecTypes.remove(item.getValue());
                 if (item == CodecTypeEnum.AMR || item == CodecTypeEnum.AMR_WB) {
                     amrModeList.setAlpha(0.3f);
                     amrModeList.setEnabled(false);
@@ -1271,42 +1928,45 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
 
-            prefsHandler.saveIntegerSetToPrefs(SharedPrefsHandler.CODECS_PREF, selectedCodecTypes);
+            prefsHandler.saveIntegerSetToPrefs(SharedPrefsHandler.CODECS_PREF,
+                    mSelectedCodecTypes);
 
         });
         evsBandList.setOnItemClickListener((adapterView, view, position, id) -> {
             EvsBandwidthEnum item = (EvsBandwidthEnum) evsBandList.getItemAtPosition(position);
 
             if (evsBandList.isItemChecked(position)) {
-                selectedEvsBandwidths.add(item.getValue());
+                mSelectedEvsBandwidths.add(item.getValue());
             } else {
-                selectedEvsBandwidths.remove(item.getValue());
+                mSelectedEvsBandwidths.remove(item.getValue());
             }
 
             prefsHandler.saveIntegerSetToPrefs(SharedPrefsHandler.EVS_BANDS_PREF,
-                    selectedEvsBandwidths);
+                    mSelectedEvsBandwidths);
         });
         evsModeList.setOnItemClickListener((adapterView, view, position, id) -> {
             EvsModeEnum item = (EvsModeEnum) evsModeList.getItemAtPosition(position);
 
             if (evsModeList.isItemChecked(position)) {
-                selectedEvsModes.add(item.getValue());
+                mSelectedEvsModes.add(item.getValue());
             } else {
-                selectedEvsModes.remove(item.getValue());
+                mSelectedEvsModes.remove(item.getValue());
             }
 
-            prefsHandler.saveIntegerSetToPrefs(SharedPrefsHandler.EVS_MODES_PREF, selectedEvsModes);
+            prefsHandler.saveIntegerSetToPrefs(SharedPrefsHandler.EVS_MODES_PREF,
+                    mSelectedEvsModes);
         });
         amrModeList.setOnItemClickListener((adapterView, view, position, id) -> {
             AmrModeEnum item = (AmrModeEnum) amrModeList.getItemAtPosition(position);
 
             if (amrModeList.isItemChecked(position)) {
-                selectedAmrModes.add(item.getValue());
+                mSelectedAmrModes.add(item.getValue());
             } else {
-                selectedAmrModes.remove(item.getValue());
+                mSelectedAmrModes.remove(item.getValue());
             }
 
-            prefsHandler.saveIntegerSetToPrefs(SharedPrefsHandler.AMR_MODES_PREF, selectedAmrModes);
+            prefsHandler.saveIntegerSetToPrefs(SharedPrefsHandler.AMR_MODES_PREF,
+                    mSelectedAmrModes);
         });
     }
 
@@ -1317,7 +1977,7 @@ public class MainActivity extends AppCompatActivity {
         runOnUiThread(() -> {
             updateUiViews();
             styleDevicesInfo();
-            switch (connectionStatus) {
+            switch (mConnectionStatus) {
                 case OFFLINE:
                     styleOffline();
                     break;
@@ -1344,133 +2004,133 @@ public class MainActivity extends AppCompatActivity {
         TextView localIpLabel = findViewById(R.id.localIpLabel);
         localIpLabel.setText(getString(R.string.local_ip_label, getLocalIpAddress()));
 
-        remoteIpLabel = findViewById(R.id.remoteIpLabel);
-        remoteIpLabel.setText(getString(R.string.other_device_ip_label,
+        mRemoteIpLabel = findViewById(R.id.remoteIpLabel);
+        mRemoteIpLabel.setText(getString(R.string.other_device_ip_label,
                 prefs.getString("OTHER_IP_ADDRESS", "null")));
 
-        remoteHandshakePortLabel = findViewById(R.id.remoteHandshakePortLabel);
-        remoteHandshakePortLabel.setText(getString(R.string.handshake_port_label,
+        mRemoteHandshakePortLabel = findViewById(R.id.remoteHandshakePortLabel);
+        mRemoteHandshakePortLabel.setText(getString(R.string.handshake_port_label,
                 String.valueOf(getOtherDevicePort())));
     }
 
     private void styleOffline() {
-        localHandshakePortLabel.setText(getString(R.string.port_closed_label));
-        localRtpPortLabel.setText(getString(R.string.port_closed_label));
-        localRtcpPortLabel.setText(getString(R.string.port_closed_label));
-        remoteRtpPortLabel.setText(getString(R.string.port_closed_label));
-        remoteRtcpPortLabel.setText(getString(R.string.port_closed_label));
+        mLocalHandshakePortLabel.setText(getString(R.string.port_closed_label));
+        mLocalRtpPortLabel.setText(getString(R.string.port_closed_label));
+        mLocalRtcpPortLabel.setText(getString(R.string.port_closed_label));
+        mRemoteRtpPortLabel.setText(getString(R.string.port_closed_label));
+        mRemoteRtcpPortLabel.setText(getString(R.string.port_closed_label));
 
-        allowCallsButton.setText(R.string.allow_calls_button_text);
-        allowCallsButton.setBackgroundColor(getColor(R.color.mint_green));
-        styleButtonEnabled(allowCallsButton);
+        mAllowCallsButton.setText(R.string.allow_calls_button_text);
+        mAllowCallsButton.setBackgroundColor(getColor(R.color.mint_green));
+        styleButtonEnabled(mAllowCallsButton);
 
-        connectButton.setText(R.string.connect_button_text);
-        connectButton.setBackgroundColor(getColor(R.color.mint_green));
-        styleButtonDisabled(connectButton);
+        mConnectButton.setText(R.string.connect_button_text);
+        mConnectButton.setBackgroundColor(getColor(R.color.mint_green));
+        styleButtonDisabled(mConnectButton);
 
         styleLoopbackSwitchEnabled();
-        styleButtonDisabled(openSessionButton);
-        styleLayoutChildrenDisabled(activeCallToolBar);
+        styleButtonDisabled(mOpenSessionButton);
+        styleLayoutChildrenDisabled(mActiveCallToolBar);
     }
 
     private void styleDisconnected() {
-        localHandshakePortLabel.setText(getString(R.string.handshake_port_label,
-                String.valueOf(handshakeReceptionSocket.getBoundSocket())));
-        localRtpPortLabel.setText(getString(R.string.rtp_reception_port_label,
-                String.valueOf(rtp.getLocalPort())));
-        localRtcpPortLabel.setText(getString(R.string.rtcp_reception_port_label,
-                String.valueOf(rtcp.getLocalPort())));
-        remoteRtpPortLabel.setText(getString(R.string.port_closed_label));
-        remoteRtcpPortLabel.setText(getString(R.string.port_closed_label));
+        mLocalHandshakePortLabel.setText(getString(R.string.handshake_port_label,
+                String.valueOf(mHandshakeReceptionSocket.getBoundSocket())));
+        mLocalRtpPortLabel.setText(getString(R.string.rtp_reception_port_label,
+                String.valueOf(mAudioRtp.getLocalPort())));
+        mLocalRtcpPortLabel.setText(getString(R.string.rtcp_reception_port_label,
+                String.valueOf(mAudioRtcp.getLocalPort())));
+        mRemoteRtpPortLabel.setText(getString(R.string.port_closed_label));
+        mRemoteRtcpPortLabel.setText(getString(R.string.port_closed_label));
 
-        allowCallsButton.setText(R.string.disable_calls_button_text);
-        allowCallsButton.setBackgroundColor(getColor(R.color.coral_red));
-        styleButtonEnabled(allowCallsButton);
+        mAllowCallsButton.setText(R.string.disable_calls_button_text);
+        mAllowCallsButton.setBackgroundColor(getColor(R.color.coral_red));
+        styleButtonEnabled(mAllowCallsButton);
 
-        connectButton.setText(R.string.connect_button_text);
-        connectButton.setBackgroundColor(getColor(R.color.mint_green));
-        styleButtonEnabled(connectButton);
+        mConnectButton.setText(R.string.connect_button_text);
+        mConnectButton.setBackgroundColor(getColor(R.color.mint_green));
+        styleButtonEnabled(mConnectButton);
 
         styleLoopbackSwitchDisabled();
-        styleButtonDisabled(openSessionButton);
-        styleLayoutChildrenDisabled(activeCallToolBar);
+        styleButtonDisabled(mOpenSessionButton);
+        styleLayoutChildrenDisabled(mActiveCallToolBar);
     }
 
     private void styleConnected() {
-        if (loopbackModeEnabled) {
-            allowCallsButton.setText(R.string.allow_calls_button_text);
-            allowCallsButton.setBackgroundColor(getColor(R.color.mint_green));
-            styleButtonDisabled(allowCallsButton);
+        if (mLoopbackModeEnabled) {
+            mAllowCallsButton.setText(R.string.allow_calls_button_text);
+            mAllowCallsButton.setBackgroundColor(getColor(R.color.mint_green));
+            styleButtonDisabled(mAllowCallsButton);
 
-            connectButton.setText(R.string.connect_button_text);
-            connectButton.setBackgroundColor(getColor(R.color.mint_green));
-            styleButtonDisabled(connectButton);
+            mConnectButton.setText(R.string.connect_button_text);
+            mConnectButton.setBackgroundColor(getColor(R.color.mint_green));
+            styleButtonDisabled(mConnectButton);
             styleLoopbackSwitchEnabled();
 
         } else {
-            allowCallsButton.setText(R.string.disable_calls_button_text);
-            allowCallsButton.setBackgroundColor(getColor(R.color.coral_red));
-            styleButtonEnabled(allowCallsButton);
+            mAllowCallsButton.setText(R.string.disable_calls_button_text);
+            mAllowCallsButton.setBackgroundColor(getColor(R.color.coral_red));
+            styleButtonEnabled(mAllowCallsButton);
 
-            connectButton.setText(R.string.disconnect_button_text);
-            connectButton.setBackgroundColor(getColor(R.color.coral_red));
-            styleButtonEnabled(connectButton);
+            mConnectButton.setText(R.string.disconnect_button_text);
+            mConnectButton.setBackgroundColor(getColor(R.color.coral_red));
+            styleButtonEnabled(mConnectButton);
             styleLoopbackSwitchDisabled();
         }
 
-        localHandshakePortLabel.setText(getString(R.string.reception_port_label,
-                String.valueOf(handshakeReceptionSocket.getBoundSocket())));
-        localRtpPortLabel.setText(getString(R.string.rtp_reception_port_label,
-                String.valueOf(rtp.getLocalPort())));
-        localRtcpPortLabel.setText(getString(R.string.rtcp_reception_port_label,
-                String.valueOf(rtcp.getLocalPort())));
-        remoteRtpPortLabel.setText(getString(R.string.rtp_reception_port_label,
-                String.valueOf(remoteDeviceInfo.getRtpPort())));
-        remoteRtcpPortLabel.setText(getString(R.string.rtcp_reception_port_label,
-                String.valueOf(remoteDeviceInfo.getRtcpPort())));
-        styleButtonEnabled(openSessionButton);
-        styleLayoutChildrenDisabled(activeCallToolBar);
+        mLocalHandshakePortLabel.setText(getString(R.string.reception_port_label,
+                String.valueOf(mHandshakeReceptionSocket.getBoundSocket())));
+        mLocalRtpPortLabel.setText(getString(R.string.rtp_reception_port_label,
+                String.valueOf(mAudioRtp.getLocalPort())));
+        mLocalRtcpPortLabel.setText(getString(R.string.rtcp_reception_port_label,
+                String.valueOf(mAudioRtcp.getLocalPort())));
+        mRemoteRtpPortLabel.setText(getString(R.string.rtp_reception_port_label,
+                String.valueOf(mRemoteDeviceInfo.getAudioRtpPort())));
+        mRemoteRtcpPortLabel.setText(getString(R.string.rtcp_reception_port_label,
+                String.valueOf(mRemoteDeviceInfo.getAudioRtpPort() + 1)));
+        styleButtonEnabled(mOpenSessionButton);
+        styleLayoutChildrenDisabled(mActiveCallToolBar);
     }
 
     private void styleActiveCall() {
-        if (loopbackModeEnabled) {
+        if (mLoopbackModeEnabled) {
             styleLoopbackSwitchEnabled();
 
-            allowCallsButton.setText(R.string.allow_calls_button_text);
-            allowCallsButton.setBackgroundColor(getColor(R.color.mint_green));
-            styleButtonDisabled(allowCallsButton);
+            mAllowCallsButton.setText(R.string.allow_calls_button_text);
+            mAllowCallsButton.setBackgroundColor(getColor(R.color.mint_green));
+            styleButtonDisabled(mAllowCallsButton);
 
-            connectButton.setText(R.string.connect_button_text);
-            connectButton.setBackgroundColor(getColor(R.color.mint_green));
-            styleButtonDisabled(connectButton);
+            mConnectButton.setText(R.string.connect_button_text);
+            mConnectButton.setBackgroundColor(getColor(R.color.mint_green));
+            styleButtonDisabled(mConnectButton);
             styleLoopbackSwitchEnabled();
 
         } else {
             styleLoopbackSwitchDisabled();
 
-            allowCallsButton.setText(R.string.disable_calls_button_text);
-            allowCallsButton.setBackgroundColor(getColor(R.color.coral_red));
-            styleButtonDisabled(allowCallsButton);
+            mAllowCallsButton.setText(R.string.disable_calls_button_text);
+            mAllowCallsButton.setBackgroundColor(getColor(R.color.coral_red));
+            styleButtonDisabled(mAllowCallsButton);
 
-            connectButton.setText(R.string.disconnect_button_text);
-            connectButton.setBackgroundColor(getColor(R.color.coral_red));
-            styleButtonDisabled(connectButton);
+            mConnectButton.setText(R.string.disconnect_button_text);
+            mConnectButton.setBackgroundColor(getColor(R.color.coral_red));
+            styleButtonDisabled(mConnectButton);
             styleLoopbackSwitchDisabled();
         }
 
-        localHandshakePortLabel
+        mLocalHandshakePortLabel
                 .setText(getString(R.string.reception_port_label, getString(R.string.connected)));
-        localRtpPortLabel.setText(getString(R.string.rtp_reception_port_label,
-                String.valueOf(rtp.getLocalPort())));
-        localRtcpPortLabel.setText(getString(R.string.rtcp_reception_port_label,
-                String.valueOf(rtcp.getLocalPort())));
-        remoteRtpPortLabel.setText(getString(R.string.rtp_reception_port_label,
-                String.valueOf(remoteDeviceInfo.getRtpPort())));
-        remoteRtcpPortLabel.setText(getString(R.string.rtcp_reception_port_label,
-                String.valueOf(remoteDeviceInfo.getRtcpPort())));
+        mLocalRtpPortLabel.setText(getString(R.string.rtp_reception_port_label,
+                String.valueOf(mAudioRtp.getLocalPort())));
+        mLocalRtcpPortLabel.setText(getString(R.string.rtcp_reception_port_label,
+                String.valueOf(mAudioRtcp.getLocalPort())));
+        mRemoteRtpPortLabel.setText(getString(R.string.rtp_reception_port_label,
+                String.valueOf(mRemoteDeviceInfo.getAudioRtpPort())));
+        mRemoteRtcpPortLabel.setText(getString(R.string.rtcp_reception_port_label,
+                String.valueOf(mRemoteDeviceInfo.getAudioRtpPort() + 1)));
 
-        styleButtonDisabled(openSessionButton);
-        styleLayoutChildrenEnabled(activeCallToolBar);
+        styleButtonDisabled(mOpenSessionButton);
+        styleLayoutChildrenEnabled(mActiveCallToolBar);
     }
 
     private void styleButtonDisabled(Button button) {
@@ -1504,30 +2164,30 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void updateUiViews() {
-        localHandshakePortLabel = findViewById(R.id.localHandshakePortLabel);
-        localRtpPortLabel = findViewById(R.id.localRtpPortLabel);
-        localRtcpPortLabel = findViewById(R.id.localRtcpPortLabel);
-        remoteHandshakePortLabel = findViewById(R.id.remoteHandshakePortLabel);
-        remoteRtpPortLabel = findViewById(R.id.remoteRtpPortLabel);
-        remoteRtcpPortLabel = findViewById(R.id.remoteRtcpPortLabel);
-        allowCallsButton = findViewById(R.id.allowCallsButton);
-        connectButton = findViewById(R.id.connectButton);
-        openSessionButton = findViewById(R.id.openSessionButton);
-        activeCallToolBar = findViewById(R.id.activeCallActionsLayout);
-        loopbackSwitch = findViewById(R.id.loopbackModeSwitch);
+        mLocalHandshakePortLabel = findViewById(R.id.localHandshakePortLabel);
+        mLocalRtpPortLabel = findViewById(R.id.localRtpPortLabel);
+        mLocalRtcpPortLabel = findViewById(R.id.localRtcpPortLabel);
+        mRemoteHandshakePortLabel = findViewById(R.id.remoteHandshakePortLabel);
+        mRemoteRtpPortLabel = findViewById(R.id.remoteRtpPortLabel);
+        mRemoteRtcpPortLabel = findViewById(R.id.remoteRtcpPortLabel);
+        mAllowCallsButton = findViewById(R.id.allowCallsButton);
+        mConnectButton = findViewById(R.id.connectButton);
+        mOpenSessionButton = findViewById(R.id.openSessionButton);
+        mActiveCallToolBar = findViewById(R.id.activeCallActionsLayout);
+        mLoopbackSwitch = findViewById(R.id.loopbackModeSwitch);
     }
 
     private void styleLoopbackSwitchEnabled() {
-        loopbackSwitch.setChecked(loopbackModeEnabled);
-        loopbackSwitch.setEnabled(true);
-        loopbackSwitch.setClickable(true);
-        loopbackSwitch.setAlpha(ENABLED_ALPHA);
+        mLoopbackSwitch.setChecked(mLoopbackModeEnabled);
+        mLoopbackSwitch.setEnabled(true);
+        mLoopbackSwitch.setClickable(true);
+        mLoopbackSwitch.setAlpha(ENABLED_ALPHA);
     }
 
     private void styleLoopbackSwitchDisabled() {
-        loopbackSwitch.setChecked(loopbackModeEnabled);
-        loopbackSwitch.setEnabled(false);
-        loopbackSwitch.setClickable(false);
-        loopbackSwitch.setAlpha(DISABLED_ALPHA);
+        mLoopbackSwitch.setChecked(mLoopbackModeEnabled);
+        mLoopbackSwitch.setEnabled(false);
+        mLoopbackSwitch.setClickable(false);
+        mLoopbackSwitch.setAlpha(DISABLED_ALPHA);
     }
 }

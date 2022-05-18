@@ -17,6 +17,7 @@
       android:allowBackup="false">
       <activity android:name="com.example.imsmediatestingapp.MainActivity"
           android:launchMode="singleInstance"
+          android:hardwareAccelerated="true"
           android:exported="true">
         <intent-filter>
           <action android:name="android.intent.action.MAIN" />
