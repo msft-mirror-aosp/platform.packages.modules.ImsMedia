@@ -142,7 +142,7 @@ bool ImsMediaAudioSource::Start()
     aaudio_stream_state_t inputState = AAUDIO_STREAM_STATE_STARTING;
     aaudio_stream_state_t nextState = AAUDIO_STREAM_STATE_UNINITIALIZED;
     audioResult = AAudioStream_waitForStateChange(
-            mAudioStream, inputState, &nextState, AAUDIO_TIMEOUT_NANO);
+            mAudioStream, inputState, &nextState, 3 * AAUDIO_TIMEOUT_NANO);
     if (audioResult != AAUDIO_OK)
     {
         IMLOGE1("[Start] Error start stream[%s]", AAudio_convertResultToText(audioResult));
@@ -301,6 +301,7 @@ void ImsMediaAudioSource::openAudioStream()
     AAudioStreamBuilder_setPerformanceMode(builder, AAUDIO_PERFORMANCE_MODE_LOW_LATENCY);
     AAudioStreamBuilder_setUsage(builder, AAUDIO_USAGE_VOICE_COMMUNICATION);
     AAudioStreamBuilder_setErrorCallback(builder, audioErrorCallback, this);
+    AAudioStreamBuilder_setPrivacySensitive(builder, true);
 
     int numFramesPerSec = 0;
     mPtime == 0 ? numFramesPerSec = NUM_FRAMES_PER_SEC : numFramesPerSec = 1000 / mPtime;

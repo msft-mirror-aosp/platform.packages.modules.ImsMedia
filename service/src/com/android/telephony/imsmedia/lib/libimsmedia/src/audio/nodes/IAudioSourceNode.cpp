@@ -55,14 +55,16 @@ ImsMediaResult IAudioSourceNode::Start()
         mAudioSource->SetCodec(mCodecType);
         mAudioSource->SetCodecMode(mMode);
         mAudioSource->SetPtime(mPtime);
-        if (mAudioSource->Start() == true)
+
+        if (mAudioSource->Start())
         {
+            mNodeState = NODESTATE_RUNNING;
             m_bFirstFrame = false;
+            return RESULT_SUCCESS;
         }
     }
 
-    mNodeState = NODESTATE_RUNNING;
-    return RESULT_SUCCESS;
+    return RESULT_NOT_READY;
 }
 
 void IAudioSourceNode::Stop()
