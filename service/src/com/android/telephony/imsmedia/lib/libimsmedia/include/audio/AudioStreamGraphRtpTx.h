@@ -20,7 +20,6 @@
 #include <ImsMediaDefine.h>
 #include <BaseStreamGraph.h>
 #include <BaseNode.h>
-#include <StreamScheduler.h>
 
 class AudioStreamGraphRtpTx : public BaseStreamGraph
 {

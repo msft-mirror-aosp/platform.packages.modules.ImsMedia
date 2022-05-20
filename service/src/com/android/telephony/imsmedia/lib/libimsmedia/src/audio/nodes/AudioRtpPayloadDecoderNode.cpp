@@ -49,7 +49,7 @@ ImsMediaResult AudioRtpPayloadDecoderNode::Start()
     IMLOGD0("[Start]");
     std::lock_guard<std::mutex> guard(mMutexExit);
     mPrevCMR = 15;
-    mNodeState = NODESTATE_RUNNING;
+    mNodeState = kNodeStateRunning;
     return RESULT_SUCCESS;
 }
 
@@ -57,7 +57,7 @@ void AudioRtpPayloadDecoderNode::Stop()
 {
     IMLOGD0("[Stop]");
     std::lock_guard<std::mutex> guard(mMutexExit);
-    mNodeState = NODESTATE_STOPPED;
+    mNodeState = kNodeStateStopped;
 }
 
 bool AudioRtpPayloadDecoderNode::IsRunTime()
@@ -75,35 +75,55 @@ void AudioRtpPayloadDecoderNode::SetConfig(void* config)
     AudioConfig* pConfig = reinterpret_cast<AudioConfig*>(config);
     if (pConfig != NULL)
     {
-        SetCodec(pConfig->getCodecType());
-        if (mCodecType == AUDIO_AMR || mCodecType == AUDIO_AMR_WB)
+        mCodecType = ImsMediaAudioFmt::ConvertCodecType(pConfig->getCodecType());
+        if (mCodecType == kAudioCodecAmr || mCodecType == kAudioCodecAmrWb)
         {
-            SetPayloadMode(pConfig->getAmrParams().getOctetAligned());
+            mOctetAligned = pConfig->getAmrParams().getOctetAligned();
         }
     }
+}
+
+bool AudioRtpPayloadDecoderNode::IsSameConfig(void* config)
+{
+    if (config == NULL)
+        return true;
+    AudioConfig* pConfig = reinterpret_cast<AudioConfig*>(config);
+
+    if (mCodecType == ImsMediaAudioFmt::ConvertCodecType(pConfig->getCodecType()))
+    {
+        if (mCodecType == kAudioCodecAmr || mCodecType == kAudioCodecAmrWb)
+        {
+            if (mOctetAligned == pConfig->getAmrParams().getOctetAligned())
+            {
+                return true;
+            }
+        }
+    }
+
+    return false;
 }
 
 void AudioRtpPayloadDecoderNode::OnDataFromFrontNode(ImsMediaSubType subtype, uint8_t* pData,
         uint32_t nDataSize, uint32_t nTimestamp, bool bMark, uint32_t nSeqNum,
         ImsMediaSubType nDataType)
 {
-    (void)subtype;
+    if (subtype == MEDIASUBTYPE_REFRESHED || pData == NULL || nDataSize == 0)
+    {
+        return;
+    }
+
     switch (mCodecType)
     {
-        case AUDIO_EVRC:
-        case AUDIO_EVRC_B:
-            // Decode_PH_EVRCB(pData, nDataSize, nTimestamp, bMark, nSeqNum);
-            break;
-        case AUDIO_AMR:
-        case AUDIO_AMR_WB:
+        case kAudioCodecAmr:
+        case kAudioCodecAmrWb:
             Decode_PH_AMR(pData, nDataSize, nTimestamp, bMark, nSeqNum);
             break;
-        case AUDIO_G711_PCMU:
-        case AUDIO_G711_PCMA:
+        case kAudioCodecPcmu:
+        case kAudioCodecPcma:
             SendDataToRearNode(
                     MEDIASUBTYPE_RTPPAYLOAD, pData, nDataSize, nTimestamp, bMark, nSeqNum);
             break;
-        case AUDIO_EVS:
+        case kAudioCodecEvs:
             // Decode_PH_EVS(pData, nDataSize, nTimestamp, bMark, nSeqNum);
             break;
         default:
@@ -112,36 +132,6 @@ void AudioRtpPayloadDecoderNode::OnDataFromFrontNode(ImsMediaSubType subtype, ui
                     nSeqNum, nDataType);
             break;
     }
-}
-
-void AudioRtpPayloadDecoderNode::SetCodec(int32_t type)
-{
-    switch (type)
-    {
-        case AudioConfig::CODEC_AMR:
-            mCodecType = AUDIO_AMR;
-            break;
-        case AudioConfig::CODEC_AMR_WB:
-            mCodecType = AUDIO_AMR_WB;
-            break;
-        case AudioConfig::CODEC_EVS:
-            mCodecType = AUDIO_EVS;
-            break;
-        case AudioConfig::CODEC_PCMA:
-            mCodecType = AUDIO_G711_PCMA;
-            break;
-        case AudioConfig::CODEC_PCMU:
-            mCodecType = AUDIO_G711_PCMU;
-            break;
-        default:
-            break;
-    }
-}
-
-void AudioRtpPayloadDecoderNode::SetPayloadMode(bool mode)
-{
-    IMLOGD1("[SetPayloadMode] mode[%d]", mode);
-    mOctetAligned = mode;
 }
 
 void AudioRtpPayloadDecoderNode::Decode_PH_AMR(
@@ -158,8 +148,8 @@ void AudioRtpPayloadDecoderNode::Decode_PH_AMR(
     std::lock_guard<std::mutex> guard(mMutexExit);
 
     IMLOGD_PACKET4(IM_PACKET_LOG_PH,
-            "[Decode_PH_AMR] GetCodectype[%d], octetAligned[%d], nSeqNum[%d], timestamp[%u]",
-            mCodecType, mOctetAligned, nSeqNum, timestamp);
+            "[Decode_PH_AMR] GetCodectype[%d], octetAligned[%d], nSeqNum[%d], TS[%u]", mCodecType,
+            mOctetAligned, nSeqNum, timestamp);
 
     mBitReader.SetBuffer(pData, nDataSize);
     // read cmr
@@ -172,7 +162,8 @@ void AudioRtpPayloadDecoderNode::Decode_PH_AMR(
 
     if (cmr != 15 && cmr != mPrevCMR)
     {
-        if ((mCodecType == AUDIO_AMR && cmr <= 7) || (mCodecType == AUDIO_AMR_WB && cmr <= 8))
+        if ((mCodecType == kAudioCodecAmr && cmr <= 7) ||
+                (mCodecType == kAudioCodecAmrWb && cmr <= 8))
         {
             IMLOGD2("[Decode_PH_AMR] CMR %d->%d", mPrevCMR, cmr);
             // send internal event to operate cmr operation in encoder side
@@ -214,7 +205,7 @@ void AudioRtpPayloadDecoderNode::Decode_PH_AMR(
     {
         uint32_t nDataBitSize;
         uint32_t mode = listFrameType.front();
-        if (mCodecType == AUDIO_AMR)
+        if (mCodecType == kAudioCodecAmr)
         {
             nDataBitSize = ImsMediaAudioFmt::ConvertAmrModeToBitLen(mode);
         }

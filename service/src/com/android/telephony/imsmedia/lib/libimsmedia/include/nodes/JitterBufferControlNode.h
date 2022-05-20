@@ -44,7 +44,7 @@ private:
     JitterBufferControlNode& operator=(const JitterBufferControlNode& objRHS);
 
 protected:
-    std::unique_ptr<BaseJitterBuffer> mJitterBuffer;
+    BaseJitterBuffer* mJitterBuffer;
     ImsMediaType mMediaType;
 };
 

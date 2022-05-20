@@ -17,6 +17,7 @@
 #ifndef AUDIO_AMRFMT_H_INCLUDED
 #define AUDIO_AMRFMT_H_INCLUDED
 
+#include <ImsMediaDefine.h>
 #include <stdint.h>
 
 #define IMSAMR_FRAME_BYTES              34
@@ -202,6 +203,7 @@ typedef enum
 class ImsMediaAudioFmt
 {
 public:
+    static int32_t ConvertCodecType(int32_t type);
     static void AmrFmt_Framing(IMSVOC_AUDIOFRAME_ENTYPE eFrameType, IMSVOC_AUDIORATE_ENTYPE eRate,
             uint8_t* pRawData, uint8_t* pEncodedData);
     static void AmrFmt_Deframing(IMSVOC_AUDIOFRAME_ENTYPE eFrameType, IMSVOC_AUDIORATE_ENTYPE eRate,

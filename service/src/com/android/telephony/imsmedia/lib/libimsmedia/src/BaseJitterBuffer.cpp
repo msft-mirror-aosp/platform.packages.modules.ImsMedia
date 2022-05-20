@@ -25,6 +25,11 @@ BaseJitterBuffer::BaseJitterBuffer()
 
 BaseJitterBuffer::~BaseJitterBuffer() {}
 
+void BaseJitterBuffer::SetSessionCallback(BaseSessionCallback* callback)
+{
+    mCallback = callback;
+}
+
 void BaseJitterBuffer::SetCodecType(uint32_t type)
 {
     mCodecType = type;
@@ -35,6 +40,16 @@ void BaseJitterBuffer::SetJitterBufferSize(uint32_t nInit, uint32_t nMin, uint32
     mInitJitterBufferSize = nInit;
     mMinJitterBufferSize = nMin;
     mMaxJitterBufferSize = nMax;
+}
+
+void BaseJitterBuffer::SetJitterOptions(
+        uint32_t nReduceTH, uint32_t nStepSize, double zValue, bool bIgnoreSID, bool bImprovement)
+{
+    (void)nReduceTH;
+    (void)nStepSize;
+    (void)zValue;
+    (void)bIgnoreSID;
+    (void)bImprovement;
 }
 
 uint32_t BaseJitterBuffer::GetCount()

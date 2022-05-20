@@ -73,14 +73,14 @@ ImsMediaResult RtpDecoderNode::Start()
     mRtpSession->StartRtp();
     mReceivingSSRC = 0;
     mNoRtpTime = 0;
-    mNodeState = NODESTATE_RUNNING;
+    mNodeState = kNodeStateRunning;
     return RESULT_SUCCESS;
 }
 
 void RtpDecoderNode::Stop()
 {
     mReceivingSSRC = 0;
-    mNodeState = NODESTATE_STOPPED;
+    mNodeState = kNodeStateStopped;
 }
 
 void RtpDecoderNode::OnDataFromFrontNode(ImsMediaSubType subtype, uint8_t* pData,

@@ -63,7 +63,7 @@ ImsMediaResult AudioStreamGraphRtcp::create(void* config)
     pNodeSocketWriter->SetConfig(config);
     AddNode(pNodeSocketWriter);
     pNodeRtcpEncoder->ConnectRearNode(pNodeSocketWriter);
-    setState(StreamState::STATE_CREATED);
+    setState(StreamState::kStreamStateCreated);
 
     BaseNode* pNodeSocketReader = BaseNode::Load(BaseNodeID::NODEID_SOCKETREADER, mCallback);
     if (pNodeSocketReader == NULL)
@@ -114,7 +114,7 @@ ImsMediaResult AudioStreamGraphRtcp::update(void* config)
 
     ImsMediaResult ret = ImsMediaResult::RESULT_NOT_READY;
     // stop scheduler
-    if (mGraphState == STATE_RUN)
+    if (mGraphState == kStreamStateRunning)
     {
         mScheduler->Stop();
     }
@@ -129,14 +129,14 @@ ImsMediaResult AudioStreamGraphRtcp::update(void* config)
         }
     }
 
-    if (mGraphState == STATE_CREATED && mConfig->getRtcpConfig().getIntervalSec() != 0)
+    if (mGraphState == kStreamStateCreated && mConfig->getRtcpConfig().getIntervalSec() != 0)
     {
         IMLOGD0("[update] resume RTCP");
         return start();
     }
 
     // restart scheduler
-    if (mGraphState == STATE_RUN)
+    if (mGraphState == kStreamStateRunning)
     {
         mScheduler->Start();
     }

@@ -17,6 +17,7 @@
 #include <IAudioSourceNode.h>
 #include <ImsMediaAudioSource.h>
 #include <ImsMediaTrace.h>
+#include <ImsMediaAudioFmt.h>
 #include <string.h>
 #include <AudioConfig.h>
 
@@ -26,7 +27,7 @@ IAudioSourceNode::IAudioSourceNode()
     mAudioSource = std::move(recoder);
     mCodecType = 0;
     mMode = 0;
-    m_bFirstFrame = false;
+    mFirstFrame = false;
 }
 
 IAudioSourceNode::~IAudioSourceNode() {}
@@ -55,11 +56,10 @@ ImsMediaResult IAudioSourceNode::Start()
         mAudioSource->SetCodec(mCodecType);
         mAudioSource->SetCodecMode(mMode);
         mAudioSource->SetPtime(mPtime);
-
         if (mAudioSource->Start())
         {
-            mNodeState = NODESTATE_RUNNING;
-            m_bFirstFrame = false;
+            mNodeState = kNodeStateRunning;
+            mFirstFrame = false;
             return RESULT_SUCCESS;
         }
     }
@@ -74,7 +74,7 @@ void IAudioSourceNode::Stop()
     {
         mAudioSource->Stop();
     }
-    mNodeState = NODESTATE_STOPPED;
+    mNodeState = kNodeStateStopped;
 }
 
 bool IAudioSourceNode::IsRunTime()
@@ -92,10 +92,10 @@ void IAudioSourceNode::SetConfig(void* config)
     if (config == NULL)
         return;
     AudioConfig* pConfig = reinterpret_cast<AudioConfig*>(config);
-    SetCodec(pConfig->getCodecType());
-    if (mCodecType == AUDIO_AMR || mCodecType == AUDIO_AMR_WB)
+    mCodecType = ImsMediaAudioFmt::ConvertCodecType(pConfig->getCodecType());
+    if (mCodecType == kAudioCodecAmr || mCodecType == kAudioCodecAmrWb)
     {
-        SetCodecMode(pConfig->getAmrParams().getAmrMode());
+        mMode = pConfig->getAmrParams().getAmrMode();
     }
     mPtime = pConfig->getPtimeMillis();
 }
@@ -106,16 +106,16 @@ bool IAudioSourceNode::IsSameConfig(void* config)
         return true;
     AudioConfig* pConfig = reinterpret_cast<AudioConfig*>(config);
 
-    if (mCodecType == pConfig->getCodecType())
+    if (mCodecType == ImsMediaAudioFmt::ConvertCodecType(pConfig->getCodecType()))
     {
-        if (mCodecType == AUDIO_AMR || mCodecType == AUDIO_AMR_WB)
+        if (mCodecType == kAudioCodecAmr || mCodecType == kAudioCodecAmrWb)
         {
             if (mMode == pConfig->getAmrParams().getAmrMode())
             {
                 return true;
             }
         }
-        else if (mCodecType == AUDIO_EVS)
+        else if (mCodecType == kAudioCodecEvs)
         {
             if (mMode == pConfig->getEvsParams().getEvsMode())
             {
@@ -127,35 +127,6 @@ bool IAudioSourceNode::IsSameConfig(void* config)
     return false;
 }
 
-void IAudioSourceNode::SetCodec(int32_t type)
-{
-    switch (type)
-    {
-        case AudioConfig::CODEC_AMR:
-            mCodecType = AUDIO_AMR;
-            break;
-        case AudioConfig::CODEC_AMR_WB:
-            mCodecType = AUDIO_AMR_WB;
-            break;
-        case AudioConfig::CODEC_EVS:
-            mCodecType = AUDIO_EVS;
-            break;
-        case AudioConfig::CODEC_PCMA:
-            mCodecType = AUDIO_G711_PCMA;
-            break;
-        case AudioConfig::CODEC_PCMU:
-            mCodecType = AUDIO_G711_PCMU;
-            break;
-        default:
-            break;
-    }
-}
-
-void IAudioSourceNode::SetCodecMode(uint32_t mode)
-{
-    mMode = mode;
-}
-
 void IAudioSourceNode::CB_AudioUplink(
         void* pClient, uint8_t* pBitstream, uint32_t pnSize, int64_t pstUsec, uint32_t flag)
 {
@@ -165,10 +136,10 @@ void IAudioSourceNode::CB_AudioUplink(
     {
         IMLOGD_PACKET2(IM_PACKET_LOG_AUDIO, "[CB_AudioUplink] size[%zu], pts=%ld", pnSize, pstUsec);
         client->SendDataToRearNode(MEDIASUBTYPE_UNDEFINED, pBitstream, pnSize, pstUsec,
-                !client->m_bFirstFrame, MEDIASUBTYPE_UNDEFINED);
-        if (!client->m_bFirstFrame)
+                !client->mFirstFrame, MEDIASUBTYPE_UNDEFINED);
+        if (!client->mFirstFrame)
         {
-            client->m_bFirstFrame = true;
+            client->mFirstFrame = true;
         }
     }
 }

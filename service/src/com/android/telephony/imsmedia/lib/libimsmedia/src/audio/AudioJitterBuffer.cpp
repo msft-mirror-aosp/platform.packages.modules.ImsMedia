@@ -811,7 +811,7 @@ bool AudioJitterBuffer::Get(ImsMediaSubType* psubtype, uint8_t** ppData, uint32_
     {
         // check EVS redundancy
         {
-            if ((mCodecType == AUDIO_EVS) && (mDtxOn == false) && (mRedundancyOffSet > 0) &&
+            if ((mCodecType == kAudioCodecEvs) && (mDtxOn == false) && (mRedundancyOffSet > 0) &&
                     (mDataQueue.GetCount() > 0))
             {
                 // check partial redundancy packet
@@ -930,25 +930,19 @@ bool AudioJitterBuffer::IsSID(uint8_t* pbBuffer, uint32_t nBufferSize)
     (void)pbBuffer;
     switch (mCodecType)
     {
-        case AUDIO_AMR:
-        case AUDIO_AMR_WB:
+        case kAudioCodecAmr:
+        case kAudioCodecAmrWb:
             if (nBufferSize == 5)
                 return true;
             else
                 return false;
-        case AUDIO_EVRC:
-        case AUDIO_EVRC_B:
-            if (nBufferSize == 2)
-                return true;
-            else
-                return false;
-        case AUDIO_EVS:
+        case kAudioCodecEvs:
             if ((nBufferSize == 6) || (nBufferSize == 5))
                 return true;
             else
                 return false;
-        case AUDIO_G711_PCMU:
-        case AUDIO_G711_PCMA:
+        case kAudioCodecPcmu:
+        case kAudioCodecPcma:
             return false;
         default:
             IMLOGE1("[IsSID] DTX detect method is not defined for[%u] codec", mCodecType);

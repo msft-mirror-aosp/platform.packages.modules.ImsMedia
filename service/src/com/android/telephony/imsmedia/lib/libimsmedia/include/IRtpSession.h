@@ -82,14 +82,14 @@ class IRtpSession : public RtpServiceListener
 {
 public:
     static IRtpSession* GetInstance(
-            ImsMediaType eMediaType, const RtpAddress local, const RtpAddress peer);
+            ImsMediaType subtype, const RtpAddress local, const RtpAddress peer);
     static void ReleaseInstance(IRtpSession* pSession);
-    IRtpSession(ImsMediaType eMediaType, const RtpAddress local, const RtpAddress peer);
+    IRtpSession(ImsMediaType subtype, const RtpAddress local, const RtpAddress peer);
     ~IRtpSession();
     IRtpSession(const IRtpSession& obj);
     IRtpSession& operator=(const IRtpSession& obj);
     bool operator==(const IRtpSession& obj2);
-    bool isSameInstance(ImsMediaType eMediaType, const RtpAddress local, const RtpAddress peer);
+    bool isSameInstance(ImsMediaType subtype, const RtpAddress local, const RtpAddress peer);
     void SetRtpEncoderListener(IRtpEncoderListener* pRtpEncoderListener);
     void SetRtpDecoderListener(IRtpDecoderListener* pRtpDecoderListener);
     void SetRtcpEncoderListener(IRtcpEncoderListener* pRtcpEncoderListener);

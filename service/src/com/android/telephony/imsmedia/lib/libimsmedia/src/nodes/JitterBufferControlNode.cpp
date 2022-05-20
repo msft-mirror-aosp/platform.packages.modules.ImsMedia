@@ -23,12 +23,17 @@ JitterBufferControlNode::JitterBufferControlNode(ImsMediaType type) :
 {
     if (mMediaType == IMS_MEDIA_AUDIO)
     {
-        std::unique_ptr<BaseJitterBuffer> buffer(new AudioJitterBuffer());
-        mJitterBuffer = std::move(buffer);
+        mJitterBuffer = new AudioJitterBuffer();
     }
 }
 
-JitterBufferControlNode::~JitterBufferControlNode() {}
+JitterBufferControlNode::~JitterBufferControlNode()
+{
+    if (mJitterBuffer != NULL)
+    {
+        delete mJitterBuffer;
+    }
+}
 
 void JitterBufferControlNode::SetJitterBufferSize(uint32_t nInit, uint32_t nMin, uint32_t nMax)
 {

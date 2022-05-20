@@ -81,7 +81,7 @@ ImsMediaResult AudioStreamGraphRtpTx::create(void* config)
     pNodeSocketWriter->SetConfig(config);
     AddNode(pNodeSocketWriter);
     pNodeRtpEncoder->ConnectRearNode(pNodeSocketWriter);
-    setState(StreamState::STATE_CREATED);
+    setState(StreamState::kStreamStateCreated);
 
     AudioConfig* audioConfig = reinterpret_cast<AudioConfig*>(mConfig);
 
@@ -136,7 +136,7 @@ ImsMediaResult AudioStreamGraphRtpTx::update(void* config)
 
     ImsMediaResult ret = RESULT_NOT_READY;
 
-    if (mGraphState == STATE_RUN)
+    if (mGraphState == kStreamStateRunning)
     {
         mScheduler->Stop();
         for (auto& node : mListNodeStarted)
@@ -150,7 +150,7 @@ ImsMediaResult AudioStreamGraphRtpTx::update(void* config)
         }
         mScheduler->Start();
     }
-    else if (mGraphState == STATE_CREATED)
+    else if (mGraphState == kStreamStateCreated)
     {
         for (auto& node : mListNodeToStart)
         {
@@ -163,7 +163,7 @@ ImsMediaResult AudioStreamGraphRtpTx::update(void* config)
         }
     }
 
-    if (mGraphState == STATE_CREATED &&
+    if (mGraphState == kStreamStateCreated &&
             (pConfig->getMediaDirection() == RtpConfig::MEDIA_DIRECTION_TRANSMIT_ONLY ||
                     pConfig->getMediaDirection() == RtpConfig::MEDIA_DIRECTION_TRANSMIT_RECEIVE))
     {

@@ -17,6 +17,7 @@
 #include <AudioSession.h>
 #include <ImsMediaTrace.h>
 #include <ImsMediaEventHandler.h>
+#include <AudioConfig.h>
 #include <string>
 #include <sys/socket.h>
 
@@ -31,7 +32,7 @@ AudioSession::~AudioSession()
     while (mListGraphRtpTx.size() > 0)
     {
         AudioStreamGraphRtpTx* graph = mListGraphRtpTx.front();
-        if (graph->getState() == STATE_RUN)
+        if (graph->getState() == kStreamStateRunning)
         {
             graph->stop();
         }
@@ -41,7 +42,7 @@ AudioSession::~AudioSession()
     while (mListGraphRtpRx.size() > 0)
     {
         AudioStreamGraphRtpRx* graph = mListGraphRtpRx.front();
-        if (graph->getState() == STATE_RUN)
+        if (graph->getState() == kStreamStateRunning)
         {
             graph->stop();
         }
@@ -51,7 +52,7 @@ AudioSession::~AudioSession()
     while (mListGraphRtcp.size() > 0)
     {
         AudioStreamGraphRtcp* graph = mListGraphRtcp.front();
-        if (graph->getState() == STATE_RUN)
+        if (graph->getState() == kStreamStateRunning)
         {
             graph->stop();
         }
@@ -71,10 +72,49 @@ AudioSession::~AudioSession()
     }
 }
 
-ImsMediaResult AudioSession::startGraph(RtpConfig* config)
+SessionState AudioSession::getState()
+{
+    SessionState state = kSessionStateOpen;
+
+    while (mListGraphRtpTx.size() > 0)
+    {
+        AudioStreamGraphRtpTx* graph = mListGraphRtpTx.front();
+        if (graph->getState() == kStreamStateRunning)
+        {
+            return kSessionStateActive;
+        }
+    }
+
+    while (mListGraphRtpRx.size() > 0)
+    {
+        AudioStreamGraphRtpRx* graph = mListGraphRtpRx.front();
+        if (graph->getState() == kStreamStateRunning)
+        {
+            return kSessionStateActive;
+        }
+    }
+
+    while (mListGraphRtcp.size() > 0)
+    {
+        AudioStreamGraphRtcp* graph = mListGraphRtcp.front();
+        if (graph->getState() == kStreamStateRunning)
+        {
+            return kSessionStateSuspended;
+        }
+    }
+
+    return state;
+}
+
+ImsMediaResult AudioSession::startGraph(void* config)
 {
     IMLOGD0("[startGraph]");
-    if (config == NULL || std::strcmp(config->getRemoteAddress().c_str(), "") == 0)
+    if (config == NULL)
+    {
+        return RESULT_INVALID_PARAM;
+    }
+
+    if (std::strcmp(reinterpret_cast<AudioConfig*>(config)->getRemoteAddress().c_str(), "") == 0)
     {
         return RESULT_INVALID_PARAM;
     }
@@ -191,7 +231,7 @@ ImsMediaResult AudioSession::addGraph(RtpConfig* config)
 
     for (auto& i : mListGraphRtcp)
     {
-        if (i->getState() != STATE_RUN)
+        if (i->getState() != kStreamStateRunning)
         {
             i->start();
         }
@@ -292,7 +332,7 @@ ImsMediaResult AudioSession::confirmGraph(RtpConfig* config)
         }
         else
         {
-            if (graph->getState() != STATE_RUN)
+            if (graph->getState() != kStreamStateRunning)
             {
                 ret = graph->start();
                 if (ret != RESULT_SUCCESS)
@@ -325,7 +365,7 @@ ImsMediaResult AudioSession::confirmGraph(RtpConfig* config)
         }
         else
         {
-            if (graph->getState() != STATE_RUN)
+            if (graph->getState() != kStreamStateRunning)
             {
                 ret = graph->start();
                 if (ret != RESULT_SUCCESS)
@@ -351,7 +391,7 @@ ImsMediaResult AudioSession::confirmGraph(RtpConfig* config)
         }
         else
         {
-            if (graph->getState() != STATE_RUN)
+            if (graph->getState() != kStreamStateRunning)
             {
                 ret = graph->start();
                 if (ret != RESULT_SUCCESS)
@@ -379,7 +419,7 @@ ImsMediaResult AudioSession::deleteGraph(RtpConfig* config)
         AudioStreamGraphRtpTx* graph = *iter;
         if (graph->isSameConfig(config))
         {
-            if (graph->getState() == STATE_RUN)
+            if (graph->getState() == kStreamStateRunning)
             {
                 graph->stop();
             }
@@ -407,7 +447,7 @@ ImsMediaResult AudioSession::deleteGraph(RtpConfig* config)
         AudioStreamGraphRtpRx* graph = *iter;
         if (graph->isSameConfig(config))
         {
-            if (graph->getState() == STATE_RUN)
+            if (graph->getState() == kStreamStateRunning)
             {
                 graph->stop();
             }
@@ -429,7 +469,7 @@ ImsMediaResult AudioSession::deleteGraph(RtpConfig* config)
         AudioStreamGraphRtcp* graph = *iter;
         if (graph->isSameConfig(config))
         {
-            if (graph->getState() == STATE_RUN)
+            if (graph->getState() == kStreamStateRunning)
             {
                 graph->stop();
             }
@@ -455,20 +495,23 @@ void AudioSession::onEvent(ImsMediaEventType type, uint64_t param1, uint64_t par
         case EVENT_NOTIFY_ERROR:
             break;
         case EVENT_NOTIFY_FIRST_MEDIA_PACKET_RECEIVED:
-            ImsMediaEventHandler::SendEvent("AUDIO_RESPONSE_EVENT", FIRST_MEDIA_PACKET_IND, 0, 0);
+            ImsMediaEventHandler::SendEvent(
+                    "AUDIO_RESPONSE_EVENT", kAudioFirstMediaPacketInd, 0, 0);
             break;
         case EVENT_NOTIFY_HEADER_EXTENSION_RECEIVED:
-            ImsMediaEventHandler::SendEvent("AUDIO_RESPONSE_EVENT", RTP_HEADER_EXTENSION_IND, 0, 0);
+            ImsMediaEventHandler::SendEvent(
+                    "AUDIO_RESPONSE_EVENT", kAudioRtpHeaderExtensionInd, 0, 0);
             break;
         case EVENT_NOTIFY_MEDIA_INACITIVITY:
             ImsMediaEventHandler::SendEvent(
-                    "AUDIO_RESPONSE_EVENT", MEDIA_INACITIVITY_IND, mSessionId, param1, param2);
+                    "AUDIO_RESPONSE_EVENT", kAudioMediaInactivityInd, mSessionId, param1, param2);
             break;
         case EVENT_NOTIFY_PACKET_LOSS:
-            ImsMediaEventHandler::SendEvent("AUDIO_RESPONSE_EVENT", PACKET_LOSS_IND, param1, 0);
+            ImsMediaEventHandler::SendEvent("AUDIO_RESPONSE_EVENT", kAudioPacketLossInd, param1, 0);
             break;
         case EVENT_NOTIFY_JITTER:
-            ImsMediaEventHandler::SendEvent("AUDIO_RESPONSE_EVENT", JITTER_IND, param1, param2);
+            ImsMediaEventHandler::SendEvent(
+                    "AUDIO_RESPONSE_EVENT", kAudioJitterInd, param1, param2);
             break;
         default:
             break;
@@ -481,7 +524,7 @@ void AudioSession::sendDtmf(char digit, int duration)
             iter != mListGraphRtpTx.end(); iter++)
     {
         AudioStreamGraphRtpTx* graph = *iter;
-        if (graph->getState() == STATE_RUN)
+        if (graph->getState() == kStreamStateRunning)
         {
             graph->sendDtmf(digit, duration);
         }

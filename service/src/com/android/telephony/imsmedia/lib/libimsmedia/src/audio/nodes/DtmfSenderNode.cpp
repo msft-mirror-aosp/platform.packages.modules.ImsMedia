@@ -57,14 +57,14 @@ BaseNodeID DtmfSenderNode::GetNodeID()
 ImsMediaResult DtmfSenderNode::Start()
 {
     mNextTime = 0;
-    mNodeState = NODESTATE_RUNNING;
+    mNodeState = kNodeStateRunning;
     return RESULT_SUCCESS;
 }
 
 void DtmfSenderNode::Stop()
 {
     mNextTime = 0;
-    mNodeState = NODESTATE_STOPPED;
+    mNodeState = kNodeStateStopped;
 }
 
 bool DtmfSenderNode::IsRunTime()

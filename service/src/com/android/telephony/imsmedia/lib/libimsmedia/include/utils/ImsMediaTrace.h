@@ -147,18 +147,19 @@ enum IM_PACKET_LOG_TYPE
 
 #define IMLOGB(a, b, c) ImsMediaTrace::IMLOGD_BINARY(a, b, c)
 
-namespace ImsMediaTrace
+class ImsMediaTrace
 {
-void IMLOGD_PACKET_ARG(IM_PACKET_LOG_TYPE type, const char* format, ...);
-void IMSetDebugLog(uint32_t type);
-uint32_t IMGetDebugLog();
-void IMLOGD_ARG(const char* format, ...);
-void IMLOGE_ARG(const char* format, ...);
-void IMLOGW_ARG(const char* format, ...);
-char* IMTrace_Bin2String(void* s, int length);
-void IMLOGD_BINARY(const char* msg, const void* s, int length);
-char* IM_StripFileName(char* pcFileName);
-}  // namespace ImsMediaTrace
+public:
+    static void IMLOGD_PACKET_ARG(IM_PACKET_LOG_TYPE type, const char* format, ...);
+    static void IMSetDebugLog(uint32_t type);
+    static uint32_t IMGetDebugLog();
+    static void IMLOGD_ARG(const char* format, ...);
+    static void IMLOGE_ARG(const char* format, ...);
+    static void IMLOGW_ARG(const char* format, ...);
+    static char* IMTrace_Bin2String(void* s, int length);
+    static void IMLOGD_BINARY(const char* msg, const void* s, int length);
+    static char* IM_StripFileName(char* pcFileName);
+};
 #define SET_IM_DEBUG_LOG(value) IMSetDebugLog(value);
 #define GET_IM_DEBUG_LOG()      IMGetDebugLog()
 

@@ -27,6 +27,8 @@ public:
             int nSocketFD, char* pIPAddress, int len, unsigned int& port);
     static bool GetRemoteIPPortFromSocketFD(
             int nSocketFD, char* pIPAddress, int len, unsigned int& port);
+    static int createSocketFD(const char* pIPAddr, unsigned int port, int af);
+    static void closeSocketFD(int socketFd);
 };
 
 #endif  // IMS_MEDIA_NW_UTIL_H

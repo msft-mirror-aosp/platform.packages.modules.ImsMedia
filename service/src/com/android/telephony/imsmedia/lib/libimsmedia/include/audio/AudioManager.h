@@ -31,8 +31,7 @@ class AudioManager : public BaseManager
 {
 public:
     /**
-     * @class   RequestHandler
-     * @brief   request serialization
+     * @brief   Request handler to handle request message in an individual thread
      */
     class RequestHandler : public ImsMediaEventHandler
     {
@@ -46,9 +45,7 @@ public:
     };
 
     /**
-     * @class   ResponseHandler
-     * @brief   ResponseHandler
-     *                  has its own thread and sent the response to the client in its own thread
+     * @brief   response handler to handle request message in an individual thread
      */
     class ResponseHandler : public ImsMediaEventHandler
     {
@@ -62,6 +59,7 @@ public:
     };
 
     static AudioManager* getInstance();
+    virtual int getState(int sessionId);
     virtual void sendMessage(const int sessionId, const android::Parcel& parcel);
 
 private:

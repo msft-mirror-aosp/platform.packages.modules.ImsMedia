@@ -60,11 +60,11 @@ bool ImsMediaAudioPlayer::Start()
 {
     char kMimeType[128] = {'\0'};
     mSamplingRate = DEFAULT_SAMPLING_RATE;
-    if (mCodecType == AUDIO_AMR)
+    if (mCodecType == kAudioCodecAmr)
     {
         sprintf(kMimeType, "audio/3gpp");
     }
-    else if (mCodecType == AUDIO_AMR_WB)
+    else if (mCodecType == kAudioCodecAmrWb)
     {
         mSamplingRate = 16000;
         sprintf(kMimeType, "audio/amr-wb");

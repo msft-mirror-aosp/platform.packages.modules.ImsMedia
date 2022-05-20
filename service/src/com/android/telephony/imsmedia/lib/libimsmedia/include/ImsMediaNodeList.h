@@ -24,12 +24,6 @@
 #include <RtpDecoderNode.h>
 #include <RtcpEncoderNode.h>
 #include <RtcpDecoderNode.h>
-#include <DtmfEncoderNode.h>
-#include <DtmfSenderNode.h>
-#include <IAudioPlayerNode.h>
-#include <IAudioSourceNode.h>
-#include <AudioRtpPayloadDecoderNode.h>
-#include <AudioRtpPayloadEncoderNode.h>
 
 typedef BaseNode* (*fn_GetNodeInstance)();
 typedef void (*fn_ReleaseNodeInstance)(BaseNode* pNode);

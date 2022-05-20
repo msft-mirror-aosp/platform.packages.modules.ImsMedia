@@ -64,7 +64,7 @@ ImsMediaResult IAudioPlayerNode::Start()
     }
     mFirstFrame = false;
     mMutex.unlock();
-    mNodeState = NODESTATE_RUNNING;
+    mNodeState = kNodeStateRunning;
     StartThread();
     return RESULT_SUCCESS;
 }
@@ -80,7 +80,7 @@ void IAudioPlayerNode::Stop()
     StopThread();
     mMutex.unlock();
     mCond.wait();
-    mNodeState = NODESTATE_STOPPED;
+    mNodeState = kNodeStateStopped;
 }
 
 bool IAudioPlayerNode::IsRunTime()
@@ -99,7 +99,7 @@ void IAudioPlayerNode::SetConfig(void* config)
     if (pConfig != NULL)
     {
         SetCodec(pConfig->getCodecType());
-        if (mCodecType == AUDIO_AMR || mCodecType == AUDIO_AMR_WB)
+        if (mCodecType == kAudioCodecAmr || mCodecType == kAudioCodecAmrWb)
         {
             SetCodecMode(pConfig->getAmrParams().getAmrMode());
         }
@@ -117,14 +117,14 @@ bool IAudioPlayerNode::IsSameConfig(void* config)
 
     if (mCodecType == pConfig->getCodecType())
     {
-        if (mCodecType == AUDIO_AMR || mCodecType == AUDIO_AMR_WB)
+        if (mCodecType == kAudioCodecAmr || mCodecType == kAudioCodecAmrWb)
         {
             if (mMode == pConfig->getAmrParams().getAmrMode())
             {
                 return true;
             }
         }
-        else if (mCodecType == AUDIO_EVS)
+        else if (mCodecType == kAudioCodecEvs)
         {
             if (mMode == pConfig->getEvsParams().getEvsMode())
             {
@@ -142,19 +142,19 @@ void IAudioPlayerNode::SetCodec(int32_t type)
     switch (type)
     {
         case AudioConfig::CODEC_AMR:
-            mCodecType = AUDIO_AMR;
+            mCodecType = kAudioCodecAmr;
             break;
         case AudioConfig::CODEC_AMR_WB:
-            mCodecType = AUDIO_AMR_WB;
+            mCodecType = kAudioCodecAmrWb;
             break;
         case AudioConfig::CODEC_EVS:
-            mCodecType = AUDIO_EVS;
+            mCodecType = kAudioCodecEvs;
             break;
         case AudioConfig::CODEC_PCMA:
-            mCodecType = AUDIO_G711_PCMA;
+            mCodecType = kAudioCodecPcma;
             break;
         case AudioConfig::CODEC_PCMU:
-            mCodecType = AUDIO_G711_PCMU;
+            mCodecType = kAudioCodecPcmu;
             break;
         default:
             break;
@@ -194,7 +194,7 @@ void* IAudioPlayerNode::run()
         {
             if (nDataSize != 0)
             {
-                IMLOGD2("[run] write buffer size[%d], timestamp[%u]", nDataSize, nTimestamp);
+                IMLOGD2("[run] write buffer size[%d], TS[%u]", nDataSize, nTimestamp);
                 if (mAudioPlayer->onDataFrame(pData, nDataSize))
                 {
                     // send buffering complete message to client

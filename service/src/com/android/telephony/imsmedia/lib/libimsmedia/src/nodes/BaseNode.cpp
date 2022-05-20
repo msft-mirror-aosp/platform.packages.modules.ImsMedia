@@ -17,6 +17,7 @@
 #include <BaseNode.h>
 #include <BaseNodeID.h>
 #include <ImsMediaNodeList.h>
+#include <ImsMediaAudioNodeList.h>
 #include <ImsMediaTrace.h>
 #include <stdlib.h>
 
@@ -66,12 +67,12 @@ uint32_t GetNumOfNodeList()
 
 BaseNode::BaseNode()
 {
-    mNodeState = NODESTATE_STOPPED;
+    mNodeState = kNodeStateStopped;
 }
 
 BaseNode::~BaseNode()
 {
-    mNodeState = NODESTATE_STOPPED;
+    mNodeState = kNodeStateStopped;
 }
 
 BaseNode* BaseNode::Load(BaseNodeID eID, BaseSessionCallback* callback)
@@ -231,8 +232,8 @@ ImsMediaResult BaseNode::UpdateConfig(void* config)
         isUpdateNode = true;
     }
 
-    BaseNodeState prevState = mNodeState;
-    if (isUpdateNode && mNodeState == NODESTATE_RUNNING)
+    kBaseNodeState prevState = mNodeState;
+    if (isUpdateNode && mNodeState == kNodeStateRunning)
     {
         Stop();
     }
@@ -240,7 +241,7 @@ ImsMediaResult BaseNode::UpdateConfig(void* config)
     // reset the parameters
     SetConfig(config);
 
-    if (isUpdateNode && prevState == NODESTATE_RUNNING)
+    if (isUpdateNode && prevState == kNodeStateRunning)
     {
         return Start();
     }
@@ -286,7 +287,7 @@ ImsMediaType BaseNode::GetMediaType()
 }
 
 // Graph Interface
-BaseNodeState BaseNode::GetState()
+kBaseNodeState BaseNode::GetState()
 {
     return mNodeState;
 }
@@ -349,7 +350,7 @@ void BaseNode::SendDataToRearNode(ImsMediaSubType subtype, uint8_t* pData, uint3
     bool nNeedRunCount = false;
     for (auto& i : mRearNodeList)
     {
-        if (i->mNodeState == NODESTATE_RUNNING)
+        if (i->mNodeState == kNodeStateRunning)
         {
             i->OnDataFromFrontNode(
                     subtype, pData, nDataSize, nTimestamp, bMark, nSeqNum, nDataType);

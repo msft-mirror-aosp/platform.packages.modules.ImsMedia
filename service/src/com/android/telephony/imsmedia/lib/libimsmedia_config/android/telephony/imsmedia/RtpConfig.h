@@ -58,9 +58,6 @@ public:
         MEDIA_DIRECTION_TRANSMIT_RECEIVE,
     };
 
-    RtpConfig(int32_t type);
-    RtpConfig(RtpConfig* config);
-    RtpConfig(RtpConfig& config);
     virtual ~RtpConfig();
     RtpConfig& operator=(const RtpConfig& config);
     bool operator==(const RtpConfig& c2) const;
@@ -90,6 +87,10 @@ public:
     int8_t getSamplingRateKHz();
 
 protected:
+    RtpConfig(int32_t type);
+    RtpConfig(RtpConfig* config);
+    RtpConfig(RtpConfig& config);
+
     /* definition of uninitialized port number*/
     const static int32_t UNINITIALIZED_PORT = -1;
     /* media types */

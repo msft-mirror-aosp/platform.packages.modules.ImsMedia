@@ -124,3 +124,70 @@ bool ImsMediaNetworkUtil::GetRemoteIPPortFromSocketFD(
 
     return GetIpPortFromSockAddr(ss, pIPAddress, len, port);
 }
+
+int ImsMediaNetworkUtil::createSocketFD(const char* pIPAddr, unsigned int port, int af)
+{
+    int soc = 0;
+    if ((soc = socket(af, SOCK_DGRAM, IPPROTO_UDP)) < 0)
+    {
+        IMLOGE1("[createSocketFD] error[%d]", errno);
+        return -1;
+    }
+
+    if (af == AF_INET)
+    {
+        sockaddr_in sin;
+        sin.sin_family = AF_INET;
+        sin.sin_port = htons(port);
+
+        if (inet_pton(AF_INET, pIPAddr, &sin.sin_addr) <= 0)
+        {
+            IMLOGE1("[createSocketFD] inet_pton error[%d]", errno);
+            return -1;
+        }
+
+        if (bind(soc, (struct sockaddr*)&sin, sizeof(sin)) < 0)
+        {
+            IMLOGE1("[createSocketFD] bind error[%d]", errno);
+            return -1;
+        }
+
+        if (connect(soc, (struct sockaddr*)&sin, sizeof(sockaddr_in)) < 0)
+        {
+            IMLOGE1("[createSocketFD] connect error[%d]", errno);
+            return -1;
+        }
+    }
+    else if (af == AF_INET6)
+    {
+        sockaddr_in6 sin6;
+        sin6.sin6_family = AF_INET6;
+        sin6.sin6_port = htons(port);
+
+        if (inet_pton(AF_INET6, pIPAddr, &sin6.sin6_addr) <= 0)
+        {
+            IMLOGE1("[createSocketFD] error[%d]", errno);
+            return -1;
+        }
+
+        if (bind(soc, (struct sockaddr*)&sin6, sizeof(sin6)) < 0)
+        {
+            IMLOGE1("[createSocketFD] bind error[%d]", errno);
+            return -1;
+        }
+
+        if (connect(soc, (struct sockaddr*)&sin6, sizeof(sockaddr_in6)) < 0)
+        {
+            IMLOGE1("[createSocketFD] error[%d]", errno);
+            return -1;
+        }
+    }
+
+    return soc;
+}
+
+void ImsMediaNetworkUtil::closeSocketFD(int socketFd)
+{
+    shutdown(socketFd, SHUT_RDWR);
+    close(socketFd);
+}

@@ -14,10 +14,11 @@
  * limitations under the License.
  */
 
-#ifndef BASE_JITTER_BUFFER_H
-#define BASE_JITTER_BUFFER_H
+#ifndef BASE_JITTER_BUFFER_H_INCLUDEED
+#define BASE_JITTER_BUFFER_H_INCLUDEED
 
 #include <ImsMediaDataQueue.h>
+#include <BaseSessionCallback.h>
 #include <mutex>
 
 #define SEQ_ROUND_QUARD 655  // 1% of FFFF
@@ -37,10 +38,11 @@ class BaseJitterBuffer
 public:
     BaseJitterBuffer();
     virtual ~BaseJitterBuffer();
+    virtual void SetSessionCallback(BaseSessionCallback* callback);
     virtual void SetCodecType(uint32_t type);
     virtual void SetJitterBufferSize(uint32_t nInit, uint32_t nMin, uint32_t nMax);
     virtual void SetJitterOptions(uint32_t nReduceTH, uint32_t nStepSize, double zValue,
-            bool bIgnoreSID, bool bImprovement) = 0;
+            bool bIgnoreSID, bool bImprovement);
     virtual uint32_t GetCount();
     virtual void Reset();
     virtual void Delete();
@@ -51,11 +53,8 @@ public:
             uint32_t* pnTimestamp, bool* pbMark, uint32_t* pnSeqNum,
             uint32_t* pnChecker = NULL) = 0;
 
-private:
-    BaseJitterBuffer(const BaseJitterBuffer& objRHS);
-    BaseJitterBuffer& operator=(const BaseJitterBuffer& objRHS);
-
 protected:
+    BaseSessionCallback* mCallback;
     uint32_t mCodecType;
     ImsMediaDataQueue mDataQueue;
     std::mutex mMutex;
@@ -66,7 +65,7 @@ protected:
     uint32_t mDataCount;
     uint16_t mLastPlayedSeqNum;
     uint32_t mLastPlayedTimestamp;
-    uint32_t mMaxSavePacketNum;
+    uint32_t mMaxSaveFrameNum;
     const void* mGraph;
     uint64_t mNumOfHandedPacket;
 };

@@ -21,12 +21,12 @@
 std::list<IRtpSession*> IRtpSession::mListRtpSession;
 
 IRtpSession* IRtpSession::GetInstance(
-        ImsMediaType eMediaType, const RtpAddress local, const RtpAddress peer)
+        ImsMediaType subtype, const RtpAddress local, const RtpAddress peer)
 {
-    IMLOGD1("[GetInstance] eMediaType[%d]", eMediaType);
+    IMLOGD1("[GetInstance] subtype[%d]", subtype);
     for (auto& i : mListRtpSession)
     {
-        if (i->isSameInstance(eMediaType, local, peer))
+        if (i->isSameInstance(subtype, local, peer))
         {
             i->increaseRefCounter();
             return i;
@@ -37,7 +37,7 @@ IRtpSession* IRtpSession::GetInstance(
         IMLOGD0("[GetInstance] Initialize Rtp Stack");
         IMS_RtpSvc_Initialize();
     }
-    IRtpSession* pSession = new IRtpSession(eMediaType, local, peer);
+    IRtpSession* pSession = new IRtpSession(subtype, local, peer);
     mListRtpSession.push_back(pSession);
     pSession->increaseRefCounter();
     return pSession;
@@ -62,9 +62,9 @@ void IRtpSession::ReleaseInstance(IRtpSession* pSession)
     IMLOGD0("[ReleaseInstance] Exit");
 }
 
-IRtpSession::IRtpSession(ImsMediaType eMediaType, const RtpAddress local, const RtpAddress peer)
+IRtpSession::IRtpSession(ImsMediaType subtype, const RtpAddress local, const RtpAddress peer)
 {
-    mMediaType = eMediaType;
+    mMediaType = subtype;
     mRefCount = 0;
     mLocalRtpSsrc = 0;
     mPeerRtpSsrc = 0;
@@ -118,9 +118,9 @@ bool IRtpSession::operator==(const IRtpSession& obj2)
 }
 
 bool IRtpSession::isSameInstance(
-        ImsMediaType eMediaType, const RtpAddress local, const RtpAddress peer)
+        ImsMediaType subtype, const RtpAddress local, const RtpAddress peer)
 {
-    if (mMediaType == eMediaType && mLocalAddress == local && mPeerAddress == peer)
+    if (mMediaType == subtype && mLocalAddress == local && mPeerAddress == peer)
     {
         return true;
     }

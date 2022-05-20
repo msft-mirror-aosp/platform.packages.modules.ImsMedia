@@ -19,13 +19,11 @@
 #include <utils/Log.h>
 #include <sys/time.h>
 
-namespace ImsMediaTrace
-{
 #ifdef IM_FILE_LOG
 #include <stdio.h>
 #include <stdlib.h>
 #define IM_LOG_FILE "/data/IM.txt"
-static uint32_t IM_remove_log = 1;
+static uint IM_remove_log = 1;
 #endif
 
 #define TRACEMAXSTRING 1024
@@ -70,27 +68,9 @@ static uint32_t IM_remove_log = 1;
 #endif
 
 static bool IMlogd_enabled = true;
-static uint32_t IMlogd_packet_enabled_types = 0;
+static uint IMlogd_packet_enabled_types = 0;
 
-void IMLOGE_ARG(const char* format, ...)
-{
-    __IMLOG__(ANDROID_LOG_ERROR, IM_TAG);
-}
-
-void IMLOGW_ARG(const char* format, ...)
-{
-    __IMLOG__(ANDROID_LOG_WARN, IM_TAG);
-}
-
-void IMLOGD_ARG(const char* format, ...)
-{
-    if (IMlogd_enabled)
-    {
-        __IMLOG__(ANDROID_LOG_DEBUG, IM_TAG);
-    }
-}
-
-void IMLOGD_PACKET_ARG(IM_PACKET_LOG_TYPE type, const char* format, ...)
+void ImsMediaTrace::IMLOGD_PACKET_ARG(IM_PACKET_LOG_TYPE type, const char* format, ...)
 {
     if (IMlogd_packet_enabled_types & type)
     {
@@ -98,14 +78,32 @@ void IMLOGD_PACKET_ARG(IM_PACKET_LOG_TYPE type, const char* format, ...)
     }
 }
 
-void IMSetDebugLog(uint32_t type)
+void ImsMediaTrace::IMSetDebugLog(uint type)
 {
     IMlogd_packet_enabled_types = type;
 }
 
-uint32_t IMGetDebugLog()
+uint ImsMediaTrace::IMGetDebugLog()
 {
     return IMlogd_packet_enabled_types;
+}
+
+void ImsMediaTrace::IMLOGE_ARG(const char* format, ...)
+{
+    __IMLOG__(ANDROID_LOG_ERROR, IM_TAG);
+}
+
+void ImsMediaTrace::IMLOGW_ARG(const char* format, ...)
+{
+    __IMLOG__(ANDROID_LOG_WARN, IM_TAG);
+}
+
+void ImsMediaTrace::IMLOGD_ARG(const char* format, ...)
+{
+    if (IMlogd_enabled)
+    {
+        __IMLOG__(ANDROID_LOG_DEBUG, IM_TAG);
+    }
 }
 
 #define MAX_PRINT_STRING_LEN 2048
@@ -118,11 +116,11 @@ static char hex_char(char nibble)
     return buf[nibble & 0xF];
 }
 
-char* IMTrace_Bin2String(void* s, uint32_t length)
+char* ImsMediaTrace::IMTrace_Bin2String(void* s, int length)
 {
     char* input = (char*)s;
     char* output = buffer;
-    uint32_t i;
+    int i;
 
     if (length < 0)
         return 0;
@@ -142,7 +140,7 @@ char* IMTrace_Bin2String(void* s, uint32_t length)
     return buffer;
 }
 
-void IMLOGD_BINARY(const char* msg, const void* s, uint32_t length)
+void ImsMediaTrace::IMLOGD_BINARY(const char* msg, const void* s, int length)
 {
 #define IMLOG_BIN_LINE_WIDTH 32
     char* curr = (char*)s;
@@ -150,7 +148,7 @@ void IMLOGD_BINARY(const char* msg, const void* s, uint32_t length)
         IMLOGD1("%s", msg);
     while (length > 0)
     {
-        uint32_t curr_len = length < IMLOG_BIN_LINE_WIDTH ? length : IMLOG_BIN_LINE_WIDTH;
+        int curr_len = length < IMLOG_BIN_LINE_WIDTH ? length : IMLOG_BIN_LINE_WIDTH;
         IMLOGD1("\t%s", IMTrace_Bin2String(curr, curr_len));
         length -= curr_len;
         curr += curr_len;
@@ -173,7 +171,7 @@ char* IM_Strrchr(char* pszSrc, char cChar)
     return (pszDest);
 }
 
-char* IM_StripFileName(char* pcFileName)
+char* ImsMediaTrace::IM_StripFileName(char* pcFileName)
 {
     char* pcTemp = NULL;
     pcTemp = IM_Strrchr(pcFileName, '/');
@@ -189,5 +187,3 @@ char* IM_StripFileName(char* pcFileName)
 
     return pcTemp;
 }
-
-}  // namespace ImsMediaTrace

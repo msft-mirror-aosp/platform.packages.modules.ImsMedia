@@ -26,12 +26,12 @@
 #define MAX_AUDIO_PAYLOAD_SIZE 1500
 #define MAX_FRAME_IN_PACKET    (MAX_AUDIO_PAYLOAD_SIZE - 1) / 32
 
-enum BaseNodeState
+enum kBaseNodeState
 {
     /* the state after stop method called normally*/
-    NODESTATE_STOPPED,
+    kNodeStateStopped,
     /* the state after start without error*/
-    NODESTATE_RUNNING,
+    kNodeStateRunning,
 };
 
 /*!
@@ -70,7 +70,7 @@ public:
     void SetMediaType(ImsMediaType eType);
     ImsMediaType GetMediaType();
     // Graph Interface
-    BaseNodeState GetState();
+    kBaseNodeState GetState();
     // Methods for Child Node
     // Child Node can/should use methods below to access the queue.
     virtual uint32_t GetDataCount();
@@ -88,7 +88,7 @@ public:
 protected:
     std::shared_ptr<StreamSchedulerCallback> mScheduler;
     BaseSessionCallback* mCallback;
-    BaseNodeState mNodeState;
+    kBaseNodeState mNodeState;
     ImsMediaDataQueue mDataQueue;
     std::list<BaseNode*> mFrontNodeList;
     std::list<BaseNode*> mRearNodeList;

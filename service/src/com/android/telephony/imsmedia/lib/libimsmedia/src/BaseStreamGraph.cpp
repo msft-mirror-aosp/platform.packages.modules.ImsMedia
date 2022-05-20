@@ -33,25 +33,25 @@ BaseStreamGraph::~BaseStreamGraph()
 
 ImsMediaResult BaseStreamGraph::start()
 {
-    IMLOGD0("startGraph]");
+    IMLOGD0("[startGraph]");
     ImsMediaResult ret = startNodes();
     if (ret != RESULT_SUCCESS)
     {
         return ret;
     }
-    setState(StreamState::STATE_RUN);
+    setState(StreamState::kStreamStateRunning);
     return RESULT_SUCCESS;
 }
 
 ImsMediaResult BaseStreamGraph::stop()
 {
-    IMLOGD0("stopGraph]");
+    IMLOGD0("[stopGraph]");
     ImsMediaResult ret = stopNodes();
     if (ret != RESULT_SUCCESS)
     {
         return ret;
     }
-    setState(StreamState::STATE_CREATED);
+    setState(StreamState::kStreamStateCreated);
     return RESULT_SUCCESS;
 }
 

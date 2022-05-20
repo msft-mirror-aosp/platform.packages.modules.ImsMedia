@@ -35,6 +35,19 @@ AudioManager* AudioManager::getInstance()
     return sManager;
 }
 
+int AudioManager::getState(int sessionId)
+{
+    auto session = mSessions.find(sessionId);
+    if (session != mSessions.end())
+    {
+        return (session->second)->getState();
+    }
+    else
+    {
+        return kSessionStateClosed;
+    }
+}
+
 ImsMediaResult AudioManager::openSession(int sessionId, int rtpFd, int rtcpFd, AudioConfig* config)
 {
     IMLOGD1("[openSession] sessionId[%d]", sessionId);
@@ -59,6 +72,7 @@ ImsMediaResult AudioManager::openSession(int sessionId, int rtpFd, int rtcpFd, A
             {
                 IMLOGD1("[openSession] startGraph failed[%d]", ret);
             }
+            delete config;
         }
     }
     else
@@ -179,7 +193,7 @@ void AudioManager::sendMessage(const int sessionId, const android::Parcel& parce
     status_t err = NO_ERROR;
     switch (nMsg)
     {
-        case OPEN_SESSION:
+        case kAudioOpenSession:
         {
             int rtpFd = parcel.readInt32();
             int rtcpFd = parcel.readInt32();
@@ -194,13 +208,13 @@ void AudioManager::sendMessage(const int sessionId, const android::Parcel& parce
                     "AUDIO_REQUEST_EVENT", nMsg, sessionId, reinterpret_cast<uint64_t>(param));
         }
         break;
-        case CLOSE_SESSION:
+        case kAudioCloseSession:
             ImsMediaEventHandler::SendEvent("AUDIO_REQUEST_EVENT", nMsg, sessionId);
             break;
-        case MODIFY_SESSION:
-        case ADD_CONFIG:
-        case CONFIRM_CONFIG:
-        case DELETE_CONFIG:
+        case kAudioModifySession:
+        case kAudioAddConfig:
+        case kAudioConfirmConfig:
+        case kAudioDeleteConfig:
         {
             AudioConfig* config = new AudioConfig();
             config->readFromParcel(&parcel);
@@ -212,17 +226,17 @@ void AudioManager::sendMessage(const int sessionId, const android::Parcel& parce
                     "AUDIO_REQUEST_EVENT", nMsg, sessionId, reinterpret_cast<uint64_t>(config));
         }
         break;
-        case SEND_DTMF:
+        case kAudioSendDtmf:
         {
             EventParamDtmf* param = new EventParamDtmf(parcel.readByte(), parcel.readInt32());
             ImsMediaEventHandler::SendEvent(
                     "AUDIO_REQUEST_EVENT", nMsg, sessionId, reinterpret_cast<uint64_t>(param));
         }
         break;
-        case SEND_HEADER_EXTENSION:
+        case kAudioSendHeaderExtension:
             // TO DO
             break;
-        case SET_MEDIA_QUALITY_THRESHOLD:
+        case kAudioSetMediaQualityThreshold:
         {
             MediaQualityThreshold* threshold = new MediaQualityThreshold();
             threshold->readFromParcel(&parcel);
@@ -250,62 +264,63 @@ void AudioManager::RequestHandler::processEvent(
     ImsMediaResult result = RESULT_SUCCESS;
     switch (event)
     {
-        case OPEN_SESSION:
+        case kAudioOpenSession:
         {
             EventParamOpenSession* param = reinterpret_cast<EventParamOpenSession*>(paramA);
             if (param != NULL)
             {
-                result = AudioManager::getInstance()->openSession(
-                        static_cast<int>(sessionId), param->rtpFd, param->rtcpFd, param->mConfig);
+                result = AudioManager::getInstance()->openSession(static_cast<int>(sessionId),
+                        param->rtpFd, param->rtcpFd,
+                        reinterpret_cast<AudioConfig*>(param->mConfig));
                 if (result == RESULT_SUCCESS)
                 {
                     ImsMediaEventHandler::SendEvent(
-                            "AUDIO_RESPONSE_EVENT", OPEN_SESSION_SUCCESS, sessionId);
+                            "AUDIO_RESPONSE_EVENT", kAudioOpenSessionSuccess, sessionId);
                 }
                 else
                 {
                     ImsMediaEventHandler::SendEvent(
-                            "AUDIO_RESPONSE_EVENT", OPEN_SESSION_FAILURE, sessionId, result);
+                            "AUDIO_RESPONSE_EVENT", kAudioOpenSessionFailure, sessionId, result);
                 }
                 delete param;
             }
             else
             {
-                ImsMediaEventHandler::SendEvent("AUDIO_RESPONSE_EVENT", OPEN_SESSION_FAILURE,
+                ImsMediaEventHandler::SendEvent("AUDIO_RESPONSE_EVENT", kAudioOpenSessionFailure,
                         sessionId, RESULT_INVALID_PARAM);
             }
         }
         break;
-        case CLOSE_SESSION:
+        case kAudioCloseSession:
             AudioManager::getInstance()->closeSession(static_cast<int>(sessionId));
             break;
-        case MODIFY_SESSION:
+        case kAudioModifySession:
         {
             AudioConfig* config = reinterpret_cast<AudioConfig*>(paramA);
             result =
                     AudioManager::getInstance()->modifySession(static_cast<int>(sessionId), config);
             ImsMediaEventHandler::SendEvent(
-                    "AUDIO_RESPONSE_EVENT", MODIFY_SESSION_RESPONSE, sessionId, result, paramA);
+                    "AUDIO_RESPONSE_EVENT", kAudioModifySessionResponse, sessionId, result, paramA);
         }
         break;
-        case ADD_CONFIG:
+        case kAudioAddConfig:
         {
             AudioConfig* config = reinterpret_cast<AudioConfig*>(paramA);
             result = AudioManager::getInstance()->addConfig(static_cast<int>(sessionId), config);
             ImsMediaEventHandler::SendEvent(
-                    "AUDIO_RESPONSE_EVENT", ADD_CONFIG_RESPONSE, sessionId, result, paramA);
+                    "AUDIO_RESPONSE_EVENT", kAudioAddConfigResponse, sessionId, result, paramA);
         }
         break;
-        case CONFIRM_CONFIG:
+        case kAudioConfirmConfig:
         {
             AudioConfig* config = reinterpret_cast<AudioConfig*>(paramA);
             result =
                     AudioManager::getInstance()->confirmConfig(static_cast<int>(sessionId), config);
             ImsMediaEventHandler::SendEvent(
-                    "AUDIO_RESPONSE_EVENT", CONFIRM_CONFIG_RESPONSE, sessionId, result, paramA);
+                    "AUDIO_RESPONSE_EVENT", kAudioConfirmConfigResponse, sessionId, result, paramA);
         }
         break;
-        case DELETE_CONFIG:
+        case kAudioDeleteConfig:
         {
             AudioConfig* config = reinterpret_cast<AudioConfig*>(paramA);
             if (config != NULL)
@@ -315,7 +330,7 @@ void AudioManager::RequestHandler::processEvent(
             }
         }
         break;
-        case SEND_DTMF:
+        case kAudioSendDtmf:
         {
             EventParamDtmf* param = reinterpret_cast<EventParamDtmf*>(paramA);
             if (param != NULL)
@@ -326,10 +341,10 @@ void AudioManager::RequestHandler::processEvent(
             }
         }
         break;
-        case SEND_HEADER_EXTENSION:
+        case kAudioSendHeaderExtension:
             // TO DO : add implementation
             break;
-        case SET_MEDIA_QUALITY_THRESHOLD:
+        case kAudioSetMediaQualityThreshold:
         {
             MediaQualityThreshold* threshold = reinterpret_cast<MediaQualityThreshold*>(paramA);
             if (threshold != NULL)
@@ -360,11 +375,11 @@ void AudioManager::ResponseHandler::processEvent(
     android::Parcel parcel;
     switch (event)
     {
-        case OPEN_SESSION_SUCCESS:
-        case OPEN_SESSION_FAILURE:
+        case kAudioOpenSessionSuccess:
+        case kAudioOpenSessionFailure:
             parcel.writeInt32(event);
             parcel.writeInt32(static_cast<int>(sessionId));
-            if (event == OPEN_SESSION_FAILURE)
+            if (event == kAudioOpenSessionFailure)
             {
                 // fail reason
                 parcel.writeInt32(static_cast<int>(paramA));
@@ -372,9 +387,9 @@ void AudioManager::ResponseHandler::processEvent(
             AudioManager::getInstance()->getCallback()(
                     reinterpret_cast<uint64_t>(AudioManager::getInstance()), parcel);
             break;
-        case MODIFY_SESSION_RESPONSE:  // fall through
-        case ADD_CONFIG_RESPONSE:      // fall through
-        case CONFIRM_CONFIG_RESPONSE:
+        case kAudioModifySessionResponse:  // fall through
+        case kAudioAddConfigResponse:      // fall through
+        case kAudioConfirmConfigResponse:
         {
             parcel.writeInt32(event);
             parcel.writeInt32(paramA);  // result
@@ -382,31 +397,33 @@ void AudioManager::ResponseHandler::processEvent(
             if (config != NULL)
             {
                 config->writeToParcel(&parcel);
+
+                AudioManager::getInstance()->getCallback()(
+                        reinterpret_cast<uint64_t>(AudioManager::getInstance()), parcel);
+                delete config;
             }
-            AudioManager::getInstance()->getCallback()(
-                    reinterpret_cast<uint64_t>(AudioManager::getInstance()), parcel);
         }
         break;
-        case SESSION_CHANGED_IND:
+        case kAudioSessionChangedInd:
             // TODO : add implementation
             break;
-        case FIRST_MEDIA_PACKET_IND:
+        case kAudioFirstMediaPacketInd:
             parcel.writeInt32(event);
             AudioManager::getInstance()->getCallback()(
                     reinterpret_cast<uint64_t>(AudioManager::getInstance()), parcel);
             break;
-        case RTP_HEADER_EXTENSION_IND:
+        case kAudioRtpHeaderExtensionInd:
             // TODO : add implementation
             break;
-        case MEDIA_INACITIVITY_IND:
+        case kAudioMediaInactivityInd:
             parcel.writeInt32(event);
             parcel.writeInt32(static_cast<int>(paramA));  // type
             parcel.writeInt32(static_cast<int>(paramB));  // duration
             AudioManager::getInstance()->getCallback()(
                     reinterpret_cast<uint64_t>(AudioManager::getInstance()), parcel);
             break;
-        case PACKET_LOSS_IND:
-        case JITTER_IND:
+        case kAudioPacketLossInd:
+        case kAudioJitterInd:
             // TODO : add implementation
             break;
         default:

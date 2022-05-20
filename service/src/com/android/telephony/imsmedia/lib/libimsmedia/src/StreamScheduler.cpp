@@ -180,7 +180,7 @@ void StreamScheduler::RunRegisteredNode()
     // run source nodes
     for (auto& i : mlistSourceNode)
     {
-        if (i->GetState() == NODESTATE_RUNNING)
+        if (i->GetState() == kNodeStateRunning)
         {
             i->ProcessData();
         }
@@ -197,7 +197,7 @@ void StreamScheduler::RunRegisteredNode()
         pNode = DeterminProcessingNode(&nMaxDataInNode);
         if (pNode == NULL || mbTerminate)
             break;
-        if (pNode->GetState() == NODESTATE_RUNNING)
+        if (pNode->GetState() == kNodeStateRunning)
         {
             pNode->ProcessData();
         }

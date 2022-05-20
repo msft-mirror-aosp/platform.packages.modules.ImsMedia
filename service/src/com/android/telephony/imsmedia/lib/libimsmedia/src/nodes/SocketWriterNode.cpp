@@ -71,7 +71,7 @@ ImsMediaResult SocketWriterNode::Start()
     }
 
     mbSocketOpened = true;
-    mNodeState = NODESTATE_RUNNING;
+    mNodeState = kNodeStateRunning;
     return RESULT_SUCCESS;
 }
 
@@ -85,7 +85,7 @@ void SocketWriterNode::Stop()
         mSocket = NULL;
         mbSocketOpened = false;
     }
-    mNodeState = NODESTATE_STOPPED;
+    mNodeState = kNodeStateStopped;
 }
 
 bool SocketWriterNode::IsRunTime()
@@ -142,7 +142,7 @@ void SocketWriterNode::OnDataFromFrontNode(ImsMediaSubType subtype, uint8_t* pDa
 
     if (mDisableSocket == true && subtype != MEDIASUBTYPE_RTCPPACKET_BYE)
     {
-        IMLOGW3("[OnDataFromFrontNode] mediatype[%d] subtype[%d] socket is disabled, bytes[%d]",
+        IMLOGW3("[OnDataFromFrontNode] media[%d] subtype[%d] socket is disabled, bytes[%d]",
                 mMediaType, subtype, nDataSize);
     }
 

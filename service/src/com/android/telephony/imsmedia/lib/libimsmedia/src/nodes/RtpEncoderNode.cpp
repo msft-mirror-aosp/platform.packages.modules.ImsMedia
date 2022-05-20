@@ -117,7 +117,7 @@ ImsMediaResult RtpEncoderNode::Start()
     jitterData.Clear();
     mReorderDataCount = 0;
 #endif
-    mNodeState = NODESTATE_RUNNING;
+    mNodeState = kNodeStateRunning;
     return RESULT_SUCCESS;
 }
 
@@ -126,7 +126,7 @@ void RtpEncoderNode::Stop()
     IMLOGD0("[Stop]");
     // mRtpSession->EnableRtpMonitoring(false);
     // mRtpSession->EnableRtcpTx(true);
-    mNodeState = NODESTATE_STOPPED;
+    mNodeState = kNodeStateStopped;
 }
 
 void RtpEncoderNode::ProcessData()
@@ -178,7 +178,7 @@ bool RtpEncoderNode::IsSourceNode()
 
 void RtpEncoderNode::SetConfig(void* config)
 {
-    IMLOGD0("[SetConfig]");
+    IMLOGD1("[SetConfig] type[%d]", mMediaType);
     if (config == NULL)
         return;
     if (mMediaType == IMS_MEDIA_AUDIO)

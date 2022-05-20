@@ -81,7 +81,7 @@ ImsMediaResult RtcpEncoderNode::Start()
         IMLOGD0("[Start] Rtcp Timer started");
     }
     mRtcpXrCounter = 0;
-    mNodeState = NODESTATE_RUNNING;
+    mNodeState = kNodeStateRunning;
     return RESULT_SUCCESS;
 }
 
@@ -103,7 +103,7 @@ void RtcpEncoderNode::Stop()
         m_hTimer = NULL;
         IMLOGD0("[Stop] Rtcp Timer stopped");
     }
-    mNodeState = NODESTATE_STOPPED;
+    mNodeState = kNodeStateStopped;
 }
 
 bool RtcpEncoderNode::IsRunTime()

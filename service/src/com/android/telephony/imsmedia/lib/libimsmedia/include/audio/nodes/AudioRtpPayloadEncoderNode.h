@@ -38,9 +38,7 @@ public:
             uint32_t nTimestamp, bool bMark, uint32_t nSeqNum,
             ImsMediaSubType nDataType = ImsMediaSubType::MEDIASUBTYPE_UNDEFINED);
     virtual void SetConfig(void* config);
-    void SetCodec(int32_t type);
-    void SetPayloadMode(bool mode);
-    void SetPtime(uint32_t ptime);
+    virtual bool IsSameConfig(void* config);
 
 private:
     void Encode_PH_AMR(uint8_t* pData, uint32_t nDataSize, uint32_t nTimestamp, bool bMark);

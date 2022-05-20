@@ -81,7 +81,7 @@ ImsMediaResult SocketReaderNode::Start()
 
     memset(mBuffer, 0, sizeof(mBuffer));
     mbSocketOpened = true;
-    mNodeState = NODESTATE_RUNNING;
+    mNodeState = kNodeStateRunning;
     return RESULT_SUCCESS;
 }
 
@@ -96,7 +96,7 @@ void SocketReaderNode::Stop()
         mSocket = NULL;
         mbSocketOpened = false;
     }
-    mNodeState = NODESTATE_STOPPED;
+    mNodeState = kNodeStateStopped;
 }
 
 bool SocketReaderNode::IsRunTime()

@@ -15,6 +15,8 @@
  */
 
 #include <ImsMediaAudioFmt.h>
+#include <ImsMediaDefine.h>
+#include <AudioConfig.h>
 #include <ImsMediaTrace.h>
 #include <string.h>
 
@@ -351,7 +353,6 @@ const AmrWbFrameOrder gaAmrWb2385Table = {IMSAMRWB_CLASS_A_BITS_2385,
         (uint32_t*)gaAmrWbBitOrder2385a, IMSAMRWB_CLASS_B_BITS_2385,
         (uint32_t*)gaAmrWbBitOrder2385b, IMSAMRWB_CLASS_C_BITS_2385, NULL};
 
-/* ______________________________________________________________________________________ */
 /* Bit ordering tables indexed by imsamrwb_mode_type */
 const AmrWbFrameOrder* gaAmrWbFmtTable[] = {NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL,
         &gaAmrWb660Table, &gaAmrWb885Table, &gaAmrWb1265Table, &gaAmrWb1425Table, &gaAmrWb1585Table,
@@ -383,7 +384,6 @@ static const uint32_t gaAMRBitLen[16] = {
         0,
 };
 
-/* == LOCAL CONSTANTS ====================================================== */
 const uint8_t gaAmrBitOrder475a[IMSAMR_CLASS_A_BITS_475] = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11,
         12, 13, 14, 15, 23, 24, 25, 26, 27, 28, 48, 49, 61, 62, 82, 83, 47, 46, 45, 44, 81, 80, 79,
         78, 17, 18, 20, 22, 77, 76};
@@ -526,7 +526,6 @@ const AmrFrameOrder* gaAmrFmtTable[] = {&gaAmr475Table, &gaAmr515Table, &gaAmr59
         &gaAmr670Table, &gaAmr740Table, &gaAmr795Table, &gaAmr102Table, &gaAmr122Table};
 /* ______________________________________________________________________________________ */
 
-/* == LOCAL FUNCTION PROTOTYPE =============================================== */
 void amrFmt_Framing(uint8_t* pEcdData, int32_t* pnEcdDstBitIndex, uint8_t* pRawData,
         int32_t nNumOfBits, uint8_t* paOdrTable);
 void amrFmt_Deframing(uint8_t* pDst, uint8_t* pRawData, int32_t* pnSrcBitIndex, int32_t nNumOfBits,
@@ -660,6 +659,24 @@ void amrWbFmt_Deframing(uint8_t* pDst, uint8_t* pRawData, int32_t* pnSrcBitIndex
             nSrcMask = 0x00000080;
             nSrcVal = *pSrc++;
         }
+    }
+}
+
+int32_t ImsMediaAudioFmt::ConvertCodecType(int32_t type)
+{
+    switch (type)
+    {
+        default:
+        case AudioConfig::CODEC_AMR:
+            return kAudioCodecAmr;
+        case AudioConfig::CODEC_AMR_WB:
+            return kAudioCodecAmrWb;
+        case AudioConfig::CODEC_EVS:
+            return kAudioCodecEvs;
+        case AudioConfig::CODEC_PCMA:
+            return kAudioCodecPcma;
+        case AudioConfig::CODEC_PCMU:
+            return kAudioCodecPcmu;
     }
 }
 

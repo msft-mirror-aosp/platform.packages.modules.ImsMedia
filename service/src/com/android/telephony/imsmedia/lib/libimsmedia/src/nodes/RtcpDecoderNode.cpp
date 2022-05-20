@@ -63,7 +63,7 @@ ImsMediaResult RtcpDecoderNode::Start()
     mRtpSession->SetRtcpDecoderListener(this);
     mRtpSession->StartRtcp();
     mNoRtcpTime = 0;
-    mNodeState = NODESTATE_RUNNING;
+    mNodeState = kNodeStateRunning;
     return RESULT_SUCCESS;
 }
 
@@ -77,7 +77,7 @@ void RtcpDecoderNode::Stop()
         IRtpSession::ReleaseInstance(mRtpSession);
         mRtpSession = NULL;
     }
-    mNodeState = NODESTATE_STOPPED;
+    mNodeState = kNodeStateStopped;
 }
 
 void RtcpDecoderNode::OnDataFromFrontNode(ImsMediaSubType subtype, uint8_t* pData,
@@ -87,8 +87,7 @@ void RtcpDecoderNode::OnDataFromFrontNode(ImsMediaSubType subtype, uint8_t* pDat
     (void)nDataType;
 
     IMLOGD_PACKET6(IM_PACKET_LOG_RTCP,
-            "[OnMediaDataInd] MediaType[%d] subtype[%d], Size[%d], timestamp[%u], Mark[%d], "
-            "Seq[%d]",
+            "[OnMediaDataInd] media[%d] subtype[%d], Size[%d], TS[%u], Mark[%d], Seq[%d]",
             mMediaType, subtype, nDataSize, nTimeStamp, bMark, nSeqNum);
     mRtpSession->ProcRtcpPacket(pData, nDataSize);
 }

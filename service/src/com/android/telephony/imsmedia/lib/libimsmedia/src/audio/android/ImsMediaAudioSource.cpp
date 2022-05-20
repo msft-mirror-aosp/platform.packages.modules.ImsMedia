@@ -72,11 +72,11 @@ bool ImsMediaAudioSource::Start()
 {
     char kMimeType[128] = {'\0'};
     mSamplingRate = DEFAULT_SAMPLING_RATE;
-    if (mCodecType == AUDIO_AMR)
+    if (mCodecType == kAudioCodecAmr)
     {
         sprintf(kMimeType, "audio/3gpp");
     }
-    else if (mCodecType == AUDIO_AMR_WB)
+    else if (mCodecType == kAudioCodecAmrWb)
     {
         mSamplingRate = 16000;
         sprintf(kMimeType, "audio/amr-wb");
@@ -95,12 +95,12 @@ bool ImsMediaAudioSource::Start()
     AMediaFormat_setString(mFormat, AMEDIAFORMAT_KEY_MIME, kMimeType);
     AMediaFormat_setInt32(mFormat, AMEDIAFORMAT_KEY_SAMPLE_RATE, mSamplingRate);
     AMediaFormat_setInt32(mFormat, AMEDIAFORMAT_KEY_CHANNEL_COUNT, 1);
-    if (mCodecType == AUDIO_AMR)
+    if (mCodecType == kAudioCodecAmr)
     {
         AMediaFormat_setInt32(
                 mFormat, AMEDIAFORMAT_KEY_BIT_RATE, ImsMediaAudioFmt::GetBitrateAmr(mMode));
     }
-    else if (mCodecType == AUDIO_AMR_WB)
+    else if (mCodecType == kAudioCodecAmrWb)
     {
         AMediaFormat_setInt32(
                 mFormat, AMEDIAFORMAT_KEY_BIT_RATE, ImsMediaAudioFmt::GetBitrateAmrWb(mMode));

@@ -48,7 +48,7 @@ BaseNodeID AudioRtpPayloadEncoderNode::GetNodeID()
 
 ImsMediaResult AudioRtpPayloadEncoderNode::Start()
 {
-    IMLOGD0("[Start]");
+    IMLOGD2("[Start] codecType[%d], mode[%d]", mCodecType, mOctetAligned);
     std::lock_guard<std::mutex> guard(mMutexExit);
     mMaxNumOfFrame = mPtime / 20;
 
@@ -62,7 +62,7 @@ ImsMediaResult AudioRtpPayloadEncoderNode::Start()
     mCurrFramePos = 0;
     mFirstFrame = true;
     mTotalPayloadSize = 0;
-    mNodeState = NODESTATE_RUNNING;
+    mNodeState = kNodeStateRunning;
     return RESULT_SUCCESS;
 }
 
@@ -70,7 +70,7 @@ void AudioRtpPayloadEncoderNode::Stop()
 {
     IMLOGD0("[Stop]");
     std::lock_guard<std::mutex> guard(mMutexExit);
-    mNodeState = NODESTATE_STOPPED;
+    mNodeState = kNodeStateStopped;
 }
 
 bool AudioRtpPayloadEncoderNode::IsRunTime()
@@ -90,20 +90,16 @@ void AudioRtpPayloadEncoderNode::OnDataFromFrontNode(ImsMediaSubType subtype, ui
     (void)subtype;
     switch (mCodecType)
     {
-        case AUDIO_EVRC:
-        case AUDIO_EVRC_B:
-            // Encode_PH_EVRCB(subtype, pData, nDataSize, nTimestamp, bMark);
-            break;
-        case AUDIO_AMR:
-        case AUDIO_AMR_WB:
+        case kAudioCodecAmr:
+        case kAudioCodecAmrWb:
             Encode_PH_AMR(pData, nDataSize, nTimestamp, bMark);
             break;
-        case AUDIO_G711_PCMU:
-        case AUDIO_G711_PCMA:
+        case kAudioCodecPcmu:
+        case kAudioCodecPcma:
             SendDataToRearNode(MEDIASUBTYPE_RTPPAYLOAD, pData, nDataSize, nTimestamp, bMark,
                     nSeqNum, nDataType);
             break;
-        case AUDIO_EVS:
+        case kAudioCodecEvs:
             // Encode_PH_EVS(pData, nDataSize, nTimestamp, bMark);
             break;
         default:
@@ -119,48 +115,34 @@ void AudioRtpPayloadEncoderNode::SetConfig(void* config)
     AudioConfig* pConfig = reinterpret_cast<AudioConfig*>(config);
     if (pConfig != NULL)
     {
-        SetCodec(pConfig->getCodecType());
-        if (mCodecType == AUDIO_AMR || mCodecType == AUDIO_AMR_WB)
+        mCodecType = ImsMediaAudioFmt::ConvertCodecType(pConfig->getCodecType());
+        if (mCodecType == kAudioCodecAmr || mCodecType == kAudioCodecAmrWb)
         {
-            SetPayloadMode(pConfig->getAmrParams().getOctetAligned());
+            mOctetAligned = pConfig->getAmrParams().getOctetAligned();
         }
-        SetPtime(pConfig->getPtimeMillis());
+
+        mPtime = pConfig->getPtimeMillis();
     }
 }
 
-void AudioRtpPayloadEncoderNode::SetCodec(int32_t type)
+bool AudioRtpPayloadEncoderNode::IsSameConfig(void* config)
 {
-    switch (type)
+    if (config == NULL)
+        return true;
+    AudioConfig* pConfig = reinterpret_cast<AudioConfig*>(config);
+
+    if (mCodecType == ImsMediaAudioFmt::ConvertCodecType(pConfig->getCodecType()))
     {
-        case AudioConfig::CODEC_AMR:
-            mCodecType = AUDIO_AMR;
-            break;
-        case AudioConfig::CODEC_AMR_WB:
-            mCodecType = AUDIO_AMR_WB;
-            break;
-        case AudioConfig::CODEC_EVS:
-            mCodecType = AUDIO_EVS;
-            break;
-        case AudioConfig::CODEC_PCMA:
-            mCodecType = AUDIO_G711_PCMA;
-            break;
-        case AudioConfig::CODEC_PCMU:
-            mCodecType = AUDIO_G711_PCMU;
-            break;
-        default:
-            break;
+        if (mCodecType == kAudioCodecAmr || mCodecType == kAudioCodecAmrWb)
+        {
+            if (mOctetAligned == pConfig->getAmrParams().getOctetAligned())
+            {
+                return true;
+            }
+        }
     }
-}
 
-void AudioRtpPayloadEncoderNode::SetPayloadMode(bool bOctetAligned)
-{
-    IMLOGD1("[SetPayloadMode] bOctetAligned[%d]", bOctetAligned);
-    mOctetAligned = bOctetAligned;
-}
-
-void AudioRtpPayloadEncoderNode::SetPtime(uint32_t ptime)
-{
-    mPtime = ptime;
+    return false;
 }
 
 void AudioRtpPayloadEncoderNode::Encode_PH_AMR(
@@ -188,7 +170,7 @@ void AudioRtpPayloadEncoderNode::Encode_PH_AMR(
     mCurrNumOfFrame++;
     f = (mCurrNumOfFrame == mMaxNumOfFrame) ? 0 : 1;
 
-    if (mCodecType == AUDIO_AMR)
+    if (mCodecType == kAudioCodecAmr)
     {
         nCmr = 0x0F;
         ft = ImsMediaAudioFmt::ConvertLenToAmrMode(nDataSize);
@@ -218,7 +200,7 @@ void AudioRtpPayloadEncoderNode::Encode_PH_AMR(
     if (bAMRUpdate == 1 && nDataSize > 0)
     {
         int max_mode;
-        if (mCodecType == AUDIO_AMR)
+        if (mCodecType == kAudioCodecAmr)
             max_mode = 7;
         else
             max_mode = 8;

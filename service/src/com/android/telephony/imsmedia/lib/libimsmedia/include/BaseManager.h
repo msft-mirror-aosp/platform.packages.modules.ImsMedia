@@ -34,6 +34,7 @@ public:
     virtual CBManager getCallback() { return mfnCallback; }
 
 protected:
+    virtual int getState(int sessionId) = 0;
     CBManager mfnCallback;
 };
 

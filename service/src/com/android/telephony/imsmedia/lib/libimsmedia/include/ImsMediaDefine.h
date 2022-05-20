@@ -128,10 +128,9 @@ enum ImsMediaSubType
     MEDIASUBTYPE_BITSTREAM_G711_PCMU,
     // encoded bitstream of pcma
     MEDIASUBTYPE_BITSTREAM_G711_PCMA,
-    MEDIASUBTYPE_BITSTREAM_EVRC,
-    MEDIASUBTYPE_BITSTREAM_EVRC_B,
     MEDIASUBTYPE_BITSTREAM_AMR_WB,
     MEDIASUBTYPE_BITSTREAM_AMR,
+    MEDIASUBTYPE_REFRESHED,
     // rtt bitstream of t.140 format
     MEDIASUBTYPE_BITSTREAM_T140,
     // rtt bitstream of t.140 redundant format
@@ -146,39 +145,39 @@ enum ImsMediaSubType
 
 enum ImsMediaAudioMsgRequest
 {
-    OPEN_SESSION = 101,
-    CLOSE_SESSION,
-    MODIFY_SESSION,
-    ADD_CONFIG,
-    DELETE_CONFIG,
-    CONFIRM_CONFIG,
-    SEND_DTMF,
-    SEND_HEADER_EXTENSION,
-    SET_MEDIA_QUALITY_THRESHOLD,
+    kAudioOpenSession = 101,
+    kAudioCloseSession,
+    kAudioModifySession,
+    kAudioAddConfig,
+    kAudioDeleteConfig,
+    kAudioConfirmConfig,
+    kAudioSendDtmf,
+    kAudioSendHeaderExtension,
+    kAudioSetMediaQualityThreshold,
 };
 
 enum ImsMediaAudioMsgResponse
 {
-    OPEN_SESSION_SUCCESS = 201,
-    OPEN_SESSION_FAILURE,
-    MODIFY_SESSION_RESPONSE,
-    ADD_CONFIG_RESPONSE,
-    CONFIRM_CONFIG_RESPONSE,
-    SESSION_CHANGED_IND,
-    FIRST_MEDIA_PACKET_IND,
-    RTP_HEADER_EXTENSION_IND,
-    MEDIA_INACITIVITY_IND,
-    PACKET_LOSS_IND,
-    JITTER_IND,
+    kAudioOpenSessionSuccess = 201,
+    kAudioOpenSessionFailure,
+    kAudioModifySessionResponse,
+    kAudioAddConfigResponse,
+    kAudioConfirmConfigResponse,
+    kAudioSessionChangedInd,
+    kAudioFirstMediaPacketInd,
+    kAudioRtpHeaderExtensionInd,
+    kAudioMediaInactivityInd,
+    kAudioPacketLossInd,
+    kAudioJitterInd,
 };
 
 struct EventParamOpenSession
 {
 public:
-    AudioConfig* mConfig;
+    void* mConfig;
     int rtpFd;
     int rtcpFd;
-    EventParamOpenSession(int rtp, int rtcp, AudioConfig* config) :
+    EventParamOpenSession(int rtp, int rtcp, void* config) :
             mConfig(config),
             rtpFd(rtp),
             rtcpFd(rtcp)
@@ -199,35 +198,27 @@ public:
     }
 };
 
-enum eAudioCodecType
+enum kAudioCodecType
 {
-    AUDIO_CODEC_NONE = 0,
-    AUDIO_EVRC,
-    AUDIO_EVRC_B,
-    AUDIO_AMR,
-    AUDIO_AMR_WB,
-    AUDIO_G711_PCMU,
-    AUDIO_G711_PCMA,
-    AUDIO_AAC,
-    AUDIO_EVS,
-    AUDIO_MAX,
+    kAudioCodecNone = 0,
+    kAudioCodecAmr,
+    kAudioCodecAmrWb,
+    kAudioCodecPcmu,
+    kAudioCodecPcma,
+    kAudioCodecEvs,
 };
 
 enum eRTPPyaloadHeaderMode
 {
-    // evrc mode
-    RTPPAYLOADHEADER_MODE_EVRC_BUNDLE = 0,
-    RTPPAYLOADHEADER_MODE_EVRC_COMPACT = 1,  // evrc encoder should generate fixed rate stream
-    RTPPAYLOADHEADER_MODE_EVRC_FREEHEADER = 2,
     // amr mode
-    RTPPAYLOADHEADER_MODE_AMR_OCTETALIGNED = 0,      // octet aligned mode
-    RTPPAYLOADHEADER_MODE_AMR_EFFICIENT = 1,         // efficient mode
-                                                     // h.264 mode
-    RTPPAYLOADHEADER_MODE_H264_SINGLE_NAL_UNIT = 0,  // packet mode 0
-    RTPPAYLOADHEADER_MODE_H264_NON_INTERLEAVED = 1,  // packet mode 1
-                                                     // evs mode
-    RTPPAYLOADHEADER_MODE_EVS_COMPACT = 0,           // EVS compact format 0
-    RTPPAYLOADHEADER_MODE_EVS_HEADER_FULL = 1,       // EVS header-full format 1
+    RTPPAYLOADHEADER_MODE_AMR_OCTETALIGNED = 0,  // octet aligned mode
+    RTPPAYLOADHEADER_MODE_AMR_EFFICIENT = 1,     // efficient mode
+                                                 // video packetization mode
+    RTPPAYLOADHEADER_MODE_SINGLE_NAL_UNIT = 0,   // packet mode 0
+    RTPPAYLOADHEADER_MODE_NON_INTERLEAVED = 1,   // packet mode 1
+                                                 // evs mode
+    RTPPAYLOADHEADER_MODE_EVS_COMPACT = 0,       // EVS compact format 0
+    RTPPAYLOADHEADER_MODE_EVS_HEADER_FULL = 1,   // EVS header-full format 1
     RTPPAYLOADHEADER_MODE_MAX
 };
 
@@ -239,9 +230,25 @@ enum eIPVersion
 
 enum StreamState
 {
-    STATE_NULL,
-    STATE_CREATED,
-    STATE_RUN,
+    kStreamStateIdle,
+    kStreamStateCreated,
+    kStreamStateRunning,
+    /**
+     * Video state wait surface in stating
+     */
+    kStreamStateWaitSurface,
+};
+
+enum SessionState
+{
+    /** The state that the session is created but graph is not created */
+    kSessionStateOpen,
+    /** The state that the session is created and the Rtp StreamGraphs are running */
+    kSessionStateActive,
+    /** The state that the session is created and the Rtp StreamGraphs is not running */
+    kSessionStateSuspended,
+    /** The state that the session is closed */
+    kSessionStateClosed,
 };
 
 enum eSocketOpt

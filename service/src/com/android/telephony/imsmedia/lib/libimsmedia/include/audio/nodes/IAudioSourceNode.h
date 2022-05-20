@@ -39,15 +39,11 @@ public:
     virtual bool IsSourceNode();
     virtual void SetConfig(void* config);
     virtual bool IsSameConfig(void* config);
-    void SetCodec(int32_t type);
-    void SetCodecMode(uint32_t mode);
     static void CB_AudioUplink(
             void* pClient, uint8_t* pBitstream, uint32_t pnSize, int64_t pstUsec, uint32_t flag);
 
 public:
-    uint64_t m_uiTimestamp;
-    uint64_t m_uiPrevTimestamp;
-    bool m_bFirstFrame;
+    bool mFirstFrame;
     std::unique_ptr<ImsMediaAudioSource> mAudioSource;
     int32_t mCodecType;
     uint32_t mMode;
