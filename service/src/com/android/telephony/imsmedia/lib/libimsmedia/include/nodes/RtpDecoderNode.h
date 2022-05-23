@@ -53,6 +53,7 @@ public:
 
 private:
     IRtpSession* mRtpSession;
+    RtpConfig* mConfig;
     RtpAddress mLocalAddress;
     RtpAddress mPeerAddress;
     uint32_t mSamplingRate;

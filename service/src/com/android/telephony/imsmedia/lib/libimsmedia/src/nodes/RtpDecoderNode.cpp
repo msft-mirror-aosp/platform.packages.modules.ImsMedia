@@ -17,13 +17,13 @@
 #include <RtpDecoderNode.h>
 #include <ImsMediaTrace.h>
 #include <AudioConfig.h>
-
 RtpDecoderNode::RtpDecoderNode()
 {
     mRtpSession = NULL;
     mReceivingSSRC = 0;
     mInactivityTime = 0;
     mNoRtpTime = 0;
+    mConfig = NULL;
 }
 
 RtpDecoderNode::~RtpDecoderNode()
@@ -33,6 +33,13 @@ RtpDecoderNode::~RtpDecoderNode()
         mRtpSession->SetRtpDecoderListener(NULL);
         mRtpSession->StopRtp();
         IRtpSession::ReleaseInstance(mRtpSession);
+    }
+
+    mRtpSession = NULL;
+    if (mConfig != NULL)
+    {
+        delete mConfig;
+        mConfig = NULL;
     }
 }
 
@@ -69,6 +76,7 @@ ImsMediaResult RtpDecoderNode::Start()
         }
     }
 
+    mRtpSession->SetPayloadParam(mConfig);
     mRtpSession->SetRtpDecoderListener(this);
     mRtpSession->StartRtp();
     mReceivingSSRC = 0;
@@ -108,10 +116,13 @@ void RtpDecoderNode::SetConfig(void* config)
     IMLOGD0("[SetConfig]");
     if (config == NULL)
         return;
-    RtpConfig* pConfig = reinterpret_cast<RtpConfig*>(config);
-    mPeerAddress = RtpAddress(pConfig->getRemoteAddress().c_str(), pConfig->getRemotePort());
-    SetSamplingRate(pConfig->getSamplingRateKHz() * 1000);
-    IMLOGD2("[SetConfig] peer Ip[%s], port[%d]", mPeerAddress.ipAddress, mPeerAddress.port);
+    if (mMediaType == IMS_MEDIA_AUDIO)
+    {
+        mConfig = new AudioConfig(reinterpret_cast<AudioConfig*>(config));
+        mPeerAddress = RtpAddress(mConfig->getRemoteAddress().c_str(), mConfig->getRemotePort());
+        SetSamplingRate(mConfig->getSamplingRateKHz() * 1000);
+        IMLOGD2("[SetConfig] peer Ip[%s], port[%d]", mPeerAddress.ipAddress, mPeerAddress.port);
+    }
 }
 
 bool RtpDecoderNode::IsSameConfig(void* config)
