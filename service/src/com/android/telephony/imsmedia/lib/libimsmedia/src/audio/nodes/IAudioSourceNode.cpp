@@ -20,6 +20,8 @@
 #include <ImsMediaAudioFmt.h>
 #include <string.h>
 #include <AudioConfig.h>
+#include <RtpConfig.h>
+#include <EvsParams.h>
 
 IAudioSourceNode::IAudioSourceNode()
 {
@@ -56,12 +58,24 @@ ImsMediaResult IAudioSourceNode::Start()
         mAudioSource->SetCodec(mCodecType);
         mAudioSource->SetCodecMode(mMode);
         mAudioSource->SetPtime(mPtime);
+        mAudioSource->SetSamplingRate(mSamplingRate);
+
+        if (mCodecType == kAudioCodecEvs)
+        {
+            mAudioSource->SetEvsBandwidth(mEvsBandwidth);
+            mAudioSource->SetEvsChAwOffset(mEvsChAwOffset);
+        }
+
         if (mAudioSource->Start())
         {
             mNodeState = kNodeStateRunning;
             mFirstFrame = false;
             return RESULT_SUCCESS;
         }
+    }
+    else
+    {
+        IMLOGE0("[IAudioSourceNode] Not able to start AudioSource");
     }
 
     return RESULT_NOT_READY;
@@ -97,6 +111,13 @@ void IAudioSourceNode::SetConfig(void* config)
     {
         mMode = pConfig->getAmrParams().getAmrMode();
     }
+    else if (mCodecType == kAudioCodecEvs)
+    {
+        SetCodecMode(pConfig->getEvsParams().getEvsMode());
+        SetEVSBandwidth((eEVSBandwidth)pConfig->getEvsParams().getEvsBandwidth());
+        SetEvsChAwOffset(pConfig->getEvsParams().getChannelAwareMode());
+    }
+    SetSamplingRate(pConfig->getSamplingRateKHz());
     mPtime = pConfig->getPtimeMillis();
 }
 
@@ -125,6 +146,26 @@ bool IAudioSourceNode::IsSameConfig(void* config)
     }
 
     return false;
+}
+
+void IAudioSourceNode::SetEVSBandwidth(eEVSBandwidth bandwidth)
+{
+    mEvsBandwidth = bandwidth;
+}
+
+void IAudioSourceNode::SetEvsChAwOffset(int32_t EvsChAOffset)
+{
+    mEvsChAwOffset = EvsChAOffset;
+}
+
+void IAudioSourceNode::SetSamplingRate(int32_t samplingRate)
+{
+    mSamplingRate = samplingRate;
+}
+
+void IAudioSourceNode::SetCodecMode(uint32_t mode)
+{
+    mMode = mode;
 }
 
 void IAudioSourceNode::CB_AudioUplink(

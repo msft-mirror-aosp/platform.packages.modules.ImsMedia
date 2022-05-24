@@ -791,7 +791,8 @@ void ImsMediaAudioFmt::AmrWbFmt_Framing(IMSVOC_AUDIOFRAME_ENTYPE eFrameType,
     switch (eFrameType)
     {
         case IMSVOC_AUDIOFRAME_GSM_SID:
-            IMLOGD_PACKET0(IM_PACKET_LOG_AUDIO, "AmrWbFmt_Framing IMSVOC_AUDIOFRAME_GSM_SID case");
+            IMLOGD_PACKET0(IM_PACKET_LOG_AUDIO,
+                    "[AmrWbFmt_Framing] AmrWbFmt_Framing IMSVOC_AUDIOFRAME_GSM_SID case");
 
             /* Copy the sid frame to pClassA data */
             for (i = 0; i < 5; i++)
@@ -803,7 +804,8 @@ void ImsMediaAudioFmt::AmrWbFmt_Framing(IMSVOC_AUDIOFRAME_ENTYPE eFrameType,
             pEncodedData[4] &= ~0x10;
 
             IMLOGD_PACKET1(IM_PACKET_LOG_AUDIO,
-                    "AmrWbFmt_Framing IMSVOC_AUDIOFRAME_GSM_SID before pEncodedData[4][%d]",
+                    "[AmrWbFmt_Framing] AmrWbFmt_Framing IMSVOC_AUDIOFRAME_GSM_SID before "
+                    "pEncodedData[4][%d]",
                     pEncodedData[4]);
 
             /* Set the mode (Bit 36 - 38 = eRate with bits swapped)
@@ -811,12 +813,13 @@ void ImsMediaAudioFmt::AmrWbFmt_Framing(IMSVOC_AUDIOFRAME_ENTYPE eFrameType,
             pEncodedData[4] |= (((uint8_t)eRate << 3) & 0x08) | (((uint8_t)eRate << 1) & 0x04) |
                     (((uint8_t)eRate >> 1) & 0x02);
             IMLOGD_PACKET1(IM_PACKET_LOG_AUDIO,
-                    "AmrWbFmt_Framing IMSVOC_AUDIOFRAME_GSM_SID after pEncodedData[4][%d]",
+                    "[AmrWbFmt_Framing] AmrWbFmt_Framing IMSVOC_AUDIOFRAME_GSM_SID after "
+                    "pEncodedData[4][%d]",
                     pEncodedData[4]);
             break;
         case IMSVOC_AUDIOFRAME_AMR_SIDUPDATE:
-            IMLOGD_PACKET0(
-                    IM_PACKET_LOG_AUDIO, "AmrWbFmt_Framing IMSVOC_AUDIOFRAME_AMR_SIDUPDATE case");
+            IMLOGD_PACKET0(IM_PACKET_LOG_AUDIO,
+                    "[AmrWbFmt_Framing] AmrWbFmt_Framing IMSVOC_AUDIOFRAME_AMR_SIDUPDATE case");
 
             /* Copy the sid frame to pClassA data */
             for (i = 0; i < 5; i++)
@@ -827,19 +830,20 @@ void ImsMediaAudioFmt::AmrWbFmt_Framing(IMSVOC_AUDIOFRAME_ENTYPE eFrameType,
             /* Set the SID type */
             pEncodedData[4] |= 0x10;
             IMLOGD_PACKET1(IM_PACKET_LOG_AUDIO,
-                    "AmrWbFmt_Framing IMSVOC_AUDIOFRAME_AMR_SIDUPDATE before pEncodedData[4][%d]",
+                    "[AmrWbFmt_Framing] AmrWbFmt_Framing IMSVOC_AUDIOFRAME_AMR_SIDUPDATE before "
+                    "pEncodedData[4][%d]",
                     pEncodedData[4]);
 
             /* Set the mode (Bit 36 - 39 = eRate with bits swapped) */
             pEncodedData[4] |= (0x00001001);
             IMLOGD_PACKET1(IM_PACKET_LOG_AUDIO,
-                    "AmrWbFmt_Framing IMSVOC_AUDIOFRAME_AMR_SIDUPDATE after pEncodedData[4][%d]",
+                    "[AmrWbFmt_Framing] IMSVOC_AUDIOFRAME_AMR_SIDUPDATE after pEncodedData[4][%d]",
                     pEncodedData[4]);
 #endif
             break;
         case IMSVOC_AUDIOFRAME_AMR_SPEECHGOOD:
-            IMLOGD_PACKET0(
-                    IM_PACKET_LOG_AUDIO, "AmrWbFmt_Framing IMSVOC_AUDIOFRAME_AMR_SPEECHGOOD case");
+            IMLOGD_PACKET0(IM_PACKET_LOG_AUDIO,
+                    "[AmrWbFmt_Framing] IMSVOC_AUDIOFRAME_AMR_SPEECHGOOD case");
             /* Clear num bits in frame */
             nStartingBit = 0;
             /* Select ordering table */
@@ -851,7 +855,8 @@ void ImsMediaAudioFmt::AmrWbFmt_Framing(IMSVOC_AUDIOFRAME_ENTYPE eFrameType,
             amrWbFmt_Framing(pEncodedData, &nStartingBit, pRawData, paCurFmtTable->nLenC,
                     paCurFmtTable->pClassC);
             IMLOGD_PACKET1(IM_PACKET_LOG_AUDIO,
-                    "In AmrFmtWb_Framing Speech Good case startingBit[%d]", nStartingBit);
+                    "[AmrWbFmt_Framing] In AmrFmtWb_Framing Speech Good case startingBit[%d]",
+                    nStartingBit);
             break;
         default:
             break;
@@ -896,7 +901,7 @@ void ImsMediaAudioFmt::AmrFmtWb_Deframing(IMSVOC_AUDIOFRAME_ENTYPE eFrameType,
             amrWbFmt_Deframing(pEncodedData, pRawData, &nStartingBit, paCurFmtTable->nLenC,
                     paCurFmtTable->pClassC);
             IMLOGD_PACKET1(IM_PACKET_LOG_AUDIO,
-                    "In AmrFmtWb_DeFraming Speech Good case startingBit[%d]", nStartingBit);
+                    "[AmrFmtWb_DeFraming] Speech Good case startingBit[%d]", nStartingBit);
             break;
         default:
             break;
@@ -990,6 +995,7 @@ uint32_t ImsMediaAudioFmt::ConvertLenToEVSAudioRate(uint32_t nLen)
         if (gaEVSPrimaryByteLen[i] == nLen)
             return i;
     }
+    IMLOGD0("[ConvertLenToEVSAudioRate] No primery bit len found....");
     return 0;
 }
 
@@ -1072,4 +1078,240 @@ uint32_t ImsMediaAudioFmt::GetBitrateAmrWb(int mode)
         case IMSVOC_AMRWB_MODE_2385:
             return 23850;
     }
+}
+
+int32_t ImsMediaAudioFmt::getEVSModeToBitRate(int32_t EvsModeToBitRate)
+{
+    switch (EvsModeToBitRate)
+    {
+        case EvsParams::EVS_MODE_0:
+            return 6600;
+            break;
+        case EvsParams::EVS_MODE_1:
+            return 8850;
+            break;
+        case EvsParams::EVS_MODE_2:
+            return 12650;
+            break;
+        case EvsParams::EVS_MODE_3:
+            return 14250;
+            break;
+        case EvsParams::EVS_MODE_4:
+            return 15850;
+            break;
+        case EvsParams::EVS_MODE_5:
+            return 18250;
+            break;
+        case EvsParams::EVS_MODE_6:
+            return 19850;
+            break;
+        case EvsParams::EVS_MODE_7:
+            return 23050;
+            break;
+        case EvsParams::EVS_MODE_8:
+            return 23850;
+            break;
+        case EvsParams::EVS_MODE_9:
+            return 5900;
+            break;
+        case EvsParams::EVS_MODE_10:
+            return 7200;
+            break;
+        case EvsParams::EVS_MODE_11:
+            return 8000;
+            break;
+        case EvsParams::EVS_MODE_12:
+            return 9600;
+            break;
+        case EvsParams::EVS_MODE_13:
+            return 13200;
+            break;
+        case EvsParams::EVS_MODE_14:
+            return 16400;
+            break;
+        case EvsParams::EVS_MODE_15:
+            return 24400;
+            break;
+        case EvsParams::EVS_MODE_16:
+            return 32000;
+            break;
+        case EvsParams::EVS_MODE_17:
+            return 48000;
+            break;
+        case EvsParams::EVS_MODE_18:
+            return 64000;
+            break;
+        case EvsParams::EVS_MODE_19:
+            return 96000;
+            break;
+        case EvsParams::EVS_MODE_20:
+            return 128000;
+            break;
+        default:
+            return 13200;
+            break;
+    }
+}
+
+eEVSBitrate ImsMediaAudioFmt::FindMaxEVSBitrate(
+        uint32_t nEVSBitrateSet, eEVSCodecMode eEVSCodecMode)
+{
+    // find EVS bitrate.
+    uint32_t nEVSBitrate = 0;
+    uint32_t EVSBitrateInfo = nEVSBitrateSet;
+    IMLOGD2("[FindMaxEVSBitrate] EVSBitrateInfo[0x%x], eEVSCodecMode[%d]", EVSBitrateInfo,
+            eEVSCodecMode);
+
+    // exception handling code, if EVSBitrateSet value is 0, EVS Bitrate set a Maxbitrate
+    if (EVSBitrateInfo == 0)
+    {
+        if (eEVSCodecMode == EVS_AMR_WB_IO)  // AMR WB IO mode : max nEVSBitrate 8 : 23.85 kbit/s
+                                             // (EVS_AMRIO_MODE_02385 = 8)
+            nEVSBitrate = 8;
+        else  // Primary mode : max nEVSBitrate 8 : 128 kbit/s (EVS_PRIMARY_MODE_12800 = 20)
+            nEVSBitrate = 20;
+
+        IMLOGD1("[FindMaxEVSBitrate] nEVSBitrateSet value is 0...nEVSBitrate set a MaxBitRate[%d]",
+                nEVSBitrate);
+        return ((eEVSBitrate)nEVSBitrate);
+    }
+
+    for (uint32_t i = 15; i >= 0; i--)
+    {
+        if ((EVSBitrateInfo & (1 << i)) != 0)
+        {
+            nEVSBitrate = i;
+            break;
+        }
+    }
+    IMLOGD1("[FindMaxEVSBitrate] eEVSBitrate[%d]", nEVSBitrate);
+
+    // check default mode, [ default mode  ( 16 bit ) ][ mode set (16 bit )  ]
+    for (int32_t i = 31; i >= 16; i--)
+    {
+        if (((EVSBitrateInfo & (1 << i)) != 0) && ((EVSBitrateInfo & (1 << (i - 16))) != 0))
+        {
+            nEVSBitrate = i - 16;
+            break;
+        }
+    }
+
+    if (eEVSCodecMode == EVS_PRIMARY)
+        nEVSBitrate = nEVSBitrate + 9;  // convert EVS Primarymode bitrate
+
+    IMLOGD1("[FindMaxEVSBitrate] Selected eEVSBitrate[%d]", nEVSBitrate);
+    return (eEVSBitrate)nEVSBitrate;
+}
+
+eEVSCodecMode ImsMediaAudioFmt::CheckEVSCodecMode(uint32_t nAudioFrameLength)
+{
+    switch (nAudioFrameLength)
+    {
+        // EVS AMR IO Mode Case
+        case 17:
+        case 23:
+        case 32:
+        case 36:
+        case 40:
+        case 46:
+        case 50:
+        case 58:
+        case 60:
+        case 5:
+            return EVS_AMR_WB_IO;
+        // EVS Primary Mode Case
+        case 7:
+        case 18:
+        case 20:
+        case 24:
+        case 33:
+        case 41:
+        case 61:
+        case 80:
+        case 120:
+        case 160:
+        case 240:
+        case 320:
+        case 6:
+        default:
+            return EVS_PRIMARY;
+    }
+}
+
+eRTPPyaloadHeaderMode ImsMediaAudioFmt::Check_EVS_Payload(
+        uint32_t nDataSize, eEVSCodecMode* pEVSCodecMode, uint32_t* pEVSCompactId)
+{
+    uint32_t i = 0;
+    uint32_t nDataBitSize = 0;
+    // nDataBitSize -= 2;
+    nDataBitSize = nDataSize * 8;  // change byte to bit size
+
+    // compact format & primary mode
+    for (i = 0; i < EVS_COMPACT_PRIMARY_PAYLOAD_NUM; i++)
+    {
+        if (gaEVSPrimaryBitLen[i] == nDataBitSize)
+        {
+            *pEVSCodecMode = EVS_PRIMARY;
+            *pEVSCompactId = i;
+            return RTPPAYLOADHEADER_MODE_EVS_COMPACT;
+        }
+    }
+
+    // compact format & amr-wb io mode
+    for (i = 0; i < EVS_COMPACT_AMRWBIO_PAYLOAD_NUM; i++)
+    {
+        if (gaEVSAmrWbIoBitLen[i] == nDataBitSize)
+        {
+            *pEVSCodecMode = EVS_AMR_WB_IO;
+            *pEVSCompactId = i;
+            return RTPPAYLOADHEADER_MODE_EVS_COMPACT;
+        }
+    }
+
+    // need to check ID...
+
+    *pEVSCodecMode = EVS_PRIMARY;
+    *pEVSCompactId = EVS_COMPACT_PAYLOAD_MAX_NUM;
+    return RTPPAYLOADHEADER_MODE_EVS_HEADER_FULL;
+}
+
+eEVSBandwidth ImsMediaAudioFmt::FindMaxEVSBandwidth(uint32_t nEVSBandwidthSet)
+{
+    // find EVS bandwidth.
+    uint32_t nEVSBandwidth = 0;
+    uint32_t EVSBandwidthInfo = nEVSBandwidthSet;
+    IMLOGD1("[FindMaxEVSBandwidth] EVSBandwidthInfo[0x%x]", EVSBandwidthInfo);
+
+    // exception handling code, if nEVSBandwidthSet value is 0, EVS Bandwidth set a Maxbandwidth
+    if (EVSBandwidthInfo == 0)
+    {
+        nEVSBandwidth = 3;  // EVS_VOC_BANDWIDTH_FB = 3
+        IMLOGD1("[FindMaxEVSBandwidth] nEVSBandwidth value is 0... nEVSBandwidth set a "
+                "MaxBandwidth[%d]",
+                nEVSBandwidth);
+        return (eEVSBandwidth)nEVSBandwidth;
+    }
+
+    for (uint32_t i = 15; i >= 0; i--)
+    {
+        if ((EVSBandwidthInfo & (1 << i)) != 0)
+        {
+            nEVSBandwidth = i;
+            break;
+        }
+    }
+    IMLOGD1("[FindMaxEVSBandwidth] nEVSBandwidth[%d]", nEVSBandwidth);
+
+    // check default mode, [ default mode  ( 16 bit ) ][ mode set (16 bit )  ]
+    for (uint32_t i = 31; i >= 16; i--)
+    {
+        if (((EVSBandwidthInfo & (1 << i)) != 0) && ((EVSBandwidthInfo & (1 << (i - 16))) != 0))
+        {
+            nEVSBandwidth = i - 16;
+            break;
+        }
+    }
+
+    IMLOGD1("[FindMaxEVSBandwidth] Selected eEVSBitrate[%d]", nEVSBandwidth);
+    return (eEVSBandwidth)nEVSBandwidth;
 }
