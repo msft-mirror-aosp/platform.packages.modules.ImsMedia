@@ -34,7 +34,7 @@ public:
     void SetCodecMode(uint32_t mode);
     void SetSamplingRate(int32_t samplingRate);
     void SetEvsChAwOffset(int32_t offset);
-    void SetEvsBandwidth(eEVSBandwidth evsBandwidth);
+    void SetEvsBandwidth(kEvsBandwidth evsBandwidth);
     bool Start();
     void Stop();
     bool onDataFrame(uint8_t* buffer, uint32_t size);
@@ -51,7 +51,7 @@ private:
     uint32_t mCodecMode;
     int32_t mSamplingRate;
     int32_t mEvsChAwOffset;
-    eEVSBandwidth mEvsBandwidth;
+    kEvsBandwidth mEvsBandwidth;
     uint16_t mBuffer[PCM_BUFFER_SIZE];
     std::mutex mMutex;
     int32_t mEvsBitRate;

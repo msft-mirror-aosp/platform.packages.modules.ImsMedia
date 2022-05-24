@@ -680,8 +680,24 @@ int32_t ImsMediaAudioFmt::ConvertCodecType(int32_t type)
     }
 }
 
-void ImsMediaAudioFmt::AmrFmt_Framing(IMSVOC_AUDIOFRAME_ENTYPE eFrameType,
-        IMSVOC_AUDIORATE_ENTYPE eRate, uint8_t* pRawData, uint8_t* pEncodedData)
+int32_t ImsMediaAudioFmt::ConvertEvsCodecMode(int32_t evsMode)
+{
+    if (evsMode > 8 && evsMode <= 20)
+    {
+        return kEvsCodecModePrimary;
+    }
+    else if (evsMode >= 0 && evsMode <= 8)
+    {
+        return kEvsCodecModeAmrIo;
+    }
+    else
+    {
+        return kEvsCodecModeMax;
+    }
+}
+
+void ImsMediaAudioFmt::AmrFmtFraming(kImsAudioFrameEntype eFrameType, kImsAudioAmrMode mode,
+        uint8_t* pRawData, uint8_t* pEncodedData)
 {
     int32_t i, nStartingBit;
     AmrFrameOrder* paCurFmtTable;
@@ -689,7 +705,7 @@ void ImsMediaAudioFmt::AmrFmt_Framing(IMSVOC_AUDIOFRAME_ENTYPE eFrameType,
     memset(pEncodedData, 0, IMSAMR_FRAME_BYTES);
     switch (eFrameType)
     {
-        case IMSVOC_AUDIOFRAME_GSM_SID:
+        case kImsAudioFrameGsmSid:
             /* Copy the sid frame to pClassA data
              */
             for (i = 0; i < 5; i++)
@@ -698,12 +714,12 @@ void ImsMediaAudioFmt::AmrFmt_Framing(IMSVOC_AUDIOFRAME_ENTYPE eFrameType,
             }
             /* Set the SID type (Bit 35 = 0) */
             pEncodedData[4] &= ~0x10;
-            /* Set the mode (Bit 36 - 38 = eRate with bits swapped) */
-            pEncodedData[4] |= (((uint8_t)eRate << 3) & 0x08) | (((uint8_t)eRate << 1) & 0x04) |
-                    (((uint8_t)eRate >> 1) & 0x02);
+            /* Set the mode (Bit 36 - 38 = mode with bits swapped) */
+            pEncodedData[4] |= (((uint8_t)mode << 3) & 0x08) | (((uint8_t)mode << 1) & 0x04) |
+                    (((uint8_t)mode >> 1) & 0x02);
             break;
 
-        case IMSVOC_AUDIOFRAME_AMR_SIDUPDATE:
+        case kImsAudioFrameAmrSidUpdate:
             /* Copy the sid frame to pClassA data
              */
             for (i = 0; i < 5; i++)
@@ -715,17 +731,17 @@ void ImsMediaAudioFmt::AmrFmt_Framing(IMSVOC_AUDIOFRAME_ENTYPE eFrameType,
             */
             pEncodedData[4] |= 0x10;
 
-            /* Set the mode (Bit 36 - 38 = eRate with bits swapped)
+            /* Set the mode (Bit 36 - 38 = mode with bits swapped)
             */
-            pEncodedData[4] |= (((uint8_t)eRate << 3) & 0x08)
-            | (((uint8_t)eRate << 1) & 0x04) | (((uint8_t)eRate >> 1) & 0x02);
+            pEncodedData[4] |= (((uint8_t)mode << 3) & 0x08)
+            | (((uint8_t)mode << 1) & 0x04) | (((uint8_t)mode >> 1) & 0x02);
 #endif
             break;
-        case IMSVOC_AUDIOFRAME_AMR_SPEECHGOOD:
+        case kImsAudioFrameAmrSpeechGood:
             /* Clear num bits in frame */
             nStartingBit = 0;
             /* Select ordering table */
-            paCurFmtTable = (AmrFrameOrder*)gaAmrFmtTable[eRate];
+            paCurFmtTable = (AmrFrameOrder*)gaAmrFmtTable[mode];
             amrFmt_Framing(pEncodedData, &nStartingBit, pRawData, paCurFmtTable->nLenA,
                     paCurFmtTable->pClassA);
             amrFmt_Framing(pEncodedData, &nStartingBit, pRawData, paCurFmtTable->nLenB,
@@ -738,8 +754,8 @@ void ImsMediaAudioFmt::AmrFmt_Framing(IMSVOC_AUDIOFRAME_ENTYPE eFrameType,
     }
 }
 
-void ImsMediaAudioFmt::AmrFmt_Deframing(IMSVOC_AUDIOFRAME_ENTYPE eFrameType,
-        IMSVOC_AUDIORATE_ENTYPE eRate, uint8_t* pRawData, uint8_t* pEncodedData)
+void ImsMediaAudioFmt::AmrFmtDeframing(kImsAudioFrameEntype eFrameType, kImsAudioAmrMode mode,
+        uint8_t* pRawData, uint8_t* pEncodedData)
 {
     int32_t i, nStartingBit;
     AmrFrameOrder* paCurFmtTable = NULL;
@@ -747,8 +763,8 @@ void ImsMediaAudioFmt::AmrFmt_Deframing(IMSVOC_AUDIOFRAME_ENTYPE eFrameType,
 
     switch (eFrameType)
     {
-        case IMSVOC_AUDIOFRAME_AMR_SIDFIRST:
-        case IMSVOC_AUDIOFRAME_AMR_SIDUPDATE:
+        case kImsAudioFrameAmrSidFirst:
+        case kImsAudioFrameAmrSidUpdate:
             /* Process SID frame */
             /* Copy the pClassA data to the sid frame*/
             for (i = 0; i < 5; i++)
@@ -756,9 +772,9 @@ void ImsMediaAudioFmt::AmrFmt_Deframing(IMSVOC_AUDIOFRAME_ENTYPE eFrameType,
                 pEncodedData[i] = pRawData[i];
             }
             break;
-        case IMSVOC_AUDIOFRAME_AMR_SPEECHGOOD:
+        case kImsAudioFrameAmrSpeechGood:
             /* Process AMR speech frame */
-            paCurFmtTable = (AmrFrameOrder*)gaAmrFmtTable[eRate];
+            paCurFmtTable = (AmrFrameOrder*)gaAmrFmtTable[mode];
             nStartingBit = 0;
             amrFmt_Deframing(pEncodedData, pRawData, &nStartingBit, paCurFmtTable->nLenA,
                     paCurFmtTable->pClassA);
@@ -772,27 +788,26 @@ void ImsMediaAudioFmt::AmrFmt_Deframing(IMSVOC_AUDIOFRAME_ENTYPE eFrameType,
     }
 }
 
-void ImsMediaAudioFmt::AmrWbFmt_Framing(IMSVOC_AUDIOFRAME_ENTYPE eFrameType,
-        IMSVOC_AMRWB_ENTYPE eRate, uint8_t* pRawData, uint8_t* pEncodedData)
+void ImsMediaAudioFmt::AmrWbFmtFraming(kImsAudioFrameEntype eFrameType, kImsAudioAmrWbMode mode,
+        uint8_t* pRawData, uint8_t* pEncodedData)
 {
     int32_t i, nStartingBit;
     AmrWbFrameOrder* paCurFmtTable;
     /* Clear destination */
     memset(pEncodedData, 0, 62);
     IMLOGD_PACKET2(
-            IM_PACKET_LOG_AUDIO, "AmrWbFmt_Framing eFrameType[%d] eRate[%d]", eFrameType, eRate);
+            IM_PACKET_LOG_AUDIO, "[AmrWbFmtFraming] eFrameType[%d] mode[%d]", eFrameType, mode);
 
-    if (eRate < 8)
+    if (mode < 8)
     {
-        IMLOGD_PACKET1(IM_PACKET_LOG_AUDIO, "AmrWbFmt_Framing return failure eRate[%d]", eRate);
+        IMLOGD_PACKET1(IM_PACKET_LOG_AUDIO, "[AmrWbFmtFraming] return failure mode[%d]", mode);
         return;
     }
 
     switch (eFrameType)
     {
-        case IMSVOC_AUDIOFRAME_GSM_SID:
-            IMLOGD_PACKET0(IM_PACKET_LOG_AUDIO,
-                    "[AmrWbFmt_Framing] AmrWbFmt_Framing IMSVOC_AUDIOFRAME_GSM_SID case");
+        case kImsAudioFrameGsmSid:
+            IMLOGD_PACKET0(IM_PACKET_LOG_AUDIO, "[AmrWbFmtFraming] kImsAudioFrameGsmSid case");
 
             /* Copy the sid frame to pClassA data */
             for (i = 0; i < 5; i++)
@@ -804,22 +819,22 @@ void ImsMediaAudioFmt::AmrWbFmt_Framing(IMSVOC_AUDIOFRAME_ENTYPE eFrameType,
             pEncodedData[4] &= ~0x10;
 
             IMLOGD_PACKET1(IM_PACKET_LOG_AUDIO,
-                    "[AmrWbFmt_Framing] AmrWbFmt_Framing IMSVOC_AUDIOFRAME_GSM_SID before "
+                    "[AmrWbFmtFraming] kImsAudioFrameGsmSid before "
                     "pEncodedData[4][%d]",
                     pEncodedData[4]);
 
-            /* Set the mode (Bit 36 - 38 = eRate with bits swapped)
+            /* Set the mode (Bit 36 - 38 = mode with bits swapped)
              */
-            pEncodedData[4] |= (((uint8_t)eRate << 3) & 0x08) | (((uint8_t)eRate << 1) & 0x04) |
-                    (((uint8_t)eRate >> 1) & 0x02);
+            pEncodedData[4] |= (((uint8_t)mode << 3) & 0x08) | (((uint8_t)mode << 1) & 0x04) |
+                    (((uint8_t)mode >> 1) & 0x02);
             IMLOGD_PACKET1(IM_PACKET_LOG_AUDIO,
-                    "[AmrWbFmt_Framing] AmrWbFmt_Framing IMSVOC_AUDIOFRAME_GSM_SID after "
+                    "[AmrWbFmtFraming] kImsAudioFrameGsmSid after "
                     "pEncodedData[4][%d]",
                     pEncodedData[4]);
             break;
-        case IMSVOC_AUDIOFRAME_AMR_SIDUPDATE:
-            IMLOGD_PACKET0(IM_PACKET_LOG_AUDIO,
-                    "[AmrWbFmt_Framing] AmrWbFmt_Framing IMSVOC_AUDIOFRAME_AMR_SIDUPDATE case");
+        case kImsAudioFrameAmrSidUpdate:
+            IMLOGD_PACKET0(
+                    IM_PACKET_LOG_AUDIO, "[AmrWbFmtFraming] kImsAudioFrameAmrSidUpdate case");
 
             /* Copy the sid frame to pClassA data */
             for (i = 0; i < 5; i++)
@@ -830,24 +845,24 @@ void ImsMediaAudioFmt::AmrWbFmt_Framing(IMSVOC_AUDIOFRAME_ENTYPE eFrameType,
             /* Set the SID type */
             pEncodedData[4] |= 0x10;
             IMLOGD_PACKET1(IM_PACKET_LOG_AUDIO,
-                    "[AmrWbFmt_Framing] AmrWbFmt_Framing IMSVOC_AUDIOFRAME_AMR_SIDUPDATE before "
+                    "[AmrWbFmtFraming] kImsAudioFrameAmrSidUpdate before "
                     "pEncodedData[4][%d]",
                     pEncodedData[4]);
 
-            /* Set the mode (Bit 36 - 39 = eRate with bits swapped) */
+            /* Set the mode (Bit 36 - 39 = mode with bits swapped) */
             pEncodedData[4] |= (0x00001001);
             IMLOGD_PACKET1(IM_PACKET_LOG_AUDIO,
-                    "[AmrWbFmt_Framing] IMSVOC_AUDIOFRAME_AMR_SIDUPDATE after pEncodedData[4][%d]",
+                    "[AmrWbFmtFraming] kImsAudioFrameAmrSidUpdate after pEncodedData[4][%d]",
                     pEncodedData[4]);
 #endif
             break;
-        case IMSVOC_AUDIOFRAME_AMR_SPEECHGOOD:
-            IMLOGD_PACKET0(IM_PACKET_LOG_AUDIO,
-                    "[AmrWbFmt_Framing] IMSVOC_AUDIOFRAME_AMR_SPEECHGOOD case");
+        case kImsAudioFrameAmrSpeechGood:
+            IMLOGD_PACKET0(
+                    IM_PACKET_LOG_AUDIO, "[AmrWbFmtFraming] kImsAudioFrameAmrSpeechGood case");
             /* Clear num bits in frame */
             nStartingBit = 0;
             /* Select ordering table */
-            paCurFmtTable = (AmrWbFrameOrder*)gaAmrWbFmtTable[eRate];
+            paCurFmtTable = (AmrWbFrameOrder*)gaAmrWbFmtTable[mode];
             amrWbFmt_Framing(pEncodedData, &nStartingBit, pRawData, paCurFmtTable->nLenA,
                     paCurFmtTable->pClassA);
             amrWbFmt_Framing(pEncodedData, &nStartingBit, pRawData, paCurFmtTable->nLenB,
@@ -855,33 +870,32 @@ void ImsMediaAudioFmt::AmrWbFmt_Framing(IMSVOC_AUDIOFRAME_ENTYPE eFrameType,
             amrWbFmt_Framing(pEncodedData, &nStartingBit, pRawData, paCurFmtTable->nLenC,
                     paCurFmtTable->pClassC);
             IMLOGD_PACKET1(IM_PACKET_LOG_AUDIO,
-                    "[AmrWbFmt_Framing] In AmrFmtWb_Framing Speech Good case startingBit[%d]",
-                    nStartingBit);
+                    "[AmrWbFmtFraming] Speech Good case startingBit[%d]", nStartingBit);
             break;
         default:
             break;
     }
 }
 
-void ImsMediaAudioFmt::AmrFmtWb_Deframing(IMSVOC_AUDIOFRAME_ENTYPE eFrameType,
-        IMSVOC_AMRWB_ENTYPE eRate, uint8_t* pRawData, uint8_t* pEncodedData)
+void ImsMediaAudioFmt::AmrFmtWbDeframing(kImsAudioFrameEntype eFrameType, kImsAudioAmrWbMode mode,
+        uint8_t* pRawData, uint8_t* pEncodedData)
 {
     int32_t i, nStartingBit;
     AmrWbFrameOrder* paCurFmtTable = NULL;
     memset(pEncodedData, 0, 62);
     IMLOGD_PACKET2(
-            IM_PACKET_LOG_AUDIO, "AmrWbFmt_DeFraming eFrameType[%d] eRate[%d]", eFrameType, eRate);
+            IM_PACKET_LOG_AUDIO, "[AmrWbFmt_DeFraming] eFrameType[%d] mode[%d]", eFrameType, mode);
 
-    if (eRate < 8)
+    if (mode < 8)
     {
-        IMLOGD_PACKET1(IM_PACKET_LOG_AUDIO, "AmrWbFmt_DeFraming return failure eRate[%d]", eRate);
+        IMLOGD_PACKET1(IM_PACKET_LOG_AUDIO, "[AmrWbFmt_DeFraming] return failure mode[%d]", mode);
         return;
     }
 
     switch (eFrameType)
     {
-        case IMSVOC_AUDIOFRAME_AMR_SIDFIRST:
-        case IMSVOC_AUDIOFRAME_AMR_SIDUPDATE:
+        case kImsAudioFrameAmrSidFirst:
+        case kImsAudioFrameAmrSidUpdate:
             /* Process SID frame */
             /* Copy the pClassA data to the sid frame*/
             for (i = 0; i < 5; i++)
@@ -890,9 +904,9 @@ void ImsMediaAudioFmt::AmrFmtWb_Deframing(IMSVOC_AUDIOFRAME_ENTYPE eFrameType,
             }
             break;
 
-        case IMSVOC_AUDIOFRAME_AMR_SPEECHGOOD:
+        case kImsAudioFrameAmrSpeechGood:
             /* Process AMR speech frame */
-            paCurFmtTable = (AmrWbFrameOrder*)gaAmrWbFmtTable[eRate];
+            paCurFmtTable = (AmrWbFrameOrder*)gaAmrWbFmtTable[mode];
             nStartingBit = 0;
             amrWbFmt_Deframing(pEncodedData, pRawData, &nStartingBit, paCurFmtTable->nLenA,
                     paCurFmtTable->pClassA);
@@ -908,7 +922,7 @@ void ImsMediaAudioFmt::AmrFmtWb_Deframing(IMSVOC_AUDIOFRAME_ENTYPE eFrameType,
     }
 }
 
-void ImsMediaAudioFmt::AmrFmt_Swap(uint8_t* pSrc, uint8_t* pDst, uint32_t nNumOfByte)
+void ImsMediaAudioFmt::AmrFmtSwap(uint8_t* pSrc, uint8_t* pDst, uint32_t nNumOfByte)
 {
     uint8_t tbyte;
     nNumOfByte++;
@@ -922,7 +936,7 @@ void ImsMediaAudioFmt::AmrFmt_Swap(uint8_t* pSrc, uint8_t* pDst, uint32_t nNumOf
 
 uint32_t ImsMediaAudioFmt::ConvertAmrModeToLen(uint32_t mode)
 {
-    if (mode > IMSVOC_AUDIORATE_SID)
+    if (mode > kImsAudioAmrModeSID)
     {  // over SID
         return 0;
     }
@@ -931,7 +945,7 @@ uint32_t ImsMediaAudioFmt::ConvertAmrModeToLen(uint32_t mode)
 
 uint32_t ImsMediaAudioFmt::ConvertAmrModeToBitLen(uint32_t mode)
 {
-    if (mode > IMSVOC_AUDIORATE_SID)
+    if (mode > kImsAudioAmrModeSID)
     {  // over SID
         return 0;
     }
@@ -956,18 +970,18 @@ uint32_t ImsMediaAudioFmt::ConvertLenToAmrMode(uint32_t nLen)
 
 uint32_t ImsMediaAudioFmt::ConvertAmrWbModeToLen(uint32_t mode)
 {
-    if (mode == IMSVOC_AMRWB_MODE_NO_DATA)
+    if (mode == kImsAudioAmrWbModeNoData)
         return 0;
-    if (mode > IMSVOC_AMRWB_MODE_SID)
+    if (mode > kImsAudioAmrWbModeSID)
         return 0;
     return gaAMRWBLen[mode];
 }
 
 uint32_t ImsMediaAudioFmt::ConvertAmrWbModeToBitLen(uint32_t mode)
 {
-    if (mode == IMSVOC_AMRWB_MODE_NO_DATA)
+    if (mode == kImsAudioAmrWbModeNoData)
         return 0;
-    if (mode > IMSVOC_AMRWB_MODE_SID)
+    if (mode > kImsAudioAmrWbModeSID)
         return 0;
     return gaAMRWBbitLen[mode];
 }
@@ -976,8 +990,8 @@ uint32_t ImsMediaAudioFmt::ConvertLenToAmrWbMode(uint32_t nLen)
 {
     uint32_t i;
     if (nLen == 0)
-        return IMSVOC_AMRWB_MODE_NO_DATA;
-    for (i = 0; i <= IMSVOC_AMRWB_MODE_SID; i++)
+        return kImsAudioAmrWbModeNoData;
+    for (i = 0; i <= kImsAudioAmrWbModeSID; i++)
     {
         if (gaAMRWBLen[i] == nLen)
             return i;
@@ -985,26 +999,26 @@ uint32_t ImsMediaAudioFmt::ConvertLenToAmrWbMode(uint32_t nLen)
     return 0;
 }
 
-uint32_t ImsMediaAudioFmt::ConvertLenToEVSAudioRate(uint32_t nLen)
+uint32_t ImsMediaAudioFmt::ConvertLenToEVSAudioMode(uint32_t nLen)
 {
     uint32_t i = 0;
     if (nLen == 0)
-        return IMSVOC_EVS_PRIMARY_MODE_NO_DATA;
-    for (i = 0; i <= IMSVOC_EVS_PRIMARY_MODE_SID; i++)
+        return kImsAudioEvsPrimaryModeNoData;
+    for (i = 0; i <= kImsAudioEvsPrimaryModeSID; i++)
     {
         if (gaEVSPrimaryByteLen[i] == nLen)
             return i;
     }
-    IMLOGD0("[ConvertLenToEVSAudioRate] No primery bit len found....");
+    IMLOGD0("[ConvertLenToEVSAudioMode] No primery bit len found....");
     return 0;
 }
 
-uint32_t ImsMediaAudioFmt::ConvertLenToEVSAMRIOAudioRate(uint32_t nLen)
+uint32_t ImsMediaAudioFmt::ConvertLenToEVSAMRIOAudioMode(uint32_t nLen)
 {
     uint32_t i = 0;
     if (nLen == 0)
-        return IMSVOC_EVS_AMRWB_IO_NO_DATA;
-    for (i = 0; i <= IMSVOC_EVS_AMRWB_IO_MODE_SID; i++)
+        return kImsAudioEvsAmrWbIoModeNoData;
+    for (i = 0; i <= kImsAudioEvsAmrWbIoModeSID; i++)
     {
         if (gaEVSAMRWBIOLen[i] == nLen)
             return i;
@@ -1012,7 +1026,7 @@ uint32_t ImsMediaAudioFmt::ConvertLenToEVSAMRIOAudioRate(uint32_t nLen)
     return 0;
 }
 
-uint32_t ImsMediaAudioFmt::ConvertEVSAudioRateToBitLen(uint32_t mode)
+uint32_t ImsMediaAudioFmt::ConvertEVSAudioModeToBitLen(uint32_t mode)
 {
     if (mode == 15)
         return 0;
@@ -1021,7 +1035,7 @@ uint32_t ImsMediaAudioFmt::ConvertEVSAudioRateToBitLen(uint32_t mode)
     return gaEVSPrimaryBitLen[mode];
 }
 
-uint32_t ImsMediaAudioFmt::ConvertEVSAMRIOAudioRateToBitLen(uint32_t mode)
+uint32_t ImsMediaAudioFmt::ConvertEVSAMRIOAudioModeToBitLen(uint32_t mode)
 {
     if (mode == 15)
         return 0;
@@ -1030,57 +1044,57 @@ uint32_t ImsMediaAudioFmt::ConvertEVSAMRIOAudioRateToBitLen(uint32_t mode)
     return gaEVSAmrWbIoBitLen[mode];
 }
 
-uint32_t ImsMediaAudioFmt::GetBitrateAmr(int mode)
+uint32_t ImsMediaAudioFmt::ConvertAmrModeToBitrate(int mode)
 {
-    switch ((IMSVOC_AUDIORATE_ENTYPE)mode)
+    switch ((kImsAudioAmrMode)mode)
     {
-        case IMSVOC_AUDIORATE_475:
+        case kImsAudioAmrMode475:
             return 4750;
-        case IMSVOC_AUDIORATE_515:
+        case kImsAudioAmrMode515:
             return 5150;
-        case IMSVOC_AUDIORATE_590:
+        case kImsAudioAmrMode590:
             return 5900;
-        case IMSVOC_AUDIORATE_670:
+        case kImsAudioAmrMode670:
             return 6700;
-        case IMSVOC_AUDIORATE_740:
+        case kImsAudioAmrMode740:
             return 7400;
-        case IMSVOC_AUDIORATE_795:
+        case kImsAudioAmrMode795:
             return 7950;
-        case IMSVOC_AUDIORATE_1020:
+        case kImsAudioAmrMode1020:
             return 10200;
         default:
-        case IMSVOC_AUDIORATE_1220:
+        case kImsAudioAmrMode1220:
             return 12200;
     }
 }
 
-uint32_t ImsMediaAudioFmt::GetBitrateAmrWb(int mode)
+uint32_t ImsMediaAudioFmt::ConvertAmrWbModeToBitrate(int mode)
 {
-    switch ((IMSVOC_AMRWB_ENTYPE)mode)
+    switch ((kImsAudioAmrWbMode)mode)
     {
-        case IMSVOC_AMRWB_MODE_660:
+        case kImsAudioAmrWbMode660:
             return 6600;
-        case IMSVOC_AMRWB_MODE_885:
+        case kImsAudioAmrWbMode885:
             return 8850;
-        case IMSVOC_AMRWB_MODE_1265:
+        case kImsAudioAmrWbMode1265:
             return 12650;
-        case IMSVOC_AMRWB_MODE_1425:
+        case kImsAudioAmrWbMode1425:
             return 14250;
-        case IMSVOC_AMRWB_MODE_1585:
+        case kImsAudioAmrWbMode1585:
             return 15850;
-        case IMSVOC_AMRWB_MODE_1825:
+        case kImsAudioAmrWbMode1825:
             return 18250;
-        case IMSVOC_AMRWB_MODE_1985:
+        case kImsAudioAmrWbMode1985:
             return 19850;
-        case IMSVOC_AMRWB_MODE_2305:
+        case kImsAudioAmrWbMode2305:
             return 23050;
         default:
-        case IMSVOC_AMRWB_MODE_2385:
+        case kImsAudioAmrWbMode2385:
             return 23850;
     }
 }
 
-int32_t ImsMediaAudioFmt::getEVSModeToBitRate(int32_t EvsModeToBitRate)
+int32_t ImsMediaAudioFmt::ConvertEVSModeToBitRate(int32_t EvsModeToBitRate)
 {
     switch (EvsModeToBitRate)
     {
@@ -1153,27 +1167,31 @@ int32_t ImsMediaAudioFmt::getEVSModeToBitRate(int32_t EvsModeToBitRate)
     }
 }
 
-eEVSBitrate ImsMediaAudioFmt::FindMaxEVSBitrate(
-        uint32_t nEVSBitrateSet, eEVSCodecMode eEVSCodecMode)
+kEvsBitrate ImsMediaAudioFmt::FindMaxEVSBitrate(
+        uint32_t nEVSBitrateSet, kEvsCodecMode kEvsCodecMode)
 {
     // find EVS bitrate.
     uint32_t nEVSBitrate = 0;
     uint32_t EVSBitrateInfo = nEVSBitrateSet;
-    IMLOGD2("[FindMaxEVSBitrate] EVSBitrateInfo[0x%x], eEVSCodecMode[%d]", EVSBitrateInfo,
-            eEVSCodecMode);
+    IMLOGD2("[FindMaxEVSBitrate] EVSBitrateInfo[0x%x], kEvsCodecMode[%d]", EVSBitrateInfo,
+            kEvsCodecMode);
 
     // exception handling code, if EVSBitrateSet value is 0, EVS Bitrate set a Maxbitrate
     if (EVSBitrateInfo == 0)
     {
-        if (eEVSCodecMode == EVS_AMR_WB_IO)  // AMR WB IO mode : max nEVSBitrate 8 : 23.85 kbit/s
-                                             // (EVS_AMRIO_MODE_02385 = 8)
+        if (kEvsCodecMode ==
+                kEvsCodecModeAmrIo)  // AMR WB IO mode : max nEVSBitrate 8 : 23.85 kbit/s
+        {                            // (kEvsAmrIoModeBitrate02385 = 8)
             nEVSBitrate = 8;
-        else  // Primary mode : max nEVSBitrate 8 : 128 kbit/s (EVS_PRIMARY_MODE_12800 = 20)
+        }
+        else  // Primary mode : max nEVSBitrate 8 : 128 kbit/s (kEvsPrimaryModeBitrate12800 = 20)
+        {
             nEVSBitrate = 20;
+        }
 
-        IMLOGD1("[FindMaxEVSBitrate] nEVSBitrateSet value is 0...nEVSBitrate set a MaxBitRate[%d]",
+        IMLOGD1("[FindMaxEVSBitrate] EVSBitrateSet value is 0...nEVSBitrate set a MaxBitRate[%d]",
                 nEVSBitrate);
-        return ((eEVSBitrate)nEVSBitrate);
+        return ((kEvsBitrate)nEVSBitrate);
     }
 
     for (uint32_t i = 15; i >= 0; i--)
@@ -1184,7 +1202,7 @@ eEVSBitrate ImsMediaAudioFmt::FindMaxEVSBitrate(
             break;
         }
     }
-    IMLOGD1("[FindMaxEVSBitrate] eEVSBitrate[%d]", nEVSBitrate);
+    IMLOGD1("[FindMaxEVSBitrate] EvsBitrate[%d]", nEVSBitrate);
 
     // check default mode, [ default mode  ( 16 bit ) ][ mode set (16 bit )  ]
     for (int32_t i = 31; i >= 16; i--)
@@ -1196,14 +1214,16 @@ eEVSBitrate ImsMediaAudioFmt::FindMaxEVSBitrate(
         }
     }
 
-    if (eEVSCodecMode == EVS_PRIMARY)
+    if (kEvsCodecMode == kEvsCodecModePrimary)
+    {
         nEVSBitrate = nEVSBitrate + 9;  // convert EVS Primarymode bitrate
+    }
 
-    IMLOGD1("[FindMaxEVSBitrate] Selected eEVSBitrate[%d]", nEVSBitrate);
-    return (eEVSBitrate)nEVSBitrate;
+    IMLOGD1("[FindMaxEVSBitrate] Selected EvsBitrate[%d]", nEVSBitrate);
+    return (kEvsBitrate)nEVSBitrate;
 }
 
-eEVSCodecMode ImsMediaAudioFmt::CheckEVSCodecMode(uint32_t nAudioFrameLength)
+kEvsCodecMode ImsMediaAudioFmt::CheckEVSCodecMode(uint32_t nAudioFrameLength)
 {
     switch (nAudioFrameLength)
     {
@@ -1218,7 +1238,7 @@ eEVSCodecMode ImsMediaAudioFmt::CheckEVSCodecMode(uint32_t nAudioFrameLength)
         case 58:
         case 60:
         case 5:
-            return EVS_AMR_WB_IO;
+            return kEvsCodecModeAmrIo;
         // EVS Primary Mode Case
         case 7:
         case 18:
@@ -1234,12 +1254,12 @@ eEVSCodecMode ImsMediaAudioFmt::CheckEVSCodecMode(uint32_t nAudioFrameLength)
         case 320:
         case 6:
         default:
-            return EVS_PRIMARY;
+            return kEvsCodecModePrimary;
     }
 }
 
-eRTPPyaloadHeaderMode ImsMediaAudioFmt::Check_EVS_Payload(
-        uint32_t nDataSize, eEVSCodecMode* pEVSCodecMode, uint32_t* pEVSCompactId)
+kRtpPyaloadHeaderMode ImsMediaAudioFmt::ConvertEVSPayloadMode(
+        uint32_t nDataSize, kEvsCodecMode* pEVSCodecMode, uint32_t* pEVSCompactId)
 {
     uint32_t i = 0;
     uint32_t nDataBitSize = 0;
@@ -1251,9 +1271,9 @@ eRTPPyaloadHeaderMode ImsMediaAudioFmt::Check_EVS_Payload(
     {
         if (gaEVSPrimaryBitLen[i] == nDataBitSize)
         {
-            *pEVSCodecMode = EVS_PRIMARY;
+            *pEVSCodecMode = kEvsCodecModePrimary;
             *pEVSCompactId = i;
-            return RTPPAYLOADHEADER_MODE_EVS_COMPACT;
+            return kRtpPyaloadHeaderModeEvsCompact;
         }
     }
 
@@ -1262,20 +1282,19 @@ eRTPPyaloadHeaderMode ImsMediaAudioFmt::Check_EVS_Payload(
     {
         if (gaEVSAmrWbIoBitLen[i] == nDataBitSize)
         {
-            *pEVSCodecMode = EVS_AMR_WB_IO;
+            *pEVSCodecMode = kEvsCodecModeAmrIo;
             *pEVSCompactId = i;
-            return RTPPAYLOADHEADER_MODE_EVS_COMPACT;
+            return kRtpPyaloadHeaderModeEvsCompact;
         }
     }
 
-    // need to check ID...
-
-    *pEVSCodecMode = EVS_PRIMARY;
+    // TODO : need to check ID...
+    *pEVSCodecMode = kEvsCodecModePrimary;
     *pEVSCompactId = EVS_COMPACT_PAYLOAD_MAX_NUM;
-    return RTPPAYLOADHEADER_MODE_EVS_HEADER_FULL;
+    return kRtpPyaloadHeaderModeEvsHeaderFull;
 }
 
-eEVSBandwidth ImsMediaAudioFmt::FindMaxEVSBandwidth(uint32_t nEVSBandwidthSet)
+kEvsBandwidth ImsMediaAudioFmt::FindMaxEVSBandwidth(uint32_t nEVSBandwidthSet)
 {
     // find EVS bandwidth.
     uint32_t nEVSBandwidth = 0;
@@ -1285,11 +1304,11 @@ eEVSBandwidth ImsMediaAudioFmt::FindMaxEVSBandwidth(uint32_t nEVSBandwidthSet)
     // exception handling code, if nEVSBandwidthSet value is 0, EVS Bandwidth set a Maxbandwidth
     if (EVSBandwidthInfo == 0)
     {
-        nEVSBandwidth = 3;  // EVS_VOC_BANDWIDTH_FB = 3
+        nEVSBandwidth = 3;  // kEvsBandwidthFB = 3
         IMLOGD1("[FindMaxEVSBandwidth] nEVSBandwidth value is 0... nEVSBandwidth set a "
                 "MaxBandwidth[%d]",
                 nEVSBandwidth);
-        return (eEVSBandwidth)nEVSBandwidth;
+        return (kEvsBandwidth)nEVSBandwidth;
     }
 
     for (uint32_t i = 15; i >= 0; i--)
@@ -1312,6 +1331,6 @@ eEVSBandwidth ImsMediaAudioFmt::FindMaxEVSBandwidth(uint32_t nEVSBandwidthSet)
         }
     }
 
-    IMLOGD1("[FindMaxEVSBandwidth] Selected eEVSBitrate[%d]", nEVSBandwidth);
-    return (eEVSBandwidth)nEVSBandwidth;
+    IMLOGD1("[FindMaxEVSBandwidth] Selected EvsBitrate[%d]", nEVSBandwidth);
+    return (kEvsBandwidth)nEVSBandwidth;
 }

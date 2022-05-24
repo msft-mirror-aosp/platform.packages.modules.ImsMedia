@@ -41,10 +41,6 @@ public:
     virtual bool IsSameConfig(void* config);
     static void CB_AudioUplink(
             void* pClient, uint8_t* pBitstream, uint32_t pnSize, int64_t pstUsec, uint32_t flag);
-    void SetEVSBandwidth(eEVSBandwidth bandwidth);
-    void SetSamplingRate(int32_t samplingRate);
-    void SetEvsChAwOffset(int32_t EvsChAOffset);
-    void SetCodecMode(uint32_t mode);
 
 public:
     bool mFirstFrame;
@@ -52,7 +48,7 @@ public:
     int32_t mCodecType;
     uint32_t mMode;
     uint32_t mPtime;
-    eEVSBandwidth mEvsBandwidth;
+    kEvsBandwidth mEvsBandwidth;
     int32_t mSamplingRate;
     int32_t mEvsChAwOffset;
 };

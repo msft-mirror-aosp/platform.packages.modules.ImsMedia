@@ -63,10 +63,10 @@ void ImsMediaAudioPlayer::SetEvsChAwOffset(int32_t offset)
 
 void ImsMediaAudioPlayer::SetSamplingRate(int32_t samplingRate)
 {
-    mSamplingRate = (samplingRate * 1000);
+    mSamplingRate = samplingRate;
 }
 
-void ImsMediaAudioPlayer::SetEvsBandwidth(eEVSBandwidth evsBandwidth)
+void ImsMediaAudioPlayer::SetEvsBandwidth(kEvsBandwidth evsBandwidth)
 {
     mEvsBandwidth = evsBandwidth;
 }
@@ -96,7 +96,7 @@ bool ImsMediaAudioPlayer::Start()
         return false;
     }
 
-    mEvsBitRate = ImsMediaAudioFmt::getEVSModeToBitRate(mCodecMode);
+    mEvsBitRate = ImsMediaAudioFmt::ConvertEVSModeToBitRate(mCodecMode);
 
     IMLOGD1("[Start] Creating codec[%s]", kMimeType);
 

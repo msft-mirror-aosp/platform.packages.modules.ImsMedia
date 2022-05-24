@@ -43,11 +43,6 @@ public:
     virtual bool IsSourceNode();
     virtual void SetConfig(void* config);
     virtual bool IsSameConfig(void* config);
-    void SetCodec(int32_t type);
-    void SetCodecMode(uint32_t mode);
-    void SetEvsChannelAwareOffset(int32_t EvsChAOffset);
-    void SetEVSBandwidth(eEVSBandwidth bandwidth);
-    void SetSamplingRate(int32_t samplingRate);
     virtual void* run();
 
 private:
@@ -58,7 +53,7 @@ private:
     ImsMediaCondition mCond;
     bool mFirstFrame;
     int32_t mEvsChannelAwOffset;
-    eEVSBandwidth mEvsBandwidth;
+    kEvsBandwidth mEvsBandwidth;
     int32_t mSamplingRate;
 };
 

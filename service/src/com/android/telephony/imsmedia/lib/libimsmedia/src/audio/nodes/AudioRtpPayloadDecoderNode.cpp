@@ -82,14 +82,15 @@ void AudioRtpPayloadDecoderNode::SetConfig(void* config)
         }
         else if (mCodecType == kAudioCodecEvs)
         {
-            setEvsBandwidth((eEVSBandwidth)pConfig->getEvsParams().getEvsBandwidth());
-            setEvsPayloadHeaderMode(
-                    ((eRTPPyaloadHeaderMode)pConfig->getEvsParams().getUseHeaderFullOnlyOnRx()));
-            setEvsCodecMode((pConfig->getEvsParams().getEvsMode()));
-            setEvsMode(((eEVSBitrate)pConfig->getEvsParams().getEvsMode()));
+            mEvsBandwidth = (kEvsBandwidth)pConfig->getEvsParams().getEvsBandwidth();
+            mEvsPayloadHeaderMode =
+                    (kRtpPyaloadHeaderMode)pConfig->getEvsParams().getUseHeaderFullOnlyOnRx();
+            mEvsCodecMode = (kEvsCodecMode)ImsMediaAudioFmt::ConvertEvsCodecMode(
+                    pConfig->getEvsParams().getEvsMode());
+            mEvsMode = (kEvsBitrate)pConfig->getEvsParams().getEvsMode();
             mEvsModetoBitRate =
-                    ImsMediaAudioFmt::getEVSModeToBitRate(pConfig->getEvsParams().getEvsMode());
-            setEvsChannelAwareOffset(pConfig->getEvsParams().getChannelAwareMode());
+                    ImsMediaAudioFmt::ConvertEVSModeToBitRate(pConfig->getEvsParams().getEvsMode());
+            mEvsOffset = pConfig->getEvsParams().getChannelAwareMode();
         }
     }
 }
@@ -104,50 +105,26 @@ bool AudioRtpPayloadDecoderNode::IsSameConfig(void* config)
     {
         if (mCodecType == kAudioCodecAmr || mCodecType == kAudioCodecAmrWb)
         {
-            if (mOctetAligned == pConfig->getAmrParams().getOctetAligned())
-            {
-                return true;
-            }
+            return (mOctetAligned == pConfig->getAmrParams().getOctetAligned());
+        }
+        else if (mCodecType == kAudioCodecEvs)
+        {
+            return (mEvsBandwidth == (kEvsBandwidth)pConfig->getEvsParams().getEvsBandwidth() &&
+                    mEvsPayloadHeaderMode ==
+                            (kRtpPyaloadHeaderMode)pConfig->getEvsParams()
+                                    .getUseHeaderFullOnlyOnRx() &&
+                    mEvsCodecMode ==
+                            ImsMediaAudioFmt::ConvertEvsCodecMode(
+                                    pConfig->getEvsParams().getEvsMode()) &&
+                    mEvsMode == (kEvsBitrate)pConfig->getEvsParams().getEvsMode() &&
+                    mEvsModetoBitRate ==
+                            ImsMediaAudioFmt::ConvertEVSModeToBitRate(
+                                    pConfig->getEvsParams().getEvsMode()) &&
+                    mEvsOffset == pConfig->getEvsParams().getChannelAwareMode());
         }
     }
 
     return false;
-}
-
-void AudioRtpPayloadDecoderNode::setEvsBandwidth(eEVSBandwidth bandwidth)
-{
-    mEvsBandwidth = bandwidth;
-}
-
-void AudioRtpPayloadDecoderNode::setEvsPayloadHeaderMode(eRTPPyaloadHeaderMode evsPayloadHeaderMode)
-{
-    mEvsPayloadHeaderMode = evsPayloadHeaderMode;
-}
-
-void AudioRtpPayloadDecoderNode::setEvsCodecMode(int32_t evsMode)
-{
-    if (evsMode > 8 && evsMode <= 20)
-    {
-        mEvsCodecMode = EVS_PRIMARY;
-    }
-    else if (evsMode >= 0 && evsMode <= 8)
-    {
-        mEvsCodecMode = EVS_AMR_WB_IO;
-    }
-    else
-    {
-        mEvsCodecMode = EVS_CODEC_MODE_ENUM_MAX;
-    }
-}
-
-void AudioRtpPayloadDecoderNode::setEvsMode(eEVSBitrate evsMode)
-{
-    mEvsMode = evsMode;
-}
-
-void AudioRtpPayloadDecoderNode::setEvsChannelAwareOffset(int32_t EvsChAOffset)
-{
-    mEvsOffset = EvsChAOffset;
 }
 
 void AudioRtpPayloadDecoderNode::OnDataFromFrontNode(ImsMediaSubType subtype, uint8_t* pData,
@@ -163,7 +140,7 @@ void AudioRtpPayloadDecoderNode::OnDataFromFrontNode(ImsMediaSubType subtype, ui
     {
         case kAudioCodecAmr:
         case kAudioCodecAmrWb:
-            Decode_PH_AMR(pData, nDataSize, nTimestamp, bMark, nSeqNum);
+            DecodePayloadAmr(pData, nDataSize, nTimestamp, bMark, nSeqNum);
             break;
         case kAudioCodecPcmu:
         case kAudioCodecPcma:
@@ -171,7 +148,7 @@ void AudioRtpPayloadDecoderNode::OnDataFromFrontNode(ImsMediaSubType subtype, ui
                     MEDIASUBTYPE_RTPPAYLOAD, pData, nDataSize, nTimestamp, bMark, nSeqNum);
             break;
         case kAudioCodecEvs:
-            Decode_PH_EVS(pData, nDataSize, nTimestamp, bMark, nSeqNum);
+            DecodePayloadEvs(pData, nDataSize, nTimestamp, bMark, nSeqNum);
             break;
         default:
             IMLOGE1("[OnDataFromFrontNode] invalid codec type[%d]", mCodecType);
@@ -181,7 +158,7 @@ void AudioRtpPayloadDecoderNode::OnDataFromFrontNode(ImsMediaSubType subtype, ui
     }
 }
 
-void AudioRtpPayloadDecoderNode::Decode_PH_AMR(
+void AudioRtpPayloadDecoderNode::DecodePayloadAmr(
         uint8_t* pData, uint32_t nDataSize, uint32_t nTimestamp, bool bMark, uint32_t nSeqNum)
 {
     (void)bMark;
@@ -195,8 +172,8 @@ void AudioRtpPayloadDecoderNode::Decode_PH_AMR(
     std::lock_guard<std::mutex> guard(mMutexExit);
 
     IMLOGD_PACKET4(IM_PACKET_LOG_PH,
-            "[Decode_PH_AMR] GetCodectype[%d], octetAligned[%d], nSeqNum[%d], TS[%u]", mCodecType,
-            mOctetAligned, nSeqNum, timestamp);
+            "[DecodePayloadAmr] GetCodectype[%d], octetAligned[%d], nSeqNum[%d], TS[%u]",
+            mCodecType, mOctetAligned, nSeqNum, timestamp);
 
     mBitReader.SetBuffer(pData, nDataSize);
     // read cmr
@@ -212,13 +189,13 @@ void AudioRtpPayloadDecoderNode::Decode_PH_AMR(
         if ((mCodecType == kAudioCodecAmr && cmr <= 7) ||
                 (mCodecType == kAudioCodecAmrWb && cmr <= 8))
         {
-            IMLOGD2("[Decode_PH_AMR] CMR %d->%d", mPrevCMR, cmr);
+            IMLOGD2("[DecodePayloadAmr] CMR %d->%d", mPrevCMR, cmr);
             // send internal event to operate cmr operation in encoder side
             mPrevCMR = cmr;
         }
         else
         {
-            IMLOGE1("[Decode_PH_AMR] invalid cmr value %d", cmr);
+            IMLOGE1("[DecodePayloadAmr] invalid cmr value %d", cmr);
         }
     }
     else if (cmr == 15)
@@ -227,7 +204,7 @@ void AudioRtpPayloadDecoderNode::Decode_PH_AMR(
     }
     else
     {
-        IMLOGE0("[Decode_PH_AMR] Can't find Highest Negotiated Mode in negotiated mode-set");
+        IMLOGE0("[DecodePayloadAmr] Can't find Highest Negotiated Mode in negotiated mode-set");
     }
 
     // get num of frame
@@ -236,7 +213,7 @@ void AudioRtpPayloadDecoderNode::Decode_PH_AMR(
         f = mBitReader.Read(1);        // f(1)
         eRate = mBitReader.Read(4);    // ft(4)
         QbitPos = mBitReader.Read(1);  // q(2)
-        IMLOGD_PACKET2(IM_PACKET_LOG_PH, "[Decode_PH_AMR] f[%d], ft[%d]", f, eRate);
+        IMLOGD_PACKET2(IM_PACKET_LOG_PH, "[DecodePayloadAmr] f[%d], ft[%d]", f, eRate);
         listFrameType.push_back(eRate);
         if (mOctetAligned == true)
         {
@@ -244,7 +221,7 @@ void AudioRtpPayloadDecoderNode::Decode_PH_AMR(
         }
     } while (f == 1);
 
-    IMLOGD3("[Decode_PH_AMR] Q_Speech_SID <Q_Speech_SID> f[%d] eRate[%d] QbitPos[%d]", f, eRate,
+    IMLOGD3("[DecodePayloadAmr] Q_Speech_SID <Q_Speech_SID> f[%d] eRate[%d] QbitPos[%d]", f, eRate,
             QbitPos);  // Q_Speech_SID
 
     // read speech frames
@@ -272,7 +249,7 @@ void AudioRtpPayloadDecoderNode::Decode_PH_AMR(
         // add payload header to payload size
         uint32_t nBufferSize = ((nDataBitSize + 7) >> 3) + 1;
         IMLOGD_PACKET6(IM_PACKET_LOG_PH,
-                "[Decode_PH_AMR] result = %02X %02X %02X %02X, len[%d], eRate[%d]", mPayload[0],
+                "[DecodePayloadAmr] result = %02X %02X %02X %02X, len[%d], eRate[%d]", mPayload[0],
                 mPayload[1], mPayload[2], mPayload[3], nBufferSize, eRate);
         // send remaining packet number in bundle as bMark value
         SendDataToRearNode(MEDIASUBTYPE_RTPPAYLOAD, mPayload, nBufferSize, timestamp,
@@ -282,23 +259,19 @@ void AudioRtpPayloadDecoderNode::Decode_PH_AMR(
     }
 }
 
-// [EVS] Decode EVS payload header
-void AudioRtpPayloadDecoderNode::Decode_PH_EVS(
+void AudioRtpPayloadDecoderNode::DecodePayloadEvs(
         uint8_t* pData, uint32_t nDataSize, uint32_t nTimeStamp, bool bMark, uint32_t nSeqNum)
 {
-    eRTPPyaloadHeaderMode eEVSPHFormat = RTPPAYLOADHEADER_MODE_EVS_COMPACT;
-    eRTPPyaloadHeaderMode eEVSReceivedPHFormat = RTPPAYLOADHEADER_MODE_EVS_COMPACT;
-    eEVSCodecMode eEVSCodecMode = EVS_PRIMARY;
+    kRtpPyaloadHeaderMode eEVSPHFormat = kRtpPyaloadHeaderModeEvsCompact;
+    kRtpPyaloadHeaderMode eEVSReceivedPHFormat = kRtpPyaloadHeaderModeEvsCompact;
+    kEvsCodecMode kEvsCodecMode = kEvsCodecModePrimary;
 
     // uint32_t nEVSBW = 0;
     // uint32_t nEVSBR = 0;
     uint32_t nEVSCompactId = 0;
-
     uint32_t nFrameType = 0;
     uint32_t nDataBitSize = 0;
-
     uint32_t timestamp = nTimeStamp;
-
     uint32_t cmr = 15;
 
     // CMR byte
@@ -320,60 +293,42 @@ void AudioRtpPayloadDecoderNode::Decode_PH_EVS(
 
     // check RTP payload format
     eEVSReceivedPHFormat =
-            ImsMediaAudioFmt::Check_EVS_Payload(nDataSize, &eEVSCodecMode, &nEVSCompactId);
+            ImsMediaAudioFmt::ConvertEVSPayloadMode(nDataSize, &kEvsCodecMode, &nEVSCompactId);
 
-    if ((eEVSCodecMode == EVS_PRIMARY) && (nEVSCompactId == 0))  // special case
+    if ((kEvsCodecMode == kEvsCodecModePrimary) && (nEVSCompactId == 0))  // special case
     {
         // first bit of the EVS Primary 2.8kbps in compact format is always set to '0'
         if ((pData[0] >> 7) == 0)
         {
             // EVS Primary 2.8 kbps frame in Compact format
-            eEVSReceivedPHFormat = RTPPAYLOADHEADER_MODE_EVS_COMPACT;
+            eEVSReceivedPHFormat = kRtpPyaloadHeaderModeEvsCompact;
         }
         else
         {
             // EVS AMR-WB IO SID frame in Header-Full format with one CMR byte
-            eEVSReceivedPHFormat = RTPPAYLOADHEADER_MODE_EVS_HEADER_FULL;
+            eEVSReceivedPHFormat = kRtpPyaloadHeaderModeEvsHeaderFull;
         }
     }
 
-    /*  remove payload format check
-    if(eEVSPHFormat != eEVSReceivedPHFormat)
+    if (eEVSReceivedPHFormat == kRtpPyaloadHeaderModeEvsCompact)
     {
-        IMLOGD_PACKET2(MMPF_PACKET_LOG_PH, "[AudioRtpPayloadDecoderNode::Decode_PH_EVS]
-            receive different payload format[%d/%d]", eEVSPHFormat, eEVSReceivedPHFormat);
-
-        // exceptional case handling
-        if ( (eEVSPHFormat == RTPPAYLOADHEADER_MODE_EVS_HEADER_FULL)
-                && (( nDataSize == 20 ) || (nDataSize == 60)))
-        {
-            // Data Size 20 : headerfull format 7.2k size == compact format 8.0 size
-            // Data Size 60 : headerfull format 23.05k size == compact format 23.85k size
-            eEVSReceivedPHFormat = eEVSPHFormat;
-        }
-
-    }
-    */
-
-    if (eEVSReceivedPHFormat == RTPPAYLOADHEADER_MODE_EVS_COMPACT)
-    {
-        if (eEVSCodecMode == EVS_PRIMARY)
+        if (kEvsCodecMode == kEvsCodecModePrimary)
         {
             // calculate nDataBitSize from nDataSize
-            nFrameType = (uint32_t)ImsMediaAudioFmt::ConvertLenToEVSAudioRate(nDataSize);
-            // TODO: remove IMSVOC_EVS_PRIMARY_ENTYPE
-            nDataBitSize = ImsMediaAudioFmt::ConvertEVSAudioRateToBitLen(
-                    (IMSVOC_EVS_PRIMARY_ENTYPE)nFrameType);
+            nFrameType = (uint32_t)ImsMediaAudioFmt::ConvertLenToEVSAudioMode(nDataSize);
+            // TODO: remove kImsAudioEvsPrimaryMode
+            nDataBitSize = ImsMediaAudioFmt::ConvertEVSAudioModeToBitLen(
+                    (kImsAudioEvsPrimaryMode)nFrameType);
 
             mBitReader.ReadByteBuffer(mPayload, nDataBitSize);
 
-            IMLOGD6("[Decode_PH_EVS] Result =%02X %02X %02X %02X, len=%d,nFrameType=%d",
+            IMLOGD6("[DecodePayloadEvs] Result =%02X %02X %02X %02X, len=%d,nFrameType=%d",
                     mPayload[0], mPayload[1], mPayload[2], mPayload[3], nDataSize, nFrameType);
 
             SendDataToRearNode(
                     MEDIASUBTYPE_RTPPAYLOAD, mPayload, nDataSize, timestamp, bMark, nSeqNum);
         }
-        else if (eEVSCodecMode == EVS_AMR_WB_IO)
+        else if (kEvsCodecMode == kEvsCodecModeAmrIo)
         {
             // calculate nDataBitSize from nDataSize
             nFrameType = (uint32_t)ImsMediaAudioFmt::ConvertLenToAmrWbMode(nDataSize);
@@ -382,7 +337,7 @@ void AudioRtpPayloadDecoderNode::Decode_PH_EVS(
 
             // read cmr except SID
             // at EVS AMR WB IO Mode, SID packet does not include cmr field...
-            if (nFrameType != IMSVOC_AMRWB_MODE_SID)
+            if (nFrameType != kImsAudioAmrWbModeSID)
             {
                 cmr = mBitReader.Read(3);
 
@@ -390,74 +345,69 @@ void AudioRtpPayloadDecoderNode::Decode_PH_EVS(
                 if (cmr != 7 && cmr != mPrevCMR)
                 {
                     // Process CMR
-                    ProcessCMRForEVS(RTPPAYLOADHEADER_MODE_EVS_COMPACT, 7, cmr);
+                    ProcessCMRForEVS(kRtpPyaloadHeaderModeEvsCompact, 7, cmr);
                     // Save Prev CMR value for checking
                     mPrevCMR = cmr;
                 }
                 // cmr == 7 && cmr != mPrevCMR -> returned original codec mode.
                 else if (cmr != mPrevCMR)
                 {
-                    // Process CMR
-                    /*
-                    uint32_t nOriginBR = FindMaxEVSBitrate( m_Property.GetEVSBitrate(),
-                    MMPF_EVS_AMR_WB_IO); ProcessCMRForEVS(RTPPAYLOADHEADER_MODE_EVS_HEADER_FULL ,
-                    (uint32_t)EVS_CMR_CODETYPE_AMRIO, nOriginBR);
-                    */
+                    // TODO : Process CMR
                     uint32_t nOriginBW = ImsMediaAudioFmt::FindMaxEVSBandwidth(mEvsBandwidth);
                     uint32_t nOriginBR =
                             ImsMediaAudioFmt::FindMaxEVSBitrate(mEvsModetoBitRate, mEvsCodecMode);
-                    IMLOGD3("[Decode_PH_EVS] Returned Codec Mode Request CodecMode[%d], "
+                    IMLOGD3("[DecodePayloadEvs] Returned Codec Mode Request CodecMode[%d], "
                             "bnadwidth[%d], bitrate[%d]",
                             mEvsCodecMode, nOriginBW, nOriginBR);
 
-                    uint32_t nCodeType = (uint32_t)EVS_CMR_CODETYPE_NO_REQ;
-                    uint32_t nCodeDefine = (uint32_t)EVS_CMR_CODEDEFINE_NO_REQ;
+                    uint32_t nCodeType = (uint32_t)kEvsCmrCodeTypeNoReq;
+                    uint32_t nCodeDefine = (uint32_t)kEvsCmrCodeDefineNoReq;
 
-                    if (mEvsCodecMode == EVS_PRIMARY)
+                    if (mEvsCodecMode == kEvsCodecModePrimary)
                     {
                         // to convert EVS CMR type
-                        nOriginBR -= (uint32_t)EVS_PRIMARY_MODE_00590;
+                        nOriginBR -= (uint32_t)kEvsPrimaryModeBitrate00590;
                     }
 
                     // check AMR IO and ChA
-                    if (mEvsCodecMode == EVS_AMR_WB_IO)
+                    if (mEvsCodecMode == kEvsCodecModeAmrIo)
                     {
-                        nCodeType = (uint32_t)EVS_CMR_CODETYPE_AMRIO;
+                        nCodeType = (uint32_t)kEvsCmrCodeTypeAmrIO;
                         nCodeDefine = nOriginBR;
                     }
-                    else if ((EVS_PRIMARY_MODE_01320 ==
-                                     (nOriginBR + (uint32_t)EVS_PRIMARY_MODE_00590)) &&
+                    else if ((kEvsPrimaryModeBitrate01320 ==
+                                     (nOriginBR + (uint32_t)kEvsPrimaryModeBitrate00590)) &&
                             ((EvsChAOffset > 0) && (EvsChAOffset < 8)))  // ChA case.
                     {
-                        if (nOriginBW == (uint32_t)EVS_VOC_BANDWIDTH_SWB)
+                        if (nOriginBW == (uint32_t)kEvsBandwidthSWB)
                         {
-                            nCodeType = (uint32_t)EVS_CMR_CODETYPE_SWB_CHA;
+                            nCodeType = (uint32_t)kEvsCmrCodeTypeSwbCha;
                         }
                         else
                         {
-                            nCodeType = (uint32_t)EVS_CMR_CODETYPE_WB_CHA;
+                            nCodeType = (uint32_t)kEvsCmrCodeTypeWbCha;
                         }
 
                         switch (EvsChAOffset)
                         {
                             case 2:
-                                nCodeDefine = (uint32_t)EVS_CMR_CODEDEFINE_CHA_OFFSET_H2;
+                                nCodeDefine = (uint32_t)kEvsCmrCodeDefineChaOffsetH2;
                                 break;
                             case 3:
-                                nCodeDefine = (uint32_t)EVS_CMR_CODEDEFINE_CHA_OFFSET_H3;
+                                nCodeDefine = (uint32_t)kEvsCmrCodeDefineChaOffsetH3;
                                 break;
                             case 5:
-                                nCodeDefine = (uint32_t)EVS_CMR_CODEDEFINE_CHA_OFFSET_H5;
+                                nCodeDefine = (uint32_t)kEvsCmrCodeDefineChaOffsetH5;
                                 break;
                             case 7:
-                                nCodeDefine = (uint32_t)EVS_CMR_CODEDEFINE_CHA_OFFSET_H7;
+                                nCodeDefine = (uint32_t)kEvsCmrCodeDefineChaOffsetH7;
                                 break;
                             default:
-                                IMLOGD3("[Decode_PH_EVS] no selected chmode offset[%d], "
+                                IMLOGD3("[DecodePayloadEvs] no selected chmode offset[%d], "
                                         "originBW[%d], originBR[%d]",
                                         EvsChAOffset, nOriginBW, nOriginBR);
-                                nCodeType = (uint32_t)EVS_CMR_CODETYPE_NO_REQ;
-                                nCodeDefine = (uint32_t)EVS_CMR_CODEDEFINE_NO_REQ;
+                                nCodeType = (uint32_t)kEvsCmrCodeTypeNoReq;
+                                nCodeDefine = (uint32_t)kEvsCmrCodeDefineNoReq;
                                 break;
                         }
                     }
@@ -468,29 +418,30 @@ void AudioRtpPayloadDecoderNode::Decode_PH_EVS(
                         switch (nOriginBW)
                         {
                             case 0:
-                                nCodeType = (uint32_t)EVS_CMR_CODETYPE_NB;
+                                nCodeType = (uint32_t)kEvsCmrCodeTypeNb;
                                 break;
                             case 1:
-                                nCodeType = (uint32_t)EVS_CMR_CODETYPE_WB;
+                                nCodeType = (uint32_t)kEvsCmrCodeTypeWb;
                                 break;
                             case 2:
-                                nCodeType = (uint32_t)EVS_CMR_CODETYPE_SWB;
+                                nCodeType = (uint32_t)kEvsCmrCodeTypeSwb;
                                 break;
                             case 3:
-                                nCodeType = (uint32_t)EVS_CMR_CODETYPE_FB;
+                                nCodeType = (uint32_t)kEvsCmrCodeTypeFb;
                                 break;
                             default:
-                                IMLOGD2("[Decode_PH_EVS] no CodeType - primary mode, originBW[%d], "
+                                IMLOGD2("[DecodePayloadEvs] no CodeType - primary mode, "
+                                        "originBW[%d], "
                                         "originBR[%d]",
                                         nOriginBW, nOriginBR);
-                                nCodeType = (uint32_t)EVS_CMR_CODETYPE_NO_REQ;
-                                nCodeDefine = (uint32_t)EVS_CMR_CODEDEFINE_NO_REQ;
+                                nCodeType = (uint32_t)kEvsCmrCodeTypeNoReq;
+                                nCodeDefine = (uint32_t)kEvsCmrCodeDefineNoReq;
                                 break;
                         }
                     }
 
                     // process CMR
-                    ProcessCMRForEVS(RTPPAYLOADHEADER_MODE_EVS_HEADER_FULL, nCodeType, nCodeDefine);
+                    ProcessCMRForEVS(kRtpPyaloadHeaderModeEvsHeaderFull, nCodeType, nCodeDefine);
 
                     // Save Prev CMR value for checking
                     mPrevCMR = cmr;
@@ -499,7 +450,7 @@ void AudioRtpPayloadDecoderNode::Decode_PH_EVS(
             mBitReader.ReadByteBuffer(mPayload, nDataBitSize);
 
             // last data bit is speech first bit..
-            if (nFrameType != IMSVOC_AMRWB_MODE_SID)
+            if (nFrameType != kImsAudioAmrWbModeSID)
             {
                 uint8_t nLastBit0 = 0;
                 uint32_t i = 0;
@@ -526,7 +477,7 @@ void AudioRtpPayloadDecoderNode::Decode_PH_EVS(
                 mPayload[0] = mPayload[0] + (nLastBit0 << 7);
             }
 
-            IMLOGD6("[Decode_PH_EVS] result = %02X %02X %02X %02X, len=%d, nFrameType=%d",
+            IMLOGD6("[DecodePayloadEvs] result = %02X %02X %02X %02X, len=%d, nFrameType=%d",
                     mPayload[0], mPayload[1], mPayload[2], mPayload[3], nDataSize, nFrameType);
 
             SendDataToRearNode(
@@ -534,11 +485,11 @@ void AudioRtpPayloadDecoderNode::Decode_PH_EVS(
         }
         else
         {
-            IMLOGD0("[Decode_PH_EVS] Invalid codec mode");
+            IMLOGD0("[DecodePayloadEvs] Invalid codec mode");
             return;
         }
     }
-    else if (eEVSReceivedPHFormat == RTPPAYLOADHEADER_MODE_EVS_HEADER_FULL)
+    else if (eEVSReceivedPHFormat == kRtpPyaloadHeaderModeEvsHeaderFull)
     {
         do
         {
@@ -555,15 +506,15 @@ void AudioRtpPayloadDecoderNode::Decode_PH_EVS(
                 nChecnCMR = (cmr_t << 4) + cmr_d;
 
                 // temp log
-                // IMLOGD1("[AudioRtpPayloadDecoderNode::Decode_PH_EVS] nChecnCMR[0x%x]",
+                // IMLOGD1("[AudioRtpPayloadDecoderNode::DecodePayloadEvs] nChecnCMR[0x%x]",
                 // nChecnCMR);
 
                 // process cmr
                 if (nChecnCMR != 127 && nChecnCMR != mPrevCMR)  // 127 is 111 1111
                 {
-                    IMLOGD0("[Decode_PH_EVS] Process CMR");
+                    IMLOGD0("[DecodePayloadEvs] Process CMR");
                     // Process CMR
-                    ProcessCMRForEVS(RTPPAYLOADHEADER_MODE_EVS_HEADER_FULL, cmr_t, cmr_d);
+                    ProcessCMRForEVS(kRtpPyaloadHeaderModeEvsHeaderFull, cmr_t, cmr_d);
 
                     // Save Prev CMR value for checking
                     mPrevCMR = nChecnCMR;
@@ -574,58 +525,58 @@ void AudioRtpPayloadDecoderNode::Decode_PH_EVS(
                     uint32_t nOriginBW = ImsMediaAudioFmt::FindMaxEVSBandwidth(mEvsBandwidth);
                     uint32_t nOriginBR =
                             ImsMediaAudioFmt::FindMaxEVSBitrate(mEvsModetoBitRate, mEvsCodecMode);
-                    IMLOGD3("[Decode_PH_EVS] Returned Codec Mode Request CodecMode[%d], "
+                    IMLOGD3("[DecodePayloadEvs] Returned Codec Mode Request CodecMode[%d], "
                             "bnadwidth[%d], bitrate[%d]",
                             mEvsMode, nOriginBW, nOriginBR);
 
-                    uint32_t nCodeType = (uint32_t)EVS_CMR_CODETYPE_NO_REQ;
-                    uint32_t nCodeDefine = (uint32_t)EVS_CMR_CODEDEFINE_NO_REQ;
+                    uint32_t nCodeType = (uint32_t)kEvsCmrCodeTypeNoReq;
+                    uint32_t nCodeDefine = (uint32_t)kEvsCmrCodeDefineNoReq;
 
-                    if (mEvsCodecMode == EVS_PRIMARY)
+                    if (mEvsCodecMode == kEvsCodecModePrimary)
                     {
                         // to convert EVS CMR type
-                        nOriginBR -= (uint32_t)EVS_PRIMARY_MODE_00590;
+                        nOriginBR -= (uint32_t)kEvsPrimaryModeBitrate00590;
                     }
 
                     // check AMR IO and ChA
-                    if (mEvsCodecMode == EVS_AMR_WB_IO)
+                    if (mEvsCodecMode == kEvsCodecModeAmrIo)
                     {
-                        nCodeType = (uint32_t)EVS_CMR_CODETYPE_AMRIO;
+                        nCodeType = (uint32_t)kEvsCmrCodeTypeAmrIO;
                         nCodeDefine = nOriginBR;
                     }
-                    else if ((EVS_PRIMARY_MODE_01320 ==
-                                     (nOriginBR + (uint32_t)EVS_PRIMARY_MODE_00590)) &&
+                    else if ((kEvsPrimaryModeBitrate01320 ==
+                                     (nOriginBR + (uint32_t)kEvsPrimaryModeBitrate00590)) &&
                             ((EvsChAOffset > 0) && (EvsChAOffset < 8)))  // ChA case.
                     {
-                        if (nOriginBW == (uint32_t)EVS_VOC_BANDWIDTH_SWB)
+                        if (nOriginBW == (uint32_t)kEvsBandwidthSWB)
                         {
-                            nCodeType = (uint32_t)EVS_CMR_CODETYPE_SWB_CHA;
+                            nCodeType = (uint32_t)kEvsCmrCodeTypeSwbCha;
                         }
                         else
                         {
-                            nCodeType = (uint32_t)EVS_CMR_CODETYPE_WB_CHA;
+                            nCodeType = (uint32_t)kEvsCmrCodeTypeWbCha;
                         }
 
                         switch (EvsChAOffset)
                         {
                             case 2:
-                                nCodeDefine = (uint32_t)EVS_CMR_CODEDEFINE_CHA_OFFSET_H2;
+                                nCodeDefine = (uint32_t)kEvsCmrCodeDefineChaOffsetH2;
                                 break;
                             case 3:
-                                nCodeDefine = (uint32_t)EVS_CMR_CODEDEFINE_CHA_OFFSET_H3;
+                                nCodeDefine = (uint32_t)kEvsCmrCodeDefineChaOffsetH3;
                                 break;
                             case 5:
-                                nCodeDefine = (uint32_t)EVS_CMR_CODEDEFINE_CHA_OFFSET_H5;
+                                nCodeDefine = (uint32_t)kEvsCmrCodeDefineChaOffsetH5;
                                 break;
                             case 7:
-                                nCodeDefine = (uint32_t)EVS_CMR_CODEDEFINE_CHA_OFFSET_H7;
+                                nCodeDefine = (uint32_t)kEvsCmrCodeDefineChaOffsetH7;
                                 break;
                             default:
-                                IMLOGD3("[Decode_PH_EVS] No selected chmode offset[%d], "
+                                IMLOGD3("[DecodePayloadEvs] No selected chmode offset[%d], "
                                         "originBW[%d], originBR[%d]",
                                         EvsChAOffset, nOriginBW, nOriginBR);
-                                nCodeType = (uint32_t)EVS_CMR_CODETYPE_NO_REQ;
-                                nCodeDefine = (uint32_t)EVS_CMR_CODEDEFINE_NO_REQ;
+                                nCodeType = (uint32_t)kEvsCmrCodeTypeNoReq;
+                                nCodeDefine = (uint32_t)kEvsCmrCodeDefineNoReq;
                                 break;
                         }
                     }
@@ -636,29 +587,30 @@ void AudioRtpPayloadDecoderNode::Decode_PH_EVS(
                         switch (nOriginBW)
                         {
                             case 0:
-                                nCodeType = (uint32_t)EVS_CMR_CODETYPE_NB;
+                                nCodeType = (uint32_t)kEvsCmrCodeTypeNb;
                                 break;
                             case 1:
-                                nCodeType = (uint32_t)EVS_CMR_CODETYPE_WB;
+                                nCodeType = (uint32_t)kEvsCmrCodeTypeWb;
                                 break;
                             case 2:
-                                nCodeType = (uint32_t)EVS_CMR_CODETYPE_SWB;
+                                nCodeType = (uint32_t)kEvsCmrCodeTypeSwb;
                                 break;
                             case 3:
-                                nCodeType = (uint32_t)EVS_CMR_CODETYPE_FB;
+                                nCodeType = (uint32_t)kEvsCmrCodeTypeFb;
                                 break;
                             default:
-                                IMLOGD2("[Decode_PH_EVS] No CodeType - primary mode, originBW[%d], "
+                                IMLOGD2("[DecodePayloadEvs] No CodeType - primary mode, "
+                                        "originBW[%d], "
                                         "originBR[%d]",
                                         nOriginBW, nOriginBR);
-                                nCodeType = (uint32_t)EVS_CMR_CODETYPE_NO_REQ;
-                                nCodeDefine = (uint32_t)EVS_CMR_CODEDEFINE_NO_REQ;
+                                nCodeType = (uint32_t)kEvsCmrCodeTypeNoReq;
+                                nCodeDefine = (uint32_t)kEvsCmrCodeDefineNoReq;
                                 break;
                         }
                     }
 
                     // process CMR
-                    ProcessCMRForEVS(RTPPAYLOADHEADER_MODE_EVS_HEADER_FULL, nCodeType, nCodeDefine);
+                    ProcessCMRForEVS(kRtpPyaloadHeaderModeEvsHeaderFull, nCodeType, nCodeDefine);
 
                     // Save Prev CMR value for checking
                     mPrevCMR = nChecnCMR;
@@ -666,7 +618,7 @@ void AudioRtpPayloadDecoderNode::Decode_PH_EVS(
             }
             else  // ToC byte
             {
-                IMLOGD0("[Decode_PH_EVS] Decoding TOC header");
+                IMLOGD0("[DecodePayloadEvs] Decoding TOC header");
                 toc_f = mBitReader.Read(1);
                 toc_ft_m = mBitReader.Read(1);
                 toc_ft_q = mBitReader.Read(1);
@@ -686,8 +638,8 @@ void AudioRtpPayloadDecoderNode::Decode_PH_EVS(
 
             if (toc_ft_m == 0)  // EVS Primary mode
             {
-                nDataBitSize = ImsMediaAudioFmt::ConvertEVSAudioRateToBitLen(
-                        (IMSVOC_EVS_PRIMARY_ENTYPE)toc_ft_b);
+                nDataBitSize = ImsMediaAudioFmt::ConvertEVSAudioModeToBitLen(
+                        (kImsAudioEvsPrimaryMode)toc_ft_b);
             }
             else  // AMR-WB IO mode
             {
@@ -703,8 +655,8 @@ void AudioRtpPayloadDecoderNode::Decode_PH_EVS(
                 mBitReader.Read(nPaddingSize);
             }
 
-            IMLOGD6("[Decode_PH_EVS] result = %02X %02X %02X %02X, len=%d, eRate=%d", mPayload[0],
-                    mPayload[1], mPayload[2], mPayload[3], nDataSize, toc_ft_b);
+            IMLOGD6("[DecodePayloadEvs] result = %02X %02X %02X %02X, len=%d, eRate=%d",
+                    mPayload[0], mPayload[1], mPayload[2], mPayload[3], nDataSize, toc_ft_b);
 
             SendDataToRearNode(MEDIASUBTYPE_RTPPAYLOAD, mPayload, (nDataBitSize + 7) >> 3,
                     timestamp, listFrameType.size(),
@@ -715,54 +667,54 @@ void AudioRtpPayloadDecoderNode::Decode_PH_EVS(
     }
     else
     {
-        IMLOGE0("[Decode_PH_EVS] Invalid payload format");
+        IMLOGE0("[DecodePayloadEvs] Invalid payload format");
         return;
     }
 }
 
 bool AudioRtpPayloadDecoderNode::ProcessCMRForEVS(
-        eRTPPyaloadHeaderMode eEVSPayloadHeaderMode, uint32_t cmr_t, uint32_t cmr_d)
+        kRtpPyaloadHeaderMode eEVSPayloadHeaderMode, uint32_t cmr_t, uint32_t cmr_d)
 {
-    eEVSCMRCodeType eNewEVSCMRCodeType = EVS_CMR_CODETYPE_NO_REQ;
-    eEVSCMRCodeDefine eNewEVSCMRCodeDefine = EVS_CMR_CODEDEFINE_NO_REQ;
+    kEvsCmrCodeType eNewEVSCMRCodeType = kEvsCmrCodeTypeNoReq;
+    kEvsCmrCodeDefine eNewEVSCMRCodeDefine = kEvsCmrCodeDefineNoReq;
 
-    if (eEVSPayloadHeaderMode == RTPPAYLOADHEADER_MODE_EVS_HEADER_FULL)
+    if (eEVSPayloadHeaderMode == kRtpPyaloadHeaderModeEvsHeaderFull)
     {
         if (cmr_t < 8)  // cmr_type is 3bit validation.
-            eNewEVSCMRCodeType = (eEVSCMRCodeType)cmr_t;
+            eNewEVSCMRCodeType = (kEvsCmrCodeType)cmr_t;
 
         if (cmr_d < 16)  // cmr_define is 4bit validation
-            eNewEVSCMRCodeDefine = (eEVSCMRCodeDefine)cmr_d;
+            eNewEVSCMRCodeDefine = (kEvsCmrCodeDefine)cmr_d;
     }
-    else if (eEVSPayloadHeaderMode == RTPPAYLOADHEADER_MODE_EVS_COMPACT)  // only EVS AMR IO Mode
+    else if (eEVSPayloadHeaderMode == kRtpPyaloadHeaderModeEvsCompact)  // only EVS AMR IO Mode
     {
-        eNewEVSCMRCodeType = EVS_CMR_CODETYPE_AMRIO;
+        eNewEVSCMRCodeType = kEvsCmrCodeTypeAmrIO;
         switch (cmr_d)
         {
             case 0:
-                eNewEVSCMRCodeDefine = EVS_CMR_CODEDEFINE_AMRIO_660;
+                eNewEVSCMRCodeDefine = kEvsCmrCodeDefineAmrIo660;
                 break;
             case 1:
-                eNewEVSCMRCodeDefine = EVS_CMR_CODEDEFINE_AMRIO_885;
+                eNewEVSCMRCodeDefine = kEvsCmrCodeDefineAmrIo885;
                 break;
             case 2:
-                eNewEVSCMRCodeDefine = EVS_CMR_CODEDEFINE_AMRIO_1265;
+                eNewEVSCMRCodeDefine = kEvsCmrCodeDefineAmrIo1265;
                 break;
             case 3:
-                eNewEVSCMRCodeDefine = EVS_CMR_CODEDEFINE_AMRIO_1585;
+                eNewEVSCMRCodeDefine = kEvsCmrCodeDefineAmrIo1585;
                 break;
             case 4:
-                eNewEVSCMRCodeDefine = EVS_CMR_CODEDEFINE_AMRIO_1825;
+                eNewEVSCMRCodeDefine = kEvsCmrCodeDefineAmrIo1825;
                 break;
             case 5:
-                eNewEVSCMRCodeDefine = EVS_CMR_CODEDEFINE_AMRIO_2305;
+                eNewEVSCMRCodeDefine = kEvsCmrCodeDefineAmrIo2305;
                 break;
             case 6:
-                eNewEVSCMRCodeDefine = EVS_CMR_CODEDEFINE_AMRIO_2385;
+                eNewEVSCMRCodeDefine = kEvsCmrCodeDefineAmrIo2385;
                 break;
             case 7:
             default:
-                eNewEVSCMRCodeDefine = EVS_CMR_CODEDEFINE_NO_REQ;
+                eNewEVSCMRCodeDefine = kEvsCmrCodeDefineNoReq;
                 break;
         }
     }
@@ -772,7 +724,7 @@ bool AudioRtpPayloadDecoderNode::ProcessCMRForEVS(
         return false;
     }
 
-    if (eNewEVSCMRCodeDefine == EVS_CMR_CODEDEFINE_NO_REQ)
+    if (eNewEVSCMRCodeDefine == kEvsCmrCodeDefineNoReq)
     {
         IMLOGD0("[ProcessCMRForEVS] Invalid CMR Value");
         return true;
@@ -780,22 +732,6 @@ bool AudioRtpPayloadDecoderNode::ProcessCMRForEVS(
 
     IMLOGD2("[ProcessCMRForEVS] Change request bnadwidth[%d], bitrate[%d]", eNewEVSCMRCodeType,
             eNewEVSCMRCodeDefine);
-// TODo: replace this with latest params
-#if 0
-    tMMPFRequestEvent_InternalRequestParam* pInternalReqParam = (tMMPFRequestEvent_InternalRequestParam*) MMPF_MemAlloc(sizeof(tMMPFRequestEvent_InternalRequestParam));
-
-    pInternalReqParam->type = MMPFINTERNALREQUESTEVENT_CMR_EVS;
-    pInternalReqParam->tEVSCMRPram.eNewCMRCodeType = eNewEVSCMRCodeType;
-    pInternalReqParam->tEVSCMRPram.eNewCMRCodeDefine = eNewEVSCMRCodeDefine;
-    if(!MMPFEventHandler::SendEvent("RequestHandler", MMPFREQUESTEVENT_INTERNAL_REQUEST, (mmpf_param)(((MMPFGraph*)GetGraph())->GetSession()), (mmpf_param)pInternalReqParam))
-    {
-        if(pInternalReqParam != NULL)
-        {
-            free((void*)pInternalReqParam);
-            pInternalReqParam = NULL;
-        }
-    }
-#endif
-
+    // TODO: replace this with latest params
     return true;
 }

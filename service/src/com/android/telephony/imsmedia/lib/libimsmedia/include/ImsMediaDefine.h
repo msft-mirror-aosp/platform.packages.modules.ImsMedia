@@ -88,136 +88,125 @@ enum ImsMediaProtocolType
     RTCP,
 };
 
-typedef enum
+enum kEvsBandwidth
 {
-    EVS_VOC_BANDWIDTH_NONE = 0,
-    EVS_VOC_BANDWIDTH_NB = 1,
-    EVS_VOC_BANDWIDTH_WB = 2,
-    EVS_VOC_BANDWIDTH_SWB = 4,
-    EVS_VOC_BANDWIDTH_FB = 8,
-    EVS_VOC_BANDWIDTH_MAX = 0x7FFFFFFF
-} eEVSBandwidth;
+    kEvsBandwidthNone = 0,
+    kEvsBandwidthNB = 1,
+    kEvsBandwidthWB = 2,
+    kEvsBandwidthSWB = 4,
+    kEvsBandwidthFB = 8,
+};
 
-typedef enum
+enum kEvsBitrate
 {
     /* 6.6 kbps, AMR-IO */
-    EVS_AMRIO_MODE_00660 = 0,
+    kEvsAmrIoModeBitrate00660 = 0,
     /* 8.85 kbps, AMR-IO */
-    EVS_AMRIO_MODE_00885 = 1,
+    kEvsAmrIoModeBitrate00885 = 1,
     /* 12.65 kbps, AMR-IO */
-    EVS_AMRIO_MODE_01265 = 2,
+    kEvsAmrIoModeBitrate01265 = 2,
     /* 14.25 kbps, AMR-IO */
-    EVS_AMRIO_MODE_01425 = 3,
+    kEvsAmrIoModeBitrate01425 = 3,
     /* 15.85 kbps, AMR-IO */
-    EVS_AMRIO_MODE_01585 = 4,
+    kEvsAmrIoModeBitrate01585 = 4,
     /* 18.25 kbps, AMR-IO */
-    EVS_AMRIO_MODE_01825 = 5,
+    kEvsAmrIoModeBitrate01825 = 5,
     /* 19.85 kbps, AMR-IO */
-    EVS_AMRIO_MODE_01985 = 6,
+    kEvsAmrIoModeBitrate01985 = 6,
     /* 23.05 kbps, AMR-IO */
-    EVS_AMRIO_MODE_02305 = 7,
+    kEvsAmrIoModeBitrate02305 = 7,
     /* 23.85 kbps, AMR-IO */
-    EVS_AMRIO_MODE_02385 = 8,
+    kEvsAmrIoModeBitrate02385 = 8,
     /* 5.9 kbps, EVS Primary - SC-VBR 2.8kbps, 7.2kbps, 8kbps*/
-    EVS_PRIMARY_MODE_00590 = 9,
+    kEvsPrimaryModeBitrate00590 = 9,
     /* 7.2 kbps, EVS Primary */
-    EVS_PRIMARY_MODE_00720 = 10,
+    kEvsPrimaryModeBitrate00720 = 10,
     /* 8 kbps, EVS Primary */
-    EVS_PRIMARY_MODE_00800 = 11,
+    kEvsPrimaryModeBitrate00800 = 11,
     /* 9.6 kbps, EVS Primary */
-    EVS_PRIMARY_MODE_00960 = 12,
+    kEvsPrimaryModeBitrate00960 = 12,
     /* 13.20 kbps, EVS Primary */
-    EVS_PRIMARY_MODE_01320 = 13,
+    kEvsPrimaryModeBitrate01320 = 13,
     /* 16.4 kbps, EVS Primary */
-    EVS_PRIMARY_MODE_01640 = 14,
+    kEvsPrimaryModeBitrate01640 = 14,
     /* 24.4 kbps, EVS Primary */
-    EVS_PRIMARY_MODE_02440 = 15,
+    kEvsPrimaryModeBitrate02440 = 15,
     /* 32 kbps, EVS Primary */
-    EVS_PRIMARY_MODE_03200 = 16,
+    kEvsPrimaryModeBitrate03200 = 16,
     /* 48 kbps, EVS Primary */
-    EVS_PRIMARY_MODE_04800 = 17,
+    kEvsPrimaryModeBitrate04800 = 17,
     /* 64 kbps, EVS Primary */
-    EVS_PRIMARY_MODE_06400 = 18,
+    kEvsPrimaryModeBitrate06400 = 18,
     /* 96 kbps, EVS Primary */
-    EVS_PRIMARY_MODE_09600 = 19,
+    kEvsPrimaryModeBitrate09600 = 19,
     /* 128 kbps, EVS Primary */
-    EVS_PRIMARY_MODE_12800 = 20,
+    kEvsPrimaryModeBitrate12800 = 20,
     /* 2.4 kbps, EVS Primary */
-    EVS_PRIMARY_MODE_SID = 21,
-
+    kEvsPrimaryModeBitrateSID = 21,
     /* SPEECH LOST */
-    EVS_PRIMARY_MODE_SPEECH_LOST = 22,
+    kEvsPrimaryModeBitrateSpeechLost = 22,
     /* NO DATA */
-    EVS_PRIMARY_MODE_NO_DATA = 23,
+    kEvsPrimaryModeBitrateNoData = 23,
+};
 
-    /* This definition is used to force enums to use 32 bits - required for L4 */
-    EVS_PRIMARY_MODE_MAX = 0x7FFFFFFF
-} eEVSBitrate;
-
-// [EVS] codec mode
-typedef enum _eEVSCodecMode
+enum kEvsCodecMode
 {
-    EVS_PRIMARY = 0,    // EVS PRIMARY mode 0
-    EVS_AMR_WB_IO = 1,  // EVS AMR-WB IO mode 1
+    kEvsCodecModePrimary = 0,  // EVS PRIMARY mode 0
+    kEvsCodecModeAmrIo = 1,    // EVS AMR-WB IO mode 1
+    kEvsCodecModeMax = 0x7FFFFFFF
+};
 
-    EVS_CODEC_MODE_ENUM_MAX = 0x7FFFFFFF
-} eEVSCodecMode;
-
-typedef enum _eEVSCMRCodeType
+enum kEvsCmrCodeType
 {
-    EVS_CMR_CODETYPE_NB = 0,       // 000
-    EVS_CMR_CODETYPE_AMRIO = 1,    // 001
-    EVS_CMR_CODETYPE_WB = 2,       // 010
-    EVS_CMR_CODETYPE_SWB = 3,      // 011
-    EVS_CMR_CODETYPE_FB = 4,       // 100
-    EVS_CMR_CODETYPE_WB_CHA = 5,   // 101
-    EVS_CMR_CODETYPE_SWB_CHA = 6,  // 110
+    kEvsCmrCodeTypeNb = 0,      // 000
+    kEvsCmrCodeTypeAmrIO = 1,   // 001
+    kEvsCmrCodeTypeWb = 2,      // 010
+    kEvsCmrCodeTypeSwb = 3,     // 011
+    kEvsCmrCodeTypeFb = 4,      // 100
+    kEvsCmrCodeTypeWbCha = 5,   // 101
+    kEvsCmrCodeTypeSwbCha = 6,  // 110
+    kEvsCmrCodeTypeNoReq = 7,   // 111
+};
 
-    EVS_CMR_CODETYPE_NO_REQ = 7,  // 111
-
-    EVS_CMR_CODETYPE_ENUM_MAX = 0x7FFFFFFF
-} eEVSCMRCodeType;
-
-typedef enum _eEVSCMRCodeDefine
+enum kEvsCmrCodeDefine
 {
-    EVS_CMR_CODEDEFINE_59 = 0,     // 0000
-    EVS_CMR_CODEDEFINE_72 = 1,     // 0001
-    EVS_CMR_CODEDEFINE_80 = 2,     // 0010
-    EVS_CMR_CODEDEFINE_96 = 3,     // 0011
-    EVS_CMR_CODEDEFINE_132 = 4,    // 0100
-    EVS_CMR_CODEDEFINE_164 = 5,    // 0101
-    EVS_CMR_CODEDEFINE_244 = 6,    // 0110
-    EVS_CMR_CODEDEFINE_320 = 7,    // 0111
-    EVS_CMR_CODEDEFINE_480 = 8,    // 1000
-    EVS_CMR_CODEDEFINE_640 = 9,    // 1001
-    EVS_CMR_CODEDEFINE_960 = 10,   // 1010
-    EVS_CMR_CODEDEFINE_1280 = 11,  // 1011
-
-    EVS_CMR_CODEDEFINE_NO_REQ = 15,  // 1111
+    kEvsCmrCodeDefine59 = 0,      // 0000
+    kEvsCmrCodeDefine72 = 1,      // 0001
+    kEvsCmrCodeDefine80 = 2,      // 0010
+    kEvsCmrCodeDefine96 = 3,      // 0011
+    kEvsCmrCodeDefine132 = 4,     // 0100
+    kEvsCmrCodeDefine164 = 5,     // 0101
+    kEvsCmrCodeDefine244 = 6,     // 0110
+    kEvsCmrCodeDefine320 = 7,     // 0111
+    kEvsCmrCodeDefine480 = 8,     // 1000
+    kEvsCmrCodeDefine640 = 9,     // 1001
+    kEvsCmrCodeDefine960 = 10,    // 1010
+    kEvsCmrCodeDefine1280 = 11,   // 1011
+    kEvsCmrCodeDefineNoReq = 15,  // 1111
 
     // Ch-A
-    EVS_CMR_CODEDEFINE_CHA_OFFSET_2 = 0,   // 0000
-    EVS_CMR_CODEDEFINE_CHA_OFFSET_3 = 1,   // 0001
-    EVS_CMR_CODEDEFINE_CHA_OFFSET_5 = 2,   // 0010
-    EVS_CMR_CODEDEFINE_CHA_OFFSET_7 = 3,   // 0011
-    EVS_CMR_CODEDEFINE_CHA_OFFSET_H2 = 4,  // 0100
-    EVS_CMR_CODEDEFINE_CHA_OFFSET_H3 = 5,  // 0101
-    EVS_CMR_CODEDEFINE_CHA_OFFSET_H5 = 6,  // 0110
-    EVS_CMR_CODEDEFINE_CHA_OFFSET_H7 = 7,  // 0111
+    kEvsCmrCodeDefineChaOffset2 = 0,   // 0000
+    kEvsCmrCodeDefineChaOffset3 = 1,   // 0001
+    kEvsCmrCodeDefineChaOffset5 = 2,   // 0010
+    kEvsCmrCodeDefineChaOffset7 = 3,   // 0011
+    kEvsCmrCodeDefineChaOffsetH2 = 4,  // 0100
+    kEvsCmrCodeDefineChaOffsetH3 = 5,  // 0101
+    kEvsCmrCodeDefineChaOffsetH5 = 6,  // 0110
+    kEvsCmrCodeDefineChaOffsetH7 = 7,  // 0111
 
     // AMR WB-IO
-    EVS_CMR_CODEDEFINE_AMRIO_660 = 0,   // 0000
-    EVS_CMR_CODEDEFINE_AMRIO_885 = 1,   // 0001
-    EVS_CMR_CODEDEFINE_AMRIO_1265 = 2,  // 0010
-    EVS_CMR_CODEDEFINE_AMRIO_1425 = 3,  // 0011
-    EVS_CMR_CODEDEFINE_AMRIO_1585 = 4,  // 0100
-    EVS_CMR_CODEDEFINE_AMRIO_1825 = 5,  // 0101
-    EVS_CMR_CODEDEFINE_AMRIO_1985 = 6,  // 0110
-    EVS_CMR_CODEDEFINE_AMRIO_2305 = 7,  // 0111
-    EVS_CMR_CODEDEFINE_AMRIO_2385 = 8,  // 1000
+    kEvsCmrCodeDefineAmrIo660 = 0,   // 0000
+    kEvsCmrCodeDefineAmrIo885 = 1,   // 0001
+    kEvsCmrCodeDefineAmrIo1265 = 2,  // 0010
+    kEvsCmrCodeDefineAmrIo1425 = 3,  // 0011
+    kEvsCmrCodeDefineAmrIo1585 = 4,  // 0100
+    kEvsCmrCodeDefineAmrIo1825 = 5,  // 0101
+    kEvsCmrCodeDefineAmrIo1985 = 6,  // 0110
+    kEvsCmrCodeDefineAmrIo2305 = 7,  // 0111
+    kEvsCmrCodeDefineAmrIo2385 = 8,  // 1000
 
-    EVS_CMR_CODEDEFINE_ENUM_MAX = 0x7FFFFFFF
-} eEVSCMRCodeDefine;
+    kEvsCmrCodeDefineENUM_MAX = 0x7FFFFFFF
+};
 
 enum ImsMediaSubType
 {
@@ -339,18 +328,18 @@ enum kAudioCodecType
     kAudioCodecEvs,
 };
 
-enum eRTPPyaloadHeaderMode
+enum kRtpPyaloadHeaderMode
 {
-    // amr mode
-    RTPPAYLOADHEADER_MODE_AMR_OCTETALIGNED = 0,  // octet aligned mode
-    RTPPAYLOADHEADER_MODE_AMR_EFFICIENT = 1,     // efficient mode
-                                                 // video packetization mode
-    RTPPAYLOADHEADER_MODE_SINGLE_NAL_UNIT = 0,   // packet mode 0
-    RTPPAYLOADHEADER_MODE_NON_INTERLEAVED = 1,   // packet mode 1
-                                                 // evs mode
-    RTPPAYLOADHEADER_MODE_EVS_COMPACT = 0,       // EVS compact format 0
-    RTPPAYLOADHEADER_MODE_EVS_HEADER_FULL = 1,   // EVS header-full format 1
-    RTPPAYLOADHEADER_MODE_MAX
+    // Amr mode
+    kRtpPyaloadHeaderModeAmrOctetAligned = 0,  // octet aligned mode
+    kRtpPyaloadHeaderModeAmrEfficient = 1,     // efficient mode
+                                               // Video packetization mode
+    kRtpPyaloadHeaderModeSingleNalUnit = 0,    // packet mode 0
+    kRtpPyaloadHeaderModeNonInterleaved = 1,   // packet mode 1
+                                               // Evs mode
+    kRtpPyaloadHeaderModeEvsCompact = 0,       // EVS compact format 0
+    kRtpPyaloadHeaderModeEvsHeaderFull = 1,    // EVS header-full format 1
+    kRtpPyaloadHeaderModeMax
 };
 
 enum eIPVersion

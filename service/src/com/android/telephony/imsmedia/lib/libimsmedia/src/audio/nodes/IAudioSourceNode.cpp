@@ -58,7 +58,7 @@ ImsMediaResult IAudioSourceNode::Start()
         mAudioSource->SetCodec(mCodecType);
         mAudioSource->SetCodecMode(mMode);
         mAudioSource->SetPtime(mPtime);
-        mAudioSource->SetSamplingRate(mSamplingRate);
+        mAudioSource->SetSamplingRate(mSamplingRate * 1000);
 
         if (mCodecType == kAudioCodecEvs)
         {
@@ -104,7 +104,10 @@ bool IAudioSourceNode::IsSourceNode()
 void IAudioSourceNode::SetConfig(void* config)
 {
     if (config == NULL)
+    {
         return;
+    }
+
     AudioConfig* pConfig = reinterpret_cast<AudioConfig*>(config);
     mCodecType = ImsMediaAudioFmt::ConvertCodecType(pConfig->getCodecType());
     if (mCodecType == kAudioCodecAmr || mCodecType == kAudioCodecAmrWb)
@@ -113,59 +116,40 @@ void IAudioSourceNode::SetConfig(void* config)
     }
     else if (mCodecType == kAudioCodecEvs)
     {
-        SetCodecMode(pConfig->getEvsParams().getEvsMode());
-        SetEVSBandwidth((eEVSBandwidth)pConfig->getEvsParams().getEvsBandwidth());
-        SetEvsChAwOffset(pConfig->getEvsParams().getChannelAwareMode());
+        mMode = pConfig->getEvsParams().getEvsMode();
+        mEvsBandwidth = (kEvsBandwidth)pConfig->getEvsParams().getEvsBandwidth();
+        mEvsChAwOffset = pConfig->getEvsParams().getChannelAwareMode();
     }
-    SetSamplingRate(pConfig->getSamplingRateKHz());
+    mSamplingRate = pConfig->getSamplingRateKHz();
     mPtime = pConfig->getPtimeMillis();
 }
 
 bool IAudioSourceNode::IsSameConfig(void* config)
 {
     if (config == NULL)
+    {
         return true;
+    }
+
     AudioConfig* pConfig = reinterpret_cast<AudioConfig*>(config);
 
     if (mCodecType == ImsMediaAudioFmt::ConvertCodecType(pConfig->getCodecType()))
     {
         if (mCodecType == kAudioCodecAmr || mCodecType == kAudioCodecAmrWb)
         {
-            if (mMode == pConfig->getAmrParams().getAmrMode())
-            {
-                return true;
-            }
+            return (mMode == pConfig->getAmrParams().getAmrMode() &&
+                    mSamplingRate == pConfig->getSamplingRateKHz());
         }
         else if (mCodecType == kAudioCodecEvs)
         {
-            if (mMode == pConfig->getEvsParams().getEvsMode())
-            {
-                return true;
-            }
+            return (mMode == pConfig->getEvsParams().getEvsMode() &&
+                    mEvsBandwidth == (kEvsBandwidth)pConfig->getEvsParams().getEvsBandwidth() &&
+                    mEvsChAwOffset == pConfig->getEvsParams().getChannelAwareMode() &&
+                    mSamplingRate == pConfig->getSamplingRateKHz());
         }
     }
 
     return false;
-}
-
-void IAudioSourceNode::SetEVSBandwidth(eEVSBandwidth bandwidth)
-{
-    mEvsBandwidth = bandwidth;
-}
-
-void IAudioSourceNode::SetEvsChAwOffset(int32_t EvsChAOffset)
-{
-    mEvsChAwOffset = EvsChAOffset;
-}
-
-void IAudioSourceNode::SetSamplingRate(int32_t samplingRate)
-{
-    mSamplingRate = samplingRate;
-}
-
-void IAudioSourceNode::SetCodecMode(uint32_t mode)
-{
-    mMode = mode;
 }
 
 void IAudioSourceNode::CB_AudioUplink(

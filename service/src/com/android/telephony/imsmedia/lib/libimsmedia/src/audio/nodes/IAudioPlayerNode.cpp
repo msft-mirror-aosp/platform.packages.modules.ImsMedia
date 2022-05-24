@@ -18,6 +18,7 @@
 #include <ImsMediaAudioPlayer.h>
 #include <ImsMediaTrace.h>
 #include <ImsMediaTimer.h>
+#include <ImsMediaAudioFmt.h>
 #include <AudioConfig.h>
 #include <RtpConfig.h>
 #include <string.h>
@@ -61,12 +62,13 @@ ImsMediaResult IAudioPlayerNode::Start()
     {
         mAudioPlayer->SetCodec(mCodecType);
         mAudioPlayer->SetCodecMode(mMode);
-        mAudioPlayer->SetSamplingRate(mSamplingRate);
+        mAudioPlayer->SetSamplingRate(mSamplingRate * 1000);
 
         if (mCodecType == kAudioCodecEvs)
         {
             mAudioPlayer->SetEvsBandwidth(mEvsBandwidth);
         }
+
         mAudioPlayer->Start();
     }
     else
@@ -110,19 +112,19 @@ void IAudioPlayerNode::SetConfig(void* config)
     AudioConfig* pConfig = reinterpret_cast<AudioConfig*>(config);
     if (pConfig != NULL)
     {
-        SetCodec(pConfig->getCodecType());
+        mCodecType = ImsMediaAudioFmt::ConvertCodecType(pConfig->getCodecType());
         if (mCodecType == kAudioCodecAmr || mCodecType == kAudioCodecAmrWb)
         {
-            SetCodecMode(pConfig->getAmrParams().getAmrMode());
+            mMode = pConfig->getAmrParams().getAmrMode();
         }
         else if (mCodecType == kAudioCodecEvs)
         {
-            SetCodecMode(pConfig->getEvsParams().getEvsMode());
-            SetEvsChannelAwareOffset(pConfig->getEvsParams().getChannelAwareMode());
-            SetEVSBandwidth((eEVSBandwidth)pConfig->getEvsParams().getEvsBandwidth());
+            mMode = pConfig->getEvsParams().getEvsMode();
+            mEvsChannelAwOffset = pConfig->getEvsParams().getChannelAwareMode();
+            mEvsBandwidth = (kEvsBandwidth)pConfig->getEvsParams().getEvsBandwidth();
         }
-        SetSamplingRate(pConfig->getSamplingRateKHz());
-        // testing parameter
+
+        mSamplingRate = pConfig->getSamplingRateKHz();
         SetJitterBufferSize(4, 4, 9);
         SetJitterOptions(80, 1, (double)25 / 10, true, true);
     }
@@ -131,73 +133,29 @@ void IAudioPlayerNode::SetConfig(void* config)
 bool IAudioPlayerNode::IsSameConfig(void* config)
 {
     if (config == NULL)
+    {
         return true;
+    }
+
     AudioConfig* pConfig = reinterpret_cast<AudioConfig*>(config);
 
-    if (mCodecType == pConfig->getCodecType())
+    if (mCodecType == ImsMediaAudioFmt::ConvertCodecType(pConfig->getCodecType()))
     {
         if (mCodecType == kAudioCodecAmr || mCodecType == kAudioCodecAmrWb)
         {
-            if (mMode == pConfig->getAmrParams().getAmrMode())
-            {
-                return true;
-            }
+            return (mMode == pConfig->getAmrParams().getAmrMode() &&
+                    mSamplingRate == pConfig->getSamplingRateKHz());
         }
         else if (mCodecType == kAudioCodecEvs)
         {
-            if (mMode == pConfig->getEvsParams().getEvsMode())
-            {
-                return true;
-            }
+            return (mMode == pConfig->getEvsParams().getEvsMode() &&
+                    mEvsBandwidth == (kEvsBandwidth)pConfig->getEvsParams().getEvsBandwidth() &&
+                    mEvsChannelAwOffset == pConfig->getEvsParams().getChannelAwareMode() &&
+                    mSamplingRate == pConfig->getSamplingRateKHz());
         }
     }
 
-    // TBD later jitter configuration compare
     return false;
-}
-
-void IAudioPlayerNode::SetCodec(int32_t type)
-{
-    switch (type)
-    {
-        case AudioConfig::CODEC_AMR:
-            mCodecType = kAudioCodecAmr;
-            break;
-        case AudioConfig::CODEC_AMR_WB:
-            mCodecType = kAudioCodecAmrWb;
-            break;
-        case AudioConfig::CODEC_EVS:
-            mCodecType = kAudioCodecEvs;
-            break;
-        case AudioConfig::CODEC_PCMA:
-            mCodecType = kAudioCodecPcma;
-            break;
-        case AudioConfig::CODEC_PCMU:
-            mCodecType = kAudioCodecPcmu;
-            break;
-        default:
-            break;
-    }
-}
-
-void IAudioPlayerNode::SetEVSBandwidth(eEVSBandwidth bandwidth)
-{
-    mEvsBandwidth = bandwidth;
-}
-
-void IAudioPlayerNode::SetEvsChannelAwareOffset(int32_t EvsChAOffset)
-{
-    mEvsChannelAwOffset = EvsChAOffset;
-}
-
-void IAudioPlayerNode::SetSamplingRate(int32_t samplingRate)
-{
-    mSamplingRate = samplingRate;
-}
-
-void IAudioPlayerNode::SetCodecMode(uint32_t mode)
-{
-    mMode = mode;
 }
 
 void* IAudioPlayerNode::run()

@@ -19,7 +19,6 @@
 
 #include <ImsMediaDefine.h>
 #include <stdint.h>
-#include <ImsMediaDefine.h>
 
 #define IMSAMR_FRAME_BYTES              34
 
@@ -102,117 +101,118 @@
 #define EVS_COMPACT_AMRWBIO_PAYLOAD_NUM 10
 #define EVS_COMPACT_PAYLOAD_MAX_NUM     32
 
-typedef enum
+enum kImsAudioFrameEntype
 {
-    IMSVOC_AUDIOFRAME_GSM_SID = 0,        /* GSM HR, FR or EFR : silence descriptor   */
-    IMSVOC_AUDIOFRAME_GSM_SPEECHGOOD,     /* GSM HR, FR or EFR : good speech frame    */
-    IMSVOC_AUDIOFRAME_GSM_BFI,            /* GSM HR, FR or EFR : bad frame indicator  */
-    IMSVOC_AUDIOFRAME_GSM_INVALIDSID,     /* GSM HR            : invalid SID frame    */
-    IMSVOC_AUDIOFRAME_AMR_SPEECHGOOD,     /* AMR : good speech frame              */
-    IMSVOC_AUDIOFRAME_AMR_SPEECHDEGRADED, /* AMR : degraded speech frame          */
-    IMSVOC_AUDIOFRAME_AMR_ONSET,          /* AMR : onset                          */
-    IMSVOC_AUDIOFRAME_AMR_SPEECHBAD,      /* AMR : bad speech frame               */
-    IMSVOC_AUDIOFRAME_AMR_SIDFIRST,       /* AMR : first silence descriptor       */
-    IMSVOC_AUDIOFRAME_AMR_SIDUPDATE,      /* AMR : successive silence descriptor  */
-    IMSVOC_AUDIOFRAME_AMR_SIDBAD,         /* AMR : bad silence descriptor frame   */
-    IMSVOC_AUDIOFRAME_AMR_NODATA,         /* AMR : Nothing to Transmit     */
-    IMSVOC_AUDIOFRAME_AMR_SPEECHLOST,     /* downlink speech lost           */
-    IMSVOC_AUDIOFRAME_GSM_FRAME_MAX
-} IMSVOC_AUDIOFRAME_ENTYPE;
+    kImsAudioFrameGsmSid = 0,        /* GSM HR, FR or EFR : silence descriptor   */
+    kImsAudioFrameGsmSpeechGood,     /* GSM HR, FR or EFR : good speech frame    */
+    kImsAudioFrameGsmBfi,            /* GSM HR, FR or EFR : bad frame indicator  */
+    kImsAudioFrameGsmInvalidSid,     /* GSM HR            : invalid SID frame    */
+    kImsAudioFrameAmrSpeechGood,     /* AMR : good speech frame              */
+    kImsAudioFrameAmrSpeechDegraded, /* AMR : degraded speech frame          */
+    kImsAudioFrameAmrOnSet,          /* AMR : onset                          */
+    kImsAudioFrameAmrSpeechBad,      /* AMR : bad speech frame               */
+    kImsAudioFrameAmrSidFirst,       /* AMR : first silence descriptor       */
+    kImsAudioFrameAmrSidUpdate,      /* AMR : successive silence descriptor  */
+    kImsAudioFrameAmrSidBad,         /* AMR : bad silence descriptor frame   */
+    kImsAudioFrameAmrNoData,         /* AMR : Nothing to Transmit     */
+    kImsAudioFrameAmrSpeechLost,     /* downlink speech lost           */
+    kImsAudioFrameMax
+};
 
-typedef enum
+enum kImsAudioAmrMode
 {
-    IMSVOC_AUDIORATE_475 = 0,  /* 4.75 kbit /s                             */
-    IMSVOC_AUDIORATE_515 = 1,  /* 5.15 kbit /s                             */
-    IMSVOC_AUDIORATE_590 = 2,  /* 5.90 kbit /s                             */
-    IMSVOC_AUDIORATE_670 = 3,  /* 6.70 kbit /s                             */
-    IMSVOC_AUDIORATE_740 = 4,  /* 7.40 kbit /s                             */
-    IMSVOC_AUDIORATE_795 = 5,  /* 7.95 kbit /s                             */
-    IMSVOC_AUDIORATE_1020 = 6, /* 10.20 kbit /s                            */
-    IMSVOC_AUDIORATE_1220 = 7, /* 12.20 kbit /s, also used for GSM EFR     */
-    IMSVOC_AUDIORATE_SID = 8,  /* AMR SID                    */
+    kImsAudioAmrMode475 = 0,  /* 4.75 kbit/s                             */
+    kImsAudioAmrMode515 = 1,  /* 5.15 kbit/s                             */
+    kImsAudioAmrMode590 = 2,  /* 5.90 kbit/s                             */
+    kImsAudioAmrMode670 = 3,  /* 6.70 kbit/s                             */
+    kImsAudioAmrMode740 = 4,  /* 7.40 kbit/s                             */
+    kImsAudioAmrMode795 = 5,  /* 7.95 kbit/s                             */
+    kImsAudioAmrMode1020 = 6, /* 10.20 kbit/s                            */
+    kImsAudioAmrMode1220 = 7, /* 12.20 kbit/s, also used for GSM EFR     */
+    kImsAudioAmrModeSID = 8,  /* AMR SID */
     /* 9~13: for future use */
-    IMSVOC_AUDIORATE_SPL = 14,    /* Speech Lost frame  */
-    IMSVOC_AUDIORATE_NODATA = 15, /* No Data                    */
-    IMSVOC_AUDIORATE_EVRC0 = 0,   /* Indicates vocoder data was blanked.      */
-    IMSVOC_AUDIORATE_EVRC8,       /* Indicates rate 1/8 vocoder data.          */
-    IMSVOC_AUDIORATE_EVRC4,       /* Indicates rate 1/4 vocoder data.          */
-    IMSVOC_AUDIORATE_EVRC2,       /* Indicates rate 1/2 vocoder data.          */
-    IMSVOC_AUDIORATE_EVRC1,       /* Indicates rate 1    vocoder data.          */
-    IMSVOC_AUDIORATE_EVRCERASURE, /* Indicates frame erasure                  */
-    IMSVOC_AUDIORATE_EVRCERR,     /* Indicates invalid vocoder data.            */
-    IMSVOC_AUDIORATE_MAX = 0x7FFFFFFF
-} IMSVOC_AUDIORATE_ENTYPE;
+    kImsAudioAmrModeSPL = 14,    /* Speech Lost frame  */
+    kImsAudioAmrModeNoData = 15, /* No Data */
+    kImsAudioAmrModeEVRC0 = 0,   /* Indicates vocoder data was blanked. */
+    kImsAudioAmrModeEVRC8,       /* Indicates rate 1/8 vocoder data. */
+    kImsAudioAmrModeEVRC4,       /* Indicates rate 1/4 vocoder data. */
+    kImsAudioAmrModeEVRC2,       /* Indicates rate 1/2 vocoder data. */
+    kImsAudioAmrModeEVRC1,       /* Indicates rate 1 vocoder data. */
+    kImsAudioAmrModeEVRCERASURE, /* Indicates frame erasure */
+    kImsAudioAmrModeEVRCERR,     /* Indicates invalid vocoder data. */
+    kImsAudioAmrModeMax
+};
 
-typedef enum _IMSVOC_AMRWB_ENTYPE
+enum kImsAudioAmrWbMode
 {
-    IMSVOC_AMRWB_MODE_660 = 0,  /* 6.60 kbit /s */
-    IMSVOC_AMRWB_MODE_885 = 1,  /* 8.85 kbit /s */
-    IMSVOC_AMRWB_MODE_1265 = 2, /* 12.65 kbit /s */
-    IMSVOC_AMRWB_MODE_1425 = 3, /* 14.25 kbit /s */
-    IMSVOC_AMRWB_MODE_1585 = 4, /* 15.85 kbit /s */
-    IMSVOC_AMRWB_MODE_1825 = 5, /* 18.25 kbit /s */
-    IMSVOC_AMRWB_MODE_1985 = 6, /* 19.85 kbit /s */
-    IMSVOC_AMRWB_MODE_2305 = 7, /* 23.05 kbit /s */
-    IMSVOC_AMRWB_MODE_2385 = 8, /* 23.85 kbit /s */
-    IMSVOC_AMRWB_MODE_SID = 9,  /* AMRWB SID */
+    kImsAudioAmrWbMode660 = 0,  /* 6.60 kbit/s */
+    kImsAudioAmrWbMode885 = 1,  /* 8.85 kbit/s */
+    kImsAudioAmrWbMode1265 = 2, /* 12.65 kbit/s */
+    kImsAudioAmrWbMode1425 = 3, /* 14.25 kbit/s */
+    kImsAudioAmrWbMode1585 = 4, /* 15.85 kbit/s */
+    kImsAudioAmrWbMode1825 = 5, /* 18.25 kbit/s */
+    kImsAudioAmrWbMode1985 = 6, /* 19.85 kbit/s */
+    kImsAudioAmrWbMode2305 = 7, /* 23.05 kbit/s */
+    kImsAudioAmrWbMode2385 = 8, /* 23.85 kbit/s */
+    kImsAudioAmrWbModeSID = 9,  /* AMRWB SID */
     /* 10~13: for future use */
-    IMSVOC_AMRWB_MODE_SPL = 14,     /* AMRWB Speech Lost frame */
-    IMSVOC_AMRWB_MODE_NO_DATA = 15, /* AMRWB No Data */
-    IMSVOC_AMRWB_MODE_MAX = 0x7FFFFFFF
-} IMSVOC_AMRWB_ENTYPE;
+    kImsAudioAmrWbModeSPL = 14,    /* AMRWB Speech Lost frame */
+    kImsAudioAmrWbModeNoData = 15, /* AMRWB No Data */
+    kImsAudioAmrWbModeMax
+};
 
-typedef enum
+enum kImsAudioEvsPrimaryMode
 {
-    IMSVOC_EVS_PRIMARY_MODE_00280 = 0,  /* 2.8 kbps, Special case */
-    IMSVOC_EVS_PRIMARY_MODE_00720 = 1,  /* 7.2 kbps, EVS Primary */
-    IMSVOC_EVS_PRIMARY_MODE_00800 = 2,  /* 8 kbps, EVS Primary */
-    IMSVOC_EVS_PRIMARY_MODE_00960 = 3,  /* 9.6 kbps, EVS Primary */
-    IMSVOC_EVS_PRIMARY_MODE_01320 = 4,  /* 13.20 kbps, EVS Primary */
-    IMSVOC_EVS_PRIMARY_MODE_01640 = 5,  /* 16.4 kbps, EVS Primary */
-    IMSVOC_EVS_PRIMARY_MODE_02440 = 6,  /* 24.4 kbps, EVS Primary */
-    IMSVOC_EVS_PRIMARY_MODE_03200 = 7,  /* 32 kbps, EVS Primary */
-    IMSVOC_EVS_PRIMARY_MODE_04800 = 8,  /* 48 kbps, EVS Primary */
-    IMSVOC_EVS_PRIMARY_MODE_06400 = 9,  /* 64 kbps, EVS Primary */
-    IMSVOC_EVS_PRIMARY_MODE_09600 = 10, /* 96 kbps, EVS Primary */
-    IMSVOC_EVS_PRIMARY_MODE_12800 = 11, /* 128 kbps, EVS Primary */
-    IMSVOC_EVS_PRIMARY_MODE_SID = 12,   /* 2.4 kbps, EVS Primary SID */
+    kImsAudioEvsPrimaryMode00280 = 0,  /* 2.8 kbps, Special case */
+    kImsAudioEvsPrimaryMode00720 = 1,  /* 7.2 kbps, EVS Primary */
+    kImsAudioEvsPrimaryMode00800 = 2,  /* 8 kbps, EVS Primary */
+    kImsAudioEvsPrimaryMode00960 = 3,  /* 9.6 kbps, EVS Primary */
+    kImsAudioEvsPrimaryMode01320 = 4,  /* 13.20 kbps, EVS Primary */
+    kImsAudioEvsPrimaryMode01640 = 5,  /* 16.4 kbps, EVS Primary */
+    kImsAudioEvsPrimaryMode02440 = 6,  /* 24.4 kbps, EVS Primary */
+    kImsAudioEvsPrimaryMode03200 = 7,  /* 32 kbps, EVS Primary */
+    kImsAudioEvsPrimaryMode04800 = 8,  /* 48 kbps, EVS Primary */
+    kImsAudioEvsPrimaryMode06400 = 9,  /* 64 kbps, EVS Primary */
+    kImsAudioEvsPrimaryMode09600 = 10, /* 96 kbps, EVS Primary */
+    kImsAudioEvsPrimaryMode12800 = 11, /* 128 kbps, EVS Primary */
+    kImsAudioEvsPrimaryModeSID = 12,   /* 2.4 kbps, EVS Primary SID */
     /* 13 is remaind for future use.. */
-    IMSVOC_EVS_PRIMARY_MODE_SPEECH_LOST = 14, /* SPEECH LOST */
-    IMSVOC_EVS_PRIMARY_MODE_NO_DATA = 15,     /* NO DATA */
-    IMSVOC_EVS_PRIMARY_MODE_MAX
-} IMSVOC_EVS_PRIMARY_ENTYPE;
+    kImsAudioEvsPrimaryModeSpeechLost = 14, /* SPEECH LOST */
+    kImsAudioEvsPrimaryModeNoData = 15,     /* NO DATA */
+    kImsAudioEvsPrimaryModeMax
+};
 
-typedef enum
+enum kImsAudioEvsAmrWbIoMode
 {
-    IMSVOC_EVS_AMRWB_IO_MODE_660 = 0,  /* 6.60 kbit /s */
-    IMSVOC_EVS_AMRWB_IO_MODE_885 = 1,  /* 8.85 kbit /s */
-    IMSVOC_EVS_AMRWB_IO_MODE_1265 = 2, /* 12.65 kbit /s */
-    IMSVOC_EVS_AMRWB_IO_MODE_1425 = 3, /* 14.25 kbit /s */
-    IMSVOC_EVS_AMRWB_IO_MODE_1585 = 4, /* 15.85 kbit /s */
-    IMSVOC_EVS_AMRWB_IO_MODE_1825 = 5, /* 18.25 kbit /s */
-    IMSVOC_EVS_AMRWB_IO_MODE_1985 = 6, /* 19.85 kbit /s */
-    IMSVOC_EVS_AMRWB_IO_MODE_2305 = 7, /* 23.05 kbit /s */
-    IMSVOC_EVS_AMRWB_IO_MODE_2385 = 8, /* 23.85 kbit /s */
-    IMSVOC_EVS_AMRWB_IO_MODE_SID = 9,  /* AMRWB SID */
+    kImsAudioEvsAmrWbIoMode660 = 0,  /* 6.60 kbit/s */
+    kImsAudioEvsAmrWbIoMode885 = 1,  /* 8.85 kbit/s */
+    kImsAudioEvsAmrWbIoMode1265 = 2, /* 12.65 kbit/s */
+    kImsAudioEvsAmrWbIoMode1425 = 3, /* 14.25 kbit/s */
+    kImsAudioEvsAmrWbIoMode1585 = 4, /* 15.85 kbit/s */
+    kImsAudioEvsAmrWbIoMode1825 = 5, /* 18.25 kbit/s */
+    kImsAudioEvsAmrWbIoMode1985 = 6, /* 19.85 kbit/s */
+    kImsAudioEvsAmrWbIoMode2305 = 7, /* 23.05 kbit/s */
+    kImsAudioEvsAmrWbIoMode2385 = 8, /* 23.85 kbit/s */
+    kImsAudioEvsAmrWbIoModeSID = 9,  /* AMRWB SID */
     /* 10~13: for future use */
-    IMSVOC_EVS_AMRWB_IO_SPL = 14,     /* AMRWB Speech Lost frame */
-    IMSVOC_EVS_AMRWB_IO_NO_DATA = 15, /* AMRWB No Data */
-    IMSVOC_EVS_AMRWB_IO_MODE_MAX = 0x7FFFFFFF
-} IMSVOC_EVS_AMRWB_IO_ENTYPE;
+    kImsAudioEvsAmrWbIoModeSPL = 14,    /* AMRWB Speech Lost frame */
+    kImsAudioEvsAmrWbIoModeNoData = 15, /* AMRWB No Data */
+    kImsAudioEvsAmrWbIoModeMax
+};
 
 class ImsMediaAudioFmt
 {
 public:
     static int32_t ConvertCodecType(int32_t type);
-    static void AmrFmt_Framing(IMSVOC_AUDIOFRAME_ENTYPE eFrameType, IMSVOC_AUDIORATE_ENTYPE eRate,
+    static int32_t ConvertEvsCodecMode(int32_t evsMode);
+    static void AmrFmtFraming(kImsAudioFrameEntype eFrameType, kImsAudioAmrMode eRate,
             uint8_t* pRawData, uint8_t* pEncodedData);
-    static void AmrFmt_Deframing(IMSVOC_AUDIOFRAME_ENTYPE eFrameType, IMSVOC_AUDIORATE_ENTYPE eRate,
+    static void AmrFmtDeframing(kImsAudioFrameEntype eFrameType, kImsAudioAmrMode eRate,
             uint8_t* pRawData, uint8_t* pEncodedData);
-    static void AmrWbFmt_Framing(IMSVOC_AUDIOFRAME_ENTYPE eFrameType, IMSVOC_AMRWB_ENTYPE eRate,
+    static void AmrWbFmtFraming(kImsAudioFrameEntype eFrameType, kImsAudioAmrWbMode eRate,
             uint8_t* pRawData, uint8_t* pEncodedData);
-    static void AmrFmt_Swap(uint8_t* pSrc, uint8_t* pDst, uint32_t nNumOfByte);
-    static void AmrFmtWb_Deframing(IMSVOC_AUDIOFRAME_ENTYPE eFrameType, IMSVOC_AMRWB_ENTYPE eRate,
+    static void AmrFmtSwap(uint8_t* pSrc, uint8_t* pDst, uint32_t nNumOfByte);
+    static void AmrFmtWbDeframing(kImsAudioFrameEntype eFrameType, kImsAudioAmrWbMode eRate,
             uint8_t* pRawData, uint8_t* pEncodedData);
     static uint32_t ConvertAmrModeToLen(uint32_t mode);
     static uint32_t ConvertAmrModeToBitLen(uint32_t mode);
@@ -220,22 +220,19 @@ public:
     static uint32_t ConvertAmrWbModeToLen(uint32_t mode);
     static uint32_t ConvertAmrWbModeToBitLen(uint32_t mode);
     static uint32_t ConvertLenToAmrWbMode(uint32_t nLen);
-    static uint32_t ConvertLenToEVSAudioRate(uint32_t nLen);
-    static uint32_t ConvertLenToEVSAMRIOAudioRate(uint32_t nLen);
-    static uint32_t ConvertEVSAudioRateToBitLen(uint32_t mode);
-    static uint32_t ConvertEVSAMRIOAudioRateToBitLen(uint32_t mode);
-    static uint32_t GetBitrateAmr(int mode);
-    static uint32_t GetBitrateAmrWb(int mode);
+    static uint32_t ConvertLenToEVSAudioMode(uint32_t nLen);
+    static uint32_t ConvertLenToEVSAMRIOAudioMode(uint32_t nLen);
+    static uint32_t ConvertEVSAudioModeToBitLen(uint32_t mode);
+    static uint32_t ConvertEVSAMRIOAudioModeToBitLen(uint32_t mode);
+    static uint32_t ConvertAmrModeToBitrate(int mode);
+    static uint32_t ConvertAmrWbModeToBitrate(int mode);
     static uint32_t GetBitrateEVS(int mode);
-    static eRTPPyaloadHeaderMode Check_EVS_Payload(
-            uint32_t nDataSize, eEVSCodecMode* pEVSCodecMode, uint32_t* pEVSCompactId);
-    static eEVSBandwidth FindMaxEVSBandwidth(uint32_t nEVSBandwidthSet);
-    static eEVSBitrate FindMaxEVSBitrate(uint32_t nEVSBitrateSet, eEVSCodecMode eEVSCodecMode);
-    //  static uint32_t ConvertAmrWbAudioRateToBitLen(IMSVOC_AMRWB_ENTYPE eRate);
-
-    static eEVSCodecMode CheckEVSCodecMode(uint32_t nAudioFrameLength);
-    static int32_t getEVSModeToBitRate(int32_t EvsModeToBitRate);
+    static kRtpPyaloadHeaderMode ConvertEVSPayloadMode(
+            uint32_t nDataSize, kEvsCodecMode* pEVSCodecMode, uint32_t* pEVSCompactId);
+    static kEvsBandwidth FindMaxEVSBandwidth(uint32_t nEVSBandwidthSet);
+    static kEvsBitrate FindMaxEVSBitrate(uint32_t nEVSBitrateSet, kEvsCodecMode kEvsCodecMode);
+    static kEvsCodecMode CheckEVSCodecMode(uint32_t nAudioFrameLength);
+    static int32_t ConvertEVSModeToBitRate(int32_t EvsModeToBitRate);
 };
-// extern IMSVOC_AMRWB_ENTYPE ConvertLenToAmrWbAudioRate(uint32_t nLen);
 
 #endif  // AUDIO_AMRFMT_H_INCLUDED

@@ -39,20 +39,12 @@ public:
             ImsMediaSubType nDataType = ImsMediaSubType::MEDIASUBTYPE_UNDEFINED);
     virtual void SetConfig(void* config);
     virtual bool IsSameConfig(void* config);
-    void SetPayloadMode(bool mode);
-    void SetPtime(uint32_t ptime);
-    void setEvsBandwidth(eEVSBandwidth bandwidth);
-    void setEvschannelAwareOffset(int32_t EvsChAOffset);
-    void setEvsCodecMode(int32_t evsCodecMode);
-    void setEvsSendCmr(bool sendCmr);
-    void setEvsMode(eEVSBitrate evsMode);
-    void setEvsPayloadHeaderMode(eRTPPyaloadHeaderMode evsPayloadHeaderMode);
 
 private:
-    void Encode_PH_AMR(uint8_t* pData, uint32_t nDataSize, uint32_t nTimestamp, bool bMark);
-    uint8_t GenerateCMRForEVS(eRTPPyaloadHeaderMode eEVSPayloadFormat);
+    void EncodePayloadAmr(uint8_t* pData, uint32_t nDataSize, uint32_t nTimestamp, bool bMark);
+    uint8_t GenerateCMRForEVS(kRtpPyaloadHeaderMode eEVSPayloadFormat);
     void EVSCMRGeneratorForTest();
-    void Encode_PH_EVS(uint8_t* pData, uint32_t nDataSize, uint32_t nTimeStamp);
+    void EncodePayloadEvs(uint8_t* pData, uint32_t nDataSize, uint32_t nTimeStamp);
     uint32_t CheckPaddingNecessity(uint32_t nTotalSize);
 
 private:
@@ -69,13 +61,13 @@ private:
     ImsMediaBitWriter mBWHeader;
     ImsMediaBitWriter mBWPayload;
     std::mutex mMutexExit;
-    eEVSBandwidth mEvsBandwidth;
-    eEVSCodecMode mEvsCodecMode;
+    kEvsBandwidth mEvsBandwidth;
+    kEvsCodecMode mEvsCodecMode;
     int32_t mEvsOffset;
     bool mSendCMR;
     int32_t mEvsBitRate;
-    eEVSBitrate mEvsMode;
-    eRTPPyaloadHeaderMode mEvsPayloadHeaderMode;
+    kEvsBitrate mEvsMode;
+    kRtpPyaloadHeaderMode mEvsPayloadHeaderMode;
 };
 
 #endif

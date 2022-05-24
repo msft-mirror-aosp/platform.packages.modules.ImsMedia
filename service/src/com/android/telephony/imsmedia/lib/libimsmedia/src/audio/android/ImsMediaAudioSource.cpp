@@ -64,7 +64,7 @@ void ImsMediaAudioSource::SetCodecMode(uint32_t mode)
 
 void ImsMediaAudioSource::SetSamplingRate(int32_t samplingRate)
 {
-    mSamplingRate = (samplingRate * 1000);
+    mSamplingRate = samplingRate;
 }
 
 void ImsMediaAudioSource::SetEvsChAwOffset(int32_t offset)
@@ -78,7 +78,7 @@ void ImsMediaAudioSource::SetPtime(uint32_t time)
     mPtime = time;
 }
 
-void ImsMediaAudioSource::SetEvsBandwidth(eEVSBandwidth evsBandwidth)
+void ImsMediaAudioSource::SetEvsBandwidth(kEvsBandwidth evsBandwidth)
 {
     mEvsBandwidth = evsBandwidth;
 }
@@ -102,7 +102,7 @@ bool ImsMediaAudioSource::Start()
     }
 
     openAudioStream();
-    mEvsBitRate = ImsMediaAudioFmt::getEVSModeToBitRate(mMode);
+    mEvsBitRate = ImsMediaAudioFmt::ConvertEVSModeToBitRate(mMode);
 
     if (mAudioStream == NULL)
     {
@@ -118,13 +118,13 @@ bool ImsMediaAudioSource::Start()
     AMediaFormat_setInt32(mFormat, AMEDIAFORMAT_KEY_CHANNEL_COUNT, 1);
     if (mCodecType == kAudioCodecAmr)
     {
-        AMediaFormat_setInt32(
-                mFormat, AMEDIAFORMAT_KEY_BIT_RATE, ImsMediaAudioFmt::GetBitrateAmr(mMode));
+        AMediaFormat_setInt32(mFormat, AMEDIAFORMAT_KEY_BIT_RATE,
+                ImsMediaAudioFmt::ConvertAmrModeToBitrate(mMode));
     }
     else if (mCodecType == kAudioCodecAmrWb)
     {
-        AMediaFormat_setInt32(
-                mFormat, AMEDIAFORMAT_KEY_BIT_RATE, ImsMediaAudioFmt::GetBitrateAmrWb(mMode));
+        AMediaFormat_setInt32(mFormat, AMEDIAFORMAT_KEY_BIT_RATE,
+                ImsMediaAudioFmt::ConvertAmrWbModeToBitrate(mMode));
     }
 
     mCodec = AMediaCodec_createEncoderByType(kMimeType);

@@ -228,7 +228,7 @@ void RtcpEncoderNode::BuildRtcpXrStatisticsBuffer(uint8_t* pBuffer,
 
     if (pBuffer == NULL || statisticParam == NULL)  return;
 
-    MMPFMemory::MemSet(pBuffer, 0, BLOCK_LENGTH_STATISTICS);
+    memset(pBuffer, 0, BLOCK_LENGTH_STATISTICS);
     m_objBitWriter.SetBuffer(pBuffer, BLOCK_LENGTH_STATISTICS);
     m_objBitWriter.Write(6, 8);
     //flag of lost and duplicated packets --> always set
@@ -278,7 +278,7 @@ void RtcpEncoderNode::BuildRtcpXrVoipMetricsBuffer(uint8_t* pBuffer,
 
     if (pBuffer == NULL || voipParam == NULL)  return;
 
-    MMPFMemory::MemSet(pBuffer, 0, BLOCK_LENGTH_VOIP_METRICS);
+    memset(pBuffer, 0, BLOCK_LENGTH_VOIP_METRICS);
     m_objBitWriter.SetBuffer(pBuffer, BLOCK_LENGTH_VOIP_METRICS);
     m_objBitWriter.Write(7, 8);
     m_objBitWriter.Write(0, 8);
