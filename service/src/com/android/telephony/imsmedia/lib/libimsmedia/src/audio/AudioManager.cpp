@@ -54,7 +54,7 @@ ImsMediaResult AudioManager::openSession(int sessionId, int rtpFd, int rtcpFd, A
 
     // set debug log
     ImsMediaTrace::IMSetDebugLog(IM_PACKET_LOG_SOCKET | IM_PACKET_LOG_AUDIO | IM_PACKET_LOG_RTP |
-            IM_PACKET_LOG_RTCP | IM_PACKET_LOG_PH | IM_PACKET_LOG_JITTER);
+            IM_PACKET_LOG_VIDEO | IM_PACKET_LOG_RTCP | IM_PACKET_LOG_PH);
 
     if (rtpFd == -1 || rtcpFd == -1)
         return RESULT_INVALID_PARAM;

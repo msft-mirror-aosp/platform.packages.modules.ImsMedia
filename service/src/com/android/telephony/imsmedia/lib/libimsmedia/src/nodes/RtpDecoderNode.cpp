@@ -17,6 +17,8 @@
 #include <RtpDecoderNode.h>
 #include <ImsMediaTrace.h>
 #include <AudioConfig.h>
+#include <VideoConfig.h>
+
 RtpDecoderNode::RtpDecoderNode()
 {
     mRtpSession = NULL;
@@ -24,24 +26,10 @@ RtpDecoderNode::RtpDecoderNode()
     mInactivityTime = 0;
     mNoRtpTime = 0;
     mConfig = NULL;
+    mCvoValue = CVO_DEFINE_NONE;
 }
 
-RtpDecoderNode::~RtpDecoderNode()
-{
-    if (mRtpSession)
-    {
-        mRtpSession->SetRtpDecoderListener(NULL);
-        mRtpSession->StopRtp();
-        IRtpSession::ReleaseInstance(mRtpSession);
-    }
-
-    mRtpSession = NULL;
-    if (mConfig != NULL)
-    {
-        delete mConfig;
-        mConfig = NULL;
-    }
-}
+RtpDecoderNode::~RtpDecoderNode() {}
 
 BaseNode* RtpDecoderNode::GetInstance()
 {
@@ -88,6 +76,13 @@ ImsMediaResult RtpDecoderNode::Start()
 void RtpDecoderNode::Stop()
 {
     mReceivingSSRC = 0;
+    if (mRtpSession)
+    {
+        mRtpSession->SetRtpDecoderListener(NULL);
+        mRtpSession->StopRtp();
+        IRtpSession::ReleaseInstance(mRtpSession);
+        mRtpSession = NULL;
+    }
     mNodeState = kNodeStateStopped;
 }
 
@@ -118,11 +113,19 @@ void RtpDecoderNode::SetConfig(void* config)
         return;
     if (mMediaType == IMS_MEDIA_AUDIO)
     {
-        mConfig = new AudioConfig(reinterpret_cast<AudioConfig*>(config));
-        mPeerAddress = RtpAddress(mConfig->getRemoteAddress().c_str(), mConfig->getRemotePort());
-        SetSamplingRate(mConfig->getSamplingRateKHz() * 1000);
-        IMLOGD2("[SetConfig] peer Ip[%s], port[%d]", mPeerAddress.ipAddress, mPeerAddress.port);
+        AudioConfig* pConfig = reinterpret_cast<AudioConfig*>(config);
+        mPeerAddress = RtpAddress(pConfig->getRemoteAddress().c_str(), pConfig->getRemotePort());
+        mSamplingRate = pConfig->getSamplingRateKHz() * 1000;
     }
+    else if (mMediaType == IMS_MEDIA_VIDEO)
+    {
+        VideoConfig* pConfig = reinterpret_cast<VideoConfig*>(config);
+        mPeerAddress = RtpAddress(pConfig->getRemoteAddress().c_str(), pConfig->getRemotePort());
+        mSamplingRate = pConfig->getSamplingRateKHz() * 1000;
+        mCvoValue = pConfig->getCvoValue();
+    }
+
+    IMLOGD2("[SetConfig] peer Ip[%s], port[%d]", mPeerAddress.ipAddress, mPeerAddress.port);
 }
 
 bool RtpDecoderNode::IsSameConfig(void* config)
@@ -140,27 +143,79 @@ void RtpDecoderNode::OnMediaDataInd(unsigned char* pData, uint32_t nDataSize, ui
         bool bMark, uint16_t nSeqNum, uint32_t nPayloadType, uint32_t nSSRC, bool bExtension,
         uint16_t nExtensionData)
 {
-    (void)nPayloadType;
-    (void)bExtension;
-    (void)nExtensionData;
+    static ImsMediaSubType subtype = MEDIASUBTYPE_RTPPAYLOAD;
 
     IMLOGD_PACKET6(IM_PACKET_LOG_RTP,
-            "[OnMediaDataInd] type[%d] Size[%d], TS[%d], Mark[%d], Seq[%d], SamplingRate[%d]",
+            "[OnMediaDataInd] media[%d] Size[%d], TS[%d], Mark[%d], Seq[%d],\
+ SamplingRate[%d]",
             mMediaType, nDataSize, nTimestamp, bMark, nSeqNum, mSamplingRate);
 
     // no need to change to timestamp to msec in video or text packet
-    if (mMediaType != IMS_MEDIA_VIDEO && mSamplingRate > 1000)
+    if (mMediaType != IMS_MEDIA_VIDEO && mSamplingRate != 0)
     {
         nTimestamp = nTimestamp / (mSamplingRate / 1000);
-        if (mReceivingSSRC != nSSRC)
+    }
+
+    if (mReceivingSSRC != nSSRC)
+    {
+        IMLOGD3("[OnMediaDataInd] media[%d] SSRC changed, received SSRC[%x], nSSRC[%x]", mMediaType,
+                mReceivingSSRC, nSSRC);
+        mReceivingSSRC = nSSRC;
+        SendDataToRearNode(MEDIASUBTYPE_REFRESHED, NULL, 0, 0, 0, 0);
+    }
+
+    // TODO : add checking incoming dtmf by the payload type number
+    (void)nPayloadType;
+
+    if (bExtension == true)
+    {
+        // send rtp header extension received event
+        mCallback->SendEvent(kImsMediaEventHeaderExtensionReceived, nExtensionData);
+
+        if (mMediaType == IMS_MEDIA_VIDEO && mCvoValue != CVO_DEFINE_NONE)
         {
-            IMLOGD3("[OnMediaDataInd] type[%d] SSRC changed, received SSRC[%x], nSSRC[%x]",
-                    mMediaType, mReceivingSSRC, nSSRC);
-            mReceivingSSRC = nSSRC;
+            uint16_t nExtensionID;
+            uint16_t nCamID;
+            uint16_t nRotation;
+            nExtensionID = nExtensionData;
+            nExtensionID = nExtensionID >> 12;
+
+            nCamID = nExtensionData;  // 0: Front-facing camera, 1: Back-facing camera
+            nCamID = nCamID << 12;
+            nCamID = nCamID >> 15;
+
+            nRotation = nExtensionData;
+            nRotation = nRotation << 13;
+            nRotation = nRotation >> 13;
+
+            switch (nRotation)
+            {
+                case 0:  // No rotation (Rotated 0CW/CCW = To rotate 0CW/CCW)
+                case 4:  // + Horizontal Flip, but it's treated as same as above
+                    subtype = MEDIASUBTYPE_ROT0;
+                    break;
+                case 1:  // Rotated 270CW(90CCW) = To rotate 90CW(270CCW)
+                case 5:  // + Horizontal Flip, but it's treated as same as above
+                    subtype = MEDIASUBTYPE_ROT90;
+                    break;
+                case 2:  // Rotated 180CW = To rotate 180CW
+                case 6:  // + Horizontal Flip, but it's treated as same as above
+                    subtype = MEDIASUBTYPE_ROT180;
+                    break;
+                case 3:  // Rotated 90CW(270CCW) = To rotate 270CW(90CCW)
+                case 7:  // + Horizontal Flip, but it's treated as same as above
+                    subtype = MEDIASUBTYPE_ROT270;
+                    break;
+                default:
+                    break;
+            }
+
+            IMLOGD4("[OnMediaDataInd] extensionId[%d], camId[%d], rot[%d], subtype[%d]",
+                    nExtensionID, nCamID, nRotation, subtype);
         }
     }
 
-    SendDataToRearNode(MEDIASUBTYPE_RTPPAYLOAD, pData, nDataSize, nTimestamp, bMark, nSeqNum);
+    SendDataToRearNode(subtype, pData, nDataSize, nTimestamp, bMark, nSeqNum);
 }
 
 void RtpDecoderNode::OnNumReceivedPacket(uint32_t nNumRtpPacket)
@@ -181,7 +236,7 @@ void RtpDecoderNode::OnNumReceivedPacket(uint32_t nNumRtpPacket)
     {
         if (mCallback != NULL)
         {
-            mCallback->SendEvent(EVENT_NOTIFY_MEDIA_INACITIVITY, RTP, mInactivityTime);
+            mCallback->SendEvent(kImsMediaEventMediaInactivity, RTP, mInactivityTime);
         }
     }
 }
@@ -194,11 +249,6 @@ void RtpDecoderNode::SetLocalAddress(const RtpAddress address)
 void RtpDecoderNode::SetPeerAddress(const RtpAddress address)
 {
     mPeerAddress = address;
-}
-
-void RtpDecoderNode::SetSamplingRate(const uint32_t data)
-{
-    mSamplingRate = data;
 }
 
 void RtpDecoderNode::SetInactivityTimerSec(const uint32_t time)

@@ -23,8 +23,8 @@
 #include <nativehelper/JNIHelp.h>
 #include <MediaManagerFactory.h>
 #include <AudioManager.h>
-// #include <VideoManager.h> TODO:add later
-#include <android_runtime/android_view_Surface.h>
+#include <VideoManager.h>
+#include <android/native_window_jni.h>
 
 #define IMS_MEDIA_JNI_VERSION JNI_VERSION_1_4
 
@@ -121,17 +121,10 @@ static jlong JNIImsMediaService_getInterface(
 {
     ALOGD("JNIImsMediaService_getInterface: type[%d]", mediatype);
     BaseManager* manager = NULL;
-    switch (mediatype)
+    manager = MediaManagerFactory::getInterface(mediatype);
+    if (manager != NULL)
     {
-        case MEDIA_TYPE_AUDIO:
-            manager = MediaManagerFactory::getInterface(MEDIA_TYPE_AUDIO);
-            if (manager != NULL)
-            {
-                manager->setCallback(SendData2Java);
-            }
-            break;
-        default:
-            break;
+        manager->setCallback(SendData2Java);
     }
 
     return static_cast<jlong>(reinterpret_cast<long>(manager));
@@ -157,46 +150,28 @@ static void JNIImsMediaService_sendMessage(
 static void JNIImsMediaService_setPreviewSurface(
         JNIEnv* env, jobject, jlong nativeObj, jint sessionId, jobject surface)
 {
-    (void)env;
-    (void)nativeObj;
-    (void)sessionId;
-    (void)surface;
-    /* TODO add VideoManager operation
-    VideoManager *manager = reinterpret_cast<VideoManager*>(nativeObj);
-    if (manager == NULL) return;
-    sp<ANativeWindow> win = android_view_Surface_getNativeWindow(env, surface);
-    if (win != NULL) {
-        ANativeWindow_acquire(win.get());
-    }
-    manager->setPreviewSurface(sessionId, win.get());
-    */
+    VideoManager* manager = reinterpret_cast<VideoManager*>(nativeObj);
+    if (manager == NULL)
+        return;
+    manager->setPreviewSurface(sessionId, ANativeWindow_fromSurface(env, surface));
 }
 
 static void JNIImsMediaService_setDisplaySurface(
         JNIEnv* env, jobject, jlong nativeObj, jint sessionId, jobject surface)
 {
-    (void)env;
-    (void)nativeObj;
-    (void)sessionId;
-    (void)surface;
-    /* TODO add VideoManager operation
-    VideoManager *manager = reinterpret_cast<VideoManager*>(nativeObj);
-    if (manager == NULL) return -1;
-    sp<ANativeWindow> win = android_view_Surface_getNativeWindow(env, surface);
-    if (win != NULL) {
-        ANativeWindow_acquire(win.get());
-    }
-    manager->setDisplaySurface(sessionId, win.get());
-    */
+    VideoManager* manager = reinterpret_cast<VideoManager*>(nativeObj);
+    if (manager == NULL)
+        return;
+    manager->setDisplaySurface(sessionId, ANativeWindow_fromSurface(env, surface));
 }
 
 static JNINativeMethod gMethods[] = {
-    {"getInterface", "(I)J", (void*)JNIImsMediaService_getInterface},
-    {"sendMessage", "(JI[B)V", (void*)JNIImsMediaService_sendMessage },
-    {"setPreviewSurface", "(JILandroid/view/Surface;)V",
-        (void*)JNIImsMediaService_setPreviewSurface },
-    {"setDisplaySurface", "(JILandroid/view/Surface;)V",
-        (void*)JNIImsMediaService_setDisplaySurface },
+        {"getInterface","(I)J",(void*)JNIImsMediaService_getInterface},
+        {"sendMessage","(JI[B)V",(void*)JNIImsMediaService_sendMessage},
+        {"setPreviewSurface","(JILandroid/view/Surface;)V",
+         (void*)JNIImsMediaService_setPreviewSurface},
+        {"setDisplaySurface","(JILandroid/view/Surface;)V",
+         (void*)JNIImsMediaService_setDisplaySurface},
 };
 
 jint ImsMediaServiceJni_OnLoad(JNIEnv* env)

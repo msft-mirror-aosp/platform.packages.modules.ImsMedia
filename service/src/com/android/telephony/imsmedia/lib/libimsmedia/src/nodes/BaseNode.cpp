@@ -16,37 +16,50 @@
 
 #include <BaseNode.h>
 #include <BaseNodeID.h>
-#include <ImsMediaNodeList.h>
 #include <ImsMediaAudioNodeList.h>
+#include <ImsMediaNodeList.h>
 #include <ImsMediaTrace.h>
+#include <ImsMediaVideoNodeList.h>
 #include <stdlib.h>
 
 tNodeListEntry gNodeList[] = {
-    { NODEID_SOCKETWRITER, "NODEID_SOCKETWRITER", SocketWriterNode::GetInstance,
-        SocketWriterNode::ReleaseInstance },
-    { NODEID_SOCKETREADER, "NODEID_SOCKETREADER", SocketReaderNode::GetInstance,
-        SocketReaderNode::ReleaseInstance },
-    { NODEID_RTPENCODER, "NODEID_RTPENCODER", RtpEncoderNode::GetInstance,
-        RtpEncoderNode::ReleaseInstance },
-    { NODEID_RTPDECODER, "NODEID_RTPDECODER", RtpDecoderNode::GetInstance,
-        RtpDecoderNode::ReleaseInstance },
-    { NODEID_RTCPENCODER, "NODEID_RTCPENCODER", RtcpEncoderNode::GetInstance,
-        RtcpEncoderNode::ReleaseInstance },
-    { NODEID_RTCPDECODER, "NODEID_RTCPDECODER", RtcpDecoderNode::GetInstance,
-        RtcpDecoderNode::ReleaseInstance },
-    { NODEID_AUDIOSOURCE, "NODEID_AUDIOSOURCE", IAudioSourceNode::GetInstance,
-        IAudioSourceNode::ReleaseInstance },
-    { NODEID_AUDIOPLAYER, "NODEID_AUDIOPLAYER", IAudioPlayerNode::GetInstance,
-        IAudioPlayerNode::ReleaseInstance },
-    { NODEID_DTMFENCODER, "NODEID_DTMFENCODER", DtmfEncoderNode::GetInstance,
-        DtmfEncoderNode::ReleaseInstance },
-    { NODEID_DTMFSENDER, "NODEID_DTMFSENDER", DtmfSenderNode::GetInstance,
-        DtmfSenderNode::ReleaseInstance },
-    { NODEID_RTPPAYLOAD_ENCODER_AUDIO, "NODEID_RTPPAYLOAD_ENCODER_AUDIO",
-        AudioRtpPayloadEncoderNode::GetInstance, AudioRtpPayloadEncoderNode::ReleaseInstance },
-    { NODEID_RTPPAYLOAD_DECODER_AUDIO, "NODEID_RTPPAYLOAD_DECODER_AUDIO",
-        AudioRtpPayloadDecoderNode::GetInstance, AudioRtpPayloadDecoderNode::ReleaseInstance },
-    { NODEID_MAX, "", NULL, NULL },
+        {NODEID_SOCKETWRITER, "NODEID_SOCKETWRITER", SocketWriterNode::GetInstance,
+         SocketWriterNode::ReleaseInstance},
+        {NODEID_SOCKETREADER, "NODEID_SOCKETREADER", SocketReaderNode::GetInstance,
+         SocketReaderNode::ReleaseInstance},
+        {NODEID_RTPENCODER, "NODEID_RTPENCODER", RtpEncoderNode::GetInstance,
+         RtpEncoderNode::ReleaseInstance},
+        {NODEID_RTPDECODER, "NODEID_RTPDECODER", RtpDecoderNode::GetInstance,
+         RtpDecoderNode::ReleaseInstance},
+        {NODEID_RTCPENCODER, "NODEID_RTCPENCODER", RtcpEncoderNode::GetInstance,
+         RtcpEncoderNode::ReleaseInstance},
+        {NODEID_RTCPDECODER, "NODEID_RTCPDECODER", RtcpDecoderNode::GetInstance,
+         RtcpDecoderNode::ReleaseInstance},
+        {NODEID_AUDIOSOURCE, "NODEID_AUDIOSOURCE", IAudioSourceNode::GetInstance,
+         IAudioSourceNode::ReleaseInstance},
+        {NODEID_AUDIOPLAYER, "NODEID_AUDIOPLAYER", IAudioPlayerNode::GetInstance,
+         IAudioPlayerNode::ReleaseInstance},
+        {NODEID_DTMFENCODER, "NODEID_DTMFENCODER", DtmfEncoderNode::GetInstance,
+         DtmfEncoderNode::ReleaseInstance},
+        {NODEID_DTMFSENDER, "NODEID_DTMFSENDER", DtmfSenderNode::GetInstance,
+         DtmfSenderNode::ReleaseInstance},
+        {NODEID_RTPPAYLOAD_ENCODER_AUDIO, "NODEID_RTPPAYLOAD_ENCODER_AUDIO",
+         AudioRtpPayloadEncoderNode::GetInstance,
+         AudioRtpPayloadEncoderNode::ReleaseInstance},
+        {NODEID_RTPPAYLOAD_DECODER_AUDIO, "NODEID_RTPPAYLOAD_DECODER_AUDIO",
+         AudioRtpPayloadDecoderNode::GetInstance,
+         AudioRtpPayloadDecoderNode::ReleaseInstance},
+        {NODEID_VIDEOSOURCE, "NODEID_VIDEOSOURCE", IVideoSourceNode::GetInstance,
+         IVideoSourceNode::ReleaseInstance},
+        {NODEID_VIDEORENDERER, "NODEID_VIDEORENDERER", IVideoRendererNode::GetInstance,
+         IVideoRendererNode::ReleaseInstance},
+        {NODEID_RTPPAYLOAD_ENCODER_VIDEO, "NODEID_RTPPAYLOAD_ENCODER_VIDEO",
+         VideoRtpPayloadEncoderNode::GetInstance,
+         VideoRtpPayloadEncoderNode::ReleaseInstance},
+        {NODEID_RTPPAYLOAD_DECODER_VIDEO, "NODEID_RTPPAYLOAD_DECODER_VIDEO",
+         VideoRtpPayloadDecoderNode::GetInstance,
+         VideoRtpPayloadDecoderNode::ReleaseInstance},
+        {NODEID_MAX, "",   NULL, NULL},
 };
 
 static const char* gNullNodeName = "NODEID_NULL";
@@ -208,13 +221,13 @@ void BaseNode::ClearDataQueue()
 void BaseNode::SetConfig(void* config)
 {
     (void)config;
-    IMLOGE0("[SetConfig] Error - base method");
+    IMLOGW0("[SetConfig] Error - base method");
 }
 
 bool BaseNode::IsSameConfig(void* config)
 {
     (void)config;
-    IMLOGE0("[IsSameConfig] Error - base method");
+    IMLOGW0("[IsSameConfig] Error - base method");
     return true;
 }
 

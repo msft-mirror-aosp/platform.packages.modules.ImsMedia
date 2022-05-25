@@ -38,6 +38,7 @@ public:
     virtual bool IsRunTime();
     virtual bool IsSourceNode();
     virtual void SetConfig(void* config);
+    virtual bool IsSameConfig(void* config);
     virtual void OnDataFromFrontNode(ImsMediaSubType subtype, uint8_t* pData, uint32_t nDataSize,
             uint32_t nTimeStamp, bool bMark, uint32_t nSeqNum,
             ImsMediaSubType nDataType = MEDIASUBTYPE_UNDEFINED);

@@ -23,7 +23,7 @@ enum IMS_MEDIA_TYPE
 {
     MEDIA_TYPE_AUDIO = 0,
     MEDIA_TYPE_VIDEO,
-    MEDIA_TYPE_RTT,
+    MEDIA_TYPE_TEXT,
 };
 
 class MediaManagerFactory

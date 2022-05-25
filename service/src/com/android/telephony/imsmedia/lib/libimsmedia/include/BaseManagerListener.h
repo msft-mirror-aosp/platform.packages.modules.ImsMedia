@@ -24,7 +24,7 @@ class BaseManagerListener
 public:
     BaseManagerListener();
     virtual ~BaseManagerListener();
-    virtual void onEvent(ImsMediaEventType type, int param1, int param2) = 0;
+    virtual void onEvent(int32_t type, int param1, int param2) = 0;
 };
 
 #endif

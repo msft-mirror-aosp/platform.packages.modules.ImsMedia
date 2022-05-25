@@ -21,6 +21,8 @@
 #include <AudioConfig.h>
 #include <string.h>
 
+#define DEFAULT_MTU 1500
+
 using namespace android::telephony::imsmedia;
 
 enum ImsMediaResult
@@ -34,45 +36,64 @@ enum ImsMediaResult
     RESULT_NOT_SUPPORTED,
 };
 
-enum ImsMediaEventType
+enum kImsMediaEventType
 {
-    EVENT_NOTIFY_ERROR,
-    EVENT_NOTIFY_FIRST_MEDIA_PACKET_RECEIVED,
-    EVENT_NOTIFY_HEADER_EXTENSION_RECEIVED,
-    EVENT_NOTIFY_MEDIA_INACITIVITY,
-    EVENT_NOTIFY_PACKET_LOSS,
-    EVENT_NOTIFY_JITTER,
+    kImsMediaEventNotifyError,
+    kImsMediaEventFirstPacketReceived,
+    kImsMediaEventHeaderExtensionReceived,
+    kImsMediaEventMediaInactivity,
+    kImsMediaEventPacketLoss,
+    kImsMediaEventNotifyJitter,
+    kImsMediaEventResolutionChanged,
+    kImsMediaEventNotifyVideoDataUsage,
 };
 
-enum ImsMediaNotifyType
+// Internal Request Event
+enum kImsMediaInternalRequestType
 {
-    RECV_AUDIO_RX_PACKET_RECEIVED = 0,
-    SEND_AUDIO_TX_FIRST_PACKET_SENT = 1,
-    ERROR_RTP_TIMEOUT_NO_AUDIO_RX_PACKET,
-    ERROR_SOCKET,
-    DTMF_KEY_0 = 600,
-    DTMF_KEY_1,
-    DTMF_KEY_2,
-    DTMF_KEY_3,
-    DTMF_KEY_4,
-    DTMF_KEY_5,
-    DTMF_KEY_6,
-    DTMF_KEY_7,
-    DTMF_KEY_8,
-    DTMF_KEY_9,
-    DTMF_KEY_STAR,
-    DTMF_KEY_POUND,
-    DTMF_KEY_A,
-    DTMF_KEY_B,
-    DTMF_KEY_C,
-    DTMF_KEY_D,
+    kRequestAudioCmr = 300,
+    kRequestAudioRttdUpdate,
+    kRequestAudioCmrEvs,
+    kRequestVideoCvoUpdate,
+    kRequestVideoBitrateChange,
+    kRequestVideoIdrFrame,
+    kRequestVideoSendNack,
 };
 
-enum ImsMediaStreamType
+enum kImsMediaErrorNotify
 {
-    STREAM_MODE_RTP_TX,
-    STREAM_MODE_RTP_RX,
-    STREAM_MODE_RTCP,
+    kNotifyErrorSocket = 400,
+    kNotifyErrorSurfaceNotReady,
+    kNotifyErrorCamera,
+    kNotifyErrorEncoder,
+    kNotifyErrorDecoder,
+};
+
+enum kImsMediaDtmfNotify
+{
+    kDtmfKey0 = 600,
+    kDtmfKey1,
+    kDtmfKey2,
+    kDtmfKey3,
+    kDtmfKey4,
+    kDtmfKey5,
+    kDtmfKey6,
+    kDtmfKey7,
+    kDtmfKey8,
+    kDtmfKey9,
+    kDtmfKeySTAR,
+    kDtmfKeyPOUND,
+    kDtmfKeyA,
+    kDtmfKeyB,
+    kDtmfKeyC,
+    kDtmfKeyD,
+};
+
+enum kImsMediaStreamType
+{
+    kStreamModeRtpTx,
+    kStreamModeRtpRx,
+    kStreamModeRtcp,
 };
 
 enum ImsMediaType
@@ -234,22 +255,14 @@ enum ImsMediaSubType
     MEDIASUBTYPE_DTMF_PAYLOAD,
     // dtmf packet with end bit set
     MEDIASUBTYPE_DTMFEND,
-    // EVRC-B
-    MEDIASUBTYPE_DTXSTART,
-    // encoded bitstream of h.263 codec
-    MEDIASUBTYPE_BITSTREAM_H263,
-    // encoded bitstream of mpeg 4 codec
-    MEDIASUBTYPE_BITSTREAM_MPEG4,
-    // encoded bitstream of h.264 codec
-    MEDIASUBTYPE_BITSTREAM_H264,
-    // encoded bitstream of hevc codec
-    MEDIASUBTYPE_BITSTREAM_HEVC,
-    // encoded bitstream of pcmu
-    MEDIASUBTYPE_BITSTREAM_G711_PCMU,
-    // encoded bitstream of pcma
-    MEDIASUBTYPE_BITSTREAM_G711_PCMA,
-    MEDIASUBTYPE_BITSTREAM_AMR_WB,
-    MEDIASUBTYPE_BITSTREAM_AMR,
+    MEDIASUBTYPE_VIDEO_CONFIGSTRING,
+    MEDIASUBTYPE_VIDEO_IDR_FRAME,
+    MEDIASUBTYPE_VIDEO_NON_IDR_FRAME,
+    MEDIASUBTYPE_VIDEO_SEI_FRAME,
+    MEDIASUBTYPE_ROT0,
+    MEDIASUBTYPE_ROT90,
+    MEDIASUBTYPE_ROT180,
+    MEDIASUBTYPE_ROT270,
     MEDIASUBTYPE_REFRESHED,
     // rtt bitstream of t.140 format
     MEDIASUBTYPE_BITSTREAM_T140,
@@ -291,6 +304,31 @@ enum ImsMediaAudioMsgResponse
     kAudioJitterInd,
 };
 
+enum ImsMediaVideoMsgRequest
+{
+    kVideoOpenSession = 101,
+    kVideoCloseSession,
+    kVideoSetPreviewSurface,
+    kVideoSetDisplaySurface,
+    kVideoModifySession,
+    kVideoSendHeaderExtension,
+    kVideoSetMediaQualityThreshold,
+};
+
+enum ImsMediaVideoMsgResponse
+{
+    kVideoOpenSessionSuccess = 201,
+    kVideoOpenSessionFailure,
+    kVideoModifySessionResponse,
+    kVideoSessionChangedInd,
+    kVideoFirstMediaPacketInd,
+    kVideoPeerDimensionChanged,
+    kVideoRtpHeaderExtensionInd,
+    kVideoMediaInactivityInd,
+    kVideoPacketLossInd,
+    kVideoDataUsageInd,
+};
+
 struct EventParamOpenSession
 {
 public:
@@ -326,6 +364,13 @@ enum kAudioCodecType
     kAudioCodecPcmu,
     kAudioCodecPcma,
     kAudioCodecEvs,
+};
+
+enum kVideoCodecType
+{
+    kVideoCodecNone = 0,
+    kVideoCodecAvc,
+    kVideoCodecHevc,
 };
 
 enum kRtpPyaloadHeaderMode
@@ -382,6 +427,19 @@ struct tRtpHeaderExtensionInfo
     uint16_t nDefinedByProfile;
     uint16_t nLength;
     uint16_t nExtensionData;
+    tRtpHeaderExtensionInfo(uint16_t profile = 0, uint16_t length = 0, uint16_t data = 0)
+    {
+        nDefinedByProfile = profile;
+        nLength = length;
+        nExtensionData = data;
+    }
+    tRtpHeaderExtensionInfo& operator=(const tRtpHeaderExtensionInfo& extension)
+    {
+        nDefinedByProfile = extension.nDefinedByProfile;
+        nLength = extension.nLength;
+        nExtensionData = extension.nExtensionData;
+        return *this;
+    }
 };
 
 #define MAX_IP_LEN       128

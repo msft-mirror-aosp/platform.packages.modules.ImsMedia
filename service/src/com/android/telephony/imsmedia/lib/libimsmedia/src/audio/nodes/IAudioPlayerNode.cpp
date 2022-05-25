@@ -192,17 +192,13 @@ void* IAudioPlayerNode::run()
                     // send buffering complete message to client
                     if (mFirstFrame == false)
                     {
-                        mCallback->SendEvent(EVENT_NOTIFY_FIRST_MEDIA_PACKET_RECEIVED);
+                        mCallback->SendEvent(kImsMediaEventFirstPacketReceived);
                         mFirstFrame = true;
                     }
                 }
             }
 
             DeleteData();
-        }
-        else
-        {
-            IMLOGE0("[IAudioPlayerNode] : no data received from jitter buffer {GetData}....");
         }
 
         mMutex.unlock();

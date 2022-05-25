@@ -147,7 +147,7 @@ void RtcpDecoderNode::OnNumReceivedPacket(uint32_t nNumRtcpSRPacket, uint32_t nN
     {
         if (mCallback != NULL)
         {
-            mCallback->SendEvent(EVENT_NOTIFY_MEDIA_INACITIVITY, RTCP, mInactivityTime);
+            mCallback->SendEvent(kImsMediaEventMediaInactivity, RTCP, mInactivityTime);
         }
     }
 }

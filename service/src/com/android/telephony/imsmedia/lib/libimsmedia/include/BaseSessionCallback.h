@@ -24,13 +24,13 @@ class BaseSessionCallback
 public:
     BaseSessionCallback() {}
     virtual ~BaseSessionCallback() {}
-    virtual void SendEvent(ImsMediaEventType type, uint64_t param1 = 0, uint64_t param2 = 0)
+    virtual void SendEvent(int32_t type, uint64_t param1 = 0, uint64_t param2 = 0)
     {
         onEvent(type, param1, param2);
     }
 
 protected:
-    virtual void onEvent(ImsMediaEventType type, uint64_t param1, uint64_t param2) = 0;
+    virtual void onEvent(int32_t type, uint64_t param1, uint64_t param2) = 0;
 };
 
 #endif

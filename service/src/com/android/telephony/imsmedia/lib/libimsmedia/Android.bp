@@ -18,6 +18,15 @@ cc_library_headers {
     ],
 }
 
+cc_library_headers {
+    name: "libimsmedia_video_header",
+    export_include_dirs: [
+        "include/video",
+        "include/video/nodes",
+        "include/video/android",
+    ],
+}
+
 cc_defaults {
     name: "libimsmedia_shared_defaults",
     cflags: [
@@ -42,23 +51,35 @@ cc_defaults {
     ],
 }
 
+cc_defaults {
+    name: "libimsmedia_video_defaults",
+    cflags: [
+    ],
+    header_libs: [
+        "libimsmedia_header",
+        "libimsmedia_video_header",
+        "libimsmedia_config_headers",
+    ],
+    shared_libs: [
+        "libnativewindow",
+        "libcamera2ndk"
+    ],
+    include_dirs: [
+        "frameworks/av/camera/ndk/include",
+        "frameworks/av/include",
+    ],
+}
+
 cc_library_shared {
     name: "libimsmedia",
     defaults: [
         "librtp_defaults",
         "libimsmedia_shared_defaults",
-        "libimsmedia_audio_defaults"
+        "libimsmedia_audio_defaults",
+        "libimsmedia_video_defaults",
     ],
     srcs: [
         "src/**/*.cpp",
-    ],
-    exclude_srcs: [
-    ],
-    header_libs: [
-        "libimsmedia_header",
-        "libimsmedia_config_headers",
-    ],
-    include_dirs: [
     ],
     local_include_dirs: [
         "include",

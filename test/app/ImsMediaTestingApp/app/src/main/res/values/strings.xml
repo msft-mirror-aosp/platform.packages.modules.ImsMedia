@@ -17,6 +17,9 @@
   <string name="other_device_ip_label">IP: %s</string>
   <string name="handshake_port_label">Handshake Port: %s</string>
 
+  <string name="preview_label">Local View</string>
+  <string name="display_label">Peer View</string>
+
   <!-- Allow calls button text -->
   <string name="allow_calls_button_text">ALLOW\nCALLS </string>
   <string name="disable_calls_button_text">DISABLE\nCALLS</string>

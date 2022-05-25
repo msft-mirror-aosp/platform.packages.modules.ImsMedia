@@ -17,7 +17,9 @@
 #include <RtpEncoderNode.h>
 #include <ImsMediaTimer.h>
 #include <ImsMediaTrace.h>
+#include <ImsMediaVideoUtil.h>
 #include <AudioConfig.h>
+#include <VideoConfig.h>
 #include <string.h>
 
 #ifdef DEBUG_JITTER_GEN_SIMULATION_DELAY
@@ -45,6 +47,7 @@ RtpEncoderNode::RtpEncoderNode()
     mRtpPayload = 0;
     mDtmfPayload = 0;
     mSamplingRate = 0;
+    mCvoValue = CVO_DEFINE_NONE;
 #ifdef DEBUG_JITTER_GEN_SIMULATION_DELAY
     mNextTime = 0;
 #endif
@@ -55,14 +58,6 @@ RtpEncoderNode::RtpEncoderNode()
 
 RtpEncoderNode::~RtpEncoderNode()
 {
-    if (mRtpSession)
-    {
-        mRtpSession->SetRtpEncoderListener(NULL);
-        mRtpSession->StopRtp();
-        IRtpSession::ReleaseInstance(mRtpSession);
-    }
-
-    mRtpSession = NULL;
     if (mConfig != NULL)
     {
         delete mConfig;
@@ -120,8 +115,13 @@ ImsMediaResult RtpEncoderNode::Start()
 void RtpEncoderNode::Stop()
 {
     IMLOGD0("[Stop]");
-    // mRtpSession->EnableRtpMonitoring(false);
-    // mRtpSession->EnableRtcpTx(true);
+    if (mRtpSession)
+    {
+        mRtpSession->SetRtpEncoderListener(NULL);
+        mRtpSession->StopRtp();
+        IRtpSession::ReleaseInstance(mRtpSession);
+        mRtpSession = NULL;
+    }
     mNodeState = kNodeStateStopped;
 }
 
@@ -158,6 +158,10 @@ void RtpEncoderNode::ProcessData()
     {
         ProcessAudioData(eSubType, pData, nDataSize, nTimestamp);
     }
+    else if (mMediaType == IMS_MEDIA_VIDEO)
+    {
+        ProcessVideoData(eSubType, pData, nDataSize, nTimestamp, bMark);
+    }
 
     DeleteData();
 }
@@ -179,12 +183,22 @@ void RtpEncoderNode::SetConfig(void* config)
         return;
     if (mMediaType == IMS_MEDIA_AUDIO)
     {
-        mConfig = new AudioConfig(reinterpret_cast<AudioConfig*>(config));
-        mPeerAddress = RtpAddress(mConfig->getRemoteAddress().c_str(), mConfig->getRemotePort());
-        mRtpPayload = mConfig->getTxPayloadTypeNumber();
-        mDtmfPayload = ((AudioConfig*)mConfig)->getDtmfPayloadTypeNumber();
-        IMLOGD2("[SetConfig] peer Ip[%s], port[%d]", mPeerAddress.ipAddress, mPeerAddress.port);
+        AudioConfig* pConfig = new AudioConfig(reinterpret_cast<AudioConfig*>(config));
+        mPeerAddress = RtpAddress(pConfig->getRemoteAddress().c_str(), pConfig->getRemotePort());
+        mRtpPayload = pConfig->getTxPayloadTypeNumber();
+        mDtmfPayload = pConfig->getDtmfPayloadTypeNumber();
+        mConfig = pConfig;
     }
+    else if (mMediaType == IMS_MEDIA_VIDEO)
+    {
+        VideoConfig* pConfig = new VideoConfig(reinterpret_cast<VideoConfig*>(config));
+        mPeerAddress = RtpAddress(pConfig->getRemoteAddress().c_str(), pConfig->getRemotePort());
+        mRtpPayload = pConfig->getTxPayloadTypeNumber();
+        mCvoValue = pConfig->getCvoValue();
+        mConfig = pConfig;
+    }
+
+    IMLOGD2("[SetConfig] peer Ip[%s], port[%d]", mPeerAddress.ipAddress, mPeerAddress.port);
 }
 
 bool RtpEncoderNode::IsSameConfig(void* config)
@@ -194,6 +208,11 @@ bool RtpEncoderNode::IsSameConfig(void* config)
     if (mMediaType == IMS_MEDIA_AUDIO)
     {
         AudioConfig* pConfig = reinterpret_cast<AudioConfig*>(config);
+        return (*mConfig == *pConfig);
+    }
+    else if (mMediaType == IMS_MEDIA_VIDEO)
+    {
+        VideoConfig* pConfig = reinterpret_cast<VideoConfig*>(config);
         return (*mConfig == *pConfig);
     }
 
@@ -317,6 +336,69 @@ void RtpEncoderNode::SetPeerAddress(const RtpAddress address)
     mPeerAddress = address;
 }
 
+void RtpEncoderNode::SetCvoExtension(const int64_t facing, const int64_t orientation)
+{
+    IMLOGD3("[SetCvoExtension] cvoValue[%d], facing[%ld], orientation[%ld]", mCvoValue, facing,
+            orientation);
+
+    if (mCvoValue == -1)
+    {
+        return;
+    }
+
+    uint32_t nRotation = 0;
+    uint32_t nCamera = 0;
+    if (facing == kCameraFacingRear)
+    {
+        nCamera = 1;
+    }
+
+    switch (orientation)
+    {
+        default:
+        case 0:
+            nRotation = 0;
+            break;
+        case 270:
+            nRotation = 1;
+            break;
+        case 180:
+            nRotation = 2;
+            break;
+        case 90:
+            nRotation = 3;
+            break;
+    }
+
+    if (nCamera == 1)  // rear camera
+    {
+        if (nRotation == 1)  // CCW90
+        {
+            nRotation = 3;
+        }
+        else if (nRotation == 3)  // CCW270
+        {
+            nRotation = 1;
+        }
+    }
+
+    uint16_t nExtensionData;
+    uint16_t nDataID = mCvoValue;
+
+    IMLOGD3("[SetCvoExtension] cvoValue[%d], facing[%d], orientation[%d]", nDataID, nCamera,
+            nRotation);
+
+    nExtensionData = ((nDataID << 12) | (1 << 8)) | ((nCamera << 3) | nRotation);
+    mRtpExtension.nDefinedByProfile = 0xBEDE;
+    mRtpExtension.nLength = 1;
+    mRtpExtension.nExtensionData = nExtensionData;
+}
+
+void RtpEncoderNode::SetRtpHeaderExtension(tRtpHeaderExtensionInfo& tExtension)
+{
+    mRtpExtension = tExtension;
+}
+
 void RtpEncoderNode::ProcessAudioData(
         ImsMediaSubType eSubType, uint8_t* pData, uint32_t nDataSize, uint32_t nTimestamp)
 {
@@ -405,7 +487,27 @@ void RtpEncoderNode::ProcessAudioData(
                     mRtpPayload, pData, nDataSize, nCurrTimestamp, mAudioMark, nTimeDiff_RTPTSUnit);
 
             if (mAudioMark)
+            {
                 mAudioMark = false;
+            }
         }
+    }
+}
+
+void RtpEncoderNode::ProcessVideoData(ImsMediaSubType eSubType, uint8_t* pData, uint32_t nDataSize,
+        uint32_t nTimestamp, bool bMark)
+{
+    IMLOGD_PACKET2(
+            IM_PACKET_LOG_RTP, "[ProcessData] nSize[%d], nTimestamp[%u]", nDataSize, nTimestamp);
+
+    if (mCvoValue > 0 && bMark == true && eSubType == MEDIASUBTYPE_VIDEO_IDR_FRAME)
+    {
+        mRtpSession->SendRtpPacket(
+                mRtpPayload, pData, nDataSize, nTimestamp, bMark, 0, true, &mRtpExtension);
+    }
+    else
+    {
+        mRtpSession->SendRtpPacket(
+                mRtpPayload, pData, nDataSize, nTimestamp, bMark, 0, false, NULL);
     }
 }
