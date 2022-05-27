@@ -163,7 +163,7 @@ bool ImsMediaAudioSource::Start()
     aaudio_stream_state_t inputState = AAUDIO_STREAM_STATE_STARTING;
     aaudio_stream_state_t nextState = AAUDIO_STREAM_STATE_UNINITIALIZED;
     audioResult = AAudioStream_waitForStateChange(
-            mAudioStream, inputState, &nextState, 3 * AAUDIO_TIMEOUT_NANO);
+            mAudioStream, inputState, &nextState, 10 * AAUDIO_TIMEOUT_NANO);
     if (audioResult != AAUDIO_OK)
     {
         IMLOGE1("[Start] Error start stream[%s]", AAudio_convertResultToText(audioResult));
@@ -373,7 +373,7 @@ void ImsMediaAudioSource::restartAudioStream()
     }
 
     result = AAudioStream_waitForStateChange(
-            mAudioStream, inputState, &nextState, 3 * AAUDIO_TIMEOUT_NANO);
+            mAudioStream, inputState, &nextState, 10 * AAUDIO_TIMEOUT_NANO);
 
     if (result != AAUDIO_OK)
     {
