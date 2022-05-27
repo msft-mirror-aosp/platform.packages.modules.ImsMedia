@@ -60,6 +60,7 @@ private:
     uint32_t mReceivingSSRC;
     uint32_t mInactivityTime;
     uint32_t mNoRtpTime;
+    int32_t mCvoValue;
 };
 
 #endif

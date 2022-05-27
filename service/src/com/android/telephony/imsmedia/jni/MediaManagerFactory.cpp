@@ -16,6 +16,7 @@
 
 #include <MediaManagerFactory.h>
 #include <AudioManager.h>
+#include <VideoManager.h>
 
 BaseManager* MediaManagerFactory::getInterface(int mediatype)
 {
@@ -26,7 +27,8 @@ BaseManager* MediaManagerFactory::getInterface(int mediatype)
             pManager = AudioManager::getInstance();
             break;
         case MEDIA_TYPE_VIDEO:
-        case MEDIA_TYPE_RTT:
+            pManager = VideoManager::getInstance();
+            break;
         default:
             return NULL;
     }

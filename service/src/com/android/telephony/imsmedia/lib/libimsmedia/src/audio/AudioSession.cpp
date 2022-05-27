@@ -487,29 +487,29 @@ ImsMediaResult AudioSession::deleteGraph(RtpConfig* config)
     return RESULT_SUCCESS;
 }
 
-void AudioSession::onEvent(ImsMediaEventType type, uint64_t param1, uint64_t param2)
+void AudioSession::onEvent(int32_t type, uint64_t param1, uint64_t param2)
 {
     IMLOGD3("[onEvent] type[%d], param1[%d], param2[%d]", type, param1, param2);
     switch (type)
     {
-        case EVENT_NOTIFY_ERROR:
+        case kImsMediaEventNotifyError:
             break;
-        case EVENT_NOTIFY_FIRST_MEDIA_PACKET_RECEIVED:
+        case kImsMediaEventFirstPacketReceived:
             ImsMediaEventHandler::SendEvent(
                     "AUDIO_RESPONSE_EVENT", kAudioFirstMediaPacketInd, 0, 0);
             break;
-        case EVENT_NOTIFY_HEADER_EXTENSION_RECEIVED:
+        case kImsMediaEventHeaderExtensionReceived:
             ImsMediaEventHandler::SendEvent(
                     "AUDIO_RESPONSE_EVENT", kAudioRtpHeaderExtensionInd, 0, 0);
             break;
-        case EVENT_NOTIFY_MEDIA_INACITIVITY:
+        case kImsMediaEventMediaInactivity:
             ImsMediaEventHandler::SendEvent(
                     "AUDIO_RESPONSE_EVENT", kAudioMediaInactivityInd, mSessionId, param1, param2);
             break;
-        case EVENT_NOTIFY_PACKET_LOSS:
+        case kImsMediaEventPacketLoss:
             ImsMediaEventHandler::SendEvent("AUDIO_RESPONSE_EVENT", kAudioPacketLossInd, param1, 0);
             break;
-        case EVENT_NOTIFY_JITTER:
+        case kImsMediaEventNotifyJitter:
             ImsMediaEventHandler::SendEvent(
                     "AUDIO_RESPONSE_EVENT", kAudioJitterInd, param1, param2);
             break;

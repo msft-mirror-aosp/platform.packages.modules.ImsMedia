@@ -42,10 +42,14 @@ public:
     virtual void OnRtpPacket(unsigned char* pData, uint32_t nSize);
     void SetLocalAddress(const RtpAddress address);
     void SetPeerAddress(const RtpAddress address);
+    void SetCvoExtension(const int64_t facing, const int64_t orientation);
+    void SetRtpHeaderExtension(tRtpHeaderExtensionInfo& tExtension);
 
 private:
     void ProcessAudioData(
             ImsMediaSubType eSubType, uint8_t* pData, uint32_t nDataSize, uint32_t nTimestamp);
+    void ProcessVideoData(ImsMediaSubType eSubType, uint8_t* pData, uint32_t nDataSize,
+            uint32_t nTimestamp, bool bMark);
     IRtpSession* mRtpSession;
     RtpConfig* mConfig;
     RtpAddress mLocalAddress;
@@ -57,6 +61,8 @@ private:
     uint32_t mRtpPayload;
     uint32_t mDtmfPayload;
     uint32_t mSamplingRate;
+    int32_t mCvoValue;
+    tRtpHeaderExtensionInfo mRtpExtension;
 #ifdef DEBUG_JITTER_GEN_SIMULATION_DELAY
     uint32_t mNextTime;
 #endif

@@ -288,7 +288,7 @@ public class MainActivity extends AppCompatActivity {
      * Integer value.
      */
     public enum VideoCodecEnum {
-        H264(VideoConfig.VIDEO_CODEC_AVC),
+        AVC(VideoConfig.VIDEO_CODEC_AVC),
         HEVC(VideoConfig.VIDEO_CODEC_HEVC);
 
         private final int mValue;
@@ -775,13 +775,15 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void createTextureView() {
+        Log.d(TAG, "createTextureView");
         mTexturePreview = (TextureView) findViewById(R.id.texturePreview);
         assert mTexturePreview != null;
         mTexturePreview.setSurfaceTextureListener(mPreviewListener);
         if (mTexturePreview.isAvailable()) {
+            Log.d(TAG, "preview available");
             mTexturePreview.setLayoutParams(
-                    new FrameLayout.LayoutParams(RESOLUTION_WIDTH, RESOLUTION_HEIGHT,
-                            Gravity.CENTER));
+                    new FrameLayout.LayoutParams(300, 400, Gravity.CENTER));
+            mTexturePreview.setKeepScreenOn(true);
             mTexturePreview.getSurfaceTexture().setDefaultBufferSize(
                     RESOLUTION_WIDTH, RESOLUTION_HEIGHT);
         }
@@ -789,9 +791,10 @@ public class MainActivity extends AppCompatActivity {
         assert mTextureDisplay != null;
         mTextureDisplay.setSurfaceTextureListener(mDisplayListener);
         if (mTextureDisplay.isAvailable()) {
+            Log.d(TAG, "display available");
             mTextureDisplay.setLayoutParams(
-                    new FrameLayout.LayoutParams(RESOLUTION_WIDTH, RESOLUTION_HEIGHT,
-                            Gravity.CENTER));
+                    new FrameLayout.LayoutParams(300, 400, Gravity.CENTER));
+            mTextureDisplay.setKeepScreenOn(true);
             mTextureDisplay.getSurfaceTexture().setDefaultBufferSize(
                     RESOLUTION_WIDTH, RESOLUTION_HEIGHT);
         }
@@ -861,7 +864,7 @@ public class MainActivity extends AppCompatActivity {
             new TextureView.SurfaceTextureListener() {
         @Override
         public void onSurfaceTextureAvailable(SurfaceTexture surface, int width, int height) {
-            Log.d(TAG, "onSurfaceTextureAvailable - preview");
+            Log.d(TAG, "onSurfaceTextureAvailable - preview, width=" + width + ",height=" + height);
 
             if (mIsVideoSessionOpened) {
                 surface.setDefaultBufferSize(RESOLUTION_WIDTH, RESOLUTION_HEIGHT);
@@ -900,7 +903,7 @@ public class MainActivity extends AppCompatActivity {
             new TextureView.SurfaceTextureListener() {
         @Override
         public void onSurfaceTextureAvailable(SurfaceTexture surface, int width, int height) {
-            Log.d(TAG, "onSurfaceTextureAvailable - display");
+            Log.d(TAG, "onSurfaceTextureAvailable - display, width=" + width + ",height=" + height);
 
             if (mIsVideoSessionOpened) {
                 surface.setDefaultBufferSize(RESOLUTION_WIDTH, RESOLUTION_HEIGHT);

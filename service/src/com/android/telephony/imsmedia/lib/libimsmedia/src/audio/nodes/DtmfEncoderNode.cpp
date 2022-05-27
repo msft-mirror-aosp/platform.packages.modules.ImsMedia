@@ -98,6 +98,17 @@ void DtmfEncoderNode::SetConfig(void* config)
     }
 }
 
+bool DtmfEncoderNode::IsSameConfig(void* config)
+{
+    if (config == NULL)
+    {
+        return true;
+    }
+
+    AudioConfig* pConfig = reinterpret_cast<AudioConfig*>(config);
+    return (mSamplingRate == (pConfig->getSamplingRateKHz() * 1000));
+}
+
 void DtmfEncoderNode::OnDataFromFrontNode(ImsMediaSubType subtype, uint8_t* pData,
         uint32_t nDataSize, uint32_t volume, bool bMark, uint32_t duration,
         ImsMediaSubType nDataType)

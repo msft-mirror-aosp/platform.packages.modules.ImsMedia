@@ -147,9 +147,9 @@ void ImsMediaDataQueue::SetReadPosFirst()
 
 bool ImsMediaDataQueue::GetNext(DataEntry** ppEntry)
 {
-    if (++m_ListIter != m_List.end())
+    if (m_ListIter != m_List.end())
     {
-        uint8_t* pbData = *m_ListIter;
+        uint8_t* pbData = *m_ListIter++;
         *ppEntry = (DataEntry*)pbData;
         return true;
     }

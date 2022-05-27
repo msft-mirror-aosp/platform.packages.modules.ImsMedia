@@ -72,6 +72,14 @@ public:
      * @param threshold threshold parameter to set.
      */
     virtual void setMediaQualityThreshold(MediaQualityThreshold* threshold);
+    /**
+     * @brief Handles event from the session or trigger by the other nodes
+     *
+     * @param type event type check kImsMediaInternalRequestType in ImsMediaDefine.h
+     * @param param1 parameter to set
+     * @param param2 parameter to set
+     */
+    virtual void OnEvent(int32_t type, uint64_t param1, uint64_t param2);
 
 protected:
     RtpConfig* mConfig;

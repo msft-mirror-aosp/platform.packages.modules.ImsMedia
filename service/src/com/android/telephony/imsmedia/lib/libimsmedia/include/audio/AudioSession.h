@@ -33,7 +33,7 @@ public:
     virtual SessionState getState();
     virtual ImsMediaResult startGraph(void* config);
     // BaseSessionCallback
-    virtual void onEvent(ImsMediaEventType type, uint64_t param1, uint64_t param2);
+    virtual void onEvent(int32_t type, uint64_t param1, uint64_t param2);
     // dtmf method
     /**
      * @brief Add and start stream graph instance of the session. It has to be called only to

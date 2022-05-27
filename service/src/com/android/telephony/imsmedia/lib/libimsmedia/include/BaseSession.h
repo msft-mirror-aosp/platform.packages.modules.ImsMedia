@@ -32,7 +32,7 @@ public:
     int getLocalRtpFd();
     int getLocalRtcpFd();
     // BaseSessionCallback
-    virtual void onEvent(ImsMediaEventType type, uint64_t param1, uint64_t param2);
+    virtual void onEvent(int32_t type, uint64_t param1, uint64_t param2);
     void setMediaQualityThreshold(const MediaQualityThreshold& threshold);
 
 protected:

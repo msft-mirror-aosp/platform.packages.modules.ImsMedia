@@ -132,5 +132,14 @@ ImsMediaResult BaseStreamGraph::stopNodes()
 void BaseStreamGraph::setMediaQualityThreshold(MediaQualityThreshold* threshold)
 {
     (void)threshold;
+    IMLOGW0("[setMediaQualityThreshold] base");
     // base implementation
+}
+
+void BaseStreamGraph::OnEvent(int32_t type, uint64_t param1, uint64_t param2)
+{
+    (void)type;
+    (void)param1;
+    (void)param2;
+    IMLOGW0("[OnEvent] base");
 }

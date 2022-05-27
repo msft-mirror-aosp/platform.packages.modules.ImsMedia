@@ -16,6 +16,7 @@
 
 #include <JitterBufferControlNode.h>
 #include <AudioJitterBuffer.h>
+#include <VideoJitterBuffer.h>
 #include <ImsMediaTrace.h>
 
 JitterBufferControlNode::JitterBufferControlNode(ImsMediaType type) :
@@ -24,6 +25,10 @@ JitterBufferControlNode::JitterBufferControlNode(ImsMediaType type) :
     if (mMediaType == IMS_MEDIA_AUDIO)
     {
         mJitterBuffer = new AudioJitterBuffer();
+    }
+    else if (mMediaType == IMS_MEDIA_VIDEO)
+    {
+        mJitterBuffer = new VideoJitterBuffer();
     }
 }
 

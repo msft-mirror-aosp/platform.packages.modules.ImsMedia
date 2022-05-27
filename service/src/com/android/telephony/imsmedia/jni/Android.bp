@@ -6,6 +6,7 @@ cc_library_shared {
     name: "libimsmediajni",
     defaults: [
         "libimsmedia_audio_defaults",
+        "libimsmedia_video_defaults",
     ],
     header_libs: [
         "libimsmedia_header",
@@ -27,9 +28,8 @@ cc_library_shared {
         "liblog",
         "libnativehelper",
         "libutils",
+        "libandroid",
         "libandroid_runtime",
         "framework-permission-aidl-cpp",
-        "libaudioclient",
-        "libaudioclient_aidl_conversion",
     ],
 }

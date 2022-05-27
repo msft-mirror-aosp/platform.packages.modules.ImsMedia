@@ -193,20 +193,43 @@
       android:onClick="setSpeakModeOnClick"
       android:text="@string/speaker_mode_switch_text" />
 
+  <TextView
+      android:id="@+id/previewLabel"
+      android:layout_width="200dp"
+      android:layout_height="wrap_content"
+      android:layout_marginTop="15dp"
+      android:layout_marginEnd="15dp"
+      android:layout_below="@+id/loopbackModeSwitch"
+      android:text="@string/preview_label"
+      android:textAlignment="center" />
+
+  <TextView
+      android:id="@+id/displayLabel"
+      android:layout_width="200dp"
+      android:layout_height="wrap_content"
+      android:layout_marginTop="15dp"
+      android:layout_marginEnd="15dp"
+      android:layout_below="@+id/loopbackModeSwitch"
+      android:layout_toEndOf="@id/previewLabel"
+      android:layout_centerInParent="true"
+      android:text="@string/display_label"
+      android:textAlignment="center" />
   <FrameLayout
+            android:id="@+id/previewFrame"
             android:layout_width="200dp"
-            android:layout_height="200dp"
-            android:layout_below="@id/loopbackModeSwitch">
+            android:layout_height="266dp"
+            android:layout_below="@id/previewLabel">
     <TextureView
         android:id="@+id/texturePreview"
         android:layout_width="match_parent"
         android:layout_height="match_parent"/>
   </FrameLayout>
   <FrameLayout
+            android:id="@+id/displayFrames"
             android:layout_width="200dp"
-            android:layout_height="200dp"
-            android:layout_below="@id/loopbackModeSwitch"
-            android:layout_toEndOf="@id/texturePreview">
+            android:layout_height="266dp"
+            android:layout_below="@id/displayLabel"
+            android:layout_toEndOf="@id/previewFrame">
     <TextureView
         android:id="@+id/textureDisplay"
         android:layout_width="match_parent"

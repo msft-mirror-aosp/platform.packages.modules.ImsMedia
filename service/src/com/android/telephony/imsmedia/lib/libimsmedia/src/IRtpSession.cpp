@@ -167,7 +167,9 @@ void IRtpSession::SetPayloadParam(RtpConfig* config)
 void IRtpSession::SetRtpPayloadParam(RtpConfig* config)
 {
     if (config == NULL)
+    {
         return;
+    }
     // separate local & peer payload type
     mNumPayloadParam = 0;
     std::memset(mPayloadParam, 0, sizeof(tRtpSvc_SetPayloadParam) * MAX_NUM_PAYLOAD_PARAM);
@@ -194,23 +196,34 @@ void IRtpSession::SetRtpPayloadParam(RtpConfig* config)
 void IRtpSession::SetRtpDtmfPayloadParam(AudioConfig* config)
 {
     if (config == NULL)
+    {
         return;
+    }
+
     IMLOGD2("[SetRtpDtmfPayloadParam] payload[%d], samplingRate[%d]",
             config->getDtmfPayloadTypeNumber(), config->getDtmfsamplingRateKHz());
 
     mEnableDTMF = false;
+
     if (mMediaType != IMS_MEDIA_AUDIO)
+    {
         return;
+    }
+
     if (config->getDtmfPayloadTypeNumber() == 0)
+    {
         return;
+    }
 
     mEnableDTMF = true;
     mDtmfPayloadType = config->getDtmfPayloadTypeNumber();
+
     if (mNumPayloadParam >= 3)
     {
         IMLOGE1("[SetRtpPayloadParam] overflow[%d]", mNumPayloadParam);
         return;
     }
+
     mPayloadParam[mNumPayloadParam].frameInterval = 100;  // not used in stack
     mPayloadParam[mNumPayloadParam].payloadType = config->getDtmfPayloadTypeNumber();
     mPayloadParam[mNumPayloadParam].samplingRate = config->getDtmfsamplingRateKHz() * 1000;
@@ -274,10 +287,9 @@ void IRtpSession::StopRtcp()
 }
 
 bool IRtpSession::SendRtpPacket(uint32_t nPayloadType, uint8_t* pData, uint32_t nDataSize,
-        uint32_t nTimestamp, bool bMark, uint32_t nTimeDiff, bool bExtension, void* pExtensionInfo)
+        uint32_t nTimestamp, bool bMark, uint32_t nTimeDiff, bool bExtension,
+        tRtpHeaderExtensionInfo* pExtensionInfo)
 {
-    (void)pExtensionInfo;
-
     tRtpSvc_SendRtpPacketParm stRtpPacketParam;
     memset(&stRtpPacketParam, 0, sizeof(tRtpSvc_SendRtpPacketParm));
     IMLOGD_PACKET5(IM_PACKET_LOG_RTP,
@@ -288,14 +300,12 @@ bool IRtpSession::SendRtpPacket(uint32_t nPayloadType, uint8_t* pData, uint32_t 
     stRtpPacketParam.diffFromLastRtpTimestamp = nTimeDiff;
     stRtpPacketParam.bXbit = bExtension ? eRTP_TRUE : eRTP_FALSE;
 
-    /* TBD
-    if (bExtension) {
-        stRtpPacketParam.nDefinedByProfile = pExtensionInfo->localId;
-        //rtp extension param is 1 byte
-        stRtpPacketParam.nLength = 1;
-        stRtpPacketParam.nExtensionData = pExtensionInfo->data;
+    if (bExtension && pExtensionInfo != NULL)
+    {
+        stRtpPacketParam.nDefinedByProfile = pExtensionInfo->nDefinedByProfile;
+        stRtpPacketParam.nLength = pExtensionInfo->nLength;
+        stRtpPacketParam.nExtensionData = pExtensionInfo->nExtensionData;
     }
-    */
 
     if (mPrevTimestamp == nTimestamp)
     {
@@ -460,9 +470,9 @@ void IRtpSession::OnTimer()
 {
     std::lock_guard<std::mutex> guard(mutexDecoder);
 
-    IMLOGD7("[OnTimer] RX_Rtp[%03d/%03d], RX_Rtcp[%02d/%02d], TX_Rtp[%03d/%03d], TX_Rtcp[%02d]",
-            mNumRtpProcPacket, mNumRtpPacket, mNumRtcpProcPacket, mNumSRPacket + mNumRRPacket,
-            mNumRtpDataToSend, mNumRtpPacketSent, mNumRtcpPacketSent);
+    IMLOGD8("[OnTimer] type[%d], RXRtp[%03d/%03d], RXRtcp[%02d/%02d], TXRtp[%03d/%03d],"
+            " TXRtcp[%02d]", mMediaType, mNumRtpProcPacket, mNumRtpPacket, mNumRtcpProcPacket,
+            mNumSRPacket + mNumRRPacket, mNumRtpDataToSend, mNumRtpPacketSent, mNumRtcpPacketSent);
 
     if (mRtpDecoderListener)
     {
