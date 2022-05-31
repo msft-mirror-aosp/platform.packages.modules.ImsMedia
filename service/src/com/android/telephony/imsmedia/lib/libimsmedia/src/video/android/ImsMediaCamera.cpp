@@ -424,12 +424,18 @@ ACameraManager_AvailabilityCallbacks* ImsMediaCamera::GetManagerListener()
  */
 void OnDeviceStateChanges(void* context, ACameraDevice* dev)
 {
-    reinterpret_cast<ImsMediaCamera*>(context)->OnDeviceState(dev);
+    if (context != NULL)
+    {
+        reinterpret_cast<ImsMediaCamera*>(context)->OnDeviceState(dev);
+    }
 }
 
 void OnDeviceErrorChanges(void* context, ACameraDevice* dev, int err)
 {
-    reinterpret_cast<ImsMediaCamera*>(context)->OnDeviceError(dev, err);
+    if (context != NULL)
+    {
+        reinterpret_cast<ImsMediaCamera*>(context)->OnDeviceError(dev, err);
+    }
 }
 
 ACameraDevice_stateCallbacks* ImsMediaCamera::GetDeviceListener()

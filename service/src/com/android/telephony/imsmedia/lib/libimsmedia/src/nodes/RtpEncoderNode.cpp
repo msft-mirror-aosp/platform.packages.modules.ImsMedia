@@ -82,7 +82,6 @@ BaseNodeID RtpEncoderNode::GetNodeID()
 
 ImsMediaResult RtpEncoderNode::Start()
 {
-    // start here
     IMLOGD0("[Start]");
     if (mRtpSession == NULL)
     {
@@ -180,7 +179,10 @@ void RtpEncoderNode::SetConfig(void* config)
 {
     IMLOGD1("[SetConfig] type[%d]", mMediaType);
     if (config == NULL)
+    {
         return;
+    }
+
     if (mMediaType == IMS_MEDIA_AUDIO)
     {
         AudioConfig* pConfig = new AudioConfig(reinterpret_cast<AudioConfig*>(config));
@@ -204,7 +206,10 @@ void RtpEncoderNode::SetConfig(void* config)
 bool RtpEncoderNode::IsSameConfig(void* config)
 {
     if (config == NULL)
+    {
         return true;
+    }
+
     if (mMediaType == IMS_MEDIA_AUDIO)
     {
         AudioConfig* pConfig = reinterpret_cast<AudioConfig*>(config);

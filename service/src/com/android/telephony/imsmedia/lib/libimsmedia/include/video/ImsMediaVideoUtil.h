@@ -184,9 +184,8 @@ public:
             uint32_t nProfile, uint32_t nLevel);
     static ImsMediaResult ParseAvcSpropParam(const char* szSpropparam, tCodecConfig* pInfo);
     static ImsMediaResult ParseHevcSpropParam(const char* szSpropparam, tCodecConfig* pInfo);
-    static ImsMediaResult ParseAvcSps(uint8_t* pbBuffer, uint32_t nBufferSize, tCodecConfig* pInfo);
-    static ImsMediaResult ParseHevcSps(
-            uint8_t* pbBuffer, uint32_t nBufferSize, tCodecConfig* pInfo);
+    static bool ParseAvcSps(uint8_t* pbBuffer, uint32_t nBufferSize, tCodecConfig* pInfo);
+    static bool ParseHevcSps(uint8_t* pbBuffer, uint32_t nBufferSize, tCodecConfig* pInfo);
 };
 
 #endif  // IMSMEDIA_VIDEOUTIL_H_INCLUDED

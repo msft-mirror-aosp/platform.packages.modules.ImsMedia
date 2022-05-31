@@ -517,8 +517,7 @@ ImsMediaResult ImsMediaVideoUtil::ParseHevcSpropParam(const char* szSpropparam, 
     return RESULT_SUCCESS;
 }
 
-ImsMediaResult ImsMediaVideoUtil::ParseAvcSps(
-        uint8_t* pbBuffer, uint32_t nBufferSize, tCodecConfig* pInfo)
+bool ImsMediaVideoUtil::ParseAvcSps(uint8_t* pbBuffer, uint32_t nBufferSize, tCodecConfig* pInfo)
 {
     ImsMediaBitReader bitreader;
     uint32_t chroma_format_idc = 0;
@@ -530,7 +529,7 @@ ImsMediaResult ImsMediaVideoUtil::ParseAvcSps(
         pInfo->nLevel = 0;
         pInfo->nHeight = 0;
         pInfo->nWidth = 0;
-        return RESULT_NO_MEMORY;
+        return false;
     }
 
     memcpy(pszSPS, pbBuffer, nBufferSize);
@@ -661,11 +660,10 @@ ImsMediaResult ImsMediaVideoUtil::ParseAvcSps(
             pInfo->nHeight);
     IMLOGD_PACKET2(IM_PACKET_LOG_VIDEO, "[ParseAvcSps] nProfile[%d],nLevel[%d]", pInfo->nProfile,
             pInfo->nLevel);
-    return RESULT_SUCCESS;
+    return true;
 }
 
-ImsMediaResult ImsMediaVideoUtil::ParseHevcSps(
-        uint8_t* pbBuffer, uint32_t nBufferSize, tCodecConfig* pInfo)
+bool ImsMediaVideoUtil::ParseHevcSps(uint8_t* pbBuffer, uint32_t nBufferSize, tCodecConfig* pInfo)
 {
     if (pbBuffer == NULL || nBufferSize == 0)
     {
@@ -673,7 +671,7 @@ ImsMediaResult ImsMediaVideoUtil::ParseHevcSps(
         pInfo->nLevel = 0;
         pInfo->nHeight = 0;
         pInfo->nWidth = 0;
-        return RESULT_INVALID_PARAM;
+        return false;
     }
 
     uint32_t nOffset = 0;
@@ -780,5 +778,5 @@ ImsMediaResult ImsMediaVideoUtil::ParseHevcSps(
     pInfo->nWidth = nRoundDownWidth;
     pInfo->nHeight = nRoundDownHeight;
 
-    return RESULT_SUCCESS;
+    return true;
 }

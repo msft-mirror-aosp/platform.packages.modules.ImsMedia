@@ -308,11 +308,12 @@ enum ImsMediaVideoMsgRequest
 {
     kVideoOpenSession = 101,
     kVideoCloseSession,
+    kVideoModifySession,
     kVideoSetPreviewSurface,
     kVideoSetDisplaySurface,
-    kVideoModifySession,
     kVideoSendHeaderExtension,
     kVideoSetMediaQualityThreshold,
+    kVideoRequestDataUsage,
 };
 
 enum ImsMediaVideoMsgResponse

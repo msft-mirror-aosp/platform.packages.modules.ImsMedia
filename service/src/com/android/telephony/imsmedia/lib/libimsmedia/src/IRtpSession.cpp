@@ -21,12 +21,12 @@
 std::list<IRtpSession*> IRtpSession::mListRtpSession;
 
 IRtpSession* IRtpSession::GetInstance(
-        ImsMediaType subtype, const RtpAddress local, const RtpAddress peer)
+        ImsMediaType mediaSubtype, const RtpAddress localAddress, const RtpAddress peerAddress)
 {
-    IMLOGD1("[GetInstance] subtype[%d]", subtype);
+    IMLOGD1("[GetInstance] mediaSubtype[%d]", mediaSubtype);
     for (auto& i : mListRtpSession)
     {
-        if (i->isSameInstance(subtype, local, peer))
+        if (i->isSameInstance(mediaSubtype, localAddress, peerAddress))
         {
             i->increaseRefCounter();
             return i;
@@ -37,7 +37,7 @@ IRtpSession* IRtpSession::GetInstance(
         IMLOGD0("[GetInstance] Initialize Rtp Stack");
         IMS_RtpSvc_Initialize();
     }
-    IRtpSession* pSession = new IRtpSession(subtype, local, peer);
+    IRtpSession* pSession = new IRtpSession(mediaSubtype, localAddress, peerAddress);
     mListRtpSession.push_back(pSession);
     pSession->increaseRefCounter();
     return pSession;
@@ -62,15 +62,28 @@ void IRtpSession::ReleaseInstance(IRtpSession* pSession)
     IMLOGD0("[ReleaseInstance] Exit");
 }
 
-IRtpSession::IRtpSession(ImsMediaType subtype, const RtpAddress local, const RtpAddress peer)
+IRtpSession::IRtpSession(
+        ImsMediaType mediaSubtype, const RtpAddress localAddress, const RtpAddress peerAddress)
 {
-    mMediaType = subtype;
+    mMediaType = mediaSubtype;
+    mRtpSessionId = 0;
     mRefCount = 0;
+    mLocalAddress = localAddress;
+    mPeerAddress = peerAddress;
+    mRtpEncoderListener = NULL;
+    mRtpDecoderListener = NULL;
+    mRtcpEncoderListener = NULL;
+    mRtcpDecoderListener = NULL;
+    std::memset(mPayloadParam, 0, sizeof(tRtpSvc_SetPayloadParam) * MAX_NUM_PAYLOAD_PARAM);
+    mNumPayloadParam = 0;
     mLocalRtpSsrc = 0;
     mPeerRtpSsrc = 0;
-    mPrevTimestamp = -1;
+    mEnableRtcpTx = false;
     mEnableDTMF = false;
     mDtmfPayloadType = 0;
+    mPrevTimestamp = -1;
+    mRtpStarted = 0;
+    mRtcpStarted = 0;
     mNumRtpProcPacket = 0;
     mNumRtcpProcPacket = 0;
     mNumRtpPacket = 0;
@@ -80,16 +93,7 @@ IRtpSession::IRtpSession(ImsMediaType subtype, const RtpAddress local, const Rtp
     mNumRtpPacketSent = 0;
     mNumRtcpPacketSent = 0;
     mRttd = -1;
-    mRtpSessionId = 0;
-    mLocalAddress = local;
-    mPeerAddress = peer;
-    mRtpStarted = 0;
-    mRtcpStarted = 0;
-    mRtpEncoderListener = NULL;
-    mRtpDecoderListener = NULL;
-    mRtcpEncoderListener = NULL;
-    mRtcpDecoderListener = NULL;
-    std::memset(mPayloadParam, 0, sizeof(tRtpSvc_SetPayloadParam) * MAX_NUM_PAYLOAD_PARAM);
+
     // create rtp stack session
     IMS_RtpSvc_CreateSession(
             mLocalAddress.ipAddress, mLocalAddress.port, this, &mLocalRtpSsrc, &mRtpSessionId);
@@ -118,9 +122,9 @@ bool IRtpSession::operator==(const IRtpSession& obj2)
 }
 
 bool IRtpSession::isSameInstance(
-        ImsMediaType subtype, const RtpAddress local, const RtpAddress peer)
+        ImsMediaType mediaSubtype, const RtpAddress local, const RtpAddress peer)
 {
-    if (mMediaType == subtype && mLocalAddress == local && mPeerAddress == peer)
+    if (mMediaType == mediaSubtype && mLocalAddress == local && mPeerAddress == peer)
     {
         return true;
     }
@@ -153,15 +157,24 @@ void IRtpSession::SetRtcpDecoderListener(IRtcpDecoderListener* pRtcpDecoderListe
 
 void IRtpSession::SetPayloadParam(RtpConfig* config)
 {
-    SetRtpPayloadParam(config);
-    if (mMediaType == IMS_MEDIA_AUDIO)
+    if (config == NULL)
     {
-        SetRtpDtmfPayloadParam(reinterpret_cast<AudioConfig*>(config));
+        return;
     }
 
-    IMS_RtpSvc_SetPayload(mRtpSessionId, mPayloadParam,
-            eRTP_FALSE,  // fix later
-            mNumPayloadParam);
+    IMLOGD1("[SetPayloadParam] mNumPayloadParam[%d]", mNumPayloadParam);
+
+    if (mNumPayloadParam == 0)
+    {
+        SetRtpPayloadParam(config);
+        if (mMediaType == IMS_MEDIA_AUDIO)
+        {
+            SetRtpDtmfPayloadParam(reinterpret_cast<AudioConfig*>(config));
+        }
+
+        IMS_RtpSvc_SetPayload(mRtpSessionId, mPayloadParam,
+                mMediaType == IMS_MEDIA_VIDEO ? eRTP_TRUE : eRTP_FALSE, mNumPayloadParam);
+    }
 }
 
 void IRtpSession::SetRtpPayloadParam(RtpConfig* config)
@@ -171,7 +184,6 @@ void IRtpSession::SetRtpPayloadParam(RtpConfig* config)
         return;
     }
     // separate local & peer payload type
-    mNumPayloadParam = 0;
     std::memset(mPayloadParam, 0, sizeof(tRtpSvc_SetPayloadParam) * MAX_NUM_PAYLOAD_PARAM);
     IMLOGD3("[SetRtpPayloadParam] localPayload[%d], peerPayload[%d], sampling[%d]",
             config->getTxPayloadTypeNumber(), config->getRxPayloadTypeNumber(),
@@ -218,7 +230,7 @@ void IRtpSession::SetRtpDtmfPayloadParam(AudioConfig* config)
     mEnableDTMF = true;
     mDtmfPayloadType = config->getDtmfPayloadTypeNumber();
 
-    if (mNumPayloadParam >= 3)
+    if (mNumPayloadParam >= MAX_NUM_PAYLOAD_PARAM)
     {
         IMLOGE1("[SetRtpPayloadParam] overflow[%d]", mNumPayloadParam);
         return;

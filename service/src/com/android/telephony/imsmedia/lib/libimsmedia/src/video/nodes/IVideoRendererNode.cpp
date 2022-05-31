@@ -325,6 +325,7 @@ void IVideoRendererNode::ProcessData()
         if (mCallback != NULL)
         {
             mCallback->SendEvent(kImsMediaEventFirstPacketReceived);
+            mCallback->SendEvent(kImsMediaEventResolutionChanged, mWidth, mHeight);
         }
     }
 
@@ -775,7 +776,6 @@ bool IVideoRendererNode::RemoveAUDNalUnit(
 
 void IVideoRendererNode::CheckResolution(uint32_t nWidth, uint32_t nHeight)
 {
-    // In case of changing resolution
     if ((nWidth != 0 && nWidth != mWidth) || (nHeight != 0 && nHeight != mHeight))
     {
         IMLOGD4("[CheckResolution] resolution change[%dx%d] to [%dx%d]", mWidth, mHeight, nWidth,
