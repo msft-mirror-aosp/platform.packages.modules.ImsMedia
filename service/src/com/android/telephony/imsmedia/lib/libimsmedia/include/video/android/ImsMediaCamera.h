@@ -79,6 +79,15 @@ public:
 struct ACameraMetadata_const_entry;
 struct CaptureRequestInfo
 {
+public:
+    CaptureRequestInfo()
+    {
+        outputNativeWindows.clear();
+        sessionOutputs.clear();
+        targets.clear();
+        request = NULL;
+        sessionSequenceId = -1;
+    }
     std::vector<ANativeWindow*> outputNativeWindows;
     std::vector<ACaptureSessionOutput*> sessionOutputs;
     std::vector<ACameraOutputTarget*> targets;
@@ -99,8 +108,7 @@ class ImsMediaCamera
 public:
     ImsMediaCamera();
     ~ImsMediaCamera();
-    void OpenCamera();
-    void CloseCamera();
+    bool OpenCamera();
     /**
      * @brief Set the Camera Config
      *
