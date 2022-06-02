@@ -40,6 +40,7 @@ ImsMediaAudioPlayer::ImsMediaAudioPlayer()
     mAudioStream = NULL;
     mCodec = NULL;
     mSamplingRate = DEFAULT_SAMPLING_RATE;
+    mEvsCodecHeaderMode = kRtpPyaloadHeaderModeEvsHeaderFull;
 }
 
 ImsMediaAudioPlayer::~ImsMediaAudioPlayer() {}
@@ -69,6 +70,11 @@ void ImsMediaAudioPlayer::SetSamplingRate(int32_t samplingRate)
 void ImsMediaAudioPlayer::SetEvsBandwidth(kEvsBandwidth evsBandwidth)
 {
     mEvsBandwidth = evsBandwidth;
+}
+
+void ImsMediaAudioPlayer::SetEvsPayloadHeaderMode(kRtpPyaloadHeaderMode EvsPayloadHeaderMode)
+{
+    mEvsCodecHeaderMode = EvsPayloadHeaderMode;
 }
 
 bool ImsMediaAudioPlayer::Start()

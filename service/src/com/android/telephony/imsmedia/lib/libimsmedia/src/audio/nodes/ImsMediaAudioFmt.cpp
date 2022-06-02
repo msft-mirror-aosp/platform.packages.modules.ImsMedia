@@ -1334,3 +1334,27 @@ kEvsBandwidth ImsMediaAudioFmt::FindMaxEVSBandwidth(uint32_t nEVSBandwidthSet)
     IMLOGD1("[FindMaxEVSBandwidth] Selected EvsBitrate[%d]", nEVSBandwidth);
     return (kEvsBandwidth)nEVSBandwidth;
 }
+
+kEvsBandwidth ImsMediaAudioFmt::FindMaxEvsBandwidthFromRange(int32_t EvsBandwidthRange)
+{
+    if (EvsBandwidthRange & kEvsBandwidthFB)
+    {
+        return kEvsBandwidthFB;
+    }
+    else if (EvsBandwidthRange & kEvsBandwidthSWB)
+    {
+        return kEvsBandwidthSWB;
+    }
+    else if (EvsBandwidthRange & kEvsBandwidthWB)
+    {
+        return kEvsBandwidthWB;
+    }
+    else if (EvsBandwidthRange & kEvsBandwidthNB)
+    {
+        return kEvsBandwidthNB;
+    }
+    else
+    {
+        return kEvsBandwidthNone;
+    }
+}

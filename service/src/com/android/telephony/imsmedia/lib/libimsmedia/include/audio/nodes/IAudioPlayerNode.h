@@ -55,6 +55,7 @@ private:
     int32_t mEvsChannelAwOffset;
     kEvsBandwidth mEvsBandwidth;
     int32_t mSamplingRate;
+    kRtpPyaloadHeaderMode mEvsPayloadHeaderMode;
 };
 
 #endif

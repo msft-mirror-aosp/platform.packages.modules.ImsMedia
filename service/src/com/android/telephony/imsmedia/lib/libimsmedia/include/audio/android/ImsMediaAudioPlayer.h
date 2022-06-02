@@ -38,6 +38,7 @@ public:
     bool Start();
     void Stop();
     bool onDataFrame(uint8_t* buffer, uint32_t size);
+    void SetEvsPayloadHeaderMode(kRtpPyaloadHeaderMode EvsPayloadHeaderMode);
 
 private:
     void openAudioStream();
@@ -55,6 +56,7 @@ private:
     uint16_t mBuffer[PCM_BUFFER_SIZE];
     std::mutex mMutex;
     int32_t mEvsBitRate;
+    kRtpPyaloadHeaderMode mEvsCodecHeaderMode;
 };
 
 #endif

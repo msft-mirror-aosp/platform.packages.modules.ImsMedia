@@ -646,7 +646,15 @@ void AudioRtpPayloadDecoderNode::DecodePayloadEvs(
                 nDataBitSize = ImsMediaAudioFmt::ConvertAmrWbModeToBitLen(toc_ft_b);
             }
 
-            mBitReader.ReadByteBuffer(mPayload, nDataBitSize);
+            mBitWriter.SetBuffer(mPayload, MAX_AUDIO_PAYLOAD_SIZE);
+
+            mBitWriter.Write(h, 1);
+            mBitWriter.Write(toc_f, 1);
+            mBitWriter.Write(toc_ft_m, 1);
+            mBitWriter.Write(toc_ft_q, 1);
+            mBitWriter.Write(toc_ft_b, 4);
+
+            mBitReader.ReadByteBuffer(mPayload + 1, nDataBitSize);
 
             // remove padding bit
             {
@@ -658,7 +666,7 @@ void AudioRtpPayloadDecoderNode::DecodePayloadEvs(
             IMLOGD6("[DecodePayloadEvs] result = %02X %02X %02X %02X, len=%d, eRate=%d",
                     mPayload[0], mPayload[1], mPayload[2], mPayload[3], nDataSize, toc_ft_b);
 
-            SendDataToRearNode(MEDIASUBTYPE_RTPPAYLOAD, mPayload, (nDataBitSize + 7) >> 3,
+            SendDataToRearNode(MEDIASUBTYPE_RTPPAYLOAD, mPayload, (((nDataBitSize + 7) >> 3) + 1),
                     timestamp, listFrameType.size(),
                     nSeqNum);  // send remaining packet number in bundle as bMark value
 

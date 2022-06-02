@@ -233,6 +233,7 @@ public:
     static kEvsBitrate FindMaxEVSBitrate(uint32_t nEVSBitrateSet, kEvsCodecMode kEvsCodecMode);
     static kEvsCodecMode CheckEVSCodecMode(uint32_t nAudioFrameLength);
     static int32_t ConvertEVSModeToBitRate(int32_t EvsModeToBitRate);
+    static kEvsBandwidth FindMaxEvsBandwidthFromRange(int32_t EvsBandwidthRange);
 };
 
 #endif  // AUDIO_AMRFMT_H_INCLUDED
