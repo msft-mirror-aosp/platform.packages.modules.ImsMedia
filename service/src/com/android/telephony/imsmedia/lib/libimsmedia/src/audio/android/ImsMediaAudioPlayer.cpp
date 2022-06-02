@@ -171,6 +171,7 @@ bool ImsMediaAudioPlayer::Start()
 void ImsMediaAudioPlayer::Stop()
 {
     IMLOGD0("[Stop] enter");
+    std::lock_guard<std::mutex> guard(mMutex);
     if (mCodec != NULL)
     {
         AMediaCodec_stop(mCodec);

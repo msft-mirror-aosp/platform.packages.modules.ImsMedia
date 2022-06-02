@@ -37,7 +37,7 @@ std::list<ImsMediaSocket*> ImsMediaSocket::slistSocket;
 int32_t ImsMediaSocket::sRxSocketCount = 0;
 bool ImsMediaSocket::mSocketListUpdated = false;
 bool ImsMediaSocket::mbTerminateMonitor = false;
-ImsMediaCondition ImsMediaSocket::mCondExit;
+ImsMediaCondition ImsMediaSocket::mConditionExit;
 std::mutex ImsMediaSocket::sMutexRxSocket;
 std::mutex ImsMediaSocket::sMutexSocketList;
 std::mutex ImsMediaSocket::sMutexSocketMonitorThread;
@@ -359,7 +359,7 @@ void ImsMediaSocket::StartSocketMonitor()
     {
         IMLOGD0("[StartSocketMonitor] Send Signal");
         mbTerminateMonitor = false;
-        mCondExit.signal();
+        mConditionExit.signal();
         return;
     }
 
@@ -400,7 +400,7 @@ void ImsMediaSocket::StopSocketMonitor()
 {
     IMLOGD_PACKET0(IM_PACKET_LOG_SOCKET, "[StopSocketMonitor] stop monitor thread");
     mbTerminateMonitor = true;
-    mCondExit.wait();
+    mConditionExit.wait();
 }
 
 uint32_t ImsMediaSocket::SetSocketFD(void* pReadFds, void* pWriteFds, void* pExceptFds)
@@ -494,6 +494,6 @@ void* ImsMediaSocket::SocketMonitorThread(void*)
 
     IMLOGD0("[SocketMonitorThread] exit");
     mbTerminateMonitor = false;
-    mCondExit.signal();
+    mConditionExit.signal();
     return NULL;
 }

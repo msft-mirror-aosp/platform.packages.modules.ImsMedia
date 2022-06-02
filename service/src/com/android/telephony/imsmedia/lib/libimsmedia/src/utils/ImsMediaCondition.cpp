@@ -15,7 +15,6 @@
  */
 
 #include <ImsMediaCondition.h>
-#include <pthread.h>
 #include <errno.h>
 #include <sys/time.h>
 
@@ -23,47 +22,47 @@ ImsMediaCondition::ImsMediaCondition()
 {
     reset();
     mMutex = new pthread_mutex_t;
-    mCond = new pthread_cond_t;
+    mCondition = new pthread_cond_t;
 
     if (mMutex != NULL)
     {
-        pthread_mutex_init((pthread_mutex_t*)mMutex, NULL);
+        pthread_mutex_init(mMutex, NULL);
     }
 
-    if (mCond != NULL)
+    if (mCondition != NULL)
     {
-        pthread_cond_init((pthread_cond_t*)mCond, NULL);
+        pthread_cond_init(mCondition, NULL);
     }
 }
 
 ImsMediaCondition::~ImsMediaCondition()
 {
-    if (mCond != NULL)
+    if (mCondition != NULL)
     {
-        pthread_cond_destroy((pthread_cond_t*)mCond);
+        pthread_cond_destroy(mCondition);
     }
 
     if (mMutex != NULL)
     {
-        pthread_mutex_destroy((pthread_mutex_t*)mMutex);
+        pthread_mutex_destroy(mMutex);
     }
 
-    if (mCond != NULL)
+    if (mCondition != NULL)
     {
-        delete (pthread_cond_t*)mCond;
-        mCond = NULL;
+        delete mCondition;
+        mCondition = NULL;
     }
 
     if (mMutex != NULL)
     {
-        delete (pthread_mutex_t*)mMutex;
+        delete mMutex;
         mMutex = NULL;
     }
 }
 
 void ImsMediaCondition::wait()
 {
-    while (pthread_mutex_lock((pthread_mutex_t*)mMutex) == EINTR)
+    while (pthread_mutex_lock(mMutex) == EINTR)
         ;
     if (mSignalFlag & (1 << mWaitCount))
     {  // signal() had been reached before wait()
@@ -72,12 +71,12 @@ void ImsMediaCondition::wait()
     else
     {
         mWaitFlag = mWaitFlag | (1 << mWaitCount);
-        while (pthread_cond_wait((pthread_cond_t*)mCond, (pthread_mutex_t*)mMutex) == EINTR)
+        while (pthread_cond_wait(mCondition, mMutex) == EINTR)
             ;
     }
 
     IncCount(&mWaitCount);
-    pthread_mutex_unlock((pthread_mutex_t*)mMutex);
+    pthread_mutex_unlock(mMutex);
 }
 
 bool ImsMediaCondition::wait_timeout(int64_t nRelativeTime)
@@ -98,7 +97,7 @@ bool ImsMediaCondition::wait_timeout(int64_t nRelativeTime)
 
     ts.tv_nsec = addedUSec * 1000L;
     // wait
-    while (pthread_mutex_lock((pthread_mutex_t*)mMutex) == EINTR)
+    while (pthread_mutex_lock(mMutex) == EINTR)
         ;
     if (mSignalFlag & (1 << mWaitCount))
     {  // signal() had been reached before wait()
@@ -107,13 +106,12 @@ bool ImsMediaCondition::wait_timeout(int64_t nRelativeTime)
     else
     {
         mWaitFlag = mWaitFlag | (1 << mWaitCount);
-        while (pthread_cond_timedwait((pthread_cond_t*)mCond, (pthread_mutex_t*)mMutex, &ts) ==
-                EINTR)
+        while (pthread_cond_timedwait(mCondition, mMutex, &ts) == EINTR)
             ;
     }
 
     IncCount(&mWaitCount);
-    pthread_mutex_unlock((pthread_mutex_t*)mMutex);
+    pthread_mutex_unlock(mMutex);
     struct timeval tl;
     gettimeofday(&tl, (struct timezone*)NULL);
     uint64_t nCurrTime = (tl.tv_sec * 1000) + (tl.tv_usec / 1000);
@@ -130,12 +128,12 @@ bool ImsMediaCondition::wait_timeout(int64_t nRelativeTime)
 
 void ImsMediaCondition::signal()
 {
-    if (mCond == NULL || mMutex == NULL)
+    if (mCondition == NULL || mMutex == NULL)
     {
         return;
     }
 
-    while (pthread_mutex_lock((pthread_mutex_t*)mMutex) == EINTR)
+    while (pthread_mutex_lock(mMutex) == EINTR)
         ;
 
     if (mWaitFlag & (1 << mSignalCount))
@@ -147,9 +145,9 @@ void ImsMediaCondition::signal()
         mSignalFlag = mSignalFlag | (1 << mSignalCount);
     }
 
-    pthread_cond_signal((pthread_cond_t*)mCond);
+    pthread_cond_signal(mCondition);
     IncCount(&mSignalCount);
-    pthread_mutex_unlock((pthread_mutex_t*)mMutex);
+    pthread_mutex_unlock(mMutex);
 }
 
 void ImsMediaCondition::reset()

@@ -28,12 +28,17 @@ BaseStreamGraph::BaseStreamGraph(BaseSessionCallback* callback, int localFd) :
 
 BaseStreamGraph::~BaseStreamGraph()
 {
+    if (mListNodeToStart.size() > 0)
+    {
+        deleteNodes();
+    }
+
     IMLOGD0("[~BaseStreamGraph]");
 }
 
 ImsMediaResult BaseStreamGraph::start()
 {
-    IMLOGD0("[startGraph]");
+    IMLOGD0("[start]");
     ImsMediaResult ret = startNodes();
     if (ret != RESULT_SUCCESS)
     {
@@ -45,7 +50,7 @@ ImsMediaResult BaseStreamGraph::start()
 
 ImsMediaResult BaseStreamGraph::stop()
 {
-    IMLOGD0("[stopGraph]");
+    IMLOGD0("[stop]");
     ImsMediaResult ret = stopNodes();
     if (ret != RESULT_SUCCESS)
     {
@@ -58,8 +63,11 @@ ImsMediaResult BaseStreamGraph::stop()
 void BaseStreamGraph::AddNode(BaseNode* pNode, bool bReverse)
 {
     if (pNode == NULL)
+    {
         return;
-    IMLOGD1("AddNode[%s]", pNode->GetNodeName());
+    }
+
+    IMLOGD1("[AddNode] node[%s]", pNode->GetNodeName());
     if (bReverse == true)
     {
         mListNodeToStart.push_front(pNode);  // reverse direction
@@ -70,7 +78,7 @@ void BaseStreamGraph::AddNode(BaseNode* pNode, bool bReverse)
     }
     if (pNode->IsRunTime() == false)
     {
-        IMLOGD1("Add to scheduler[%s]", pNode->GetNodeName());
+        IMLOGD1("[AddNode] Add to scheduler[%s]", pNode->GetNodeName());
         mScheduler->RegisterNode(pNode);
     }
 }
@@ -78,14 +86,15 @@ void BaseStreamGraph::AddNode(BaseNode* pNode, bool bReverse)
 void BaseStreamGraph::RemoveNode(BaseNode* pNode)
 {
     if (pNode == NULL)
+    {
         return;
+    }
+
     if (pNode->IsRunTime() == false)
     {
         mScheduler->DeRegisterNode(pNode);
     }
 
-    mListNodeToStart.remove(pNode);
-    mListNodeStarted.remove(pNode);
     BaseNode::UnLoad(pNode);
 }
 
@@ -97,13 +106,13 @@ ImsMediaResult BaseStreamGraph::startNodes()
     while (mListNodeToStart.size() > 0)
     {
         pNode = mListNodeToStart.front();
-        IMLOGD1("[startNodes] Start node[%s]", pNode->GetNodeName());
+        IMLOGD1("[startNodes] start node[%s]", pNode->GetNodeName());
         ret = pNode->Start();
         mListNodeToStart.pop_front();
         mListNodeStarted.push_front(pNode);
-        IMLOGD2("[startNodes] Start node[%s], ret[%d]", pNode->GetNodeName(), ret);
         if (ret != RESULT_SUCCESS)
         {
+            IMLOGE2("[startNodes] error start node[%s], ret[%d]", pNode->GetNodeName(), ret);
             return ret;
         }
     }
@@ -120,13 +129,35 @@ ImsMediaResult BaseStreamGraph::stopNodes()
     while (mListNodeStarted.size() > 0)
     {
         pNode = mListNodeStarted.front();
-        IMLOGD1("[stopNodes] Stop node[%s]", pNode->GetNodeName());
+        IMLOGD1("[stopNodes] stop node[%s]", pNode->GetNodeName());
         pNode->Stop();
         mListNodeStarted.pop_front();
         mListNodeToStart.push_front(pNode);
-        IMLOGD0("[stopNodes] Stop node exit");
     }
     return RESULT_SUCCESS;
+}
+
+void BaseStreamGraph::deleteNodes()
+{
+    BaseNode* pNode = NULL;
+
+    if (mGraphState != StreamState::kStreamStateCreated)
+    {
+        stop();
+    }
+
+    if (mListNodeStarted.size() > 0)
+    {
+        IMLOGE1("[deleteNodes] error node remained[%d]", mListNodeStarted.size());
+    }
+
+    while (mListNodeToStart.size() > 0)
+    {
+        pNode = mListNodeToStart.front();
+        IMLOGD1("[deleteNodes] delete node[%s]", pNode->GetNodeName());
+        RemoveNode(pNode);
+        mListNodeToStart.pop_front();
+    }
 }
 
 void BaseStreamGraph::setMediaQualityThreshold(MediaQualityThreshold* threshold)

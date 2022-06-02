@@ -51,12 +51,11 @@ public:
     void ConnectRearNode(BaseNode* pRearNode);
     void DisconnectFrontNode(BaseNode* pFrontNode);
     void DisconnectRearNode(BaseNode* pRearNode);
-    std::list<BaseNode*>* GetFrontNodeList();
-    std::list<BaseNode*>* GetRearNodeList();
-    void ConnectRearNodeList(std::list<BaseNode*>* pRearNodeList);
+    BaseNode* GetFrontNode();
+    BaseNode* GetRearNode();
     void ClearDataQueue();
     // Child Node should implements methods below.
-    virtual BaseNodeID GetNodeID() = 0;
+    virtual BaseNodeID GetNodeID();
     virtual ImsMediaResult Start() = 0;
     virtual void Stop() = 0;
     virtual bool IsRunTime() = 0;
@@ -90,8 +89,8 @@ protected:
     BaseSessionCallback* mCallback;
     kBaseNodeState mNodeState;
     ImsMediaDataQueue mDataQueue;
-    std::list<BaseNode*> mFrontNodeList;
-    std::list<BaseNode*> mRearNodeList;
+    BaseNode* mFrontNode;
+    BaseNode* mRearNode;
     ImsMediaType mMediaType;
 };
 

@@ -50,7 +50,7 @@ private:
     int32_t mCodecType;
     uint32_t mMode;
     std::mutex mMutex;
-    ImsMediaCondition mCond;
+    ImsMediaCondition mCondition;
     bool mFirstFrame;
     int32_t mEvsChannelAwOffset;
     kEvsBandwidth mEvsBandwidth;

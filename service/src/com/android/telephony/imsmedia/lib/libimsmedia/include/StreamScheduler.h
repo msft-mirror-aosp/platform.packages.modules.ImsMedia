@@ -43,7 +43,7 @@ private:
     std::list<BaseNode*> mlistRegisteredNode;
     std::list<BaseNode*> mlistNodeToRun;
     ImsMediaCondition mCondMain;
-    ImsMediaCondition mCondExit;
+    ImsMediaCondition mConditionExit;
     bool mbStarted;
     bool mbTerminate;
     bool mbStartPending;

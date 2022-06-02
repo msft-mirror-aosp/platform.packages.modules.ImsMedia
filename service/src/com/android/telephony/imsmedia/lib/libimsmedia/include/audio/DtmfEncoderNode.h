@@ -53,7 +53,8 @@ private:
     bool convertSignal(uint8_t digit, uint8_t& signal);
     uint32_t MakeDTMFPayload(
             uint8_t* pbPayload, uint8_t nEvent, bool bEnd, uint8_t nVolume, uint16_t nPeriod);
-    ImsMediaCondition mCond;
+    ImsMediaCondition mConditionDtmf;
+    ImsMediaCondition mConditionExit;
     std::mutex mMutex;
     std::list<uint8_t> mListDtmfDigit;
     bool mStopDtmf;

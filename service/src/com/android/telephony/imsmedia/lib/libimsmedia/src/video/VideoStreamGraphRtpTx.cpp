@@ -31,6 +31,7 @@ VideoStreamGraphRtpTx::VideoStreamGraphRtpTx(BaseSessionCallback* callback, int 
 {
     mConfig = NULL;
     mSurface = NULL;
+    mVideoMode = -1;
 }
 
 VideoStreamGraphRtpTx::~VideoStreamGraphRtpTx()
@@ -46,35 +47,55 @@ VideoStreamGraphRtpTx::~VideoStreamGraphRtpTx()
 ImsMediaResult VideoStreamGraphRtpTx::create(void* config)
 {
     IMLOGD0("[create]");
-    mConfig = new VideoConfig(reinterpret_cast<VideoConfig*>(config));
+    if (config == NULL)
+    {
+        return RESULT_INVALID_PARAM;
+    }
+
+    VideoConfig* pConfig = reinterpret_cast<VideoConfig*>(config);
+    if (pConfig->getVideoMode() == VideoConfig::VIDEO_MODE_PREVIEW)
+    {
+        return createPreviewMode(pConfig);
+    }
+
+    mConfig = new VideoConfig(pConfig);
+
     char localIp[MAX_IP_LEN];
     uint32_t localPort = 0;
     ImsMediaNetworkUtil::GetLocalIPPortFromSocketFD(mLocalFd, localIp, MAX_IP_LEN, localPort);
     RtpAddress localAddress(localIp, localPort);
 
     BaseNode* pNodeSource = BaseNode::Load(BaseNodeID::NODEID_VIDEOSOURCE, mCallback);
+
     if (pNodeSource == NULL)
+    {
         return RESULT_NOT_READY;
+    }
+
     pNodeSource->SetMediaType(IMS_MEDIA_VIDEO);
     pNodeSource->SetConfig(mConfig);
     AddNode(pNodeSource);
 
     BaseNode* pNodeRtpPayloadEncoder =
             BaseNode::Load(BaseNodeID::NODEID_RTPPAYLOAD_ENCODER_VIDEO, mCallback);
+
     if (pNodeRtpPayloadEncoder == NULL)
     {
         return RESULT_NOT_READY;
     }
+
     pNodeRtpPayloadEncoder->SetMediaType(IMS_MEDIA_VIDEO);
     pNodeRtpPayloadEncoder->SetConfig(mConfig);
     AddNode(pNodeRtpPayloadEncoder);
     pNodeSource->ConnectRearNode(pNodeRtpPayloadEncoder);
 
     BaseNode* pNodeRtpEncoder = BaseNode::Load(BaseNodeID::NODEID_RTPENCODER, mCallback);
+
     if (pNodeRtpEncoder == NULL)
     {
         return RESULT_NOT_READY;
     }
+
     pNodeRtpEncoder->SetMediaType(IMS_MEDIA_VIDEO);
     pNodeRtpEncoder->SetConfig(mConfig);
     ((RtpEncoderNode*)pNodeRtpEncoder)->SetLocalAddress(localAddress);
@@ -82,10 +103,12 @@ ImsMediaResult VideoStreamGraphRtpTx::create(void* config)
     pNodeRtpPayloadEncoder->ConnectRearNode(pNodeRtpEncoder);
 
     BaseNode* pNodeSocketWriter = BaseNode::Load(BaseNodeID::NODEID_SOCKETWRITER, mCallback);
+
     if (pNodeSocketWriter == NULL)
     {
         return RESULT_NOT_READY;
     }
+
     pNodeSocketWriter->SetMediaType(IMS_MEDIA_VIDEO);
     ((SocketWriterNode*)pNodeSocketWriter)->SetLocalFd(mLocalFd);
     ((SocketWriterNode*)pNodeSocketWriter)->SetLocalAddress(localAddress);
@@ -94,12 +117,14 @@ ImsMediaResult VideoStreamGraphRtpTx::create(void* config)
     AddNode(pNodeSocketWriter);
     pNodeRtpEncoder->ConnectRearNode(pNodeSocketWriter);
     setState(StreamState::kStreamStateCreated);
+    mVideoMode = pConfig->getVideoMode();
+
     return RESULT_SUCCESS;
 }
 
 ImsMediaResult VideoStreamGraphRtpTx::update(void* config)
 {
-    IMLOGD0("[update]");
+    IMLOGD1("[update] mode[%d]", mVideoMode);
     if (config == NULL)
     {
         return RESULT_INVALID_PARAM;
@@ -118,6 +143,32 @@ ImsMediaResult VideoStreamGraphRtpTx::update(void* config)
         delete mConfig;
     }
 
+    ImsMediaResult ret = RESULT_NOT_READY;
+
+    if (pConfig->getVideoMode() != mVideoMode &&
+            (mVideoMode == VideoConfig::VIDEO_MODE_PREVIEW ||
+                    pConfig->getVideoMode() == VideoConfig::VIDEO_MODE_PREVIEW))
+    {
+        ret = stop();
+        if (ret != RESULT_SUCCESS)
+        {
+            return ret;
+        }
+
+        /** delete nodes */
+        deleteNodes();
+        mSurface = NULL;
+
+        /** create nodes */
+        ret = create(pConfig);
+        if (ret != RESULT_SUCCESS)
+        {
+            return ret;
+        }
+
+        return start();
+    }
+
     mConfig = new VideoConfig(pConfig);
 
     if (mConfig->getMediaDirection() == RtpConfig::MEDIA_DIRECTION_NO_FLOW ||
@@ -127,7 +178,7 @@ ImsMediaResult VideoStreamGraphRtpTx::update(void* config)
         return stop();
     }
 
-    ImsMediaResult ret = RESULT_NOT_READY;
+    ret = RESULT_NOT_READY;
 
     if (mGraphState == kStreamStateRunning)
     {
@@ -220,6 +271,32 @@ void VideoStreamGraphRtpTx::setSurface(ANativeWindow* surface)
     }
 }
 
+ImsMediaResult VideoStreamGraphRtpTx::createPreviewMode(void* config)
+{
+    if (config == NULL)
+    {
+        return RESULT_INVALID_PARAM;
+    }
+
+    IMLOGD0("[createPreviewMode]");
+    mConfig = new VideoConfig(reinterpret_cast<VideoConfig*>(config));
+
+    BaseNode* pNodeSource = BaseNode::Load(BaseNodeID::NODEID_VIDEOSOURCE, mCallback);
+
+    if (pNodeSource == NULL)
+    {
+        return RESULT_NOT_READY;
+    }
+
+    pNodeSource->SetMediaType(IMS_MEDIA_VIDEO);
+    pNodeSource->SetConfig(mConfig);
+    AddNode(pNodeSource);
+    setState(StreamState::kStreamStateCreated);
+    mVideoMode = VideoConfig::VIDEO_MODE_PREVIEW;
+
+    return RESULT_SUCCESS;
+}
+
 void VideoStreamGraphRtpTx::processStart()
 {
     IMLOGD0("[processStart]");
@@ -227,8 +304,9 @@ void VideoStreamGraphRtpTx::processStart()
 
     VideoConfig* pConfig = reinterpret_cast<VideoConfig*>(mConfig);
 
-    if (pConfig->getMediaDirection() == RtpConfig::MEDIA_DIRECTION_NO_FLOW ||
-        pConfig->getMediaDirection() == RtpConfig::MEDIA_DIRECTION_RECEIVE_ONLY)
+    if (pConfig->getVideoMode() != VideoConfig::VIDEO_MODE_PREVIEW &&
+            (pConfig->getMediaDirection() == RtpConfig::MEDIA_DIRECTION_NO_FLOW ||
+                    pConfig->getMediaDirection() == RtpConfig::MEDIA_DIRECTION_RECEIVE_ONLY))
     {
         IMLOGD1("[processStart] direction[%d] no need to start", pConfig->getMediaDirection());
         mMutex.unlock();
@@ -252,16 +330,12 @@ void VideoStreamGraphRtpTx::processStart()
     }
 
     mStartResult = startNodes();
-    if (mStartResult == RESULT_SUCCESS)
+    if (mStartResult != RESULT_SUCCESS)
     {
-        setState(StreamState::kStreamStateRunning);
-    }
-    else
-    {
-        setState(StreamState::kStreamStateCreated);
         mCallback->SendEvent(kImsMediaEventNotifyError, mStartResult, kStreamModeRtpTx);
     }
 
+    setState(StreamState::kStreamStateRunning);
     mMutex.unlock();
 }
 

@@ -37,6 +37,7 @@ protected:
     virtual void RemoveNode(BaseNode* pNode);
     virtual ImsMediaResult startNodes();
     virtual ImsMediaResult stopNodes();
+    virtual void deleteNodes();
 
 public:
     BaseStreamGraph(BaseSessionCallback* callback, int localFd = 0);

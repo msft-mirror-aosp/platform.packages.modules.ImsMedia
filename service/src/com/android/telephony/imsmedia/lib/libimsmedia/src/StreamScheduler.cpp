@@ -31,7 +31,10 @@ StreamScheduler::StreamScheduler()
     mbStartPending = false;
 }
 
-StreamScheduler::~StreamScheduler() {}
+StreamScheduler::~StreamScheduler()
+{
+    Stop();
+}
 
 void StreamScheduler::RegisterNode(BaseNode* pNode)
 {
@@ -136,7 +139,7 @@ void StreamScheduler::Stop()
         mbTerminate = true;
         mbStarted = false;
         Awake();
-        mCondExit.wait_timeout(RUN_WAIT_TIMEOUT * 2);
+        mConditionExit.wait_timeout(RUN_WAIT_TIMEOUT * 2);
     }
 
     IMLOGD1("[Stop] [%p] exit", this);
@@ -232,7 +235,7 @@ void* StreamScheduler::run()
         IMLOGD_PACKET1(IM_PACKET_LOG_SCHEDULER, "[run] [%p] mCondMain.wait_timeout return", this);
     }
     IMLOGD1("[run] [%p] send exit signal", this);
-    mCondExit.signal();
+    mConditionExit.signal();
     IMLOGD1("[run] [%p] exit", this);
     return NULL;
 }

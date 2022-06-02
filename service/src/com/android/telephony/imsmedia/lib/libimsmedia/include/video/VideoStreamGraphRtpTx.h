@@ -36,12 +36,14 @@ public:
     virtual void OnEvent(int32_t type, uint64_t param1, uint64_t param2);
 
 private:
+    ImsMediaResult createPreviewMode(void* config);
     void processStart();
 
     ImsMediaCondition mCondition;
     std::mutex mMutex;
     ANativeWindow* mSurface;
     ImsMediaResult mStartResult;
+    int32_t mVideoMode;
 };
 
 #endif

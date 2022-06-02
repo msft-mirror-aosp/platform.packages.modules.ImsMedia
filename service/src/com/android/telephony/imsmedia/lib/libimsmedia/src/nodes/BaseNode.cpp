@@ -80,7 +80,12 @@ uint32_t GetNumOfNodeList()
 
 BaseNode::BaseNode()
 {
+    mScheduler = NULL;
+    mCallback = NULL;
     mNodeState = kNodeStateStopped;
+    mFrontNode = NULL;
+    mRearNode = NULL;
+    mMediaType = IMS_MEDIA_AUDIO;
 }
 
 BaseNode::~BaseNode()
@@ -124,14 +129,8 @@ void BaseNode::UnLoad(BaseNode* pNode)
         if (gNodeList[i].NodeID == eID)
         {
             // disconnect front/rear nodes
-            for (auto& i : *pNode->GetFrontNodeList())
-            {
-                pNode->DisconnectFrontNode(i);
-            }
-            for (auto& i : *pNode->GetRearNodeList())
-            {
-                pNode->DisconnectRearNode(i);
-            }
+            pNode->DisconnectFrontNode(pNode->GetFrontNode());
+            pNode->DisconnectRearNode(pNode->GetRearNode());
             // delete object
             gNodeList[i].DeleteInstance(pNode);
         }
@@ -156,66 +155,59 @@ void BaseNode::ConnectRearNode(BaseNode* pRearNode)
         return;
     }
 
-    IMLOGD3("type[%d] connect nodes [%s] -> [%s]", this->GetMediaType(), this->GetNodeName(),
+    IMLOGD3("type[%d] connect nodes [%s] -> [%s]", mMediaType, GetNodeName(),
             pRearNode->GetNodeName());
-    mRearNodeList.push_back(pRearNode);
-    pRearNode->mFrontNodeList.push_back(this);
+    mRearNode = pRearNode;
+    pRearNode->mFrontNode = this;
 }
 
 void BaseNode::DisconnectRearNode(BaseNode* pRearNode)
 {
     if (pRearNode == NULL)
     {
-        IMLOGE0("DisConnnectRearNode - pRearNode is NULL");
+        mRearNode = NULL;
         return;
     }
 
-    IMLOGD3("DisConnnectRearNode] type[%s] disconnect nodes[%s] from[%s]", this->GetMediaType(),
-            this->GetNodeName(), pRearNode->GetNodeName());
+    IMLOGD3("DisConnnectRearNode] type[%d] disconnect nodes[%s] from[%s]", mMediaType,
+            GetNodeName(), pRearNode->GetNodeName());
 
-    mRearNodeList.pop_front();
-    pRearNode->mFrontNodeList.pop_front();
+    mRearNode = NULL;
+    pRearNode->mFrontNode = NULL;
 }
 
 void BaseNode::DisconnectFrontNode(BaseNode* pFrontNode)
 {
     if (pFrontNode == NULL)
     {
-        IMLOGE0("DisconnectFrontNode - pFrontNode is NULL");
+        mFrontNode = NULL;
         return;
     }
-    IMLOGD3("DisconnectFrontNode - type[%s] disconnect nodes[%s] from[%s]", this->GetMediaType(),
-            pFrontNode->GetNodeName(), this->GetNodeName());
-    mFrontNodeList.pop_front();
-    pFrontNode->mRearNodeList.pop_front();
+    IMLOGD3("DisconnectFrontNode] type[%d] disconnect nodes[%s] from[%s]", mMediaType,
+            pFrontNode->GetNodeName(), GetNodeName());
+    mFrontNode = NULL;
+    pFrontNode->mRearNode = NULL;
 }
 
-std::list<BaseNode*>* BaseNode::GetFrontNodeList()
+BaseNode* BaseNode::GetFrontNode()
 {
-    return &mFrontNodeList;
+    return mFrontNode;
 }
 
-std::list<BaseNode*>* BaseNode::GetRearNodeList()
+BaseNode* BaseNode::GetRearNode()
 {
-    return &mRearNodeList;
-}
-
-void BaseNode::ConnectRearNodeList(std::list<BaseNode*>* pRearNodeList)
-{
-    if (pRearNodeList == NULL)
-    {
-        IMLOGE0("ConnectRearNodeList] Error - pRearNodeList is NULL");
-        return;
-    }
-    for (auto& i : *pRearNodeList)
-    {
-        ConnectRearNode(i);
-    }
+    return mRearNode;
 }
 
 void BaseNode::ClearDataQueue()
 {
     mDataQueue.Clear();
+}
+
+BaseNodeID BaseNode::GetNodeID()
+{
+    IMLOGW0("[GetNodeID] Error - base method");
+    return NODEID_MAX;
 }
 
 void BaseNode::SetConfig(void* config)
@@ -361,18 +353,24 @@ void BaseNode::SendDataToRearNode(ImsMediaSubType subtype, uint8_t* pData, uint3
         uint32_t nTimestamp, bool bMark, uint32_t nSeqNum, ImsMediaSubType nDataType)
 {
     bool nNeedRunCount = false;
-    for (auto& i : mRearNodeList)
+    if (mRearNode)
     {
-        if (i->mNodeState == kNodeStateRunning)
+        if (mRearNode->mNodeState == kNodeStateRunning)
         {
-            i->OnDataFromFrontNode(
+            mRearNode->OnDataFromFrontNode(
                     subtype, pData, nDataSize, nTimestamp, bMark, nSeqNum, nDataType);
-            if (i->IsRunTime() == false)
+
+            if (mRearNode->IsRunTime() == false)
+            {
                 nNeedRunCount = true;
+            }
         }
     }
+
     if (nNeedRunCount == true && mScheduler != NULL)
+    {
         mScheduler->onAwakeScheduler();
+    }
 }
 
 void BaseNode::OnDataFromFrontNode(ImsMediaSubType subtype, uint8_t* pData, uint32_t nDataSize,

@@ -18,6 +18,7 @@
 #define IMS_MEDIA_CONDITION_H
 
 #include <stdint.h>
+#include <pthread.h>
 
 /**
  *    @class        ImsMediaCondition
@@ -26,8 +27,8 @@
 class ImsMediaCondition
 {
 private:
-    void* mCond;
-    void* mMutex;
+    pthread_mutex_t* mMutex;
+    pthread_cond_t* mCondition;
     uint32_t mWaitFlag;
     uint32_t mSignalFlag;
     uint32_t mWaitCount;

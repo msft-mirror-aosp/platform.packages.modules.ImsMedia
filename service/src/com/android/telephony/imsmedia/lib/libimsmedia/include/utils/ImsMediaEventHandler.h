@@ -39,8 +39,8 @@ private:
     std::list<uint64_t> mListParamC;
     static std::list<ImsMediaEventHandler*> gListEventHandler;
     static std::mutex mMutex;
-    ImsMediaCondition mCond;
-    ImsMediaCondition mCondExit;
+    ImsMediaCondition mCondition;
+    ImsMediaCondition mConditionExit;
     bool mbTerminate;
     char mName[MAX_EVENTHANDLER_NAME];
     std::mutex mMutexEvent;

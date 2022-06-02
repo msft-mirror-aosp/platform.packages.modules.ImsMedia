@@ -52,8 +52,12 @@ ImsMediaResult VideoStreamGraphRtpRx::create(void* config)
     RtpAddress localAddress(localIp, localPort);
 
     BaseNode* pNodeSocketReader = BaseNode::Load(BaseNodeID::NODEID_SOCKETREADER, mCallback);
+
     if (pNodeSocketReader == NULL)
+    {
         return RESULT_NOT_READY;
+    }
+
     pNodeSocketReader->SetMediaType(IMS_MEDIA_VIDEO);
     ((SocketReaderNode*)pNodeSocketReader)->SetLocalFd(mLocalFd);
     ((SocketReaderNode*)pNodeSocketReader)->SetLocalAddress(localAddress);
@@ -62,8 +66,12 @@ ImsMediaResult VideoStreamGraphRtpRx::create(void* config)
     AddNode(pNodeSocketReader);
 
     BaseNode* pNodeRtpDecoder = BaseNode::Load(BaseNodeID::NODEID_RTPDECODER, mCallback);
+
     if (pNodeRtpDecoder == NULL)
+    {
         return RESULT_NOT_READY;
+    }
+
     pNodeRtpDecoder->SetMediaType(IMS_MEDIA_VIDEO);
     pNodeRtpDecoder->SetConfig(mConfig);
     ((RtpDecoderNode*)pNodeRtpDecoder)->SetLocalAddress(localAddress);
@@ -72,22 +80,28 @@ ImsMediaResult VideoStreamGraphRtpRx::create(void* config)
 
     BaseNode* pNodeRtpPayloadDecoder =
             BaseNode::Load(BaseNodeID::NODEID_RTPPAYLOAD_DECODER_VIDEO, mCallback);
+
     if (pNodeRtpPayloadDecoder == NULL)
+    {
         return RESULT_NOT_READY;
+    }
+
     pNodeRtpPayloadDecoder->SetMediaType(IMS_MEDIA_VIDEO);
     pNodeRtpPayloadDecoder->SetConfig(mConfig);
     AddNode(pNodeRtpPayloadDecoder);
     pNodeRtpDecoder->ConnectRearNode(pNodeRtpPayloadDecoder);
 
     BaseNode* pNodeRenderer = BaseNode::Load(BaseNodeID::NODEID_VIDEORENDERER, mCallback);
+
     if (pNodeRenderer == NULL)
+    {
         return RESULT_NOT_READY;
+    }
     pNodeRenderer->SetMediaType(IMS_MEDIA_VIDEO);
     pNodeRenderer->SetConfig(mConfig);
     AddNode(pNodeRenderer);
     pNodeRtpPayloadDecoder->ConnectRearNode(pNodeRenderer);
     setState(StreamState::kStreamStateCreated);
-
     return RESULT_SUCCESS;
 }
 
@@ -95,7 +109,9 @@ ImsMediaResult VideoStreamGraphRtpRx::update(void* config)
 {
     IMLOGD0("[update]");
     if (config == NULL)
+    {
         return RESULT_INVALID_PARAM;
+    }
 
     VideoConfig* pConfig = reinterpret_cast<VideoConfig*>(config);
 
@@ -265,15 +281,14 @@ void VideoStreamGraphRtpRx::processStart()
     }
 
     mStartResult = startNodes();
-    if (mStartResult == RESULT_SUCCESS)
-    {
-        setState(StreamState::kStreamStateRunning);
-    }
-    else
+    if (mStartResult != RESULT_SUCCESS)
     {
         setState(StreamState::kStreamStateCreated);
         mCallback->SendEvent(kImsMediaEventNotifyError, mStartResult, kStreamModeRtpRx);
+        mMutex.unlock();
+        return;
     }
 
+    setState(StreamState::kStreamStateRunning);
     mMutex.unlock();
 }

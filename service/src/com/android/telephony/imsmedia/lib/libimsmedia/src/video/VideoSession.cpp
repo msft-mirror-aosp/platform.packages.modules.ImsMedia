@@ -27,6 +27,8 @@ VideoSession::VideoSession()
     mGraphRtpTx = NULL;
     mGraphRtpRx = NULL;
     mGraphRtcp = NULL;
+    mPreviewSurface = NULL;
+    mDisplaySurface = NULL;
 }
 
 VideoSession::~VideoSession()
@@ -103,11 +105,7 @@ ImsMediaResult VideoSession::startGraph(void* config)
         return RESULT_INVALID_PARAM;
     }
 
-    if (std::strcmp(reinterpret_cast<VideoConfig*>(config)->getRemoteAddress().c_str(), "") == 0)
-    {
-        return RESULT_INVALID_PARAM;
-    }
-
+    VideoConfig* pConfig = reinterpret_cast<VideoConfig*>(config);
     ImsMediaResult ret = RESULT_NOT_READY;
 
     if (mGraphRtpTx != NULL)
@@ -117,6 +115,11 @@ ImsMediaResult VideoSession::startGraph(void* config)
         {
             IMLOGE1("[startGraph] update error[%d]", ret);
             return ret;
+        }
+
+        if (mPreviewSurface != NULL)
+        {
+            mGraphRtpTx->setSurface(mPreviewSurface);
         }
     }
     else
@@ -131,7 +134,18 @@ ImsMediaResult VideoSession::startGraph(void* config)
                 IMLOGE1("[startGraph] start error[%d]", ret);
                 return ret;
             }
+
+            if (mPreviewSurface != NULL)
+            {
+                mGraphRtpTx->setSurface(mPreviewSurface);
+            }
         }
+    }
+
+    if (pConfig->getVideoMode() == VideoConfig::VIDEO_MODE_PREVIEW &&
+            std::strcmp(pConfig->getRemoteAddress().c_str(), "") == 0)
+    {
+        return RESULT_SUCCESS;
     }
 
     if (mGraphRtpRx != NULL)
@@ -141,6 +155,11 @@ ImsMediaResult VideoSession::startGraph(void* config)
         {
             IMLOGE1("[startGraph] update error[%d]", ret);
             return ret;
+        }
+
+        if (mDisplaySurface != NULL)
+        {
+            mGraphRtpRx->setSurface(mDisplaySurface);
         }
     }
     else
@@ -155,6 +174,11 @@ ImsMediaResult VideoSession::startGraph(void* config)
             {
                 IMLOGE1("[startGraph] start error[%d]", ret);
                 return ret;
+            }
+
+            if (mDisplaySurface != NULL)
+            {
+                mGraphRtpRx->setSurface(mDisplaySurface);
             }
         }
     }
@@ -241,32 +265,32 @@ void VideoSession::onEvent(int32_t type, uint64_t param1, uint64_t param2)
 
 ImsMediaResult VideoSession::setPreviewSurface(ANativeWindow* surface)
 {
-    if (mGraphRtpTx == NULL)
-    {
-        return RESULT_NOT_READY;
-    }
-
     if (surface == NULL)
     {
         return RESULT_INVALID_PARAM;
     }
 
-    mGraphRtpTx->setSurface(surface);
+    mPreviewSurface = surface;
+
+    if (mGraphRtpTx != NULL)
+    {
+        mGraphRtpTx->setSurface(surface);
+    }
     return RESULT_SUCCESS;
 }
 
 ImsMediaResult VideoSession::setDisplaySurface(ANativeWindow* surface)
 {
-    if (mGraphRtpRx == NULL)
-    {
-        return RESULT_NOT_READY;
-    }
-
     if (surface == NULL)
     {
         return RESULT_INVALID_PARAM;
     }
 
-    mGraphRtpRx->setSurface(surface);
+    mDisplaySurface = surface;
+
+    if (mGraphRtpRx != NULL)
+    {
+        mGraphRtpRx->setSurface(surface);
+    }
     return RESULT_SUCCESS;
 }
