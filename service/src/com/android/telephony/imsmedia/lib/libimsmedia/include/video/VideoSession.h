@@ -41,6 +41,8 @@ private:
     VideoStreamGraphRtpTx* mGraphRtpTx;
     VideoStreamGraphRtpRx* mGraphRtpRx;
     VideoStreamGraphRtcp* mGraphRtcp;
+    ANativeWindow* mPreviewSurface;
+    ANativeWindow* mDisplaySurface;
 };
 
 #endif

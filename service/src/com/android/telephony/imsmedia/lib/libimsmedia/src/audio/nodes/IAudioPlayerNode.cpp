@@ -94,7 +94,7 @@ void IAudioPlayerNode::Stop()
     }
     StopThread();
     mMutex.unlock();
-    mCond.wait();
+    mCondition.wait();
     mNodeState = kNodeStateStopped;
 }
 
@@ -185,7 +185,7 @@ void* IAudioPlayerNode::run()
         {
             IMLOGD0("[run] exit");
             mMutex.unlock();
-            mCond.signal();
+            mCondition.signal();
             break;
         }
 
@@ -218,7 +218,6 @@ void* IAudioPlayerNode::run()
             continue;
         }
 
-        IMLOGD_PACKET1(IM_PACKET_LOG_AUDIO, "[Run] wait[%d]", nTime);
         ImsMediaTimer::USleep(nTime);
     }
     return NULL;

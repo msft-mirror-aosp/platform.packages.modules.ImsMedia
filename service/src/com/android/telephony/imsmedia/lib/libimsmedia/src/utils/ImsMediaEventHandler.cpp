@@ -40,8 +40,8 @@ ImsMediaEventHandler::~ImsMediaEventHandler()
     mListParamB.clear();
     mListParamC.clear();
     mbTerminate = true;
-    mCond.signal();
-    mCondExit.wait();
+    mCondition.signal();
+    mConditionExit.wait();
 
     if (IsMyThread())
     {
@@ -87,7 +87,7 @@ void ImsMediaEventHandler::AddEvent(
     // unlock
     mMutexEvent.unlock();
     IMLOGD0("[AddEvent] signal");
-    mCond.signal();
+    mCondition.signal();
     IMLOGD0("[AddEvent] exit");
 }
 
@@ -97,7 +97,7 @@ void* ImsMediaEventHandler::run()
     for (;;)
     {
         IMLOGD0("[run] wait");
-        mCond.wait();
+        mCondition.wait();
         for (;;)
         {
             // lock
@@ -130,7 +130,7 @@ void* ImsMediaEventHandler::run()
 
     bool bSelfDestroy = IsThreadStopped();
     IMLOGD1("[run] exit, %p", this);
-    mCondExit.signal();
+    mConditionExit.signal();
 
     if (bSelfDestroy)
     {

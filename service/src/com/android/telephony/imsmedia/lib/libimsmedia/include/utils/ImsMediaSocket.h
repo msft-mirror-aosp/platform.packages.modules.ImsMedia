@@ -65,7 +65,7 @@ private:
     static std::mutex sMutexRxSocket;
     static std::mutex sMutexSocketList;
     static std::mutex sMutexSocketMonitorThread;
-    static ImsMediaCondition mCondExit;
+    static ImsMediaCondition mConditionExit;
     // local end point
     char mPeerIPBin[MAX_IP_LEN];
     int32_t mSocketFd;

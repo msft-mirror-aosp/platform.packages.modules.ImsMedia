@@ -43,8 +43,12 @@ ImsMediaResult VideoStreamGraphRtcp::create(void* config)
     IMLOGD0("[createGraph]");
     mConfig = new VideoConfig(reinterpret_cast<VideoConfig*>(config));
     BaseNode* pNodeRtcpEncoder = BaseNode::Load(BaseNodeID::NODEID_RTCPENCODER, mCallback);
+
     if (pNodeRtcpEncoder == NULL)
+    {
         return RESULT_NOT_READY;
+    }
+
     pNodeRtcpEncoder->SetMediaType(IMS_MEDIA_VIDEO);
     char localIp[MAX_IP_LEN];
     uint32_t localPort = 0;
@@ -55,8 +59,12 @@ ImsMediaResult VideoStreamGraphRtcp::create(void* config)
     AddNode(pNodeRtcpEncoder);
 
     BaseNode* pNodeSocketWriter = BaseNode::Load(BaseNodeID::NODEID_SOCKETWRITER, mCallback);
+
     if (pNodeSocketWriter == NULL)
+    {
         return RESULT_NOT_READY;
+    }
+
     pNodeSocketWriter->SetMediaType(IMS_MEDIA_VIDEO);
     ((SocketWriterNode*)pNodeSocketWriter)->SetLocalFd(mLocalFd);
     ((SocketWriterNode*)pNodeSocketWriter)->SetLocalAddress(RtpAddress(localIp, localPort));
@@ -64,11 +72,14 @@ ImsMediaResult VideoStreamGraphRtcp::create(void* config)
     pNodeSocketWriter->SetConfig(config);
     AddNode(pNodeSocketWriter);
     pNodeRtcpEncoder->ConnectRearNode(pNodeSocketWriter);
-    setState(StreamState::kStreamStateCreated);
 
     BaseNode* pNodeSocketReader = BaseNode::Load(BaseNodeID::NODEID_SOCKETREADER, mCallback);
+
     if (pNodeSocketReader == NULL)
+    {
         return RESULT_NOT_READY;
+    }
+
     pNodeSocketReader->SetMediaType(IMS_MEDIA_VIDEO);
     ((SocketReaderNode*)pNodeSocketReader)->SetLocalFd(mLocalFd);
     ((SocketReaderNode*)pNodeSocketReader)->SetLocalAddress(RtpAddress(localIp, localPort));
@@ -77,13 +88,18 @@ ImsMediaResult VideoStreamGraphRtcp::create(void* config)
     AddNode(pNodeSocketReader);
 
     BaseNode* pNodeRtcpDecoder = BaseNode::Load(BaseNodeID::NODEID_RTCPDECODER, mCallback);
+
     if (pNodeRtcpDecoder == NULL)
+    {
         return RESULT_NOT_READY;
+    }
+
     pNodeRtcpDecoder->SetMediaType(IMS_MEDIA_VIDEO);
     ((RtcpDecoderNode*)pNodeRtcpDecoder)->SetLocalAddress(localAddress);
     pNodeRtcpDecoder->SetConfig(config);
     AddNode(pNodeRtcpDecoder);
     pNodeSocketReader->ConnectRearNode(pNodeRtcpDecoder);
+    setState(StreamState::kStreamStateCreated);
     return ImsMediaResult::RESULT_SUCCESS;
 }
 

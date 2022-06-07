@@ -75,7 +75,7 @@ private:
 
     std::unique_ptr<ImsMediaVideoRenderer> mVideoRenderer;
     ANativeWindow* mWindow;
-    ImsMediaCondition mCond;
+    ImsMediaCondition mCondition;
     std::mutex mMutex;
     int32_t mCodecType;
     uint32_t mWidth;
