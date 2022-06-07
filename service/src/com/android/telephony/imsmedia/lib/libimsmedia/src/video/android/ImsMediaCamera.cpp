@@ -88,6 +88,7 @@ ImsMediaCamera::ImsMediaCamera() :
         mCameraZoom(0),
         mFramerate(-1)
 {
+    IMLOGD0("[ImsMediaCamera]");
     mValid = false;
     mCameraIds.clear();
     mManager = ACameraManager_create();
@@ -106,6 +107,13 @@ ImsMediaCamera::ImsMediaCamera() :
 ImsMediaCamera::~ImsMediaCamera()
 {
     mValid = false;
+    for (auto& cam : mCameraIds)
+    {
+        if (cam.second.mDevice)
+        {
+            ACameraDevice_close(cam.second.mDevice);
+        }
+    }
     mCameraIds.clear();
     if (mManager)
     {
@@ -113,9 +121,11 @@ ImsMediaCamera::~ImsMediaCamera()
         ACameraManager_delete(mManager);
         mManager = NULL;
     }
+
+    IMLOGD0("[~ImsMediaCamera]");
 }
 
-void ImsMediaCamera::OpenCamera()
+bool ImsMediaCamera::OpenCamera()
 {
     // Create back facing camera device
     camera_status_t status = ACameraManager_openCamera(mManager, mActiveCameraId.c_str(),
@@ -124,14 +134,17 @@ void ImsMediaCamera::OpenCamera()
     if (status != ACAMERA_OK)
     {
         IMLOGE1("[OpenCamera] cannot open camera, error[%s]", GetErrorStr(status));
-        return;
+        return false;
     }
 
     status = ACameraManager_registerAvailabilityCallback(mManager, GetManagerListener());
     if (status != ACAMERA_OK)
     {
         IMLOGE1("[OpenCamera] fail to register manager callback, error[%s]", GetErrorStr(status));
+        return false;
     }
+
+    mValid = true;
 
     // Initialize camera controls(exposure time and sensitivity), pick
     // up value of 2% * range + min as starting value (just a number, no magic)
@@ -178,18 +191,7 @@ void ImsMediaCamera::OpenCamera()
         mSensitivity = 0;
     }
 
-    mValid = true;
-}
-
-void ImsMediaCamera::CloseCamera()
-{
-    if (mCameraIds[mActiveCameraId].mAvailable == false)
-        return;
-    IMLOGD1("[CloseCamera] id[%s]", mActiveCameraId.c_str());
-    ACameraDevice_close(mCameraIds[mActiveCameraId].mDevice);
-    mCameraIds[mActiveCameraId].mDevice = NULL;
-    mActiveCameraId = std::string("");
-    mValid = false;
+    return true;
 }
 
 void ImsMediaCamera::SetCameraConfig(int32_t cameraId, int32_t cameraZoom, int32_t framerate)
@@ -293,6 +295,8 @@ void ImsMediaCamera::CreateSession(ANativeWindow* preview, ANativeWindow* record
         IMLOGE1("[CreateSession] create capture session, error[%s]", GetErrorStr(status));
     }
 
+    IMLOGD1("[CreateSession] create capture session[%p]", mCaptureSession);
+
     /*
         uint8_t aeModeOff = ACAMERA_CONTROL_AE_MODE_OFF;
         ACaptureRequest_setEntry_u8(mCaptureRequest.request,
@@ -393,19 +397,21 @@ void ImsMediaCamera::StopSession()
  */
 void OnCameraAvailable(void* context, const char* id)
 {
+    IMLOGD1("[OnCameraAvailable] id[%s]", id == NULL ? "NULL" : id);
     reinterpret_cast<ImsMediaCamera*>(context)->OnCameraStatusChanged(id, true);
 }
 void OnCameraUnavailable(void* context, const char* id)
 {
+    IMLOGD1("[OnCameraUnavailable] id[%s]", id == NULL ? "NULL" : id);
     reinterpret_cast<ImsMediaCamera*>(context)->OnCameraStatusChanged(id, false);
 }
 
 void ImsMediaCamera::OnCameraStatusChanged(const char* id, bool available)
 {
-    if (mValid)
+    IMLOGD2("[OnCameraStatusChanged] id[%s], available[%d]", id == NULL ? "NULL" : id, available);
+    if (id != NULL && mValid)
     {
-        IMLOGD2("[OnCameraStatusChanged] id[%s], availablep[%d]", id, available);
-        mCameraIds[std::string(id)].mAvailable = available ? true : false;
+        mCameraIds[std::string(id)].mAvailable = available;
     }
 }
 
@@ -454,6 +460,7 @@ void ImsMediaCamera::OnDeviceState(ACameraDevice* dev)
     IMLOGW1("[OnDeviceState] device %s is disconnected", id.c_str());
     mCameraIds[id].mAvailable = false;
     ACameraDevice_close(mCameraIds[id].mDevice);
+    mCameraIds.erase(id);
 }
 
 /*

@@ -192,11 +192,20 @@ bool ImsMediaVideoSource::Start()
     {
         mCamera = new ImsMediaCamera();
         mCamera->SetCameraConfig(mCameraId, mCameraZoom, mFramerate);
-        mCamera->OpenCamera();
+        if (!mCamera->OpenCamera())
+        {
+            IMLOGE0("[Start] error open camera");
+            AMediaCodec_delete(mCodec);
+            mCodec = NULL;
+            AMediaFormat_delete(mFormat);
+            mFormat = NULL;
+            return false;
+        }
+
         mCamera->CreateSession(mWindow, mRecordingSurface);
         if (mCamera->StartSession(mVideoMode == kVideoModeRecording ? true : false) == false)
         {
-            IMLOGE0("[Start] camera start");
+            IMLOGE0("[Start] error camera start");
             AMediaCodec_delete(mCodec);
             mCodec = NULL;
             AMediaFormat_delete(mFormat);
@@ -206,7 +215,6 @@ bool ImsMediaVideoSource::Start()
     }
 
     // start encoder output thread
-    IMLOGD0("[Start] test thread");
     std::thread t1(&ImsMediaVideoSource::processOutputBuffer, this);
     t1.detach();
 
@@ -233,7 +241,6 @@ void ImsMediaVideoSource::Stop()
     if (mCamera != NULL)
     {
         mCamera->DeleteSession();
-        mCamera->CloseCamera();
         delete mCamera;
         mCamera = NULL;
     }
