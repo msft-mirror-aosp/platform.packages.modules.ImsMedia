@@ -93,7 +93,7 @@ ImsMediaResult RtpEncoderNode::Start()
         }
     }
     mRtpSession->SetRtpEncoderListener(this);
-    mRtpSession->SetPayloadParam(mConfig);
+    mRtpSession->SetRtpPayloadParam(mConfig);
     mRtpSession->StartRtp();
     mDTMFMode = false;
     mAudioMark = true;

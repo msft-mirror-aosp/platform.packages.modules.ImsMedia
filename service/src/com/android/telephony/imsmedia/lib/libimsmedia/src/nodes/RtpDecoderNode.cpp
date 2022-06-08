@@ -29,7 +29,14 @@ RtpDecoderNode::RtpDecoderNode()
     mCvoValue = CVO_DEFINE_NONE;
 }
 
-RtpDecoderNode::~RtpDecoderNode() {}
+RtpDecoderNode::~RtpDecoderNode()
+{
+    if (mConfig != NULL)
+    {
+        delete mConfig;
+        mConfig = NULL;
+    }
+}
 
 BaseNode* RtpDecoderNode::GetInstance()
 {
@@ -65,7 +72,7 @@ ImsMediaResult RtpDecoderNode::Start()
         }
     }
 
-    mRtpSession->SetPayloadParam(mConfig);
+    mRtpSession->SetRtpPayloadParam(mConfig);
     mRtpSession->SetRtpDecoderListener(this);
     mRtpSession->StartRtp();
     mReceivingSSRC = 0;

@@ -31,7 +31,7 @@ class RtpPayloadInfo
 {
 private:
     // payload type
-    RtpDt_UInt32 m_uiPayloadType[RTP_MAX_PAYLOAD_TYPE];
+    RtpDt_UInt32 m_uiPayloadType[RTP_MAX_PAYLOAD_TYPE] = {0};
     RtpDt_UInt32 m_uiSamplingRate;
 
 public:

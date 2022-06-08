@@ -94,9 +94,7 @@ public:
     void SetRtpDecoderListener(IRtpDecoderListener* pRtpDecoderListener);
     void SetRtcpEncoderListener(IRtcpEncoderListener* pRtcpEncoderListener);
     void SetRtcpDecoderListener(IRtcpDecoderListener* pRtcpDecoderListener);
-    void SetPayloadParam(RtpConfig* config);
     void SetRtpPayloadParam(RtpConfig* config);
-    void SetRtpDtmfPayloadParam(AudioConfig* config);
     void SetRtcpInterval(int32_t nInterval);
     void StartRtp();
     void StopRtp();
