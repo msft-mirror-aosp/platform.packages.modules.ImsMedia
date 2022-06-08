@@ -74,6 +74,9 @@ const char* GetErrorStr(camera_status_t err)
 static const uint64_t kMinExposureTime = static_cast<uint64_t>(1000000);
 static const uint64_t kMaxExposureTime = static_cast<uint64_t>(250000000);
 
+std::map<std::string, CameraId> ImsMediaCamera::gCameraIds;
+std::mutex ImsMediaCamera::gMutex;
+
 ImsMediaCamera::ImsMediaCamera() :
         mManager(NULL),
         mSessionOutputContainer(NULL),
@@ -89,8 +92,7 @@ ImsMediaCamera::ImsMediaCamera() :
         mFramerate(-1)
 {
     IMLOGD0("[ImsMediaCamera]");
-    mValid = false;
-    mCameraIds.clear();
+    gCameraIds.clear();
     mManager = ACameraManager_create();
     if (mManager == NULL)
     {
@@ -106,15 +108,16 @@ ImsMediaCamera::ImsMediaCamera() :
 
 ImsMediaCamera::~ImsMediaCamera()
 {
-    mValid = false;
-    for (auto& cam : mCameraIds)
+    IMLOGD0("[~ImsMediaCamera]");
+
+    for (auto& cam : gCameraIds)
     {
         if (cam.second.mDevice)
         {
             ACameraDevice_close(cam.second.mDevice);
         }
     }
-    mCameraIds.clear();
+
     if (mManager)
     {
         ACameraManager_unregisterAvailabilityCallback(mManager, GetManagerListener());
@@ -122,14 +125,17 @@ ImsMediaCamera::~ImsMediaCamera()
         mManager = NULL;
     }
 
-    IMLOGD0("[~ImsMediaCamera]");
+    gCameraIds.clear();
 }
 
 bool ImsMediaCamera::OpenCamera()
 {
+    IMLOGD0("[OpenCamera]");
+    std::lock_guard<std::mutex> guard(gMutex);
+
     // Create back facing camera device
     camera_status_t status = ACameraManager_openCamera(mManager, mActiveCameraId.c_str(),
-            GetDeviceListener(), &mCameraIds[mActiveCameraId].mDevice);
+            GetDeviceListener(), &gCameraIds[mActiveCameraId].mDevice);
 
     if (status != ACAMERA_OK)
     {
@@ -143,8 +149,6 @@ bool ImsMediaCamera::OpenCamera()
         IMLOGE1("[OpenCamera] fail to register manager callback, error[%s]", GetErrorStr(status));
         return false;
     }
-
-    mValid = true;
 
     // Initialize camera controls(exposure time and sensitivity), pick
     // up value of 2% * range + min as starting value (just a number, no magic)
@@ -199,7 +203,7 @@ void ImsMediaCamera::SetCameraConfig(int32_t cameraId, int32_t cameraZoom, int32
     cameraId = 1;
     IMLOGD3("[SetCameraConfig] id[%d], zoom[%d], FPS[%d]", cameraId, cameraZoom, framerate);
     uint32_t idx = 0;
-    for (std::map<std::string, CameraId>::iterator it = mCameraIds.begin(); it != mCameraIds.end();
+    for (std::map<std::string, CameraId>::iterator it = gCameraIds.begin(); it != gCameraIds.end();
             ++it)
     {
         if (idx == cameraId)
@@ -273,7 +277,7 @@ void ImsMediaCamera::CreateSession(ANativeWindow* preview, ANativeWindow* record
         }
     }
 
-    status = ACameraDevice_createCaptureRequest(mCameraIds[mActiveCameraId].mDevice,
+    status = ACameraDevice_createCaptureRequest(gCameraIds[mActiveCameraId].mDevice,
             mCaptureRequest.requestTemplate, &mCaptureRequest.request);
     if (status != ACAMERA_OK)
     {
@@ -288,7 +292,7 @@ void ImsMediaCamera::CreateSession(ANativeWindow* preview, ANativeWindow* record
 
     // Create a capture session for the given preview request
     mCaptureSessionState = CaptureSessionState::kStateReady;
-    status = ACameraDevice_createCaptureSession(mCameraIds[mActiveCameraId].mDevice,
+    status = ACameraDevice_createCaptureSession(gCameraIds[mActiveCameraId].mDevice,
             mSessionOutputContainer, GetSessionListener(), &mCaptureSession);
     if (status != ACAMERA_OK)
     {
@@ -316,18 +320,21 @@ void ImsMediaCamera::CreateSession(ANativeWindow* preview, ANativeWindow* record
 void ImsMediaCamera::DeleteSession()
 {
     IMLOGD0("[DeleteSession]");
-    std::lock_guard<std::mutex> guard(mMutex);
+    std::lock_guard<std::mutex> guard(gMutex);
 
     if (mCaptureSession != NULL)
     {
         IMLOGD0("[DeleteSession] session close");
         ACameraCaptureSession_close(mCaptureSession);
+        mCaptureSession = NULL;
     }
 
     for (int idxTarget = 0; idxTarget < mCaptureRequest.outputNativeWindows.size(); idxTarget++)
     {
         if (mCaptureRequest.outputNativeWindows[idxTarget] == NULL)
+        {
             continue;
+        }
 
         ACaptureRequest_removeTarget(mCaptureRequest.request, mCaptureRequest.targets[idxTarget]);
         ACameraOutputTarget_free(mCaptureRequest.targets[idxTarget]);
@@ -375,6 +382,7 @@ bool ImsMediaCamera::StartSession(bool bRecording)
 void ImsMediaCamera::StopSession()
 {
     IMLOGD1("[StopSession] state[%d]", mCaptureSessionState);
+
     if (mCaptureSessionState == CaptureSessionState::kStateActive)
     {
         /*
@@ -409,9 +417,13 @@ void OnCameraUnavailable(void* context, const char* id)
 void ImsMediaCamera::OnCameraStatusChanged(const char* id, bool available)
 {
     IMLOGD2("[OnCameraStatusChanged] id[%s], available[%d]", id == NULL ? "NULL" : id, available);
-    if (id != NULL && mValid)
+
+    if (id != NULL && mManager != NULL && !gCameraIds.empty())
     {
-        mCameraIds[std::string(id)].mAvailable = available;
+        if (gCameraIds.find(std::string(id)) != gCameraIds.end())
+        {
+            gCameraIds[std::string(id)].mAvailable = available;
+        }
     }
 }
 
@@ -458,9 +470,9 @@ void ImsMediaCamera::OnDeviceState(ACameraDevice* dev)
 {
     std::string id(ACameraDevice_getId(dev));
     IMLOGW1("[OnDeviceState] device %s is disconnected", id.c_str());
-    mCameraIds[id].mAvailable = false;
-    ACameraDevice_close(mCameraIds[id].mDevice);
-    mCameraIds.erase(id);
+    gCameraIds[id].mAvailable = false;
+    ACameraDevice_close(gCameraIds[id].mDevice);
+    gCameraIds.erase(id);
 }
 
 /*
@@ -493,7 +505,7 @@ void ImsMediaCamera::OnDeviceError(ACameraDevice* dev, int err)
     IMLOGE2("[OnDeviceError] CameraDevice %s is in error %#x", id.c_str(), err);
     PrintCameraDeviceError(err);
 
-    CameraId& cam = mCameraIds[id];
+    CameraId& cam = gCameraIds[id];
 
     switch (err)
     {
@@ -548,6 +560,15 @@ ACameraCaptureSession_stateCallbacks* ImsMediaCamera::GetSessionListener()
 
 void ImsMediaCamera::OnSessionState(ACameraCaptureSession* session, CaptureSessionState state)
 {
+    IMLOGD0("[OnSessionState]");
+    std::lock_guard<std::mutex> guard(gMutex);
+
+    if (mCaptureSession == NULL)
+    {
+        IMLOGW0("[OnSessionState] CaptureSession closed");
+        return;
+    }
+
     if (!session || session != mCaptureSession)
     {
         IMLOGW1("[OnSessionState] CaptureSession is %s", (session ? "NOT our session" : "NULL"));
@@ -568,7 +589,9 @@ void ImsMediaCamera::OnSessionState(ACameraCaptureSession* session, CaptureSessi
 void ImsMediaCamera::EnumerateCamera()
 {
     if (mManager == NULL)
+    {
         return;
+    }
 
     ACameraIdList* cameraIds = NULL;
     ACameraManager_getCameraIdList(mManager, &cameraIds);
@@ -593,14 +616,14 @@ void ImsMediaCamera::EnumerateCamera()
                         lensInfo.data.u8[0]);
                 cam.mOwner = false;
                 cam.mDevice = NULL;
-                mCameraIds[cam.mId] = cam;
+                gCameraIds[cam.mId] = cam;
                 IMLOGD2("[EnumerateCamera] cameraId[%s], facing[%d]", cam.mId.c_str(), cam.mFacing);
             }
         }
         ACameraMetadata_free(metadataObj);
     }
 
-    if (mCameraIds.size() == 0)
+    if (gCameraIds.size() == 0)
     {
         IMLOGD0("[EnumerateCamera] No Camera Available on the device");
     }
@@ -618,13 +641,13 @@ bool ImsMediaCamera::GetSensorOrientation(const int cameraId, int32_t* facing, i
     ACameraMetadata* metadataObj;
     std::string targetCameraId;
     uint32_t idx = 0;
-    for (std::map<std::string, CameraId>::iterator it = mCameraIds.begin(); it != mCameraIds.end();
+    for (std::map<std::string, CameraId>::iterator it = gCameraIds.begin(); it != gCameraIds.end();
             ++it)
     {
         if (idx == cameraId)
         {
             status = ACameraManager_getCameraCharacteristics(
-                    mManager, mCameraIds[(it->second).mId].mId.c_str(), &metadataObj);
+                    mManager, gCameraIds[(it->second).mId].mId.c_str(), &metadataObj);
             if (status == ACAMERA_OK)
             {
                 ACameraMetadata_const_entry face, orientation;
@@ -644,7 +667,7 @@ bool ImsMediaCamera::GetSensorOrientation(const int cameraId, int32_t* facing, i
                     *angle = mCameraOrientation;
                 }
 
-                IMLOGD2("[GetSensorOrientation] facing[%d], sensor[%d]", facing, angle);
+                IMLOGD2("[GetSensorOrientation] facing[%d], sensor[%d]", *facing, *angle);
                 return true;
             }
         }

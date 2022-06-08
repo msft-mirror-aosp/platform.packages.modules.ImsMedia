@@ -254,6 +254,7 @@ void VideoStreamGraphRtpRx::processStart()
 
     IMLOGD0("[processStart]");
     mMutex.lock();
+    mCondition.reset();
     VideoConfig* pConfig = reinterpret_cast<VideoConfig*>(mConfig);
 
     if (pConfig->getMediaDirection() == RtpConfig::MEDIA_DIRECTION_NO_FLOW ||

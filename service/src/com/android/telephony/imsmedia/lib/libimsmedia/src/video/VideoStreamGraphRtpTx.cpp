@@ -299,8 +299,14 @@ ImsMediaResult VideoStreamGraphRtpTx::createPreviewMode(void* config)
 
 void VideoStreamGraphRtpTx::processStart()
 {
+    if (mConfig == NULL)
+    {
+        return;
+    }
+
     IMLOGD0("[processStart]");
     mMutex.lock();
+    mCondition.reset();
 
     VideoConfig* pConfig = reinterpret_cast<VideoConfig*>(mConfig);
 

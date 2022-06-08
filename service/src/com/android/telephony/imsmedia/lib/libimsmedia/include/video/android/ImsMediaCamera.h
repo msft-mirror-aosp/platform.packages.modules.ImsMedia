@@ -214,6 +214,8 @@ private:
     ACameraCaptureSession_stateCallbacks* GetSessionListener();
     bool MatchCaptureSizeRequest(ANativeWindow* window);
 
+    static std::map<std::string, CameraId> gCameraIds;
+    static std::mutex gMutex;
     ACameraManager* mManager;
     CaptureRequestInfo mCaptureRequest;
     ACaptureSessionOutputContainer* mSessionOutputContainer;
@@ -224,15 +226,12 @@ private:
     RangeValue<int64_t> mExposureRange;
     int32_t mSensitivity;
     RangeValue<int32_t> mSensitivityRange;
-    volatile bool mValid;
-    std::map<std::string, CameraId> mCameraIds;
     uint32_t mCameraMode;
     uint32_t mCameraFacing;
     uint32_t mCameraOrientation;
     std::string mActiveCameraId;
     int32_t mCameraZoom;
     int32_t mFramerate;
-    std::mutex mMutex;
 };
 
 #endif
