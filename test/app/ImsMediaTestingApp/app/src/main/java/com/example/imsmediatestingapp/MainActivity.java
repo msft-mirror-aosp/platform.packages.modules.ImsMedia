@@ -136,6 +136,7 @@ public class MainActivity extends AppCompatActivity {
     private boolean mIsVideoSessionOpened = false;
     private boolean mIsPreviewSurfaceSet = false;
     private boolean mIsDisplaySurfaceSet = false;
+    private boolean mVideoEnabled = false;
     private final StringBuilder mDtmfInput = new StringBuilder();
 
     private ConnectionStatus mConnectionStatus;
@@ -1431,6 +1432,18 @@ public class MainActivity extends AppCompatActivity {
     }
 
     /**
+     * Set a video mode on/off
+     *
+     * @param view the view from the button click
+     */
+    public void setVideoEnableOnClick(View view) {
+        SwitchCompat videoEnable = findViewById(R.id.videoEnableSwitch);
+        if (videoEnable != null) {
+            mVideoEnabled = videoEnable.isChecked();
+        }
+    }
+
+    /**
      * Calls closeSession() on ImsMediaManager and resets the flag on
      * mIsOpenSessionSent
      *
@@ -1528,11 +1541,14 @@ public class MainActivity extends AppCompatActivity {
             Log.d(TAG, "openSession(): audio=" + mRemoteDeviceInfo.getInetAddress() + ":"
                     + mRemoteDeviceInfo.getAudioRtpPort());
 
-            RtpVideoSessionCallback sessionVideoCallback = new RtpVideoSessionCallback();
-            mImsMediaManager.openSession(mVideoRtp, mVideoRtcp, ImsMediaSession.SESSION_TYPE_VIDEO,
-                    mVideoConfig, mExecutor, sessionVideoCallback);
-            Log.d(TAG, "openSession(): video=" + mRemoteDeviceInfo.getInetAddress() + ":"
-                    + mRemoteDeviceInfo.getVideoRtpPort());
+            if (mVideoEnabled) {
+                RtpVideoSessionCallback sessionVideoCallback = new RtpVideoSessionCallback();
+                mImsMediaManager.openSession(mVideoRtp, mVideoRtcp,
+                        ImsMediaSession.SESSION_TYPE_VIDEO,
+                        mVideoConfig, mExecutor, sessionVideoCallback);
+                Log.d(TAG, "openSession(): video=" + mRemoteDeviceInfo.getInetAddress() + ":"
+                        + mRemoteDeviceInfo.getVideoRtpPort());
+            }
         }
     }
 
