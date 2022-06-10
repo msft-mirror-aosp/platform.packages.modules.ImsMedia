@@ -65,7 +65,6 @@ private:
     android::String8 mImagePath;
     uint32_t mDeviceOrientation;
     ANativeWindow* mWindow;
-    bool mFirstFrame;
 };
 
 #endif

@@ -44,7 +44,6 @@ IVideoSourceNode::IVideoSourceNode()
     mImagePath = "";
     mDeviceOrientation = 0;
     mWindow = NULL;
-    mFirstFrame = false;
 }
 
 IVideoSourceNode::~IVideoSourceNode() {}
@@ -96,7 +95,6 @@ ImsMediaResult IVideoSourceNode::Start()
         }
         mVideoSource->SetDeviceOrientation(mDeviceOrientation);
     }
-    mFirstFrame = false;
     mNodeState = kNodeStateRunning;
     return RESULT_SUCCESS;
 }
@@ -189,12 +187,7 @@ void IVideoSourceNode::OnUplinkEvent(
     IMLOGD_PACKET2(
             IM_PACKET_LOG_VIDEO, "[OnUplinkEvent] size[%zu], timestamp[%ld]", size, timestamp);
     SendDataToRearNode(
-            MEDIASUBTYPE_UNDEFINED, buffer, size, timestamp, !mFirstFrame, MEDIASUBTYPE_UNDEFINED);
-
-    if (!mFirstFrame)
-    {
-        mFirstFrame = true;
-    }
+            MEDIASUBTYPE_UNDEFINED, buffer, size, timestamp, true, MEDIASUBTYPE_UNDEFINED);
 }
 
 void IVideoSourceNode::OnEvent(int32_t type, int32_t param1, int32_t param2)
