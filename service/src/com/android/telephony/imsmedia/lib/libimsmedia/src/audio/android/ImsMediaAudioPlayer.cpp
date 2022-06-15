@@ -214,7 +214,7 @@ void ImsMediaAudioPlayer::Stop()
 bool ImsMediaAudioPlayer::onDataFrame(uint8_t* buffer, uint32_t size)
 {
     std::lock_guard<std::mutex> guard(mMutex);
-    if (size == 0 || mCodec == NULL || mAudioStream == NULL ||
+    if (size == 0 || mCodec == NULL || mAudioStream == NULL || buffer == NULL ||
             AAudioStream_getState(mAudioStream) != AAUDIO_STREAM_STATE_STARTED)
     {
         return false;
@@ -258,9 +258,12 @@ bool ImsMediaAudioPlayer::onDataFrame(uint8_t* buffer, uint32_t size)
         {
             size_t buffCapacity;
             uint8_t* buf = AMediaCodec_getOutputBuffer(mCodec, index, &buffCapacity);
-            memcpy(mBuffer, buf, info.size);
-            // call audio write
-            AAudioStream_write(mAudioStream, mBuffer, info.size / 2, 0);
+            if (buf != NULL && buffCapacity > 0)
+            {
+                memcpy(mBuffer, buf, info.size);
+                // call audio write
+                AAudioStream_write(mAudioStream, mBuffer, info.size / 2, 0);
+            }
         }
 
         AMediaCodec_releaseOutputBuffer(mCodec, index, false);
