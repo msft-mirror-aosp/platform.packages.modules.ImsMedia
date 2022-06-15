@@ -281,7 +281,6 @@ void ImsMediaVideoSource::processOutputBuffer()
             mMutex.unlock();
             break;
         }
-        mMutex.unlock();
 
         AMediaCodecBufferInfo info;
         IMLOGD0("[processOutputBuffer] dequeue");
@@ -297,10 +296,13 @@ void ImsMediaVideoSource::processOutputBuffer()
             {
                 size_t buffCapacity;
                 uint8_t* buf = AMediaCodec_getOutputBuffer(mCodec, index, &buffCapacity);
-                uint8_t* data = new uint8_t[info.size];
-                memcpy(data, buf, info.size);
-                uplinkBuffers.push_back(data);
-                mListener->OnUplinkEvent(data, info.size, info.presentationTimeUs, info.flags);
+                if (buf != NULL && buffCapacity > 0)
+                {
+                    uint8_t* data = new uint8_t[info.size];
+                    memcpy(data, buf, info.size);
+                    uplinkBuffers.push_back(data);
+                    mListener->OnUplinkEvent(data, info.size, info.presentationTimeUs, info.flags);
+                }
             }
 
             IMLOGD0("[processOutputBuffer] release");
@@ -328,6 +330,8 @@ void ImsMediaVideoSource::processOutputBuffer()
         {
             IMLOGD1("[processOutputBuffer] unexpected index[%d]", index);
         }
+
+        mMutex.unlock();
 
         if (uplinkBuffers.size() > kMaxUplinkBuffer)
         {
