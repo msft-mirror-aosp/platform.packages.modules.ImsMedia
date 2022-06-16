@@ -207,7 +207,6 @@ bool ImsMediaCamera::OpenCamera()
 
 void ImsMediaCamera::SetCameraConfig(int32_t cameraId, int32_t cameraZoom, int32_t framerate)
 {
-    cameraId = 1;
     IMLOGD3("[SetCameraConfig] id[%d], zoom[%d], FPS[%d]", cameraId, cameraZoom, framerate);
     uint32_t idx = 0;
     for (std::map<std::string, CameraId>::iterator it = gCameraIds.begin(); it != gCameraIds.end();
@@ -814,7 +813,9 @@ bool ImsMediaCamera::MatchCaptureSizeRequest(ANativeWindow* window)
             DisplayDimension dimension(entry.data.i32[i + 1], entry.data.i32[i + 2]);
             if (!disp.IsSameRatio(dimension))
                 continue;
-            if (format == AIMAGE_FORMAT_YUV_420_888 && disp == dimension)
+
+            // here only width and height should be compared and not portrait flag.
+            if (disp.width() == dimension.width() && disp.height() == dimension.height())
             {
                 return true;
             }

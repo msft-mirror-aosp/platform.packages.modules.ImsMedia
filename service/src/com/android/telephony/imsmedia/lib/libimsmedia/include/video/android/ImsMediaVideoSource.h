@@ -23,6 +23,7 @@
 #include <ImsMediaCamera.h>
 #include <media/NdkMediaCodec.h>
 #include <media/NdkMediaFormat.h>
+#include <media/NdkImageReader.h>
 #include <ImsMediaCondition.h>
 
 class IVideoSourceCallback
@@ -76,6 +77,8 @@ private:
     AMediaCodec* mCodec;
     AMediaFormat* mFormat;
     ANativeWindow* mRecordingSurface;
+    ANativeWindow* mImageReaderSurface;
+    AImageReader* mImageReader;
     std::mutex mMutex;
     ImsMediaCondition mConditionExit;
     IVideoSourceCallback* mListener;
@@ -95,5 +98,9 @@ private:
     uint64_t mTimestamp;
     uint64_t mPrevTimestamp;
     bool mStopped;
+
+    ANativeWindow* CreateImageReader(int width, int height);
+    void onCameraFrame(AImage* pImage);
+    static void ImageCallback(void* context, AImageReader* reader);
 };
 #endif

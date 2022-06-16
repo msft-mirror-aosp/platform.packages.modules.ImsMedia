@@ -19,6 +19,8 @@
 #include <ImsMediaTimer.h>
 #include <thread>
 #include <list>
+#include <time.h>
+#include "ImsMediaImageRotate.h"
 
 ImsMediaVideoSource::ImsMediaVideoSource()
 {
@@ -27,6 +29,8 @@ ImsMediaVideoSource::ImsMediaVideoSource()
     mCodec = NULL;
     mFormat = NULL;
     mRecordingSurface = NULL;
+    mImageReaderSurface = NULL;
+    mImageReader = NULL;
     mCodecType = -1;
     mVideoMode = -1;
     mCodecProfile = 0;
@@ -153,7 +157,7 @@ bool ImsMediaVideoSource::Start()
         AMediaFormat_setString(mFormat, AMEDIAFORMAT_KEY_MIME, kMimeType);
 
         AMediaFormat_setInt32(mFormat, AMEDIAFORMAT_KEY_COLOR_FORMAT,
-                0x7F000789);  // #0x7F000789 : COLOR_FormatSurface
+                0x00000015);  // COLOR_FormatYUV420SemiPlanar
         AMediaFormat_setInt32(mFormat, AMEDIAFORMAT_KEY_BIT_RATE, mBitrate * 1000);
         AMediaFormat_setInt32(mFormat, AMEDIAFORMAT_KEY_PROFILE, mCodecProfile);
         AMediaFormat_setInt32(mFormat, AMEDIAFORMAT_KEY_LEVEL, mCodecLevel);
@@ -182,15 +186,27 @@ bool ImsMediaVideoSource::Start()
             return false;
         }
 
-        err = AMediaCodec_createInputSurface(mCodec, &mRecordingSurface);
-        if (err != AMEDIA_OK)
+        if (mWidth > mHeight)  // Is Landscape Mode
         {
-            IMLOGE1("[Start] create input surface error[%d]", err);
-            AMediaCodec_delete(mCodec);
-            mCodec = NULL;
-            AMediaFormat_delete(mFormat);
-            mFormat = NULL;
-            return false;
+            err = AMediaCodec_createInputSurface(mCodec, &mRecordingSurface);
+            if (err != AMEDIA_OK)
+            {
+                IMLOGE1("[Start] create input surface error[%d]", err);
+                AMediaCodec_delete(mCodec);
+                mCodec = NULL;
+                AMediaFormat_delete(mFormat);
+                mFormat = NULL;
+                return false;
+            }
+        }
+        else
+        {
+            mImageReaderSurface = CreateImageReader(mWidth, mHeight);
+            if (mImageReaderSurface == NULL)
+            {
+                IMLOGE0("[Start] create image reader failed");
+                return false;
+            }
         }
 
         err = AMediaCodec_start(mCodec);
@@ -219,8 +235,9 @@ bool ImsMediaVideoSource::Start()
             return false;
         }
 
-        mCamera->CreateSession(mWindow, mRecordingSurface);
-        if (mCamera->StartSession(mVideoMode == kVideoModeRecording ? true : false) == false)
+        ANativeWindow* recording = mRecordingSurface ? mRecordingSurface : mImageReaderSurface;
+        mCamera->CreateSession(mWindow, recording);
+        if (mCamera->StartSession(mVideoMode == kVideoModeRecording) == false)
         {
             IMLOGE0("[Start] error camera start");
             AMediaCodec_delete(mCodec);
@@ -288,6 +305,13 @@ void ImsMediaVideoSource::Stop()
     {
         AMediaFormat_delete(mFormat);
         mFormat = NULL;
+    }
+
+    if (mImageReader != NULL)
+    {
+        AImageReader_delete(mImageReader);
+        mImageReader = NULL;
+        mImageReaderSurface = NULL;
     }
 }
 
@@ -398,4 +422,80 @@ void ImsMediaVideoSource::processOutputBuffer()
     uplinkBuffers.clear();
     mConditionExit.signal();
     IMLOGD0("[processOutputBuffer] exit");
+}
+
+void ImsMediaVideoSource::ImageCallback(void* context, AImageReader* reader)
+{
+    AImage* image = nullptr;
+    auto status = AImageReader_acquireNextImage(reader, &image);
+    // TODO: check status.
+
+    ImsMediaVideoSource* pVideoSource = static_cast<ImsMediaVideoSource*>(context);
+    pVideoSource->onCameraFrame(image);
+    AImage_delete(image);
+}
+
+ANativeWindow* ImsMediaVideoSource::CreateImageReader(int width, int height)
+{
+    media_status_t status =
+            AImageReader_new(width, height, AIMAGE_FORMAT_YUV_420_888, 2, &mImageReader);
+    if (status != AMEDIA_OK)
+    {
+        return NULL;
+    }
+
+    AImageReader_ImageListener listener{
+            .context = this,
+            .onImageAvailable = ImageCallback,
+    };
+
+    AImageReader_setImageListener(mImageReader, &listener);
+
+    ANativeWindow* nativeWindow;
+    AImageReader_getWindow(mImageReader, &nativeWindow);
+    return nativeWindow;
+}
+
+// Get time in micro seconds
+static double now_us(void)
+{
+    struct timespec res;
+    clock_gettime(CLOCK_MONOTONIC, &res);
+    return 1000000.0 * res.tv_sec + (double)res.tv_nsec / 1e3;
+}
+
+void ImsMediaVideoSource::onCameraFrame(AImage* pImage)
+{
+    if (mCodec == NULL || pImage == NULL)
+    {
+        IMLOGE2("[processInputBuffer] Failed Codec[%x] image[%x]", mCodec, pImage);
+        return;
+    }
+
+    auto index = AMediaCodec_dequeueInputBuffer(mCodec, 100000);
+    if (index >= 0)
+    {
+        size_t buffCapacity = 0;
+        uint8_t* encoderBuf = AMediaCodec_getInputBuffer(mCodec, index, &buffCapacity);
+        if (!encoderBuf && !buffCapacity)
+        {
+            IMLOGE1("[processInputBuffer] getInputBuffer returned null buffer pointer or "
+                    "buffCapacity[%d]",
+                    buffCapacity);
+            return;
+        }
+
+        int32_t width, height, ylen, uvlen;
+        uint8_t *yPlane, *uvPlane;
+        AImage_getWidth(pImage, &width);
+        AImage_getHeight(pImage, &height);
+        AImage_getPlaneData(pImage, 0, &yPlane, &ylen);
+        AImage_getPlaneData(pImage, 1, &uvPlane, &uvlen);
+        YUV420_SP_Rotate270(encoderBuf, yPlane, uvPlane, width, height);
+        AMediaCodec_queueInputBuffer(mCodec, index, 0, ylen + uvlen, now_us(), 0);
+    }
+    else
+    {
+        IMLOGE1("[processInputBuffer] dequeueInputBuffer returned index[%d]", index);
+    }
 }

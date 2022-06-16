@@ -223,6 +223,7 @@ private:
     ACaptureSessionOutputContainer* mSessionOutputContainer;
     ACameraCaptureSession* mCaptureSession;
     CaptureSessionState mCaptureSessionState;
+
     // set up exposure control
     int64_t mExposureTime;
     RangeValue<int64_t> mExposureRange;
