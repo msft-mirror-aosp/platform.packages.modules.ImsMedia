@@ -666,7 +666,7 @@ void AudioRtpPayloadDecoderNode::DecodePayloadEvs(
             IMLOGD6("[DecodePayloadEvs] result = %02X %02X %02X %02X, len=%d, eRate=%d",
                     mPayload[0], mPayload[1], mPayload[2], mPayload[3], nDataSize, toc_ft_b);
 
-            SendDataToRearNode(MEDIASUBTYPE_RTPPAYLOAD, mPayload, (((nDataBitSize + 7) >> 3) + 1),
+            SendDataToRearNode(MEDIASUBTYPE_RTPPAYLOAD, mPayload, (((nDataBitSize + 7) >> 3)),
                     timestamp, listFrameType.size(),
                     nSeqNum);  // send remaining packet number in bundle as bMark value
 
