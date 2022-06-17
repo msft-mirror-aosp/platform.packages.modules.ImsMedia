@@ -52,8 +52,7 @@ const int32_t kMaxRedundancyMillis = 240;
 const int32_t kEvsBandwidth = EvsParams::EVS_BAND_NONE;
 const int32_t kEvsMode = 8;
 const int8_t kChannelAwareMode = 3;
-const bool kUseHeaderFullOnlyOnTx = false;
-const bool kUseHeaderFullOnlyOnRx = false;
+const bool kUseHeaderFullOnly = false;
 
 class AudioConfigTest : public ::testing::Test
 {
@@ -80,8 +79,7 @@ protected:
         evs.setEvsBandwidth(kEvsBandwidth);
         evs.setEvsMode(kEvsMode);
         evs.setChannelAwareMode(kChannelAwareMode);
-        evs.setUseHeaderFullOnlyOnTx(kUseHeaderFullOnlyOnTx);
-        evs.setUseHeaderFullOnlyOnRx(kUseHeaderFullOnlyOnRx);
+        evs.setUseHeaderFullOnly(kUseHeaderFullOnly);
 
         config1.setMediaDirection(kMediaDirection);
         config1.setRemoteAddress(kRemoteAddress);

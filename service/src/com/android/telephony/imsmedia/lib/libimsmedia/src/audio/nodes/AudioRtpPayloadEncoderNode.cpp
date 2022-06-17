@@ -116,7 +116,7 @@ void AudioRtpPayloadEncoderNode::SetConfig(void* config)
         {
             mEvsBandwidth = (kEvsBandwidth)pConfig->getEvsParams().getEvsBandwidth();
             mEvsPayloadHeaderMode =
-                    (kRtpPyaloadHeaderMode)pConfig->getEvsParams().getUseHeaderFullOnlyOnTx();
+                    (kRtpPyaloadHeaderMode)pConfig->getEvsParams().getUseHeaderFullOnly();
             mEvsMode = (kEvsBitrate)pConfig->getEvsParams().getEvsMode();
             mEvsCodecMode = (kEvsCodecMode)ImsMediaAudioUtil::ConvertEvsCodecMode(
                     pConfig->getEvsParams().getEvsMode());
@@ -146,8 +146,7 @@ bool AudioRtpPayloadEncoderNode::IsSameConfig(void* config)
         {
             return (mEvsBandwidth == (kEvsBandwidth)pConfig->getEvsParams().getEvsBandwidth() &&
                     mEvsPayloadHeaderMode ==
-                            (kRtpPyaloadHeaderMode)pConfig->getEvsParams()
-                                    .getUseHeaderFullOnlyOnRx() &&
+                            (kRtpPyaloadHeaderMode)pConfig->getEvsParams().getUseHeaderFullOnly() &&
                     mEvsCodecMode ==
                             ImsMediaAudioUtil::ConvertEvsCodecMode(
                                     pConfig->getEvsParams().getEvsMode()) &&
