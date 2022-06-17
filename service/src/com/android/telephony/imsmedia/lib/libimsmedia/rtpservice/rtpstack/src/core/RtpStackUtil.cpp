@@ -183,7 +183,7 @@ RtpDt_UInt32 RtpStackUtil::calcRtpTimestamp(IN RtpDt_UInt32 uiPrevRtpTs,
     {
         RTP_TRACE_MESSAGE("PTime:", iTimeDiff, 0);
         RtpDt_Int32 temp = uiSamplingRate / 1000;
-        uiNewRtpTs = uiPrevRtpTs + (temp * iTimeDiff / 1000);
+        uiNewRtpTs = uiPrevRtpTs + (temp * iTimeDiff);
     }
     return uiNewRtpTs;
 }
