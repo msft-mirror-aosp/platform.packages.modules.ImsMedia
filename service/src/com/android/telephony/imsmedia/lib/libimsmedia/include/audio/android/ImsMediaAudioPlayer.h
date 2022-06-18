@@ -32,6 +32,7 @@ public:
     ~ImsMediaAudioPlayer();
     void SetCodec(int32_t type);
     void SetCodecMode(uint32_t mode);
+    void SetEvsBitRate();
     void SetSamplingRate(int32_t samplingRate);
     void SetEvsChAwOffset(int32_t offset);
     void SetEvsBandwidth(kEvsBandwidth evsBandwidth);

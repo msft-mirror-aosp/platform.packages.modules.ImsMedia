@@ -60,6 +60,7 @@ public:
     void SetUplinkCallback(void* pClient, AudioUplinkCB pDnlinkCB);
     void SetCodec(int32_t type);
     void SetCodecMode(uint32_t mode);
+    void SetEvsBitRate();
     void SetPtime(uint32_t time);
     void SetEvsBandwidth(kEvsBandwidth evsBandwidth);
     void SetSamplingRate(int32_t samplingRate);

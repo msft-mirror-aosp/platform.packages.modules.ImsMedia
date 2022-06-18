@@ -57,6 +57,12 @@ void ImsMediaAudioPlayer::SetCodecMode(uint32_t mode)
     mCodecMode = mode;
 }
 
+void ImsMediaAudioPlayer::SetEvsBitRate()
+{
+    mEvsBitRate = ImsMediaAudioFmt::ConvertEVSModeToBitRate(mCodecMode);
+    IMLOGD1("[SetEvsBitRate] EvsBitRate[%d]", mEvsBitRate);
+}
+
 void ImsMediaAudioPlayer::SetEvsChAwOffset(int32_t offset)
 {
     mEvsChAwOffset = offset;
@@ -102,46 +108,51 @@ bool ImsMediaAudioPlayer::Start()
         return false;
     }
 
-    mEvsBitRate = ImsMediaAudioFmt::ConvertEVSModeToBitRate(mCodecMode);
-
     IMLOGD1("[Start] Creating codec[%s]", kMimeType);
 
-    mFormat = AMediaFormat_new();
-    AMediaFormat_setString(mFormat, AMEDIAFORMAT_KEY_MIME, kMimeType);
-    AMediaFormat_setInt32(mFormat, AMEDIAFORMAT_KEY_SAMPLE_RATE, mSamplingRate);
-    AMediaFormat_setInt32(mFormat, AMEDIAFORMAT_KEY_CHANNEL_COUNT, 1);
-
-    mCodec = AMediaCodec_createDecoderByType(kMimeType);
-    if (mCodec == NULL)
+    if (mCodecType == kAudioCodecAmr || mCodecType == kAudioCodecAmrWb)
     {
-        IMLOGE1("[Start] unable to create %s codec instance", kMimeType);
-        AMediaFormat_delete(mFormat);
-        mFormat = NULL;
-        return false;
-    }
+        mFormat = AMediaFormat_new();
+        AMediaFormat_setString(mFormat, AMEDIAFORMAT_KEY_MIME, kMimeType);
+        AMediaFormat_setInt32(mFormat, AMEDIAFORMAT_KEY_SAMPLE_RATE, mSamplingRate);
+        AMediaFormat_setInt32(mFormat, AMEDIAFORMAT_KEY_CHANNEL_COUNT, 1);
 
-    IMLOGD0("[Start] configure codec");
-    codecResult = AMediaCodec_configure(mCodec, mFormat, NULL, NULL, 0);
-    if (codecResult != AMEDIA_OK)
-    {
-        IMLOGE2("[Start] unable to configure[%s] codec - err[%d]", kMimeType, codecResult);
-        AMediaCodec_delete(mCodec);
-        mCodec = NULL;
-        AMediaFormat_delete(mFormat);
-        mFormat = NULL;
-        return false;
+        mCodec = AMediaCodec_createDecoderByType(kMimeType);
+        if (mCodec == NULL)
+        {
+            IMLOGE1("[Start] unable to create %s codec instance", kMimeType);
+            AMediaFormat_delete(mFormat);
+            mFormat = NULL;
+            return false;
+        }
+
+        IMLOGD0("[Start] configure codec");
+        codecResult = AMediaCodec_configure(mCodec, mFormat, NULL, NULL, 0);
+        if (codecResult != AMEDIA_OK)
+        {
+            IMLOGE2("[Start] unable to configure[%s] codec - err[%d]", kMimeType, codecResult);
+            AMediaCodec_delete(mCodec);
+            mCodec = NULL;
+            AMediaFormat_delete(mFormat);
+            mFormat = NULL;
+            return false;
+        }
     }
 
     aaudio_stream_state_t inputState = AAUDIO_STREAM_STATE_STARTING;
     aaudio_stream_state_t nextState = AAUDIO_STREAM_STATE_UNINITIALIZED;
     auto result = AAudioStream_requestStart(mAudioStream);
+
     if (result != AAUDIO_OK)
     {
         IMLOGE1("[Start] Error start stream[%s]", AAudio_convertResultToText(result));
-        AMediaCodec_delete(mCodec);
-        mCodec = NULL;
-        AMediaFormat_delete(mFormat);
-        mFormat = NULL;
+        if (mCodecType == kAudioCodecAmr || mCodecType == kAudioCodecAmrWb)
+        {
+            AMediaCodec_delete(mCodec);
+            mCodec = NULL;
+            AMediaFormat_delete(mFormat);
+            mFormat = NULL;
+        }
         return false;
     }
 
@@ -151,23 +162,30 @@ bool ImsMediaAudioPlayer::Start()
     if (result != AAUDIO_OK)
     {
         IMLOGE1("[Start] Error start stream[%s]", AAudio_convertResultToText(result));
-        AMediaCodec_delete(mCodec);
-        mCodec = NULL;
-        AMediaFormat_delete(mFormat);
-        mFormat = NULL;
+        if (mCodecType == kAudioCodecAmr || mCodecType == kAudioCodecAmrWb)
+        {
+            AMediaCodec_delete(mCodec);
+            mCodec = NULL;
+            AMediaFormat_delete(mFormat);
+            mFormat = NULL;
+        }
         return false;
     }
 
     IMLOGD1("[Start] start stream state[%s]", AAudio_convertStreamStateToText(nextState));
-    codecResult = AMediaCodec_start(mCodec);
-    if (codecResult != AMEDIA_OK)
+
+    if (mCodecType == kAudioCodecAmr || mCodecType == kAudioCodecAmrWb)
     {
-        IMLOGE1("[Start] unable to start codec - err[%d]", codecResult);
-        AMediaCodec_delete(mCodec);
-        mCodec = NULL;
-        AMediaFormat_delete(mFormat);
-        mFormat = NULL;
-        return false;
+        codecResult = AMediaCodec_start(mCodec);
+        if (codecResult != AMEDIA_OK)
+        {
+            IMLOGE1("[Start] unable to start codec - err[%d]", codecResult);
+            AMediaCodec_delete(mCodec);
+            mCodec = NULL;
+            AMediaFormat_delete(mFormat);
+            mFormat = NULL;
+            return false;
+        }
     }
 
     IMLOGD0("[Start] exit");
@@ -178,14 +196,14 @@ void ImsMediaAudioPlayer::Stop()
 {
     IMLOGD0("[Stop] enter");
     std::lock_guard<std::mutex> guard(mMutex);
-    if (mCodec != NULL)
+    if ((mCodecType == kAudioCodecAmr || mCodecType == kAudioCodecAmrWb) && (mCodec != NULL))
     {
         AMediaCodec_stop(mCodec);
         AMediaCodec_delete(mCodec);
         mCodec = NULL;
     }
 
-    if (mFormat != NULL)
+    if ((mCodecType == kAudioCodecAmr || mCodecType == kAudioCodecAmrWb) && (mFormat != NULL))
     {
         AMediaFormat_delete(mFormat);
         mFormat = NULL;
@@ -214,8 +232,9 @@ void ImsMediaAudioPlayer::Stop()
 bool ImsMediaAudioPlayer::onDataFrame(uint8_t* buffer, uint32_t size)
 {
     std::lock_guard<std::mutex> guard(mMutex);
-    if (size == 0 || mCodec == NULL || mAudioStream == NULL || buffer == NULL ||
-            AAudioStream_getState(mAudioStream) != AAUDIO_STREAM_STATE_STARTED)
+    if ((mCodecType == kAudioCodecAmr || mCodecType == kAudioCodecAmrWb) &&
+            (size == 0 || mCodec == NULL || mAudioStream == NULL || buffer == NULL ||
+                    AAudioStream_getState(mAudioStream) != AAUDIO_STREAM_STATE_STARTED))
     {
         return false;
     }

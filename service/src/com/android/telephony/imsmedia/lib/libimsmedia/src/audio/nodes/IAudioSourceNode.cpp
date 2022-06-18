@@ -64,6 +64,7 @@ ImsMediaResult IAudioSourceNode::Start()
         {
             mAudioSource->SetEvsBandwidth(mEvsBandwidth);
             mAudioSource->SetEvsChAwOffset(mEvsChAwOffset);
+            mAudioSource->SetEvsBitRate();
         }
 
         if (mAudioSource->Start())
