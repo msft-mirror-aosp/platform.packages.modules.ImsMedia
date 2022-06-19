@@ -15,7 +15,7 @@
  */
 
 #include <RtcpSrPacket.h>
-#include <rtp_trace.h>
+#include <RtpTrace.h>
 
 /*********************************************************
  * Function name        : RtcpSrPacket

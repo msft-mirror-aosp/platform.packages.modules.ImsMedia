@@ -15,7 +15,7 @@
  */
 
 #include <RtcpPacket.h>
-#include <rtp_trace.h>
+#include <RtpTrace.h>
 #include <RtpError.h>
 #include <RtpSession.h>
 
@@ -222,7 +222,7 @@ eRTP_STATUS_CODE RtcpPacket::decodeRtcpPacket(IN RtpBuffer* pobjRtcpPktBuf,
             return RTP_INVALID_MSG;
         }
 
-        RTP_TRACE_NORMAL("decodeRtcpPacket [packet length: %d] [compound packet length: %d]",
+        RTP_TRACE_MESSAGE("decodeRtcpPacket [packet length: %d] [compound packet length: %d]",
                 usPktLen, iTrackCompLen);
 
         // get packet type
@@ -230,7 +230,7 @@ eRTP_STATUS_CODE RtcpPacket::decodeRtcpPacket(IN RtpBuffer* pobjRtcpPktBuf,
         uiTemp4Data = uiTemp4Data >> RTP_16;
         uiPktType = uiTemp4Data & 0x000000FF;
 
-        RTP_TRACE_NORMAL("decodeRtcpPacket [packet type: %d] [%d]", uiPktType, RTP_ZERO);
+        RTP_TRACE_MESSAGE("decodeRtcpPacket [packet type: %d] [%d]", uiPktType, RTP_ZERO);
 
         eRTP_STATUS_CODE eDecodeRes = RTP_FAILURE;
 

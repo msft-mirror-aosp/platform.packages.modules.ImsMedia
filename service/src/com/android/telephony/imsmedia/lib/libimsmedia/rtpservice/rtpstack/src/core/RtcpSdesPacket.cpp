@@ -15,7 +15,7 @@
  */
 
 #include <RtcpSdesPacket.h>
-#include <rtp_trace.h>
+#include <RtpTrace.h>
 
 RtcpSdesPacket::RtcpSdesPacket() :
         m_objSdesChunkList(std::list<RtcpChunk*>())
@@ -150,7 +150,7 @@ eRTP_STATUS_CODE RtcpSdesPacket::formSdesPacket(OUT RtpBuffer* pobjRtcpPktBuf)
     pobjRtcpPktBuf->setLength(uiSdesPktPos);
     m_objRtcpHdr.formPartialRtcpHeader(pobjRtcpPktBuf);
 
-    RTP_TRACE_NORMAL(
+    RTP_TRACE_MESSAGE(
             "formSdesPacket, [SDES packet length] : %d]", m_objRtcpHdr.getLength(), RTP_NULL);
 
     // set the actual position of the RTCP compound packet

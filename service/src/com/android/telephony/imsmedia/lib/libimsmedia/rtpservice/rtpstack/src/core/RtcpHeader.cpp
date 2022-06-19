@@ -15,7 +15,6 @@
  */
 
 #include <RtcpHeader.h>
-#include <rtp_trace.h>
 
 RtcpHeader::RtcpHeader() :
         m_ucVersion(RTP_ZERO),

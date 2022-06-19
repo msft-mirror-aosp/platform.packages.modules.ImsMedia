@@ -15,7 +15,7 @@
  */
 
 #include <RtpTimer.h>
-#include <rtp_trace.h>
+#include <RtpTrace.h>
 #include <pthread.h>
 #include <errno.h>
 #include <stdlib.h>
@@ -248,7 +248,7 @@ hTimerHandler RtpTimer::TimerStart(
     pInstance->m_pUserData = pUserData;
     pInstance->m_bTerminateThread = false;
 
-    RTP_TRACE_NORMAL("[TimerStart] Duratation[%u], bRepeat[%d]", pInstance->m_nDuration, bRepeat);
+    RTP_TRACE_MESSAGE("[TimerStart] Duratation[%u], bRepeat[%d]", pInstance->m_nDuration, bRepeat);
 
     if (gettimeofday(&tp, NULL) != -1)
     {

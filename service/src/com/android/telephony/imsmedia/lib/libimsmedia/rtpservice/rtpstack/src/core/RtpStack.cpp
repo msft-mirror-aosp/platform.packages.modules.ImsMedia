@@ -17,7 +17,7 @@
 #include <RtpStack.h>
 #include <RtpStackUtil.h>
 #include <RtpError.h>
-#include <rtp_trace.h>
+#include <RtpTrace.h>
 
 /*********************************************************
  * Function name        : RtpStack

@@ -15,7 +15,7 @@
  */
 
 #include <RtpHeader.h>
-#include <rtp_trace.h>
+#include <RtpTrace.h>
 #include <RtpError.h>
 
 RtpHeader::RtpHeader() :
@@ -265,7 +265,7 @@ eRtp_Bool RtpHeader::decodeHeader(IN RtpBuffer* pobjRtpPktBuf, OUT RtpDt_UInt32&
         pcRtpHdrBuf = pcRtpHdrBuf + RTP_FOUR;
         uiBufPos = uiBufPos + RTP_WORD_SIZE;
 
-        RTP_TRACE_NORMAL("Got %d CSRC[%d]", usCsrcIdx, *puiCsrcItem);
+        RTP_TRACE_MESSAGE("Got %d CSRC[%d]", usCsrcIdx, *puiCsrcItem);
         // append puiCsrcItem into list.
         m_uiCsrcList.push_back(puiCsrcItem);
     }

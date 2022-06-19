@@ -15,7 +15,7 @@
  */
 
 #include <RtcpAppPacket.h>
-#include <rtp_trace.h>
+#include <string.h>
 
 RtcpAppPacket::RtcpAppPacket() :
         m_uiName(RTP_ZERO),

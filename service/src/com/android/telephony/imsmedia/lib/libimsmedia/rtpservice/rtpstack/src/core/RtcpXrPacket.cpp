@@ -15,7 +15,7 @@
  */
 
 #include <RtcpXrPacket.h>
-#include <rtp_trace.h>
+#include <RtpTrace.h>
 #include <RtpSession.h>
 
 #define NTP2MSEC 65.555555

@@ -15,7 +15,7 @@
  */
 
 #include <RtpSession.h>
-#include <rtp_trace.h>
+#include <RtpTrace.h>
 #include <RtpError.h>
 #include <RtpStackUtil.h>
 #include <RtpReceiverInfo.h>
@@ -249,14 +249,14 @@ RtpDt_UInt32 RtpSession::estimateRtcpPktSize()
         uiEstRtcpSize = RTP_DEF_BYE_PKT_SIZE;
         uiEstRtcpSize += m_pobjRtcpCfgInfo->getByeReasonSize();
 
-        RTP_TRACE_NORMAL("estimateRtcpPktSize, [Bye packet size : %d]", uiEstRtcpSize, RTP_NULL);
+        RTP_TRACE_MESSAGE("estimateRtcpPktSize, [Bye packet size : %d]", uiEstRtcpSize, RTP_NULL);
     }
     else if (uiSdesItems > RTP_ZERO)
     {
         RtpDt_UInt32 uiSdesPktSize = RTP_WORD_SIZE;
         uiSdesPktSize = uiSdesPktSize + m_pobjRtcpCfgInfo->estimateSdesPktSize();
 
-        RTP_TRACE_NORMAL("estimateRtcpPktSize, [uiSdesPktSize : %d]", uiSdesPktSize, RTP_NULL);
+        RTP_TRACE_MESSAGE("estimateRtcpPktSize, [uiSdesPktSize : %d]", uiSdesPktSize, RTP_NULL);
 
         uiEstRtcpSize += uiSdesPktSize;
     }
@@ -266,7 +266,7 @@ RtpDt_UInt32 RtpSession::estimateRtcpPktSize()
         uiEstRtcpSize += RTP_DEF_APP_PKT_SIZE;
         uiEstRtcpSize += m_pobjRtcpCfgInfo->getAppDepDataSize();
 
-        RTP_TRACE_NORMAL("estimateRtcpPktSize, [after app pkt size: %d]", uiEstRtcpSize, RTP_NULL);
+        RTP_TRACE_MESSAGE("estimateRtcpPktSize, [after app pkt size: %d]", uiEstRtcpSize, RTP_NULL);
     }
 
     return uiEstRtcpSize;
@@ -474,7 +474,7 @@ eRTP_STATUS_CODE RtpSession::rtpMakeCompoundRtcpPacket(IN_OUT RtcpPacket* objRtc
         uiTotalRtcpSize = calculateTotalRtcpSize(uiSndrCount, uiEstRtcpSize, eRTP_TRUE);
         if (uiTotalRtcpSize < uiMtuSize)
         {
-            RTP_TRACE_NORMAL(
+            RTP_TRACE_MESSAGE(
                     "rtpMakeCompoundRtcpPacket,[uiTotalRtcpSize : %d] [Estimated Size : %d]",
                     uiTotalRtcpSize, uiEstRtcpSize);
 
@@ -653,12 +653,13 @@ RtpDt_Void RtpSession::rtcpTimerExpiry(IN RtpDt_Void* pvTimerId)
     // uiTempTn = m_objTimerInfo.getTp() + (RtpDt_UInt32)dTempT;
     RtpDt_UInt32 uiTempTn = m_objTimerInfo.getTp() + uiRoundDiff;
 
-    RTP_TRACE_NORMAL(
+    RTP_TRACE_MESSAGE(
             "rtcpTimerExpiry [Tp : %u] [difference = %u]", m_objTimerInfo.getTp(), uiRoundDiff);
 
-    RTP_TRACE_NORMAL("rtcpTimerExpiry [Tp : %u] [difference = %f]", m_objTimerInfo.getTp(), dTempT);
+    RTP_TRACE_MESSAGE(
+            "rtcpTimerExpiry [Tp : %u] [difference = %f]", m_objTimerInfo.getTp(), dTempT);
 
-    RTP_TRACE_NORMAL("rtcpTimerExpiry before processing[Tn : %u] [Tc : %u]", uiTempTn, uiTempTc);
+    RTP_TRACE_MESSAGE("rtcpTimerExpiry before processing[Tn : %u] [Tc : %u]", uiTempTn, uiTempTc);
 
     m_objTimerInfo.setTn(uiTempTn);
     RtpDt_UInt32 uiTimerVal = RTP_ZERO;
@@ -677,7 +678,7 @@ RtpDt_Void RtpSession::rtcpTimerExpiry(IN RtpDt_Void* pvTimerId)
             m_objTimerInfo.setTn(uiTempTn);
             m_objTimerInfo.setTp(uiTempTc);*/
 
-            RTP_TRACE_NORMAL("rtcpTimerExpiry [Tn : %u] [Tc : %u]", uiTempTn, uiTempTc);
+            RTP_TRACE_MESSAGE("rtcpTimerExpiry [Tn : %u] [Tc : %u]", uiTempTn, uiTempTc);
             RtpDt_Void* pvSTRes = RTP_NULL;
             eRtp_Bool bTSres = eRTP_FALSE;
 
@@ -1248,14 +1249,14 @@ eRTP_STATUS_CODE RtpSession::setPayload(
     {
         if (m_pobjPayloadInfo == RTP_NULL)
         {
-            RTP_TRACE_NORMAL("setPayload, m_pobjPayloadInfo is NULL ...!", RTP_ZERO, RTP_ZERO);
+            RTP_TRACE_MESSAGE("setPayload, m_pobjPayloadInfo is NULL ...!", RTP_ZERO, RTP_ZERO);
             return RTP_INVALID_PARAMS;
         }
         m_pobjPayloadInfo->setRtpPayloadInfo(pstPayloadInfo);
     }
     else
     {
-        RTP_TRACE_NORMAL("setPayload, pstPayloadInfo is NULL ...!", RTP_ZERO, RTP_ZERO);
+        RTP_TRACE_MESSAGE("setPayload, pstPayloadInfo is NULL ...!", RTP_ZERO, RTP_ZERO);
 
         return RTP_INVALID_PARAMS;
     }
@@ -1872,7 +1873,7 @@ eRTP_STATUS_CODE RtpSession::processByePacket(
         // Reschedule the next report for time tn
         RtpDt_UInt32 uiTempTn = m_objTimerInfo.getTn();
         RtpDt_UInt32 uiTempTc = m_objTimerInfo.getTc();
-        RTP_TRACE_NORMAL(
+        RTP_TRACE_MESSAGE(
                 "processByePacket before processing[Tn : %u] [Tc : %u]", uiTempTn, uiTempTc);
 
         RtpDt_UInt16 usMembers = m_pobjRtpRcvrInfoList->size();
@@ -1899,7 +1900,7 @@ eRTP_STATUS_CODE RtpSession::processByePacket(
             uiTimerVal = uiRoundDiff;
         }
 
-        RTP_TRACE_NORMAL("processByePacket [uiTimerVal : %u]", uiTimerVal, RTP_ZERO);
+        RTP_TRACE_MESSAGE("processByePacket [uiTimerVal : %u]", uiTimerVal, RTP_ZERO);
         RtpDt_Void* pvData = RTP_NULL;
         eRtp_Bool bTSres = eRTP_FALSE;
 
@@ -2168,7 +2169,7 @@ RtpDt_Double RtpSession::rtcp_interval(IN RtpDt_UInt16 usMembers)
 
     if (usMembers == RTP_ZERO)
     {
-        RTP_TRACE_NORMAL("rtcp_interval usmebers is equal to 0", RTP_NULL, RTP_NULL);
+        RTP_TRACE_MESSAGE("rtcp_interval usmebers is equal to 0", RTP_NULL, RTP_NULL);
         ulTimerVal = dDefTimerVal;
         return ulTimerVal;
     }
@@ -2236,14 +2237,14 @@ RtpDt_Double RtpSession::rtcp_interval(IN RtpDt_UInt16 usMembers)
     ulTimerVal = ulTimerVal / COMPENSATION;
     /*if(dDefTimerVal > ulTimerVal)
       {
-          RTP_TRACE_NORMAL("rtcp_interval dDefTimerVal > ulTimerVal [gen =%f], [def = %f]",
+          RTP_TRACE_MESSAGE("rtcp_interval dDefTimerVal > ulTimerVal [gen =%f], [def = %f]",
                           ulTimerVal, dDefTimerVal);
           ulTimerVal = dDefTimerVal;
       }*/
     if (ulTimerVal < 0)
     {
         ulTimerVal = RTP_INIT_TRUE_T_MIN;
-        RTP_TRACE_NORMAL("Generated a negative timer value..using Default", RTP_NULL, RTP_NULL);
+        RTP_TRACE_MESSAGE("Generated a negative timer value..using Default", RTP_NULL, RTP_NULL);
     }
     return ulTimerVal;
 }  // rtcp_interval
@@ -2274,7 +2275,7 @@ RtpDt_Void RtpSession::calculateAndSetRTTD(
     {
         m_lastRTTDelay = (currentTime - lsr - dlsr);
     }
-    RTP_TRACE_NORMAL("calculateAndSetRTTD = %d", m_lastRTTDelay, RTP_NULL);
+    RTP_TRACE_MESSAGE("calculateAndSetRTTD = %d", m_lastRTTDelay, RTP_NULL);
 }
 eRTP_STATUS_CODE RtpSession::populateRtcpXrPacket(IN_OUT RtcpPacket* pobjRtcpPkt)
 {

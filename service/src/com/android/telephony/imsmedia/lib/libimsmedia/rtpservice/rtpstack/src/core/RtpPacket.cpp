@@ -15,7 +15,7 @@
  */
 
 #include <RtpPacket.h>
-#include <rtp_trace.h>
+#include <RtpTrace.h>
 
 RtpPacket::RtpPacket() :
         m_pobjExt(RTP_NULL),

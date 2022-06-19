@@ -16,8 +16,9 @@
 
 #include <RtpImpl.h>
 #include <RtpService.h>
-#include <rtp_trace.h>
+#include <RtpTrace.h>
 #include <RtpTimer.h>
+#include <string.h>
 
 RtpImpl::RtpImpl() {}
 
@@ -120,7 +121,7 @@ RtpDt_Void* RtpImpl::RtpStartTimer(IN RtpDt_UInt32 uiDuration, IN eRtp_Bool bRep
     RtpDt_Void* pvTimerId = (RtpDt_Void*)RtpTimer::TimerStart(
             (RtpDt_UInt32)uiDuration, (bool)bRepeat, (fn_TimerCb)pfnTimerCb, pvData);
 
-    RTP_TRACE_NORMAL("RtpStartTimer pvTimerId[%x], Duration= [%d]", pvTimerId, uiDuration);
+    RTP_TRACE_MESSAGE("RtpStartTimer pvTimerId[%x], Duration= [%d]", pvTimerId, uiDuration);
     return pvTimerId;
     (void)uiDuration;
     (void)bRepeat;
@@ -131,7 +132,7 @@ RtpDt_Void* RtpImpl::RtpStartTimer(IN RtpDt_UInt32 uiDuration, IN eRtp_Bool bRep
 
 eRtp_Bool RtpImpl::RtpStopTimer(IN RtpDt_Void* pTimerId, OUT RtpDt_Void** ppUserData)
 {
-    RTP_TRACE_NORMAL("RtpStopTimer pvTimerId[%x]", pTimerId, 0);
+    RTP_TRACE_MESSAGE("RtpStopTimer pvTimerId[%x]", pTimerId, 0);
     RtpTimer::TimerStop((hTimerHandler)pTimerId, ppUserData);
     (void)ppUserData;
     return eRTP_TRUE;

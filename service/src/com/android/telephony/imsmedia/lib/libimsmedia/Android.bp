@@ -27,6 +27,13 @@ cc_library_headers {
     ],
 }
 
+cc_library_headers {
+    name: "libimsmedia_utils_header",
+    export_include_dirs: [
+        "include/utils",
+    ],
+}
+
 cc_defaults {
     name: "libimsmedia_shared_defaults",
     cflags: [

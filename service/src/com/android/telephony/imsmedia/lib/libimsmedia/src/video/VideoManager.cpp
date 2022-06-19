@@ -53,7 +53,8 @@ ImsMediaResult VideoManager::openSession(
     IMLOGD1("[openSession] sessionId[%d]", sessionId);
 
     // set debug log
-    ImsMediaTrace::IMSetDebugLog(ImsMediaTrace::IMGetDebugLog() | IM_PACKET_LOG_VIDEO);
+    ImsMediaTrace::IMSetDebugLog(
+            ImsMediaTrace::IMGetDebugLog() | IM_PACKET_LOG_VIDEO | IM_PACKET_LOG_RTPSTACK);
 
     if (rtpFd == -1 || rtcpFd == -1)
     {

@@ -13,5 +13,6 @@ cc_library_static {
     ],
     header_libs: [
         "librtp_headers",
+        "libimsmedia_utils_header",
     ],
 }

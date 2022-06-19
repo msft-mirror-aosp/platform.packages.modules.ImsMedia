@@ -19,7 +19,7 @@
 #include <RtpGlobal.h>
 #include <RtpImpl.h>
 #include <RtpStack.h>
-#include <rtp_trace.h>
+#include <RtpTrace.h>
 #include <RtpError.h>
 
 RtpStack* g_pobjRtpStack = RTP_NULL;
@@ -98,16 +98,16 @@ eRtp_Bool populateRcvdReportFromStk(
         pstRcvdReport->lsr = pobjRepBlkElm->getLastSR();
         pstRcvdReport->delayLsr = pobjRepBlkElm->getDelayLastSR();
 
-        RTP_TRACE_NORMAL("Received RR info :  [SSRC = %u] [FRAC LOST = %u]", pstRcvdReport->ssrc,
+        RTP_TRACE_MESSAGE("Received RR info :  [SSRC = %u] [FRAC LOST = %u]", pstRcvdReport->ssrc,
                 pstRcvdReport->fractionLost);
 
-        RTP_TRACE_NORMAL("Received RR info :  [CUM PKTS LOST = %u] [EXT HIGE SEQ NUM = %u]",
+        RTP_TRACE_MESSAGE("Received RR info :  [CUM PKTS LOST = %u] [EXT HIGE SEQ NUM = %u]",
                 pstRcvdReport->cumPktsLost, pstRcvdReport->extHighSeqNum);
 
-        RTP_TRACE_NORMAL("Received RR info :  [JITTER = %u] [LSR = %u]", pstRcvdReport->jitter,
+        RTP_TRACE_MESSAGE("Received RR info :  [JITTER = %u] [LSR = %u]", pstRcvdReport->jitter,
                 pstRcvdReport->lsr);
 
-        RTP_TRACE_NORMAL(
+        RTP_TRACE_MESSAGE(
                 "Received RR info :  [DELAY SINCE LSR = %u] ", pstRcvdReport->delayLsr, RTP_NULL);
     }
     else
@@ -155,13 +155,13 @@ eRtp_Bool populateRcvdSrInfoFromStk(
     pstSrInfo->sendPktCount = pobjSrPkt->getSendPktCount();
     pstSrInfo->sendOctCount = pobjSrPkt->getSendOctetCount();
 
-    RTP_TRACE_NORMAL("Received SR info :  [NTP High 32 = %u] [NTP LOW 32 = %u]",
+    RTP_TRACE_MESSAGE("Received SR info :  [NTP High 32 = %u] [NTP LOW 32 = %u]",
             pstSrInfo->ntpTimestampMsw, pstSrInfo->ntpTimestampLsw);
 
-    RTP_TRACE_NORMAL(
+    RTP_TRACE_MESSAGE(
             "Received SR info :  [RTP timestamp = %u] ", pstSrInfo->rtpTimestamp, RTP_NULL);
 
-    RTP_TRACE_NORMAL("Received SR info :  [SEND PKT COUNT = %u] [SEND OCTET COUNT = %u]",
+    RTP_TRACE_MESSAGE("Received SR info :  [SEND PKT COUNT = %u] [SEND OCTET COUNT = %u]",
             pstSrInfo->sendPktCount, pstSrInfo->sendOctCount);
 
     // populate tRtpSvcRecvReport
@@ -237,9 +237,6 @@ RtpDt_UInt16 GetCVOXHdrLen(eRtp_Bool bEnableCVO)
 
 GLOBAL eRtp_Bool IMS_RtpSvc_Initialize()
 {
-    // Enable RTP Stack trace debug log
-    RtpTrace::RTPSetDebugLog(RTP_PACKET_LOG_RTPSTACK);
-
     if (g_pobjRtpStack == RTP_NULL)
     {
         g_pobjRtpStack = new RtpStack();

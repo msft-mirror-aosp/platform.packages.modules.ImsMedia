@@ -15,7 +15,6 @@
  */
 
 #include <RtpTimerInfo.h>
-#include <rtp_trace.h>
 #include <RtpStackUtil.h>
 
 /*********************************************************

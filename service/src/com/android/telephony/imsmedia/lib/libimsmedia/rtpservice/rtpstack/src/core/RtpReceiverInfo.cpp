@@ -16,7 +16,8 @@
 
 #include <RtpReceiverInfo.h>
 #include <RtpStackUtil.h>
-#include <rtp_trace.h>
+#include <RtpTrace.h>
+#include <string.h>
 
 RtpReceiverInfo::RtpReceiverInfo() :
         m_uiSsrc(RTP_ZERO),

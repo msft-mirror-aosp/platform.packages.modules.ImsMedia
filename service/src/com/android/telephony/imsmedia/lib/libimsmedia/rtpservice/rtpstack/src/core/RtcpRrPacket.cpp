@@ -16,7 +16,7 @@
 
 #include <RtcpRrPacket.h>
 #include <RtcpReportBlock.h>
-#include <rtp_trace.h>
+#include <RtpTrace.h>
 
 RtcpRrPacket::RtcpRrPacket() :
         m_objReportBlkList(std::list<RtcpReportBlock*>()),

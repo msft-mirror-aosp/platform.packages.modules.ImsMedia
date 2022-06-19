@@ -15,7 +15,8 @@
  */
 
 #include <RtcpFbPacket.h>
-#include <rtp_trace.h>
+#include <RtpTrace.h>
+#include <string.h>
 
 RtcpFbPacket::RtcpFbPacket() :
         m_pFCI(RTP_NULL)

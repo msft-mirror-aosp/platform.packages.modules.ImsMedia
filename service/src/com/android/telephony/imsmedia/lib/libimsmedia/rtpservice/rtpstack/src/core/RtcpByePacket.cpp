@@ -15,7 +15,7 @@
  */
 
 #include <RtcpByePacket.h>
-#include <rtp_trace.h>
+#include <RtpTrace.h>
 
 RtcpByePacket::RtcpByePacket() :
         m_uiSsrcList(std::list<RtpDt_UInt32*>()),

@@ -16,7 +16,7 @@
 
 #include <RtpString.h>
 #include <RtpError.h>
-#include <rtp_trace.h>
+#include <RtpTrace.h>
 #include <string.h>
 
 RtpDt_UInt32 Rtp_Strlen(const RtpDt_Char* pszStr)

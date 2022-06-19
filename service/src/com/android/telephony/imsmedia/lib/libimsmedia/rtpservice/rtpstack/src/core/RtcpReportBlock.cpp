@@ -15,7 +15,6 @@
  */
 
 #include <RtcpReportBlock.h>
-#include <rtp_trace.h>
 
 RtcpReportBlock::RtcpReportBlock() :
         m_uiSsrc(RTP_ZERO),

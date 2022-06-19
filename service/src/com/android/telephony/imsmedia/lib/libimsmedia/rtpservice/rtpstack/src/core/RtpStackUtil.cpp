@@ -15,7 +15,7 @@
  */
 
 #include <RtpStackUtil.h>
-#include <rtp_trace.h>
+#include <RtpTrace.h>
 
 /*********************************************************
  * Function name        : RtpStackUtil

@@ -15,7 +15,7 @@
  */
 
 #include <RtcpChunk.h>
-#include <rtp_trace.h>
+#include <RtpTrace.h>
 
 RtcpChunk::RtcpChunk() :
         m_uiSsrc(RTP_ZERO),
@@ -88,7 +88,7 @@ eRTP_STATUS_CODE RtcpChunk::decodeRtcpChunk(IN RtpDt_UChar* pucChunkBuf,
         pucChunkBuf = pucChunkBuf + RTP_ONE;
         usChunkLen = usChunkLen + RTP_ONE;
 
-        RTP_TRACE_NORMAL("decodeRtcpChunk , [Sdes item type =%d], [Sdes item length = %d]",
+        RTP_TRACE_MESSAGE("decodeRtcpChunk , [Sdes item type =%d], [Sdes item length = %d]",
                 pstSdesItem->ucType, pstSdesItem->ucLength);
 
         // value

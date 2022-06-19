@@ -53,7 +53,8 @@ ImsMediaResult AudioManager::openSession(int sessionId, int rtpFd, int rtcpFd, A
     IMLOGD1("[openSession] sessionId[%d]", sessionId);
 
     // set debug log
-    ImsMediaTrace::IMSetDebugLog(ImsMediaTrace::IMGetDebugLog() | IM_PACKET_LOG_AUDIO);
+    ImsMediaTrace::IMSetDebugLog(
+            ImsMediaTrace::IMGetDebugLog() | IM_PACKET_LOG_AUDIO | IM_PACKET_LOG_RTPSTACK);
 
     if (rtpFd == -1 || rtcpFd == -1)
     {
