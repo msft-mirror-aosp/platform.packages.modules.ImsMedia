@@ -104,7 +104,7 @@ void VideoRtpPayloadEncoderNode::Stop()
 
 bool VideoRtpPayloadEncoderNode::IsRunTime()
 {
-    return true;
+    return false;
 }
 
 bool VideoRtpPayloadEncoderNode::IsSourceNode()
@@ -115,7 +115,10 @@ bool VideoRtpPayloadEncoderNode::IsSourceNode()
 void VideoRtpPayloadEncoderNode::SetConfig(void* config)
 {
     if (config == NULL)
+    {
         return;
+    }
+
     VideoConfig* pConfig = reinterpret_cast<VideoConfig*>(config);
     mCodecType = pConfig->getCodecType();
     mPayloadMode = pConfig->getPacketizationMode();
@@ -125,20 +128,30 @@ void VideoRtpPayloadEncoderNode::SetConfig(void* config)
 bool VideoRtpPayloadEncoderNode::IsSameConfig(void* config)
 {
     if (config == NULL)
+    {
         return false;
+    }
+
     VideoConfig* pConfig = reinterpret_cast<VideoConfig*>(config);
     return (mCodecType == pConfig->getCodecType() &&
             mPayloadMode == pConfig->getPacketizationMode() &&
             mMaxFragmentUnitSize == pConfig->getmaxMtuBytes());
 }
 
-void VideoRtpPayloadEncoderNode::OnDataFromFrontNode(ImsMediaSubType subtype, uint8_t* pData,
-        uint32_t nDataSize, uint32_t nTimestamp, bool bMark, uint32_t nSeqNum,
-        ImsMediaSubType nDataType)
+void VideoRtpPayloadEncoderNode::ProcessData()
 {
-    (void)subtype;
-    (void)nSeqNum;
-    (void)nDataType;
+    ImsMediaSubType eSubType;
+    uint8_t* pData = NULL;
+    uint32_t nDataSize = 0;
+    uint32_t nTimestamp = 0;
+    bool bMark = false;
+    uint32_t nSeqNum = 0;
+
+    if (GetData(&eSubType, &pData, &nDataSize, &nTimestamp, &bMark, &nSeqNum, NULL) == false)
+    {
+        return;
+    }
+
     switch (mCodecType)
     {
         case VideoConfig::CODEC_AVC:
@@ -148,10 +161,12 @@ void VideoRtpPayloadEncoderNode::OnDataFromFrontNode(ImsMediaSubType subtype, ui
             EncodeHevc(pData, nDataSize, nTimestamp, bMark);
             break;
         default:
-            IMLOGE1("[OnDataFromFrontNode] invalid codec type[%d]", mCodecType);
+            IMLOGE1("[ProcessData] invalid codec type[%d]", mCodecType);
             SendDataToRearNode(MEDIASUBTYPE_RTPPAYLOAD, pData, nDataSize, nTimestamp, bMark, 0);
             break;
     }
+
+    DeleteData();
 }
 
 uint8_t* VideoRtpPayloadEncoderNode::FindAvcStartCode(

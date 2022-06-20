@@ -53,11 +53,12 @@ ImsMediaResult AudioManager::openSession(int sessionId, int rtpFd, int rtcpFd, A
     IMLOGD1("[openSession] sessionId[%d]", sessionId);
 
     // set debug log
-    ImsMediaTrace::IMSetDebugLog(IM_PACKET_LOG_SOCKET | IM_PACKET_LOG_AUDIO | IM_PACKET_LOG_RTP |
-            IM_PACKET_LOG_VIDEO | IM_PACKET_LOG_RTCP | IM_PACKET_LOG_PH);
+    ImsMediaTrace::IMSetDebugLog(ImsMediaTrace::IMGetDebugLog() | IM_PACKET_LOG_AUDIO);
 
     if (rtpFd == -1 || rtcpFd == -1)
+    {
         return RESULT_INVALID_PARAM;
+    }
 
     if (!mSessions.count(sessionId))
     {
@@ -65,14 +66,10 @@ ImsMediaResult AudioManager::openSession(int sessionId, int rtpFd, int rtcpFd, A
         session->setSessionId(sessionId);
         session->setLocalEndPoint(rtpFd, rtcpFd);
         mSessions.insert(std::make_pair(sessionId, std::move(session)));
-        if (config != NULL)
+        ImsMediaResult ret = session->startGraph(config);
+        if (ret != RESULT_SUCCESS)
         {
-            ImsMediaResult ret = session->startGraph(config);
-            if (ret != RESULT_SUCCESS)
-            {
-                IMLOGD1("[openSession] startGraph failed[%d]", ret);
-            }
-            delete config;
+            IMLOGD1("[openSession] startGraph failed[%d]", ret);
         }
     }
     else
@@ -269,9 +266,10 @@ void AudioManager::RequestHandler::processEvent(
             EventParamOpenSession* param = reinterpret_cast<EventParamOpenSession*>(paramA);
             if (param != NULL)
             {
-                result = AudioManager::getInstance()->openSession(static_cast<int>(sessionId),
-                        param->rtpFd, param->rtcpFd,
-                        reinterpret_cast<AudioConfig*>(param->mConfig));
+                AudioConfig* pConfig = reinterpret_cast<AudioConfig*>(param->mConfig);
+                result = AudioManager::getInstance()->openSession(
+                        static_cast<int>(sessionId), param->rtpFd, param->rtcpFd, pConfig);
+
                 if (result == RESULT_SUCCESS)
                 {
                     ImsMediaEventHandler::SendEvent(
@@ -282,7 +280,13 @@ void AudioManager::RequestHandler::processEvent(
                     ImsMediaEventHandler::SendEvent(
                             "AUDIO_RESPONSE_EVENT", kAudioOpenSessionFailure, sessionId, result);
                 }
+
                 delete param;
+
+                if (pConfig != NULL)
+                {
+                    delete pConfig;
+                }
             }
             else
             {

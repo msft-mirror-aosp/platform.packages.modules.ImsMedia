@@ -23,6 +23,7 @@
 #include <ImsMediaCamera.h>
 #include <media/NdkMediaCodec.h>
 #include <media/NdkMediaFormat.h>
+#include <ImsMediaCondition.h>
 
 class IVideoSourceCallback
 {
@@ -76,6 +77,7 @@ private:
     AMediaFormat* mFormat;
     ANativeWindow* mRecordingSurface;
     std::mutex mMutex;
+    ImsMediaCondition mConditionExit;
     IVideoSourceCallback* mListener;
     int32_t mCodecType;
     int32_t mVideoMode;
@@ -92,5 +94,6 @@ private:
     int32_t mDeviceOrientation;
     uint64_t mTimestamp;
     uint64_t mPrevTimestamp;
+    bool mStopped;
 };
 #endif

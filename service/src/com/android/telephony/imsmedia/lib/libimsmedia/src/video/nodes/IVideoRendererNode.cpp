@@ -46,8 +46,8 @@ IVideoRendererNode::IVideoRendererNode() :
     mHeight = 0;
     mSamplingRate = 0;
     mCvoValue = 0;
-    memset(mConfigBuffer, 0, MAX_CONFIG_INDEX * MAX_CONFIG_LEN);
-    memset(mConfigLen, 0, MAX_CONFIG_INDEX);
+    memset(mConfigBuffer, 0, MAX_CONFIG_INDEX * MAX_CONFIG_LEN * sizeof(uint32_t));
+    memset(mConfigLen, 0, MAX_CONFIG_INDEX * sizeof(uint32_t));
     mDeviceOrientation = VideoConfig::ORIENTATION_DEGREE_0;
     mFirstFrame = false;
 }
@@ -165,9 +165,9 @@ void IVideoRendererNode::ProcessData()
 
     while (GetData(&subtype, &pData, &nDataSize, &nTimeStamp, &bMark, &nSeqNum, &dataType))
     {
-        IMLOGD_PACKET3(IM_PACKET_LOG_VIDEO,
-                "[ProcessData] Size[%d], TimeStamp[%d] nBitstreamSize[%d]", nDataSize, nTimeStamp,
-                nBitstreamSize);
+        IMLOGD_PACKET4(IM_PACKET_LOG_VIDEO,
+                "[ProcessData] subtype[%d], Size[%d], TimeStamp[%d] nBitstreamSize[%d]", subtype,
+                nDataSize, nTimeStamp, nBitstreamSize);
 
         if (timestamp == 0)
         {
@@ -311,6 +311,7 @@ void IVideoRendererNode::ProcessData()
                     degree = 270;
                     break;
             }
+
             mVideoRenderer->UpdatePeerOrientation(degree);
         }
     }
@@ -325,7 +326,7 @@ void IVideoRendererNode::ProcessData()
         if (mCallback != NULL)
         {
             mCallback->SendEvent(kImsMediaEventFirstPacketReceived);
-            mCallback->SendEvent(kImsMediaEventResolutionChanged, mWidth, mHeight);
+            NotifyPeerDimensionChanged();
         }
     }
 
@@ -783,10 +784,7 @@ void IVideoRendererNode::CheckResolution(uint32_t nWidth, uint32_t nHeight)
         mWidth = nWidth;
         mHeight = nHeight;
 
-        if (mCallback != NULL)
-        {
-            mCallback->SendEvent(kImsMediaEventResolutionChanged, mWidth, mHeight);
-        }
+        NotifyPeerDimensionChanged();
     }
 }
 
@@ -809,8 +807,77 @@ void IVideoRendererNode::QueueConfigFrame(uint32_t timestamp)
         pConfigData = mConfigBuffer[i];
 
         if (nConfigLen == 0 || mVideoRenderer == NULL)
+        {
             continue;
+        }
 
         mVideoRenderer->OnDataFrame(pConfigData, nConfigLen, timestamp, true);
+    }
+}
+
+void IVideoRendererNode::NotifyPeerDimensionChanged()
+{
+    if (mCallback == NULL)
+    {
+        return;
+    }
+
+    // assume the device is portrait
+    if (mWidth > mHeight)  // landscape
+    {
+        // local rotation
+        if (mDeviceOrientation == VideoConfig::ORIENTATION_DEGREE_0 ||
+                mDeviceOrientation == VideoConfig::ORIENTATION_DEGREE_180)
+        {
+            // peer rotation
+            if (mSubtype == MEDIASUBTYPE_ROT0 || mSubtype == MEDIASUBTYPE_ROT180)
+            {
+                mCallback->SendEvent(kImsMediaEventResolutionChanged, mWidth, mHeight);
+            }
+            else
+            {
+                mCallback->SendEvent(kImsMediaEventResolutionChanged, mHeight, mWidth);
+            }
+        }
+        else
+        {
+            // peer rotation
+            if (mSubtype == MEDIASUBTYPE_ROT0 || mSubtype == MEDIASUBTYPE_ROT180)
+            {
+                mCallback->SendEvent(kImsMediaEventResolutionChanged, mHeight, mWidth);
+            }
+            else
+            {
+                mCallback->SendEvent(kImsMediaEventResolutionChanged, mWidth, mHeight);
+            }
+        }
+    }
+    else  // portrait
+    {
+        if (mDeviceOrientation == VideoConfig::ORIENTATION_DEGREE_0 ||
+                mDeviceOrientation == VideoConfig::ORIENTATION_DEGREE_180)
+        {
+            // peer rotation
+            if (mSubtype == MEDIASUBTYPE_ROT0 || mSubtype == MEDIASUBTYPE_ROT180)
+            {
+                mCallback->SendEvent(kImsMediaEventResolutionChanged, mWidth, mHeight);
+            }
+            else
+            {
+                mCallback->SendEvent(kImsMediaEventResolutionChanged, mHeight, mWidth);
+            }
+        }
+        else
+        {
+            // peer rotation
+            if (mSubtype == MEDIASUBTYPE_ROT0 || mSubtype == MEDIASUBTYPE_ROT180)
+            {
+                mCallback->SendEvent(kImsMediaEventResolutionChanged, mWidth, mHeight);
+            }
+            else
+            {
+                mCallback->SendEvent(kImsMediaEventResolutionChanged, mHeight, mWidth);
+            }
+        }
     }
 }

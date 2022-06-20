@@ -278,7 +278,7 @@ bool IRtpSession::SendRtpPacket(uint32_t nPayloadType, uint8_t* pData, uint32_t 
     tRtpSvc_SendRtpPacketParm stRtpPacketParam;
     memset(&stRtpPacketParam, 0, sizeof(tRtpSvc_SendRtpPacketParm));
     IMLOGD_PACKET5(IM_PACKET_LOG_RTP,
-            "SendRtpPacket, payloadType[%d], size[%d], nTS[%d], bMark[%d], bExtension[%d]",
+            "SendRtpPacket, payloadType[%u], size[%u], nTS[%u], bMark[%d], bExtension[%d]",
             nPayloadType, nDataSize, nTimestamp, bMark, bExtension);
     stRtpPacketParam.bMbit = bMark ? eRTP_TRUE : eRTP_FALSE;
     stRtpPacketParam.byPayLoadType = nPayloadType;
@@ -455,8 +455,9 @@ void IRtpSession::OnTimer()
 {
     std::lock_guard<std::mutex> guard(mutexDecoder);
 
-    IMLOGD8("[OnTimer] type[%d], RXRtp[%03d/%03d], RXRtcp[%02d/%02d], TXRtp[%03d/%03d],"
-            " TXRtcp[%02d]", mMediaType, mNumRtpProcPacket, mNumRtpPacket, mNumRtcpProcPacket,
+    IMLOGD8("[OnTimer] media[%d], RXRtp[%03d/%03d], RXRtcp[%02d/%02d], TXRtp[%03d/%03d],"
+            " TXRtcp[%02d]",
+            mMediaType, mNumRtpProcPacket, mNumRtpPacket, mNumRtcpProcPacket,
             mNumSRPacket + mNumRRPacket, mNumRtpDataToSend, mNumRtpPacketSent, mNumRtcpPacketSent);
 
     if (mRtpDecoderListener)

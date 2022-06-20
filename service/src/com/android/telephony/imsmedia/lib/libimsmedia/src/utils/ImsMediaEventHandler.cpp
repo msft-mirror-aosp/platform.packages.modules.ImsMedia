@@ -57,12 +57,14 @@ void ImsMediaEventHandler::SendEvent(const char* strEventHandlerName, uint32_t e
         IMLOGE0("[SendEvent] strEventHandlerName is NULL");
         return;
     }
+
     std::lock_guard<std::mutex> guard(mMutex);
     IMLOGD5("[SendEvent] Name[%s], event[%d], paramA[%p], paramB[%p], paramC[%p]",
             strEventHandlerName, event, paramA, paramB, paramC);
+
     for (auto& i : gListEventHandler)
     {
-        if (strcmp(i->getName(), strEventHandlerName) == 0)
+        if (i != NULL && strcmp(i->getName(), strEventHandlerName) == 0)
         {
             i->AddEvent(event, paramA, paramB, paramC);
         }

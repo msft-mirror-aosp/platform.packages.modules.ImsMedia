@@ -17,10 +17,11 @@
 #include <ImsMediaVideoRenderer.h>
 #include <ImsMediaTrace.h>
 #include <ImsMediaTimer.h>
+#include <ImsMediaVideoUtil.h>
 #include <thread>
 
 static int kTimeout = 100000;  // be responsive on signal
-static int kThreadInterval = 30;
+static int kThreadInterval = 10;
 
 ImsMediaVideoRenderer::ImsMediaVideoRenderer()
 {
@@ -33,6 +34,7 @@ ImsMediaVideoRenderer::ImsMediaVideoRenderer()
     mHeight = 0;
     mFarOrientationDegree = 0;
     mNearOrientationDegree = 0;
+    mStopped = false;
 }
 
 ImsMediaVideoRenderer::~ImsMediaVideoRenderer()
@@ -130,6 +132,7 @@ bool ImsMediaVideoRenderer::Start()
         return false;
     }
 
+    mStopped = false;
     mMutex.unlock();
     std::thread t1(&ImsMediaVideoRenderer::processBuffers, this);
     t1.detach();
@@ -139,9 +142,15 @@ bool ImsMediaVideoRenderer::Start()
 void ImsMediaVideoRenderer::Stop()
 {
     IMLOGD0("[Stop]");
-    std::lock_guard<std::mutex> guard(mMutex);
+
+    mMutex.lock();
+    mStopped = true;
+    mMutex.unlock();
+    mConditionExit.wait_timeout(MAX_WAIT_RESTART);
+
     if (mCodec != NULL)
     {
+        AMediaCodec_signalEndOfInputStream(mCodec);
         AMediaCodec_stop(mCodec);
         AMediaCodec_delete(mCodec);
         mCodec = NULL;
@@ -167,7 +176,7 @@ void ImsMediaVideoRenderer::OnDataFrame(
         return;
     }
 
-    IMLOGD_PACKET2(IM_PACKET_LOG_VIDEO, "[OnDataFrame] frame size[%d], list[%d]", size,
+    IMLOGD_PACKET2(IM_PACKET_LOG_VIDEO, "[OnDataFrame] frame size[%u], list[%d]", size,
             mFrameDatas.size());
     std::lock_guard<std::mutex> guard(mMutex);
     if (mCodec == NULL)
@@ -180,13 +189,15 @@ void ImsMediaVideoRenderer::OnDataFrame(
 
 void ImsMediaVideoRenderer::processBuffers()
 {
-    uint32_t nNextTime = ImsMediaTimer::GetTimeInMilliSeconds();
-    IMLOGD1("[processBuffers] enter time[%u]", nNextTime);
+    uint32_t nextTime = ImsMediaTimer::GetTimeInMilliSeconds();
+    uint32_t timeDiff = 0;
+
+    IMLOGD1("[processBuffers] enter time[%u]", nextTime);
 
     while (true)
     {
         mMutex.lock();
-        if (mCodec == NULL)
+        if (mStopped)
         {
             mMutex.unlock();
             break;
@@ -267,17 +278,18 @@ void ImsMediaVideoRenderer::processBuffers()
             IMLOGD1("[processBuffers] unexpected index[%d]", index);
         }
 
-        nNextTime += kThreadInterval;
+        nextTime += kThreadInterval;
         uint32_t nCurrTime = ImsMediaTimer::GetTimeInMilliSeconds();
 
-        if (nNextTime > nCurrTime)
+        if (nextTime > nCurrTime)
         {
-            IMLOGD_PACKET1(IM_PACKET_LOG_VIDEO, "[processBuffers] wait[%u]", nNextTime - nCurrTime);
-            ImsMediaTimer::Sleep(nNextTime - nCurrTime);
+            timeDiff = nextTime - nCurrTime;
+            IMLOGD_PACKET1(IM_PACKET_LOG_VIDEO, "[processBuffers] timeDiff[%u]", timeDiff);
+            ImsMediaTimer::Sleep(timeDiff);
         }
     }
 
-    mCondition.signal();
+    mConditionExit.signal();
     IMLOGD0("[processBuffers] exit");
 }
 
@@ -294,7 +306,6 @@ void ImsMediaVideoRenderer::UpdatePeerOrientation(uint32_t degree)
     {
         this->Stop();
         mFarOrientationDegree = degree;
-        mCondition.wait_timeout(100);
         this->Start();
     }
 }

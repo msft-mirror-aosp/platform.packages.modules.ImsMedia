@@ -62,6 +62,7 @@ ImsMediaResult SocketWriterNode::Start()
     // set local/peer address here
     mSocket->SetLocalEndpoint(mLocalAddress.ipAddress, mLocalAddress.port);
     mSocket->SetPeerEndpoint(mPeerAddress.ipAddress, mPeerAddress.port);
+    mSocket->SetSocketOpt(SOCKET_OPT_IP_QOS, mDscp);
 
     if (mSocket->Open(mLocalFd) == false)
     {
@@ -101,8 +102,12 @@ bool SocketWriterNode::IsSourceNode()
 void SocketWriterNode::SetConfig(void* config)
 {
     if (config == NULL)
+    {
         return;
+    }
+
     RtpConfig* pConfig = reinterpret_cast<RtpConfig*>(config);
+
     if (mProtocolType == RTP)
     {
         mPeerAddress = RtpAddress(pConfig->getRemoteAddress().c_str(), pConfig->getRemotePort());
@@ -112,12 +117,17 @@ void SocketWriterNode::SetConfig(void* config)
         mPeerAddress =
                 RtpAddress(pConfig->getRemoteAddress().c_str(), pConfig->getRemotePort() + 1);
     }
+
+    mDscp = pConfig->getDscp();
 }
 
 bool SocketWriterNode::IsSameConfig(void* config)
 {
     if (config == NULL)
+    {
         return true;
+    }
+
     RtpConfig* pConfig = reinterpret_cast<RtpConfig*>(config);
     RtpAddress peerAddress;
 
@@ -130,7 +140,7 @@ bool SocketWriterNode::IsSameConfig(void* config)
         peerAddress = RtpAddress(pConfig->getRemoteAddress().c_str(), pConfig->getRemotePort() + 1);
     }
 
-    return (mPeerAddress == peerAddress);
+    return (mPeerAddress == peerAddress && mDscp == pConfig->getDscp());
 }
 
 void SocketWriterNode::OnDataFromFrontNode(ImsMediaSubType subtype, uint8_t* pData,

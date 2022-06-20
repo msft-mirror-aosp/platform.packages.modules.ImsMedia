@@ -40,10 +40,11 @@ private:
     void processStart();
 
     ImsMediaCondition mCondition;
+    ImsMediaCondition mConditionExit;
     std::mutex mMutex;
     ANativeWindow* mSurface;
-    ImsMediaResult mStartResult;
     int32_t mVideoMode;
+    bool mClosed;
 };
 
 #endif

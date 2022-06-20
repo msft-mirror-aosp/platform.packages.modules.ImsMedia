@@ -106,7 +106,8 @@ ImsMediaResult BaseStreamGraph::startNodes()
     while (mListNodeToStart.size() > 0)
     {
         pNode = mListNodeToStart.front();
-        IMLOGD1("[startNodes] start node[%s]", pNode->GetNodeName());
+        IMLOGD2("[startNodes] media[%d], start node[%s]", pNode->GetMediaType(),
+                pNode->GetNodeName());
         ret = pNode->Start();
         mListNodeToStart.pop_front();
         mListNodeStarted.push_front(pNode);
@@ -129,7 +130,8 @@ ImsMediaResult BaseStreamGraph::stopNodes()
     while (mListNodeStarted.size() > 0)
     {
         pNode = mListNodeStarted.front();
-        IMLOGD1("[stopNodes] stop node[%s]", pNode->GetNodeName());
+        IMLOGD2("[stopNodes] media[%d], stop node[%s]", pNode->GetMediaType(),
+                pNode->GetNodeName());
         pNode->Stop();
         mListNodeStarted.pop_front();
         mListNodeToStart.push_front(pNode);
@@ -148,13 +150,15 @@ void BaseStreamGraph::deleteNodes()
 
     if (mListNodeStarted.size() > 0)
     {
-        IMLOGE1("[deleteNodes] error node remained[%d]", mListNodeStarted.size());
+        IMLOGE2("[deleteNodes] media[%d], error node remained[%d]", pNode->GetMediaType(),
+                mListNodeStarted.size());
     }
 
     while (mListNodeToStart.size() > 0)
     {
         pNode = mListNodeToStart.front();
-        IMLOGD1("[deleteNodes] delete node[%s]", pNode->GetNodeName());
+        IMLOGD2("[deleteNodes] media[%d], delete node[%s]", pNode->GetMediaType(),
+                pNode->GetNodeName());
         RemoveNode(pNode);
         mListNodeToStart.pop_front();
     }

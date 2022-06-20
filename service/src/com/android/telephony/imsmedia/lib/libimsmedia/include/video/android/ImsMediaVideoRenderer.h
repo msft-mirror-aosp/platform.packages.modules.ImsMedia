@@ -83,12 +83,13 @@ private:
     AMediaFormat* mFormat;
     std::list<FrameData*> mFrameDatas;
     std::mutex mMutex;
-    ImsMediaCondition mCondition;
+    ImsMediaCondition mConditionExit;
     int32_t mCodecType;
     uint32_t mWidth;
     uint32_t mHeight;
     uint32_t mFarOrientationDegree;
     uint32_t mNearOrientationDegree;
+    bool mStopped;
 };
 
 #endif  // IMSMEDIA_VIDEO_RENDERER_H_INCLUDED

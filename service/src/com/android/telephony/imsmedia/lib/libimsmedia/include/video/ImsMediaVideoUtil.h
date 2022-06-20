@@ -24,6 +24,7 @@
 #define MAX_CONFIG_INDEX            3
 #define MAX_VIDEO_WIDTH             1920
 #define MAX_VIDEO_HEIGHT            1920
+#define MAX_WAIT_RESTART            1000
 #define MAX_RTP_PAYLOAD_BUFFER_SIZE (MAX_VIDEO_WIDTH * MAX_VIDEO_HEIGHT * 3 >> 1)
 
 enum kVideoResolution
@@ -119,8 +120,8 @@ public:
 
 enum kCameraFacing
 {
-    kCameraFacingRear = 0,
-    kCameraFacingFront,
+    kCameraFacingFront = 0,
+    kCameraFacingRear,
 };
 
 struct LostPktEntry

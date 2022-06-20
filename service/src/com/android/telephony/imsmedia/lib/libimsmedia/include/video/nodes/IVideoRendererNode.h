@@ -72,6 +72,7 @@ private:
     ImsMediaResult ParseAvcSps(uint8_t* pbBuffer, uint32_t nBufferSize, tCodecConfig* pInfo);
     ImsMediaResult ParseHevcSps(uint8_t* pbBuffer, uint32_t nBufferSize, tCodecConfig* pInfo);
     void QueueConfigFrame(uint32_t timestamp);
+    void NotifyPeerDimensionChanged();
 
     std::unique_ptr<ImsMediaVideoRenderer> mVideoRenderer;
     ANativeWindow* mWindow;
