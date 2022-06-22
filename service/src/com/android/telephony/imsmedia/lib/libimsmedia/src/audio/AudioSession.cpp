@@ -150,6 +150,7 @@ ImsMediaResult AudioSession::startGraph(void* config)
 
     if (mListGraphRtpRx.size() != 0)
     {
+        mListGraphRtpRx.front()->setMediaQualityThreshold(&mThreshold);
         ret = mListGraphRtpRx.front()->update(config);
         if (ret != RESULT_SUCCESS)
         {
@@ -177,6 +178,7 @@ ImsMediaResult AudioSession::startGraph(void* config)
 
     if (mListGraphRtcp.size() != 0)
     {
+        mListGraphRtcp.front()->setMediaQualityThreshold(&mThreshold);
         ret = mListGraphRtcp.front()->update(config);
         if (ret != RESULT_SUCCESS)
         {

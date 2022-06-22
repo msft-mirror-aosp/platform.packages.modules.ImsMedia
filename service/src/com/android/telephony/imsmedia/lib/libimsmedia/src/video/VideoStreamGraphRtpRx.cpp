@@ -195,13 +195,28 @@ void VideoStreamGraphRtpRx::setMediaQualityThreshold(MediaQualityThreshold* thre
         return;
     }
 
+    bool found = false;
     for (auto& i : mListNodeToStart)
     {
         if (i->GetNodeID() == BaseNodeID::NODEID_RTPDECODER)
         {
             RtpDecoderNode* pNode = reinterpret_cast<RtpDecoderNode*>(i);
             pNode->SetInactivityTimerSec(threshold->getRtpInactivityTimerMillis() / 1000);
+            found = true;
             break;
+        }
+    }
+
+    if (found == false)
+    {
+        for (auto& node : mListNodeStarted)
+        {
+            if (node != NULL && node->GetNodeID() == NODEID_RTPDECODER)
+            {
+                RtpDecoderNode* pNode = reinterpret_cast<RtpDecoderNode*>(node);
+                pNode->SetInactivityTimerSec(threshold->getRtpInactivityTimerMillis() / 1000);
+                break;
+            }
         }
     }
 }

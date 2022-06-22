@@ -150,6 +150,7 @@ ImsMediaResult VideoSession::startGraph(void* config)
 
     if (mGraphRtpRx != NULL)
     {
+        mGraphRtpRx->setMediaQualityThreshold(&mThreshold);
         ret = mGraphRtpRx->update(config);
         if (ret != RESULT_SUCCESS)
         {
@@ -185,6 +186,7 @@ ImsMediaResult VideoSession::startGraph(void* config)
 
     if (mGraphRtcp != NULL)
     {
+        mGraphRtcp->setMediaQualityThreshold(&mThreshold);
         ret = mGraphRtcp->update(config);
         if (ret != RESULT_SUCCESS)
         {
