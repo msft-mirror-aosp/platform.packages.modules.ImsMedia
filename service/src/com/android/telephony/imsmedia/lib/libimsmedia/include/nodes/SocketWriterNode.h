@@ -50,6 +50,7 @@ private:
     ImsMediaProtocolType mProtocolType;
     RtpAddress mLocalAddress;
     RtpAddress mPeerAddress;
+    int32_t mDscp;
     bool mbSocketOpened;
     bool mDisableSocket;
 };

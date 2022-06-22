@@ -179,10 +179,10 @@ void RtpDecoderNode::OnMediaDataInd(unsigned char* pData, uint32_t nDataSize, ui
 {
     static ImsMediaSubType subtype = MEDIASUBTYPE_RTPPAYLOAD;
 
-    IMLOGD_PACKET6(IM_PACKET_LOG_RTP,
-            "[OnMediaDataInd] media[%d] Size[%d], TS[%d], Mark[%d], Seq[%d],\
- SamplingRate[%d]",
-            mMediaType, nDataSize, nTimestamp, bMark, nSeqNum, mSamplingRate);
+    IMLOGD_PACKET7(IM_PACKET_LOG_RTP,
+            "[OnMediaDataInd] media[%d] size[%d], TS[%d], mark[%d], seq[%d], sampling[%d], "
+            "bExtension[%d]",
+            mMediaType, nDataSize, nTimestamp, bMark, nSeqNum, mSamplingRate, bExtension);
 
     // no need to change to timestamp to msec in video or text packet
     if (mMediaType != IMS_MEDIA_VIDEO && mSamplingRate != 0)
@@ -203,9 +203,6 @@ void RtpDecoderNode::OnMediaDataInd(unsigned char* pData, uint32_t nDataSize, ui
 
     if (bExtension == true)
     {
-        // send rtp header extension received event
-        mCallback->SendEvent(kImsMediaEventHeaderExtensionReceived, nExtensionData);
-
         if (mMediaType == IMS_MEDIA_VIDEO && mCvoValue != CVO_DEFINE_NONE)
         {
             uint16_t nExtensionID;

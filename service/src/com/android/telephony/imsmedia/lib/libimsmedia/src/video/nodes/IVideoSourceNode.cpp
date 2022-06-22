@@ -152,8 +152,12 @@ void IVideoSourceNode::SetConfig(void* config)
 bool IVideoSourceNode::IsSameConfig(void* config)
 {
     if (config == NULL)
+    {
         return true;
+    }
+
     VideoConfig* pConfig = reinterpret_cast<VideoConfig*>(config);
+
     return (mCodecType == ImsMediaVideoUtil::ConvertCodecType(pConfig->getCodecType()) &&
             mVideoMode == pConfig->getVideoMode() &&
             mSamplingRate == pConfig->getSamplingRateKHz() &&
@@ -169,8 +173,63 @@ bool IVideoSourceNode::IsSameConfig(void* config)
 ImsMediaResult IVideoSourceNode::UpdateConfig(void* config)
 {
     IMLOGD0("[UpdateConfig]");
+
     if (config == NULL)
+    {
         return RESULT_INVALID_PARAM;
+    }
+
+    bool isRestart = false;
+    if (IsSameConfig(config))
+    {
+        IMLOGD0("[UpdateConfig] no update");
+        return RESULT_SUCCESS;
+    }
+
+    VideoConfig* pConfig = reinterpret_cast<VideoConfig*>(config);
+
+    if (mCodecType != pConfig->getCodecType() || mCodecProfile != pConfig->getCodecProfile() ||
+            mCodecLevel != pConfig->getCodecLevel() || mFramerate != pConfig->getFramerate() ||
+            mCameraId != pConfig->getCameraId() || mWidth != pConfig->getResolutionWidth() ||
+            mHeight != pConfig->getResolutionHeight())
+    {
+        isRestart = true;
+    }
+    else
+    {
+        if (mBitrate != pConfig->getBitrate())
+        {
+            // TODO : bitrate change
+        }
+
+        int32_t deviceOrientation =
+                ImsMediaVideoUtil::ConvertOrientationDegree(pConfig->getDeviceOrientationDegree());
+        if (mDeviceOrientation != deviceOrientation)
+        {
+            mVideoSource->SetDeviceOrientation(deviceOrientation);
+            mDeviceOrientation = deviceOrientation;
+        }
+
+        return RESULT_SUCCESS;
+    }
+
+    if (isRestart)
+    {
+        kBaseNodeState prevState = mNodeState;
+        if (mNodeState == kNodeStateRunning)
+        {
+            Stop();
+        }
+
+        // reset the parameters
+        SetConfig(config);
+
+        if (prevState == kNodeStateRunning)
+        {
+            return Start();
+        }
+    }
+
     return RESULT_SUCCESS;
 }
 

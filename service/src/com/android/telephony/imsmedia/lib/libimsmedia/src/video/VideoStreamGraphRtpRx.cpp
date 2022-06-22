@@ -22,13 +22,14 @@
 #include <VideoConfig.h>
 #include <thread>
 
-static uint32_t sTimeout = 1000;
+static uint32_t sTimeout = 100;
 
 VideoStreamGraphRtpRx::VideoStreamGraphRtpRx(BaseSessionCallback* callback, int localFd) :
         BaseStreamGraph(callback, localFd)
 {
     mConfig = NULL;
     mSurface = NULL;
+    mClosed = false;
 }
 
 VideoStreamGraphRtpRx::~VideoStreamGraphRtpRx()
@@ -38,7 +39,9 @@ VideoStreamGraphRtpRx::~VideoStreamGraphRtpRx()
         delete mConfig;
     }
 
-    mCondition.reset();
+    mClosed = true;
+    mCondition.signal();
+    mConditionExit.wait_timeout(sTimeout);
 }
 
 ImsMediaResult VideoStreamGraphRtpRx::create(void* config)
@@ -115,7 +118,7 @@ ImsMediaResult VideoStreamGraphRtpRx::update(void* config)
 
     VideoConfig* pConfig = reinterpret_cast<VideoConfig*>(config);
 
-    if (*mConfig == *pConfig)
+    if (*reinterpret_cast<VideoConfig*>(mConfig) == *pConfig)
     {
         IMLOGD0("[update] no update");
         return RESULT_SUCCESS;
@@ -124,6 +127,7 @@ ImsMediaResult VideoStreamGraphRtpRx::update(void* config)
     if (mConfig != NULL)
     {
         delete mConfig;
+        mConfig = NULL;
     }
 
     mConfig = new VideoConfig(pConfig);
@@ -216,7 +220,7 @@ void VideoStreamGraphRtpRx::setSurface(ANativeWindow* surface)
     bool found = false;
     for (auto& node : mListNodeToStart)
     {
-        if (node->GetNodeID() == NODEID_VIDEORENDERER)
+        if (node != NULL && node->GetNodeID() == NODEID_VIDEORENDERER)
         {
             IVideoRendererNode* pNode = reinterpret_cast<IVideoRendererNode*>(node);
             pNode->UpdateSurface(surface);
@@ -229,7 +233,7 @@ void VideoStreamGraphRtpRx::setSurface(ANativeWindow* surface)
     {
         for (auto& node : mListNodeStarted)
         {
-            if (node->GetNodeID() == NODEID_VIDEORENDERER)
+            if (node != NULL && node->GetNodeID() == NODEID_VIDEORENDERER)
             {
                 IVideoRendererNode* pNode = reinterpret_cast<IVideoRendererNode*>(node);
                 pNode->UpdateSurface(surface);
@@ -271,25 +275,26 @@ void VideoStreamGraphRtpRx::processStart()
                 pConfig->getMediaDirection(), pConfig->getVideoMode());
         setState(StreamState::kStreamStateWaitSurface);
         mMutex.unlock();
-        if (mCondition.wait_timeout(sTimeout))
+        mCondition.wait();
+
+        if (mClosed)
         {
-            setState(StreamState::kStreamStateCreated);
-            mCallback->SendEvent(kImsMediaEventNotifyError, kNotifyErrorSurfaceNotReady,
-                    kStreamModeRtpRx);
+            IMLOGD0("[processStart] exit");
+            mConditionExit.signal();
             return;
         }
-        mCondition.reset();
     }
 
-    mStartResult = startNodes();
-    if (mStartResult != RESULT_SUCCESS)
+    ImsMediaResult result = startNodes();
+    if (result != RESULT_SUCCESS)
     {
         setState(StreamState::kStreamStateCreated);
-        mCallback->SendEvent(kImsMediaEventNotifyError, mStartResult, kStreamModeRtpRx);
+        mCallback->SendEvent(kImsMediaEventNotifyError, result, kStreamModeRtpRx);
         mMutex.unlock();
         return;
     }
 
     setState(StreamState::kStreamStateRunning);
     mMutex.unlock();
+    IMLOGD0("[processStart] exit");
 }

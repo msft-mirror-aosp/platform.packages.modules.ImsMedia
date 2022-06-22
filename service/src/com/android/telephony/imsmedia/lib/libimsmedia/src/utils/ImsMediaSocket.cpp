@@ -52,12 +52,6 @@ ImsMediaSocket* ImsMediaSocket::GetInstance(
         if (strcmp(i->GetPeerIPAddress(), peerIpAddress) == 0 && i->GetLocalPort() == localPort &&
                 i->GetPeerPort() == peerPort)
         {
-            /* TBD
-            if (pImsMediaSocket->mToS != pPortInfo->nTOS) {
-                IMLOGD2("[GetInstance] ToS changed[%d]->[%d]",
-                    pImsMediaSocket->mToS, pPortInfo->nTOS);
-                pImsMediaSocket->SetSocketOpt(OPT_IP_QOS, pPortInfo->nTOS);
-            }*/
             return i;
         }
     }

@@ -111,7 +111,7 @@ ImsMediaResult VideoStreamGraphRtcp::update(void* config)
 
     VideoConfig* pConfig = reinterpret_cast<VideoConfig*>(config);
 
-    if (*mConfig == *pConfig)
+    if (*reinterpret_cast<VideoConfig*>(mConfig) == *pConfig)
     {
         IMLOGD0("[update] no update");
         return RESULT_SUCCESS;
@@ -120,8 +120,9 @@ ImsMediaResult VideoStreamGraphRtcp::update(void* config)
     if (mConfig != NULL)
     {
         delete mConfig;
-        mConfig = new VideoConfig(pConfig);
     }
+
+    mConfig = new VideoConfig(pConfig);
 
     if (mConfig->getRtcpConfig().getIntervalSec() == 0)
     {

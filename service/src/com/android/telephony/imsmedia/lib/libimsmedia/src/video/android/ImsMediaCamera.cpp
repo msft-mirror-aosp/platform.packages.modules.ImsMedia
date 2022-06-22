@@ -16,6 +16,7 @@
 
 #include <ImsMediaCamera.h>
 #include <ImsMediaTrace.h>
+#include <ImsMediaVideoUtil.h>
 #include <unistd.h>
 #include <cinttypes>
 #include <thread>
@@ -76,6 +77,7 @@ static const uint64_t kMaxExposureTime = static_cast<uint64_t>(250000000);
 
 std::map<std::string, CameraId> ImsMediaCamera::gCameraIds;
 std::mutex ImsMediaCamera::gMutex;
+ImsMediaCondition ImsMediaCamera::gCondition;
 
 ImsMediaCamera::ImsMediaCamera() :
         mManager(NULL),
@@ -132,6 +134,11 @@ bool ImsMediaCamera::OpenCamera()
 {
     IMLOGD0("[OpenCamera]");
     std::lock_guard<std::mutex> guard(gMutex);
+
+    if (mManager == NULL)
+    {
+        return false;
+    }
 
     // Create back facing camera device
     camera_status_t status = ACameraManager_openCamera(mManager, mActiveCameraId.c_str(),
@@ -274,6 +281,14 @@ void ImsMediaCamera::CreateSession(ANativeWindow* preview, ANativeWindow* record
         {
             IMLOGE1("[CreateSession] create output target, error[%s]", GetErrorStr(status));
             continue;
+        }
+    }
+
+    if (gCameraIds[mActiveCameraId].mAvailable == false)
+    {
+        if (gCondition.wait_timeout(MAX_WAIT_RESTART))
+        {
+            return;
         }
     }
 
@@ -423,6 +438,11 @@ void ImsMediaCamera::OnCameraStatusChanged(const char* id, bool available)
         if (gCameraIds.find(std::string(id)) != gCameraIds.end())
         {
             gCameraIds[std::string(id)].mAvailable = available;
+
+            if (available)
+            {
+                gCondition.signal();
+            }
         }
     }
 }
@@ -594,7 +614,12 @@ void ImsMediaCamera::EnumerateCamera()
     }
 
     ACameraIdList* cameraIds = NULL;
-    ACameraManager_getCameraIdList(mManager, &cameraIds);
+    auto ret = ACameraManager_getCameraIdList(mManager, &cameraIds);
+
+    if (ret != ACAMERA_OK)
+    {
+        return;
+    }
 
     for (int i = 0; i < cameraIds->numCameras; ++i)
     {
@@ -658,14 +683,8 @@ bool ImsMediaCamera::GetSensorOrientation(const int cameraId, int32_t* facing, i
                 ACameraMetadata_free(metadataObj);
                 mCameraOrientation = orientation.data.i32[0];
 
-                if (facing)
-                {
-                    *facing = mCameraFacing;
-                }
-                if (angle)
-                {
-                    *angle = mCameraOrientation;
-                }
+                mCameraFacing == 0 ? * facing = kCameraFacingFront : * facing = kCameraFacingRear;
+                *angle = mCameraOrientation;
 
                 IMLOGD2("[GetSensorOrientation] facing[%d], sensor[%d]", *facing, *angle);
                 return true;

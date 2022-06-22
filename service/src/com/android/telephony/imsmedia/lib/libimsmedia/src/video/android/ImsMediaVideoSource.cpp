@@ -42,6 +42,7 @@ ImsMediaVideoSource::ImsMediaVideoSource()
     mDeviceOrientation = -1;
     mTimestamp = 0;
     mPrevTimestamp = 0;
+    mStopped = false;
 }
 
 ImsMediaVideoSource::~ImsMediaVideoSource() {}
@@ -104,11 +105,26 @@ void ImsMediaVideoSource::SetDeviceOrientation(const uint32_t degree)
     {
         if (mCamera != NULL && mVideoMode == kVideoModeRecording)
         {
-            int32_t facing, angle;
-            if (mCamera->GetSensorOrientation(mCameraId, &facing, &angle) && mListener != NULL)
+            int32_t facing, sensorOrientation;
+            if (mCamera->GetSensorOrientation(mCameraId, &facing, &sensorOrientation) &&
+                    mListener != NULL)
             {
+                int32_t rotateDegree = 0;
+                // assume that the default UI is always portrait, camera frame is always landscape
+                if (facing == kCameraFacingFront)  // front
+                {
+                    sensorOrientation = (sensorOrientation + 180) % 360;
+                }
+
+                rotateDegree = sensorOrientation - degree;
+
+                if (rotateDegree < 0)
+                {
+                    rotateDegree += 360;
+                }
+
                 IMLOGD0("[SetDeviceOrientation] send event");
-                mListener->OnEvent(kVideoSourceEventUpdateCamera, facing, angle);
+                mListener->OnEvent(kVideoSourceEventUpdateCamera, facing, rotateDegree);
             }
         }
         mDeviceOrientation = degree;
@@ -215,8 +231,12 @@ bool ImsMediaVideoSource::Start()
     }
 
     // start encoder output thread
-    std::thread t1(&ImsMediaVideoSource::processOutputBuffer, this);
-    t1.detach();
+    if (mCodec != NULL)
+    {
+        mStopped = false;
+        std::thread t1(&ImsMediaVideoSource::processOutputBuffer, this);
+        t1.detach();
+    }
 
     IMLOGD0("[Start] exit");
     return true;
@@ -225,14 +245,25 @@ bool ImsMediaVideoSource::Start()
 void ImsMediaVideoSource::Stop()
 {
     IMLOGD0("[Stop]");
-    std::lock_guard<std::mutex> guard(mMutex);
+
     if (mCamera != NULL)
     {
         mCamera->StopSession();
     }
 
+    mMutex.lock();
+    mStopped = true;
+    mMutex.unlock();
+
+    if (mVideoMode == kVideoModeRecording)
+    {
+        mConditionExit.reset();
+        mConditionExit.wait_timeout(MAX_WAIT_RESTART);
+    }
+
     if (mCodec != NULL)
     {
+        AMediaCodec_signalEndOfInputStream(mCodec);
         AMediaCodec_stop(mCodec);
         AMediaCodec_delete(mCodec);
         mCodec = NULL;
@@ -262,28 +293,31 @@ void ImsMediaVideoSource::processOutputBuffer()
 {
     static int kTimeout = 100000;  // be responsive on signal
     static int kMaxUplinkBuffer = 100;
-    uint32_t nNextTime = ImsMediaTimer::GetTimeInMilliSeconds();
-    uint32_t nTimeInterval = 66;
+    uint32_t nextTime = ImsMediaTimer::GetTimeInMilliSeconds();
+    uint32_t timeInterval = 66;
+    uint32_t timeDiff = 0;
     std::list<uint8_t*> uplinkBuffers;
 
     if (mFramerate != 0)
     {
-        nTimeInterval = 1000 / mFramerate;
+        timeInterval = 1000 / mFramerate;
     }
+
+    IMLOGD1("[processOutputBuffer] interval[%d]", timeInterval);
 
     for (;;)
     {
         uint32_t nCurrTime;
         mMutex.lock();
-        if (mCodec == NULL || mListener == NULL)
+        if (mStopped)
         {
             IMLOGD0("[processOutputBuffer] terminated");
             mMutex.unlock();
             break;
         }
+        mMutex.unlock();
 
         AMediaCodecBufferInfo info;
-        IMLOGD0("[processOutputBuffer] dequeue");
         auto index = AMediaCodec_dequeueOutputBuffer(mCodec, &info, kTimeout);
 
         if (index >= 0)
@@ -301,11 +335,15 @@ void ImsMediaVideoSource::processOutputBuffer()
                     uint8_t* data = new uint8_t[info.size];
                     memcpy(data, buf, info.size);
                     uplinkBuffers.push_back(data);
-                    mListener->OnUplinkEvent(data, info.size, info.presentationTimeUs, info.flags);
+
+                    if (mListener != NULL)
+                    {
+                        mListener->OnUplinkEvent(
+                                data, info.size, info.presentationTimeUs, info.flags);
+                    }
                 }
             }
 
-            IMLOGD0("[processOutputBuffer] release");
             AMediaCodec_releaseOutputBuffer(mCodec, index, false);
         }
         else if (index == AMEDIACODEC_INFO_OUTPUT_BUFFERS_CHANGED)
@@ -324,14 +362,12 @@ void ImsMediaVideoSource::processOutputBuffer()
         }
         else if (index == AMEDIACODEC_INFO_TRY_AGAIN_LATER)
         {
-            IMLOGD0("[processOutputBuffer] no output buffer");
+            IMLOGD_PACKET0(IM_PACKET_LOG_VIDEO, "[processOutputBuffer] no output buffer");
         }
         else
         {
             IMLOGD1("[processOutputBuffer] unexpected index[%d]", index);
         }
-
-        mMutex.unlock();
 
         if (uplinkBuffers.size() > kMaxUplinkBuffer)
         {
@@ -340,12 +376,13 @@ void ImsMediaVideoSource::processOutputBuffer()
             uplinkBuffers.pop_front();
         }
 
-        nNextTime += nTimeInterval;
+        nextTime += timeInterval;
         nCurrTime = ImsMediaTimer::GetTimeInMilliSeconds();
-        IMLOGD_PACKET1(IM_PACKET_LOG_VIDEO, "[processOutputBuffer] nCurrTime[%u]", nCurrTime);
-        if (nNextTime > nCurrTime)
+        if (nextTime > nCurrTime)
         {
-            ImsMediaTimer::Sleep(nNextTime - nCurrTime);
+            timeDiff = nextTime - nCurrTime;
+            IMLOGD_PACKET1(IM_PACKET_LOG_VIDEO, "[processOutputBuffer] timeDiff[%u]", timeDiff);
+            ImsMediaTimer::Sleep(timeDiff);
         }
     }
 
@@ -355,5 +392,8 @@ void ImsMediaVideoSource::processOutputBuffer()
         delete data;
         uplinkBuffers.pop_front();
     }
+
     uplinkBuffers.clear();
+    mConditionExit.signal();
+    IMLOGD0("[processOutputBuffer] exit");
 }

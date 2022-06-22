@@ -18,6 +18,7 @@
 #define IMS_MEDIA_CAMERA_H_INCLUDED
 
 #include <ImsMediaDefine.h>
+#include <ImsMediaCondition.h>
 #include <string>
 #include <vector>
 #include <map>
@@ -216,6 +217,7 @@ private:
 
     static std::map<std::string, CameraId> gCameraIds;
     static std::mutex gMutex;
+    static ImsMediaCondition gCondition;
     ACameraManager* mManager;
     CaptureRequestInfo mCaptureRequest;
     ACaptureSessionOutputContainer* mSessionOutputContainer;

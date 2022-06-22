@@ -353,6 +353,7 @@ void RtpEncoderNode::SetCvoExtension(const int64_t facing, const int64_t orienta
 
     uint32_t nRotation = 0;
     uint32_t nCamera = 0;
+
     if (facing == kCameraFacingRear)
     {
         nCamera = 1;
