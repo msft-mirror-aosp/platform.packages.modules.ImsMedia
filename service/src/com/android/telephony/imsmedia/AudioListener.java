@@ -95,6 +95,16 @@ public class AudioListener implements JNIImsMediaListener {
             case AudioSession.EVENT_JITTER_IND:
                 //TODO : add implementation
                 break;
+            case AudioSession.EVENT_TRIGGER_ANBR_QUERY_IND:
+                final AudioConfig configAnbr = AudioConfig.CREATOR.createFromParcel(parcel);
+                Rlog.d(LOG_TAG, "onMessage=" + event);
+                Utils.sendMessage(mHandler, event, configAnbr);
+                break;
+            case AudioSession.EVENT_DTMF_RECEIVED_IND:
+                final char dtmfDigit = (char) parcel.readByte();
+                Rlog.d(LOG_TAG, "onMessage=" + event);
+                Utils.sendMessage(mHandler, event, dtmfDigit);
+                break;
             default:
                 break;
         }

@@ -17,12 +17,13 @@
 package com.android.telephony.imsmedia;
 
 import static com.google.common.truth.Truth.assertThat;
+
 import static junit.framework.Assert.assertEquals;
+
 import static org.junit.Assert.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.eq;
-import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -33,8 +34,6 @@ import android.hardware.radio.ims.media.MediaProtocolType;
 import android.hardware.radio.ims.media.RtpConfig;
 import android.hardware.radio.ims.media.RtpError;
 import android.hardware.radio.ims.media.RtpSessionState;
-import android.os.Looper;
-import android.os.Message;
 import android.os.ParcelFileDescriptor;
 import android.os.RemoteException;
 import android.telephony.ims.RtpHeaderExtension;
@@ -43,24 +42,25 @@ import android.telephony.imsmedia.IImsAudioSessionCallback;
 import android.telephony.imsmedia.ImsMediaSession;
 import android.telephony.imsmedia.MediaQualityThreshold;
 import android.testing.TestableLooper;
-import com.android.telephony.imsmedia.AudioService;
+
 import com.android.telephony.imsmedia.AudioSession;
 import com.android.telephony.imsmedia.Utils;
 import com.android.telephony.imsmedia.Utils.OpenSessionParams;
-import java.net.DatagramSocket;
-import java.net.SocketException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.stream.Collectors;
+
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 import org.mockito.ArgumentCaptor;
-import org.mockito.Captor;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+
+import java.net.DatagramSocket;
+import java.net.SocketException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @RunWith(JUnit4.class)
 public class AudioOffloadTest {
@@ -136,7 +136,7 @@ public class AudioOffloadTest {
         verify(offloadService, times(1)).openSession(eq(SESSION_ID), eq(params));
         try {
             verify(imsMedia, times(1)).openSession(eq(SESSION_ID), any(), eq(null));
-        } catch(RemoteException e) {
+        } catch (RemoteException e) {
             fail("Failed to invoke openSession:" + e);
         }
 
@@ -177,7 +177,7 @@ public class AudioOffloadTest {
             final AudioConfig outputAudioConfig = Utils.convertToAudioConfig(outputRtpConfig);
             // Ensure both are same
             assertEquals(inputAudioConfig, outputAudioConfig);
-        } catch(RemoteException e) {
+        } catch (RemoteException e) {
             fail("Failed to invoke modifySession: " + e);
         }
 
@@ -186,7 +186,7 @@ public class AudioOffloadTest {
         processAllMessages();
         try {
             verify(callback, times(1)).onModifySessionResponse(eq(inputAudioConfig), eq(SUCCESS));
-        } catch(RemoteException e) {
+        } catch (RemoteException e) {
             fail("Failed to notify modifySessionResponse: " + e);
         }
 
@@ -196,7 +196,7 @@ public class AudioOffloadTest {
         try {
             verify(callback, times(1)).onModifySessionResponse(
                     eq(inputAudioConfig), eq(NO_RESOURCES));
-        } catch(RemoteException e) {
+        } catch (RemoteException e) {
             fail("Failed to notify modifySessionResponse: " + e);
         }
     }
@@ -218,7 +218,7 @@ public class AudioOffloadTest {
             final AudioConfig outputAudioConfig = Utils.convertToAudioConfig(outputRtpConfig);
             // Ensure both are same
             assertEquals(inputAudioConfig, outputAudioConfig);
-        } catch(RemoteException e) {
+        } catch (RemoteException e) {
             fail("Failed to invoke addConfig: " + e);
         }
 
@@ -227,7 +227,7 @@ public class AudioOffloadTest {
         processAllMessages();
         try {
             verify(callback, times(1)).onAddConfigResponse(eq(inputAudioConfig), eq(SUCCESS));
-        } catch(RemoteException e) {
+        } catch (RemoteException e) {
             fail("Failed to notify addConfigResponse: " + e);
         }
 
@@ -236,7 +236,7 @@ public class AudioOffloadTest {
         processAllMessages();
         try {
             verify(callback, times(1)).onAddConfigResponse(eq(inputAudioConfig), eq(NO_MEMORY));
-        } catch(RemoteException e) {
+        } catch (RemoteException e) {
             fail("Failed to notify addConfigResponse: " + e);
         }
     }
@@ -256,7 +256,7 @@ public class AudioOffloadTest {
             final AudioConfig outputAudioConfig = Utils.convertToAudioConfig(outputRtpConfig);
             // Ensure both are same
             assertEquals(inputAudioConfig, outputAudioConfig);
-        } catch(RemoteException e) {
+        } catch (RemoteException e) {
             fail("Failed to invoke deleteConfig: " + e);
         }
 
@@ -279,7 +279,7 @@ public class AudioOffloadTest {
             final AudioConfig outputAudioConfig = Utils.convertToAudioConfig(outputRtpConfig);
             // Ensure both are same
             assertEquals(inputAudioConfig, outputAudioConfig);
-        }  catch(RemoteException e) {
+        }  catch (RemoteException e) {
             fail("Failed to invoke confirmConfig: " + e);
         }
 
@@ -288,7 +288,7 @@ public class AudioOffloadTest {
         processAllMessages();
         try {
             verify(callback, times(1)).onConfirmConfigResponse(eq(inputAudioConfig), eq(SUCCESS));
-        } catch(RemoteException e) {
+        } catch (RemoteException e) {
             fail("Failed to notify confirmConfigResponse: " + e);
         }
 
@@ -298,7 +298,7 @@ public class AudioOffloadTest {
         try {
             verify(callback, times(1)).onConfirmConfigResponse(
                     eq(inputAudioConfig), eq(NO_RESOURCES));
-        }  catch(RemoteException e) {
+        }  catch (RemoteException e) {
             fail("Failed to notify confirmConfigResponse: " + e);
         }
     }
@@ -309,7 +309,7 @@ public class AudioOffloadTest {
         processAllMessages();
         try {
             verify(imsMediaSession, times(1)).sendDtmf(eq(DTMF_DIGIT), eq(DTMF_DURATION));
-        } catch(RemoteException e) {
+        } catch (RemoteException e) {
             fail("Failed to invoke sendDtmf: " + e);
         }
     }
@@ -333,7 +333,7 @@ public class AudioOffloadTest {
                     Utils.convertMediaQualityThreshold(halThreshold);
             // Ensure both are same
             assertEquals(threshold, expectedThreshold);
-        } catch(RemoteException e) {
+        } catch (RemoteException e) {
             fail("Failed to invoke setMediaQualityThreshold: " + e);
         }
 
@@ -346,7 +346,7 @@ public class AudioOffloadTest {
         processAllMessages();
         try {
             verify(callback, times(1)).notifyMediaInactivity(eq(RTP));
-        }  catch(RemoteException e) {
+        }  catch (RemoteException e) {
             fail("Failed to notify notifyMediaInactivity: " + e);
         }
 
@@ -355,7 +355,7 @@ public class AudioOffloadTest {
         processAllMessages();
         try {
             verify(callback, times(1)).notifyMediaInactivity(eq(RTCP));
-        }  catch(RemoteException e) {
+        }  catch (RemoteException e) {
             fail("Failed to notify notifyMediaInactivity: " + e);
         }
     }
@@ -367,7 +367,7 @@ public class AudioOffloadTest {
         processAllMessages();
         try {
             verify(callback, times(1)).notifyPacketLoss(eq(PACKET_LOSS));
-        }  catch(RemoteException e) {
+        }  catch (RemoteException e) {
             fail("Failed to notify notifyPacketLoss: " + e);
         }
     }
@@ -379,7 +379,7 @@ public class AudioOffloadTest {
         processAllMessages();
         try {
             verify(callback, times(1)).notifyJitter(eq(JITTER));
-        }  catch(RemoteException e) {
+        }  catch (RemoteException e) {
             fail("Failed to notify notifyJitter: " + e);
         }
     }
@@ -394,7 +394,7 @@ public class AudioOffloadTest {
         processAllMessages();
         try {
             verify(callback, times(1)).onFirstMediaPacketReceived(eq(outputAudioConfig));
-        }  catch(RemoteException e) {
+        }  catch (RemoteException e) {
             fail("Failed to notify onFirstMediaPacketReceived: " + e);
         }
     }
@@ -424,7 +424,7 @@ public class AudioOffloadTest {
                     .collect(Collectors.toList());
             // Ensure both are same
             assertEquals(inputExtensions, outputExtensions);
-        } catch(RemoteException e) {
+        } catch (RemoteException e) {
             fail("Failed to invoke sendHeaderExtension: " + e);
         }
 
@@ -433,8 +433,35 @@ public class AudioOffloadTest {
         processAllMessages();
         try {
             verify(callback, times(1)).onHeaderExtensionReceived(eq(inputExtensions));
-        }  catch(RemoteException e) {
+        }  catch (RemoteException e) {
             fail("Failed to notify onHeaderExtensionReceived: " + e);
+        }
+    }
+
+    @Test
+    public void testTriggerAnbrQuery() {
+        final AudioConfig outputAudioConfig = AudioConfigTest.createAudioConfig();
+        final RtpConfig inputRtpConfig = Utils.convertToRtpConfig(outputAudioConfig);
+
+        // Receive triggerAnbrQuery for ANBR
+        offloadListener.triggerAnbrQuery(inputRtpConfig);
+        processAllMessages();
+        try {
+            verify(callback, times(1)).triggerAnbrQuery(eq(outputAudioConfig));
+        }  catch (RemoteException e) {
+            fail("Failed to notify triggerAnbrQuery: " + e);
+        }
+    }
+
+    @Test
+    public void testDtmfReceived() {
+        // Receive DTMF Received
+        offloadListener.onDtmfReceived(DTMF_DIGIT);
+        processAllMessages();
+        try {
+            verify(callback, times(1)).onDtmfReceived(eq(DTMF_DIGIT));
+        }  catch (RemoteException e) {
+            fail("Failed to notify onDtmfReceived: " + e);
         }
     }
 

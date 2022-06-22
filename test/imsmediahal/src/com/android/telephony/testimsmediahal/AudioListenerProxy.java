@@ -16,23 +16,22 @@
 
 package com.android.telephony.testimsmediahal;
 
-import android.os.Parcel;
-import android.telephony.Rlog;
-import android.telephony.imsmedia.AudioConfig;
-import android.os.RemoteException;
-
-import android.hardware.radio.ims.media.IImsMediaSessionListener;
 import android.hardware.radio.ims.media.IImsMediaListener;
 import android.hardware.radio.ims.media.IImsMediaSession;
+import android.hardware.radio.ims.media.IImsMediaSessionListener;
 import android.hardware.radio.ims.media.RtpConfig;
 import android.hardware.radio.ims.media.RtpHeaderExtension;
+import android.os.Parcel;
+import android.os.RemoteException;
+import android.telephony.Rlog;
+import android.telephony.imsmedia.AudioConfig;
 
-import com.android.telephony.imsmedia.JNIImsMediaListener;
 import com.android.telephony.imsmedia.AudioSession;
+import com.android.telephony.imsmedia.JNIImsMediaListener;
 import com.android.telephony.imsmedia.Utils;
 
-import java.util.List;
 import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Implementation of proxy Listener class used to ge response back
@@ -186,6 +185,25 @@ class AudioListenerProxy implements JNIImsMediaListener {
                     mMediaSessionListener.notifyJitter(jitter);
                 } catch(RemoteException e) {
                     Rlog.e(TAG, "Failed to notify jitter indication: " + e);
+                }
+                break;
+            case AudioSession.EVENT_TRIGGER_ANBR_QUERY_IND:
+                final AudioConfig anbrNotiCfg = AudioConfig.CREATOR.createFromParcel(parcel);
+                final RtpConfig anbrNotiRtpCfg = Utils.convertToRtpConfig(anbrNotiCfg);
+
+                try {
+                    mMediaSessionListener.triggerAnbrQuery(anbrNotiRtpCfg);
+                } catch (RemoteException e) {
+                    Rlog.e(TAG, "Failed to trigger ANBR query: " + e);
+                }
+                break;
+            case AudioSession.EVENT_DTMF_RECEIVED_IND:
+                final char dtmfDigit = (char) parcel.readByte();
+
+                try {
+                    mMediaSessionListener.onDtmfReceived(dtmfDigit);
+                } catch (RemoteException e) {
+                    Rlog.e(TAG, "Failed to DTMF received: " + e);
                 }
                 break;
             default:
