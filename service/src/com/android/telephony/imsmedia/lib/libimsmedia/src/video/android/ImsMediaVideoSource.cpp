@@ -101,6 +101,8 @@ void ImsMediaVideoSource::SetSurface(ANativeWindow* window)
 
 void ImsMediaVideoSource::SetDeviceOrientation(const uint32_t degree)
 {
+    IMLOGD1("[SetDeviceOrientation] degree[%d]", degree);
+
     if (mDeviceOrientation != degree)
     {
         if (mCamera != NULL && mVideoMode == kVideoModeRecording)
@@ -123,7 +125,6 @@ void ImsMediaVideoSource::SetDeviceOrientation(const uint32_t degree)
                     rotateDegree += 360;
                 }
 
-                IMLOGD0("[SetDeviceOrientation] send event");
                 mListener->OnEvent(kVideoSourceEventUpdateCamera, facing, rotateDegree);
             }
         }
@@ -261,14 +262,6 @@ void ImsMediaVideoSource::Stop()
         mConditionExit.wait_timeout(MAX_WAIT_RESTART);
     }
 
-    if (mCodec != NULL)
-    {
-        AMediaCodec_signalEndOfInputStream(mCodec);
-        AMediaCodec_stop(mCodec);
-        AMediaCodec_delete(mCodec);
-        mCodec = NULL;
-    }
-
     if (mCamera != NULL)
     {
         mCamera->DeleteSession();
@@ -276,10 +269,19 @@ void ImsMediaVideoSource::Stop()
         mCamera = NULL;
     }
 
-    if (mRecordingSurface != NULL)
+    if (mCodec != NULL)
     {
-        ANativeWindow_release(mRecordingSurface);
-        mRecordingSurface = NULL;
+        AMediaCodec_signalEndOfInputStream(mCodec);
+        AMediaCodec_stop(mCodec);
+
+        if (mRecordingSurface != NULL)
+        {
+            ANativeWindow_release(mRecordingSurface);
+            mRecordingSurface = NULL;
+        }
+
+        AMediaCodec_delete(mCodec);
+        mCodec = NULL;
     }
 
     if (mFormat != NULL)

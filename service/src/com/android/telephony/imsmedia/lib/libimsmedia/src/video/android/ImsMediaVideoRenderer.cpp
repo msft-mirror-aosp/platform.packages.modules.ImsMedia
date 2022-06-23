@@ -302,10 +302,11 @@ void ImsMediaVideoRenderer::UpdateDeviceOrientation(uint32_t degree)
 void ImsMediaVideoRenderer::UpdatePeerOrientation(uint32_t degree)
 {
     IMLOGD1("[UpdatePeerOrientation] orientation[%d]", degree);
+
     if (mFarOrientationDegree != degree)
     {
-        this->Stop();
+        Stop();
         mFarOrientationDegree = degree;
-        this->Start();
+        Start();
     }
 }

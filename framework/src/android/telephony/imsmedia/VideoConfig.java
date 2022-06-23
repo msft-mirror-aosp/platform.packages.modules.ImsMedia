@@ -215,24 +215,6 @@ public final class VideoConfig extends RtpConfig {
     @Retention(RetentionPolicy.SOURCE)
     public @interface PacketizationMode {}
 
-    /** The orientation degree set for deviceOrientation. */
-    public static final int ORIENTATION_DEGREE_0 = 0;
-    public static final int ORIENTATION_DEGREE_90 = 1;
-    public static final int ORIENTATION_DEGREE_180 = 2;
-    public static final int ORIENTATION_DEGREE_270 = 3;
-
-    /** @hide */
-    @IntDef(
-        flag = true,
-        value = {
-            ORIENTATION_DEGREE_0,
-            ORIENTATION_DEGREE_90,
-            ORIENTATION_DEGREE_180,
-            ORIENTATION_DEGREE_270,
-        })
-    @Retention(RetentionPolicy.SOURCE)
-    public @interface OrientationDegree {}
-
     public static final int RTP_FB_NONE = 0;
     /**
      * The Generic NACK(Negative Acknowledgement) message identified by RTCP packet type
@@ -288,7 +270,7 @@ public final class VideoConfig extends RtpConfig {
     private final int mResolutionHeight;
     @Nullable
     private final String mPauseImagePath;
-    private final @OrientationDegree int mDeviceOrientationDegree;
+    private final int mDeviceOrientationDegree;
     private final int mCvoValue;
     private final @RtcpFbTypes int mRtcpFbTypes;
 
@@ -687,12 +669,10 @@ public final class VideoConfig extends RtpConfig {
 
         /**
          * Sets a device orientation in degree unit captured from device sensor.
-         * @param mDeviceOrientationDegree degree of device orientation. see
-         * {@link OrientationDegree}
+         * @param mDeviceOrientationDegree degree of device orientation.
          * @return
          */
-        public Builder setDeviceOrientationDegree(final @OrientationDegree
-                int mDeviceOrientationDegree) {
+        public Builder setDeviceOrientationDegree(final int mDeviceOrientationDegree) {
             this.mDeviceOrientationDegree = mDeviceOrientationDegree;
             return this;
         }

@@ -43,7 +43,7 @@ VideoConfig::VideoConfig() :
     resolutionWidth = DEFAULT_RESOLUTION_WIDTH;
     resolutionHeight = DEFAULT_RESOLUTION_HEIGHT;
     pauseImagePath = String8("");
-    deviceOrientationDegree = ORIENTATION_DEGREE_0;
+    deviceOrientationDegree = 0;
     cvoValue = CVO_DEFINE_NONE;
     rtcpFbTypes = RTP_FB_NONE;
 }

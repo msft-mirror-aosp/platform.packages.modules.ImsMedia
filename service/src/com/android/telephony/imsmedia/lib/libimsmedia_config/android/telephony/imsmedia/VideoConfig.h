@@ -142,15 +142,6 @@ public:
         MODE_INTERLEAVED,
     };
 
-    /* The orientation degree set for deviceOrientation. */
-    enum OrientationDegree
-    {
-        ORIENTATION_DEGREE_0 = 0,
-        ORIENTATION_DEGREE_90,
-        ORIENTATION_DEGREE_180,
-        ORIENTATION_DEGREE_270,
-    };
-
     enum RtcpFbType
     {
         /* Rtcp fb type is not set*/

@@ -37,22 +37,6 @@ int32_t ImsMediaVideoUtil::ConvertCodecType(int32_t type)
     }
 }
 
-int32_t ImsMediaVideoUtil::ConvertOrientationDegree(int32_t type)
-{
-    switch (type)
-    {
-        default:
-        case VideoConfig::ORIENTATION_DEGREE_0:
-            return 0;
-        case VideoConfig::ORIENTATION_DEGREE_90:
-            return 90;
-        case VideoConfig::ORIENTATION_DEGREE_180:
-            return 180;
-        case VideoConfig::ORIENTATION_DEGREE_270:
-            return 270;
-    }
-}
-
 uint32_t ImsMediaVideoUtil::GetResolutionFromSize(uint32_t nWidth, uint32_t nHeight)
 {
     if (nWidth == 128 && nHeight == 96)

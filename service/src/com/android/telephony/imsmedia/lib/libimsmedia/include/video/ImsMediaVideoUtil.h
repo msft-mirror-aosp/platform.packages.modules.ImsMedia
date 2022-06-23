@@ -179,7 +179,6 @@ public:
     ImsMediaVideoUtil();
     ~ImsMediaVideoUtil();
     static int32_t ConvertCodecType(int32_t type);
-    static int32_t ConvertOrientationDegree(int32_t type);
     static uint32_t GetResolutionFromSize(uint32_t nWidth, uint32_t nHeight);
     static bool ModifyAvcSpropParameterSet(const uint8_t* inSpropparam, uint8_t* outSpropparam,
             uint32_t nProfile, uint32_t nLevel);

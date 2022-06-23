@@ -57,6 +57,7 @@ public class VideoConfigTest {
     private static final String IMAGE_PATH =
             "data/user_de/0/com.android.telephony.imsmedia/test.jpg";
     private static final int CVO_VALUE = 1;
+    private static final int DEVICE_ORIENTATION = 0;
     private static final int RTCP_FB_TYPES =
             VideoConfig.RTPFB_NACK | VideoConfig.RTPFB_TMMBR | VideoConfig.RTPFB_TMMBN;
 
@@ -94,7 +95,7 @@ public class VideoConfigTest {
         assertThat(config.getResolutionWidth()).isEqualTo(RESOLUTION_WIDTH);
         assertThat(config.getResolutionHeight()).isEqualTo(RESOLUTION_HEIGHT);
         assertThat(config.getPauseImagePath()).isEqualTo(IMAGE_PATH);
-        assertThat(config.getDeviceOrientationDegree()).isEqualTo(VideoConfig.ORIENTATION_DEGREE_0);
+        assertThat(config.getDeviceOrientationDegree()).isEqualTo(DEVICE_ORIENTATION);
         assertThat(config.getCvoValue()).isEqualTo(CVO_VALUE);
         assertThat(config.getRtcpFbTypes()).isEqualTo(RTCP_FB_TYPES);
     }
@@ -144,7 +145,7 @@ public class VideoConfigTest {
                 .setResolutionWidth(RESOLUTION_WIDTH)
                 .setResolutionHeight(RESOLUTION_HEIGHT)
                 .setPauseImagePath(IMAGE_PATH)
-                .setDeviceOrientationDegree(VideoConfig.ORIENTATION_DEGREE_0)
+                .setDeviceOrientationDegree(DEVICE_ORIENTATION)
                 .setCvoValue(CVO_VALUE)
                 .setRtcpFbTypes(RTCP_FB_TYPES)
                 .build();
@@ -177,7 +178,7 @@ public class VideoConfigTest {
                 .setResolutionWidth(RESOLUTION_WIDTH)
                 .setResolutionHeight(RESOLUTION_HEIGHT)
                 .setPauseImagePath(IMAGE_PATH)
-                .setDeviceOrientationDegree(VideoConfig.ORIENTATION_DEGREE_0)
+                .setDeviceOrientationDegree(DEVICE_ORIENTATION)
                 .setCvoValue(CVO_VALUE)
                 .setRtcpFbTypes(RTCP_FB_TYPES)
                 .build();

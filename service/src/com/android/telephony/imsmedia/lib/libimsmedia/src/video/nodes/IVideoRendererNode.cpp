@@ -48,7 +48,7 @@ IVideoRendererNode::IVideoRendererNode() :
     mCvoValue = 0;
     memset(mConfigBuffer, 0, MAX_CONFIG_INDEX * MAX_CONFIG_LEN * sizeof(uint32_t));
     memset(mConfigLen, 0, MAX_CONFIG_INDEX * sizeof(uint32_t));
-    mDeviceOrientation = VideoConfig::ORIENTATION_DEGREE_0;
+    mDeviceOrientation = 0;
     mFirstFrame = false;
 }
 IVideoRendererNode::~IVideoRendererNode() {}
@@ -276,10 +276,15 @@ void IVideoRendererNode::ProcessData()
         return;
     }
 
-    // send sps/pps before send I frame
-    if (isIntraFrame)
+    if (mFirstFrame == false)
     {
-        QueueConfigFrame(timestamp);
+        IMLOGD0("[ProcessData] notify first frame");
+        mFirstFrame = true;
+
+        if (mCallback != NULL)
+        {
+            mCallback->SendEvent(kImsMediaEventFirstPacketReceived);
+        }
     }
 
     // cvo
@@ -313,23 +318,17 @@ void IVideoRendererNode::ProcessData()
             }
 
             mVideoRenderer->UpdatePeerOrientation(degree);
-        }
-    }
-
-    mVideoRenderer->OnDataFrame(pBuffer, nDatabufferSize, timestamp, false);
-
-    if (mFirstFrame == false)
-    {
-        IMLOGD0("[ProcessData] notify first frame");
-        mFirstFrame = true;
-
-        if (mCallback != NULL)
-        {
-            mCallback->SendEvent(kImsMediaEventFirstPacketReceived);
             NotifyPeerDimensionChanged();
         }
     }
 
+    // send sps/pps before send I frame
+    if (isIntraFrame)
+    {
+        QueueConfigFrame(timestamp);
+    }
+
+    mVideoRenderer->OnDataFrame(pBuffer, nDatabufferSize, timestamp, false);
     free(pBuffer);
 }
 
@@ -826,8 +825,7 @@ void IVideoRendererNode::NotifyPeerDimensionChanged()
     if (mWidth > mHeight)  // landscape
     {
         // local rotation
-        if (mDeviceOrientation == VideoConfig::ORIENTATION_DEGREE_0 ||
-                mDeviceOrientation == VideoConfig::ORIENTATION_DEGREE_180)
+        if (mDeviceOrientation == 0 || mDeviceOrientation == 180)
         {
             // peer rotation
             if (mSubtype == MEDIASUBTYPE_ROT0 || mSubtype == MEDIASUBTYPE_ROT180)
@@ -854,8 +852,7 @@ void IVideoRendererNode::NotifyPeerDimensionChanged()
     }
     else  // portrait
     {
-        if (mDeviceOrientation == VideoConfig::ORIENTATION_DEGREE_0 ||
-                mDeviceOrientation == VideoConfig::ORIENTATION_DEGREE_180)
+        if (mDeviceOrientation == 0 || mDeviceOrientation == 180)
         {
             // peer rotation
             if (mSubtype == MEDIASUBTYPE_ROT0 || mSubtype == MEDIASUBTYPE_ROT180)

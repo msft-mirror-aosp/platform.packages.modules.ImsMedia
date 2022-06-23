@@ -55,7 +55,7 @@ const int32_t kCameraZoom = 10;
 const int32_t kResolutionWidth = DEFAULT_RESOLUTION_WIDTH;
 const int32_t kResolutionHeight = DEFAULT_RESOLUTION_HEIGHT;
 const android::String8 kPauseImagePath("data/user_de/0/com.android.telephony.imsmedia/test.jpg");
-const int32_t kDeviceOrientationDegree = VideoConfig::ORIENTATION_DEGREE_0;
+const int32_t kDeviceOrientationDegree = 0;
 const int32_t kCvoValue = 1;
 const int32_t kRtcpFbTypes = VideoConfig::RTP_FB_NONE;
 

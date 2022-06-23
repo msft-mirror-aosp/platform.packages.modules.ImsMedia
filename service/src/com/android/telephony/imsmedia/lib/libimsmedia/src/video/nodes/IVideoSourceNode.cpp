@@ -145,8 +145,8 @@ void IVideoSourceNode::SetConfig(void* config)
     {
         mImagePath = pConfig->getPauseImagePath();
     }
-    mDeviceOrientation =
-            ImsMediaVideoUtil::ConvertOrientationDegree(pConfig->getDeviceOrientationDegree());
+
+    mDeviceOrientation = pConfig->getDeviceOrientationDegree();
 }
 
 bool IVideoSourceNode::IsSameConfig(void* config)
@@ -165,9 +165,7 @@ bool IVideoSourceNode::IsSameConfig(void* config)
             mFramerate == pConfig->getFramerate() && mBitrate == pConfig->getBitrate() &&
             mCameraId == pConfig->getCameraId() && mCameraZoom == pConfig->getCameraZoom() &&
             mWidth == pConfig->getResolutionWidth() && mHeight == pConfig->getResolutionHeight() &&
-            mDeviceOrientation ==
-                    ImsMediaVideoUtil::ConvertOrientationDegree(
-                            pConfig->getDeviceOrientationDegree()));
+            mDeviceOrientation == pConfig->getDeviceOrientationDegree());
 }
 
 ImsMediaResult IVideoSourceNode::UpdateConfig(void* config)
@@ -202,12 +200,10 @@ ImsMediaResult IVideoSourceNode::UpdateConfig(void* config)
             // TODO : bitrate change
         }
 
-        int32_t deviceOrientation =
-                ImsMediaVideoUtil::ConvertOrientationDegree(pConfig->getDeviceOrientationDegree());
-        if (mDeviceOrientation != deviceOrientation)
+        if (mDeviceOrientation != pConfig->getDeviceOrientationDegree())
         {
-            mVideoSource->SetDeviceOrientation(deviceOrientation);
-            mDeviceOrientation = deviceOrientation;
+            mDeviceOrientation = pConfig->getDeviceOrientationDegree();
+            mVideoSource->SetDeviceOrientation(mDeviceOrientation);
         }
 
         return RESULT_SUCCESS;
