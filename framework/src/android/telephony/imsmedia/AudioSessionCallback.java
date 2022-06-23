@@ -192,12 +192,12 @@ public class AudioSessionCallback extends ImsMediaManager.SessionCallback {
         }
 
         @Override
-        public void onMediaQualityChanged(final CallQuality callQuality) {
+        public void onCallQualityChanged(final CallQuality callQuality) {
             if (mLocalCallback == null) return;
 
             final long callingIdentity = Binder.clearCallingIdentity();
             try {
-                mExecutor.execute(() -> mLocalCallback.onMediaQualityChanged(callQuality));
+                mExecutor.execute(() -> mLocalCallback.onCallQualityChanged(callQuality));
             } finally {
                 restoreCallingIdentity(callingIdentity);
             }
@@ -328,7 +328,7 @@ public class AudioSessionCallback extends ImsMediaManager.SessionCallback {
      *
      * @param callQuality The media quality statistics since last report
      */
-    public void onMediaQualityChanged(final CallQuality callQuality) {
+    public void onCallQualityChanged(final CallQuality callQuality) {
         // Base Implementation
     }
 

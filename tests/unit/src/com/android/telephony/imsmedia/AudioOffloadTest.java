@@ -36,6 +36,7 @@ import android.hardware.radio.ims.media.RtpError;
 import android.hardware.radio.ims.media.RtpSessionState;
 import android.os.ParcelFileDescriptor;
 import android.os.RemoteException;
+import android.telephony.CallQuality;
 import android.telephony.ims.RtpHeaderExtension;
 import android.telephony.imsmedia.AudioConfig;
 import android.telephony.imsmedia.IImsAudioSessionCallback;
@@ -279,7 +280,7 @@ public class AudioOffloadTest {
             final AudioConfig outputAudioConfig = Utils.convertToAudioConfig(outputRtpConfig);
             // Ensure both are same
             assertEquals(inputAudioConfig, outputAudioConfig);
-        }  catch (RemoteException e) {
+        } catch (RemoteException e) {
             fail("Failed to invoke confirmConfig: " + e);
         }
 
@@ -298,7 +299,7 @@ public class AudioOffloadTest {
         try {
             verify(callback, times(1)).onConfirmConfigResponse(
                     eq(inputAudioConfig), eq(NO_RESOURCES));
-        }  catch (RemoteException e) {
+        } catch (RemoteException e) {
             fail("Failed to notify confirmConfigResponse: " + e);
         }
     }
@@ -346,7 +347,7 @@ public class AudioOffloadTest {
         processAllMessages();
         try {
             verify(callback, times(1)).notifyMediaInactivity(eq(RTP));
-        }  catch (RemoteException e) {
+        } catch (RemoteException e) {
             fail("Failed to notify notifyMediaInactivity: " + e);
         }
 
@@ -355,7 +356,7 @@ public class AudioOffloadTest {
         processAllMessages();
         try {
             verify(callback, times(1)).notifyMediaInactivity(eq(RTCP));
-        }  catch (RemoteException e) {
+        } catch (RemoteException e) {
             fail("Failed to notify notifyMediaInactivity: " + e);
         }
     }
@@ -367,7 +368,7 @@ public class AudioOffloadTest {
         processAllMessages();
         try {
             verify(callback, times(1)).notifyPacketLoss(eq(PACKET_LOSS));
-        }  catch (RemoteException e) {
+        } catch (RemoteException e) {
             fail("Failed to notify notifyPacketLoss: " + e);
         }
     }
@@ -379,7 +380,7 @@ public class AudioOffloadTest {
         processAllMessages();
         try {
             verify(callback, times(1)).notifyJitter(eq(JITTER));
-        }  catch (RemoteException e) {
+        } catch (RemoteException e) {
             fail("Failed to notify notifyJitter: " + e);
         }
     }
@@ -394,7 +395,7 @@ public class AudioOffloadTest {
         processAllMessages();
         try {
             verify(callback, times(1)).onFirstMediaPacketReceived(eq(outputAudioConfig));
-        }  catch (RemoteException e) {
+        } catch (RemoteException e) {
             fail("Failed to notify onFirstMediaPacketReceived: " + e);
         }
     }
@@ -433,7 +434,7 @@ public class AudioOffloadTest {
         processAllMessages();
         try {
             verify(callback, times(1)).onHeaderExtensionReceived(eq(inputExtensions));
-        }  catch (RemoteException e) {
+        } catch (RemoteException e) {
             fail("Failed to notify onHeaderExtensionReceived: " + e);
         }
     }
@@ -448,7 +449,7 @@ public class AudioOffloadTest {
         processAllMessages();
         try {
             verify(callback, times(1)).triggerAnbrQuery(eq(outputAudioConfig));
-        }  catch (RemoteException e) {
+        } catch (RemoteException e) {
             fail("Failed to notify triggerAnbrQuery: " + e);
         }
     }
@@ -460,8 +461,23 @@ public class AudioOffloadTest {
         processAllMessages();
         try {
             verify(callback, times(1)).onDtmfReceived(eq(DTMF_DIGIT));
-        }  catch (RemoteException e) {
+        } catch (RemoteException e) {
             fail("Failed to notify onDtmfReceived: " + e);
+        }
+    }
+
+    public void testCallQualityChangedInd() {
+        final android.hardware.radio.ims.media.CallQuality inputCallQuality =
+                CallQualityTest.createHalCallQuality();
+        final CallQuality outputCallQuality = Utils.convertCallQuality(inputCallQuality);
+
+        // Receive Call Quality Changed Indication
+        offloadListener.onCallQualityChanged(inputCallQuality);
+        processAllMessages();
+        try {
+            verify(callback, times(1)).onCallQualityChanged(eq(outputCallQuality));
+        } catch (RemoteException e) {
+            fail("Failed to notify onCallQualityChanged: " + e);
         }
     }
 

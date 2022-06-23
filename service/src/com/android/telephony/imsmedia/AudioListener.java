@@ -18,6 +18,7 @@ package com.android.telephony.imsmedia;
 
 import android.os.Handler;
 import android.os.Parcel;
+import android.telephony.CallQuality;
 import android.telephony.Rlog;
 import android.telephony.imsmedia.AudioConfig;
 
@@ -104,6 +105,10 @@ public class AudioListener implements JNIImsMediaListener {
                 final char dtmfDigit = (char) parcel.readByte();
                 Rlog.d(LOG_TAG, "onMessage=" + event);
                 Utils.sendMessage(mHandler, event, dtmfDigit);
+                break;
+            case AudioSession.EVENT_CALL_QUALITY_CHANGE_IND:
+                Rlog.d(LOG_TAG, "onMessage=" + event);
+                Utils.sendMessage(mHandler, event, CallQuality.CREATOR.createFromParcel(parcel));
                 break;
             default:
                 break;
