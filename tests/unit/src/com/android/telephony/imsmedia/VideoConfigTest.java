@@ -42,8 +42,8 @@ public class VideoConfigTest {
     // VideoConfig
     private static final String REMOTE_RTP_ADDRESS = "122.22.22.22";
     private static final int REMOTE_RTP_PORT = 2222;
-    private static final int MAX_MTU_BYTES = 1524;
     private static final byte DSCP = 10;
+    private static final int MAX_MTU_BYTES = 1524;
     private static final byte RX_PAYLOAD = 112;
     private static final byte TX_PAYLOAD = 122;
     private static final byte SAMPLING_RATE = 98;
@@ -72,13 +72,13 @@ public class VideoConfigTest {
     public void testConstructorAndGetters() {
         VideoConfig config = createVideoConfig();
         assertThat(config.getMediaDirection()).isEqualTo(
-                RtpConfig.MEDIA_DIRECTION_TRANSMIT_RECEIVE);
+                RtpConfig.MEDIA_DIRECTION_SEND_RECEIVE);
         assertThat(config.getAccessNetwork()).isEqualTo(AccessNetworkType.EUTRAN);
         assertThat(config.getRemoteRtpAddress()).isEqualTo(new InetSocketAddress(
                 InetAddresses.parseNumericAddress(REMOTE_RTP_ADDRESS), REMOTE_RTP_PORT));
         assertThat(config.getRtcpConfig()).isEqualTo(sRtcp);
-        assertThat(config.getMaxMtuBytes()).isEqualTo(MAX_MTU_BYTES);
         assertThat(config.getDscp()).isEqualTo(DSCP);
+        assertThat(config.getMaxMtuBytes()).isEqualTo(MAX_MTU_BYTES);
         assertThat(config.getRxPayloadTypeNumber()).isEqualTo(RX_PAYLOAD);
         assertThat(config.getTxPayloadTypeNumber()).isEqualTo(TX_PAYLOAD);
         assertThat(config.getSamplingRateKHz()).isEqualTo(SAMPLING_RATE);
@@ -122,7 +122,7 @@ public class VideoConfigTest {
         VideoConfig config1 = createVideoConfig();
 
         VideoConfig config2 = new VideoConfig.Builder()
-                .setMediaDirection(RtpConfig.MEDIA_DIRECTION_TRANSMIT_RECEIVE)
+                .setMediaDirection(RtpConfig.MEDIA_DIRECTION_SEND_RECEIVE)
                 .setAccessNetwork(AccessNetworkType.EUTRAN)
                 .setRemoteRtpAddress(new InetSocketAddress(
                     InetAddresses.parseNumericAddress(REMOTE_RTP_ADDRESS), REMOTE_RTP_PORT))
@@ -155,7 +155,7 @@ public class VideoConfigTest {
 
     static VideoConfig createVideoConfig() {
         return new VideoConfig.Builder()
-                .setMediaDirection(RtpConfig.MEDIA_DIRECTION_TRANSMIT_RECEIVE)
+                .setMediaDirection(RtpConfig.MEDIA_DIRECTION_SEND_RECEIVE)
                 .setAccessNetwork(AccessNetworkType.EUTRAN)
                 .setRemoteRtpAddress(new InetSocketAddress(
                     InetAddresses.parseNumericAddress(REMOTE_RTP_ADDRESS), REMOTE_RTP_PORT))

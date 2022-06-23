@@ -35,6 +35,7 @@ VideoConfig::VideoConfig() :
     framerate = DEFAULT_FRAMERATE;
     bitrate = DEFAULT_BITRATE;
     codecProfile = CODEC_PROFILE_NONE;
+    maxMtuBytes = 1500;
     codecLevel = CODEC_LEVEL_NONE;
     intraFrameIntervalSec = 1;
     packetizationMode = 1;
@@ -59,6 +60,7 @@ VideoConfig::VideoConfig(VideoConfig* config) :
     bitrate = config->bitrate;
     codecProfile = config->codecProfile;
     codecLevel = config->codecLevel;
+    maxMtuBytes = config->maxMtuBytes;
     intraFrameIntervalSec = config->intraFrameIntervalSec;
     packetizationMode = config->packetizationMode;
     cameraId = config->cameraId;
@@ -186,6 +188,11 @@ status_t VideoConfig::writeToParcel(Parcel* out) const
         return err;
     }
 
+    err = out->writeInt32(maxMtuBytes);
+    if (err != NO_ERROR)
+    {
+        return err;
+    }
     err = out->writeInt32(codecProfile);
     if (err != NO_ERROR)
     {
@@ -295,6 +302,12 @@ status_t VideoConfig::readFromParcel(const Parcel* in)
     }
 
     err = in->readInt32(&bitrate);
+    if (err != NO_ERROR)
+    {
+        return err;
+    }
+
+    err = in->readInt32(&maxMtuBytes);
     if (err != NO_ERROR)
     {
         return err;
@@ -416,6 +429,16 @@ void VideoConfig::setBitrate(const int32_t bitrate)
 int32_t VideoConfig::getBitrate()
 {
     return bitrate;
+}
+
+void VideoConfig::setMaxMtuBytes(const int32_t mtuBytes)
+{
+    maxMtuBytes = mtuBytes;
+}
+
+int32_t VideoConfig::getMaxMtuBytes()
+{
+    return maxMtuBytes;
 }
 
 void VideoConfig::setCodecProfile(const int32_t profile)

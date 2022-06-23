@@ -156,7 +156,7 @@ public final class Utils {
         codecParams.rxPayloadTypeNumber = audioConfig.getRxPayloadTypeNumber();
         codecParams.txPayloadTypeNumber = audioConfig.getTxPayloadTypeNumber();
         codecParams.samplingRateKHz = audioConfig.getSamplingRateKHz();
-        codecParams.txCodecModeRequest = audioConfig.getTxCodecModeRequest();
+        codecParams.codecModeRequest = audioConfig.getCodecModeRequest();
         codecParams.dtxEnabled = audioConfig.getDtxEnabled();
 
         if (audioConfig.getCodecType() == AudioConfig.CODEC_AMR
@@ -176,7 +176,6 @@ public final class Utils {
 
         sessionParams.pTimeMillis = audioConfig.getPtimeMillis();
         sessionParams.maxPtimeMillis = audioConfig.getMaxPtimeMillis();
-        sessionParams.maxMtuBytes = audioConfig.getMaxMtuBytes();
         sessionParams.dscp = audioConfig.getDscp();
         sessionParams.dtmfParams = buildDtmfParams(audioConfig);
         sessionParams.codecParams = buildCodecParams(audioConfig);
@@ -318,7 +317,6 @@ public final class Utils {
 
             /** Populate session related parameters if present */
             if (rtpConfig.sessionParams != null) {
-                audioConfig.setMaxMtuBytes(rtpConfig.sessionParams.maxMtuBytes);
                 audioConfig.setDscp(rtpConfig.sessionParams.dscp);
                 audioConfig.setPtimeMillis(rtpConfig.sessionParams.pTimeMillis);
                 audioConfig.setMaxPtimeMillis(rtpConfig.sessionParams.maxPtimeMillis);
@@ -337,7 +335,7 @@ public final class Utils {
                     audioConfig.setRxPayloadTypeNumber(codecParams.rxPayloadTypeNumber);
                     audioConfig.setTxPayloadTypeNumber(codecParams.txPayloadTypeNumber);
                     audioConfig.setSamplingRateKHz(codecParams.samplingRateKHz);
-                    audioConfig.setTxCodecModeRequest(codecParams.txCodecModeRequest);
+                    audioConfig.setCodecModeRequest(codecParams.codecModeRequest);
                     audioConfig.setDtxEnabled(codecParams.dtxEnabled);
                 }
             }

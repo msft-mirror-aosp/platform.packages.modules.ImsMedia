@@ -183,7 +183,8 @@ ImsMediaResult VideoStreamGraphRtpTx::update(void* config)
     mConfig = new VideoConfig(pConfig);
 
     if (mConfig->getMediaDirection() == RtpConfig::MEDIA_DIRECTION_NO_FLOW ||
-            mConfig->getMediaDirection() == RtpConfig::MEDIA_DIRECTION_RECEIVE_ONLY)
+            mConfig->getMediaDirection() == RtpConfig::MEDIA_DIRECTION_RECEIVE_ONLY ||
+            mConfig->getMediaDirection() == RtpConfig::MEDIA_DIRECTION_INACTIVE)
     {
         IMLOGD0("[update] pause TX");
         return stop();
@@ -219,8 +220,8 @@ ImsMediaResult VideoStreamGraphRtpTx::update(void* config)
     }
 
     if (mGraphState == kStreamStateCreated &&
-            (pConfig->getMediaDirection() == RtpConfig::MEDIA_DIRECTION_TRANSMIT_ONLY ||
-                    pConfig->getMediaDirection() == RtpConfig::MEDIA_DIRECTION_TRANSMIT_RECEIVE))
+            (pConfig->getMediaDirection() == RtpConfig::MEDIA_DIRECTION_SEND_ONLY ||
+                    pConfig->getMediaDirection() == RtpConfig::MEDIA_DIRECTION_SEND_RECEIVE))
     {
         IMLOGD0("[update] resume TX");
         return start();
@@ -330,7 +331,8 @@ void VideoStreamGraphRtpTx::processStart()
 
     if (pConfig->getVideoMode() != VideoConfig::VIDEO_MODE_PREVIEW &&
             (pConfig->getMediaDirection() == RtpConfig::MEDIA_DIRECTION_NO_FLOW ||
-                    pConfig->getMediaDirection() == RtpConfig::MEDIA_DIRECTION_RECEIVE_ONLY))
+                    pConfig->getMediaDirection() == RtpConfig::MEDIA_DIRECTION_RECEIVE_ONLY ||
+                    pConfig->getMediaDirection() == RtpConfig::MEDIA_DIRECTION_INACTIVE))
     {
         IMLOGD1("[processStart] direction[%d] no need to start", pConfig->getMediaDirection());
         mMutex.unlock();

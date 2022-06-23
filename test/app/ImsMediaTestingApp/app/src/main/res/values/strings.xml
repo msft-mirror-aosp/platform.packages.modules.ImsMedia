@@ -91,10 +91,11 @@
 
   <!-- Media direction change text -->
   <string name="hold">HOLD</string>
-  <string name="media_direction_transmit_only">TRANSMIT_ONLY</string>
+  <string name="media_direction_send_only">SEND_ONLY</string>
   <string name="media_direction_receive_only">RECEIVE_ONLY</string>
-  <string name="media_direction_transmit_receive">TRANSMIT_RECEIVE</string>
+  <string name="media_direction_send_receive">SEND_RECEIVE</string>
   <string name="media_direction_no_flow">NO_FLOW</string>
+  <string name="media_direction_inactive">INACTIVE</string>
 
   <!-- Audio codec change text -->
   <string name="change_audio_codec_title">Switch Audio Codecs</string>

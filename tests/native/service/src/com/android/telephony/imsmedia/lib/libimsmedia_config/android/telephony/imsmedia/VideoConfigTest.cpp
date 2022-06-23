@@ -107,7 +107,7 @@ TEST_F(VideoConfigTest, TestGetterSetter)
     EXPECT_EQ(config1.getRemoteAddress(), kRemoteAddress);
     EXPECT_EQ(config1.getRemotePort(), kRemotePort);
     EXPECT_EQ(config1.getRtcpConfig(), rtcp);
-    EXPECT_EQ(config1.getmaxMtuBytes(), kMtu);
+    EXPECT_EQ(config1.getMaxMtuBytes(), kMtu);
     EXPECT_EQ(config1.getDscp(), kDscp);
     EXPECT_EQ(config1.getRxPayloadTypeNumber(), kRxPayload);
     EXPECT_EQ(config1.getTxPayloadTypeNumber(), kTxPayload);

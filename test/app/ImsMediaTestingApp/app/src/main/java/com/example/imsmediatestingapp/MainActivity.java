@@ -80,7 +80,7 @@ public class MainActivity extends AppCompatActivity {
     private static final int SAMPLING_RATE_KHZ = 16;
     private static final int P_TIME_MILLIS = 20;
     private static final int MAX_P_TIME_MILLIS = 240;
-    private static final int TX_CODEC_MODE_REQUEST = 15;
+    private static final int CODEC_MODE_REQUEST = 15;
     private static final int DTMF_PAYLOAD_TYPE_NUMBER = 100;
     private static final int DTMF_SAMPLING_RATE_KHZ = 16;
     private static final int DTMF_DURATION = 140;
@@ -1127,18 +1127,17 @@ public class MainActivity extends AppCompatActivity {
 
         if (audioCodec == AudioConfig.CODEC_AMR || audioCodec == AudioConfig.CODEC_AMR_WB) {
             config = new AudioConfig.Builder()
-                    .setMediaDirection(RtpConfig.MEDIA_DIRECTION_TRANSMIT_RECEIVE)
+                    .setMediaDirection(RtpConfig.MEDIA_DIRECTION_SEND_RECEIVE)
                     .setAccessNetwork(AccessNetworkType.EUTRAN)
                     .setRemoteRtpAddress(remoteRtpAddress)
                     .setRtcpConfig(rtcpConfig)
-                    .setMaxMtuBytes(MAX_MTU_BYTES)
                     .setDscp((byte) DSCP)
                     .setRxPayloadTypeNumber((byte) AUDIO_RX_PAYLOAD_TYPE_NUMBER)
                     .setTxPayloadTypeNumber((byte) AUDIO_TX_PAYLOAD_TYPE_NUMBER)
                     .setSamplingRateKHz((byte) SAMPLING_RATE_KHZ)
                     .setPtimeMillis((byte) P_TIME_MILLIS)
                     .setMaxPtimeMillis((byte) MAX_P_TIME_MILLIS)
-                    .setTxCodecModeRequest((byte) TX_CODEC_MODE_REQUEST)
+                    .setCodecModeRequest((byte) CODEC_MODE_REQUEST)
                     .setDtxEnabled(true)
                     .setDtmfPayloadTypeNumber((byte) DTMF_PAYLOAD_TYPE_NUMBER)
                     .setDtmfSamplingRateKHz((byte) DTMF_SAMPLING_RATE_KHZ)
@@ -1150,18 +1149,17 @@ public class MainActivity extends AppCompatActivity {
 
         } else if (audioCodec == AudioConfig.CODEC_EVS) {
             config = new AudioConfig.Builder()
-                .setMediaDirection(RtpConfig.MEDIA_DIRECTION_TRANSMIT_RECEIVE)
+                .setMediaDirection(RtpConfig.MEDIA_DIRECTION_SEND_RECEIVE)
                 .setAccessNetwork(AccessNetworkType.EUTRAN)
                 .setRemoteRtpAddress(remoteRtpAddress)
                 .setRtcpConfig(rtcpConfig)
-                .setMaxMtuBytes(MAX_MTU_BYTES)
                 .setDscp((byte) DSCP)
                 .setRxPayloadTypeNumber((byte) AUDIO_RX_PAYLOAD_TYPE_NUMBER)
                 .setTxPayloadTypeNumber((byte) AUDIO_TX_PAYLOAD_TYPE_NUMBER)
                 .setSamplingRateKHz((byte) SAMPLING_RATE_KHZ)
                 .setPtimeMillis((byte) P_TIME_MILLIS)
                 .setMaxPtimeMillis((byte) MAX_P_TIME_MILLIS)
-                .setTxCodecModeRequest((byte) TX_CODEC_MODE_REQUEST)
+                .setCodecModeRequest((byte) CODEC_MODE_REQUEST)
                 .setDtxEnabled(true)
                 .setDtmfPayloadTypeNumber((byte) DTMF_PAYLOAD_TYPE_NUMBER)
                 .setDtmfSamplingRateKHz((byte) DTMF_SAMPLING_RATE_KHZ)
@@ -1173,18 +1171,17 @@ public class MainActivity extends AppCompatActivity {
 
         } else {
             config = new AudioConfig.Builder()
-                    .setMediaDirection(RtpConfig.MEDIA_DIRECTION_TRANSMIT_RECEIVE)
+                    .setMediaDirection(RtpConfig.MEDIA_DIRECTION_SEND_RECEIVE)
                     .setAccessNetwork(AccessNetworkType.EUTRAN)
                     .setRemoteRtpAddress(remoteRtpAddress)
                     .setRtcpConfig(rtcpConfig)
-                    .setMaxMtuBytes(MAX_MTU_BYTES)
                     .setDscp((byte) DSCP)
                     .setRxPayloadTypeNumber((byte) AUDIO_RX_PAYLOAD_TYPE_NUMBER)
                     .setTxPayloadTypeNumber((byte) AUDIO_TX_PAYLOAD_TYPE_NUMBER)
                     .setSamplingRateKHz((byte) SAMPLING_RATE_KHZ)
                     .setPtimeMillis((byte) P_TIME_MILLIS)
                     .setMaxPtimeMillis((byte) MAX_P_TIME_MILLIS)
-                    .setTxCodecModeRequest((byte) TX_CODEC_MODE_REQUEST)
+                    .setCodecModeRequest((byte) CODEC_MODE_REQUEST)
                     .setDtxEnabled(true)
                     .setDtmfPayloadTypeNumber((byte) DTMF_PAYLOAD_TYPE_NUMBER)
                     .setDtmfSamplingRateKHz((byte) DTMF_SAMPLING_RATE_KHZ)
@@ -1199,14 +1196,14 @@ public class MainActivity extends AppCompatActivity {
             int profile, int level, int cameraId, int cameraZoom, int deviceOrientation, int cvo,
             int rtcpFbTypes) {
         VideoConfig config = new VideoConfig.Builder()
-                .setMediaDirection(RtpConfig.MEDIA_DIRECTION_TRANSMIT_RECEIVE)
+                .setMediaDirection(RtpConfig.MEDIA_DIRECTION_SEND_RECEIVE)
                 .setAccessNetwork(AccessNetworkType.EUTRAN)
                 .setRemoteRtpAddress(remoteRtpAddress)
                 .setRtcpConfig(rtcpConfig)
-                .setMaxMtuBytes(MAX_MTU_BYTES)
                 .setDscp((byte) DSCP)
                 .setRxPayloadTypeNumber((byte) VIDEO_RX_PAYLOAD_TYPE_NUMBER)
                 .setTxPayloadTypeNumber((byte) VIDEO_TX_PAYLOAD_TYPE_NUMBER)
+                .setMaxMtuBytes(MAX_MTU_BYTES)
                 .setSamplingRateKHz((byte) 90)
                 .setCodecType(codecType)
                 .setVideoMode(videoMode)
@@ -1481,14 +1478,17 @@ public class MainActivity extends AppCompatActivity {
                 case R.id.noFlowDirectionMenuItem:
                     mAudioConfig.setMediaDirection(AudioConfig.MEDIA_DIRECTION_NO_FLOW);
                     break;
-                case R.id.transmitReceiveDirectionMenuItem:
-                    mAudioConfig.setMediaDirection(AudioConfig.MEDIA_DIRECTION_TRANSMIT_RECEIVE);
+                case R.id.sendReceiveDirectionMenuItem:
+                    mAudioConfig.setMediaDirection(AudioConfig.MEDIA_DIRECTION_SEND_RECEIVE);
                     break;
                 case R.id.receiveOnlyDirectionMenuItem:
                     mAudioConfig.setMediaDirection(AudioConfig.MEDIA_DIRECTION_RECEIVE_ONLY);
                     break;
-                case R.id.transmitOnlyDirectionMenuItem:
-                    mAudioConfig.setMediaDirection(AudioConfig.MEDIA_DIRECTION_TRANSMIT_ONLY);
+                case R.id.sendOnlyDirectionMenuItem:
+                    mAudioConfig.setMediaDirection(AudioConfig.MEDIA_DIRECTION_SEND_ONLY);
+                    break;
+                case R.id.inactiveDirectionMenuItem:
+                    mAudioConfig.setMediaDirection(AudioConfig.MEDIA_DIRECTION_INACTIVE);
                     break;
                 default:
                     return false;

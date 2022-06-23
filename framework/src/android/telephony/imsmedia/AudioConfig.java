@@ -59,7 +59,7 @@ public final class AudioConfig extends RtpConfig {
 
     private byte pTimeMillis;
     private int maxPtimeMillis;
-    private byte txCodecModeRequest;
+    private byte codecModeRequest;
     private boolean dtxEnabled;
     private @CodecType int codecType;
     private byte dtmfPayloadTypeNumber;
@@ -74,7 +74,7 @@ public final class AudioConfig extends RtpConfig {
         super(RtpConfig.TYPE_AUDIO, in);
         pTimeMillis = in.readByte();
         maxPtimeMillis = in.readInt();
-        txCodecModeRequest = in.readByte();
+        codecModeRequest = in.readByte();
         dtxEnabled = in.readBoolean();
         codecType = in.readInt();
         dtmfPayloadTypeNumber = in.readByte();
@@ -88,7 +88,7 @@ public final class AudioConfig extends RtpConfig {
         super(RtpConfig.TYPE_AUDIO, builder);
         this.pTimeMillis = builder.pTimeMillis;
         this.maxPtimeMillis = builder.maxPtimeMillis;
-        this.txCodecModeRequest = builder.txCodecModeRequest;
+        this.codecModeRequest = builder.codecModeRequest;
         this.dtxEnabled = builder.dtxEnabled;
         this.codecType = builder.codecType;
         this.dtmfPayloadTypeNumber = builder.dtmfPayloadTypeNumber;
@@ -118,13 +118,13 @@ public final class AudioConfig extends RtpConfig {
     }
 
     /** @hide **/
-    public byte getTxCodecModeRequest() {
-        return txCodecModeRequest;
+    public byte getCodecModeRequest() {
+        return codecModeRequest;
     }
 
     /** @hide **/
-    public void setTxCodecModeRequest(byte txCodecModeRequest) {
-        this.txCodecModeRequest = txCodecModeRequest;
+    public void setCodecModeRequest(byte codecModeRequest) {
+        this.codecModeRequest = codecModeRequest;
     }
 
     /** @hide **/
@@ -182,7 +182,7 @@ public final class AudioConfig extends RtpConfig {
     public String toString() {
         return super.toString() + " AudioConfig: {pTimeMillis=" + pTimeMillis
                 + ", maxPtimeMillis=" + maxPtimeMillis
-                + ", txCodecModeRequest=" + txCodecModeRequest
+                + ", codecModeRequest=" + codecModeRequest
                 + ", dtxEnabled=" + dtxEnabled
                 + ", codecType=" + codecType
                 + ", dtmfPayloadTypeNumber=" + dtmfPayloadTypeNumber
@@ -195,7 +195,7 @@ public final class AudioConfig extends RtpConfig {
     @Override
     public int hashCode() {
         return Objects.hash(super.hashCode(), pTimeMillis, maxPtimeMillis,
-                txCodecModeRequest, dtxEnabled, codecType, dtmfPayloadTypeNumber,
+                codecModeRequest, dtxEnabled, codecType, dtmfPayloadTypeNumber,
                 dtmfSamplingRateKHz, amrParams, evsParams);
     }
 
@@ -217,7 +217,7 @@ public final class AudioConfig extends RtpConfig {
 
         return (pTimeMillis == s.pTimeMillis
                 && maxPtimeMillis == s.maxPtimeMillis
-                && txCodecModeRequest == s.txCodecModeRequest
+                && codecModeRequest == s.codecModeRequest
                 && dtxEnabled == s.dtxEnabled
                 && codecType == s.codecType
                 && dtmfPayloadTypeNumber == s.dtmfPayloadTypeNumber
@@ -240,7 +240,7 @@ public final class AudioConfig extends RtpConfig {
         super.writeToParcel(dest, RtpConfig.TYPE_AUDIO);
         dest.writeByte(pTimeMillis);
         dest.writeInt(maxPtimeMillis);
-        dest.writeByte(txCodecModeRequest);
+        dest.writeByte(codecModeRequest);
         dest.writeBoolean(dtxEnabled);
         dest.writeInt(codecType);
         dest.writeByte(dtmfPayloadTypeNumber);
@@ -268,7 +268,7 @@ public final class AudioConfig extends RtpConfig {
     public static final class Builder extends RtpConfig.AbstractBuilder<Builder> {
         private byte pTimeMillis;
         private int maxPtimeMillis;
-        private byte txCodecModeRequest;
+        private byte codecModeRequest;
         private boolean dtxEnabled;
         private @CodecType int codecType;
         private byte dtmfPayloadTypeNumber;
@@ -318,11 +318,11 @@ public final class AudioConfig extends RtpConfig {
          * of the other party to set the frame type index of speech mode via RTP header,
          * See RFC 4867 section 4.3.1. Allowed values are -1, 0 and 1
          *
-         * @param txCodecModeRequest codec mode request
+         * @param codecModeRequest codec mode request
          * @return The same instance of the builder
          */
-        public Builder setTxCodecModeRequest(final byte txCodecModeRequest) {
-            this.txCodecModeRequest = txCodecModeRequest;
+        public Builder setCodecModeRequest(final byte codecModeRequest) {
+            this.codecModeRequest = codecModeRequest;
             return this;
         }
 

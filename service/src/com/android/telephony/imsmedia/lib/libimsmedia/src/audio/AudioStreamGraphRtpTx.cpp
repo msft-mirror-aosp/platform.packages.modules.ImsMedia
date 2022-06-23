@@ -128,7 +128,8 @@ ImsMediaResult AudioStreamGraphRtpTx::update(void* config)
     mConfig = new AudioConfig(pConfig);
 
     if (mConfig->getMediaDirection() == RtpConfig::MEDIA_DIRECTION_NO_FLOW ||
-            mConfig->getMediaDirection() == RtpConfig::MEDIA_DIRECTION_RECEIVE_ONLY)
+            mConfig->getMediaDirection() == RtpConfig::MEDIA_DIRECTION_RECEIVE_ONLY ||
+            mConfig->getMediaDirection() == RtpConfig::MEDIA_DIRECTION_INACTIVE)
     {
         IMLOGD0("[update] pause TX");
         return stop();
@@ -164,8 +165,8 @@ ImsMediaResult AudioStreamGraphRtpTx::update(void* config)
     }
 
     if (mGraphState == kStreamStateCreated &&
-            (pConfig->getMediaDirection() == RtpConfig::MEDIA_DIRECTION_TRANSMIT_ONLY ||
-                    pConfig->getMediaDirection() == RtpConfig::MEDIA_DIRECTION_TRANSMIT_RECEIVE))
+            (pConfig->getMediaDirection() == RtpConfig::MEDIA_DIRECTION_SEND_ONLY ||
+                    pConfig->getMediaDirection() == RtpConfig::MEDIA_DIRECTION_SEND_RECEIVE))
     {
         IMLOGD0("[update] resume TX");
         return start();

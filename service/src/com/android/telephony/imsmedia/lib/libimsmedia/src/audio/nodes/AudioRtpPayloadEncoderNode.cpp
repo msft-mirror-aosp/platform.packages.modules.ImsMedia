@@ -132,7 +132,7 @@ void AudioRtpPayloadEncoderNode::SetConfig(void* config)
             mEvsBitRate =
                     ImsMediaAudioFmt::ConvertEVSModeToBitRate(pConfig->getEvsParams().getEvsMode());
             mEvsOffset = pConfig->getEvsParams().getChannelAwareMode();
-            mSendCMR = pConfig->getTxCodecModeRequest();
+            mSendCMR = pConfig->getCodecModeRequest();
         }
 
         mPtime = pConfig->getPtimeMillis();
