@@ -116,22 +116,31 @@ void ImsMediaVideoSource::SetDeviceOrientation(const uint32_t degree)
                     mListener != NULL)
             {
                 int32_t rotateDegree = 0;
-                // assume that the default UI is always portrait, camera frame is always landscape
-                if (facing == kCameraFacingFront)  // front
+
+                // assume device is always portrait
+                if (mWidth > mHeight)
                 {
-                    sensorOrientation = (sensorOrientation + 180) % 360;
+                    if (facing == kCameraFacingFront)  // front
+                    {
+                        sensorOrientation = (sensorOrientation + 180) % 360;
+                    }
+
+                    rotateDegree = sensorOrientation - degree;
+
+                    if (rotateDegree < 0)
+                    {
+                        rotateDegree += 360;
+                    }
                 }
-
-                rotateDegree = sensorOrientation - degree;
-
-                if (rotateDegree < 0)
+                else
                 {
-                    rotateDegree += 360;
+                    rotateDegree = degree;
                 }
 
                 mListener->OnEvent(kVideoSourceEventUpdateCamera, facing, rotateDegree);
             }
         }
+
         mDeviceOrientation = degree;
     }
 }
@@ -255,6 +264,8 @@ bool ImsMediaVideoSource::Start()
         std::thread t1(&ImsMediaVideoSource::processOutputBuffer, this);
         t1.detach();
     }
+
+    mDeviceOrientation = -1;
 
     IMLOGD0("[Start] exit");
     return true;
