@@ -126,12 +126,21 @@ ImsMediaResult VideoSession::startGraph(void* config)
     {
         mGraphRtpTx = new VideoStreamGraphRtpTx(this, mRtpFd);
         ret = mGraphRtpTx->create(config);
-        if (ret == RESULT_SUCCESS &&
-                (pConfig->getMediaDirection() == RtpConfig::MEDIA_DIRECTION_TRANSMIT_ONLY ||
-                        pConfig->getMediaDirection() ==
-                                RtpConfig::MEDIA_DIRECTION_TRANSMIT_RECEIVE))
+        if (ret == RESULT_SUCCESS)
         {
-            ret = mGraphRtpTx->start();
+            if (pConfig->getVideoMode() == VideoConfig::VIDEO_MODE_PREVIEW)
+            {
+                ret = mGraphRtpTx->start();
+            }
+            else
+            {
+                if (pConfig->getMediaDirection() == RtpConfig::MEDIA_DIRECTION_TRANSMIT_ONLY ||
+                        pConfig->getMediaDirection() == RtpConfig::MEDIA_DIRECTION_TRANSMIT_RECEIVE)
+                {
+                    ret = mGraphRtpTx->start();
+                }
+            }
+
             if (ret != RESULT_SUCCESS)
             {
                 IMLOGE1("[startGraph] start error[%d]", ret);
