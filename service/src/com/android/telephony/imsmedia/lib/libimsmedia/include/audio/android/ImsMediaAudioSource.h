@@ -34,27 +34,6 @@ typedef void (*AudioUplinkCB)(
 class ImsMediaAudioSource : public IImsMediaThread
 {
 public:
-    std::mutex mMutexUplink;
-    AAudioStream* mAudioStream;
-    AMediaCodec* mCodec;
-    AMediaFormat* mFormat;
-    AudioUplinkCB mUplinkCB;
-    void* mUplinkCBClient;
-    int32_t mCodecType;
-    uint32_t mMode;
-    uint32_t mPtime;
-    uint32_t mSamplingRate;
-    uint32_t mBufferSize;
-    kEvsBandwidth mEvsBandwidth;
-    int32_t mEvsBitRate;
-    int32_t mEvsChAwOffset;
-
-private:
-    void openAudioStream();
-    void restartAudioStream();
-    static void audioErrorCallback(AAudioStream* stream, void* userData, aaudio_result_t error);
-
-public:
     ImsMediaAudioSource();
     virtual ~ImsMediaAudioSource();
     void SetUplinkCallback(void* pClient, AudioUplinkCB pDnlinkCB);
@@ -71,6 +50,27 @@ public:
     void queueInputBuffer(int16_t* buffer, uint32_t size);
     void processOutputBuffer();
     virtual void* run();
+
+private:
+    void openAudioStream();
+    void restartAudioStream();
+    static void audioErrorCallback(AAudioStream* stream, void* userData, aaudio_result_t error);
+
+    std::mutex mMutexUplink;
+    AAudioStream* mAudioStream;
+    AMediaCodec* mCodec;
+    AMediaFormat* mFormat;
+    AudioUplinkCB mUplinkCB;
+    void* mUplinkCBClient;
+    int32_t mCodecType;
+    uint32_t mMode;
+    uint32_t mPtime;
+    uint32_t mSamplingRate;
+    uint32_t mBufferSize;
+    kEvsBandwidth mEvsBandwidth;
+    int32_t mEvsBitRate;
+    int32_t mEvsChAwOffset;
+    ImsMediaCondition mConditionExit;
 };
 
 #endif
