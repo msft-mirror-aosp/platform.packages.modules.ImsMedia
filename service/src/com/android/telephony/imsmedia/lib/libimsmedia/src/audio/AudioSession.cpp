@@ -114,7 +114,9 @@ ImsMediaResult AudioSession::startGraph(void* config)
         return RESULT_INVALID_PARAM;
     }
 
-    if (std::strcmp(reinterpret_cast<AudioConfig*>(config)->getRemoteAddress().c_str(), "") == 0)
+    AudioConfig* pConfig = reinterpret_cast<AudioConfig*>(config);
+
+    if (std::strcmp(pConfig->getRemoteAddress().c_str(), "") == 0)
     {
         return RESULT_INVALID_PARAM;
     }
@@ -135,7 +137,11 @@ ImsMediaResult AudioSession::startGraph(void* config)
     {
         mListGraphRtpTx.push_back(new AudioStreamGraphRtpTx(this, mRtpFd));
         ret = mListGraphRtpTx.back()->create(config);
-        if (ret == RESULT_SUCCESS)
+
+        if (ret == RESULT_SUCCESS &&
+                (pConfig->getMediaDirection() == RtpConfig::MEDIA_DIRECTION_TRANSMIT_ONLY ||
+                        pConfig->getMediaDirection() ==
+                                RtpConfig::MEDIA_DIRECTION_TRANSMIT_RECEIVE))
         {
             ret = mListGraphRtpTx.back()->start();
             if (ret != RESULT_SUCCESS)
@@ -162,7 +168,11 @@ ImsMediaResult AudioSession::startGraph(void* config)
     {
         mListGraphRtpRx.push_back(new AudioStreamGraphRtpRx(this, mRtpFd));
         ret = mListGraphRtpRx.back()->create(config);
-        if (ret == RESULT_SUCCESS)
+
+        if (ret == RESULT_SUCCESS &&
+                (pConfig->getMediaDirection() == RtpConfig::MEDIA_DIRECTION_RECEIVE_ONLY ||
+                        pConfig->getMediaDirection() ==
+                                RtpConfig::MEDIA_DIRECTION_TRANSMIT_RECEIVE))
         {
             mListGraphRtpRx.back()->setMediaQualityThreshold(&mThreshold);
             ret = mListGraphRtpRx.back()->start();

@@ -126,7 +126,10 @@ ImsMediaResult VideoSession::startGraph(void* config)
     {
         mGraphRtpTx = new VideoStreamGraphRtpTx(this, mRtpFd);
         ret = mGraphRtpTx->create(config);
-        if (ret == RESULT_SUCCESS)
+        if (ret == RESULT_SUCCESS &&
+                (pConfig->getMediaDirection() == RtpConfig::MEDIA_DIRECTION_TRANSMIT_ONLY ||
+                        pConfig->getMediaDirection() ==
+                                RtpConfig::MEDIA_DIRECTION_TRANSMIT_RECEIVE))
         {
             ret = mGraphRtpTx->start();
             if (ret != RESULT_SUCCESS)
@@ -167,7 +170,10 @@ ImsMediaResult VideoSession::startGraph(void* config)
     {
         mGraphRtpRx = new VideoStreamGraphRtpRx(this, mRtpFd);
         ret = mGraphRtpRx->create(config);
-        if (ret == RESULT_SUCCESS)
+        if (ret == RESULT_SUCCESS &&
+                (pConfig->getMediaDirection() == RtpConfig::MEDIA_DIRECTION_RECEIVE_ONLY ||
+                        pConfig->getMediaDirection() ==
+                                RtpConfig::MEDIA_DIRECTION_TRANSMIT_RECEIVE))
         {
             mGraphRtpRx->setMediaQualityThreshold(&mThreshold);
             ret = mGraphRtpRx->start();
