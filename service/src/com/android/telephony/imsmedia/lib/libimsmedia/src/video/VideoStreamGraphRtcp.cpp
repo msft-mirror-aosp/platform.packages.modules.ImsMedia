@@ -167,13 +167,28 @@ void VideoStreamGraphRtcp::setMediaQualityThreshold(MediaQualityThreshold* thres
     if (threshold == NULL)
         return;
 
+    bool found = false;
     for (auto& i : mListNodeToStart)
     {
         if (i->GetNodeID() == BaseNodeID::NODEID_RTCPDECODER)
         {
             RtcpDecoderNode* pNode = reinterpret_cast<RtcpDecoderNode*>(i);
             pNode->SetInactivityTimerSec(threshold->getRtcpInactivityTimerMillis() / 1000);
+            found = true;
             break;
+        }
+    }
+
+    if (found == false)
+    {
+        for (auto& node : mListNodeStarted)
+        {
+            if (node != NULL && node->GetNodeID() == NODEID_RTCPDECODER)
+            {
+                RtcpDecoderNode* pNode = reinterpret_cast<RtcpDecoderNode*>(node);
+                pNode->SetInactivityTimerSec(threshold->getRtcpInactivityTimerMillis() / 1000);
+                break;
+            }
         }
     }
 }

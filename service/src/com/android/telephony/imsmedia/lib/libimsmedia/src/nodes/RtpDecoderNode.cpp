@@ -284,6 +284,7 @@ void RtpDecoderNode::SetPeerAddress(const RtpAddress address)
 
 void RtpDecoderNode::SetInactivityTimerSec(const uint32_t time)
 {
-    IMLOGD1("[SetInactivityTimerSec] time[%d]", time);
+    IMLOGD1("[SetInactivityTimerSec] time[%d] reset", time);
     mInactivityTime = time;
+    mNoRtpTime = 0;
 }
