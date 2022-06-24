@@ -35,10 +35,19 @@ using namespace android;
 
 ImsMediaAudioSource::ImsMediaAudioSource()
 {
-    mUplinkCB = NULL;
     mAudioStream = NULL;
-    mBufferSize = 0;
+    mCodec = NULL;
+    mFormat = NULL;
+    mUplinkCB = NULL;
+    mUplinkCBClient = NULL;
+    mCodecType = -1;
+    mMode = 0;
+    mPtime = 0;
     mSamplingRate = DEFAULT_SAMPLING_RATE;
+    mBufferSize = 0;
+    mEvsBandwidth = kEvsBandwidthNone;
+    mEvsBitRate = 0;
+    mEvsChAwOffset = 0;
 }
 
 ImsMediaAudioSource::~ImsMediaAudioSource() {}
@@ -214,8 +223,12 @@ bool ImsMediaAudioSource::Start()
 void ImsMediaAudioSource::Stop()
 {
     IMLOGD0("[Stop] Enter");
-    std::lock_guard<std::mutex> guard(mMutexUplink);
+    mMutexUplink.lock();
     StopThread();
+    mMutexUplink.unlock();
+    mConditionExit.reset();
+    mConditionExit.wait_timeout(100);
+
     aaudio_stream_state_t inputState = AAUDIO_STREAM_STATE_STOPPING;
     aaudio_stream_state_t nextState = AAUDIO_STREAM_STATE_UNINITIALIZED;
     aaudio_result_t result = AAudioStream_requestStop(mAudioStream);
@@ -232,8 +245,8 @@ void ImsMediaAudioSource::Stop()
     if (mAudioStream != NULL)
     {
         AAudioStream_close(mAudioStream);
+        mAudioStream = NULL;
     }
-    mAudioStream = NULL;
 
     if (mCodec != NULL)
     {
@@ -432,7 +445,7 @@ void ImsMediaAudioSource::processOutputBuffer()
     {
         uint32_t nCurrTime;
         mMutexUplink.lock();
-        if (IsThreadStopped() || mAudioStream == NULL || mCodec == NULL)
+        if (IsThreadStopped())
         {
             IMLOGD0("[processOutputBuffer] terminated");
             mMutexUplink.unlock();
@@ -488,4 +501,6 @@ flags[%d]",
         if (nNextTime > nCurrTime)
             ImsMediaTimer::Sleep(nNextTime - nCurrTime);
     }
+
+    mConditionExit.signal();
 }
