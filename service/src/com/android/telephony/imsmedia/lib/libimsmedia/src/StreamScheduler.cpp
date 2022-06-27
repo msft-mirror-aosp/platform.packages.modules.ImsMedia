@@ -98,16 +98,22 @@ void StreamScheduler::Start()
         return;
     }
 
-    for (auto& i : mlistSourceNode)
+    for (auto& node : mlistSourceNode)
     {
-        nNumOfRegisteredNode++;
-        IMLOGD2("[Start] [%p] registered source node [%s]", this, i->GetNodeName());
+        if (node != NULL)
+        {
+            nNumOfRegisteredNode++;
+            IMLOGD2("[Start] [%p] registered source node [%s]", this, node->GetNodeName());
+        }
     }
 
-    for (auto& i : mlistRegisteredNode)
+    for (auto& node : mlistRegisteredNode)
     {
-        nNumOfRegisteredNode++;
-        IMLOGD2("[Start] [%p] registered node [%s]", this, i->GetNodeName());
+        if (node != NULL)
+        {
+            nNumOfRegisteredNode++;
+            IMLOGD2("[Start] [%p] registered node [%s]", this, node->GetNodeName());
+        }
     }
 
     if (nNumOfRegisteredNode > 0)
@@ -155,7 +161,7 @@ BaseNode* StreamScheduler::DeterminProcessingNode(uint32_t* pnMaxDataInNode)
 {
     BaseNode* pRetNode = NULL;
     uint32_t nMaxDataInNode = 0;
-    for (auto& i : mlistNodeToRun)
+    for (auto& node : mlistNodeToRun)
     {
         uint32_t nDataInNode;
         if (mbTerminate)
@@ -163,12 +169,14 @@ BaseNode* StreamScheduler::DeterminProcessingNode(uint32_t* pnMaxDataInNode)
             pRetNode = NULL;
             break;
         }
-
-        nDataInNode = i->GetDataCount();
-        if (nDataInNode > 0 && nDataInNode >= nMaxDataInNode)
+        if (node != NULL)
         {
-            pRetNode = i;
-            nMaxDataInNode = nDataInNode;
+            nDataInNode = node->GetDataCount();
+            if (nDataInNode > 0 && nDataInNode >= nMaxDataInNode)
+            {
+                pRetNode = node;
+                nMaxDataInNode = nDataInNode;
+            }
         }
     }
     *pnMaxDataInNode = nMaxDataInNode;
@@ -181,18 +189,18 @@ void StreamScheduler::RunRegisteredNode()
     uint32_t nMaxDataInNode;
     IMLOGD_PACKET1(IM_PACKET_LOG_SCHEDULER, "[RunRegisteredNode] Run Source Nodes [%p]", this);
     // run source nodes
-    for (auto& i : mlistSourceNode)
+    for (auto& node : mlistSourceNode)
     {
-        if (i->GetState() == kNodeStateRunning)
+        if (node != NULL && node->GetState() == kNodeStateRunning)
         {
-            i->ProcessData();
+            node->ProcessData();
         }
     }
 
     // run nodes
-    for (auto& i : mlistRegisteredNode)
+    for (auto& node : mlistRegisteredNode)
     {
-        mlistNodeToRun.push_back(i);
+        mlistNodeToRun.push_back(node);
     }
 
     for (;;)

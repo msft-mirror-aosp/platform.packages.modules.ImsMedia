@@ -26,7 +26,7 @@ IRtpSession* IRtpSession::GetInstance(
     IMLOGD1("[GetInstance] mediaSubtype[%d]", mediaSubtype);
     for (auto& i : mListRtpSession)
     {
-        if (i->isSameInstance(mediaSubtype, localAddress, peerAddress))
+        if (i != NULL && i->isSameInstance(mediaSubtype, localAddress, peerAddress))
         {
             i->increaseRefCounter();
             return i;

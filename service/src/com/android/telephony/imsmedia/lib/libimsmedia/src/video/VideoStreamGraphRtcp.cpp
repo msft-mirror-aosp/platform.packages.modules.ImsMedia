@@ -139,11 +139,14 @@ ImsMediaResult VideoStreamGraphRtcp::update(void* config)
 
     for (auto& node : mListNodeStarted)
     {
-        IMLOGD1("[update] update node[%s]", node->GetNodeName());
-        ret = node->UpdateConfig(pConfig);
-        if (ret != RESULT_SUCCESS)
+        if (node != NULL)
         {
-            IMLOGE2("[update] error in update node[%s], ret[%d]", node->GetNodeName(), ret);
+            IMLOGD1("[update] update node[%s]", node->GetNodeName());
+            ret = node->UpdateConfig(pConfig);
+            if (ret != RESULT_SUCCESS)
+            {
+                IMLOGE2("[update] error in update node[%s], ret[%d]", node->GetNodeName(), ret);
+            }
         }
     }
 
@@ -168,11 +171,11 @@ void VideoStreamGraphRtcp::setMediaQualityThreshold(MediaQualityThreshold* thres
         return;
 
     bool found = false;
-    for (auto& i : mListNodeToStart)
+    for (auto& node : mListNodeToStart)
     {
-        if (i->GetNodeID() == BaseNodeID::NODEID_RTCPDECODER)
+        if (node != NULL && node->GetNodeID() == BaseNodeID::NODEID_RTCPDECODER)
         {
-            RtcpDecoderNode* pNode = reinterpret_cast<RtcpDecoderNode*>(i);
+            RtcpDecoderNode* pNode = reinterpret_cast<RtcpDecoderNode*>(node);
             pNode->SetInactivityTimerSec(threshold->getRtcpInactivityTimerMillis() / 1000);
             found = true;
             break;

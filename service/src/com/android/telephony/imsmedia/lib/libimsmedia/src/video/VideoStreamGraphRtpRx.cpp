@@ -145,11 +145,14 @@ ImsMediaResult VideoStreamGraphRtpRx::update(void* config)
         mScheduler->Stop();
         for (auto& node : mListNodeStarted)
         {
-            IMLOGD1("[update] update node[%s]", node->GetNodeName());
-            ret = node->UpdateConfig(mConfig);
-            if (ret != RESULT_SUCCESS)
+            if (node != NULL)
             {
-                IMLOGE2("[update] error in update node[%s], ret[%d]", node->GetNodeName(), ret);
+                IMLOGD1("[update] update node[%s]", node->GetNodeName());
+                ret = node->UpdateConfig(mConfig);
+                if (ret != RESULT_SUCCESS)
+                {
+                    IMLOGE2("[update] error in update node[%s], ret[%d]", node->GetNodeName(), ret);
+                }
             }
         }
         mScheduler->Start();
@@ -158,11 +161,14 @@ ImsMediaResult VideoStreamGraphRtpRx::update(void* config)
     {
         for (auto& node : mListNodeToStart)
         {
-            IMLOGD1("[update] update node[%s]", node->GetNodeName());
-            ret = node->UpdateConfig(mConfig);
-            if (ret != RESULT_SUCCESS)
+            if (node != NULL)
             {
-                IMLOGE2("[update] error in update node[%s], ret[%d]", node->GetNodeName(), ret);
+                IMLOGD1("[update] update node[%s]", node->GetNodeName());
+                ret = node->UpdateConfig(mConfig);
+                if (ret != RESULT_SUCCESS)
+                {
+                    IMLOGE2("[update] error in update node[%s], ret[%d]", node->GetNodeName(), ret);
+                }
             }
         }
     }
@@ -196,11 +202,11 @@ void VideoStreamGraphRtpRx::setMediaQualityThreshold(MediaQualityThreshold* thre
     }
 
     bool found = false;
-    for (auto& i : mListNodeToStart)
+    for (auto& node : mListNodeToStart)
     {
-        if (i->GetNodeID() == BaseNodeID::NODEID_RTPDECODER)
+        if (node != NULL && node->GetNodeID() == BaseNodeID::NODEID_RTPDECODER)
         {
-            RtpDecoderNode* pNode = reinterpret_cast<RtpDecoderNode*>(i);
+            RtpDecoderNode* pNode = reinterpret_cast<RtpDecoderNode*>(node);
             pNode->SetInactivityTimerSec(threshold->getRtpInactivityTimerMillis() / 1000);
             found = true;
             break;

@@ -423,15 +423,18 @@ void ImsMediaSocket::SendNotify(void* pReadfds)
     std::lock_guard<std::mutex> guard(sMutexRxSocket);
     IMLOGD_PACKET0(IM_PACKET_LOG_SOCKET, "[SendNotify]");
 
-    for (auto& i : slistRxSocket)
+    for (auto& rxSocket : slistRxSocket)
     {
-        int32_t socketFD = i->GetSocketFd();
-        if (FD_ISSET(socketFD, (fd_set*)pReadfds))
+        if (rxSocket != NULL)
         {
-            IMLOGD_PACKET1(IM_PACKET_LOG_SOCKET, "[SendNotify] send notify to listener %p",
-                    i->GetListener());
-            if (i->GetListener() != NULL)
-                i->GetListener()->OnReceiveEnabled();
+            int32_t socketFD = rxSocket->GetSocketFd();
+            if (FD_ISSET(socketFD, (fd_set*)pReadfds))
+            {
+                IMLOGD_PACKET1(IM_PACKET_LOG_SOCKET, "[SendNotify] send notify to listener %p",
+                        rxSocket->GetListener());
+                if (rxSocket->GetListener() != NULL)
+                    rxSocket->GetListener()->OnReceiveEnabled();
+            }
         }
     }
 }

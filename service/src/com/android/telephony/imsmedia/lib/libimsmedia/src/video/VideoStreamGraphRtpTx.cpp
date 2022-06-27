@@ -196,11 +196,14 @@ ImsMediaResult VideoStreamGraphRtpTx::update(void* config)
         mScheduler->Stop();
         for (auto& node : mListNodeStarted)
         {
-            IMLOGD1("[update] update node[%s]", node->GetNodeName());
-            ret = node->UpdateConfig(mConfig);
-            if (ret != RESULT_SUCCESS)
+            if (node != NULL)
             {
-                IMLOGE2("[update] error in update node[%s], ret[%d]", node->GetNodeName(), ret);
+                IMLOGD1("[update] update node[%s]", node->GetNodeName());
+                ret = node->UpdateConfig(mConfig);
+                if (ret != RESULT_SUCCESS)
+                {
+                    IMLOGE2("[update] error in update node[%s], ret[%d]", node->GetNodeName(), ret);
+                }
             }
         }
         mScheduler->Start();
@@ -209,11 +212,14 @@ ImsMediaResult VideoStreamGraphRtpTx::update(void* config)
     {
         for (auto& node : mListNodeToStart)
         {
-            IMLOGD1("[update] update node[%s]", node->GetNodeName());
-            ret = node->UpdateConfig(mConfig);
-            if (ret != RESULT_SUCCESS)
+            if (node != NULL)
             {
-                IMLOGE2("[update] error in update node[%s], ret[%d]", node->GetNodeName(), ret);
+                IMLOGD1("[update] update node[%s]", node->GetNodeName());
+                ret = node->UpdateConfig(mConfig);
+                if (ret != RESULT_SUCCESS)
+                {
+                    IMLOGE2("[update] error in update node[%s], ret[%d]", node->GetNodeName(), ret);
+                }
             }
         }
     }

@@ -806,11 +806,11 @@ void VideoJitterBuffer::CheckLossPacket(uint16_t nSeqPkt, uint16_t nLastRecvPkt)
 bool VideoJitterBuffer::CalcLostPacket(
         uint16_t nLostPkt, uint16_t* nSecondNACKPkt, uint16_t* nPLIPkt, bool* bPLIPkt)
 {
-    for (auto& i : mLostPktList)
+    for (auto& pLostPktEntry : mLostPktList)
     {
-        if (i->nLostPktSeqNum == nLostPkt)
+        if (pLostPktEntry != NULL && pLostPktEntry->nLostPktSeqNum == nLostPkt)
         {
-            return UpdateLostPktList(i, nLostPkt, nSecondNACKPkt, nPLIPkt, bPLIPkt);
+            return UpdateLostPktList(pLostPktEntry, nLostPkt, nSecondNACKPkt, nPLIPkt, bPLIPkt);
         }
     }
 
