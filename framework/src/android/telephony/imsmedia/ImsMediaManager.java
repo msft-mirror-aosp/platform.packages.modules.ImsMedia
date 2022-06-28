@@ -16,8 +16,6 @@
 
 package android.telephony.imsmedia;
 
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
@@ -28,9 +26,13 @@ import android.os.RemoteException;
 import android.telephony.imsmedia.ImsMediaSession;
 import android.util.Log;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+
 import java.net.DatagramSocket;
-import java.util.concurrent.Executor;
 import java.util.Objects;
+import java.util.concurrent.Executor;
+
 
 /**
  * IMS media manager APIs to manage the IMS media sessions
@@ -57,12 +59,13 @@ public class ImsMediaManager {
      * open session is failed then an error code {@link SessionOperationResult} will
      * be returned using {@link SessionCallback#onOpenSessionFailure(int)} API.
      *
-     * @param rtpSocket local UDP socket to send and receive incoming RTP packets
+     * @param rtpSocket  local UDP socket to send and receive incoming RTP packets
      * @param rtcpSocket local UDP socket to send and receive incoming RTCP packets
-     * @param rtpConfig provides remote endpoint info and codec details.
-     *        This could be null initially and the application may update
-     *        this later using {@link ImsMediaSession#modifySession()} API.
-     * @param callback callbacks to receive session specific notifications.
+     * @param rtpConfig  provides remote endpoint info and codec details.
+     *                   This could be null initially and the application may update
+     *                   this later using {@link ImsMediaSession#modifySession()}
+     *                   API.
+     * @param callback   callbacks to receive session specific notifications.
      */
     public void openSession(@NonNull final DatagramSocket rtpSocket,
             @NonNull final DatagramSocket rtcpSocket,
@@ -115,7 +118,8 @@ public class ImsMediaManager {
     }
 
     /**
-     * Interface to send call-backs to the application when the service is connected.
+     * Interface to send call-backs to the application when the service is
+     * connected.
      */
     public interface OnConnectedCallback {
         /**
@@ -143,7 +147,6 @@ public class ImsMediaManager {
 
                 mImsMedia = IImsMedia.Stub.asInterface(service);
                 Log.d(TAG, "onServiceConnected");
-
                 mExecutor.execute(new Runnable() {
                     @Override
                     public void run() {
@@ -166,8 +169,8 @@ public class ImsMediaManager {
 
         Intent intent = new Intent(IImsMedia.class.getName());
         intent.setClassName(MEDIA_SERVICE_PACKAGE, MEDIA_SERVICE_CLASS);
-        boolean bindingSuccessful =
-                mContext.bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
+        boolean bindingSuccessful = mContext.bindService(intent, mConnection,
+                Context.BIND_AUTO_CREATE);
 
         Log.d(TAG, "binding: " + bindingSuccessful);
         if (bindingSuccessful) {
@@ -193,6 +196,7 @@ public class ImsMediaManager {
 
         /**
          * Called when the session is opened successfully
+         *
          * @param session session object
          */
         public void onOpenSessionSuccess(ImsMediaSession session) {
@@ -201,6 +205,7 @@ public class ImsMediaManager {
 
         /**
          * Called when the open session fails
+         *
          * @param error Error code
          */
         public void onOpenSessionFailure(int error) {
@@ -209,6 +214,7 @@ public class ImsMediaManager {
 
         /**
          * Called when any change occurs to the RTP session.
+         *
          * @param state session state
          */
         public void onSessionChanged(@ImsMediaSession.SessionState int state) {

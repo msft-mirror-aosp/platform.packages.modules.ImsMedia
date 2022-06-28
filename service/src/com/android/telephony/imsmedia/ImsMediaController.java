@@ -52,6 +52,7 @@ public class ImsMediaController extends Service {
             final ParcelFileDescriptor rtpFd, final ParcelFileDescriptor rtcpFd,
             final int sessionType, final RtpConfig rtpConfig, final IBinder callback) {
             final int sessionId = mSessionId.getAndIncrement();
+
             IMediaSession session;
             Rlog.d(TAG, "openSession: sessionId = " + sessionId
                     + ", type=" + sessionType + "," + rtpConfig);
@@ -105,6 +106,22 @@ public class ImsMediaController extends Service {
     public IBinder onBind(Intent intent) {
         Rlog.d(TAG, Thread.currentThread().getName() + " onBind");
         return mImsMediaBinder;
+    }
+
+    @Override
+    public boolean onUnbind(Intent intent) {
+        Rlog.d(TAG, Thread.currentThread().getName() + " onUnbind");
+        try {
+            synchronized (mSessions) {
+                while (mSessions.size() > 0) {
+                    mImsMediaBinder.closeSession((IBinder) mSessions.valueAt(0));
+                }
+                mSessions.clear();
+            }
+        } catch (Exception e) {
+            Rlog.d(TAG, "onUnbind: e=" + e);
+        }
+        return true;
     }
 
     @Override
