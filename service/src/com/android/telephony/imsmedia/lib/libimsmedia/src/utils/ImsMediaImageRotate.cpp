@@ -16,12 +16,14 @@
 
 #include "ImsMediaImageRotate.h"
 
-void YUV420_Planar_Rotate90_Flip(
+void ImsMediaImageRotate::YUV420_Planar_Rotate90_Flip(
         uint8_t* pbDst, uint8_t* pbSrc, uint32_t nSrcWidth, uint32_t nSrcHeight)
 {
     uint32_t srcIdx, dstIdx, x, y;
     const uint32_t size = nSrcWidth * nSrcHeight;
     dstIdx = size - 1;
+
+    // Rotate Y buffer
     for (y = 0; y < nSrcWidth; y++)
     {
         srcIdx = y;
@@ -35,16 +37,18 @@ void YUV420_Planar_Rotate90_Flip(
     }
 
     dstIdx = (size * 1.5f) - 1;
-    uint32_t usize = size / 4;
+    const uint32_t usize = size / 4;
     nSrcWidth /= 2;
     nSrcHeight /= 2;
+
+    // Rotate UV buffer
     for (y = 0; y < nSrcWidth; y++)
     {
         srcIdx = size + y;
         for (x = 0; x < nSrcHeight; x++)
         {
             pbDst[dstIdx - usize] = pbSrc[srcIdx];  // U
-            pbDst[dstIdx] = pbSrc[usize + srcIdx];  // v
+            pbDst[dstIdx] = pbSrc[usize + srcIdx];  // V
 
             srcIdx += nSrcWidth;
             dstIdx--;
@@ -52,12 +56,14 @@ void YUV420_Planar_Rotate90_Flip(
     }
 }
 
-void YUV420_SP_Rotate270(uint8_t* pbDst, uint8_t* pYPlane, uint8_t* pUVPlane, uint32_t nSrcWidth,
-        uint32_t nSrcHeight)
+void ImsMediaImageRotate::YUV420_SP_Rotate90_Flip(uint8_t* pbDst, uint8_t* pYPlane,
+        uint8_t* pUVPlane, uint32_t nSrcWidth, uint32_t nSrcHeight)
 {
     uint32_t srcIdx, dstIdx, x, y;
     const uint32_t size = nSrcWidth * nSrcHeight;
     dstIdx = size - 1;
+
+    // Rotate Y buffer
     for (y = 0; y < nSrcWidth; y++)
     {
         srcIdx = y;
@@ -73,14 +79,51 @@ void YUV420_SP_Rotate270(uint8_t* pbDst, uint8_t* pYPlane, uint8_t* pUVPlane, ui
     nSrcWidth /= 2;
     nSrcHeight /= 2;
 
+    // Rotate UV buffer
     for (y = 0; y < nSrcWidth; y++)
     {
         srcIdx = y * 2;
         for (x = 0; x < nSrcHeight; x++)
         {
-            pbDst[dstIdx--] = pUVPlane[srcIdx + 1];  // v
+            pbDst[dstIdx--] = pUVPlane[srcIdx + 1];  // V
             pbDst[dstIdx--] = pUVPlane[srcIdx];      // U
             srcIdx += nSrcWidth * 2;
+        }
+    }
+}
+
+void ImsMediaImageRotate::YUV420_SP_Rotate270(uint8_t* pbDst, uint8_t* pYPlane, uint8_t* pUVPlane,
+        uint32_t nSrcWidth, uint32_t nSrcHeight)
+{
+    uint32_t srcIdx, dstIdx, x, y;
+    const uint32_t size = nSrcWidth * nSrcHeight;
+    dstIdx = size - 1;
+
+    // Rotate Y buffer
+    for (y = 0; y < nSrcWidth; y++)
+    {
+        srcIdx = size - nSrcWidth + y;
+        for (x = 0; x < nSrcHeight; x++)
+        {
+            pbDst[dstIdx] = pYPlane[srcIdx];  // Y
+            srcIdx -= nSrcWidth;
+            dstIdx--;
+        }
+    }
+
+    dstIdx = (size * 1.5f) - 1;
+    nSrcWidth /= 2;
+    nSrcHeight /= 2;
+
+    // Rotate UV buffer
+    for (y = 0; y < nSrcWidth; y++)
+    {
+        srcIdx = (size / 2) - (nSrcWidth - y) * 2;
+        for (x = 0; x < nSrcHeight; x++)
+        {
+            pbDst[dstIdx--] = pUVPlane[srcIdx + 1];  // V
+            pbDst[dstIdx--] = pUVPlane[srcIdx];      // U
+            srcIdx -= nSrcWidth * 2;
         }
     }
 }

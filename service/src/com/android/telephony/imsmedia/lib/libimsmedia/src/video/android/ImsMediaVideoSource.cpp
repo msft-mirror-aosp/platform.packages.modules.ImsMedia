@@ -502,7 +502,7 @@ void ImsMediaVideoSource::onCameraFrame(AImage* pImage)
         AImage_getHeight(pImage, &height);
         AImage_getPlaneData(pImage, 0, &yPlane, &ylen);
         AImage_getPlaneData(pImage, 1, &uvPlane, &uvlen);
-        YUV420_SP_Rotate270(encoderBuf, yPlane, uvPlane, width, height);
+        ImsMediaImageRotate::YUV420_SP_Rotate270(encoderBuf, yPlane, uvPlane, width, height);
         AMediaCodec_queueInputBuffer(mCodec, index, 0, ylen + uvlen, now_us(), 0);
     }
     else
