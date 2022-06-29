@@ -15,12 +15,13 @@
  */
 
 #include <RtcpHeader.h>
+#include <RtpTrace.h>
 
 RtcpHeader::RtcpHeader() :
         m_ucVersion(RTP_ZERO),
-        m_ucIsPadding(RTP_ZERO),
-        m_ucRecepRepCnt(RTP_ZERO),
-        m_ucPktType(RTP_ZERO),
+        m_ucIsPadding(eRTP_FALSE),
+        m_ucReceptionReportCount(RTP_ZERO),
+        m_ucPacketType(RTP_ZERO),
         m_usLength(RTP_ZERO),
         m_uiSsrc(RTP_ZERO)
 {
@@ -28,9 +29,16 @@ RtcpHeader::RtcpHeader() :
 
 RtcpHeader::~RtcpHeader() {}
 
-RtpDt_Void RtcpHeader::setVersion(IN RtpDt_UChar ucVersion)
+eRtp_Bool RtcpHeader::setVersion(IN RtpDt_UChar ucVersion)
 {
+    if (ucVersion > MAX_RTP_VERSION)
+    {
+        RTP_TRACE_ERROR("Invalid RTP version %d", ucVersion, 0);
+        return eRTP_FALSE;
+    }
+
     m_ucVersion = ucVersion;
+    return eRTP_TRUE;
 }
 
 RtpDt_UChar RtcpHeader::getVersion()
@@ -38,42 +46,49 @@ RtpDt_UChar RtcpHeader::getVersion()
     return m_ucVersion;
 }
 
-RtpDt_Void RtcpHeader::setPadding()
+RtpDt_Void RtcpHeader::setPadding(eRtp_Bool padding)
 {
-    m_ucIsPadding = RTP_ONE;
+    m_ucIsPadding = padding;
 }
 
-RtpDt_UChar RtcpHeader::getPadding()
+eRtp_Bool RtcpHeader::getPadding()
 {
     return m_ucIsPadding;
 }
 
-RtpDt_Void RtcpHeader::setRecepRepCnt(IN RtpDt_UChar ucRecReport)
+eRtp_Bool RtcpHeader::setReceptionReportCount(IN RtpDt_UChar ucReceptionReportCount)
 {
-    m_ucRecepRepCnt = ucRecReport;
+    if (ucReceptionReportCount > MAX_RECEPTION_REPORT_COUNT)
+    {
+        RTP_TRACE_ERROR("Invalid Reception Report Count %d", ucReceptionReportCount, 0);
+        return eRTP_FALSE;
+    }
+
+    m_ucReceptionReportCount = ucReceptionReportCount;
+    return eRTP_TRUE;
 }
 
-RtpDt_UChar RtcpHeader::getRecepRepCnt()
+RtpDt_UChar RtcpHeader::getReceptionReportCount()
 {
-    return m_ucRecepRepCnt;
+    return m_ucReceptionReportCount;
 }
 
-RtpDt_Void RtcpHeader::setPacketType(IN RtpDt_UChar ucPktType)
+RtpDt_Void RtcpHeader::setPacketType(IN RtpDt_UChar ucPacketType)
 {
-    m_ucPktType = ucPktType;
+    m_ucPacketType = ucPacketType;
 }
 
 RtpDt_UChar RtcpHeader::getPacketType()
 {
-    return m_ucPktType;
+    return m_ucPacketType;
 }
 
-RtpDt_Void RtcpHeader::setLength(IN RtpDt_UInt16 usLength)
+RtpDt_Void RtcpHeader::setLength(IN RtpDt_UInt32 usLength)
 {
     m_usLength = usLength;
 }
 
-RtpDt_UInt16 RtcpHeader::getLength()
+RtpDt_UInt32 RtcpHeader::getLength()
 {
     return m_usLength;
 }
@@ -88,20 +103,32 @@ RtpDt_UInt32 RtcpHeader::getSsrc()
     return m_uiSsrc;
 }
 
-eRtp_Bool RtcpHeader::decodeRtcpHeader(IN RtpDt_UChar* pucRtcpHdr)
+eRtp_Bool RtcpHeader::decodeRtcpHeader(IN RtpDt_UChar* pRtcpBuffer)
 {
-    RtpDt_UInt32 uiTemp4Data = RtpOsUtil::Ntohl(*((RtpDt_UInt32*)pucRtcpHdr));
-    pucRtcpHdr = pucRtcpHdr + RTP_WORD_SIZE;
+    RtpDt_UInt32 uiTemp4Data = RtpOsUtil::Ntohl(*((RtpDt_UInt32*)pRtcpBuffer));
 
+    // Packet Length
+    m_usLength = uiTemp4Data & 0x0000FFFF;
+    m_usLength *= RTP_WORD_SIZE;  // Convert length from WORD count to Bytes count
+
+    // Packet Type
+    m_ucPacketType = (uiTemp4Data >> RTP_16) & 0x000000FF;
+
+    // 8-MSB bits of 32-bit data.
     uiTemp4Data = uiTemp4Data >> RTP_24;
-    // version
-    m_ucVersion = RtpDt_UChar(uiTemp4Data & 0x000000C0) >> RTP_SIX;
-    // padding
-    m_ucIsPadding = RtpDt_UChar(uiTemp4Data & 0x00000020) >> RTP_FIVE;
-    // RC
-    m_ucRecepRepCnt = RtpDt_UChar(uiTemp4Data & 0x0000001F);
 
-    m_uiSsrc = RtpOsUtil::Ntohl(*((RtpDt_UInt32*)pucRtcpHdr));
+    // version. 2-MSB bits
+    m_ucVersion = (RtpDt_UInt8)(uiTemp4Data >> RTP_SIX) & 0x00000003;
+
+    // padding
+    m_ucIsPadding = ((uiTemp4Data >> RTP_FIVE) & 0x00000001) ? eRTP_TRUE : eRTP_FALSE;
+
+    // RC
+    m_ucReceptionReportCount = RtpDt_UInt8(uiTemp4Data & 0x0000001F);
+
+    // SSRC
+    pRtcpBuffer = pRtcpBuffer + RTP_WORD_SIZE;
+    m_uiSsrc = RtpOsUtil::Ntohl(*((RtpDt_UInt32*)pRtcpBuffer));
 
     return eRTP_SUCCESS;
 }  // decodeRtcpHeader
@@ -139,9 +166,9 @@ eRtp_Bool RtcpHeader::formPartialRtcpHeader(OUT RtpBuffer* pobjRtcpPktBuf)
     // padding 1 bit
     RTP_FORM_HDR_UTL(usUtlData, m_ucIsPadding, RTP_PAD_SHIFT_VAL, usTmpData);
     // RC 5 bits
-    RTP_FORM_HDR_UTL(usUtlData, m_ucRecepRepCnt, RTCP_RC_SHIFT_VAL, usTmpData);
+    RTP_FORM_HDR_UTL(usUtlData, m_ucReceptionReportCount, RTCP_RC_SHIFT_VAL, usTmpData);
     // PT 8 bits
-    RTP_FORM_HDR_UTL(usUtlData, m_ucPktType, RTCP_PT_SHIFT_VAL, usTmpData);
+    RTP_FORM_HDR_UTL(usUtlData, m_ucPacketType, RTCP_PT_SHIFT_VAL, usTmpData);
 
     RtpDt_UInt32 uiByte4Data = usTmpData;
     uiByte4Data = uiByte4Data << RTP_SIXTEEN;
@@ -164,10 +191,10 @@ eRtp_Bool RtcpHeader::formPartialRtcpHeader(OUT RtpBuffer* pobjRtcpPktBuf)
 }  // end formPartialRtcpHeader
 
 RtpDt_Void RtcpHeader::populateRtcpHeader(
-        IN RtpDt_UChar ucRecepRepCnt, IN RtpDt_UChar ucPktType, IN RtpDt_UInt32 uiSsrc)
+        IN RtpDt_UChar ucReceptionReportCount, IN RtpDt_UChar ucPacketType, IN RtpDt_UInt32 uiSsrc)
 {
     m_ucVersion = RTP_VERSION_NUM;
-    m_ucRecepRepCnt = ucRecepRepCnt;
-    m_ucPktType = ucPktType;
+    m_ucReceptionReportCount = ucReceptionReportCount;
+    m_ucPacketType = ucPacketType;
     m_uiSsrc = uiSsrc;
 }

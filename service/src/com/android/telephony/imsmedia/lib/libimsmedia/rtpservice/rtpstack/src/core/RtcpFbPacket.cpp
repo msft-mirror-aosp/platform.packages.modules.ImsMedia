@@ -104,7 +104,7 @@ eRTP_STATUS_CODE RtcpFbPacket::decodeRtcpFbPacket(
         RtpBuffer* pFCI = new RtpBuffer(ufciLength, (RtpDt_UChar*)pucRtcpFbBuf);
         if (pFCI == RTP_NULL)
         {
-            RTP_TRACE_WARNING("decodeRtcpRtpFbPacket, new returned NULL...!", RTP_ZERO, RTP_ZERO);
+            RTP_TRACE_ERROR("[Memory Error] new returned NULL.", RTP_ZERO, RTP_ZERO);
             return RTP_MEMORY_FAIL;
         }
         setFCI(pFCI);

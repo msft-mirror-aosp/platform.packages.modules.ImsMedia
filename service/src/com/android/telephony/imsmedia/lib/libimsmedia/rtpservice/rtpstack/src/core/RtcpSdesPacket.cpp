@@ -67,13 +67,13 @@ eRTP_STATUS_CODE RtcpSdesPacket::decodeSdesPacket(
 
     // RC
     ucByteData = uiTemp4Data & 0x0000001F;
-    m_objRtcpHdr.setRecepRepCnt(ucByteData);
+    m_objRtcpHdr.setReceptionReportCount(ucByteData);
     while ((ucByteData > RTP_ZERO) && (usSdesLen > RTP_ZERO))
     {
         RtcpChunk* pobjRtcpChunk = new RtcpChunk();
         if (pobjRtcpChunk == RTP_NULL)
         {
-            RTP_TRACE_WARNING("decodeSdesPacket, new returned NULL...!", RTP_ZERO, RTP_ZERO);
+            RTP_TRACE_ERROR("[Memory Error] new returned NULL.", RTP_ZERO, RTP_ZERO);
             return RTP_MEMORY_FAIL;
         }
 

@@ -91,7 +91,7 @@ typedef struct
 typedef struct
 {
     eRtp_Bool bMbit;
-    RtpDt_ULong dwTimestamp;
+    RtpDt_UInt32 dwTimestamp;
     RtpDt_UInt32 dwPayloadType;
     RtpDt_UInt16 dwSeqNum;
 
@@ -110,7 +110,7 @@ typedef struct
 typedef struct
 {
     RtpDt_UInt16 wSubType;
-    RtpDt_ULong dwName;
+    RtpDt_UInt32 dwName;
     RtpDt_UInt16 wMsgLen;  // total RTCP length
     RtpDt_UChar* pMsg;     // total RTCP Packet(Hdr + App Info)
 } tRtpSvcIndSt_ReceiveRtcpAppInd;
@@ -120,7 +120,7 @@ typedef struct
 {
     RtpDt_UInt16 wPayloadType;
     RtpDt_UInt16 wFmt;
-    RtpDt_ULong dwMediaSsrc;
+    RtpDt_UInt32 dwMediaSsrc;
     RtpDt_UInt16 wMsgLen;  // total RTCP length
     RtpDt_UChar* pMsg;     // total RTCP Packet(Hdr + App Info)
 } tRtpSvcIndSt_ReceiveRtcpFeedbackInd;

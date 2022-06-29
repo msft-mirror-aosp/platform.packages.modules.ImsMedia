@@ -68,7 +68,7 @@ eRTP_STATUS_CODE RtcpByePacket::decodeByePacket(IN RtpDt_UChar* pucByeBuf, IN Rt
     m_objRtcpHdr.decodeRtcpHeader(pucByeBuf);
     pucByeBuf = pucByeBuf + RTCP_FIXED_HDR_LEN;
 
-    RtpDt_UChar ucSsrcCnt = m_objRtcpHdr.getRecepRepCnt();
+    RtpDt_UChar ucSsrcCnt = m_objRtcpHdr.getReceptionReportCount();
     // m_uiSsrcList
     while (ucSsrcCnt > RTP_ONE)
     {
@@ -76,7 +76,7 @@ eRTP_STATUS_CODE RtcpByePacket::decodeByePacket(IN RtpDt_UChar* pucByeBuf, IN Rt
         puiRcvdSsrc = new RtpDt_UInt32();
         if (puiRcvdSsrc == RTP_NULL)
         {
-            RTP_TRACE_WARNING("decodeByePacket, new returned NULL...!", RTP_ZERO, RTP_ZERO);
+            RTP_TRACE_ERROR("[Memory Error] new returned NULL.", RTP_ZERO, RTP_ZERO);
             return RTP_MEMORY_FAIL;
         }
 
@@ -96,14 +96,14 @@ eRTP_STATUS_CODE RtcpByePacket::decodeByePacket(IN RtpDt_UChar* pucByeBuf, IN Rt
         RtpDt_UChar* pucReason = new RtpDt_UChar[uiByte4Data];
         if (pucReason == RTP_NULL)
         {
-            RTP_TRACE_WARNING("decodeByePacket, new returned NULL...!", RTP_ZERO, RTP_ZERO);
+            RTP_TRACE_ERROR("[Memory Error] new returned NULL.", RTP_ZERO, RTP_ZERO);
             return RTP_MEMORY_FAIL;
         }
 
         m_pReason = new RtpBuffer();
         if (m_pReason == RTP_NULL)
         {
-            RTP_TRACE_WARNING("decodeByePacket, new returned NULL...!", RTP_ZERO, RTP_ZERO);
+            RTP_TRACE_ERROR("[Memory Error] new returned NULL.", RTP_ZERO, RTP_ZERO);
             delete[] pucReason;
             return RTP_MEMORY_FAIL;
         }

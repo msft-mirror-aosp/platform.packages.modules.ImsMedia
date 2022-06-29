@@ -177,7 +177,7 @@ eRtp_Bool populateRcvdFbInfoFromStk(
     if (m_pobjRtcpFbPkt != RTP_NULL)
     {
         stFbRtcpMsg->wPayloadType = m_pobjRtcpFbPkt->getRtcpHdrInfo()->getPacketType();
-        stFbRtcpMsg->wFmt = m_pobjRtcpFbPkt->getRtcpHdrInfo()->getRecepRepCnt();
+        stFbRtcpMsg->wFmt = m_pobjRtcpFbPkt->getRtcpHdrInfo()->getReceptionReportCount();
         stFbRtcpMsg->dwMediaSsrc = m_pobjRtcpFbPkt->getMediaSsrc();
         stFbRtcpMsg->wMsgLen = m_pobjRtcpFbPkt->getRtcpHdrInfo()->getLength();
         if (m_pobjRtcpFbPkt->getFCI() != RTP_NULL)

@@ -354,6 +354,12 @@ class RtpSession
 
     eRTP_STATUS_CODE populateRtcpXrPacket(IN_OUT RtcpPacket* pobjRtcpPkt);
 
+    /**
+     * Check of the received RTP packet payload type is matching with the expected payload types.
+     *
+     * @param RtpHeader
+     * @return true if mathes and false otherwise.
+     */
     eRtp_Bool checkRtpPayloadType(
             IN RtpHeader* pobjRtpHeader, IN RtpPayloadInfo* m_pobjPayloadInfo);
 

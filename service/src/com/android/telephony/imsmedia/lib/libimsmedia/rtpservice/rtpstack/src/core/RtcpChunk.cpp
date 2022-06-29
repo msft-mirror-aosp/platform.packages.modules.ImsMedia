@@ -69,7 +69,7 @@ eRTP_STATUS_CODE RtcpChunk::decodeRtcpChunk(IN RtpDt_UChar* pucChunkBuf,
         pstSdesItem = new tRTCP_SDES_ITEM();
         if (pstSdesItem == RTP_NULL)
         {
-            RTP_TRACE_WARNING("decodeRtcpChunk, new returned NULL...!", RTP_ZERO, RTP_ZERO);
+            RTP_TRACE_ERROR("[Memory Error] new returned NULL.", RTP_ZERO, RTP_ZERO);
             return RTP_MEMORY_FAIL;
         }
         memset(pstSdesItem, RTP_ZERO, sizeof(tRTCP_SDES_ITEM));
@@ -95,7 +95,7 @@ eRTP_STATUS_CODE RtcpChunk::decodeRtcpChunk(IN RtpDt_UChar* pucChunkBuf,
         RtpDt_UChar* pcSdesBuf = new RtpDt_UChar[pstSdesItem->ucLength];
         if (pcSdesBuf == RTP_NULL)
         {
-            RTP_TRACE_WARNING("decodeRtcpChunk, new returned NULL...!", RTP_ZERO, RTP_ZERO);
+            RTP_TRACE_ERROR("[Memory Error] new returned NULL.", RTP_ZERO, RTP_ZERO);
             delete pstSdesItem;
             return RTP_MEMORY_FAIL;
         }

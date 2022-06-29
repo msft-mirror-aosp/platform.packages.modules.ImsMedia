@@ -190,12 +190,6 @@ typedef struct
         (_usUtlData) = RTP_ZERO;                                     \
     }
 
-#define RTP_GET_VERSION(_uiHDR4Bytes, _destVersion)                                              \
-    {                                                                                            \
-        _destVersion =                                                                           \
-                (RtpDt_UChar)((RtpDt_UInt16)(_uiHDR4Bytes >> RTP_SIXTEEN) >> RTP_VER_SHIFT_VAL); \
-    }
-
 #endif  //__RTP_GLOBAL_H__
 
 /** @}*/

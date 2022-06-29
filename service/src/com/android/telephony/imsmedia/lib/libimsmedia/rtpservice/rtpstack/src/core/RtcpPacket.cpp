@@ -196,41 +196,36 @@ eRTP_STATUS_CODE RtcpPacket::decodeRtcpPacket(IN RtpBuffer* pobjRtcpPktBuf,
         RtpDt_UChar* pucBuffer = pobjRtcpPktBuf->getBuffer();
         pucBuffer = pucBuffer + uiCurPos;
 
-        // get first 4 octets of the RTCP header
-        RtpDt_UInt32 uiTemp4Data = RtpOsUtil::Ntohl(*((RtpDt_UInt32*)pucBuffer));
+        RtcpHeader rtcpHeader;
+        rtcpHeader.decodeRtcpHeader(pucBuffer);
 
-        // check version number
-        RtpDt_UChar uiVersion = RTP_ZERO;
-        RTP_GET_VERSION(uiTemp4Data, uiVersion)
+        RtpDt_UChar uiVersion = rtcpHeader.getVersion();
         if (uiVersion != RTP_VERSION_NUM)
         {
-            RTP_TRACE_WARNING(
-                    "decodeRtcpPacket, RTCP version is Invalid ...!", uiVersion, RTP_ZERO);
+            RTP_TRACE_ERROR("[DecodeRtcpPacket] RTCP version is Invalid.", uiVersion, RTP_ZERO);
             return RTP_INVALID_MSG;
         }
 
         // get length
-        RtpDt_UInt16 usPktLen = uiTemp4Data & 0x0000FFFF;
+        RtpDt_UInt16 usPktLen = rtcpHeader.getLength();
 
-        usPktLen = usPktLen * RTP_WORD_SIZE;  // Payload Size
-        usPktLen = usPktLen + RTP_WORD_SIZE;  //+1 WORD header - Avinash
+        // Add one word common header size.
+        usPktLen += RTP_WORD_SIZE;
 
         if ((usPktLen > iTrackCompLen) || (usPktLen < RTP_WORD_SIZE))
         {
-            RTP_TRACE_WARNING("decodeRtcpPacket, RTCP packet length is Invalid ...!", usPktLen,
-                    iTrackCompLen);
+            RTP_TRACE_ERROR(
+                    "[DecodeRtcpPacket] RTCP packet length is Invalid.", usPktLen, iTrackCompLen);
             return RTP_INVALID_MSG;
         }
 
-        RTP_TRACE_MESSAGE("decodeRtcpPacket [packet length: %d] [compound packet length: %d]",
+        RTP_TRACE_MESSAGE("[DecodeRtcpPacket] packet length: %d, compound packet length: %d",
                 usPktLen, iTrackCompLen);
 
         // get packet type
-        RtpDt_UInt32 uiPktType = RTP_ZERO;
-        uiTemp4Data = uiTemp4Data >> RTP_16;
-        uiPktType = uiTemp4Data & 0x000000FF;
+        RtpDt_UInt32 uiPktType = rtcpHeader.getPacketType();
 
-        RTP_TRACE_MESSAGE("decodeRtcpPacket [packet type: %d] [%d]", uiPktType, RTP_ZERO);
+        RTP_TRACE_MESSAGE("[DecodeRtcpPacket] packet type: %d", uiPktType, RTP_ZERO);
 
         eRTP_STATUS_CODE eDecodeRes = RTP_FAILURE;
 
@@ -241,8 +236,7 @@ eRTP_STATUS_CODE RtcpPacket::decodeRtcpPacket(IN RtpBuffer* pobjRtcpPktBuf,
                 RtcpSrPacket* pobjSrPkt = new RtcpSrPacket();
                 if (pobjSrPkt == RTP_NULL)
                 {
-                    RTP_TRACE_WARNING(
-                            "decodeRtcpPacket, new returned NULL...!", RTP_ZERO, RTP_ZERO);
+                    RTP_TRACE_ERROR("[Memory Error] new returned NULL.", RTP_ZERO, RTP_ZERO);
                     return RTP_MEMORY_FAIL;
                 }
                 eDecodeRes = pobjSrPkt->decodeSrPacket(pucBuffer, usPktLen, usExtHdrLen);
@@ -256,8 +250,7 @@ eRTP_STATUS_CODE RtcpPacket::decodeRtcpPacket(IN RtpBuffer* pobjRtcpPktBuf,
                 RtcpRrPacket* pobjRrPkt = new RtcpRrPacket();
                 if (pobjRrPkt == RTP_NULL)
                 {
-                    RTP_TRACE_WARNING(
-                            "decodeRtcpPacket, new returned NULL...!", RTP_ZERO, RTP_ZERO);
+                    RTP_TRACE_ERROR("[Memory Error] new returned NULL.", RTP_ZERO, RTP_ZERO);
                     return RTP_MEMORY_FAIL;
                 }
                 eDecodeRes =
@@ -271,8 +264,7 @@ eRTP_STATUS_CODE RtcpPacket::decodeRtcpPacket(IN RtpBuffer* pobjRtcpPktBuf,
                 m_pobjSdesPkt = new RtcpSdesPacket();
                 if (m_pobjSdesPkt == RTP_NULL)
                 {
-                    RTP_TRACE_WARNING(
-                            "decodeRtcpPacket, new returned NULL...!", RTP_ZERO, RTP_ZERO);
+                    RTP_TRACE_ERROR("[Memory Error] new returned NULL.", RTP_ZERO, RTP_ZERO);
                     return RTP_MEMORY_FAIL;
                 }
                 eDecodeRes = m_pobjSdesPkt->decodeSdesPacket(pucBuffer, usPktLen, pobjRtcpCfgInfo);
@@ -284,8 +276,7 @@ eRTP_STATUS_CODE RtcpPacket::decodeRtcpPacket(IN RtpBuffer* pobjRtcpPktBuf,
                 m_pobjByePkt = new RtcpByePacket();
                 if (m_pobjByePkt == RTP_NULL)
                 {
-                    RTP_TRACE_WARNING(
-                            "decodeRtcpPacket, new returned NULL...!", RTP_ZERO, RTP_ZERO);
+                    RTP_TRACE_ERROR("[Memory Error] new returned NULL.", RTP_ZERO, RTP_ZERO);
                     return RTP_MEMORY_FAIL;
                 }
                 eDecodeRes = m_pobjByePkt->decodeByePacket(pucBuffer, usPktLen);
@@ -297,8 +288,7 @@ eRTP_STATUS_CODE RtcpPacket::decodeRtcpPacket(IN RtpBuffer* pobjRtcpPktBuf,
                 m_pobjAppPkt = new RtcpAppPacket();
                 if (m_pobjAppPkt == RTP_NULL)
                 {
-                    RTP_TRACE_WARNING(
-                            "decodeRtcpPacket, new returned NULL...!", RTP_ZERO, RTP_ZERO);
+                    RTP_TRACE_ERROR("[Memory Error] new returned NULL.", RTP_ZERO, RTP_ZERO);
                     return RTP_MEMORY_FAIL;
                 }
                 eDecodeRes = m_pobjAppPkt->decodeAppPacket(pucBuffer, usPktLen);
@@ -311,8 +301,7 @@ eRTP_STATUS_CODE RtcpPacket::decodeRtcpPacket(IN RtpBuffer* pobjRtcpPktBuf,
                 RtcpFbPacket* pobjFbPkt = new RtcpFbPacket();
                 if (pobjFbPkt == RTP_NULL)
                 {
-                    RTP_TRACE_WARNING(
-                            "decodeRtcpPacket, new returned NULL...!", RTP_ZERO, RTP_ZERO);
+                    RTP_TRACE_ERROR("[Memory Error] new returned NULL.", RTP_ZERO, RTP_ZERO);
                     return RTP_MEMORY_FAIL;
                 }
                 RTP_TRACE_MESSAGE("decodeRtcpPacket found fb packet", 0, 0);

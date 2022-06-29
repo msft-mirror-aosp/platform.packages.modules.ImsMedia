@@ -273,7 +273,7 @@ eRTP_STATUS_CODE RtpReceiverInfo::setIpAddr(IN RtpBuffer* pobjIpAddr)
     m_pobjIpAddr = new RtpBuffer(uiLength, pBuffer);
     if (m_pobjIpAddr == RTP_NULL)
     {
-        RTP_TRACE_WARNING("setIpAddr, new returned NULL...!", RTP_ZERO, RTP_ZERO);
+        RTP_TRACE_ERROR("[Memory Error] new returned NULL.", RTP_ZERO, RTP_ZERO);
         return RTP_MEMORY_FAIL;
     }
     return RTP_SUCCESS;

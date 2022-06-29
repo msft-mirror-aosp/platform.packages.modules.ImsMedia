@@ -86,7 +86,7 @@ eRTP_STATUS_CODE RtcpRrPacket::decodeRrPacket(IN RtpDt_UChar* pucRrBuf, IN RtpDt
         RtcpReportBlock* pobjRptBlk = new RtcpReportBlock();
         if (pobjRptBlk == RTP_NULL)
         {
-            RTP_TRACE_WARNING("decodeRrPacket, new returned NULL...!", RTP_ZERO, RTP_ZERO);
+            RTP_TRACE_ERROR("[Memory Error] new returned NULL.", RTP_ZERO, RTP_ZERO);
             return RTP_MEMORY_FAIL;
         }
         pobjRptBlk->decodeReportBlk(pucRrBuf);
@@ -101,14 +101,14 @@ eRTP_STATUS_CODE RtcpRrPacket::decodeRrPacket(IN RtpDt_UChar* pucRrBuf, IN RtpDt
         RtpDt_UChar* pcProfExtBuf = new RtpDt_UChar[usProfExtLen];
         if (pcProfExtBuf == RTP_NULL)
         {
-            RTP_TRACE_WARNING("decodeRrPacket, new returned NULL...!", RTP_ZERO, RTP_ZERO);
+            RTP_TRACE_ERROR("[Memory Error] new returned NULL.", RTP_ZERO, RTP_ZERO);
             return RTP_MEMORY_FAIL;
         }
 
         m_pobjExt = new RtpBuffer();
         if (m_pobjExt == RTP_NULL)
         {
-            RTP_TRACE_WARNING("decodeRrPacket, new returned NULL...!", RTP_ZERO, RTP_ZERO);
+            RTP_TRACE_ERROR("[Memory Error] new returned NULL.", RTP_ZERO, RTP_ZERO);
             delete[] pcProfExtBuf;
             return RTP_MEMORY_FAIL;
         }

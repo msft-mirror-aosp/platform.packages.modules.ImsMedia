@@ -21,6 +21,8 @@
 #ifndef _RTP_PF_DATATYPES_H_
 #define _RTP_PF_DATATYPES_H_
 
+#include <stdint.h>
+
 #define RTP_NULL            0
 #define RTP_FALSE           0
 #define RTP_TRUE            1
@@ -104,17 +106,15 @@ typedef enum _eRtp_Bool
 
 /* Basic Data Types */
 typedef void RtpDt_Void;
-typedef unsigned char RtpDt_UChar;
 typedef char RtpDt_Char;
-typedef signed char RtpDt_SChar;
-typedef unsigned short RtpDt_UInt16;
-typedef short RtpDt_Int16;
-typedef unsigned int RtpDt_UInt32;
-typedef int RtpDt_Int32;
-typedef unsigned long RtpDt_ULong;
-typedef long RtpDt_Long;
+typedef unsigned char RtpDt_UChar;
+typedef uint8_t RtpDt_UInt8;
+typedef int8_t RtpDt_Int8;
+typedef uint16_t RtpDt_UInt16;
+typedef int16_t RtpDt_Int16;
+typedef uint32_t RtpDt_UInt32;
+typedef int32_t RtpDt_Int32;
 typedef double RtpDt_Double;
-typedef unsigned int RtpDt_Index_Type;
 
 typedef struct
 {
@@ -123,27 +123,7 @@ typedef struct
 } tRTP_NTP_TIME;
 
 typedef RtpDt_UInt16 RtpSvc_Length;
-typedef RtpDt_UInt32 RTP_STACK_HANDLE;
-typedef RtpDt_UInt32 RTP_TXN_HANDLE_KEY;
-typedef RtpDt_UInt32 RTP_MSG_HANDLE;
-typedef RtpDt_UInt32 RTP_TIMER_HANDLE;
 
-#ifdef IMS_RTTI_ENABLED
-
-#define RTP_CONST_CAST(TYPE, VALUE)       (const_cast<TYPE>(VALUE))
-#define RTP_DYNAMIC_CAST(TYPE, VALUE)     (dynamic_cast<TYPE>(VALUE))
-#define RTP_REINTERPRET_CAST(TYPE, VALUE) (reinterpret_cast<TYPE>(VALUE))
-#define RTP_STATIC_CAST(TYPE, VALUE)      (static_cast<TYPE>(VALUE))
-
-#else
-
-// C-style type casting
-#define RTP_CONST_CAST(TYPE, VALUE)       (const_cast<TYPE>(VALUE))
-#define RTP_DYNAMIC_CAST(TYPE, VALUE)     ((TYPE)(VALUE))
-#define RTP_REINTERPRET_CAST(TYPE, VALUE) (reinterpret_cast<TYPE>(VALUE))
-#define RTP_STATIC_CAST(TYPE, VALUE)      (static_cast<TYPE>(VALUE))
-
-#endif  // IMS_RTTI_ENABLED
 #endif  //_RTP_PF_DATATYPES_H_
 
 /** @}*/
