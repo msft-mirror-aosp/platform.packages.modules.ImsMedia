@@ -40,20 +40,22 @@ public abstract class RtpConfig implements Parcelable {
     public static final int TYPE_VIDEO = 1;
     public static final int TYPE_TEXT = 2;
 
-    /** Device neither transmits nor receives any media */
+    /** Device neither transmits nor receives any RTP */
     public static final int MEDIA_DIRECTION_NO_FLOW = 0;
     /**
-     * Device transmits outgoing media but but doesn't receive incoming media.
+     * Device transmits outgoing RTP but but doesn't receive incoming RTP.
      * Eg. Other party muted the call
      */
-    public static final int MEDIA_DIRECTION_TRANSMIT_ONLY = 1;
+    public static final int MEDIA_DIRECTION_SEND_ONLY = 1;
     /**
-     * Device receives the incoming media but doesn't transmit any outgoing media.
+     * Device receives the incoming RTP but doesn't transmit any outgoing RTP.
      * Eg. User muted the call
      */
     public static final int MEDIA_DIRECTION_RECEIVE_ONLY = 2;
-    /** Device transmits and receives media in both the mDirections */
-    public static final int MEDIA_DIRECTION_TRANSMIT_RECEIVE = 3;
+    /** Device transmits and receives RTP in both the Directions */
+    public static final int MEDIA_DIRECTION_SEND_RECEIVE = 3;
+    /** No RTP flow however RTCP continues to flow. Eg. HOLD */
+    public static final int MEDIA_DIRECTION_INACTIVE = 4;
     /* definition of uninitialized port number*/
     public static final int UNINITIALIZED_PORT = -1;
 
@@ -61,9 +63,10 @@ public abstract class RtpConfig implements Parcelable {
     @IntDef(
         value = {
            MEDIA_DIRECTION_NO_FLOW,
-           MEDIA_DIRECTION_TRANSMIT_ONLY,
+           MEDIA_DIRECTION_SEND_ONLY,
            MEDIA_DIRECTION_RECEIVE_ONLY,
-           MEDIA_DIRECTION_TRANSMIT_RECEIVE,
+           MEDIA_DIRECTION_SEND_RECEIVE,
+           MEDIA_DIRECTION_INACTIVE,
     })
     @Retention(RetentionPolicy.SOURCE)
     public @interface MediaDirection {}
@@ -75,7 +78,6 @@ public abstract class RtpConfig implements Parcelable {
     private InetSocketAddress mRemoteRtpAddress;
     @Nullable
     private RtcpConfig mRtcpConfig;
-    private int mMaxMtuBytes;
     private byte mDscp;
     private byte mRxPayloadTypeNumber;
     private byte mTxPayloadTypeNumber;
@@ -88,7 +90,6 @@ public abstract class RtpConfig implements Parcelable {
         mAccessNetwork = in.readInt();
         mRemoteRtpAddress = readSocketAddress(in);
         mRtcpConfig = in.readParcelable(RtcpConfig.class.getClassLoader(), RtcpConfig.class);
-        mMaxMtuBytes = in.readInt();
         mDscp = in.readByte();
         mRxPayloadTypeNumber = in.readByte();
         mTxPayloadTypeNumber = in.readByte();
@@ -102,7 +103,6 @@ public abstract class RtpConfig implements Parcelable {
         mAccessNetwork = builder.mAccessNetwork;
         mRemoteRtpAddress = builder.mRemoteRtpAddress;
         mRtcpConfig = builder.mRtcpConfig;
-        mMaxMtuBytes = builder.mMaxMtuBytes;
         mDscp = builder.mDscp;
         mRxPayloadTypeNumber = builder.mRxPayloadTypeNumber;
         mTxPayloadTypeNumber = builder.mTxPayloadTypeNumber;
@@ -151,14 +151,6 @@ public abstract class RtpConfig implements Parcelable {
         this.mRtcpConfig = mRtcpConfig;
     }
 
-    public int getMaxMtuBytes() {
-        return mMaxMtuBytes;
-    }
-
-    public void setMaxMtuBytes(final int mMaxMtuBytes) {
-        this.mMaxMtuBytes = mMaxMtuBytes;
-    }
-
     public byte getDscp() {
         return mDscp;
     }
@@ -198,7 +190,6 @@ public abstract class RtpConfig implements Parcelable {
             + ", mAccessNetwork=" + mAccessNetwork
             + ", mRemoteRtpAddress=" + mRemoteRtpAddress
             + ", mRtcpConfig=" + mRtcpConfig
-            + ", mMaxMtuBytes=" + mMaxMtuBytes
             + ", mDscp=" + mDscp
             + ", mRxPayloadTypeNumber=" + mRxPayloadTypeNumber
             + ", mTxPayloadTypeNumber=" + mTxPayloadTypeNumber
@@ -209,7 +200,7 @@ public abstract class RtpConfig implements Parcelable {
     @Override
     public int hashCode() {
         return Objects.hash(mDirection, mAccessNetwork, mRemoteRtpAddress, mRtcpConfig,
-            mMaxMtuBytes, mDscp, mRxPayloadTypeNumber, mTxPayloadTypeNumber, mSamplingRateKHz);
+            mDscp, mRxPayloadTypeNumber, mTxPayloadTypeNumber, mSamplingRateKHz);
     }
 
     @Override
@@ -228,7 +219,6 @@ public abstract class RtpConfig implements Parcelable {
                 && mAccessNetwork == s.mAccessNetwork
                 && Objects.equals(mRemoteRtpAddress, s.mRemoteRtpAddress)
                 && Objects.equals(mRtcpConfig, s.mRtcpConfig)
-                && mMaxMtuBytes == s.mMaxMtuBytes
                 && mDscp == s.mDscp
                 && mRxPayloadTypeNumber == s.mRxPayloadTypeNumber
                 && mTxPayloadTypeNumber == s.mTxPayloadTypeNumber
@@ -260,7 +250,6 @@ public abstract class RtpConfig implements Parcelable {
             dest.writeInt(mRemoteRtpAddress.getPort());
         }
         dest.writeParcelable(mRtcpConfig, 0);
-        dest.writeInt(mMaxMtuBytes);
         dest.writeByte(mDscp);
         dest.writeByte(mRxPayloadTypeNumber);
         dest.writeByte(mTxPayloadTypeNumber);
@@ -297,7 +286,6 @@ public abstract class RtpConfig implements Parcelable {
         private InetSocketAddress mRemoteRtpAddress;
         @Nullable
         private RtcpConfig mRtcpConfig;
-        private int mMaxMtuBytes;
         private byte mDscp;
         private byte mRxPayloadTypeNumber;
         private byte mTxPayloadTypeNumber;
@@ -345,16 +333,6 @@ public abstract class RtpConfig implements Parcelable {
          */
         public T setRtcpConfig(final RtcpConfig rtcpConfig) {
             this.mRtcpConfig = rtcpConfig;
-            return self();
-        }
-
-        /**
-         * Sets maximum Rtp transfer unit in bytes
-         * @param maxMtuBytes bytes
-         * @return
-         */
-        public T setMaxMtuBytes(final int maxMtuBytes) {
-            this.mMaxMtuBytes = maxMtuBytes;
             return self();
         }
 

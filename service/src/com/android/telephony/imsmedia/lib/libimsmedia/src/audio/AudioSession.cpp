@@ -139,9 +139,9 @@ ImsMediaResult AudioSession::startGraph(void* config)
         ret = mListGraphRtpTx.back()->create(config);
 
         if (ret == RESULT_SUCCESS &&
-                (pConfig->getMediaDirection() == RtpConfig::MEDIA_DIRECTION_TRANSMIT_ONLY ||
+                (pConfig->getMediaDirection() == RtpConfig::MEDIA_DIRECTION_SEND_ONLY ||
                         pConfig->getMediaDirection() ==
-                                RtpConfig::MEDIA_DIRECTION_TRANSMIT_RECEIVE))
+                                RtpConfig::MEDIA_DIRECTION_SEND_RECEIVE))
         {
             ret = mListGraphRtpTx.back()->start();
             if (ret != RESULT_SUCCESS)
@@ -172,7 +172,7 @@ ImsMediaResult AudioSession::startGraph(void* config)
         if (ret == RESULT_SUCCESS &&
                 (pConfig->getMediaDirection() == RtpConfig::MEDIA_DIRECTION_RECEIVE_ONLY ||
                         pConfig->getMediaDirection() ==
-                                RtpConfig::MEDIA_DIRECTION_TRANSMIT_RECEIVE))
+                                RtpConfig::MEDIA_DIRECTION_SEND_RECEIVE))
         {
             mListGraphRtpRx.back()->setMediaQualityThreshold(&mThreshold);
             ret = mListGraphRtpRx.back()->start();

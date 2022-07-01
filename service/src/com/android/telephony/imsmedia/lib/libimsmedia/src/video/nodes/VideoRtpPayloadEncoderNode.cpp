@@ -122,7 +122,7 @@ void VideoRtpPayloadEncoderNode::SetConfig(void* config)
     VideoConfig* pConfig = reinterpret_cast<VideoConfig*>(config);
     mCodecType = pConfig->getCodecType();
     mPayloadMode = pConfig->getPacketizationMode();
-    mMaxFragmentUnitSize = pConfig->getmaxMtuBytes();
+    mMaxFragmentUnitSize = pConfig->getMaxMtuBytes();
 }
 
 bool VideoRtpPayloadEncoderNode::IsSameConfig(void* config)
@@ -135,7 +135,7 @@ bool VideoRtpPayloadEncoderNode::IsSameConfig(void* config)
     VideoConfig* pConfig = reinterpret_cast<VideoConfig*>(config);
     return (mCodecType == pConfig->getCodecType() &&
             mPayloadMode == pConfig->getPacketizationMode() &&
-            mMaxFragmentUnitSize == pConfig->getmaxMtuBytes());
+            mMaxFragmentUnitSize == pConfig->getMaxMtuBytes());
 }
 
 void VideoRtpPayloadEncoderNode::ProcessData()

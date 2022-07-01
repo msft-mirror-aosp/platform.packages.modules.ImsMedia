@@ -68,8 +68,8 @@ public:
     int8_t getPtimeMillis();
     void setMaxPtimeMillis(const int32_t maxPtime);
     int32_t getMaxPtimeMillis();
-    void setTxCodecModeRequest(const int8_t cmr);
-    int8_t getTxCodecModeRequest();
+    void setCodecModeRequest(const int8_t cmr);
+    int8_t getCodecModeRequest();
     void setDtxEnabled(const bool enable);
     bool getDtxEnabled();
     void setCodecType(const int32_t type);
@@ -99,7 +99,7 @@ protected:
      * other party to set the frame type index of speech mode via RTP header, See RFC
      * 4867 section 4.3.1. Allowed values are -1, 0 and 1.
      */
-    int8_t txCodecModeRequest;
+    int8_t codecModeRequest;
     /**
      * @brief Whether discontinuous transmission is enabled or not
      */

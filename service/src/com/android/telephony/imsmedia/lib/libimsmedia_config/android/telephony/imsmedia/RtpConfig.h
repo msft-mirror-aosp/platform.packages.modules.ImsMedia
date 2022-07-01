@@ -42,20 +42,22 @@ class RtpConfig : public Parcelable
 public:
     enum MediaDirection
     {
-        /** Device neither transmits nor receives any media */
+        /** Device neither transmits nor receives any RTP */
         MEDIA_DIRECTION_NO_FLOW,
         /**
-         * Device transmits outgoing media but but doesn't receive incoming media.
+         * Device transmits outgoing RTP but but doesn't receive incoming RTP.
          * Eg. Other party muted the call
          */
-        MEDIA_DIRECTION_TRANSMIT_ONLY,
+        MEDIA_DIRECTION_SEND_ONLY,
         /**
-         * Device receives the incoming media but doesn't transmit any outgoing media.
+         * Device receives the incoming RTP but doesn't transmit any outgoing RTP.
          * Eg. User muted the call
          */
         MEDIA_DIRECTION_RECEIVE_ONLY,
-        /** Device transmits and receives media in both the directions */
-        MEDIA_DIRECTION_TRANSMIT_RECEIVE,
+        /** Device transmits and receives RTP in both the directions */
+        MEDIA_DIRECTION_SEND_RECEIVE,
+        /** No RTP flow however RTCP continues to flow. Eg. HOLD */
+        MEDIA_DIRECTION_INACTIVE,
     };
 
     virtual ~RtpConfig();
@@ -74,9 +76,6 @@ public:
     int32_t getRemotePort();
     void setRtcpConfig(const RtcpConfig& config);
     RtcpConfig getRtcpConfig();
-    void setMaxMtuBytes(const int32_t mtu);
-    // TODO : change method name
-    int32_t getmaxMtuBytes();
     void setDscp(const int8_t dscp);
     int8_t getDscp();
     void setRxPayloadTypeNumber(const int8_t num);
@@ -123,10 +122,6 @@ protected:
      * @brief Rtcp configuration
      */
     RtcpConfig rtcpConfig;
-    /**
-     * @brief Maximum Rtp transfer unit in bytes
-     */
-    int32_t maxMtuBytes;
     /**
      * @brief Differentiated Services Field Code Point value, see RFC 2474
      */

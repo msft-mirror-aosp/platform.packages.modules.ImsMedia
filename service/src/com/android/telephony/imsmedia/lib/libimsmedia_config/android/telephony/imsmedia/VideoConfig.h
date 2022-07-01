@@ -198,6 +198,8 @@ public:
     int32_t getIntraFrameInterval();
     void setPacketizationMode(const int32_t mode);
     int32_t getPacketizationMode();
+    int32_t getMaxMtuBytes();
+    void setMaxMtuBytes(const int32_t mtuBytes);
     void setCameraId(const int32_t id);
     int32_t getCameraId();
     void setCameraZoom(const int32_t zoom);
@@ -236,6 +238,8 @@ protected:
     int32_t packetizationMode;
     /* An identification of camera device to use */
     int32_t cameraId;
+    /* MaxMtuBytes of RTP packet will be defined here */
+    int32_t maxMtuBytes;
     /* A level of zoom of camera device. It can be 0 to 10. */
     int32_t cameraZoom;
     /* The width of resolution in transmit streaming */

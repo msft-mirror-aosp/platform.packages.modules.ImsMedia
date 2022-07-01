@@ -52,7 +52,6 @@ public class AudioConfigTest {
     // AudioConfig
     private static final String REMOTE_RTP_ADDRESS = "122.22.22.22";
     private static final int REMOTE_RTP_PORT = 2222;
-    private static final int MAX_MTU_BYTES = 1524;
     private static final byte DSCP = 10;
     private static final byte RX_PAYLOAD = 112;
     private static final byte TX_PAYLOAD = 122;
@@ -90,10 +89,10 @@ public class AudioConfigTest {
         AudioConfig config = createAudioConfig();
 
         assertThat(config.getMediaDirection()).isEqualTo(
-                RtpConfig.MEDIA_DIRECTION_TRANSMIT_RECEIVE);
+                RtpConfig.MEDIA_DIRECTION_SEND_RECEIVE);
         assertThat(config.getPtimeMillis()).isEqualTo(PTIME);
         assertThat(config.getMaxPtimeMillis()).isEqualTo(MAX_PTIME);
-        assertThat(config.getTxCodecModeRequest()).isEqualTo(CMR);
+        assertThat(config.getCodecModeRequest()).isEqualTo(CMR);
         assertThat(config.getDtxEnabled()).isEqualTo(DTX_ENABLED);
         assertThat(config.getCodecType()).isEqualTo(AudioConfig.CODEC_EVS);
         assertThat(config.getDtmfPayloadTypeNumber()).isEqualTo(DTMF_PAYLOAD);
@@ -104,7 +103,6 @@ public class AudioConfigTest {
         assertThat(config.getRemoteRtpAddress()).isEqualTo(new InetSocketAddress(
                 InetAddresses.parseNumericAddress(REMOTE_RTP_ADDRESS), REMOTE_RTP_PORT));
         assertThat(config.getRtcpConfig()).isEqualTo(rtcp);
-        assertThat(config.getMaxMtuBytes()).isEqualTo(MAX_MTU_BYTES);
         assertThat(config.getRxPayloadTypeNumber()).isEqualTo(RX_PAYLOAD);
         assertThat(config.getTxPayloadTypeNumber()).isEqualTo(TX_PAYLOAD);
         assertThat(config.getSamplingRateKHz()).isEqualTo(SAMPLING_RATE);
@@ -137,19 +135,18 @@ public class AudioConfigTest {
         AudioConfig config1 = createAudioConfig();
 
         AudioConfig config2 = new AudioConfig.Builder()
-                .setMediaDirection(RtpConfig.MEDIA_DIRECTION_TRANSMIT_RECEIVE)
+                .setMediaDirection(RtpConfig.MEDIA_DIRECTION_SEND_RECEIVE)
                 .setAccessNetwork(AccessNetworkType.EUTRAN)
                 .setRemoteRtpAddress(new InetSocketAddress(
                     InetAddresses.parseNumericAddress(REMOTE_RTP_ADDRESS), REMOTE_RTP_PORT))
                 .setRtcpConfig(rtcp)
-                .setMaxMtuBytes(MAX_MTU_BYTES)
                 .setDscp(DSCP)
                 .setRxPayloadTypeNumber(RX_PAYLOAD)
                 .setTxPayloadTypeNumber(TX_PAYLOAD)
                 .setSamplingRateKHz(SAMPLING_RATE)
                 .setPtimeMillis(PTIME)
                 .setMaxPtimeMillis(MAX_PTIME)
-                .setTxCodecModeRequest(CMR)
+                .setCodecModeRequest(CMR)
                 .setDtxEnabled(DTX_ENABLED)
                 .setCodecType(AudioConfig.CODEC_EVS)
                 .setDtmfPayloadTypeNumber(DTMF_PAYLOAD)
@@ -163,19 +160,18 @@ public class AudioConfigTest {
 
     static AudioConfig createAudioConfig() {
         return new AudioConfig.Builder()
-                .setMediaDirection(RtpConfig.MEDIA_DIRECTION_TRANSMIT_RECEIVE)
+                .setMediaDirection(RtpConfig.MEDIA_DIRECTION_SEND_RECEIVE)
                 .setAccessNetwork(AccessNetworkType.EUTRAN)
                 .setRemoteRtpAddress(new InetSocketAddress(
                     InetAddresses.parseNumericAddress(REMOTE_RTP_ADDRESS), REMOTE_RTP_PORT))
                 .setRtcpConfig(rtcp)
-                .setMaxMtuBytes(MAX_MTU_BYTES)
                 .setDscp(DSCP)
                 .setRxPayloadTypeNumber(RX_PAYLOAD)
                 .setTxPayloadTypeNumber(TX_PAYLOAD)
                 .setSamplingRateKHz(SAMPLING_RATE)
                 .setPtimeMillis(PTIME)
                 .setMaxPtimeMillis(MAX_PTIME)
-                .setTxCodecModeRequest(CMR)
+                .setCodecModeRequest(CMR)
                 .setDtxEnabled(DTX_ENABLED)
                 .setCodecType(AudioConfig.CODEC_EVS)
                 .setDtmfPayloadTypeNumber(DTMF_PAYLOAD)
