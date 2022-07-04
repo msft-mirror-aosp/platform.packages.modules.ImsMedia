@@ -17,10 +17,10 @@
 #include <ImsMediaVideoSource.h>
 #include <ImsMediaTrace.h>
 #include <ImsMediaTimer.h>
+#include <ImsMediaImageRotate.h>
 #include <thread>
 #include <list>
 #include <time.h>
-#include "ImsMediaImageRotate.h"
 
 ImsMediaVideoSource::ImsMediaVideoSource()
 {
@@ -502,7 +502,33 @@ void ImsMediaVideoSource::onCameraFrame(AImage* pImage)
         AImage_getHeight(pImage, &height);
         AImage_getPlaneData(pImage, 0, &yPlane, &ylen);
         AImage_getPlaneData(pImage, 1, &uvPlane, &uvlen);
-        ImsMediaImageRotate::YUV420_SP_Rotate270(encoderBuf, yPlane, uvPlane, width, height);
+
+        int32_t facing, sensorOrientation;
+        mCamera->GetSensorOrientation(mCameraId, &facing, &sensorOrientation);
+        switch (facing)
+        {
+            case ACAMERA_LENS_FACING_FRONT:
+            {
+                ImsMediaImageRotate::YUV420_SP_Rotate270(
+                        encoderBuf, yPlane, uvPlane, width, height);
+            }
+            break;
+
+            case ACAMERA_LENS_FACING_BACK:
+            {
+                ImsMediaImageRotate::YUV420_SP_Rotate90(encoderBuf, yPlane, uvPlane, width, height);
+            }
+            break;
+
+            case ACAMERA_LENS_FACING_EXTERNAL:
+            {
+                uint32_t size = width * height;
+                memcpy(encoderBuf, yPlane, size);
+                memcpy(encoderBuf + size, uvPlane, size / 2);
+            }
+            break;
+        }
+
         AMediaCodec_queueInputBuffer(mCodec, index, 0, ylen + uvlen, now_us(), 0);
     }
     else

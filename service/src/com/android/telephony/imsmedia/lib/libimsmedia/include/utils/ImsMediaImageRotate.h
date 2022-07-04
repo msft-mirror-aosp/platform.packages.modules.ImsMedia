@@ -42,6 +42,26 @@ public:
             uint8_t* pbDst, uint8_t* pbSrc, uint32_t nSrcWidth, uint32_t nSrcHeight);
 
     /**
+     * @brief Rotates YUVImage_420_888 Image by 90 degrees.
+     * Supports zero pixel stride and zero row stride.
+     *
+     *  Source Image    Destination Image
+     *  + - - - - +     + - - - - +
+     *  | 1  2  3 |     | 7  4  1 |
+     *  | 4  5  6 |     | 8  5  2 |
+     *  | 7  8  9 |     | 9  6  3 |
+     *  + - - - - +     + - - - - +
+     *
+     * @param pbDst Destination buffer with size nDstWidth*nDstHeight*1.5.
+     * @param pYPlane Y-Plane data of size nDstWidth*nDstHeight.
+     * @param pUVPlane UV-Plane data of size (nDstWidth*nDstHeight)/2.
+     * @param nSrcWidth Source Image width.
+     * @param nSrcHeight Source Image height.
+     */
+    static void YUV420_SP_Rotate90(uint8_t* pbDst, uint8_t* pYPlane, uint8_t* pUVPlane,
+            uint32_t nSrcWidth, uint32_t nSrcHeight);
+
+    /**
      * @brief Rotates YUVImage_420_888 Image by 90 degrees and flip.
      * Supports zero pixel stride and zero row stride.
      *
