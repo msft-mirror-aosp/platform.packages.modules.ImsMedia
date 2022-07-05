@@ -226,6 +226,8 @@ protected:
     int32_t framerate;
     /* Video bitrate of encoding streaming */
     int32_t bitrate;
+    /* MaxMtuBytes of RTP packet will be defined here */
+    int32_t maxMtuBytes;
     /* Video codec encoder profile */
     int32_t codecProfile;
     /* Video codec encoder level */
@@ -238,8 +240,6 @@ protected:
     int32_t packetizationMode;
     /* An identification of camera device to use */
     int32_t cameraId;
-    /* MaxMtuBytes of RTP packet will be defined here */
-    int32_t maxMtuBytes;
     /* A level of zoom of camera device. It can be 0 to 10. */
     int32_t cameraZoom;
     /* The width of resolution in transmit streaming */

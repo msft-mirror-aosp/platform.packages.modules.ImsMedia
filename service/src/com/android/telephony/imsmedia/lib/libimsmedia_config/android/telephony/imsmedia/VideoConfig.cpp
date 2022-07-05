@@ -34,8 +34,8 @@ VideoConfig::VideoConfig() :
     codecType = CODEC_AVC;
     framerate = DEFAULT_FRAMERATE;
     bitrate = DEFAULT_BITRATE;
-    codecProfile = CODEC_PROFILE_NONE;
     maxMtuBytes = 1500;
+    codecProfile = CODEC_PROFILE_NONE;
     codecLevel = CODEC_LEVEL_NONE;
     intraFrameIntervalSec = 1;
     packetizationMode = 1;
@@ -58,9 +58,9 @@ VideoConfig::VideoConfig(VideoConfig* config) :
     codecType = config->codecType;
     framerate = config->framerate;
     bitrate = config->bitrate;
+    maxMtuBytes = config->maxMtuBytes;
     codecProfile = config->codecProfile;
     codecLevel = config->codecLevel;
-    maxMtuBytes = config->maxMtuBytes;
     intraFrameIntervalSec = config->intraFrameIntervalSec;
     packetizationMode = config->packetizationMode;
     cameraId = config->cameraId;
@@ -80,6 +80,7 @@ VideoConfig::VideoConfig(VideoConfig& config) :
     codecType = config.codecType;
     framerate = config.framerate;
     bitrate = config.bitrate;
+    maxMtuBytes = config.maxMtuBytes;
     codecProfile = config.codecProfile;
     codecLevel = config.codecLevel;
     intraFrameIntervalSec = config.intraFrameIntervalSec;
@@ -103,6 +104,7 @@ VideoConfig& VideoConfig::operator=(const VideoConfig& config)
     codecType = config.codecType;
     framerate = config.framerate;
     bitrate = config.bitrate;
+    maxMtuBytes = config.maxMtuBytes;
     codecProfile = config.codecProfile;
     codecLevel = config.codecLevel;
     intraFrameIntervalSec = config.intraFrameIntervalSec;
@@ -122,8 +124,8 @@ bool VideoConfig::operator==(const VideoConfig& config) const
 {
     return (RtpConfig::operator==(config) && this->videoMode == config.videoMode &&
             this->codecType == config.codecType && this->framerate == config.framerate &&
-            this->bitrate == config.bitrate && this->codecProfile == config.codecProfile &&
-            this->codecLevel == config.codecLevel &&
+            this->bitrate == config.bitrate && this->maxMtuBytes == config.maxMtuBytes &&
+            this->codecProfile == config.codecProfile && this->codecLevel == config.codecLevel &&
             this->intraFrameIntervalSec == config.intraFrameIntervalSec &&
             this->packetizationMode == config.packetizationMode &&
             this->cameraId == config.cameraId && this->cameraZoom == config.cameraZoom &&
@@ -138,8 +140,8 @@ bool VideoConfig::operator!=(const VideoConfig& config) const
 {
     return (RtpConfig::operator!=(config) || this->videoMode != config.videoMode ||
             this->codecType != config.codecType || this->framerate != config.framerate ||
-            this->bitrate != config.bitrate || this->codecProfile != config.codecProfile ||
-            this->codecLevel != config.codecLevel ||
+            this->bitrate != config.bitrate || this->maxMtuBytes != config.maxMtuBytes ||
+            this->codecProfile != config.codecProfile || this->codecLevel != config.codecLevel ||
             this->intraFrameIntervalSec != config.intraFrameIntervalSec ||
             this->packetizationMode != config.packetizationMode ||
             this->cameraId != config.cameraId || this->cameraZoom != config.cameraZoom ||

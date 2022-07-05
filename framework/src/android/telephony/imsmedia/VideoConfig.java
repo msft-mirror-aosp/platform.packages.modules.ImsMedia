@@ -282,12 +282,12 @@ public final class VideoConfig extends RtpConfig {
         mCodecType = in.readInt();
         mFramerate = in.readInt();
         mBitrate = in.readInt();
+        mMaxMtuBytes = in.readInt();
         mCodecProfile = in.readInt();
         mCodecLevel = in.readInt();
         mIntraFrameIntervalSec = in.readInt();
         mPacketizationMode = in.readInt();
         mCameraId = in.readInt();
-        mMaxMtuBytes = in.readInt();
         mCameraZoom = in.readInt();
         mResolutionWidth = in.readInt();
         mResolutionHeight = in.readInt();
@@ -304,12 +304,12 @@ public final class VideoConfig extends RtpConfig {
         mCodecType = builder.mCodecType;
         mFramerate = builder.mFramerate;
         mBitrate = builder.mBitrate;
+        mMaxMtuBytes = builder.mMaxMtuBytes;
         mCodecProfile = builder.mCodecProfile;
         mCodecLevel = builder.mCodecLevel;
         mIntraFrameIntervalSec = builder.mIntraFrameIntervalSec;
         mPacketizationMode = builder.mPacketizationMode;
         mCameraId = builder.mCameraId;
-        mMaxMtuBytes = builder.mMaxMtuBytes;
         mCameraZoom = builder.mCameraZoom;
         mResolutionWidth = builder.mResolutionWidth;
         mResolutionHeight = builder.mResolutionHeight;
@@ -411,8 +411,8 @@ public final class VideoConfig extends RtpConfig {
             + ", mCodecType=" + mCodecType
             + ", mFramerate=" + mFramerate
             + ", mBitrate=" + mBitrate
-            + ", mCodecProfile=" + mCodecProfile
             + ", mMaxMtuBytes=" + mMaxMtuBytes
+            + ", mCodecProfile=" + mCodecProfile
             + ", mCodecLevel=" + mCodecLevel
             + ", mIntraFrameIntervalSec=" + mIntraFrameIntervalSec
             + ", mPacketizationMode=" + mPacketizationMode
@@ -429,8 +429,8 @@ public final class VideoConfig extends RtpConfig {
 
     @Override
     public int hashCode() {
-        return Objects.hash(super.hashCode(), mVideoMode, mCodecType, mMaxMtuBytes,
-            mFramerate, mBitrate, mCodecProfile, mCodecLevel, mIntraFrameIntervalSec,
+        return Objects.hash(super.hashCode(), mVideoMode, mCodecType, mFramerate, mBitrate,
+            mMaxMtuBytes, mCodecProfile, mCodecLevel, mIntraFrameIntervalSec,
             mPacketizationMode, mCameraId, mCameraZoom, mResolutionWidth, mResolutionHeight,
             mPauseImagePath, mDeviceOrientationDegree, mCvoValue, mRtcpFbTypes);
     }
@@ -522,8 +522,8 @@ public final class VideoConfig extends RtpConfig {
         private int mCodecType;
         private int mFramerate;
         private int mBitrate;
-        private int mCodecProfile;
         private int mMaxMtuBytes;
+        private int mCodecProfile;
         private int mCodecLevel;
         private int mIntraFrameIntervalSec;
         private int mPacketizationMode;
@@ -569,16 +569,6 @@ public final class VideoConfig extends RtpConfig {
         }
 
         /**
-         * Sets maximum Rtp transfer unit in bytes
-         * @param maxMtuBytes bytes
-         * @return
-         */
-        public Builder setMaxMtuBytes(final int maxMtuBytes) {
-            this.mMaxMtuBytes = maxMtuBytes;
-            return self();
-        }
-
-        /**
          * Sets video frame rate in encoding streaming
          * @param mFramerate frame rate per second
          * @return
@@ -596,6 +586,16 @@ public final class VideoConfig extends RtpConfig {
         public Builder setBitrate(final int mBitrate) {
             this.mBitrate = mBitrate;
             return this;
+        }
+
+        /**
+         * Sets maximum Rtp transfer unit in bytes
+         * @param maxMtuBytes bytes
+         * @return
+         */
+        public Builder setMaxMtuBytes(final int maxMtuBytes) {
+            this.mMaxMtuBytes = maxMtuBytes;
+            return self();
         }
 
         /**
