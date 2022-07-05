@@ -33,11 +33,14 @@
 
 /**
  * @class   RtcpPacket.h
- * @brief   It holds RTCP information
+ * @brief   It holds RTCP information. Encodes and decodes RTCP packets.
  */
 class RtcpPacket
 {
 private:
+    // Common header
+    RtcpHeader m_objHeader;
+
     // list of RtcpSrPacket
     std::list<RtcpSrPacket*> m_objSrPktList;
 
@@ -55,79 +58,53 @@ private:
 
     // App packet information
     RtcpAppPacket* m_pobjAppPkt;
-    RtcpFbPacket* m_pobjRtcpFbPkt;
 
     // XR packet information
     RtcpXrPacket* m_pobjRtcpXrPkt;
-
-    /**
-     * It adds RtcpFbPacket pointer to m_objFbPktList
-     */
-    eRTP_STATUS_CODE addFbPacketData(IN RtcpFbPacket* pobjFbPkt);
 
 public:
     RtcpPacket();
     ~RtcpPacket();
 
     /**
-     * get method for m_objSrPktList
+     * Get RTCP common header.
+     */
+    RtcpHeader getHeader();
+
+    /**
+     * Get method for m_objSrPktList
      */
     std::list<RtcpSrPacket*>& getSrPacketList();
 
     /**
-     * get method for m_objRrPktList
+     * Get method for m_objRrPktList
      */
     std::list<RtcpRrPacket*>& getRrPacketList();
 
     /**
-     * get method for m_objFbPktList
+     * Get method for m_objFbPktList
      */
     std::list<RtcpFbPacket*>& getFbPacketList();
 
     /**
-     * get method for m_pobjSdesPkt
+     * Get method for m_pobjSdesPkt
      */
     RtcpSdesPacket* getSdesPacket();
 
     /**
-     * set method for m_pobjSdesPkt
-     */
-    RtpDt_Void setSdesPacketData(IN RtcpSdesPacket* pobjSdesData);
-
-    /**
-     * get method for m_pobjByePkt
+     * Get method for m_pobjByePkt
      */
     RtcpByePacket* getByePacket();
 
     /**
-     * set method for m_pobjByePkt
-     */
-    RtpDt_Void setByePacketData(IN RtcpByePacket* pobjByePktData);
-
-    /**
-     * get method for m_pobjAppPkt
+     * Get method for m_pobjAppPkt
      */
     RtcpAppPacket* getAppPacket();
 
     /**
-     * set method for m_pobjAppPkt
+     * Get method for m_pobjRtcpXrPkt
      */
-    RtpDt_Void setAppPktData(IN RtcpAppPacket* pobjAppData);
-
-    /**
-     * get method for m_pobjRtcpFbPkt
-     */
-    RtcpFbPacket* getRtcpFbPacket();
-
-    /**
-     * set method for m_pobjRtcpFbPkt
-     */
-    RtpDt_Void setRtcpFbPktData(IN RtcpFbPacket* pobjRtcpFbData);
-
-    /**
-     * It adds RtcpRrPacket pointer to m_objRrPktList
-     */
-    eRTP_STATUS_CODE addRrPacketData(IN RtcpRrPacket* pobjRrPkt);
+    RtcpXrPacket* getXrPacket();
 
     /**
      * It adds RtcpSrPacket pointer to m_objSrPktList
@@ -135,14 +112,34 @@ public:
     eRTP_STATUS_CODE addSrPacketData(IN RtcpSrPacket* pobjSrPkt);
 
     /**
-     * get method for m_pobjRtcpXrPkt
+     * It adds RtcpRrPacket pointer to m_objRrPktList
      */
-    RtcpXrPacket* getXrPacket();
+    eRTP_STATUS_CODE addRrPacketData(IN RtcpRrPacket* pobjRrPkt);
 
     /**
-     * set method for m_pobjRtcpXrPkt
+     * It adds RtcpFbPacket pointer to m_objFbPktList
      */
-    RtpDt_Void setXrPktData(IN RtcpXrPacket* pobjRtcpXrData);
+    eRTP_STATUS_CODE addFbPacketData(IN RtcpFbPacket* pobjFbPkt);
+
+    /**
+     * Set method for m_pobjSdesPkt
+     */
+    RtpDt_Void setSdesPacketData(IN RtcpSdesPacket* pobjSdesData);
+
+    /**
+     * Set method for m_pobjByePkt
+     */
+    RtpDt_Void setByePacketData(IN RtcpByePacket* pobjByePktData);
+
+    /**
+     * Set method for m_pobjAppPkt
+     */
+    RtpDt_Void setAppPktData(IN RtcpAppPacket* pobjAppData);
+
+    /**
+     * Set method for m_pobjRtcpXrPkt
+     */
+    RtpDt_Void setXrPacket(IN RtcpXrPacket* pobjRtcpXrData);
 
     /**
      * Decodes and stores the information of the RTCP packet

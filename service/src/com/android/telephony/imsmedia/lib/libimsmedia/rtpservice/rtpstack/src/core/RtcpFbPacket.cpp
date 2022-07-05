@@ -32,6 +32,11 @@ RtcpFbPacket::~RtcpFbPacket()
     }
 }
 
+RtpDt_Void RtcpFbPacket::setRtcpHdrInfo(RtcpHeader& objHeader)
+{
+    m_objRtcpHdr = objHeader;
+}
+
 RtcpHeader* RtcpFbPacket::getRtcpHdrInfo()
 {
     return &m_objRtcpHdr;
@@ -78,30 +83,18 @@ eRTCP_TYPE RtcpFbPacket::getPayloadType()
 }
 
 eRTP_STATUS_CODE RtcpFbPacket::decodeRtcpFbPacket(
-        IN RtpDt_UChar* pucRtcpFbBuf, IN RtpDt_UInt16 usRtcpFbLen, IN RtpDt_UChar ucPktType)
+        IN RtpDt_UChar* pucRtcpFbBuf, IN RtpDt_UInt16 usRtcpFbLen)
 {
-    RtpDt_UInt32 ufciLength = usRtcpFbLen - RTP_12;  // Exclude Headers length to get FCI Length
-
-    m_objRtcpHdr.setLength(usRtcpFbLen);
-    m_objRtcpHdr.setPacketType(ucPktType);
-
-    // get rtcp fb headers
-    {
-        m_objRtcpHdr.decodeRtcpHeader(pucRtcpFbBuf);
-        pucRtcpFbBuf = pucRtcpFbBuf + RTCP_FIXED_HDR_LEN;
-    }
-
     // get media/peer SSRC
-    {
-        RtpDt_UInt32 uiMediaSsrc = RtpOsUtil::Ntohl(*((RtpDt_UInt32*)pucRtcpFbBuf));
-        setMediaSsrc(uiMediaSsrc);
-        pucRtcpFbBuf = pucRtcpFbBuf + RTP_WORD_SIZE;
-    }
+    RtpDt_UInt32 uiMediaSsrc = RtpOsUtil::Ntohl(*((RtpDt_UInt32*)pucRtcpFbBuf));
+    setMediaSsrc(uiMediaSsrc);
+    pucRtcpFbBuf += RTP_WORD_SIZE;
+    usRtcpFbLen -= RTP_WORD_SIZE;
 
     // get the FCI buffer
-    if (ufciLength > 0)
+    if (usRtcpFbLen > 0)
     {
-        RtpBuffer* pFCI = new RtpBuffer(ufciLength, (RtpDt_UChar*)pucRtcpFbBuf);
+        RtpBuffer* pFCI = new RtpBuffer(usRtcpFbLen, (RtpDt_UChar*)pucRtcpFbBuf);
         if (pFCI == RTP_NULL)
         {
             RTP_TRACE_ERROR("[Memory Error] new returned NULL.", RTP_ZERO, RTP_ZERO);

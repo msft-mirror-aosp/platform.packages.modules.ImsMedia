@@ -117,11 +117,9 @@ TEST_F(RtcpHeaderTest, TestDecodeRtcpHeader)
 {
     RtcpHeader rtcpHeader;
 
-    RtpDt_UChar pRTCPBuff[] = {0x81, 0xc8, 0x00, 0x06, 0x59, 0x09, 0x41, 0x02}; /*, 0xe6, 0x5f,
-                        0xa5, 0x31, 0x68, 0xdc, 0x93, 0x88, 0x00, 0x00, 0xa6, 0xa0, 0x00, 0x00,
-                        0x00, 0x82, 0x00, 0x00, 0x1e, 0xfa};*/
+    RtpDt_UChar pRTCPBuff[] = {0x81, 0xc8, 0x00, 0x06, 0x59, 0x09, 0x41, 0x02};
 
-    rtcpHeader.decodeRtcpHeader(pRTCPBuff);
+    rtcpHeader.decodeRtcpHeader(pRTCPBuff, 8);
     EXPECT_EQ(rtcpHeader.getVersion(), 2);
     EXPECT_EQ(rtcpHeader.getPadding(), eRTP_FALSE);
     EXPECT_EQ(rtcpHeader.getReceptionReportCount(), 1);
@@ -129,11 +127,9 @@ TEST_F(RtcpHeaderTest, TestDecodeRtcpHeader)
     EXPECT_EQ(rtcpHeader.getLength(), 6 * RTP_WORD_SIZE);
     EXPECT_EQ(rtcpHeader.getSsrc(), 0x59094102);
 
-    RtpDt_UChar pRTCPBuff2[] = {0xFF, 0xFF, 0xFF, 0xFF, 0x59, 0x09, 0x41, 0x02}; /*, 0xe6, 0x5f,
-                            0xa5, 0x31, 0x68, 0xdc, 0x93, 0x88, 0x00, 0x00, 0xa6, 0xa0, 0x00, 0x00,
-                            0x00, 0x82, 0x00, 0x00, 0x1e, 0xfa};*/
+    RtpDt_UChar pRTCPBuff2[] = {0xFF, 0xFF, 0xFF, 0xFF, 0x59, 0x09, 0x41, 0x02};
 
-    rtcpHeader.decodeRtcpHeader(pRTCPBuff2);
+    rtcpHeader.decodeRtcpHeader(pRTCPBuff2, 8);
     EXPECT_EQ(rtcpHeader.getVersion(), MAX_RTP_VERSION);
     EXPECT_EQ(rtcpHeader.getPadding(), eRTP_TRUE);
     EXPECT_EQ(rtcpHeader.getReceptionReportCount(), MAX_RECEPTION_REPORT_COUNT);

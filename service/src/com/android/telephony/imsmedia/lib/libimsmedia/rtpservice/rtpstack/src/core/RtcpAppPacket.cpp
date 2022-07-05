@@ -33,6 +33,11 @@ RtcpAppPacket::~RtcpAppPacket()
     }
 }
 
+RtpDt_Void RtcpAppPacket::setRtcpHdrInfo(RtcpHeader& objHeader)
+{
+    m_objRtcpHdr = objHeader;
+}
+
 RtcpHeader* RtcpAppPacket::getRtcpHdrInfo()
 {
     return &m_objRtcpHdr;
@@ -60,13 +65,6 @@ RtpDt_Void RtcpAppPacket::setAppData(IN RtpBuffer* pobjAppData)
 
 eRTP_STATUS_CODE RtcpAppPacket::decodeAppPacket(IN RtpDt_UChar* pucAppBuf, IN RtpDt_UInt16 usAppLen)
 {
-    m_objRtcpHdr.setLength(usAppLen);
-    m_objRtcpHdr.setPacketType((RtpDt_UChar)RTCP_APP);
-
-    // m_objRtcpHdr
-    m_objRtcpHdr.decodeRtcpHeader(pucAppBuf);
-    pucAppBuf = pucAppBuf + RTCP_FIXED_HDR_LEN;
-
     // name
     m_uiName = *((RtpDt_UInt32*)pucAppBuf);
     pucAppBuf = pucAppBuf + RTP_WORD_SIZE;
@@ -74,7 +72,7 @@ eRTP_STATUS_CODE RtcpAppPacket::decodeAppPacket(IN RtpDt_UChar* pucAppBuf, IN Rt
     RtpDt_UInt16 usTmpAppLen = usAppLen;
 
     // application dependent data
-    usTmpAppLen = usTmpAppLen - RTP_12;
+    usTmpAppLen = usTmpAppLen - RTP_WORD_SIZE;
     if (usTmpAppLen > 0)
     {
         RtpDt_UChar* pucTmpBuf = RTP_NULL;

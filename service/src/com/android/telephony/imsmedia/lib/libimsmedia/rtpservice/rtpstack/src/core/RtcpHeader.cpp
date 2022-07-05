@@ -103,8 +103,11 @@ RtpDt_UInt32 RtcpHeader::getSsrc()
     return m_uiSsrc;
 }
 
-eRtp_Bool RtcpHeader::decodeRtcpHeader(IN RtpDt_UChar* pRtcpBuffer)
+eRtp_Bool RtcpHeader::decodeRtcpHeader(IN RtpDt_UChar* pRtcpBuffer, RtpDt_Int32 length)
 {
+    if (length < RTP_WORD_SIZE)
+        return eRTP_FALSE;
+
     RtpDt_UInt32 uiTemp4Data = RtpOsUtil::Ntohl(*((RtpDt_UInt32*)pRtcpBuffer));
 
     // Packet Length
@@ -127,8 +130,11 @@ eRtp_Bool RtcpHeader::decodeRtcpHeader(IN RtpDt_UChar* pRtcpBuffer)
     m_ucReceptionReportCount = RtpDt_UInt8(uiTemp4Data & 0x0000001F);
 
     // SSRC
-    pRtcpBuffer = pRtcpBuffer + RTP_WORD_SIZE;
-    m_uiSsrc = RtpOsUtil::Ntohl(*((RtpDt_UInt32*)pRtcpBuffer));
+    if (m_usLength)
+    {
+        pRtcpBuffer = pRtcpBuffer + RTP_WORD_SIZE;
+        m_uiSsrc = RtpOsUtil::Ntohl(*((RtpDt_UInt32*)pRtcpBuffer));
+    }
 
     return eRTP_SUCCESS;
 }  // decodeRtcpHeader

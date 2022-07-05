@@ -91,6 +91,11 @@ public:
     ~RtcpFbPacket();
 
     /**
+     * Set method for m_objRtcpHdr
+     */
+    RtpDt_Void setRtcpHdrInfo(RtcpHeader& objHeader);
+
+    /**
      * get method for m_objRtcpHdr
      */
     RtcpHeader* getRtcpHdrInfo();
@@ -142,7 +147,7 @@ public:
      * @param pucByeBuf received RTCP FB packet
      * @param usByeLen length of the RTCP FB packet
      */
-    eRTP_STATUS_CODE decodeRtcpFbPacket(IN RtpDt_UChar*, IN RtpDt_UInt16, IN RtpDt_UChar ucPktType);
+    eRTP_STATUS_CODE decodeRtcpFbPacket(IN RtpDt_UChar*, IN RtpDt_UInt16);
 
     /**
      * Performs the encoding of the RTCP FB packet.

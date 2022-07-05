@@ -49,7 +49,12 @@ public:
     ~RtcpAppPacket();
 
     /**
-     *  get method for m_objRtcpHdr
+     *  Set method for m_objRtcpHdr
+     */
+    RtpDt_Void setRtcpHdrInfo(RtcpHeader& objHeader);
+
+    /**
+     *  Get method for m_objRtcpHdr
      */
     RtcpHeader* getRtcpHdrInfo();
 

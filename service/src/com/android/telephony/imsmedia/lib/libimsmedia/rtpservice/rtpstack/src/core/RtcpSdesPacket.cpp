@@ -31,6 +31,11 @@ RtcpSdesPacket::~RtcpSdesPacket()
     m_objSdesChunkList.clear();
 }
 
+RtpDt_Void RtcpSdesPacket::setRtcpHdrInfo(RtcpHeader& rtcpHeader)
+{
+    m_objRtcpHdr = rtcpHeader;
+}
+
 RtcpHeader* RtcpSdesPacket::getRtcpHdrInfo()
 {
     return &m_objRtcpHdr;
@@ -44,31 +49,8 @@ std::list<RtcpChunk*>& RtcpSdesPacket::getSdesChunkList()
 eRTP_STATUS_CODE RtcpSdesPacket::decodeSdesPacket(
         IN RtpDt_UChar* pucSdesBuf, IN RtpDt_UInt16 usSdesLen, IN RtcpConfigInfo* pobjRtcpCfgInfo)
 {
-    eRTCP_TYPE eRtcpPktType = RTCP_SDES;
-
-    m_objRtcpHdr.setLength(usSdesLen);
-    m_objRtcpHdr.setPacketType((RtpDt_UChar)eRtcpPktType);
-
-    RtpDt_UInt32 uiTemp4Data = RtpOsUtil::Ntohl(*((RtpDt_UInt32*)pucSdesBuf));
-    pucSdesBuf = pucSdesBuf + RTP_WORD_SIZE;
-    usSdesLen = usSdesLen - RTP_WORD_SIZE;
-
-    uiTemp4Data = uiTemp4Data >> RTP_24;
-    // version
-    RtpDt_UChar ucByteData = (uiTemp4Data & 0x000000C0) >> RTP_SIX;
-    m_objRtcpHdr.setVersion(ucByteData);
-
-    // padding
-    ucByteData = (uiTemp4Data & 0x00000020) >> RTP_FIVE;
-    if (ucByteData != RTP_ZERO)
-    {
-        m_objRtcpHdr.setPadding();
-    }
-
-    // RC
-    ucByteData = uiTemp4Data & 0x0000001F;
-    m_objRtcpHdr.setReceptionReportCount(ucByteData);
-    while ((ucByteData > RTP_ZERO) && (usSdesLen > RTP_ZERO))
+    RtpDt_UChar unSourceCount = m_objRtcpHdr.getReceptionReportCount();
+    while ((unSourceCount > RTP_ZERO) && (usSdesLen > RTP_ZERO))
     {
         RtcpChunk* pobjRtcpChunk = new RtcpChunk();
         if (pobjRtcpChunk == RTP_NULL)
@@ -92,12 +74,12 @@ eRTP_STATUS_CODE RtcpSdesPacket::decodeSdesPacket(
 
         if (uiPadLen != RTP_ZERO)
         {
-            uiPadLen = RTP_WORD_SIZE - uiPadLen;
-            usChunkSize = usChunkSize + uiPadLen;
+            uiPadLen -= RTP_WORD_SIZE;
+            usChunkSize += uiPadLen;
         }
-        pucSdesBuf = pucSdesBuf + usChunkSize;
-        usSdesLen = usSdesLen - usChunkSize;
-        ucByteData = ucByteData - RTP_ONE;
+        pucSdesBuf += usChunkSize;
+        usSdesLen -= usChunkSize;
+        unSourceCount--;
     }
 
     return RTP_SUCCESS;

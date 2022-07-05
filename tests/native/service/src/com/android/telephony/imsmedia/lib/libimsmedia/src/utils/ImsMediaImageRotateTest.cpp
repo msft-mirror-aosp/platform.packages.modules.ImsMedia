@@ -15,7 +15,6 @@
  */
 
 #include <gtest/gtest.h>
-#include <gmock/gmock.h>
 #include <ImsMediaImageRotate.h>
 
 class ImsMediaImageRotateTest : public ::testing::Test

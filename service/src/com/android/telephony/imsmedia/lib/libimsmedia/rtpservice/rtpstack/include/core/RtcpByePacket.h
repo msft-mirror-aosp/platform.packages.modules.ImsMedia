@@ -42,22 +42,27 @@ public:
     ~RtcpByePacket();
 
     /**
-     *  get method for m_objRtcpHdr
+     *  Set method for m_objRtcpHdr
+     */
+    RtpDt_Void setRtcpHdrInfo(RtcpHeader& objRtcpHeader);
+
+    /**
+     *  Get method for m_objRtcpHdr
      */
     RtcpHeader* getRtcpHdrInfo();
 
     /**
-     * get method for m_uiSsrcList
+     * Get method for m_uiSsrcList
      */
     std::list<RtpDt_UInt32*>& getSsrcList();
 
     /**
-     * get method for m_pReason
+     * Get method for m_pReason
      */
     RtpBuffer* getReason();
 
     /**
-     * set method for m_pAppData
+     * Set method for m_pAppData
      */
     RtpDt_Void setReason(IN RtpBuffer* pobjReason);
 

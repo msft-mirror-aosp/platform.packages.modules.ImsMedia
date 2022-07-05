@@ -54,11 +54,6 @@ std::list<tRTCP_SDES_ITEM*>& RtcpChunk::getSdesItemList()
 eRTP_STATUS_CODE RtcpChunk::decodeRtcpChunk(IN RtpDt_UChar* pucChunkBuf,
         IN RtpDt_UInt16& usChunkLen, IN RtcpConfigInfo* pobjRtcpCfgInfo)
 {
-    // SSRC
-    m_uiSsrc = RtpOsUtil::Ntohl(*((RtpDt_UInt32*)pucChunkBuf));
-    pucChunkBuf = pucChunkBuf + RTP_WORD_SIZE;
-    usChunkLen = usChunkLen + RTP_WORD_SIZE;
-
     // SDES items
     RtpDt_UInt32 uiSdesItemCnt = pobjRtcpCfgInfo->getSdesItemCount();
     tRTCP_SDES_ITEM* pstSdesItem = RTP_NULL;

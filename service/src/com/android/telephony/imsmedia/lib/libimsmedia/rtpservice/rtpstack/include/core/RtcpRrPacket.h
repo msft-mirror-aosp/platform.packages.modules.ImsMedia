@@ -59,7 +59,12 @@ public:
     ~RtcpRrPacket();
 
     /**
-     * get method for m_objRtcpHdr
+     * Set method for m_objRtcpHdr
+     */
+    RtpDt_Void setRtcpHdrInfo(RtcpHeader& objRtcpHdr);
+
+    /**
+     * Get method for m_objRtcpHdr
      */
     RtcpHeader* getRtcpHdrInfo();
 
@@ -85,12 +90,11 @@ public:
      * @param pucRrBuf      Rr packet buffer
      * @param usRrLen       Rr packet length
      * @param usExtHdrLen   RTCP extension header length
-     * @param bIsRrPkt      It tells the packet belongs to RR packet or to Report block
      *
      * @return RTP_SUCCESS on successful decoding
      */
-    eRTP_STATUS_CODE decodeRrPacket(IN RtpDt_UChar* pucRrBuf, IN RtpDt_UInt16& usRrLen,
-            IN RtpDt_UInt16 usProfExtLen, IN eRtp_Bool bIsRrPkt);
+    eRTP_STATUS_CODE decodeRrPacket(
+            IN RtpDt_UChar* pucRrBuf, IN RtpDt_UInt16& usRrLen, IN RtpDt_UInt16 usProfExtLen);
 
     /**
      * Performs the encoding of the RTCP RR packet.

@@ -26,7 +26,6 @@ RtcpPacket::RtcpPacket() :
         m_pobjSdesPkt(RTP_NULL),
         m_pobjByePkt(RTP_NULL),
         m_pobjAppPkt(RTP_NULL),
-        m_pobjRtcpFbPkt(RTP_NULL),
         m_pobjRtcpXrPkt(RTP_NULL)
 
 {
@@ -70,11 +69,6 @@ RtcpPacket::~RtcpPacket()
         delete m_pobjAppPkt;
         m_pobjAppPkt = RTP_NULL;
     }
-    if (m_pobjRtcpFbPkt != RTP_NULL)
-    {
-        delete m_pobjRtcpFbPkt;
-        m_pobjRtcpFbPkt = RTP_NULL;
-    }
 
     if (m_pobjRtcpXrPkt != RTP_NULL)
     {
@@ -82,6 +76,11 @@ RtcpPacket::~RtcpPacket()
         m_pobjRtcpXrPkt = RTP_NULL;
     }
 }  // Destructor
+
+RtcpHeader RtcpPacket::getHeader()
+{
+    return m_objHeader;
+}
 
 std::list<RtcpSrPacket*>& RtcpPacket::getSrPacketList()
 {
@@ -128,16 +127,6 @@ RtpDt_Void RtcpPacket::setAppPktData(IN RtcpAppPacket* pobjAppData)
     m_pobjAppPkt = pobjAppData;
 }
 
-RtcpFbPacket* RtcpPacket::getRtcpFbPacket()
-{
-    return m_pobjRtcpFbPkt;
-}
-
-RtpDt_Void RtcpPacket::setRtcpFbPktData(IN RtcpFbPacket* pobjRtcpFbData)
-{
-    m_pobjRtcpFbPkt = pobjRtcpFbData;
-}
-
 eRTP_STATUS_CODE RtcpPacket::addSrPacketData(IN RtcpSrPacket* pobjSrPkt)
 {
     if (pobjSrPkt == RTP_NULL)
@@ -173,7 +162,7 @@ RtcpXrPacket* RtcpPacket::getXrPacket()
     return m_pobjRtcpXrPkt;
 }
 
-RtpDt_Void RtcpPacket::setXrPktData(IN RtcpXrPacket* pobjRtcpXrData)
+RtpDt_Void RtcpPacket::setXrPacket(IN RtcpXrPacket* pobjRtcpXrData)
 {
     m_pobjRtcpXrPkt = pobjRtcpXrData;
 }
@@ -187,32 +176,42 @@ eRTP_STATUS_CODE RtcpPacket::decodeRtcpPacket(IN RtpBuffer* pobjRtcpPktBuf,
     eRtp_Bool bFbPkt = eRTP_FALSE;
     eRtp_Bool bOtherPkt = eRTP_FALSE;
 
-    // Get RTCP COMPOUND packet
+    if (pobjRtcpPktBuf == NULL || pobjRtcpPktBuf->getBuffer() == NULL ||
+            pobjRtcpPktBuf->getLength() < RTP_WORD_SIZE)
+        return RTP_INVALID_PARAMS;
+
+    // Check RTCP with only common header case.
+    if (pobjRtcpPktBuf->getLength() == RTP_WORD_SIZE)
+    {
+        m_objHeader.decodeRtcpHeader(pobjRtcpPktBuf->getBuffer(), pobjRtcpPktBuf->getLength());
+        return RTP_SUCCESS;
+    }
+
+    // Get RTCP Compound packet
     RtpDt_UInt32 uiCompPktLen = pobjRtcpPktBuf->getLength();
     RtpDt_Int32 iTrackCompLen = uiCompPktLen;
 
-    while (iTrackCompLen > RTP_ZERO)  // Process concatenated RTCP packets
+    while (iTrackCompLen >= RTCP_FIXED_HDR_LEN)
     {
         RtpDt_UChar* pucBuffer = pobjRtcpPktBuf->getBuffer();
-        pucBuffer = pucBuffer + uiCurPos;
+        pucBuffer += uiCurPos;
 
-        RtcpHeader rtcpHeader;
-        rtcpHeader.decodeRtcpHeader(pucBuffer);
+        m_objHeader.decodeRtcpHeader(pucBuffer, iTrackCompLen);
+        uiCurPos += RTCP_FIXED_HDR_LEN;
+        pucBuffer += RTCP_FIXED_HDR_LEN;
+        iTrackCompLen -= RTCP_FIXED_HDR_LEN;
 
-        RtpDt_UChar uiVersion = rtcpHeader.getVersion();
+        RtpDt_UChar uiVersion = m_objHeader.getVersion();
         if (uiVersion != RTP_VERSION_NUM)
         {
-            RTP_TRACE_ERROR("[DecodeRtcpPacket] RTCP version is Invalid.", uiVersion, RTP_ZERO);
+            RTP_TRACE_ERROR("[DecodeRtcpPacket] RTCP version[%d] is Invalid.", uiVersion, RTP_ZERO);
             return RTP_INVALID_MSG;
         }
 
         // get length
-        RtpDt_UInt16 usPktLen = rtcpHeader.getLength();
-
-        // Add one word common header size.
-        usPktLen += RTP_WORD_SIZE;
-
-        if ((usPktLen > iTrackCompLen) || (usPktLen < RTP_WORD_SIZE))
+        RtpDt_UInt16 usPktLen = m_objHeader.getLength();
+        usPktLen -= RTP_WORD_SIZE;
+        if (usPktLen > iTrackCompLen)
         {
             RTP_TRACE_ERROR(
                     "[DecodeRtcpPacket] RTCP packet length is Invalid.", usPktLen, iTrackCompLen);
@@ -223,9 +222,10 @@ eRTP_STATUS_CODE RtcpPacket::decodeRtcpPacket(IN RtpBuffer* pobjRtcpPktBuf,
                 usPktLen, iTrackCompLen);
 
         // get packet type
-        RtpDt_UInt32 uiPktType = rtcpHeader.getPacketType();
+        RtpDt_UInt32 uiPktType = m_objHeader.getPacketType();
 
-        RTP_TRACE_MESSAGE("[DecodeRtcpPacket] packet type: %d", uiPktType, RTP_ZERO);
+        RTP_TRACE_MESSAGE("[DecodeRtcpPacket] packet type: %d report count: %d", uiPktType,
+                m_objHeader.getReceptionReportCount());
 
         eRTP_STATUS_CODE eDecodeRes = RTP_FAILURE;
 
@@ -233,12 +233,14 @@ eRTP_STATUS_CODE RtcpPacket::decodeRtcpPacket(IN RtpBuffer* pobjRtcpPktBuf,
         {
             case RTCP_SR:
             {
+                RTP_TRACE_ERROR("[DecodeRtcpPacket] Decoding RTCP_SR", 0, 0);
                 RtcpSrPacket* pobjSrPkt = new RtcpSrPacket();
                 if (pobjSrPkt == RTP_NULL)
                 {
                     RTP_TRACE_ERROR("[Memory Error] new returned NULL.", RTP_ZERO, RTP_ZERO);
                     return RTP_MEMORY_FAIL;
                 }
+                pobjSrPkt->setRtcpHdrInfo(m_objHeader);
                 eDecodeRes = pobjSrPkt->decodeSrPacket(pucBuffer, usPktLen, usExtHdrLen);
                 addSrPacketData(pobjSrPkt);
                 bSrPkt = eRTP_TRUE;
@@ -246,6 +248,7 @@ eRTP_STATUS_CODE RtcpPacket::decodeRtcpPacket(IN RtpBuffer* pobjRtcpPktBuf,
             }  // RTCP_SR
             case RTCP_RR:
             {
+                RTP_TRACE_ERROR("[DecodeRtcpPacket] Decoding RTCP_RR", 0, 0);
                 RtpDt_UInt16 uiRrPktLen = usPktLen;
                 RtcpRrPacket* pobjRrPkt = new RtcpRrPacket();
                 if (pobjRrPkt == RTP_NULL)
@@ -253,44 +256,50 @@ eRTP_STATUS_CODE RtcpPacket::decodeRtcpPacket(IN RtpBuffer* pobjRtcpPktBuf,
                     RTP_TRACE_ERROR("[Memory Error] new returned NULL.", RTP_ZERO, RTP_ZERO);
                     return RTP_MEMORY_FAIL;
                 }
-                eDecodeRes =
-                        pobjRrPkt->decodeRrPacket(pucBuffer, uiRrPktLen, usExtHdrLen, eRTP_TRUE);
+                pobjRrPkt->setRtcpHdrInfo(m_objHeader);
+                eDecodeRes = pobjRrPkt->decodeRrPacket(pucBuffer, uiRrPktLen, usExtHdrLen);
                 addRrPacketData(pobjRrPkt);
                 bRrPkt = eRTP_TRUE;
                 break;
             }  // RTCP_RR
             case RTCP_SDES:
             {
+                RTP_TRACE_ERROR("[DecodeRtcpPacket] Decoding RTCP_SDES", 0, 0);
                 m_pobjSdesPkt = new RtcpSdesPacket();
                 if (m_pobjSdesPkt == RTP_NULL)
                 {
                     RTP_TRACE_ERROR("[Memory Error] new returned NULL.", RTP_ZERO, RTP_ZERO);
                     return RTP_MEMORY_FAIL;
                 }
+                m_pobjSdesPkt->setRtcpHdrInfo(m_objHeader);
                 eDecodeRes = m_pobjSdesPkt->decodeSdesPacket(pucBuffer, usPktLen, pobjRtcpCfgInfo);
                 bOtherPkt = eRTP_TRUE;
                 break;
             }  // RTCP_SDES
             case RTCP_BYE:
             {
+                RTP_TRACE_ERROR("[DecodeRtcpPacket] Decoding RTCP_BYE", 0, 0);
                 m_pobjByePkt = new RtcpByePacket();
                 if (m_pobjByePkt == RTP_NULL)
                 {
                     RTP_TRACE_ERROR("[Memory Error] new returned NULL.", RTP_ZERO, RTP_ZERO);
                     return RTP_MEMORY_FAIL;
                 }
+                m_pobjByePkt->setRtcpHdrInfo(m_objHeader);
                 eDecodeRes = m_pobjByePkt->decodeByePacket(pucBuffer, usPktLen);
                 bOtherPkt = eRTP_TRUE;
                 break;
             }  // RTCP_BYE
             case RTCP_APP:
             {
+                RTP_TRACE_ERROR("[DecodeRtcpPacket] Decoding RTCP_APP", 0, 0);
                 m_pobjAppPkt = new RtcpAppPacket();
                 if (m_pobjAppPkt == RTP_NULL)
                 {
                     RTP_TRACE_ERROR("[Memory Error] new returned NULL.", RTP_ZERO, RTP_ZERO);
                     return RTP_MEMORY_FAIL;
                 }
+                m_pobjAppPkt->setRtcpHdrInfo(m_objHeader);
                 eDecodeRes = m_pobjAppPkt->decodeAppPacket(pucBuffer, usPktLen);
                 bOtherPkt = eRTP_TRUE;
                 break;
@@ -298,39 +307,42 @@ eRTP_STATUS_CODE RtcpPacket::decodeRtcpPacket(IN RtpBuffer* pobjRtcpPktBuf,
             case RTCP_RTPFB:
             case RTCP_PSFB:
             {
+                RTP_TRACE_ERROR("[DecodeRtcpPacket] Decoding RTCP_RTPFB", 0, 0);
                 RtcpFbPacket* pobjFbPkt = new RtcpFbPacket();
                 if (pobjFbPkt == RTP_NULL)
                 {
                     RTP_TRACE_ERROR("[Memory Error] new returned NULL.", RTP_ZERO, RTP_ZERO);
                     return RTP_MEMORY_FAIL;
                 }
-                RTP_TRACE_MESSAGE("decodeRtcpPacket found fb packet", 0, 0);
-                eDecodeRes = pobjFbPkt->decodeRtcpFbPacket(pucBuffer, usPktLen, uiPktType);
+
+                pobjFbPkt->setRtcpHdrInfo(m_objHeader);
+                eDecodeRes = pobjFbPkt->decodeRtcpFbPacket(pucBuffer, usPktLen);
                 addFbPacketData(pobjFbPkt);
                 bFbPkt = eRTP_TRUE;
                 break;
             }  // RTCP_RTPFB || RTCP_PSFB
             default:
             {
-                RTP_TRACE_WARNING("decodeRtcpPacket, Invalid RTCP MSG type received ...!", RTP_ZERO,
-                        RTP_ZERO);
+                RTP_TRACE_WARNING(
+                        "[DecodeRtcpPacket], Invalid RTCP MSG type received", RTP_ZERO, RTP_ZERO);
                 return RTP_INVALID_MSG;
             }  // default
         };     // switch
+
         if (eDecodeRes != RTP_SUCCESS)
         {
-            RTP_TRACE_WARNING("decodeRtcpPacket, Decoding Error ...!", RTP_ZERO, RTP_ZERO);
+            RTP_TRACE_ERROR("[DecodeRtcpPacket], Decoding Error[%d]", eDecodeRes, RTP_ZERO);
             return eDecodeRes;
         }
 
-        iTrackCompLen = iTrackCompLen - usPktLen;
-        uiCurPos = uiCurPos + usPktLen;
+        iTrackCompLen -= usPktLen;
+        uiCurPos += usPktLen;
     }  // while
 
     if ((bSrPkt == eRTP_FALSE) && (bRrPkt == eRTP_FALSE) && (bFbPkt == eRTP_FALSE) &&
             (bOtherPkt == eRTP_FALSE))
     {
-        RTP_TRACE_MESSAGE("decodeRtcpPacket, no rtcp sr,rr,fb packets", 0, 0);
+        RTP_TRACE_MESSAGE("[DecodeRtcpPacket], no rtcp sr,rr,fb packets", 0, 0);
         return RTP_DECODE_ERROR;
     }
 
@@ -341,20 +353,20 @@ eRTP_STATUS_CODE RtcpPacket::formRtcpPacket(OUT RtpBuffer* pobjRtcpPktBuf)
 {
     RtpDt_UInt16 usSrSize = m_objSrPktList.size();
     RtpDt_UInt16 usRrSize = m_objRrPktList.size();
+    RtpDt_UInt16 usFbSize = m_objFbPktList.size();
 
     pobjRtcpPktBuf->setLength(RTP_ZERO);
 
-    if ((m_pobjRtcpFbPkt == RTP_NULL) && (usSrSize == RTP_ZERO) && (usRrSize == RTP_ZERO) &&
-            (m_pobjByePkt == RTP_NULL))
+    if ((usSrSize == RTP_ZERO) && (usRrSize == RTP_ZERO) && (m_pobjByePkt == RTP_NULL))
     {
-        RTP_TRACE_WARNING("formRtcpPacket, m_pobjSrPkt is NULL!", RTP_ZERO, RTP_ZERO);
+        RTP_TRACE_WARNING("[formRtcpPacket] m_pobjSrPkt is NULL", RTP_ZERO, RTP_ZERO);
         return RTP_FAILURE;
     }
 
     if ((m_pobjByePkt == RTP_NULL) && (m_pobjSdesPkt == RTP_NULL) && (m_pobjAppPkt == RTP_NULL) &&
-            (m_pobjRtcpFbPkt == RTP_NULL))
+            (usFbSize == RTP_ZERO))
     {
-        RTP_TRACE_WARNING("formRtcpPacket, Not present 2nd pkt in Comp pkt!", RTP_ZERO, RTP_ZERO);
+        RTP_TRACE_WARNING("[formRtcpPacket] Not present 2nd pkt in Comp pkt", RTP_ZERO, RTP_ZERO);
         return RTP_FAILURE;
     }
 
@@ -366,7 +378,7 @@ eRTP_STATUS_CODE RtcpPacket::formRtcpPacket(OUT RtpBuffer* pobjRtcpPktBuf)
         eEncodeRes = pobjSrPkt->formSrPacket(pobjRtcpPktBuf);
         if (eEncodeRes != RTP_SUCCESS)
         {
-            RTP_TRACE_WARNING("formRtcpPacket, Error in SR pkt encoding ..!", RTP_ZERO, RTP_ZERO);
+            RTP_TRACE_WARNING("[formRtcpPacket] Error in SR pkt encoding", RTP_ZERO, RTP_ZERO);
             return eEncodeRes;
         }
     }
@@ -377,7 +389,7 @@ eRTP_STATUS_CODE RtcpPacket::formRtcpPacket(OUT RtpBuffer* pobjRtcpPktBuf)
         eEncodeRes = pobjRrPkt->formRrPacket(pobjRtcpPktBuf, eRTP_TRUE);
         if (eEncodeRes != RTP_SUCCESS)
         {
-            RTP_TRACE_WARNING("formRtcpPacket, Error in RR pkt encoding ..!", RTP_ZERO, RTP_ZERO);
+            RTP_TRACE_WARNING("[formRtcpPacket] Error in RR pkt encoding", RTP_ZERO, RTP_ZERO);
             return eEncodeRes;
         }
     }
@@ -387,7 +399,7 @@ eRTP_STATUS_CODE RtcpPacket::formRtcpPacket(OUT RtpBuffer* pobjRtcpPktBuf)
         eEncodeRes = m_pobjSdesPkt->formSdesPacket(pobjRtcpPktBuf);
         if (eEncodeRes != RTP_SUCCESS)
         {
-            RTP_TRACE_WARNING("formRtcpPacket, Error in SDES pkt encoding ..!", RTP_ZERO, RTP_ZERO);
+            RTP_TRACE_WARNING("[formRtcpPacket] Error in SDES pkt encoding", RTP_ZERO, RTP_ZERO);
             return eEncodeRes;
         }
     }
@@ -397,7 +409,7 @@ eRTP_STATUS_CODE RtcpPacket::formRtcpPacket(OUT RtpBuffer* pobjRtcpPktBuf)
         eEncodeRes = m_pobjAppPkt->formAppPacket(pobjRtcpPktBuf);
         if (eEncodeRes != RTP_SUCCESS)
         {
-            RTP_TRACE_WARNING("formRtcpPacket, Error in APP pkt encoding ..!", RTP_ZERO, RTP_ZERO);
+            RTP_TRACE_WARNING("[formRtcpPacket] Error in APP pkt encoding", RTP_ZERO, RTP_ZERO);
             return eEncodeRes;
         }
     }
@@ -406,17 +418,18 @@ eRTP_STATUS_CODE RtcpPacket::formRtcpPacket(OUT RtpBuffer* pobjRtcpPktBuf)
         eEncodeRes = m_pobjByePkt->formByePacket(pobjRtcpPktBuf);
         if (eEncodeRes != RTP_SUCCESS)
         {
-            RTP_TRACE_WARNING("formRtcpPacket, Error in BYE pkt encoding ..!", RTP_ZERO, RTP_ZERO);
+            RTP_TRACE_WARNING("[formRtcpPacket] Error in BYE pkt encoding", RTP_ZERO, RTP_ZERO);
             return eEncodeRes;
         }
     }
 
-    if (m_pobjRtcpFbPkt != RTP_NULL)
+    if (m_objFbPktList.size() != RTP_ZERO)
     {
-        eEncodeRes = m_pobjRtcpFbPkt->formRtcpFbPacket(pobjRtcpPktBuf);
+        RtcpFbPacket* pobjRtcpFbPkt = m_objFbPktList.front();
+        eEncodeRes = pobjRtcpFbPkt->formRtcpFbPacket(pobjRtcpPktBuf);
         if (eEncodeRes != RTP_SUCCESS)
         {
-            RTP_TRACE_WARNING("formRtcpPacket, Error in Fb pkt encoding ..!", RTP_ZERO, RTP_ZERO);
+            RTP_TRACE_WARNING("[formRtcpPacket] Error in Fb pkt encoding.", RTP_ZERO, RTP_ZERO);
             return eEncodeRes;
         }
     }
@@ -426,7 +439,7 @@ eRTP_STATUS_CODE RtcpPacket::formRtcpPacket(OUT RtpBuffer* pobjRtcpPktBuf)
         eEncodeRes = m_pobjRtcpXrPkt->formRtcpXrPacket(pobjRtcpPktBuf);
         if (eEncodeRes != RTP_SUCCESS)
         {
-            RTP_TRACE_WARNING("formRtcpPacket, Error in XR pkt encoding ..!", RTP_ZERO, RTP_ZERO);
+            RTP_TRACE_WARNING("[formRtcpPacket] Error in XR pkt encoding", RTP_ZERO, RTP_ZERO);
             return eEncodeRes;
         }
     }

@@ -163,7 +163,7 @@ public:
      * @param[in] pobjRtcpPktBuf RTCP pcaket buffer.
      * @return eRTP_SUCCESS on successful decoding
      */
-    eRtp_Bool decodeRtcpHeader(IN RtpDt_UChar* pRtcpBuffer);
+    eRtp_Bool decodeRtcpHeader(IN RtpDt_UChar* pRtcpBuffer, RtpDt_Int32 length);
 
     /**
      * Performs the encoding of the RTCP header using the data filled by set methods.

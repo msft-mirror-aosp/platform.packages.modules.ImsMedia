@@ -46,6 +46,11 @@ RtpDt_Void RtcpRrPacket::addReportBlkElm(IN RtcpReportBlock* pobjReptBlk)
     m_objReportBlkList.push_back(pobjReptBlk);
 }
 
+RtpDt_Void RtcpRrPacket::setRtcpHdrInfo(RtcpHeader& objRtcpHdr)
+{
+    m_objRtcpHdr = objRtcpHdr;
+}
+
 RtcpHeader* RtcpRrPacket::getRtcpHdrInfo()
 {
     return &m_objRtcpHdr;
@@ -66,20 +71,9 @@ RtpDt_Void RtcpRrPacket::setExtHdrInfo(IN RtpBuffer* pobjExtHdr)
     m_pobjExt = pobjExtHdr;
 }
 
-eRTP_STATUS_CODE RtcpRrPacket::decodeRrPacket(IN RtpDt_UChar* pucRrBuf, IN RtpDt_UInt16& usRrLen,
-        IN RtpDt_UInt16 usProfExtLen, IN eRtp_Bool bIsRrPkt)
+eRTP_STATUS_CODE RtcpRrPacket::decodeRrPacket(
+        IN RtpDt_UChar* pucRrBuf, IN RtpDt_UInt16& usRrLen, IN RtpDt_UInt16 usProfExtLen)
 {
-    // check the received data is a report block or RR packet.
-    if (bIsRrPkt == eRTP_TRUE)
-    {
-        m_objRtcpHdr.setLength(usRrLen);
-        m_objRtcpHdr.setPacketType((RtpDt_UChar)RTCP_RR);
-
-        m_objRtcpHdr.decodeRtcpHeader(pucRrBuf);
-        pucRrBuf = pucRrBuf + RTP_EIGHT;
-        usRrLen = usRrLen - RTP_EIGHT;
-    }
-
     RtpDt_UInt16 usRepBlkLen = usRrLen - usProfExtLen;
     while (usRepBlkLen >= RTP_24)
     {

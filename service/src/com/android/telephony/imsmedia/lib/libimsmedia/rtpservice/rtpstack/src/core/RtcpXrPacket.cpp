@@ -77,7 +77,7 @@ eRTP_STATUS_CODE RtcpXrPacket::decodeRtcpXrPacket(
     (RtpDt_Void) pucRtcpXrBuf;
     (RtpDt_Void) usRtcpXrLen;
     (RtpDt_Void) ucPktType;
-    RTP_TRACE_ERROR("decodeRtcpXrPacket not implemented..!!!", RTP_ZERO, RTP_ZERO);
+    RTP_TRACE_ERROR("decodeRtcpXrPacket not implemented.", RTP_ZERO, RTP_ZERO);
 
     return RTP_FAILURE;
 }

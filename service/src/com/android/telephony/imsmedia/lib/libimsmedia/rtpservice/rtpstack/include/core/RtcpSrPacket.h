@@ -59,6 +59,16 @@ public:
     ~RtcpSrPacket();
 
     /**
+     * Set RTCP header information.
+     */
+    RtpDt_Void setRtcpHdrInfo(RtcpHeader& rtcpHeader);
+
+    /**
+     * Get RTCP header information.
+     */
+    RtcpHeader* getRtcpHdrInfo();
+
+    /**
      * get method for m_objRrPkt
      */
     RtcpRrPacket* getRrPktInfo();

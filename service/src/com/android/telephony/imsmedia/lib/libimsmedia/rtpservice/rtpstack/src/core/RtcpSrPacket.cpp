@@ -43,6 +43,17 @@ RtcpSrPacket::RtcpSrPacket() :
  ********************************************************/
 RtcpSrPacket::~RtcpSrPacket() {}
 
+RtpDt_Void RtcpSrPacket::setRtcpHdrInfo(RtcpHeader& rtcpHeader)
+{
+    RtcpHeader* pobjRtcpHdr = m_objRrPkt.getRtcpHdrInfo();
+    *pobjRtcpHdr = rtcpHeader;
+}
+
+RtcpHeader* RtcpSrPacket::getRtcpHdrInfo()
+{
+    return m_objRrPkt.getRtcpHdrInfo();
+}
+
 /*********************************************************
  * Function name        : getRrPktInfo
  * Description          : get method for m_objRrPkt
@@ -200,13 +211,8 @@ eRTP_STATUS_CODE RtcpSrPacket::decodeSrPacket(
 
     */
 
-    eRTCP_TYPE eRtcpPktType = RTCP_SR;
-    RtcpHeader* pobjRtcpHdr = m_objRrPkt.getRtcpHdrInfo();
-    pobjRtcpHdr->setLength(usSrPktLen);
-    pobjRtcpHdr->setPacketType((RtpDt_UChar)eRtcpPktType);
-    pobjRtcpHdr->decodeRtcpHeader(pucSrPktBuf);
-    pucSrPktBuf = pucSrPktBuf + RTCP_FIXED_HDR_LEN;
-    usSrPktLen = usSrPktLen - RTCP_FIXED_HDR_LEN;
+    if (pucSrPktBuf == NULL || usSrPktLen <= 0)
+        return RTP_FAILURE;
 
     // NTP timestamp most significant word
     m_stNtpTimestamp.m_uiNtpHigh32Bits = RtpOsUtil::Ntohl(*((RtpDt_UInt32*)pucSrPktBuf));
@@ -235,11 +241,11 @@ eRTP_STATUS_CODE RtcpSrPacket::decodeSrPacket(
 
     // decode report block
     eRTP_STATUS_CODE eDecodeRes = RTP_FAILURE;
-    eDecodeRes = m_objRrPkt.decodeRrPacket(pucSrPktBuf, usSrPktLen, usExtHdrLen, eRTP_FALSE);
+    eDecodeRes = m_objRrPkt.decodeRrPacket(pucSrPktBuf, usSrPktLen, usExtHdrLen);
     if (eDecodeRes != RTP_SUCCESS)
     {
         RTP_TRACE_WARNING(
-                "RtcpPacket::decodeRtcpPacket, RR pkt Decoding Error ...!", RTP_ZERO, RTP_ZERO);
+                "RtcpPacket::decodeRtcpPacket, RR packet Decoding Error[%d]", eDecodeRes, RTP_ZERO);
         return eDecodeRes;
     }
 
@@ -334,8 +340,7 @@ block  +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
     eEncodeRes = m_objRrPkt.formRrPacket(pobjRtcpPktBuf, eRTP_FALSE);
     if (eEncodeRes != RTP_SUCCESS)
     {
-        RTP_TRACE_WARNING(
-                "RtcpPacket::formSrPacket, Report Block Encoding Error ...!", RTP_ZERO, RTP_ZERO);
+        RTP_TRACE_WARNING("[formSrPacket], Report Block Encoding Error", RTP_ZERO, RTP_ZERO);
         return eEncodeRes;
     }
 

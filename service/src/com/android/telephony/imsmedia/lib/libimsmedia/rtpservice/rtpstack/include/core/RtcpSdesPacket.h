@@ -51,6 +51,11 @@ public:
     RtcpHeader* getRtcpHdrInfo();
 
     /**
+     * Set RTCP header Information.
+     */
+    RtpDt_Void setRtcpHdrInfo(RtcpHeader& rtcpHeader);
+
+    /**
      * get method for m_objSdesChunkList
      */
     std::list<RtcpChunk*>& getSdesChunkList();

@@ -88,7 +88,7 @@ RtpSession* RtpStack::createRtpSession()
     RtpSession* pobjRtpSession = new RtpSession(this);
     if (pobjRtpSession == RTP_NULL)
     {
-        RTP_TRACE_WARNING("Memory allocation error ..!", RTP_ZERO, RTP_ZERO);
+        RTP_TRACE_WARNING("Memory allocation error.", RTP_ZERO, RTP_ZERO);
         return RTP_NULL;
     }
 
@@ -142,7 +142,7 @@ eRTP_STATUS_CODE RtpStack::deleteRtpSession(IN RtpSession* pobjRtpSession)
 {
     if (pobjRtpSession == RTP_NULL)
     {
-        RTP_TRACE_WARNING("deleteRtpSession, pobjRtpSession is NULL ...!", RTP_ZERO, RTP_ZERO);
+        RTP_TRACE_WARNING("deleteRtpSession, pobjRtpSession is NULL.", RTP_ZERO, RTP_ZERO);
         return RTP_INVALID_PARAMS;
     }
 
