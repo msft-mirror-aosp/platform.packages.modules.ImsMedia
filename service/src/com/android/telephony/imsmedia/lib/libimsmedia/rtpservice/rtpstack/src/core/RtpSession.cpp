@@ -2323,10 +2323,10 @@ eRtp_Bool RtpSession::checkRtpPayloadType(
     RtpDt_Int32 i = 0;
     for (; i < RTP_MAX_PAYLOAD_TYPE; i++)
     {
-        RTP_TRACE_MESSAGE("checkRtpPayloadType rcvd payload = %d--- set payload =%d",
-                pobjRtpHeader->getPldType(), m_pobjPayloadInfo->getPayloadType(i));
         if (pobjRtpHeader->getPldType() == m_pobjPayloadInfo->getPayloadType(i))
             break;
+        RTP_TRACE_MESSAGE("checkRtpPayloadType rcvd payload = %d--- set payload =%d",
+                pobjRtpHeader->getPldType(), m_pobjPayloadInfo->getPayloadType(i));
     }
 
     if (i == RTP_MAX_PAYLOAD_TYPE)

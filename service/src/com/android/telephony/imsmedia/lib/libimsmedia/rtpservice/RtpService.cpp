@@ -15,7 +15,6 @@
  */
 
 #include <RtpService.h>
-#include <RtpString.h>
 #include <RtpGlobal.h>
 #include <RtpImpl.h>
 #include <RtpStack.h>
@@ -283,7 +282,7 @@ GLOBAL eRtp_Bool IMS_RtpSvc_CreateSession(IN RtpDt_Char* szLocalIP, IN RtpDt_UIn
 
     // set ip and port
     RtpBuffer* pobjTransAddr = new RtpBuffer();
-    RtpDt_UInt32 uiIpLen = Rtp_Strlen(szLocalIP) + 1;
+    RtpDt_UInt32 uiIpLen = strlen(szLocalIP) + 1;
     RtpDt_UChar* pcIpAddr = new RtpDt_UChar[uiIpLen];
     memcpy(pcIpAddr, szLocalIP, uiIpLen);
     pobjTransAddr->setBufferInfo(uiIpLen, pcIpAddr);
@@ -305,7 +304,7 @@ GLOBAL eRtp_Bool IMS_RtpSvc_CreateSession(IN RtpDt_Char* szLocalIP, IN RtpDt_UIn
     if (szLocalIP)
     {
         pobjRtcpConfigInfo = new RtcpConfigInfo;
-        addSdesItem(pobjRtcpConfigInfo, (RtpDt_UChar*)szLocalIP, Rtp_Strlen(szLocalIP) + 1);
+        addSdesItem(pobjRtcpConfigInfo, (RtpDt_UChar*)szLocalIP, strlen(szLocalIP) + 1);
     }
 
     eRTP_STATUS_CODE eInitSta = pobjRtpSession->initSession(pobjRtpImpl, pobjRtcpConfigInfo);
@@ -493,7 +492,7 @@ GLOBAL eRtp_Bool IMS_RtpSvc_ProcRtpPacket(IN RtpServiceListener* pvIRtpSession,
 
     RtpBuffer objRtpBuf;
     objRtpBuf.setBufferInfo(wMsgLength, pMsg);
-    RtpDt_UInt32 uiTransLen = Rtp_Strlen((const RtpDt_Char*)pDestIp);
+    RtpDt_UInt32 uiTransLen = strlen((const RtpDt_Char*)pDestIp);
     RtpBuffer objRmtAddr;
     objRmtAddr.setBufferInfo(uiTransLen + 1, (RtpDt_UChar*)pDestIp);
 
@@ -650,7 +649,7 @@ GLOBAL eRtp_Bool IMS_RtpSvc_ProcRtcpPacket(IN RtpServiceListener* pobjIRtpSessio
 
     RtpBuffer objRmtAddr;
     objRmtAddr.setBuffer((RtpDt_UChar*)pcIpAddr);
-    objRmtAddr.setLength(Rtp_Strlen(pcIpAddr) + 1);
+    objRmtAddr.setLength(strlen(pcIpAddr) + 1);
 
     // decrypt RTCP message
     RtpBuffer objRtcpBuf;
