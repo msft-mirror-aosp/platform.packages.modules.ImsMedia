@@ -168,6 +168,7 @@ typedef struct
 // RTP parser
 #define RTP_WORD_SIZE        4
 #define RTP_FIXED_HDR_LEN    12
+#define RTCP_SR_PACKET_LENGTH 20
 #define RTP_VER_SHIFT_VAL    14
 #define RTP_PAD_SHIFT_VAL    13
 #define RTP_EXT_SHIFT_VAL    12
