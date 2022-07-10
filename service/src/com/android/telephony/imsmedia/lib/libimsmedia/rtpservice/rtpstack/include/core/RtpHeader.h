@@ -55,9 +55,9 @@ private:
     RtpDt_UChar m_ucExtension;
 
     /**
-     * m_ucCsrcCnt contains the number of CSRC identifiers that follow the fixed header.
+     * m_ucCsrcCount contains the number of CSRC identifiers that follow the fixed header.
      */
-    RtpDt_UChar m_ucCsrcCnt;
+    RtpDt_UChar m_ucCsrcCount;
 
     /**
      * It contains CSRC list.
@@ -70,14 +70,14 @@ private:
     RtpDt_UChar m_ucMarker;
 
     /**
-     * m_ucPldType identifies the format of the Rtp payload.
+     * m_ucPayloadType identifies the format of the Rtp payload.
      */
-    RtpDt_UChar m_ucPldType;
+    RtpDt_UChar m_ucPayloadType;
 
     /**
      * Sequence number
      */
-    RtpDt_UInt16 m_usSeqNum;
+    RtpDt_UInt16 m_usSequenceNumber;
 
     /**
      * The m_uiTimestamp reflects the sampling instant of the first octet
@@ -93,7 +93,7 @@ private:
     /**
      * add element to m_uiCsrcList
      */
-    eRtp_Bool addElmToCsrcList(IN RtpDt_UInt32 uiCsrc);
+    eRtp_Bool addElementToCsrcList(IN RtpDt_UInt32 uiCsrc);
 
 public:
     // Constructor
@@ -133,12 +133,12 @@ public:
     RtpDt_UChar getExtension();
 
     /**
-     * set method for m_ucCsrcCnt
+     * set method for m_ucCsrcCount
      */
     RtpDt_Void setCsrcCount(IN RtpDt_UChar ucCsrcCnt);
 
     /**
-     * get method for m_ucCsrcCnt
+     * get method for m_ucCsrcCount
      */
     RtpDt_UChar getCsrcCount();
 
@@ -158,24 +158,24 @@ public:
     RtpDt_UChar getMarker();
 
     /**
-     * set method for m_ucPldType
+     * set method for m_ucPayloadType
      */
-    RtpDt_Void setPldType(IN RtpDt_UChar ucPldType);
+    RtpDt_Void setPayloadType(IN RtpDt_UChar ucPldType);
 
     /**
-     * get method for m_ucPldType
+     * get method for m_ucPayloadType
      */
-    RtpDt_UChar getPldType();
+    RtpDt_UChar getPayloadType();
 
     /**
      * set method for m_usSeqNum
      */
-    RtpDt_Void setSeqNum(IN RtpDt_UInt16 usSeqNum);
+    RtpDt_Void setSequenceNumber(IN RtpDt_UInt16 usSeqNum);
 
     /**
      * get method for m_usSeqNum
      */
-    RtpDt_UInt16 getSeqNum();
+    RtpDt_UInt16 getSequenceNumber();
 
     /**
      * set method for m_uiTimestamp

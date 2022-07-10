@@ -38,7 +38,7 @@ RtpStackUtil::RtpStackUtil() {}
 RtpStackUtil::~RtpStackUtil() {}
 
 /*********************************************************
- * Function name        : getSeqNum
+ * Function name        : getSequenceNumber
  * Description          : Gets sequence number
  * Return type          : RtpDt_UInt16
  *                          Sequence number
@@ -47,7 +47,7 @@ RtpStackUtil::~RtpStackUtil() {}
  * Preconditions        : None
  * Side Effects            : None
  ********************************************************/
-RtpDt_UInt16 RtpStackUtil::getSeqNum(IN RtpDt_UChar* pcRtpHdrBuf)
+RtpDt_UInt16 RtpStackUtil::getSequenceNumber(IN RtpDt_UChar* pcRtpHdrBuf)
 {
     RtpDt_UInt32 uiByte4Data = RTP_ZERO;
     RtpDt_UInt16 usSeqNum = RTP_ZERO;
