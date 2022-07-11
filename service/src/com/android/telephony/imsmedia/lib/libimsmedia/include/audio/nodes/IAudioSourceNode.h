@@ -19,18 +19,30 @@
 
 #include <BaseNode.h>
 #include <ImsMediaAudioSource.h>
+#include <IFrameCallback.h>
 
 /**
  * @brief This class is interface between audio device and ims media packetization node
  */
-class IAudioSourceNode : public BaseNode
+class IAudioSourceNode : public BaseNode, IFrameCallback
 {
 private:
     IAudioSourceNode();
     ~IAudioSourceNode();
 
 public:
+    /**
+     * @brief Creates the instance of IAudioSourceNode
+     *
+     * @return BaseNode* The node of instance created
+     */
     static BaseNode* GetInstance();
+
+    /**
+     * @brief Release the instance of iAudioSourceNode
+     *
+     * @param pNode The node to release
+     */
     static void ReleaseInstance(BaseNode* pNode);
     virtual BaseNodeID GetNodeID();
     virtual ImsMediaResult Start();
@@ -39,8 +51,17 @@ public:
     virtual bool IsSourceNode();
     virtual void SetConfig(void* config);
     virtual bool IsSameConfig(void* config);
-    static void CB_AudioUplink(
-            void* pClient, uint8_t* pBitstream, uint32_t pnSize, int64_t pstUsec, uint32_t flag);
+
+    /**
+     * @brief Uplink callback of audio invoked when the audio read the valid audio frames from the
+     * device
+     *
+     * @param buffer The data frame
+     * @param size The size of the data frame
+     * @param timestamp The timestamp of the data in milliseconds unit.
+     * @param flag The flags of the frame
+     */
+    void onDataFrame(uint8_t* buffer, uint32_t size, int64_t timestamp, uint32_t flag);
 
 public:
     bool mFirstFrame;

@@ -20,6 +20,7 @@ cc_defaults {
         "libbinder",
         "libutils",
         "libmediandk",
+        "libaaudio",
     ],
     header_libs: [
         "libimsmedia_header",

@@ -51,15 +51,9 @@ void ImsMediaAudioPlayer::SetCodec(int32_t type)
     mCodecType = type;
 }
 
-void ImsMediaAudioPlayer::SetCodecMode(uint32_t mode)
+void ImsMediaAudioPlayer::SetEvsBitRate(uint32_t mode)
 {
-    IMLOGD1("[SetCodecMode] mode[%d]", mode);
-    mCodecMode = mode;
-}
-
-void ImsMediaAudioPlayer::SetEvsBitRate()
-{
-    mEvsBitRate = ImsMediaAudioFmt::ConvertEVSModeToBitRate(mCodecMode);
+    mEvsBitRate = ImsMediaAudioFmt::ConvertEVSModeToBitRate(mode);
     IMLOGD1("[SetEvsBitRate] EvsBitRate[%d]", mEvsBitRate);
 }
 
@@ -100,8 +94,13 @@ bool ImsMediaAudioPlayer::Start()
     {
         sprintf(kMimeType, "audio/evs");
     }
+    else
+    {
+        return false;
+    }
 
     openAudioStream();
+
     if (mAudioStream == NULL)
     {
         IMLOGE0("[Start] create audio stream failed");
@@ -118,6 +117,7 @@ bool ImsMediaAudioPlayer::Start()
         AMediaFormat_setInt32(mFormat, AMEDIAFORMAT_KEY_CHANNEL_COUNT, 1);
 
         mCodec = AMediaCodec_createDecoderByType(kMimeType);
+
         if (mCodec == NULL)
         {
             IMLOGE1("[Start] unable to create %s codec instance", kMimeType);
@@ -128,6 +128,7 @@ bool ImsMediaAudioPlayer::Start()
 
         IMLOGD0("[Start] configure codec");
         codecResult = AMediaCodec_configure(mCodec, mFormat, NULL, NULL, 0);
+
         if (codecResult != AMEDIA_OK)
         {
             IMLOGE2("[Start] unable to configure[%s] codec - err[%d]", kMimeType, codecResult);
@@ -221,10 +222,12 @@ void ImsMediaAudioPlayer::Stop()
     }
 
     IMLOGD1("[Stop] Stop stream state[%s]", AAudio_convertStreamStateToText(nextState));
+
     if (mAudioStream != NULL)
     {
         AAudioStream_close(mAudioStream);
     }
+
     mAudioStream = NULL;
     IMLOGD0("[Stop] exit ");
 }
@@ -241,6 +244,7 @@ bool ImsMediaAudioPlayer::onDataFrame(uint8_t* buffer, uint32_t size)
 
     static int kTimeout = 100000;  // be responsive on signal
     auto index = AMediaCodec_dequeueInputBuffer(mCodec, kTimeout);
+
     if (index >= 0)
     {
         size_t bufferSize = 0;
@@ -316,6 +320,7 @@ void ImsMediaAudioPlayer::openAudioStream()
 {
     AAudioStreamBuilder* builder = NULL;
     aaudio_result_t result = AAudio_createStreamBuilder(&builder);
+
     if (result != AAUDIO_OK)
     {
         IMLOGE1("[openAudioStream] Error creating stream builder[%s]",
@@ -353,16 +358,22 @@ void ImsMediaAudioPlayer::openAudioStream()
 void ImsMediaAudioPlayer::restartAudioStream()
 {
     std::lock_guard<std::mutex> guard(mMutex);
+
     if (mAudioStream == NULL)
+    {
         return;
+    }
 
     AAudioStream_requestStop(mAudioStream);
     AAudioStream_close(mAudioStream);
+
     mAudioStream = NULL;
     openAudioStream();
 
     if (mAudioStream == NULL)
+    {
         return;
+    }
 
     aaudio_stream_state_t inputState = AAUDIO_STREAM_STATE_STARTING;
     aaudio_stream_state_t nextState = AAUDIO_STREAM_STATE_UNINITIALIZED;

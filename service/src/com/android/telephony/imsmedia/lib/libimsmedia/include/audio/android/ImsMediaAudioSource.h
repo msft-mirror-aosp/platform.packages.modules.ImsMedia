@@ -22,46 +22,114 @@
 #include <mutex>
 #include <IImsMediaThread.h>
 #include <ImsMediaCondition.h>
+#include <IFrameCallback.h>
 #include <aaudio/AAudio.h>
 #include <media/NdkMediaCodec.h>
 #include <media/NdkMediaFormat.h>
 
 using android::sp;
 
-typedef void (*AudioUplinkCB)(
-        void* pClient, uint8_t* pBitstream, uint32_t nSize, int64_t pstUsec, uint32_t flag);
-
 class ImsMediaAudioSource : public IImsMediaThread
 {
 public:
     ImsMediaAudioSource();
     virtual ~ImsMediaAudioSource();
-    void SetUplinkCallback(void* pClient, AudioUplinkCB pDnlinkCB);
+
+    /**
+     * @brief Sets the uplink callback object to pass the encoded audio frame to the client
+     *
+     * @param callback the callback object
+     */
+    void SetUplinkCallback(IFrameCallback* callback);
+
+    /**
+     * @brief Sets the codec type
+     *
+     * @param type kAudioCodecType defined in ImsMediaDefine.h
+     */
     void SetCodec(int32_t type);
+
+    /**
+     * @brief Sets the encoder mode.
+     *
+     * @param mode enum of codec bitrate
+     */
     void SetCodecMode(uint32_t mode);
-    void SetEvsBitRate();
+
+    /**
+     * @brief Sets the bitrate of the evs encoder
+     *
+     * @param mode enum of codec bitrate
+     */
+    void SetEvsBitRate(uint32_t mode);
+
+    /**
+     * @brief Sets the ptime
+     *
+     * @param time Recommended length of time in milliseconds
+     */
     void SetPtime(uint32_t time);
+
+    /**
+     * @brief Sets the evs bandwidth
+     *
+     * @param evsBandwidth enum of the bandwidth defined as the kEvsBandwidth
+     */
     void SetEvsBandwidth(kEvsBandwidth evsBandwidth);
+
+    /**
+     * @brief Sets the audio sampling rate in Hz units
+     *
+     * @param samplingRate audio sampling rate to get the audio frame in Hz units
+     */
     void SetSamplingRate(int32_t samplingRate);
+
+    /**
+     * @brief Sets the evs channel aware mode offset
+     *
+     * @param offset Permissible values are -1, 0, 2, 3, 5, and 7. If ch-aw-recv is -1,
+     * channel-aware mode is disabled
+     */
     void SetEvsChAwOffset(int32_t offset);
+
+    /**
+     * @brief Starts aaudio and ndk audio codec to get the audio frame and encode the audio frames
+     * with given configuration
+     *
+     * @return true Returns when the audio codec and aaduio starts without error
+     * @return false Returns when the audio codec and aaudio configuration is invalid during the
+     * start
+     */
     bool Start();
+
+    /**
+     * @brief Stops the audio encoder and aaudio
+     *
+     */
     void Stop();
+
+    /**
+     * @brief Update audio encoding bitrate with given mode
+     *
+     * @param mode codec bitrate mode to update
+     * @return true Returns when the updates succeed
+     * @return false Returns when failed to update the codec bitrate
+     */
     bool ProcessCMR(uint32_t mode);
-    void queueInputBuffer(int16_t* buffer, uint32_t size);
-    void processOutputBuffer();
     virtual void* run();
 
 private:
     void openAudioStream();
     void restartAudioStream();
+    void queueInputBuffer(int16_t* buffer, uint32_t size);
+    void processOutputBuffer();
     static void audioErrorCallback(AAudioStream* stream, void* userData, aaudio_result_t error);
 
     std::mutex mMutexUplink;
+    IFrameCallback* mCallback;
     AAudioStream* mAudioStream;
     AMediaCodec* mCodec;
     AMediaFormat* mFormat;
-    AudioUplinkCB mUplinkCB;
-    void* mUplinkCBClient;
     int32_t mCodecType;
     uint32_t mMode;
     uint32_t mPtime;

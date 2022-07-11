@@ -54,7 +54,7 @@ ImsMediaResult IAudioSourceNode::Start()
     IMLOGD2("[Start] codec[%d], mode[%d]", mCodecType, mMode);
     if (mAudioSource)
     {
-        mAudioSource->SetUplinkCallback(this, IAudioSourceNode::CB_AudioUplink);
+        mAudioSource->SetUplinkCallback(this);
         mAudioSource->SetCodec(mCodecType);
         mAudioSource->SetCodecMode(mMode);
         mAudioSource->SetPtime(mPtime);
@@ -64,7 +64,7 @@ ImsMediaResult IAudioSourceNode::Start()
         {
             mAudioSource->SetEvsBandwidth(mEvsBandwidth);
             mAudioSource->SetEvsChAwOffset(mEvsChAwOffset);
-            mAudioSource->SetEvsBitRate();
+            mAudioSource->SetEvsBitRate(mMode);
         }
 
         if (mAudioSource->Start())
@@ -156,19 +156,15 @@ bool IAudioSourceNode::IsSameConfig(void* config)
     return false;
 }
 
-void IAudioSourceNode::CB_AudioUplink(
-        void* pClient, uint8_t* pBitstream, uint32_t pnSize, int64_t pstUsec, uint32_t flag)
+void IAudioSourceNode::onDataFrame(uint8_t* buffer, uint32_t size, int64_t timestamp, uint32_t flag)
 {
-    (void)flag;
-    IAudioSourceNode* client = reinterpret_cast<IAudioSourceNode*>(pClient);
-    if (client != NULL)
+    IMLOGD_PACKET3(IM_PACKET_LOG_AUDIO, "[onDataFrame] size[%zu], TS[%ld], flag[%d]", size,
+            timestamp, flag);
+    SendDataToRearNode(
+            MEDIASUBTYPE_UNDEFINED, buffer, size, timestamp, !mFirstFrame, MEDIASUBTYPE_UNDEFINED);
+
+    if (!mFirstFrame)
     {
-        IMLOGD_PACKET2(IM_PACKET_LOG_AUDIO, "[CB_AudioUplink] size[%zu], pts=%ld", pnSize, pstUsec);
-        client->SendDataToRearNode(MEDIASUBTYPE_UNDEFINED, pBitstream, pnSize, pstUsec,
-                !client->mFirstFrame, MEDIASUBTYPE_UNDEFINED);
-        if (!client->mFirstFrame)
-        {
-            client->mFirstFrame = true;
-        }
+        mFirstFrame = true;
     }
 }

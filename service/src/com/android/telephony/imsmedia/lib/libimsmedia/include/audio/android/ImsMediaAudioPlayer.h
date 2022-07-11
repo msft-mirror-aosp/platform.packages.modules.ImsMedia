@@ -29,17 +29,77 @@ class ImsMediaAudioPlayer
 {
 public:
     ImsMediaAudioPlayer();
-    ~ImsMediaAudioPlayer();
+    virtual ~ImsMediaAudioPlayer();
+
+    /**
+     * @brief Sets the codec type
+     *
+     * @param type kAudioCodecType defined in ImsMediaDefine.h
+     */
     void SetCodec(int32_t type);
-    void SetCodecMode(uint32_t mode);
-    void SetEvsBitRate();
+
+    /**
+     * @brief Sets the evs bitrate converted from codec mode
+     *
+     * @param mode
+     */
+    void SetEvsBitRate(uint32_t mode);
+
+    /**
+     * @brief Sets the Sampling rate of the audio player
+     *
+     * @param samplingRate
+     */
     void SetSamplingRate(int32_t samplingRate);
+
+    /**
+     * @brief Sets the EVS codec offset of the channel aware mode
+     *
+     * @param offset Permissible values are -1, 0, 2, 3, 5, and 7. If ch-aw-recv is -1,
+     * channel-aware mode is disabled
+     */
     void SetEvsChAwOffset(int32_t offset);
+
+    /**
+     * @brief Sets the bandwidth of the EVS codec.
+     *
+     * @param evsBandwidth kEvsBandwidth defined in ImsMediaDefine.h
+     */
     void SetEvsBandwidth(kEvsBandwidth evsBandwidth);
-    bool Start();
-    void Stop();
-    bool onDataFrame(uint8_t* buffer, uint32_t size);
+
+    /**
+     * @brief Sets the payload header mode of the EVS codec.
+     *
+     * @param EvsPayloadHeaderMode kRtpPyaloadHeaderMode defined in ImsMediaDefine.h
+     */
     void SetEvsPayloadHeaderMode(kRtpPyaloadHeaderMode EvsPayloadHeaderMode);
+
+    /**
+     * @brief Starts audio player to play the decoded audio frame and ndk audio decoder to decode
+     * the given data
+     *
+     * @return true Returns when the audio codec and aaudio runs without error
+     * @return false Returns when the audio codec configuration is invalid gets error during the
+     * launch
+     */
+    bool Start();
+
+    /**
+     * @brief Stops audio player to stop the aaudio and ndk audio decoder
+     *
+     */
+    void Stop();
+
+    /**
+     * @brief queue the encoded audio frame to audio codec to decode and plays the decoded audio
+     * frame to aaduio to the configured device
+     *
+     * @param buffer The audio frames to decode and play
+     * @param size The size of encoded audio frame
+     * @return true
+     * @return false
+     */
+    virtual bool onDataFrame(uint8_t* buffer, uint32_t size);
 
 private:
     void openAudioStream();
