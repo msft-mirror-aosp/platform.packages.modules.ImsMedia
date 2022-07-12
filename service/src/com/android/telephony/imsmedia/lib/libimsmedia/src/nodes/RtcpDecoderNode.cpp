@@ -24,7 +24,16 @@ RtcpDecoderNode::RtcpDecoderNode()
     mNoRtcpTime = 0;
 }
 
-RtcpDecoderNode::~RtcpDecoderNode() {}
+RtcpDecoderNode::~RtcpDecoderNode()
+{
+    if (mRtpSession != NULL)
+    {
+        mRtpSession->StopRtcp();
+        mRtpSession->SetRtcpEncoderListener(NULL);
+        IRtpSession::ReleaseInstance(mRtpSession);
+        mRtpSession = NULL;
+    }
+}
 
 BaseNode* RtcpDecoderNode::GetInstance()
 {
@@ -51,15 +60,18 @@ BaseNodeID RtcpDecoderNode::GetNodeID()
 ImsMediaResult RtcpDecoderNode::Start()
 {
     IMLOGD0("[Start]");
+
     if (mRtpSession == NULL)
     {
         mRtpSession = IRtpSession::GetInstance(mMediaType, mLocalAddress, mPeerAddress);
+
         if (mRtpSession == NULL)
         {
             IMLOGE0("[Start] Can't create rtp session");
             return RESULT_NOT_READY;
         }
     }
+
     mRtpSession->SetRtcpDecoderListener(this);
     mRtpSession->StartRtcp();
     mNoRtcpTime = 0;
@@ -70,13 +82,12 @@ ImsMediaResult RtcpDecoderNode::Start()
 void RtcpDecoderNode::Stop()
 {
     IMLOGD0("[Stop]");
+
     if (mRtpSession)
     {
         mRtpSession->StopRtcp();
-        mRtpSession->SetRtcpDecoderListener(NULL);
-        IRtpSession::ReleaseInstance(mRtpSession);
-        mRtpSession = NULL;
     }
+
     mNodeState = kNodeStateStopped;
 }
 
@@ -105,7 +116,10 @@ bool RtcpDecoderNode::IsSourceNode()
 void RtcpDecoderNode::SetConfig(void* config)
 {
     if (config == NULL)
+    {
         return;
+    }
+
     RtpConfig* pConfig = reinterpret_cast<RtpConfig*>(config);
     mPeerAddress = RtpAddress(pConfig->getRemoteAddress().c_str(), pConfig->getRemotePort());
     IMLOGD2("[SetConfig] peer Ip[%s], port[%d]", mPeerAddress.ipAddress, mPeerAddress.port);
@@ -114,7 +128,10 @@ void RtcpDecoderNode::SetConfig(void* config)
 bool RtcpDecoderNode::IsSameConfig(void* config)
 {
     if (config == NULL)
+    {
         return true;
+    }
+
     RtpConfig* pConfig = reinterpret_cast<RtpConfig*>(config);
     RtpAddress peerAddress =
             RtpAddress(pConfig->getRemoteAddress().c_str(), pConfig->getRemotePort());
@@ -122,10 +139,11 @@ bool RtcpDecoderNode::IsSameConfig(void* config)
     return (mPeerAddress == peerAddress);
 }
 
-void RtcpDecoderNode::OnRtcpInd(tRtpSvc_IndicationFromStack eIndType, void* pMsg)
+void RtcpDecoderNode::OnRtcpInd(tRtpSvc_IndicationFromStack type, void* pMsg)
 {
+    (void)type;
     (void)pMsg;
-    IMLOGD_PACKET1(IM_PACKET_LOG_RTCP, "[OnRtcpInd] type[%d]", eIndType);
+    // TODO : add implementation for rtcp report handling for media metic
 }
 
 void RtcpDecoderNode::OnNumReceivedPacket(uint32_t nNumRtcpSRPacket, uint32_t nNumRtcpRRPacket)

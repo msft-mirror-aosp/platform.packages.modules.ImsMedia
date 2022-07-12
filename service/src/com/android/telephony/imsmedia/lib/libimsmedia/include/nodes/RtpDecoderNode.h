@@ -48,19 +48,21 @@ public:
     void OnNumReceivedPacket(uint32_t nNumRtpPacket);
     void SetLocalAddress(const RtpAddress address);
     void SetPeerAddress(const RtpAddress address);
-    void SetSamplingRate(const uint32_t data);
     void SetInactivityTimerSec(const uint32_t time);
 
 private:
     IRtpSession* mRtpSession;
-    RtpConfig* mConfig;
     RtpAddress mLocalAddress;
     RtpAddress mPeerAddress;
     uint32_t mSamplingRate;
+    int32_t mRtpPayloadTx;
+    int32_t mRtpPayloadRx;
+    int32_t mRtpDtmfPayload;
+    int32_t mDtmfSamplingRate;
+    int32_t mCvoValue;
     uint32_t mReceivingSSRC;
     uint32_t mInactivityTime;
     uint32_t mNoRtpTime;
-    int32_t mCvoValue;
 };
 
 #endif

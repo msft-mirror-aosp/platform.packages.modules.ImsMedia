@@ -19,7 +19,6 @@
 
 #include <BaseNode.h>
 #include <IRtpSession.h>
-#include <ImsMediaBitWriter.h>
 #include <ImsMediaTimer.h>
 #include <mutex>
 
@@ -31,10 +30,6 @@ class RtcpEncoderNode : public BaseNode, public IRtcpEncoderListener
 private:
     RtcpEncoderNode();
     ~RtcpEncoderNode();
-    // bool SendRtcpXrPacket(RTCPXR_StatisticsParam* statisticParam,
-    //     RTCPXR_VoIPMatricParam* voipParam);
-    // void BuildRtcpXrStatisticsBuffer(uint8_t* pBuffer, RTCPXR_StatisticsParam* statisticParam);
-    // void BuildRtcpXrVoipMetricsBuffer(uint8_t* pBuffer, RTCPXR_VoIPMatricParam* voipParam);
 
 public:
     static BaseNode* GetInstance();
@@ -64,8 +59,7 @@ private:
     bool mEnableRtcpBye;
     uint32_t mRtcpXrBlockType;
     int32_t mRtcpXrCounter;
-    // ImsMediaBitWriter m_objBitWriter;
-    hTimerHandler m_hTimer;
+    hTimerHandler mTimer;
     std::mutex mMutexTimer;
 };
 

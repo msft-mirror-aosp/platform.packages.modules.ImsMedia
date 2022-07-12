@@ -51,16 +51,17 @@ private:
     void ProcessVideoData(ImsMediaSubType eSubType, uint8_t* pData, uint32_t nDataSize,
             uint32_t nTimestamp, bool bMark);
     IRtpSession* mRtpSession;
-    RtpConfig* mConfig;
     RtpAddress mLocalAddress;
     RtpAddress mPeerAddress;
     bool mDTMFMode;
     bool mAudioMark;
     uint32_t mPrevTimestamp;
     uint32_t mDTMFTimestamp;
-    uint32_t mRtpPayload;
-    uint32_t mDtmfPayload;
     uint32_t mSamplingRate;
+    int32_t mRtpPayloadTx;
+    int32_t mRtpPayloadRx;
+    int32_t mRtpDtmfPayload;
+    int32_t mDtmfSamplingRate;
     int32_t mCvoValue;
     tRtpHeaderExtensionInfo mRtpExtension;
 #ifdef DEBUG_JITTER_GEN_SIMULATION_DELAY
