@@ -148,8 +148,8 @@ TEST_F(VideoManagerTest, TestVideoPreview)
 
     const char testIp[] = "127.0.0.1";
     unsigned int testPort = 12340;
-    int socketRtpFd = ImsMediaNetworkUtil::createSocketFD(testIp, testPort, AF_INET);
-    int socketRtcpFd = ImsMediaNetworkUtil::createSocketFD(testIp, testPort + 1, AF_INET);
+    int socketRtpFd = ImsMediaNetworkUtil::openSocket(testIp, testPort, AF_INET);
+    int socketRtcpFd = ImsMediaNetworkUtil::openSocket(testIp, testPort + 1, AF_INET);
     EXPECT_NE(socketRtpFd, -1);
     EXPECT_NE(socketRtcpFd, -1);
 
@@ -178,6 +178,6 @@ TEST_F(VideoManagerTest, TestVideoPreview)
     condition.wait_timeout(500);
     EXPECT_EQ(manager->getState(sessionId), kSessionStateClosed);
 
-    ImsMediaNetworkUtil::closeSocketFD(socketRtpFd);
-    ImsMediaNetworkUtil::closeSocketFD(socketRtcpFd);
+    ImsMediaNetworkUtil::closeSocket(socketRtpFd);
+    ImsMediaNetworkUtil::closeSocket(socketRtcpFd);
 }

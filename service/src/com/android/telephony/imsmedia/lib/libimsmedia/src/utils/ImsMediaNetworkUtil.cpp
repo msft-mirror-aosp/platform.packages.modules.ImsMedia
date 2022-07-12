@@ -23,24 +23,6 @@
 #define NUM_OF_BYTES_IPV4 4
 #define NUM_OF_BYTES_IPV6 6
 
-bool ImsMediaNetworkUtil::ConvertIPStrToBin(char* pszSourceIP, char* pszDestBin, eIPVersion eIPver)
-{
-    if (pszSourceIP == NULL || pszDestBin == NULL)
-        return false;
-
-    if (eIPver == IPV4)
-    {
-        inet_pton(AF_INET, pszSourceIP, pszDestBin);
-        IMLOGD_PACKET1(IM_PACKET_LOG_SOCKET, "[ConvertIPStrToBin] inet_ntop(INET6) %d", pszDestBin);
-    }
-    else
-    {  // ipv6
-        inet_pton(AF_INET6, pszSourceIP, pszDestBin);
-        IMLOGD_PACKET1(IM_PACKET_LOG_SOCKET, "[ConvertIPStrToBin] inet_ntop(INET6) %d", pszDestBin);
-    }
-    return true;
-}
-
 static bool GetIpPortFromSockAddr(
         const sockaddr_storage& ss, char* ipAddress, int len, unsigned int& port)
 {
@@ -81,8 +63,8 @@ static bool GetIpPortFromSockAddr(
     return true;
 }
 
-bool ImsMediaNetworkUtil::GetLocalIPPortFromSocketFD(
-        int nSocketFD, char* pIPAddress, int len, unsigned int& port)
+bool ImsMediaNetworkUtil::getLocalIpPortFromSocket(
+        const int nSocketFD, char* pIPAddress, int len, unsigned int& port)
 {
     if (pIPAddress == NULL)
     {
@@ -96,15 +78,15 @@ bool ImsMediaNetworkUtil::GetLocalIPPortFromSocketFD(
     int res = getsockname(nSocketFD, sa, &byteCount);
     if (res == -1)
     {
-        IMLOGE1("[GetLocalIPPortFromSocketFD] getsockname failed. Error[%d]", errno);
+        IMLOGE1("[getLocalIpPortFromSocket] getsockname failed. Error[%d]", errno);
         return false;
     }
 
     return GetIpPortFromSockAddr(ss, pIPAddress, len, port);
 }
 
-bool ImsMediaNetworkUtil::GetRemoteIPPortFromSocketFD(
-        int nSocketFD, char* pIPAddress, int len, unsigned int& port)
+bool ImsMediaNetworkUtil::getRemoteIpPortFromSocket(
+        const int nSocketFD, char* pIPAddress, int len, unsigned int& port)
 {
     if (pIPAddress == NULL)
     {
@@ -118,19 +100,19 @@ bool ImsMediaNetworkUtil::GetRemoteIPPortFromSocketFD(
     int res = getpeername(nSocketFD, sa, &byteCount);
     if (res == -1)
     {
-        IMLOGE1("[GetRemoteIPPortFromSocketFD] getpeername failed. Error[%d]", errno);
+        IMLOGE1("[getRemoteIpPortFromSocket] getpeername failed. Error[%d]", errno);
         return false;
     }
 
     return GetIpPortFromSockAddr(ss, pIPAddress, len, port);
 }
 
-int ImsMediaNetworkUtil::createSocketFD(const char* pIPAddr, unsigned int port, int af)
+int ImsMediaNetworkUtil::openSocket(const char* pIPAddr, unsigned int port, int af)
 {
     int soc = 0;
     if ((soc = socket(af, SOCK_DGRAM, IPPROTO_UDP)) < 0)
     {
-        IMLOGE1("[createSocketFD] error[%d]", errno);
+        IMLOGE1("[openSocket] error[%d]", errno);
         return -1;
     }
 
@@ -142,19 +124,13 @@ int ImsMediaNetworkUtil::createSocketFD(const char* pIPAddr, unsigned int port, 
 
         if (inet_pton(AF_INET, pIPAddr, &sin.sin_addr) <= 0)
         {
-            IMLOGE1("[createSocketFD] inet_pton error[%d]", errno);
+            IMLOGE1("[openSocket] inet_pton error[%d]", errno);
             return -1;
         }
 
         if (bind(soc, (struct sockaddr*)&sin, sizeof(sin)) < 0)
         {
-            IMLOGE1("[createSocketFD] bind error[%d]", errno);
-            return -1;
-        }
-
-        if (connect(soc, (struct sockaddr*)&sin, sizeof(sockaddr_in)) < 0)
-        {
-            IMLOGE1("[createSocketFD] connect error[%d]", errno);
+            IMLOGE1("[openSocket] bind error[%d]", errno);
             return -1;
         }
     }
@@ -166,19 +142,13 @@ int ImsMediaNetworkUtil::createSocketFD(const char* pIPAddr, unsigned int port, 
 
         if (inet_pton(AF_INET6, pIPAddr, &sin6.sin6_addr) <= 0)
         {
-            IMLOGE1("[createSocketFD] error[%d]", errno);
+            IMLOGE1("[openSocket] error[%d]", errno);
             return -1;
         }
 
         if (bind(soc, (struct sockaddr*)&sin6, sizeof(sin6)) < 0)
         {
-            IMLOGE1("[createSocketFD] bind error[%d]", errno);
-            return -1;
-        }
-
-        if (connect(soc, (struct sockaddr*)&sin6, sizeof(sockaddr_in6)) < 0)
-        {
-            IMLOGE1("[createSocketFD] error[%d]", errno);
+            IMLOGE1("[openSocket] bind error[%d]", errno);
             return -1;
         }
     }
@@ -186,8 +156,58 @@ int ImsMediaNetworkUtil::createSocketFD(const char* pIPAddr, unsigned int port, 
     return soc;
 }
 
-void ImsMediaNetworkUtil::closeSocketFD(int socketFd)
+bool ImsMediaNetworkUtil::connectSocket(
+        const int socketFd, const char* pIPAddr, unsigned int port, int af)
+{
+    if (socketFd == -1)
+    {
+        IMLOGE0("[connectSocket] invalid socket fd");
+        return false;
+    }
+
+    if (af == AF_INET)
+    {
+        sockaddr_in sin;
+        sin.sin_family = AF_INET;
+        sin.sin_port = htons(port);
+
+        if (inet_pton(AF_INET, pIPAddr, &sin.sin_addr) <= 0)
+        {
+            IMLOGE1("[connectSocket] inet_pton error[%d]", errno);
+            return -1;
+        }
+
+        if (connect(socketFd, (struct sockaddr*)&sin, sizeof(sockaddr_in)) < 0)
+        {
+            IMLOGE1("[connectSocket] connect error[%d]", errno);
+            return false;
+        }
+    }
+    else if (af == AF_INET6)
+    {
+        sockaddr_in6 sin6;
+        sin6.sin6_family = AF_INET6;
+        sin6.sin6_port = htons(port);
+
+        if (inet_pton(AF_INET6, pIPAddr, &sin6.sin6_addr) <= 0)
+        {
+            IMLOGE1("[connectSocket] error[%d]", errno);
+            return -1;
+        }
+
+        if (connect(socketFd, (struct sockaddr*)&sin6, sizeof(sockaddr_in6)) < 0)
+        {
+            IMLOGE1("[connectSocket] error[%d]", errno);
+            return false;
+        }
+    }
+
+    return true;
+}
+
+void ImsMediaNetworkUtil::closeSocket(int& socketFd)
 {
     shutdown(socketFd, SHUT_RDWR);
     close(socketFd);
+    socketFd = -1;
 }

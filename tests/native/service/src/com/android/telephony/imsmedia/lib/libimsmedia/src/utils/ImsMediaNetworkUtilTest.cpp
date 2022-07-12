@@ -22,44 +22,76 @@
 #include <gtest/gtest.h>
 #include <ImsMediaTrace.h>
 
-TEST(ImsMediaNetworkUtilTest, GetLocalIPPortFromSocketFDUsingLoopBackIPAddress)
+TEST(ImsMediaNetworkUtilTest, GetIPPortFromSocketFDUsingLoopBackIPAddress)
 {
     const char szTestIP[] = "127.0.0.1";
     unsigned int nTestPort = 12340;
-    int nTestSocFD = ImsMediaNetworkUtil::createSocketFD(szTestIP, nTestPort, AF_INET);
+    int nTestSocFD = ImsMediaNetworkUtil::openSocket(szTestIP, nTestPort, AF_INET);
     ASSERT_NE(nTestSocFD, -1);
 
-    char IPAddr[32] = {'\0'};
-    unsigned int port;
-    bool res = ImsMediaNetworkUtil::GetLocalIPPortFromSocketFD(nTestSocFD, IPAddr, 32, port);
+    char localIPAddr[32] = {'\0'};
+    unsigned int localPort;
+    bool res =
+            ImsMediaNetworkUtil::getLocalIpPortFromSocket(nTestSocFD, localIPAddr, 32, localPort);
 
     ASSERT_EQ(res, true);
-    ASSERT_EQ(strncmp(IPAddr, szTestIP, strlen(szTestIP)), 0);
-    ASSERT_EQ(port, nTestPort);
+    ASSERT_EQ(strncmp(localIPAddr, szTestIP, strlen(szTestIP)), 0);
+    ASSERT_EQ(localPort, nTestPort);
 
-    ImsMediaNetworkUtil::closeSocketFD(nTestSocFD);
+    res = ImsMediaNetworkUtil::connectSocket(nTestSocFD, szTestIP, nTestPort, AF_INET);
+    ASSERT_EQ(res, true);
 
-    res = ImsMediaNetworkUtil::GetLocalIPPortFromSocketFD(nTestSocFD, IPAddr, 32, port);
+    char peerIPAddr[32] = {'\0'};
+    unsigned int peerPort;
+    res = ImsMediaNetworkUtil::getRemoteIpPortFromSocket(nTestSocFD, peerIPAddr, 32, peerPort);
+
+    ASSERT_EQ(res, true);
+    ASSERT_EQ(strncmp(peerIPAddr, szTestIP, strlen(szTestIP)), 0);
+    ASSERT_EQ(peerPort, nTestPort);
+
+    ImsMediaNetworkUtil::closeSocket(nTestSocFD);
+
+    res = ImsMediaNetworkUtil::connectSocket(nTestSocFD, szTestIP, nTestPort, AF_INET);
+    ASSERT_EQ(res, false);
+    res = ImsMediaNetworkUtil::getLocalIpPortFromSocket(nTestSocFD, localIPAddr, 32, localPort);
+    ASSERT_EQ(res, false);
+    res = ImsMediaNetworkUtil::getRemoteIpPortFromSocket(nTestSocFD, peerIPAddr, 32, peerPort);
     ASSERT_EQ(res, false);
 }
 
-TEST(ImsMediaNetworkUtilTest, GetLocalIPPortFromSocketFDUsingIpv6Address)
+TEST(ImsMediaNetworkUtilTest, GetIPPortFromSocketFDUsingIpv6Address)
 {
     const char szTestIP[] = "::1";
     unsigned int nTestPort = 56780;
-    int nTestSocFD = ImsMediaNetworkUtil::createSocketFD(szTestIP, nTestPort, AF_INET6);
+    int nTestSocFD = ImsMediaNetworkUtil::openSocket(szTestIP, nTestPort, AF_INET6);
     ASSERT_NE(nTestSocFD, -1);
 
-    char IPAddr[32] = {'\0'};
-    unsigned int port;
-    bool res = ImsMediaNetworkUtil::GetLocalIPPortFromSocketFD(nTestSocFD, IPAddr, 32, port);
+    char localIPAddr[32] = {'\0'};
+    unsigned int localPort;
+    bool res =
+            ImsMediaNetworkUtil::getLocalIpPortFromSocket(nTestSocFD, localIPAddr, 32, localPort);
 
     ASSERT_EQ(res, true);
-    ASSERT_EQ(strncmp(IPAddr, szTestIP, strlen(szTestIP)), 0);
-    ASSERT_EQ(port, nTestPort);
+    ASSERT_EQ(strncmp(localIPAddr, szTestIP, strlen(szTestIP)), 0);
+    ASSERT_EQ(localPort, nTestPort);
 
-    ImsMediaNetworkUtil::closeSocketFD(nTestSocFD);
+    res = ImsMediaNetworkUtil::connectSocket(nTestSocFD, szTestIP, nTestPort, AF_INET6);
+    ASSERT_EQ(res, true);
 
-    res = ImsMediaNetworkUtil::GetLocalIPPortFromSocketFD(nTestSocFD, IPAddr, 32, port);
+    char peerIPAddr[32] = {'\0'};
+    unsigned int peerPort;
+    res = ImsMediaNetworkUtil::getRemoteIpPortFromSocket(nTestSocFD, peerIPAddr, 32, peerPort);
+
+    ASSERT_EQ(res, true);
+    ASSERT_EQ(strncmp(peerIPAddr, szTestIP, strlen(szTestIP)), 0);
+    ASSERT_EQ(peerPort, nTestPort);
+
+    ImsMediaNetworkUtil::closeSocket(nTestSocFD);
+
+    res = ImsMediaNetworkUtil::connectSocket(nTestSocFD, szTestIP, nTestPort, AF_INET6);
+    ASSERT_EQ(res, false);
+    res = ImsMediaNetworkUtil::getLocalIpPortFromSocket(nTestSocFD, localIPAddr, 32, localPort);
+    ASSERT_EQ(res, false);
+    res = ImsMediaNetworkUtil::getRemoteIpPortFromSocket(nTestSocFD, peerIPAddr, 32, peerPort);
     ASSERT_EQ(res, false);
 }

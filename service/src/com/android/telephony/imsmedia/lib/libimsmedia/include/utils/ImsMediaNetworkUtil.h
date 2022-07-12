@@ -22,13 +22,61 @@
 class ImsMediaNetworkUtil
 {
 public:
-    static bool ConvertIPStrToBin(char* pszSourceIP, char* pszDestBin, eIPVersion eIPver);
-    static bool GetLocalIPPortFromSocketFD(
-            int nSocketFD, char* pIPAddress, int len, unsigned int& port);
-    static bool GetRemoteIPPortFromSocketFD(
-            int nSocketFD, char* pIPAddress, int len, unsigned int& port);
-    static int createSocketFD(const char* pIPAddr, unsigned int port, int af);
-    static void closeSocketFD(int socketFd);
+    /**
+     * @brief Get the local Ip address and port from the socket
+     *
+     * @param nSocketFD The socket file descriptor to extract the ip and port
+     * @param pIPAddress The ip address formed in text
+     * @param len The length of the ip address array
+     * @param port The port to extract from the socket
+     * @return true Returns when there is no error to extract the data
+     * @return false  Returns when there is error returns with the arguments
+     */
+    static bool getLocalIpPortFromSocket(
+            const int nSocketFD, char* pIPAddress, int len, unsigned int& port);
+
+    /**
+     * @brief Get the remote Ip address and port from the socket connected to
+     *
+     * @param nSocketFD The socket file descriptor to extract the ip and port
+     * @param pIPAddress The ip address formed in text
+     * @param len The length of the ip address array
+     * @param port The port to extract from the socket
+     * @return true Returns when there is no error to extract the data
+     * @return false  Returns when there is error returns with the arguments
+     */
+    static bool getRemoteIpPortFromSocket(
+            const int nSocketFD, char* pIPAddress, int len, unsigned int& port);
+
+    /**
+     * @brief create socket with the given local ip address and the port information
+     *
+     * @param pIPAddr The local Ip address formed in text
+     * @param port The local port number
+     * @param af The ip version
+     * @return int Returns socket file descriptor, it is -1 when it is invalid to create socket with
+     * the given function arguments
+     */
+    static int openSocket(const char* pIPAddr, unsigned int port, int af);
+
+    /**
+     * @brief connect extisting socket to certain remote address with the given arguments
+     *
+     * @param socketFd The target socket fd to connect the remote ip address and port number
+     * @param pIPAddr The remote Ip address form in text
+     * @param port The remote port number
+     * @param af The ip version
+     * @return true Returns when the socket connects succefully
+     * @return false Returns when the socket connects fail
+     */
+    static bool connectSocket(const int socketFd, const char* pIPAddr, unsigned int port, int af);
+
+    /**
+     * @brief close the socket
+     *
+     * @param socketFd The socket file descriptor
+     */
+    static void closeSocket(int& socketFd);
 };
 
 #endif  // IMS_MEDIA_NW_UTIL_H

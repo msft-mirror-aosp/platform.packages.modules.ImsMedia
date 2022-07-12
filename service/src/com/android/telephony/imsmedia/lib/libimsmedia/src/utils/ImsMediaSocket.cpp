@@ -71,14 +71,11 @@ ImsMediaSocket::ImsMediaSocket()
 {
     mListener = NULL;
     mRefCount = 0;
-    // for test
     mLocalIPVersion = IPV4;
     mPeerIPVersion = IPV4;
     mLocalPort = 0;
     mPeerPort = 0;
-    // mToS = pPortInfo->nTOS;
     mSocketFd = -1;
-    memset(mPeerIPBin, 0, sizeof(mPeerIPBin));
     mbReceivingIPFiltering = true;
     IMLOGD0("[ImsMediaSocket] enter");
 }
@@ -93,6 +90,15 @@ void ImsMediaSocket::SetLocalEndpoint(const char* ipAddress, const uint32_t port
 {
     std::strcpy(mLocalIP, ipAddress);
     mLocalPort = port;
+
+    if (strstr(mLocalIP, ":") == NULL)
+    {
+        mLocalIPVersion = IPV4;
+    }
+    else
+    {
+        mLocalIPVersion = IPV6;
+    }
 }
 
 void ImsMediaSocket::SetPeerEndpoint(const char* ipAddress, const uint32_t port)
@@ -108,8 +114,6 @@ void ImsMediaSocket::SetPeerEndpoint(const char* ipAddress, const uint32_t port)
     {
         mPeerIPVersion = IPV6;
     }
-
-    ImsMediaNetworkUtil::ConvertIPStrToBin(mPeerIP, mPeerIPBin, mPeerIPVersion);
 }
 
 int ImsMediaSocket::GetLocalPort()
@@ -132,7 +136,10 @@ char* ImsMediaSocket::GetPeerIPAddress()
 bool ImsMediaSocket::Open(int socketFd)
 {
     if (socketFd == -1)
+    {
         return false;
+    }
+
     IMLOGD5("[Open] %s:%d, %s:%d, nRefCount[%d]", mLocalIP, mLocalPort, mPeerIP, mPeerPort,
             mRefCount);
 
@@ -156,6 +163,7 @@ bool ImsMediaSocket::Listen(ISocketListener* listener)
     IMLOGD0("[Listen]");
     mListener = listener;
     std::lock_guard<std::mutex> guard(sMutexSocketMonitorThread);
+
     if (listener != NULL)
     {
         // add socket list, run thread
@@ -192,6 +200,7 @@ bool ImsMediaSocket::Listen(ISocketListener* listener)
         }
         IMLOGD1("[Listen] remove RxSocketCount[%d]", sRxSocketCount);
     }
+
     return true;
 }
 
@@ -201,7 +210,9 @@ uint32_t ImsMediaSocket::SendTo(uint8_t* pData, uint32_t nDataSize)
     IMLOGD_PACKET2(IM_PACKET_LOG_SOCKET, "[SendTo] fd[%d],[%d] bytes", mSocketFd, nDataSize);
 
     if (nDataSize == 0)
+    {
         return 0;
+    }
 
     struct sockaddr_in stAddr4;
     struct sockaddr_in6 stAddr6;
@@ -210,12 +221,11 @@ uint32_t ImsMediaSocket::SendTo(uint8_t* pData, uint32_t nDataSize)
 
     if (mPeerIPVersion == IPV4)
     {
-        // IPv4
         nSockAddrLen = sizeof(stAddr4);
         memset(&stAddr4, 0, nSockAddrLen);
         stAddr4.sin_family = AF_INET;
         stAddr4.sin_port = htons(mPeerPort);
-        // stAddr4.sin_addr.s_addr = inet_addr(mPeerIP);
+
         if (inet_pton(AF_INET, mPeerIP, &(stAddr4.sin_addr.s_addr)) != 1)
         {
             IMLOGE1("[ImsMediaSocket:SendTo] IPv4[%s]", mPeerIP);
@@ -226,7 +236,6 @@ uint32_t ImsMediaSocket::SendTo(uint8_t* pData, uint32_t nDataSize)
     }
     else
     {
-        // IPv6
         nSockAddrLen = sizeof(stAddr6);
         memset(&stAddr6, 0, nSockAddrLen);
         stAddr6.sin6_family = AF_INET6;
@@ -327,6 +336,7 @@ bool ImsMediaSocket::SetSocketOpt(eSocketOpt nOption, uint32_t nOptionValue)
                     return false;
                 }
             }
+
             IMLOGD1("[SetSocketOpt] IP_QOS[%d]", mToS);
             break;
         default:

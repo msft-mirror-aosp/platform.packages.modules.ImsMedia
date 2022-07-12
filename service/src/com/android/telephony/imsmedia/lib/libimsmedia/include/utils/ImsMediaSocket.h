@@ -66,14 +66,11 @@ private:
     static std::mutex sMutexSocketList;
     static std::mutex sMutexSocketMonitorThread;
     static ImsMediaCondition mConditionExit;
-    // local end point
-    char mPeerIPBin[MAX_IP_LEN];
     int32_t mSocketFd;
     int32_t mRefCount;
     bool mbReceivingIPFiltering;
     int32_t mToS;
     ISocketListener* mListener;
-    // eSocketClass mSocketClass;
     eIPVersion mLocalIPVersion;
     eIPVersion mPeerIPVersion;
     char mLocalIP[MAX_IP_LEN];

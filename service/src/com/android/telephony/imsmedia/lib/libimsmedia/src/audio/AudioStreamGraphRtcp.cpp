@@ -47,7 +47,7 @@ ImsMediaResult AudioStreamGraphRtcp::create(void* config)
     pNodeRtcpEncoder->SetMediaType(IMS_MEDIA_AUDIO);
     char localIp[MAX_IP_LEN];
     uint32_t localPort = 0;
-    ImsMediaNetworkUtil::GetLocalIPPortFromSocketFD(mLocalFd, localIp, MAX_IP_LEN, localPort);
+    ImsMediaNetworkUtil::getLocalIpPortFromSocket(mLocalFd, localIp, MAX_IP_LEN, localPort);
     RtpAddress localAddress(localIp, localPort - 1);
     ((RtcpEncoderNode*)pNodeRtcpEncoder)->SetLocalAddress(localAddress);
     pNodeRtcpEncoder->SetConfig(config);

@@ -72,7 +72,7 @@ ImsMediaResult VideoStreamGraphRtpTx::create(void* config)
 
     char localIp[MAX_IP_LEN];
     uint32_t localPort = 0;
-    ImsMediaNetworkUtil::GetLocalIPPortFromSocketFD(mLocalFd, localIp, MAX_IP_LEN, localPort);
+    ImsMediaNetworkUtil::getLocalIpPortFromSocket(mLocalFd, localIp, MAX_IP_LEN, localPort);
     RtpAddress localAddress(localIp, localPort);
 
     BaseNode* pNodeSource = BaseNode::Load(BaseNodeID::NODEID_VIDEOSOURCE, mCallback);
