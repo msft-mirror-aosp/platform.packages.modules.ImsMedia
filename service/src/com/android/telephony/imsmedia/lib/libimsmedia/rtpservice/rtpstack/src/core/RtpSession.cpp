@@ -478,6 +478,7 @@ eRTP_STATUS_CODE RtpSession::rtpMakeCompoundRtcpPacket(IN_OUT RtcpPacket* objRtc
             eEncRes = formSrList(uiSndrCount, objRtcpPkt);
             if (eEncRes != RTP_SUCCESS)
             {
+                RTP_TRACE_ERROR("formSrList error: %d", eEncRes, 0);
                 m_pobjAppInterface->rtcpTimerHdlErrorInd(eEncRes);
                 return eEncRes;
             }
@@ -489,6 +490,7 @@ eRTP_STATUS_CODE RtpSession::rtpMakeCompoundRtcpPacket(IN_OUT RtcpPacket* objRtc
             eEncRes = formSrList(uiRemRepBlkNum, objRtcpPkt);
             if (eEncRes != RTP_SUCCESS)
             {
+                RTP_TRACE_ERROR("formSrList error: %d", eEncRes, 0);
                 m_pobjAppInterface->rtcpTimerHdlErrorInd(eEncRes);
                 return eEncRes;
             }
@@ -504,6 +506,7 @@ eRTP_STATUS_CODE RtpSession::rtpMakeCompoundRtcpPacket(IN_OUT RtcpPacket* objRtc
             eEncRes = formRrList(uiSndrCount, objRtcpPkt);
             if (eEncRes != RTP_SUCCESS)
             {
+                RTP_TRACE_ERROR("formRrList error: %d", eEncRes, 0);
                 m_pobjAppInterface->rtcpTimerHdlErrorInd(eEncRes);
                 return eEncRes;
             }
@@ -515,6 +518,7 @@ eRTP_STATUS_CODE RtpSession::rtpMakeCompoundRtcpPacket(IN_OUT RtcpPacket* objRtc
             eEncRes = formRrList(uiRemRepBlkNum, objRtcpPkt);
             if (eEncRes != RTP_SUCCESS)
             {
+                RTP_TRACE_ERROR("formRrList error: %d", eEncRes, 0);
                 m_pobjAppInterface->rtcpTimerHdlErrorInd(eEncRes);
                 return eEncRes;
             }
@@ -528,6 +532,7 @@ eRTP_STATUS_CODE RtpSession::rtpMakeCompoundRtcpPacket(IN_OUT RtcpPacket* objRtc
         eStatus = populateByePacket(objRtcpPkt);
         if (eStatus != RTP_SUCCESS)
         {
+            RTP_TRACE_ERROR("populateByePacket error: %d", eEncRes, 0);
             m_pobjAppInterface->rtcpTimerHdlErrorInd(eStatus);
             return eStatus;
         }
@@ -539,6 +544,7 @@ eRTP_STATUS_CODE RtpSession::rtpMakeCompoundRtcpPacket(IN_OUT RtcpPacket* objRtc
 
         if (eStatus != RTP_SUCCESS)
         {
+            RTP_TRACE_ERROR("constructSdesPkt error: %d", eEncRes, 0);
             m_pobjAppInterface->rtcpTimerHdlErrorInd(eStatus);
             return eStatus;
         }
@@ -551,6 +557,7 @@ eRTP_STATUS_CODE RtpSession::rtpMakeCompoundRtcpPacket(IN_OUT RtcpPacket* objRtc
 
         if (eStatus != RTP_SUCCESS)
         {
+            RTP_TRACE_ERROR("populateRtcpXrPacket error: %d", eEncRes, 0);
             m_pobjAppInterface->rtcpTimerHdlErrorInd(eStatus);
             return eStatus;
         }
@@ -599,7 +606,7 @@ eRTP_STATUS_CODE RtpSession::rtpSendRtcpPacket(IN_OUT RtcpPacket* objRtcpPkt)
     }
     else
     {
-        RTP_TRACE_WARNING("rtpSendRtcpPacket, error in formRtcpPacket.", RTP_ZERO, RTP_ZERO);
+        RTP_TRACE_ERROR("rtpSendRtcpPacket, error in formRtcpPacket.", RTP_ZERO, RTP_ZERO);
         m_pobjAppInterface->rtcpTimerHdlErrorInd(eEncRes);
     }
 
@@ -706,9 +713,9 @@ RtpDt_Void RtpSession::rtcpTimerExpiry(IN RtpDt_Void* pvTimerId)
     eRTP_STATUS_CODE eEncRes = RTP_FAILURE;
 
     eEncRes = rtpMakeCompoundRtcpPacket(&objRtcpPkt);
-
     if (eEncRes != RTP_SUCCESS)
     {
+        RTP_TRACE_ERROR("MakeCompoundRtcpPacket Error: %d", eEncRes, RTP_ZERO);
         return;
     }
 
@@ -716,6 +723,7 @@ RtpDt_Void RtpSession::rtcpTimerExpiry(IN RtpDt_Void* pvTimerId)
     eEncRes = rtpSendRtcpPacket(&objRtcpPkt);
     if (eEncRes != RTP_SUCCESS)
     {
+        RTP_TRACE_ERROR("rtpSendRtcpPacket Error: %d", eEncRes, RTP_ZERO);
         return;
     }
     // set Tp with Tc

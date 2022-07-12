@@ -116,6 +116,7 @@ eRTP_STATUS_CODE RtcpRrPacket::decodeRrPacket(
 
 eRTP_STATUS_CODE RtcpRrPacket::formRrPacket(OUT RtpBuffer* pobjRtcpPktBuf, IN eRtp_Bool bHdrInfo)
 {
+    RTP_TRACE_MESSAGE("formRrPacket", 0, 0);
     RtpDt_UInt32 uiRtPktPos = pobjRtcpPktBuf->getLength();
 
     if (bHdrInfo == RTP_TRUE)

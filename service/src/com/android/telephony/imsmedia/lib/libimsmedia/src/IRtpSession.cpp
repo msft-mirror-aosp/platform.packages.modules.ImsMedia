@@ -244,7 +244,6 @@ void IRtpSession::StopRtp()
         IMS_RtpSvc_SessionDisableRTP(mRtpSessionId);
         IMLOGD0("[StopRtp] IMS_RtpSvc_SessionDisableRTP");
     }
-    mEnableRtcpTx = false;
 }
 
 void IRtpSession::StartRtcp(bool bSendRtcpBye)
@@ -268,6 +267,7 @@ void IRtpSession::StopRtcp()
     {
         IMLOGD0("[StopRtcp] IMS_RtpSvc_SessionDisableRtcp");
         IMS_RtpSvc_SessionDisableRTCP(mRtpSessionId);
+        mEnableRtcpTx = false;
     }
 }
 

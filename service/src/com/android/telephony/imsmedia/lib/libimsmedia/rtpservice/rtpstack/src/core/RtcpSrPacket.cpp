@@ -301,6 +301,7 @@ block  +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 
     */
 
+    RTP_TRACE_MESSAGE("formSrPacket", 0, 0);
     RtpDt_UInt32 uiCurPos = pobjRtcpPktBuf->getLength();
     RtpDt_UChar* pucBuffer = pobjRtcpPktBuf->getBuffer();
     uiCurPos = uiCurPos + RTCP_FIXED_HDR_LEN;

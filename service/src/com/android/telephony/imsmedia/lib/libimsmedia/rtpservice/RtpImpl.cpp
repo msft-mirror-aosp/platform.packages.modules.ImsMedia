@@ -54,13 +54,18 @@ eRtp_Bool RtpImpl::rtpMemberLeaveInd(IN eRTP_LEAVE_REASON eLeaveReason, IN RtpDt
 
 eRtp_Bool RtpImpl::rtcpPacketSendInd(IN RtpBuffer* pobjRtcpBuf, IN RtpSession* pobjRtpSession)
 {
+    RTP_TRACE_MESSAGE("rtcpPacketSendInd", 0, 0);
     RtpServiceListener* pobjIRtpSession = (RtpServiceListener*)getAppdata();
     if (pobjIRtpSession == RTP_NULL || pobjRtcpBuf == RTP_NULL || pobjRtpSession == RTP_NULL)
+    {
+        RTP_TRACE_ERROR("RTCP send failed. No listeners are set", 0, 0);
         return eRTP_FALSE;
+    }
 
     // dispatch to peer
     if (pobjIRtpSession->OnRtcpPacket(pobjRtcpBuf->getBuffer(), pobjRtcpBuf->getLength()) == -1)
     {
+        RTP_TRACE_ERROR("Send RTCP: IRTPSession returned Error", 0, 0);
         pobjRtcpBuf->setBufferInfo(RTP_ZERO, RTP_NULL);
         return eRTP_FALSE;
     }

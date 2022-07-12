@@ -233,7 +233,7 @@ eRTP_STATUS_CODE RtcpPacket::decodeRtcpPacket(IN RtpBuffer* pobjRtcpPktBuf,
         {
             case RTCP_SR:
             {
-                RTP_TRACE_ERROR("[DecodeRtcpPacket] Decoding RTCP_SR", 0, 0);
+                RTP_TRACE_MESSAGE("[DecodeRtcpPacket] Decoding RTCP_SR", 0, 0);
                 RtcpSrPacket* pobjSrPkt = new RtcpSrPacket();
                 if (pobjSrPkt == RTP_NULL)
                 {
@@ -248,7 +248,7 @@ eRTP_STATUS_CODE RtcpPacket::decodeRtcpPacket(IN RtpBuffer* pobjRtcpPktBuf,
             }  // RTCP_SR
             case RTCP_RR:
             {
-                RTP_TRACE_ERROR("[DecodeRtcpPacket] Decoding RTCP_RR", 0, 0);
+                RTP_TRACE_MESSAGE("[DecodeRtcpPacket] Decoding RTCP_RR", 0, 0);
                 RtpDt_UInt16 uiRrPktLen = usPktLen;
                 RtcpRrPacket* pobjRrPkt = new RtcpRrPacket();
                 if (pobjRrPkt == RTP_NULL)
@@ -264,7 +264,7 @@ eRTP_STATUS_CODE RtcpPacket::decodeRtcpPacket(IN RtpBuffer* pobjRtcpPktBuf,
             }  // RTCP_RR
             case RTCP_SDES:
             {
-                RTP_TRACE_ERROR("[DecodeRtcpPacket] Decoding RTCP_SDES", 0, 0);
+                RTP_TRACE_MESSAGE("[DecodeRtcpPacket] Decoding RTCP_SDES", 0, 0);
                 m_pobjSdesPkt = new RtcpSdesPacket();
                 if (m_pobjSdesPkt == RTP_NULL)
                 {
@@ -278,7 +278,7 @@ eRTP_STATUS_CODE RtcpPacket::decodeRtcpPacket(IN RtpBuffer* pobjRtcpPktBuf,
             }  // RTCP_SDES
             case RTCP_BYE:
             {
-                RTP_TRACE_ERROR("[DecodeRtcpPacket] Decoding RTCP_BYE", 0, 0);
+                RTP_TRACE_MESSAGE("[DecodeRtcpPacket] Decoding RTCP_BYE", 0, 0);
                 m_pobjByePkt = new RtcpByePacket();
                 if (m_pobjByePkt == RTP_NULL)
                 {
@@ -292,7 +292,7 @@ eRTP_STATUS_CODE RtcpPacket::decodeRtcpPacket(IN RtpBuffer* pobjRtcpPktBuf,
             }  // RTCP_BYE
             case RTCP_APP:
             {
-                RTP_TRACE_ERROR("[DecodeRtcpPacket] Decoding RTCP_APP", 0, 0);
+                RTP_TRACE_MESSAGE("[DecodeRtcpPacket] Decoding RTCP_APP", 0, 0);
                 m_pobjAppPkt = new RtcpAppPacket();
                 if (m_pobjAppPkt == RTP_NULL)
                 {
@@ -307,7 +307,7 @@ eRTP_STATUS_CODE RtcpPacket::decodeRtcpPacket(IN RtpBuffer* pobjRtcpPktBuf,
             case RTCP_RTPFB:
             case RTCP_PSFB:
             {
-                RTP_TRACE_ERROR("[DecodeRtcpPacket] Decoding RTCP_RTPFB", 0, 0);
+                RTP_TRACE_MESSAGE("[DecodeRtcpPacket] Decoding RTCP_RTPFB", 0, 0);
                 RtcpFbPacket* pobjFbPkt = new RtcpFbPacket();
                 if (pobjFbPkt == RTP_NULL)
                 {
@@ -351,6 +351,7 @@ eRTP_STATUS_CODE RtcpPacket::decodeRtcpPacket(IN RtpBuffer* pobjRtcpPktBuf,
 
 eRTP_STATUS_CODE RtcpPacket::formRtcpPacket(OUT RtpBuffer* pobjRtcpPktBuf)
 {
+    RTP_TRACE_MESSAGE("formRtcpPacket", 0, 0);
     RtpDt_UInt16 usSrSize = m_objSrPktList.size();
     RtpDt_UInt16 usRrSize = m_objRrPktList.size();
     RtpDt_UInt16 usFbSize = m_objFbPktList.size();
