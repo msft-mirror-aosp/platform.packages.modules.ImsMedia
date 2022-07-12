@@ -42,12 +42,12 @@ RtpDt_Void populateReceiveRtpIndInfo(
     RtpHeader* pobjRtpHeader = pobjRtpPkt->getRtpHeader();
     pstRtpIndMsg->bMbit = pobjRtpHeader->getMarker() > 0 ? eRTP_TRUE : eRTP_FALSE;
     pstRtpIndMsg->dwTimestamp = pobjRtpHeader->getRtpTimestamp();
-    pstRtpIndMsg->dwPayloadType = pobjRtpHeader->getPldType();
-    pstRtpIndMsg->dwSeqNum = pobjRtpHeader->getSeqNum();
+    pstRtpIndMsg->dwPayloadType = pobjRtpHeader->getPayloadType();
+    pstRtpIndMsg->dwSeqNum = pobjRtpHeader->getSequenceNumber();
 
     // Header length
     pstRtpIndMsg->wMsgHdrLen = RTP_FIXED_HDR_LEN;
-    pstRtpIndMsg->wMsgHdrLen += 4 * pobjRtpHeader->getCsrcCount();
+    pstRtpIndMsg->wMsgHdrLen += RTP_WORD_SIZE * pobjRtpHeader->getCsrcCount();
     if (pobjRtpPkt->getExtHeader())
     {
         pstRtpIndMsg->wMsgHdrLen += pobjRtpPkt->getExtHeader()->getLength();
@@ -62,19 +62,19 @@ RtpDt_Void populateReceiveRtpIndInfo(
     }
     // End Header length
     // play the payload
-    RtpBuffer* pobjPlayPl = pobjRtpPkt->getRtpPayload();
+    RtpBuffer* pobjRtpPayload = pobjRtpPkt->getRtpPayload();
     // Header
 
     // body
-    if (!pobjPlayPl)
+    if (!pobjRtpPayload)
     {
         pstRtpIndMsg->wMsgBodyLen = 0;
         pstRtpIndMsg->pMsgBody = NULL;
         return;
     }
 
-    pstRtpIndMsg->wMsgBodyLen = pobjPlayPl->getLength();
-    pstRtpIndMsg->pMsgBody = (RtpDt_UChar*)pobjPlayPl->getBuffer();
+    pstRtpIndMsg->wMsgBodyLen = pobjRtpPayload->getLength();
+    pstRtpIndMsg->pMsgBody = (RtpDt_UChar*)pobjRtpPayload->getBuffer();
 }
 
 eRtp_Bool populateRcvdReportFromStk(

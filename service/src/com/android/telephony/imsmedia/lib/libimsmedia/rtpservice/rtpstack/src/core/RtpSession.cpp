@@ -1527,7 +1527,7 @@ eRTP_STATUS_CODE RtpSession::processRcvdRtpPkt(IN RtpBuffer* pobjRtpAddr, IN Rtp
         }
 
         // initialize the rcvr info
-        pobjRcvInfo->initSeq(pobjRtpHeader->getSeqNum());
+        pobjRcvInfo->initSeq(pobjRtpHeader->getSequenceNumber());
 
         // populate pobjRcvInfo object
         // ip address
@@ -1551,7 +1551,7 @@ eRTP_STATUS_CODE RtpSession::processRcvdRtpPkt(IN RtpBuffer* pobjRtpAddr, IN Rtp
     else if (m_bFirstRtpRecvd == eRTP_FALSE)
     {
         // initialize the receiver info
-        pobjRcvInfo->initSeq(pobjRtpHeader->getSeqNum());
+        pobjRcvInfo->initSeq(pobjRtpHeader->getSequenceNumber());
         // m_bSender
         pobjRcvInfo->setSenderFlag(eRTP_TRUE);
         // first RTP packet received
@@ -1560,7 +1560,7 @@ eRTP_STATUS_CODE RtpSession::processRcvdRtpPkt(IN RtpBuffer* pobjRtpAddr, IN Rtp
 
     if (eRcvdResult == RTP_RCVD_CSRC_ENTRY)
     {
-        pobjRcvInfo->initSeq(pobjRtpHeader->getSeqNum());
+        pobjRcvInfo->initSeq(pobjRtpHeader->getSequenceNumber());
         // ip address
         pobjRcvInfo->setIpAddr(pobjRtpAddr);
         // port
@@ -1579,7 +1579,7 @@ eRTP_STATUS_CODE RtpSession::processRcvdRtpPkt(IN RtpBuffer* pobjRtpAddr, IN Rtp
     pobjRcvInfo->calcJitter(pobjRtpHeader->getRtpTimestamp(), m_pobjPayloadInfo->getSamplingRate());
 
     // update ROC
-    RtpDt_UInt16 usTempSeqNum = pobjRtpHeader->getSeqNum();
+    RtpDt_UInt16 usTempSeqNum = pobjRtpHeader->getSequenceNumber();
     RtpDt_UInt32 uiUpdateSeqRes = pobjRcvInfo->updateSeq(usTempSeqNum);
 
     // update statistics
@@ -1614,17 +1614,17 @@ eRTP_STATUS_CODE RtpSession::populateRtpHeader(
     }
 
     // payload type
-    pobjRtpHdr->setPldType((RtpDt_UChar)ucPayloadType);
+    pobjRtpHdr->setPayloadType((RtpDt_UChar)ucPayloadType);
 
     // sequence number
     if (m_uiRtpSendPktCount == RTP_ZERO)
     {
-        pobjRtpHdr->setSeqNum(m_usSeqNum);
+        pobjRtpHdr->setSequenceNumber(m_usSeqNum);
     }
     else
     {
         m_usSeqNum++;
-        pobjRtpHdr->setSeqNum(m_usSeqNum);
+        pobjRtpHdr->setSequenceNumber(m_usSeqNum);
     }
 
     // Synchronization source
@@ -2299,10 +2299,10 @@ eRtp_Bool RtpSession::checkRtpPayloadType(
     RtpDt_Int32 i = 0;
     for (; i < RTP_MAX_PAYLOAD_TYPE; i++)
     {
-        if (pobjRtpHeader->getPldType() == m_pobjPayloadInfo->getPayloadType(i))
+        if (pobjRtpHeader->getPayloadType() == m_pobjPayloadInfo->getPayloadType(i))
             break;
         RTP_TRACE_MESSAGE("checkRtpPayloadType rcvd payload = %d--- set payload =%d",
-                pobjRtpHeader->getPldType(), m_pobjPayloadInfo->getPayloadType(i));
+                pobjRtpHeader->getPayloadType(), m_pobjPayloadInfo->getPayloadType(i));
     }
 
     if (i == RTP_MAX_PAYLOAD_TYPE)

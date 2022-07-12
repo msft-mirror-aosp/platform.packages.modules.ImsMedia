@@ -41,7 +41,7 @@ public:
         Parse and retrieve seq number from a RTP packet
         @param[in] pobjRecvdPkt RTCP packet from network
         */
-    static RtpDt_UInt16 getSeqNum(IN RtpDt_UChar* pcRtpHdrBuf);
+    static RtpDt_UInt16 getSequenceNumber(IN RtpDt_UChar* pcRtpHdrBuf);
     /**
         Parse and retrieve ssrc from a RTP packet
         @param[in] pobjRecvdPkt RTP packet from network
