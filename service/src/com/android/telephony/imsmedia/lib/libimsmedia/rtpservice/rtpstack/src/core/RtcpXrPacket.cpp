@@ -41,6 +41,11 @@ RtcpHeader* RtcpXrPacket::getRtcpHdrInfo()
     return &m_objRtcpHdr;
 }
 
+RtpDt_Void RtcpXrPacket::setRtcpHdrInfo(RtcpHeader& header)
+{
+    m_objRtcpHdr = header;
+}
+
 RtpDt_Void RtcpXrPacket::setRTTD(RtpDt_UInt32 rttd)
 {
     m_uiRTTD = rttd;
