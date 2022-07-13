@@ -171,7 +171,7 @@ RtpDt_Void RtpTimerInfo::setTp(IN RtpDt_UInt32 uiTp)
 RtpDt_UInt32 RtpTimerInfo::getTc()
 {
     tRTP_NTP_TIME stCurNtpRtcpTs = {RTP_ZERO, RTP_ZERO};
-    RtpOsUtil::GetNtpTime(&stCurNtpRtcpTs);
+    RtpOsUtil::GetNtpTime(stCurNtpRtcpTs);
     RtpDt_UInt32 uiMidOctets = RtpStackUtil::getMidFourOctets(&stCurNtpRtcpTs);
     RtpDt_UInt32 uiHigh = uiMidOctets >> RTP_BYTE2_BIT_SIZE;
     uiHigh = uiHigh * RTP_SEC_TO_MILLISEC;

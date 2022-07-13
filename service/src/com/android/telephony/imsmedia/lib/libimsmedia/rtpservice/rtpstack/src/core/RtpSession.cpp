@@ -431,7 +431,7 @@ RtpDt_UInt32 RtpSession::calculateTotalRtcpSize(
 
 RtpDt_Void RtpSession::rtpSetTimestamp()
 {
-    RtpOsUtil::GetNtpTime(&m_stCurNtpRtcpTs);
+    RtpOsUtil::GetNtpTime(m_stCurNtpRtcpTs);
     if (m_bRtcpSendPkt == eRTP_FALSE)
     {
         m_bRtcpSendPkt = eRTP_TRUE;
@@ -1218,7 +1218,7 @@ eRTP_STATUS_CODE RtpSession::initSession(
     // generate sequence number
     m_usSeqNum = (RtpDt_UInt16)RtpOsUtil::Rand();
     m_curRtpTimestamp = (RtpDt_UInt16)RtpOsUtil::Rand();
-    RtpOsUtil::GetNtpTime(&m_stCurNtpTimestamp);
+    RtpOsUtil::GetNtpTime(m_stCurNtpTimestamp);
     return RTP_SUCCESS;
 }  // initSession
 
@@ -1664,7 +1664,7 @@ eRTP_STATUS_CODE RtpSession::createRtpPacket(IN RtpBuffer* pobjPayload, IN eRtp_
     {
         m_stPrevNtpTimestamp = m_stCurNtpTimestamp;
         m_prevRtpTimestamp = m_curRtpTimestamp;
-        RtpOsUtil::GetNtpTime(&m_stCurNtpTimestamp);
+        RtpOsUtil::GetNtpTime(m_stCurNtpTimestamp);
 
         if (m_uiRtpSendPktCount == RTP_ZERO)
         {
@@ -1933,7 +1933,7 @@ eRTP_STATUS_CODE RtpSession::processRcvdRtcpPkt(IN RtpBuffer* pobjRtcpAddr, IN R
     RtpDt_UInt16 usExtHdrLen = RTP_ZERO;
     eRTP_STATUS_CODE eDecodeStatus = RTP_FAILURE;
 
-    RtpOsUtil::GetNtpTime(&stNtpTs);
+    RtpOsUtil::GetNtpTime(stNtpTs);
     RtpDt_UInt32 currentTime = RtpStackUtil::getMidFourOctets(&stNtpTs);
     // decode compound packet
     eDecodeStatus = pobjRtcpPkt->decodeRtcpPacket(pobjRTCPBuf, usExtHdrLen, m_pobjRtcpCfgInfo);
@@ -1978,7 +1978,7 @@ eRTP_STATUS_CODE RtpSession::processRcvdRtcpPkt(IN RtpBuffer* pobjRtcpAddr, IN R
         {
             tRTP_NTP_TIME stNtpTs;
             pobjRcvInfo->setpreSrTimestamp(pobjSrPkt->getNtpTime());
-            RtpOsUtil::GetNtpTime(&stNtpTs);
+            RtpOsUtil::GetNtpTime(stNtpTs);
             pobjRcvInfo->setLastSrNtpTimestamp(&stNtpTs);
         }
     }  // RTCP SR

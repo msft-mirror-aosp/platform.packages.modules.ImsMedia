@@ -91,7 +91,7 @@ RtpDt_Void RtpReceiverInfo::calcJitter(IN RtpDt_UInt32 uiRcvRtpTs, IN RtpDt_UInt
     tRTP_NTP_TIME stCurNtpTimestamp;
 
     // get current NTP Timestamp
-    RtpOsUtil::GetNtpTime(&stCurNtpTimestamp);
+    RtpOsUtil::GetNtpTime(stCurNtpTimestamp);
     RtpDt_UInt32 uiCurRtpTimestamp = RtpStackUtil::calcRtpTimestamp(
             m_prevRtpTimestamp, &stCurNtpTimestamp, &m_stPrevNtpTimestamp, uiSamplingRate);
     // calculate arrival
@@ -319,7 +319,7 @@ RtpDt_UInt32 RtpReceiverInfo::delaySinceLastSR()
     {
         return RTP_ZERO;
     }
-    RtpOsUtil::GetNtpTime(&stCurNtpTimestamp);
+    RtpOsUtil::GetNtpTime(stCurNtpTimestamp);
     stCurNtpTimestamp.m_uiNtpHigh32Bits = RtpStackUtil::getMidFourOctets(&stCurNtpTimestamp);
     dDifference = stCurNtpTimestamp.m_uiNtpHigh32Bits - m_stLastSrNtpTimestamp;
     return dDifference;
