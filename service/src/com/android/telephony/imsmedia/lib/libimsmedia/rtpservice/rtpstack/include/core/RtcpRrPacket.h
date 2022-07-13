@@ -71,7 +71,7 @@ public:
     /**
      * get method for m_objReportBlkList
      */
-    std::list<RtcpReportBlock*>& getReportBlkList();
+    std::list<RtcpReportBlock*>& getReportBlockList();
 
     /**
      * get method for m_pobjExt

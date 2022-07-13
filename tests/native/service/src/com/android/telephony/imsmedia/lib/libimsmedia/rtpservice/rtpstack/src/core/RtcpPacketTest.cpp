@@ -249,7 +249,7 @@ TEST_F(RtcpPacketTest, DecodeCompoundSrRrPacket)
     if (pRRInfo == NULL)
         return;
 
-    std::list<RtcpReportBlock*> reports = pRRInfo->getReportBlkList();
+    std::list<RtcpReportBlock*> reports = pRRInfo->getReportBlockList();
     EXPECT_TRUE(reports.size() != 0);
     if (reports.size() == 0)
         return;
@@ -290,7 +290,7 @@ TEST_F(RtcpPacketTest, DecodeCompoundSrRrPacket)
     EXPECT_EQ(pRtcpHeader->getLength(), 7 * RTP_WORD_SIZE);
     EXPECT_EQ(pRtcpHeader->getSsrc(), 0xd2bd4e3e);
 
-    reports = pRrPkt->getReportBlkList();
+    reports = pRrPkt->getReportBlockList();
     EXPECT_TRUE(reports.size() != 0);
     if (reports.size() == 0)
         return;
@@ -427,7 +427,7 @@ TEST_F(RtcpPacketTest, DecodeCompoundSrRrSdesPacket)
     if (pRRInfo == NULL)
         return;
 
-    std::list<RtcpReportBlock*> reports = pRRInfo->getReportBlkList();
+    std::list<RtcpReportBlock*> reports = pRRInfo->getReportBlockList();
     EXPECT_TRUE(reports.size() != 0);
     if (reports.size() == 0)
         return;
@@ -468,7 +468,7 @@ TEST_F(RtcpPacketTest, DecodeCompoundSrRrSdesPacket)
     EXPECT_EQ(pRtcpHeader->getLength(), 7 * RTP_WORD_SIZE);
     EXPECT_EQ(pRtcpHeader->getSsrc(), 0xd2bd4e3e);
 
-    reports = pRrPkt->getReportBlkList();
+    reports = pRrPkt->getReportBlockList();
     EXPECT_TRUE(reports.size() != 0);
     if (reports.size() == 0)
         return;

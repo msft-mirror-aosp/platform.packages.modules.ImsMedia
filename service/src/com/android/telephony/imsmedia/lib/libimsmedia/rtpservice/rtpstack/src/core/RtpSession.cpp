@@ -838,7 +838,7 @@ eRTP_STATUS_CODE RtpSession::populateReportPacket(
         OUT RtcpRrPacket* pobjRrPkt, IN eRtp_Bool bRrPkt, IN RtpDt_UInt32 uiRecepCount)
 {
     RtcpHeader* pRtcpHdr = pobjRrPkt->getRtcpHdrInfo();
-    std::list<RtcpReportBlock*>& pobjRepBlkLst = pobjRrPkt->getReportBlkList();
+    std::list<RtcpReportBlock*>& pobjRepBlkLst = pobjRrPkt->getReportBlockList();
 
     // get receiver list size
     if (bRrPkt == eRTP_TRUE)
@@ -1961,7 +1961,7 @@ eRTP_STATUS_CODE RtpSession::processRcvdRtcpPkt(IN RtpBuffer* pobjRtcpAddr, IN R
         RtpDt_UInt32 uiRcvdSsrc = pobjRtcpHdr->getSsrc();
 
         // calculate RTTD
-        std::list<RtcpReportBlock*>& pobjReportBlkList = pobjRRPkt->getReportBlkList();
+        std::list<RtcpReportBlock*>& pobjReportBlkList = pobjRRPkt->getReportBlockList();
         if (pobjReportBlkList.size() > RTP_ZERO)
         {
             RtcpReportBlock* pobjReportBlk = pobjReportBlkList.front();
@@ -1992,7 +1992,7 @@ eRTP_STATUS_CODE RtpSession::processRcvdRtcpPkt(IN RtpBuffer* pobjRtcpAddr, IN R
         RtcpRrPacket* pobjRrPkt = pobjRrList.front();
 
         // calculate RTTD
-        std::list<RtcpReportBlock*>& pobjReportBlkList = pobjRrPkt->getReportBlkList();
+        std::list<RtcpReportBlock*>& pobjReportBlkList = pobjRrPkt->getReportBlockList();
         if (pobjReportBlkList.size() > RTP_ZERO)
         {
             RtcpReportBlock* pobjReportBlk = pobjReportBlkList.front();

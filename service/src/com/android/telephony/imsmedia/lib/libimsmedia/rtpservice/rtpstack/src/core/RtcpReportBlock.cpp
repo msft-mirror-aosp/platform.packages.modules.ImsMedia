@@ -99,7 +99,7 @@ RtpDt_UInt32 RtcpReportBlock::getDelayLastSR()
     return m_uiDelayLastSR;
 }
 
-eRtp_Bool RtcpReportBlock::decodeReportBlk(IN RtpDt_UChar* pcRepBlkBuf)
+eRtp_Bool RtcpReportBlock::decodeReportBlock(IN RtpDt_UChar* pcRepBlkBuf)
 {
     // SSRC
     m_uiSsrc = RtpOsUtil::Ntohl(*((RtpDt_UInt32*)pcRepBlkBuf));
@@ -131,9 +131,9 @@ eRtp_Bool RtcpReportBlock::decodeReportBlk(IN RtpDt_UChar* pcRepBlkBuf)
     pcRepBlkBuf = pcRepBlkBuf + RTP_WORD_SIZE;
 
     return eRTP_SUCCESS;
-}  // decodeReportBlk
+}  // decodeReportBlock
 
-eRtp_Bool RtcpReportBlock::formReportBlk(OUT RtpBuffer* pobjRtcpPktBuf)
+eRtp_Bool RtcpReportBlock::formReportBlock(OUT RtpBuffer* pobjRtcpPktBuf)
 {
     RtpDt_UInt32 uiCurPos = pobjRtcpPktBuf->getLength();
     RtpDt_UChar* pucBuffer = pobjRtcpPktBuf->getBuffer();
@@ -178,4 +178,4 @@ eRtp_Bool RtcpReportBlock::formReportBlk(OUT RtpBuffer* pobjRtcpPktBuf)
     pobjRtcpPktBuf->setLength(uiCurPos);
 
     return eRTP_SUCCESS;
-}  // formReportBlk
+}  // formReportBlock
