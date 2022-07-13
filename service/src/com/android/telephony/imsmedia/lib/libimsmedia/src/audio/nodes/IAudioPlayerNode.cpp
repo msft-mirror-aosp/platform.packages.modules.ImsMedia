@@ -61,14 +61,13 @@ ImsMediaResult IAudioPlayerNode::Start()
     if (mAudioPlayer)
     {
         mAudioPlayer->SetCodec(mCodecType);
-        mAudioPlayer->SetCodecMode(mMode);
         mAudioPlayer->SetSamplingRate(mSamplingRate * 1000);
 
         if (mCodecType == kAudioCodecEvs)
         {
             mAudioPlayer->SetEvsBandwidth(mEvsBandwidth);
             mAudioPlayer->SetEvsPayloadHeaderMode(mEvsPayloadHeaderMode);
-            mAudioPlayer->SetEvsBitRate();
+            mAudioPlayer->SetEvsBitRate(mMode);
         }
 
         mAudioPlayer->Start();

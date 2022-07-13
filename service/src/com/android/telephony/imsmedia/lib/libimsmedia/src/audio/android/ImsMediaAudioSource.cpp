@@ -38,8 +38,7 @@ ImsMediaAudioSource::ImsMediaAudioSource()
     mAudioStream = NULL;
     mCodec = NULL;
     mFormat = NULL;
-    mUplinkCB = NULL;
-    mUplinkCBClient = NULL;
+    mCallback = NULL;
     mCodecType = -1;
     mMode = 0;
     mPtime = 0;
@@ -52,11 +51,10 @@ ImsMediaAudioSource::ImsMediaAudioSource()
 
 ImsMediaAudioSource::~ImsMediaAudioSource() {}
 
-void ImsMediaAudioSource::SetUplinkCallback(void* pClient, AudioUplinkCB pUplinkCB)
+void ImsMediaAudioSource::SetUplinkCallback(IFrameCallback* callback)
 {
     std::lock_guard<std::mutex> guard(mMutexUplink);
-    mUplinkCBClient = pClient;
-    mUplinkCB = pUplinkCB;
+    mCallback = callback;
 }
 
 void ImsMediaAudioSource::SetCodec(int32_t type)
@@ -71,9 +69,9 @@ void ImsMediaAudioSource::SetCodecMode(uint32_t mode)
     mMode = mode;
 }
 
-void ImsMediaAudioSource::SetEvsBitRate()
+void ImsMediaAudioSource::SetEvsBitRate(uint32_t mode)
 {
-    mEvsBitRate = ImsMediaAudioFmt::ConvertEVSModeToBitRate(mMode);
+    mEvsBitRate = ImsMediaAudioFmt::ConvertEVSModeToBitRate(mode);
     IMLOGD1("[SetEvsBitRate] EvsBitRate[%d]", mEvsBitRate);
 }
 
@@ -118,6 +116,10 @@ bool ImsMediaAudioSource::Start()
     {
         sprintf(kMimeType, "audio/evs");
     }
+    else
+    {
+        return false;
+    }
 
     openAudioStream();
 
@@ -150,6 +152,7 @@ bool ImsMediaAudioSource::Start()
         IMLOGD0("[Start] configure codec");
         codecResult = AMediaCodec_configure(
                 mCodec, mFormat, NULL, NULL, AMEDIACODEC_CONFIGURE_FLAG_ENCODE);
+
         if (codecResult != AMEDIA_OK)
         {
             IMLOGE2("[Start] unable to configure[%s] codec - err[%d]", kMimeType, codecResult);
@@ -164,6 +167,7 @@ bool ImsMediaAudioSource::Start()
     if (audioResult != AAUDIO_OK)
     {
         IMLOGE1("[Start] Error start stream[%s]", AAudio_convertResultToText(audioResult));
+
         if (mCodecType == kAudioCodecAmr || mCodecType == kAudioCodecAmrWb)
         {
             AMediaCodec_delete(mCodec);
@@ -171,6 +175,7 @@ bool ImsMediaAudioSource::Start()
             AMediaFormat_delete(mFormat);
             mFormat = NULL;
         }
+
         return false;
     }
 
@@ -178,9 +183,11 @@ bool ImsMediaAudioSource::Start()
     aaudio_stream_state_t nextState = AAUDIO_STREAM_STATE_UNINITIALIZED;
     audioResult = AAudioStream_waitForStateChange(
             mAudioStream, inputState, &nextState, 10 * AAUDIO_TIMEOUT_NANO);
+
     if (audioResult != AAUDIO_OK)
     {
         IMLOGE1("[Start] Error start stream[%s]", AAudio_convertResultToText(audioResult));
+
         if (mCodecType == kAudioCodecAmr || mCodecType == kAudioCodecAmrWb)
         {
             AMediaCodec_delete(mCodec);
@@ -188,6 +195,7 @@ bool ImsMediaAudioSource::Start()
             AMediaFormat_delete(mFormat);
             mFormat = NULL;
         }
+
         return false;
     }
 
@@ -196,6 +204,7 @@ bool ImsMediaAudioSource::Start()
     if (mCodecType == kAudioCodecAmr || mCodecType == kAudioCodecAmrWb)
     {
         codecResult = AMediaCodec_start(mCodec);
+
         if (codecResult != AMEDIA_OK)
         {
             IMLOGE1("[Start] unable to start codec - err[%d]", codecResult);
@@ -217,6 +226,7 @@ bool ImsMediaAudioSource::Start()
         t1.detach();
         IMLOGD0("[Start] exit");
     }
+
     return true;
 }
 
@@ -299,18 +309,21 @@ void* ImsMediaAudioSource::run()
     {
         uint32_t nCurrTime;
         mMutexUplink.lock();
+
         if (IsThreadStopped())
         {
             IMLOGD0("[run] terminated");
             mMutexUplink.unlock();
             break;
         }
+
         mMutexUplink.unlock();
 
         if (mAudioStream != NULL &&
                 AAudioStream_getState(mAudioStream) == AAUDIO_STREAM_STATE_STARTED)
         {
             aaudio_result_t readSize = AAudioStream_read(mAudioStream, buffer, mBufferSize, 0);
+
             if (readSize > 0)
             {
                 IMLOGD_PACKET1(IM_PACKET_LOG_AUDIO, "[run] nReadSize[%d]", readSize);
@@ -320,9 +333,11 @@ void* ImsMediaAudioSource::run()
 
         nNextTime += mPtime;
         nCurrTime = ImsMediaTimer::GetTimeInMilliSeconds();
-        IMLOGD_PACKET1(IM_PACKET_LOG_AUDIO, "[run] nCurrTime[%u]", nCurrTime);
+
         if (nNextTime > nCurrTime)
+        {
             ImsMediaTimer::Sleep(nNextTime - nCurrTime);
+        }
     }
 
     return NULL;
@@ -415,11 +430,18 @@ void ImsMediaAudioSource::restartAudioStream()
 
 void ImsMediaAudioSource::queueInputBuffer(int16_t* buffer, uint32_t size)
 {
+    if (mCodec == NULL)
+    {
+        return;
+    }
+
     ssize_t index = AMediaCodec_dequeueInputBuffer(mCodec, 0);
+
     if (index >= 0)
     {
         size_t bufferSize = 0;
         uint8_t* inputBuffer = AMediaCodec_getInputBuffer(mCodec, index, &bufferSize);
+
         if (inputBuffer != NULL)
         {
             memcpy(inputBuffer, buffer, size);
@@ -428,6 +450,7 @@ void ImsMediaAudioSource::queueInputBuffer(int16_t* buffer, uint32_t size)
 
             auto err = AMediaCodec_queueInputBuffer(
                     mCodec, index, 0, size, ImsMediaTimer::GetTimeInMicroSeconds(), 0);
+
             if (err != AMEDIA_OK)
             {
                 IMLOGE1("[queueInputBuffer] Unable to queue input buffers - err[%d]", err);
@@ -445,12 +468,14 @@ void ImsMediaAudioSource::processOutputBuffer()
     {
         uint32_t nCurrTime;
         mMutexUplink.lock();
+
         if (IsThreadStopped())
         {
             IMLOGD0("[processOutputBuffer] terminated");
             mMutexUplink.unlock();
             break;
         }
+
         mMutexUplink.unlock();
 
         AMediaCodecBufferInfo info;
@@ -467,7 +492,11 @@ flags[%d]",
             {
                 size_t buffCapacity;
                 uint8_t* buf = AMediaCodec_getOutputBuffer(mCodec, index, &buffCapacity);
-                mUplinkCB(mUplinkCBClient, buf, info.size, info.presentationTimeUs, info.flags);
+
+                if (mCallback != NULL)
+                {
+                    mCallback->onDataFrame(buf, info.size, info.presentationTimeUs, info.flags);
+                }
             }
 
             AMediaCodec_releaseOutputBuffer(mCodec, index, false);
@@ -497,9 +526,11 @@ flags[%d]",
 
         nNextTime += mPtime;
         nCurrTime = ImsMediaTimer::GetTimeInMilliSeconds();
-        IMLOGD_PACKET1(IM_PACKET_LOG_AUDIO, "[processOutputBuffer] nCurrTime[%u]", nCurrTime);
+
         if (nNextTime > nCurrTime)
+        {
             ImsMediaTimer::Sleep(nNextTime - nCurrTime);
+        }
     }
 
     mConditionExit.signal();
