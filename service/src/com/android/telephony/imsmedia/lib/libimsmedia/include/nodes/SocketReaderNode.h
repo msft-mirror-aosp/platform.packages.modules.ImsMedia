@@ -25,7 +25,6 @@ class SocketReaderNode : public BaseNode, public ISocketListener
 private:
     SocketReaderNode();
     virtual ~SocketReaderNode();
-    void OnReceiveEnabled();
 
 public:
     static BaseNode* GetInstance();
@@ -46,6 +45,8 @@ public:
     void SetProtocolType(ImsMediaProtocolType type) { mProtocolType = type; }
 
 private:
+    void OnReceiveEnabled();
+
     int mLocalFd;
     ImsMediaProtocolType mProtocolType;
     ISocket* mSocket;

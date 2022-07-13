@@ -25,16 +25,22 @@ RtpDecoderNode::RtpDecoderNode()
     mReceivingSSRC = 0;
     mInactivityTime = 0;
     mNoRtpTime = 0;
-    mConfig = NULL;
+    mRtpPayloadTx = 0;
+    mRtpPayloadRx = 0;
+    mRtpDtmfPayload = 0;
+    mDtmfSamplingRate = 0;
     mCvoValue = CVO_DEFINE_NONE;
 }
 
 RtpDecoderNode::~RtpDecoderNode()
 {
-    if (mConfig != NULL)
+    // remove IRtpSession here to avoid shared instance in other node from unable to use
+    if (mRtpSession)
     {
-        delete mConfig;
-        mConfig = NULL;
+        mRtpSession->StopRtp();
+        mRtpSession->SetRtpDecoderListener(NULL);
+        IRtpSession::ReleaseInstance(mRtpSession);
+        mRtpSession = NULL;
     }
 }
 
@@ -62,9 +68,11 @@ BaseNodeID RtpDecoderNode::GetNodeID()
 ImsMediaResult RtpDecoderNode::Start()
 {
     IMLOGD0("[Start]");
+
     if (mRtpSession == NULL)
     {
         mRtpSession = IRtpSession::GetInstance(mMediaType, mLocalAddress, mPeerAddress);
+
         if (mRtpSession == NULL)
         {
             IMLOGE0("[Start] - Can't create rtp session");
@@ -72,7 +80,16 @@ ImsMediaResult RtpDecoderNode::Start()
         }
     }
 
-    mRtpSession->SetRtpPayloadParam(mConfig);
+    if (mMediaType == IMS_MEDIA_AUDIO)
+    {
+        mRtpSession->SetRtpPayloadParam(mRtpPayloadTx, mRtpPayloadRx, mSamplingRate * 1000,
+                mRtpDtmfPayload, mDtmfSamplingRate * 1000);
+    }
+    else if (mMediaType == IMS_MEDIA_VIDEO)
+    {
+        mRtpSession->SetRtpPayloadParam(mRtpPayloadTx, mRtpPayloadRx, mSamplingRate * 1000);
+    }
+
     mRtpSession->SetRtpDecoderListener(this);
     mRtpSession->StartRtp();
     mReceivingSSRC = 0;
@@ -85,13 +102,12 @@ void RtpDecoderNode::Stop()
 {
     IMLOGD0("[Stop]");
     mReceivingSSRC = 0;
+
     if (mRtpSession)
     {
-        mRtpSession->SetRtpDecoderListener(NULL);
         mRtpSession->StopRtp();
-        IRtpSession::ReleaseInstance(mRtpSession);
-        mRtpSession = NULL;
     }
+
     mNodeState = kNodeStateStopped;
 }
 
@@ -118,6 +134,7 @@ bool RtpDecoderNode::IsSourceNode()
 void RtpDecoderNode::SetConfig(void* config)
 {
     IMLOGD0("[SetConfig]");
+
     if (config == NULL)
     {
         return;
@@ -125,28 +142,22 @@ void RtpDecoderNode::SetConfig(void* config)
 
     if (mMediaType == IMS_MEDIA_AUDIO)
     {
-        if (mConfig != NULL)
-        {
-            delete mConfig;
-        }
-
-        AudioConfig* pConfig = new AudioConfig(reinterpret_cast<AudioConfig*>(config));
+        AudioConfig* pConfig = reinterpret_cast<AudioConfig*>(config);
         mPeerAddress = RtpAddress(pConfig->getRemoteAddress().c_str(), pConfig->getRemotePort());
-        mSamplingRate = pConfig->getSamplingRateKHz() * 1000;
-        mConfig = pConfig;
+        mSamplingRate = pConfig->getSamplingRateKHz();
+        mRtpPayloadTx = pConfig->getTxPayloadTypeNumber();
+        mRtpPayloadRx = pConfig->getRxPayloadTypeNumber();
+        mRtpDtmfPayload = pConfig->getDtmfPayloadTypeNumber();
+        mDtmfSamplingRate = pConfig->getDtmfsamplingRateKHz();
     }
     else if (mMediaType == IMS_MEDIA_VIDEO)
     {
-        if (mConfig != NULL)
-        {
-            delete mConfig;
-        }
-
-        VideoConfig* pConfig = new VideoConfig(reinterpret_cast<VideoConfig*>(config));
+        VideoConfig* pConfig = reinterpret_cast<VideoConfig*>(config);
         mPeerAddress = RtpAddress(pConfig->getRemoteAddress().c_str(), pConfig->getRemotePort());
-        mSamplingRate = pConfig->getSamplingRateKHz() * 1000;
+        mSamplingRate = pConfig->getSamplingRateKHz();
+        mRtpPayloadTx = pConfig->getTxPayloadTypeNumber();
+        mRtpPayloadRx = pConfig->getRxPayloadTypeNumber();
         mCvoValue = pConfig->getCvoValue();
-        mConfig = pConfig;
     }
 
     IMLOGD2("[SetConfig] peer Ip[%s], port[%d]", mPeerAddress.ipAddress, mPeerAddress.port);
@@ -162,12 +173,23 @@ bool RtpDecoderNode::IsSameConfig(void* config)
     if (mMediaType == IMS_MEDIA_AUDIO)
     {
         AudioConfig* pConfig = reinterpret_cast<AudioConfig*>(config);
-        return (*mConfig == *pConfig);
+        return (mPeerAddress ==
+                        RtpAddress(pConfig->getRemoteAddress().c_str(), pConfig->getRemotePort()) &&
+                mSamplingRate == pConfig->getSamplingRateKHz() &&
+                mRtpPayloadTx == pConfig->getTxPayloadTypeNumber() &&
+                mRtpPayloadRx == pConfig->getRxPayloadTypeNumber() &&
+                mRtpDtmfPayload == pConfig->getDtmfPayloadTypeNumber() &&
+                mDtmfSamplingRate == pConfig->getDtmfsamplingRateKHz());
     }
     else if (mMediaType == IMS_MEDIA_VIDEO)
     {
         VideoConfig* pConfig = reinterpret_cast<VideoConfig*>(config);
-        return (*mConfig == *pConfig);
+        return (mPeerAddress ==
+                        RtpAddress(pConfig->getRemoteAddress().c_str(), pConfig->getRemotePort()) &&
+                mSamplingRate == pConfig->getSamplingRateKHz() &&
+                mRtpPayloadTx == pConfig->getTxPayloadTypeNumber() &&
+                mRtpPayloadRx == pConfig->getRxPayloadTypeNumber() &&
+                mCvoValue == pConfig->getCvoValue());
     }
 
     return false;
@@ -187,7 +209,7 @@ void RtpDecoderNode::OnMediaDataInd(unsigned char* pData, uint32_t nDataSize, ui
     // no need to change to timestamp to msec in video or text packet
     if (mMediaType != IMS_MEDIA_VIDEO && mSamplingRate != 0)
     {
-        nTimestamp = nTimestamp / (mSamplingRate / 1000);
+        nTimestamp = nTimestamp / (mSamplingRate);
     }
 
     if (mReceivingSSRC != nSSRC)

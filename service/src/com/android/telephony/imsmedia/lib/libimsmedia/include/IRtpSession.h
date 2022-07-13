@@ -85,16 +85,15 @@ public:
             ImsMediaType subtype, const RtpAddress local, const RtpAddress peer);
     static void ReleaseInstance(IRtpSession* pSession);
     IRtpSession(ImsMediaType subtype, const RtpAddress local, const RtpAddress peer);
-    ~IRtpSession();
-    IRtpSession(const IRtpSession& obj);
-    IRtpSession& operator=(const IRtpSession& obj);
+    virtual ~IRtpSession();
     bool operator==(const IRtpSession& obj2);
     bool isSameInstance(ImsMediaType subtype, const RtpAddress local, const RtpAddress peer);
     void SetRtpEncoderListener(IRtpEncoderListener* pRtpEncoderListener);
     void SetRtpDecoderListener(IRtpDecoderListener* pRtpDecoderListener);
     void SetRtcpEncoderListener(IRtcpEncoderListener* pRtcpEncoderListener);
     void SetRtcpDecoderListener(IRtcpDecoderListener* pRtcpDecoderListener);
-    void SetRtpPayloadParam(RtpConfig* config);
+    void SetRtpPayloadParam(int32_t payloadNumTx, int32_t payloadNumRx, int32_t samplingRate,
+            int32_t dtmfPayloadTypeNum = 0, int32_t dtmfSamplingRate = 0);
     void SetRtcpInterval(int32_t nInterval);
     void StartRtp();
     void StopRtp();
@@ -138,7 +137,7 @@ private:
     uint32_t mPeerRtpSsrc;
     bool mEnableRtcpTx;
     bool mEnableDTMF;
-    uint32_t mDtmfPayloadType;
+    uint32_t mRtpDtmfPayloadType;
     // internal use
     uint32_t mPrevTimestamp;
     uint32_t mRtpStarted;
