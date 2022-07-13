@@ -21,8 +21,6 @@
 #include <BaseStreamGraph.h>
 #include <BaseNode.h>
 #include <android/native_window.h>
-#include <ImsMediaCondition.h>
-#include <mutex>
 
 class VideoStreamGraphRtpTx : public BaseStreamGraph
 {
@@ -37,14 +35,8 @@ public:
 
 private:
     ImsMediaResult createPreviewMode(void* config);
-    void processStart();
-
-    ImsMediaCondition mCondition;
-    ImsMediaCondition mConditionExit;
-    std::mutex mMutex;
     ANativeWindow* mSurface;
     int32_t mVideoMode;
-    bool mClosed;
 };
 
 #endif

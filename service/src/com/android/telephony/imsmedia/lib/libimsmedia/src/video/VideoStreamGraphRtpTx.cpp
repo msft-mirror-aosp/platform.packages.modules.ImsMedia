@@ -20,11 +20,6 @@
 #include <ImsMediaTrace.h>
 #include <ImsMediaNetworkUtil.h>
 #include <VideoConfig.h>
-#include <stdlib.h>
-#include <string.h>
-#include <thread>
-
-static uint32_t sTimeout = 100;
 
 VideoStreamGraphRtpTx::VideoStreamGraphRtpTx(BaseSessionCallback* callback, int localFd) :
         BaseStreamGraph(callback, localFd)
@@ -32,7 +27,6 @@ VideoStreamGraphRtpTx::VideoStreamGraphRtpTx(BaseSessionCallback* callback, int 
     mConfig = NULL;
     mSurface = NULL;
     mVideoMode = -1;
-    mClosed = false;
 }
 
 VideoStreamGraphRtpTx::~VideoStreamGraphRtpTx()
@@ -41,10 +35,6 @@ VideoStreamGraphRtpTx::~VideoStreamGraphRtpTx()
     {
         delete mConfig;
     }
-
-    mClosed = true;
-    mCondition.signal();
-    mConditionExit.wait_timeout(sTimeout);
 }
 
 ImsMediaResult VideoStreamGraphRtpTx::create(void* config)
@@ -134,7 +124,8 @@ ImsMediaResult VideoStreamGraphRtpTx::create(void* config)
 
 ImsMediaResult VideoStreamGraphRtpTx::update(void* config)
 {
-    IMLOGD1("[update] mode[%d]", mVideoMode);
+    IMLOGD2("[update] current mode[%d], state[%d]", mVideoMode, mGraphState);
+
     if (config == NULL)
     {
         return RESULT_INVALID_PARAM;
@@ -146,6 +137,11 @@ ImsMediaResult VideoStreamGraphRtpTx::update(void* config)
     {
         IMLOGD0("[update] no update");
         return RESULT_SUCCESS;
+    }
+
+    if (mGraphState == kStreamStateWaitSurface)
+    {
+        setState(StreamState::kStreamStateCreated);
     }
 
     if (mConfig != NULL)
@@ -161,6 +157,7 @@ ImsMediaResult VideoStreamGraphRtpTx::update(void* config)
                     pConfig->getVideoMode() == VideoConfig::VIDEO_MODE_PREVIEW))
     {
         ret = stop();
+
         if (ret != RESULT_SUCCESS)
         {
             return ret;
@@ -172,6 +169,7 @@ ImsMediaResult VideoStreamGraphRtpTx::update(void* config)
 
         /** create nodes */
         ret = create(pConfig);
+
         if (ret != RESULT_SUCCESS)
         {
             return ret;
@@ -195,6 +193,7 @@ ImsMediaResult VideoStreamGraphRtpTx::update(void* config)
     if (mGraphState == kStreamStateRunning)
     {
         mScheduler->Stop();
+
         for (auto& node : mListNodeStarted)
         {
             if (node != NULL)
@@ -207,6 +206,7 @@ ImsMediaResult VideoStreamGraphRtpTx::update(void* config)
                 }
             }
         }
+
         mScheduler->Start();
     }
     else if (mGraphState == kStreamStateCreated)
@@ -238,25 +238,57 @@ ImsMediaResult VideoStreamGraphRtpTx::update(void* config)
 
 ImsMediaResult VideoStreamGraphRtpTx::start()
 {
-    IMLOGD0("[start]");
-    // start encoder output thread
-    std::thread t1(&VideoStreamGraphRtpTx::processStart, this);
-    t1.detach();
+    IMLOGD2("[start] current mode[%d], state[%d]", mVideoMode, mGraphState);
+
+    if (mConfig == NULL)
+    {
+        return RESULT_INVALID_PARAM;
+    }
+
+    VideoConfig* pConfig = reinterpret_cast<VideoConfig*>(mConfig);
+
+    if (pConfig->getVideoMode() != VideoConfig::VIDEO_MODE_PREVIEW &&
+            (pConfig->getMediaDirection() == RtpConfig::MEDIA_DIRECTION_NO_FLOW ||
+                    pConfig->getMediaDirection() == RtpConfig::MEDIA_DIRECTION_RECEIVE_ONLY ||
+                    pConfig->getMediaDirection() == RtpConfig::MEDIA_DIRECTION_INACTIVE))
+    {
+        IMLOGD1("[start] direction[%d] no need to start", pConfig->getMediaDirection());
+        return RESULT_SUCCESS;
+    }
+
+    if (pConfig->getVideoMode() != VideoConfig::VIDEO_MODE_PAUSE_IMAGE && mSurface == NULL)
+    {
+        IMLOGD2("[start] direction[%d], mode[%d], surface is not ready, wait",
+                pConfig->getMediaDirection(), pConfig->getVideoMode());
+        setState(StreamState::kStreamStateWaitSurface);
+        return RESULT_SUCCESS;
+    }
+
+    ImsMediaResult result = startNodes();
+
+    if (result != RESULT_SUCCESS)
+    {
+        setState(StreamState::kStreamStateCreated);
+        mCallback->SendEvent(kImsMediaEventNotifyError, result, kStreamModeRtpTx);
+        return result;
+    }
+
+    setState(StreamState::kStreamStateRunning);
     return RESULT_SUCCESS;
 }
 
 void VideoStreamGraphRtpTx::setSurface(ANativeWindow* surface)
 {
-    IMLOGD0("[setSurface]");
-    std::lock_guard<std::mutex> guard(mMutex);
+    IMLOGD1("[setSurface] state[%d]", mGraphState);
+
     if (surface == NULL)
     {
         return;
     }
 
     mSurface = surface;
-
     bool found = false;
+
     for (auto& node : mListNodeToStart)
     {
         if (node != NULL && node->GetNodeID() == NODEID_VIDEOSOURCE)
@@ -284,8 +316,8 @@ void VideoStreamGraphRtpTx::setSurface(ANativeWindow* surface)
 
     if (getState() == StreamState::kStreamStateWaitSurface)
     {
-        IMLOGD0("[setSurface] signal");
-        mCondition.signal();
+        setState(StreamState::kStreamStateCreated);
+        start();
     }
 }
 
@@ -305,7 +337,6 @@ ImsMediaResult VideoStreamGraphRtpTx::createPreviewMode(void* config)
     IMLOGD0("[createPreviewMode]");
 
     mConfig = new VideoConfig(reinterpret_cast<VideoConfig*>(config));
-
     BaseNode* pNodeSource = BaseNode::Load(BaseNodeID::NODEID_VIDEOSOURCE, mCallback);
 
     if (pNodeSource == NULL)
@@ -318,58 +349,7 @@ ImsMediaResult VideoStreamGraphRtpTx::createPreviewMode(void* config)
     AddNode(pNodeSource);
     setState(StreamState::kStreamStateCreated);
     mVideoMode = VideoConfig::VIDEO_MODE_PREVIEW;
-
     return RESULT_SUCCESS;
-}
-
-void VideoStreamGraphRtpTx::processStart()
-{
-    if (mConfig == NULL)
-    {
-        return;
-    }
-
-    IMLOGD0("[processStart]");
-    mMutex.lock();
-    mCondition.reset();
-
-    VideoConfig* pConfig = reinterpret_cast<VideoConfig*>(mConfig);
-
-    if (pConfig->getVideoMode() != VideoConfig::VIDEO_MODE_PREVIEW &&
-            (pConfig->getMediaDirection() == RtpConfig::MEDIA_DIRECTION_NO_FLOW ||
-                    pConfig->getMediaDirection() == RtpConfig::MEDIA_DIRECTION_RECEIVE_ONLY ||
-                    pConfig->getMediaDirection() == RtpConfig::MEDIA_DIRECTION_INACTIVE))
-    {
-        IMLOGD1("[processStart] direction[%d] no need to start", pConfig->getMediaDirection());
-        mMutex.unlock();
-        return;
-    }
-
-    if (pConfig->getVideoMode() != VideoConfig::VIDEO_MODE_PAUSE_IMAGE && mSurface == NULL)
-    {
-        IMLOGD2("[processStart] direction[%d], mode[%d], surface is not ready, wait",
-                pConfig->getMediaDirection(), pConfig->getVideoMode());
-        setState(StreamState::kStreamStateWaitSurface);
-        mMutex.unlock();
-        mCondition.wait();
-
-        if (mClosed)
-        {
-            IMLOGD0("[processStart] exit");
-            mConditionExit.signal();
-            return;
-        }
-    }
-
-    ImsMediaResult result = startNodes();
-    if (result != RESULT_SUCCESS)
-    {
-        mCallback->SendEvent(kImsMediaEventNotifyError, result, kStreamModeRtpTx);
-    }
-
-    setState(StreamState::kStreamStateRunning);
-    mMutex.unlock();
-    IMLOGD0("[processStart] exit");
 }
 
 void VideoStreamGraphRtpTx::OnEvent(int32_t type, uint64_t param1, uint64_t param2)
