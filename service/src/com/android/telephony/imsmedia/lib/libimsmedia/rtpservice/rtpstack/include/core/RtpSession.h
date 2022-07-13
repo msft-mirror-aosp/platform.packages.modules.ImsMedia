@@ -48,12 +48,6 @@ class RtpStack;
  */
 class RtpSession
 {
-    /**
-     * The default constructor is blocked to ensure the RTP session is always part of a stack
-     * instance
-     */
-    RtpSession();
-
     std::mutex m_objRtpSessionLock;
 
     // Ip address assigned to RTP session
@@ -373,6 +367,11 @@ public:
      * @param pobjStack Instance of the stack to which this session belongs
      */
     RtpSession(IN RtpStack* pobjStack);
+
+    /**
+     * The default constructor is used only for unit test.
+     */
+    RtpSession();
 
     /**
      * Initialize the session with

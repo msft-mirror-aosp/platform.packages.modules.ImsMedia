@@ -14,43 +14,40 @@
  * limitations under the License.
  */
 
-#include <RtpActiveSessionDb.h>
-#include <RtpError.h>
+#include <RtpSessionManager.h>
 
-RtpActiveSessionDb* RtpActiveSessionDb::m_pInstance = RTP_NULL;
+RtpSessionManager* RtpSessionManager::m_pInstance = RTP_NULL;
 
-// constructor
-RtpActiveSessionDb::RtpActiveSessionDb() :
+RtpSessionManager::RtpSessionManager() :
         m_objActiveSessionList(std::list<RtpDt_Void*>())
 {
 }
 
-// destructor
-RtpActiveSessionDb::~RtpActiveSessionDb() {}
+RtpSessionManager::~RtpSessionManager() {}
 
-// it creates RtpActiveSessionDb instance.
-RtpActiveSessionDb* RtpActiveSessionDb::getInstance()
+RtpSessionManager* RtpSessionManager::getInstance()
 {
     if (m_pInstance == RTP_NULL)
     {
-        m_pInstance = new RtpActiveSessionDb();
+        m_pInstance = new RtpSessionManager();
     }
     return m_pInstance;
 }
 
-// add rtp session
-eRtp_Bool RtpActiveSessionDb::addRtpSession(IN RtpDt_Void* pvData)
+RtpDt_Void RtpSessionManager::addRtpSession(IN RtpDt_Void* pvData)
 {
     m_objActiveSessionList.push_back(pvData);
-    return eRTP_SUCCESS;
+    return;
 }
 
-// it validates the rtp session pointer
-eRtp_Bool RtpActiveSessionDb::validateRtpSession(
-        IN RtpDt_Void* pvData, OUT RtpDt_UInt16* pusPosition)
+RtpDt_Void RtpSessionManager::removeRtpSession(IN RtpDt_Void* pvData)
 {
-    *pusPosition = RTP_ZERO;
-    RtpDt_UInt16 usPos = RTP_ZERO;
+    m_objActiveSessionList.remove(pvData);
+    return;
+}
+
+eRtp_Bool RtpSessionManager::isValidRtpSession(IN RtpDt_Void* pvData)
+{
     for (auto& pobjActiveSession : m_objActiveSessionList)
     {
         if (pobjActiveSession == RTP_NULL)
@@ -60,18 +57,9 @@ eRtp_Bool RtpActiveSessionDb::validateRtpSession(
 
         if (pobjActiveSession == pvData)
         {
-            *pusPosition = usPos;
             return eRTP_TRUE;
         }
-        usPos++;
     }
 
     return eRTP_FALSE;
-}
-
-// it deletes the rtp session pointer from db
-eRtp_Bool RtpActiveSessionDb::deleteRtpSession(IN RtpDt_Void* pvData)
-{
-    m_objActiveSessionList.remove(pvData);
-    return eRTP_TRUE;
 }

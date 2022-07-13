@@ -21,7 +21,7 @@
 #include <RtpReceiverInfo.h>
 #include <RtcpPacket.h>
 #include <RtcpChunk.h>
-#include <RtpActiveSessionDb.h>
+#include <RtpSessionManager.h>
 #include <RtcpFbPacket.h>
 
 extern RtpDt_Void Rtp_RtcpTimerCb(IN RtpDt_Void* pvTimerId, IN RtpDt_Void* pvData);
@@ -215,7 +215,7 @@ eRtp_Bool RtpSession::compareRtpSessions(IN RtpSession* pobjSession)
 
 RtpDt_Void Rtp_RtcpTimerCb(IN RtpDt_Void* pvTimerId, IN RtpDt_Void* pvData)
 {
-    RtpActiveSessionDb* pobjActSesDb = RtpActiveSessionDb::getInstance();
+    RtpSessionManager* pobjActSesDb = RtpSessionManager::getInstance();
     RtpSession* pobjRtpSession = static_cast<RtpSession*>(pvData);
     if (pobjRtpSession == RTP_NULL)
     {
@@ -223,9 +223,7 @@ RtpDt_Void Rtp_RtcpTimerCb(IN RtpDt_Void* pvTimerId, IN RtpDt_Void* pvData)
         return;
     }
 
-    RtpDt_UInt16 uiPosition = RTP_ZERO;
-
-    eRtp_Bool bResult = pobjActSesDb->validateRtpSession(pvData, &uiPosition);
+    eRtp_Bool bResult = pobjActSesDb->isValidRtpSession(pvData);
     if (bResult != eRTP_TRUE)
     {
         return;
@@ -630,10 +628,8 @@ RtpDt_Void RtpSession::rtcpTimerExpiry(IN RtpDt_Void* pvTimerId)
 
     eRtp_Bool bSessAlive = eRTP_FALSE;
 
-    RtpDt_UInt16 usPos = 0;
-
-    RtpActiveSessionDb* pobjActSesDb = RtpActiveSessionDb::getInstance();
-    bSessAlive = pobjActSesDb->validateRtpSession(this, &usPos);
+    RtpSessionManager* pobjActSesDb = RtpSessionManager::getInstance();
+    bSessAlive = pobjActSesDb->isValidRtpSession(this);
 
     if (!bSessAlive)
     {
@@ -1122,7 +1118,7 @@ eRTP_STATUS_CODE RtpSession::enableRtcp(eRtp_Bool enableRTCPBye)
     m_bEnableRTCP = eRTP_TRUE;
     m_bEnableRTCPBye = enableRTCPBye;
 
-    RtpActiveSessionDb* pobjActSesDb = RtpActiveSessionDb::getInstance();
+    RtpSessionManager* pobjActSesDb = RtpSessionManager::getInstance();
     pobjActSesDb->addRtpSession((RtpDt_Void*)this);
     RtpDt_Void* pvData = RTP_NULL;
 
@@ -1171,8 +1167,8 @@ eRTP_STATUS_CODE RtpSession::disableRtcp()
 {
     RtpDt_Void* pvData = RTP_NULL;
 
-    RtpActiveSessionDb* pobjActSesDb = RtpActiveSessionDb::getInstance();
-    pobjActSesDb->deleteRtpSession(this);
+    RtpSessionManager* pobjActSesDb = RtpSessionManager::getInstance();
+    pobjActSesDb->removeRtpSession(this);
 
     m_bEnableRTCP = eRTP_FALSE;
     m_bEnableRTCPBye = eRTP_FALSE;
@@ -1267,8 +1263,8 @@ eRTP_STATUS_CODE RtpSession::deleteRtpSession()
 
     std::lock_guard<std::mutex> guard(m_objRtpSessionLock);
 
-    RtpActiveSessionDb* pobjActSesDb = RtpActiveSessionDb::getInstance();
-    pobjActSesDb->deleteRtpSession(this);
+    RtpSessionManager* pobjActSesDb = RtpSessionManager::getInstance();
+    pobjActSesDb->removeRtpSession(this);
 
     if (m_pTimerId != RTP_NULL)
     {
