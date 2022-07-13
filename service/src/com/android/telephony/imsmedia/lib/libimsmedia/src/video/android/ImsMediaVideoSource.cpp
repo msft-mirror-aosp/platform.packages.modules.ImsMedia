@@ -320,6 +320,7 @@ void ImsMediaVideoSource::Stop()
 
     if (mImageReader != NULL)
     {
+        std::lock_guard<std::mutex> guard(mImageReaderMutex);
         AImageReader_delete(mImageReader);
         mImageReader = NULL;
         mImageReaderSurface = NULL;
@@ -480,6 +481,12 @@ void ImsMediaVideoSource::onCameraFrame(AImage* pImage)
     if (mCodec == NULL || pImage == NULL)
     {
         IMLOGE2("[processInputBuffer] Failed Codec[%x] image[%x]", mCodec, pImage);
+        return;
+    }
+
+    std::lock_guard<std::mutex> guard(mImageReaderMutex);
+    if (mImageReader == NULL)
+    {
         return;
     }
 
