@@ -1159,10 +1159,10 @@ eRTP_STATUS_CODE RtpSession::enableRtcp(eRtp_Bool enableRTCPBye)
     m_objTimerInfo.setTn(uiTempTc + uiTimerVal);
 
     // RTCP BW
-    m_objTimerInfo.setRtcpBw(pobjRtpProfile->getRtcpBw());
+    m_objTimerInfo.setRtcpBw(pobjRtpProfile->getRtcpBandwidth());
 
     // AVG RTCP SIZE
-    m_objTimerInfo.setAvgRtcpSize(pobjRtpProfile->getRtcpBw());
+    m_objTimerInfo.setAvgRtcpSize(pobjRtpProfile->getRtcpBandwidth());
 
     return RTP_SUCCESS;
 }

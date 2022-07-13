@@ -31,7 +31,7 @@
 class RtpStackProfile
 {
 private:
-    // Percentage of Bandwidth decidated for RTCP packets. Defaults to RTP_DEF_RTCP_BW_SIZE
+    // Percentage of Bandwidth dedicated for RTCP packets. Defaults to RTP_DEF_RTCP_BW_SIZE
     RtpDt_UInt32 m_uiRtcpSessionBw;
 
     /** MTU size will be used for validation. If generated Packet is larger than the
@@ -47,10 +47,10 @@ public:
     // Destructor
     ~RtpStackProfile();
 
-    // set method for rtcpBwFraction
-    RtpDt_Void setRtcpBw(IN RtpDt_UInt32 uiRtcpBwFrac);
-    // get method for rtcpBwFraction
-    RtpDt_UInt32 getRtcpBw();
+    // set method for m_uiRtcpSessionBw
+    RtpDt_Void setRtcpBandwidth(IN RtpDt_UInt32 uiRtcpBw);
+    // get method for m_uiRtcpSessionBw
+    RtpDt_UInt32 getRtcpBandwidth();
 
     // set method for m_uiMTUSize
     RtpDt_Void setMtuSize(IN RtpDt_UInt32 uiMtuSize);
