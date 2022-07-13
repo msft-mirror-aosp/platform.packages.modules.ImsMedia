@@ -25,30 +25,6 @@
 #include <RtpBuffer.h>
 #include <RtcpHeader.h>
 
-typedef enum eRCTFBType
-{
-    FEEDBACK_NONE = 0,
-
-    // RTP FB
-    RTPFBF_NACK = 1,
-    RTPFBF_TMMBR = 3,
-    RTPFBF_TMMBN = 4,
-
-    // Payload specific FB
-    PSFB_BOUNDARY = 10,
-
-    PSFB_PLI = 11,
-    PSFB_SLI = 12,
-    PSFB_RPSI = 13,
-    PSFB_FIR = 14,
-    PSFB_TSTR = 15,
-    PSFB_TSTN = 16,
-    PSFB_VBCM = 17,
-
-    FB_FEEDBACK_MAX
-
-} eRCTFBType_t;
-
 /**
  * @class    RtcpFbPacket
  * @brief    It holds RTCP Feedback Message information
@@ -68,22 +44,6 @@ private:
 
     // Feedback Control Information
     RtpBuffer* m_pFCI;
-
-    /**
-     * Performs the encoding of the RTCP RTP FB packet.
-     * This function does not allocate memory required for encoding.
-     * @param[out] pobjRtcpPktBuf Memory for the buffer is pre-allocated by caller
-     * @return RTP_SUCCESS on successful encoding
-     */
-    eRTP_STATUS_CODE formRtcpRtpFbPacket(OUT RtpBuffer* pobjRtcpPktBuf);
-
-    /**
-     * Performs the encoding of the RTCP payload FB packet.
-     * This function does not allocate memory required for encoding.
-     * @param[out] pobjRtcpPktBuf Memory for the buffer is pre-allocated by caller
-     * @return RTP_SUCCESS on successful encoding
-     */
-    eRTP_STATUS_CODE formRtcpPayloadFbPacket(OUT RtpBuffer* pobjRtcpPktBuf);
 
 public:
     RtcpFbPacket();
