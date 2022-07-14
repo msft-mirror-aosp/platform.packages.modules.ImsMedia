@@ -55,6 +55,11 @@ public:
     RtcpHeader* getRtcpHdrInfo();
 
     /**
+     * set method for m_objRtcpHdr
+     */
+    RtpDt_Void setRtcpHdrInfo(RtcpHeader& header);
+
+    /**
      * set RTTD method
      */
     RtpDt_Void setRTTD(RtpDt_UInt32 rttd);
