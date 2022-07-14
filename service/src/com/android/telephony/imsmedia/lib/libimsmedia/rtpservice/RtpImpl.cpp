@@ -14,10 +14,10 @@
  * limitations under the License.
  */
 
+#include <ImsMediaTimer.h>
 #include <RtpImpl.h>
 #include <RtpService.h>
 #include <RtpTrace.h>
-#include <RtpTimer.h>
 #include <string.h>
 
 RtpImpl::RtpImpl() {}
@@ -123,7 +123,7 @@ eRtp_Bool RtpImpl::rtcpTimerHdlErrorInd(IN eRTP_STATUS_CODE eStatus)
 RtpDt_Void* RtpImpl::RtpStartTimer(IN RtpDt_UInt32 uiDuration, IN eRtp_Bool bRepeat,
         IN RTPCB_TIMERHANDLER pfnTimerCb, IN RtpDt_Void* pvData)
 {
-    RtpDt_Void* pvTimerId = (RtpDt_Void*)RtpTimer::TimerStart(
+    RtpDt_Void* pvTimerId = (RtpDt_Void*)ImsMediaTimer::TimerStart(
             (RtpDt_UInt32)uiDuration, (bool)bRepeat, (fn_TimerCb)pfnTimerCb, pvData);
 
     RTP_TRACE_MESSAGE("RtpStartTimer pvTimerId[%x], Duration= [%d]", pvTimerId, uiDuration);
@@ -138,7 +138,7 @@ RtpDt_Void* RtpImpl::RtpStartTimer(IN RtpDt_UInt32 uiDuration, IN eRtp_Bool bRep
 eRtp_Bool RtpImpl::RtpStopTimer(IN RtpDt_Void* pTimerId, OUT RtpDt_Void** ppUserData)
 {
     RTP_TRACE_MESSAGE("RtpStopTimer pvTimerId[%x]", pTimerId, 0);
-    RtpTimer::TimerStop((hTimerHandler)pTimerId, ppUserData);
+    ImsMediaTimer::TimerStop((hTimerHandler)pTimerId, ppUserData);
     (void)ppUserData;
     return eRTP_TRUE;
 }
