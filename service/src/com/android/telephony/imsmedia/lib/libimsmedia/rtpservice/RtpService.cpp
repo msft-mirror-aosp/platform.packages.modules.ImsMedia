@@ -191,7 +191,7 @@ eRtp_Bool populateRcvdFbInfoFromStk(
 
 RtpDt_Void populateRtpProfile(OUT RtpStackProfile* pobjStackProfile)
 {
-    pobjStackProfile->setRtcpBw(RTP_DEF_RTCP_BW_SIZE);
+    pobjStackProfile->setRtcpBandwidth(RTP_DEF_RTCP_BW_SIZE);
     pobjStackProfile->setMtuSize(RTP_CONF_MTU_SIZE);
     pobjStackProfile->setTermNumber(RTP_CONF_SSRC_SEED);
 }

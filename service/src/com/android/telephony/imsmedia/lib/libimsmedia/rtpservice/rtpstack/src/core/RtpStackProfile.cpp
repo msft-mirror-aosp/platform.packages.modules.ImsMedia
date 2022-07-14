@@ -16,14 +16,6 @@
 
 #include <RtpStackProfile.h>
 
-/*********************************************************
- * Function name        : RtpStackProfile
- * Description          : Constructor
- * Return type          : None
- * Argument             : None
- * Preconditions        : None
- * Side Effects            : None
- ********************************************************/
 RtpStackProfile::RtpStackProfile() :
         m_uiRtcpSessionBw(RTP_DEF_RTCP_BW_SIZE),
         m_uiMTUSize(RTP_CONF_MTU_SIZE),
@@ -31,88 +23,33 @@ RtpStackProfile::RtpStackProfile() :
 {
 }
 
-/*********************************************************
- * Function name        : ~RtpStackProfile
- * Description          : Destructor
- * Return type          : None
- * Argument             : None
- * Preconditions        : None
- * Side Effects            : None
- ********************************************************/
 RtpStackProfile::~RtpStackProfile() {}
 
-/*********************************************************
- * Function name        : setRtcpBw
- * Description          : set method for rtcpBwFraction
- * Return type          : RtpDt_Void
- * Argument             : RtpDt_UInt32 : In
- * Preconditions        : None
- * Side Effects            : None
- ********************************************************/
-RtpDt_Void RtpStackProfile::setRtcpBw(IN RtpDt_UInt32 uiRtcpBwFrac)
+RtpDt_Void RtpStackProfile::setRtcpBandwidth(IN RtpDt_UInt32 uiRtcpBw)
 {
-    m_uiRtcpSessionBw = uiRtcpBwFrac;
+    m_uiRtcpSessionBw = uiRtcpBw;
 }
 
-/*********************************************************
- * Function name        : getRtcpBw
- * Description          : get method for rtcpBwFraction
- * Return type          : RtpDt_UInt32
- * Argument             : None
- * Preconditions        : None
- * Side Effects            : None
- ********************************************************/
-RtpDt_UInt32 RtpStackProfile::getRtcpBw()
+RtpDt_UInt32 RtpStackProfile::getRtcpBandwidth()
 {
     return m_uiRtcpSessionBw;
 }
-/*********************************************************
- * Function name        : setMtuSize
- * Description          : set method for uiMTUSize
- * Return type          : RtpDt_Void
- * Argument             : RtpDt_UInt32 : In
- * Preconditions        : None
- * Side Effects            : None
- ********************************************************/
+
 RtpDt_Void RtpStackProfile::setMtuSize(IN RtpDt_UInt32 uiMtuSize)
 {
     m_uiMTUSize = uiMtuSize;
 }
 
-/*********************************************************
- * Function name        : getMtuSize
- * Description          : get method for uiMTUSize
- * Return type          : RtpDt_UInt32
- * Argument             : None
- * Preconditions        : None
- * Side Effects            : None
- ********************************************************/
 RtpDt_UInt32 RtpStackProfile::getMtuSize()
 {
     return m_uiMTUSize;
 }
 
-/*********************************************************
- * Function name        : setTermNumber
- * Description          : set method for m_uiTermNum
- * Return type          : RtpDt_Void
- * Argument             : RtpDt_UInt32 : In
- * Preconditions        : None
- * Side Effects            : None
- ********************************************************/
 RtpDt_Void RtpStackProfile::setTermNumber(IN RtpDt_UInt32 uiTermNum)
 {
     m_uiTermNum = uiTermNum;
 }
 
-/*********************************************************
- * Function name        : getTermNumber
- * Description          : get method for m_uiTermNum
- * Return type          : RtpDt_UInt32
- * Argument             : None
- * Preconditions        : None
- * Side Effects            : None
- ********************************************************/
 RtpDt_UInt32 RtpStackProfile::getTermNumber()
 {
     return m_uiTermNum;
