@@ -80,6 +80,7 @@ private:
     ANativeWindow* mImageReaderSurface;
     AImageReader* mImageReader;
     std::mutex mMutex;
+    std::mutex mImageReaderMutex;
     ImsMediaCondition mConditionExit;
     IVideoSourceCallback* mListener;
     int32_t mCodecType;
