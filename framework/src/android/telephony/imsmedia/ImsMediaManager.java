@@ -28,6 +28,7 @@ import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.annotation.VisibleForTesting;
 
 import java.net.DatagramSocket;
 import java.util.Objects;
@@ -41,8 +42,11 @@ import java.util.concurrent.Executor;
  */
 public class ImsMediaManager {
     private static final String TAG = "ImsMediaManager";
-    private static final String MEDIA_SERVICE_PACKAGE = "com.android.telephony.imsmedia";
-    private static final String MEDIA_SERVICE_CLASS = MEDIA_SERVICE_PACKAGE + ".ImsMediaController";
+    @VisibleForTesting
+    protected static final String MEDIA_SERVICE_PACKAGE = "com.android.telephony.imsmedia";
+    @VisibleForTesting
+    protected static final String MEDIA_SERVICE_CLASS =
+            MEDIA_SERVICE_PACKAGE + ".ImsMediaController";
     private final Context mContext;
     private final OnConnectedCallback mOnConnectedCallback;
     private final Executor mExecutor;
