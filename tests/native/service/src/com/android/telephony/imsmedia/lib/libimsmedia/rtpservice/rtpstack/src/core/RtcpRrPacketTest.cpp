@@ -74,7 +74,7 @@ TEST_F(RtcpRrPacketTest, TestDecodeRrPacket)
     eRTP_STATUS_CODE res = objRtcpRrPacket.decodeRrPacket(bufRrWithOneReport, len, 0);
     EXPECT_EQ(res, RTP_SUCCESS);
 
-    std::list<RtcpReportBlock*> reports = objRtcpRrPacket.getReportBlkList();
+    std::list<RtcpReportBlock*> reports = objRtcpRrPacket.getReportBlockList();
     EXPECT_TRUE(reports.size() != 0);
     if (reports.size() == 0)
         return;
@@ -95,8 +95,19 @@ TEST_F(RtcpRrPacketTest, TestDecodeRrPacket)
 
 TEST_F(RtcpRrPacketTest, TestFormRrPacket)
 {
-    RtpBuffer objRtcpPktBuf(bBufLen, NULL);
     RtcpRrPacket objRtcpRrPacket;
+    RtpBuffer objRtcpPktBuf(bBufLen, NULL);
+    objRtcpPktBuf.setLength(0);
+    RtcpReportBlock* pobjRtcpReportBlock = new RtcpReportBlock();
+    pobjRtcpReportBlock->setSsrc(0x01020304);
+    pobjRtcpReportBlock->setFracLost(0x10);
+    pobjRtcpReportBlock->setCumNumPktLost(0x000020);
+    pobjRtcpReportBlock->setExtHighSeqRcv(0);
+    pobjRtcpReportBlock->setJitter(0);
+    pobjRtcpReportBlock->setLastSR(0x86d4e6e9);
+    pobjRtcpReportBlock->setDelayLastSR(0x00000001);
+    objRtcpRrPacket.getReportBlockList().push_back(pobjRtcpReportBlock);
+
     eRTP_STATUS_CODE res = objRtcpRrPacket.formRrPacket(&objRtcpPktBuf, eRTP_FALSE);
     EXPECT_EQ(res, RTP_SUCCESS);
     EXPECT_EQ(memcmp(objRtcpPktBuf.getBuffer(), RtcpRrPacketTest::bufRrWithOneReport, bBufLen), 0);

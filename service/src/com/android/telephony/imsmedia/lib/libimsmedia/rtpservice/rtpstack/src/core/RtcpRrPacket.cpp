@@ -56,7 +56,7 @@ RtcpHeader* RtcpRrPacket::getRtcpHdrInfo()
     return &m_objRtcpHdr;
 }
 
-std::list<RtcpReportBlock*>& RtcpRrPacket::getReportBlkList()
+std::list<RtcpReportBlock*>& RtcpRrPacket::getReportBlockList()
 {
     return m_objReportBlkList;
 }
@@ -83,7 +83,7 @@ eRTP_STATUS_CODE RtcpRrPacket::decodeRrPacket(
             RTP_TRACE_ERROR("[Memory Error] new returned NULL.", RTP_ZERO, RTP_ZERO);
             return RTP_MEMORY_FAIL;
         }
-        pobjRptBlk->decodeReportBlk(pucRrBuf);
+        pobjRptBlk->decodeReportBlock(pucRrBuf);
         pucRrBuf = pucRrBuf + RTP_24;
         usRepBlkLen = usRepBlkLen - RTP_24;
         addReportBlkElm(pobjRptBlk);
@@ -128,7 +128,7 @@ eRTP_STATUS_CODE RtcpRrPacket::formRrPacket(OUT RtpBuffer* pobjRtcpPktBuf, IN eR
     // m_objReportBlkList
     for (auto& pobjRepBlk : m_objReportBlkList)
     {
-        pobjRepBlk->formReportBlk(pobjRtcpPktBuf);
+        pobjRepBlk->formReportBlock(pobjRtcpPktBuf);
     }  // for
 
     RtpDt_UChar* pucBuffer = RTP_NULL;

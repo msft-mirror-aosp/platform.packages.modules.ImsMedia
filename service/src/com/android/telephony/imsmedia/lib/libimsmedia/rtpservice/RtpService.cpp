@@ -134,7 +134,7 @@ eRtp_Bool populateRcvdRrInfoFromStk(
     }
 
     tRtpSvcRecvReport* pstRcvdReport = &(pstRrInfo->stRecvRpt);
-    std::list<RtcpReportBlock*>& pobjRepBlkList = pobjRrPkt->getReportBlkList();
+    std::list<RtcpReportBlock*>& pobjRepBlkList = pobjRrPkt->getReportBlockList();
     return populateRcvdReportFromStk(pobjRepBlkList, pstRcvdReport);
 }  // populateRcvdRrInfoFromStk
 
@@ -166,7 +166,7 @@ eRtp_Bool populateRcvdSrInfoFromStk(
     // populate tRtpSvcRecvReport
     tRtpSvcRecvReport* pstRcvdReport = &(pstSrInfo->stRecvRpt);
     RtcpRrPacket* pobjRepBlk = pobjSrPkt->getRrPktInfo();
-    std::list<RtcpReportBlock*>& pobjRepBlkList = pobjRepBlk->getReportBlkList();
+    std::list<RtcpReportBlock*>& pobjRepBlkList = pobjRepBlk->getReportBlockList();
     return populateRcvdReportFromStk(pobjRepBlkList, pstRcvdReport);
 }
 

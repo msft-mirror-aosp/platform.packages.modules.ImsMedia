@@ -149,12 +149,12 @@ public:
     /**
      * Performs the decoding of RTCP Report Block
      */
-    eRtp_Bool decodeReportBlk(IN RtpDt_UChar* pcRepBlkBuf);
+    eRtp_Bool decodeReportBlock(IN RtpDt_UChar* pcRepBlkBuf);
 
     /**
      * Performs the encoding of RTCP Report Block
      */
-    eRtp_Bool formReportBlk(OUT RtpBuffer* pobjRtcpPktBuf);
+    eRtp_Bool formReportBlock(OUT RtpBuffer* pobjRtcpPktBuf);
 
 };  // end of RtcpReportBlock
 

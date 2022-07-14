@@ -126,7 +126,7 @@ TEST_F(RtcpSrPacketTest, TestDecodeSrPacketWithOneReport)
     if (pRRInfo == NULL)
         return;
 
-    std::list<RtcpReportBlock*> reports = pRRInfo->getReportBlkList();
+    std::list<RtcpReportBlock*> reports = pRRInfo->getReportBlockList();
     EXPECT_TRUE(reports.size() != 0);
     if (reports.size() == 0)
         return;
