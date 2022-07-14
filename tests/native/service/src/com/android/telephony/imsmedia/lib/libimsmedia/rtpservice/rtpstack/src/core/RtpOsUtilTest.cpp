@@ -20,20 +20,19 @@
 TEST(RtpOsUtilTest, TestGetNtpTime)
 {
     tRTP_NTP_TIME stCurNtpTimestamp;
-
-    RtpOsUtil::GetNtpTime(stCurNtpTimestamp);
     struct timeval stAndrodTp;
+    RtpOsUtil::GetNtpTime(stCurNtpTimestamp);
 
     if (gettimeofday(&stAndrodTp, RTP_NULL) != -1)
     {
         EXPECT_EQ(stCurNtpTimestamp.m_uiNtpHigh32Bits, stAndrodTp.tv_sec + 2208988800UL);
-        EXPECT_EQ(stCurNtpTimestamp.m_uiNtpLow32Bits, (RtpDt_UInt32)(stAndrodTp.tv_usec * 4294UL));
     }
 }
 
 TEST(RtpOsUtilTest, TestRand)
 {
     RtpDt_UInt32 uiRand1 = RtpOsUtil::Rand();
+    usleep(RTP_MILLISEC_MICRO);
     RtpDt_UInt32 uiRand2 = RtpOsUtil::Rand();
 
     EXPECT_NE(uiRand1, uiRand2);
@@ -50,6 +49,7 @@ TEST(RtpOsUtilTest, TestNtohl)
 TEST(RtpOsUtilTest, TestRRand)
 {
     RtpDt_Double ulRRand1 = RtpOsUtil::RRand();
+    usleep(RTP_MILLISEC_MICRO);
     RtpDt_Double ulRRand2 = RtpOsUtil::RRand();
 
     EXPECT_NE(ulRRand1, ulRRand2);
