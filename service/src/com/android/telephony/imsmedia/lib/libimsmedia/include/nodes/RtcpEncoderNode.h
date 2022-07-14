@@ -27,15 +27,11 @@
 
 class RtcpEncoderNode : public BaseNode, public IRtcpEncoderListener
 {
-private:
-    RtcpEncoderNode();
-    ~RtcpEncoderNode();
-
 public:
-    static BaseNode* GetInstance();
-    static void ReleaseInstance(BaseNode* pNode);
+    RtcpEncoderNode(BaseSessionCallback* callback = NULL);
+    ~RtcpEncoderNode();
     static void OnTimer(hTimerHandler hTimer, void* pUserData);
-    virtual BaseNodeID GetNodeID();
+    virtual kBaseNodeId GetNodeId();
     virtual ImsMediaResult Start();
     virtual void Stop();
     virtual bool IsRunTime();

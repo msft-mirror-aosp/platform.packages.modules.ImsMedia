@@ -25,14 +25,10 @@
  */
 class RtpDecoderNode : public BaseNode, public IRtpDecoderListener
 {
-private:
-    RtpDecoderNode();
-    virtual ~RtpDecoderNode();
-
 public:
-    static BaseNode* GetInstance();
-    static void ReleaseInstance(BaseNode* pNode);
-    virtual BaseNodeID GetNodeID();
+    RtpDecoderNode(BaseSessionCallback* callback = NULL);
+    virtual ~RtpDecoderNode();
+    virtual kBaseNodeId GetNodeId();
     virtual ImsMediaResult Start();
     virtual void Stop();
     virtual bool IsRunTime();

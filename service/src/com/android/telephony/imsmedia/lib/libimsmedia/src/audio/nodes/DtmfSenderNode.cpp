@@ -20,38 +20,19 @@
 #include <ImsMediaTimer.h>
 #include <AudioConfig.h>
 
-#define DEFAULT_INTERVAL 3
-
-DtmfSenderNode::DtmfSenderNode()
+DtmfSenderNode::DtmfSenderNode(BaseSessionCallback* callback) :
+        BaseNode(callback)
 {
     mNextTime = 0;
     mPrevTime = 0;
-    mInterval = DEFAULT_INTERVAL;
+    mPtime = 20;
 }
 
 DtmfSenderNode::~DtmfSenderNode() {}
 
-BaseNode* DtmfSenderNode::GetInstance()
+kBaseNodeId DtmfSenderNode::GetNodeId()
 {
-    BaseNode* pNode;
-    pNode = new DtmfSenderNode();
-
-    if (pNode == NULL)
-    {
-        IMLOGE0("[GetInstance] Can't create DtmfSenderNode");
-    }
-
-    return pNode;
-}
-
-void DtmfSenderNode::ReleaseInstance(BaseNode* pNode)
-{
-    delete (DtmfSenderNode*)pNode;
-}
-
-BaseNodeID DtmfSenderNode::GetNodeID()
-{
-    return NODEID_DTMFSENDER;
+    return kNodeIdDtmfSender;
 }
 
 ImsMediaResult DtmfSenderNode::Start()
@@ -75,6 +56,27 @@ bool DtmfSenderNode::IsRunTime()
 bool DtmfSenderNode::IsSourceNode()
 {
     return false;
+}
+
+void DtmfSenderNode::SetConfig(void* config)
+{
+    AudioConfig* pConfig = reinterpret_cast<AudioConfig*>(config);
+
+    if (pConfig != NULL)
+    {
+        mPtime = pConfig->getPtimeMillis();
+    }
+}
+
+bool DtmfSenderNode::IsSameConfig(void* config)
+{
+    if (config == NULL)
+    {
+        return true;
+    }
+
+    AudioConfig* pConfig = reinterpret_cast<AudioConfig*>(config);
+    return (mPtime == pConfig->getPtimeMillis());
 }
 
 void DtmfSenderNode::ProcessData()
@@ -110,41 +112,22 @@ void DtmfSenderNode::ProcessData()
                 subtype == MEDIASUBTYPE_DTMF_PAYLOAD)
         {
             SendDataToRearNode(subtype, pData, nDataSize, nTimeStamp, bMark, 0);
-
-            if (nDataSize >= 4)
-            {
-                IMLOGD4("[ProcessData] Send DTMF packet %02X %02X %02X %02X", pData[0], pData[1],
-                        pData[2], pData[3]);
-            }
-
             DeleteData();
-            mNextTime += 20;
+            mNextTime += mPtime;
         }
     }
     else if (subtype == MEDIASUBTYPE_DTMFEND)
     {
         SendDataToRearNode(subtype, pData, nDataSize, nTimeStamp, bMark, 0);
         DeleteData();
-        mNextTime += mInterval;
+        mNextTime += mPtime;
     }
     else
     {
         SendDataToRearNode(subtype, pData, nDataSize, nTimeStamp, bMark, 0);
-
-        if (nDataSize >= 4)
-        {
-            IMLOGD4("[ProcessData] Send DTMF packet %02X %02X %02X %02X", pData[0], pData[1],
-                    pData[2], pData[3]);
-        }
-
         DeleteData();
-        mNextTime += 20;
+        mNextTime += mPtime;
     }
 
     mPrevTime = nCurrTime;
-}
-
-void DtmfSenderNode::SetInterval(uint32_t interval)
-{
-    mInterval = interval;
 }

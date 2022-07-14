@@ -21,21 +21,55 @@
 #include <ImsMediaEventHandler.h>
 #include <BaseSession.h>
 #include <binder/Parcel.h>
+#include <functional>
 
-typedef int (*CBManager)(long nNativeObj, const android::Parcel& pParcel);
+typedef int (*CBManager)(long nativeObj, const android::Parcel& parcel);
 
 class BaseManager
 {
 public:
-    BaseManager() {}
+    BaseManager() { mCallback = NULL; }
     virtual ~BaseManager() {}
+
+    /**
+     * @brief Send message to session to operate
+     *
+     * @param sessionId identification of session
+     * @param parcel parcel of message and parameters
+     */
     virtual void sendMessage(const int sessionId, const android::Parcel& parcel) = 0;
-    virtual void setCallback(CBManager pfnCallback) { mfnCallback = pfnCallback; }
-    virtual CBManager getCallback() { return mfnCallback; }
+
+    /**
+     * @brief Set the Callback object
+     *
+     * @param pfnCallback
+     */
+    virtual void setCallback(CBManager pfnCallback)
+    {
+        mCallback = std::bind(pfnCallback, std::placeholders::_1, std::placeholders::_2);
+    }
+
+    /**
+     * @brief Send response message to assigend callback method
+     *
+     * @param obj The object of the manager instance.
+     * @param parcel The parcel object contains event message and parameter
+     * @return int Returns -1 when it is fail invoke callback function. Returns 1 when it is
+     * success.
+     */
+    virtual int sendResponse(long obj, const android::Parcel& parcel)
+    {
+        if (mCallback != NULL)
+        {
+            return mCallback(obj, parcel);
+        }
+
+        return -1;
+    }
 
 protected:
     virtual int getState(int sessionId) = 0;
-    CBManager mfnCallback;
+    std::function<int(long, const android::Parcel&)> mCallback;
 };
 
 #endif

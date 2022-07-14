@@ -39,6 +39,7 @@ enum ImsMediaResult
 enum kImsMediaEventType
 {
     kImsMediaEventNotifyError,
+    kImsMediaEventStateChanged,
     kImsMediaEventFirstPacketReceived,
     kImsMediaEventHeaderExtensionReceived,
     kImsMediaEventMediaInactivity,
@@ -396,19 +397,20 @@ enum eIPVersion
 
 enum StreamState
 {
+    /** The state of the stream created but any nodes are not created */
     kStreamStateIdle,
+    /** The state of the stream and nodes are created */
     kStreamStateCreated,
+    /** The state of the stream nodes are started and running */
     kStreamStateRunning,
-    /**
-     * Video state wait surface in stating
-     */
+    /** Video state wait surface in stating */
     kStreamStateWaitSurface,
 };
 
 enum SessionState
 {
     /** The state that the session is created but graph is not created */
-    kSessionStateOpen,
+    kSessionStateOpened,
     /** The state that the session is created and the Rtp StreamGraphs are running */
     kSessionStateActive,
     /** The state that the session is created and the Rtp StreamGraphs is not running */

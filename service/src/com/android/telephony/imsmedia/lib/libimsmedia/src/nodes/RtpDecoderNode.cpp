@@ -19,7 +19,8 @@
 #include <AudioConfig.h>
 #include <VideoConfig.h>
 
-RtpDecoderNode::RtpDecoderNode()
+RtpDecoderNode::RtpDecoderNode(BaseSessionCallback* callback) :
+        BaseNode(callback)
 {
     mRtpSession = NULL;
     mReceivingSSRC = 0;
@@ -44,25 +45,9 @@ RtpDecoderNode::~RtpDecoderNode()
     }
 }
 
-BaseNode* RtpDecoderNode::GetInstance()
+kBaseNodeId RtpDecoderNode::GetNodeId()
 {
-    BaseNode* pNode = new RtpDecoderNode();
-    if (pNode == NULL)
-    {
-        IMLOGE0("[GetInstance] Can't create RtpDecoderNode");
-    }
-
-    return pNode;
-}
-
-void RtpDecoderNode::ReleaseInstance(BaseNode* pNode)
-{
-    delete (RtpDecoderNode*)pNode;
-}
-
-BaseNodeID RtpDecoderNode::GetNodeID()
-{
-    return NODEID_RTPDECODER;
+    return kNodeIdRtpDecoder;
 }
 
 ImsMediaResult RtpDecoderNode::Start()

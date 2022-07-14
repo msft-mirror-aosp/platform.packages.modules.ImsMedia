@@ -31,7 +31,7 @@ public:
     virtual ImsMediaResult update(void* config);
     virtual ImsMediaResult start();
     void setSurface(ANativeWindow* surface);
-    virtual void OnEvent(int32_t type, uint64_t param1, uint64_t param2);
+    virtual bool OnEvent(int32_t type, uint64_t param1, uint64_t param2);
 
 private:
     ImsMediaResult createPreviewMode(void* config);

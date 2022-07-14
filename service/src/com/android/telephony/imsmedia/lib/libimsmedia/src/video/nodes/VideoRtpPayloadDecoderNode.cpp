@@ -25,7 +25,8 @@
 
 using namespace android::telephony::imsmedia;
 
-VideoRtpPayloadDecoderNode::VideoRtpPayloadDecoderNode()
+VideoRtpPayloadDecoderNode::VideoRtpPayloadDecoderNode(BaseSessionCallback* callback) :
+        BaseNode(callback)
 {
     mBuffer = NULL;
     mSbitfirstByte = 0;
@@ -33,27 +34,9 @@ VideoRtpPayloadDecoderNode::VideoRtpPayloadDecoderNode()
 
 VideoRtpPayloadDecoderNode::~VideoRtpPayloadDecoderNode() {}
 
-BaseNode* VideoRtpPayloadDecoderNode::GetInstance()
+kBaseNodeId VideoRtpPayloadDecoderNode::GetNodeId()
 {
-    BaseNode* pNode;
-    pNode = new VideoRtpPayloadDecoderNode();
-
-    if (pNode == NULL)
-    {
-        IMLOGE0("[GetInstance] Can't create VideoRtpPayloadDecoderNode");
-    }
-
-    return pNode;
-}
-
-void VideoRtpPayloadDecoderNode::ReleaseInstance(BaseNode* pNode)
-{
-    delete (VideoRtpPayloadDecoderNode*)pNode;
-}
-
-BaseNodeID VideoRtpPayloadDecoderNode::GetNodeID()
-{
-    return NODEID_RTPPAYLOAD_DECODER_VIDEO;
+    return kNodeIdVideoPayloadDecoder;
 }
 
 ImsMediaResult VideoRtpPayloadDecoderNode::Start()

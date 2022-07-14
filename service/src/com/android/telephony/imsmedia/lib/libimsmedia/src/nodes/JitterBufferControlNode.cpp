@@ -19,7 +19,8 @@
 #include <VideoJitterBuffer.h>
 #include <ImsMediaTrace.h>
 
-JitterBufferControlNode::JitterBufferControlNode(ImsMediaType type) :
+JitterBufferControlNode::JitterBufferControlNode(BaseSessionCallback* callback, ImsMediaType type) :
+        BaseNode(callback),
         mMediaType(type)
 {
     if (mMediaType == IMS_MEDIA_AUDIO)

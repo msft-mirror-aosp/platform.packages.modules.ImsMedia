@@ -200,7 +200,7 @@ enum kImsAudioEvsAmrWbIoMode
     kImsAudioEvsAmrWbIoModeMax
 };
 
-class ImsMediaAudioFmt
+class ImsMediaAudioUtil
 {
 public:
     static int32_t ConvertCodecType(int32_t type);

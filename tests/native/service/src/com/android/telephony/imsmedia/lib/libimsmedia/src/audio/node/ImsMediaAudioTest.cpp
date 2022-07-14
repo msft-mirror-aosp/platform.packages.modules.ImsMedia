@@ -14,14 +14,13 @@
  * limitations under the License.
  */
 
-#include <AudioConfig.h>
 #include <gtest/gtest.h>
 #include <gmock/gmock.h>
 #include <ImsMediaAudioSource.h>
 #include <ImsMediaAudioPlayer.h>
 #include <IFrameCallback.h>
 #include <ImsMediaCondition.h>
-#include <ImsMediaAudioFmt.h>
+#include <ImsMediaAudioUtil.h>
 
 using namespace android::telephony::imsmedia;
 
@@ -120,8 +119,8 @@ TEST_F(ImsMediaAudioTest, TestAudioStartFail)
 TEST_F(ImsMediaAudioTest, TestAudioAmr)
 {
     EXPECT_CALL(*mockAudioCallback,
-            onDataFrame(NotNull(), ImsMediaAudioFmt::ConvertAmrModeToLen(AmrParams::AMR_MODE_7) + 1,
-                    _, _))
+            onDataFrame(NotNull(),
+                    ImsMediaAudioUtil::ConvertAmrModeToLen(AmrParams::AMR_MODE_7) + 1, _, _))
             .Times(AnyNumber())
             .WillRepeatedly(Return());
 
@@ -147,7 +146,7 @@ TEST_F(ImsMediaAudioTest, TestAudioAmrWb)
 {
     EXPECT_CALL(*mockAudioCallback,
             onDataFrame(NotNull(),
-                    ImsMediaAudioFmt::ConvertAmrWbModeToLen(AmrParams::AMR_MODE_8) + 1, _, _))
+                    ImsMediaAudioUtil::ConvertAmrWbModeToLen(AmrParams::AMR_MODE_8) + 1, _, _))
             .Times(AnyNumber())
             .WillRepeatedly(Return());
 

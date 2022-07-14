@@ -15,8 +15,10 @@
  */
 
 #include <AudioStreamGraphRtpRx.h>
-#include <ImsMediaNodeList.h>
-#include <ImsMediaAudioNodeList.h>
+#include <IAudioPlayerNode.h>
+#include <AudioRtpPayloadDecoderNode.h>
+#include <RtpDecoderNode.h>
+#include <SocketReaderNode.h>
 #include <ImsMediaTrace.h>
 #include <ImsMediaNetworkUtil.h>
 #include <AudioConfig.h>
@@ -30,13 +32,17 @@ AudioStreamGraphRtpRx::~AudioStreamGraphRtpRx() {}
 
 ImsMediaResult AudioStreamGraphRtpRx::create(void* config)
 {
-    IMLOGD0("[create]");
-    mConfig = new AudioConfig(reinterpret_cast<AudioConfig*>(config));
+    IMLOGD1("[create], state[%d]", mGraphState);
 
-    BaseNode* pNodeSocketReader = BaseNode::Load(BaseNodeID::NODEID_SOCKETREADER, mCallback);
-    if (pNodeSocketReader == NULL)
-        return RESULT_NOT_READY;
+    if (config == NULL)
+    {
+        return RESULT_INVALID_PARAM;
+    }
+
+    mConfig = new AudioConfig(reinterpret_cast<AudioConfig*>(config));
+    BaseNode* pNodeSocketReader = new SocketReaderNode(mCallback);
     pNodeSocketReader->SetMediaType(IMS_MEDIA_AUDIO);
+
     char localIp[MAX_IP_LEN];
     uint32_t localPort = 0;
     ImsMediaNetworkUtil::getLocalIpPortFromSocket(mLocalFd, localIp, MAX_IP_LEN, localPort);
@@ -47,27 +53,20 @@ ImsMediaResult AudioStreamGraphRtpRx::create(void* config)
     pNodeSocketReader->SetConfig(config);
     AddNode(pNodeSocketReader);
 
-    BaseNode* pNodeRtpDecoder = BaseNode::Load(BaseNodeID::NODEID_RTPDECODER, mCallback);
-    if (pNodeRtpDecoder == NULL)
-        return RESULT_NOT_READY;
+    BaseNode* pNodeRtpDecoder = new RtpDecoderNode(mCallback);
     pNodeRtpDecoder->SetMediaType(IMS_MEDIA_AUDIO);
     pNodeRtpDecoder->SetConfig(mConfig);
     ((RtpDecoderNode*)pNodeRtpDecoder)->SetLocalAddress(localAddress);
     AddNode(pNodeRtpDecoder);
     pNodeSocketReader->ConnectRearNode(pNodeRtpDecoder);
 
-    BaseNode* pNodeRtpPayloadDecoder =
-            BaseNode::Load(BaseNodeID::NODEID_RTPPAYLOAD_DECODER_AUDIO, mCallback);
-    if (pNodeRtpPayloadDecoder == NULL)
-        return RESULT_NOT_READY;
+    BaseNode* pNodeRtpPayloadDecoder = new AudioRtpPayloadDecoderNode(mCallback);
     pNodeRtpPayloadDecoder->SetMediaType(IMS_MEDIA_AUDIO);
     pNodeRtpPayloadDecoder->SetConfig(mConfig);
     AddNode(pNodeRtpPayloadDecoder);
     pNodeRtpDecoder->ConnectRearNode(pNodeRtpPayloadDecoder);
 
-    BaseNode* pNodeRenderer = BaseNode::Load(BaseNodeID::NODEID_AUDIOPLAYER, mCallback);
-    if (pNodeRenderer == NULL)
-        return RESULT_NOT_READY;
+    BaseNode* pNodeRenderer = new IAudioPlayerNode(mCallback);
     pNodeRenderer->SetMediaType(IMS_MEDIA_AUDIO);
     pNodeRenderer->SetConfig(mConfig);
     AddNode(pNodeRenderer);
@@ -78,9 +77,12 @@ ImsMediaResult AudioStreamGraphRtpRx::create(void* config)
 
 ImsMediaResult AudioStreamGraphRtpRx::update(void* config)
 {
-    IMLOGD0("[update]");
+    IMLOGD1("[update], state[%d]", mGraphState);
+
     if (config == NULL)
+    {
         return RESULT_INVALID_PARAM;
+    }
 
     AudioConfig* pConfig = reinterpret_cast<AudioConfig*>(config);
 
@@ -147,14 +149,16 @@ ImsMediaResult AudioStreamGraphRtpRx::update(void* config)
 void AudioStreamGraphRtpRx::setMediaQualityThreshold(MediaQualityThreshold* threshold)
 {
     if (threshold == NULL)
+    {
         return;
+    }
 
     bool found = false;
-    for (auto& i : mListNodeToStart)
+    for (auto& node : mListNodeToStart)
     {
-        if (i->GetNodeID() == BaseNodeID::NODEID_RTPDECODER)
+        if (node != NULL && node->GetNodeId() == kNodeIdRtpDecoder)
         {
-            RtpDecoderNode* pNode = reinterpret_cast<RtpDecoderNode*>(i);
+            RtpDecoderNode* pNode = reinterpret_cast<RtpDecoderNode*>(node);
             pNode->SetInactivityTimerSec(threshold->getRtpInactivityTimerMillis() / 1000);
             found = true;
             break;
@@ -165,7 +169,7 @@ void AudioStreamGraphRtpRx::setMediaQualityThreshold(MediaQualityThreshold* thre
     {
         for (auto& node : mListNodeStarted)
         {
-            if (node != NULL && node->GetNodeID() == NODEID_RTPDECODER)
+            if (node != NULL && node->GetNodeId() == kNodeIdRtpDecoder)
             {
                 RtpDecoderNode* pNode = reinterpret_cast<RtpDecoderNode*>(node);
                 pNode->SetInactivityTimerSec(threshold->getRtpInactivityTimerMillis() / 1000);

@@ -22,15 +22,10 @@
 
 class RtpEncoderNode : public BaseNode, public IRtpEncoderListener
 {
-private:
-    RtpEncoderNode();
-    virtual ~RtpEncoderNode();
-
 public:
-    static BaseNode* GetInstance();
-    static void ReleaseInstance(BaseNode* pNode);
-    // BaseNode methods
-    virtual BaseNodeID GetNodeID();
+    RtpEncoderNode(BaseSessionCallback* callback = NULL);
+    virtual ~RtpEncoderNode();
+    virtual kBaseNodeId GetNodeId();
     virtual ImsMediaResult Start();
     virtual void Stop();
     virtual void ProcessData();

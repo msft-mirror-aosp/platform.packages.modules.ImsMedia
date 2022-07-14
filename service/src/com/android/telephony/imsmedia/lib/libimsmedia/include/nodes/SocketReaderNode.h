@@ -22,14 +22,10 @@
 
 class SocketReaderNode : public BaseNode, public ISocketListener
 {
-private:
-    SocketReaderNode();
-    virtual ~SocketReaderNode();
-
 public:
-    static BaseNode* GetInstance();
-    static void ReleaseInstance(BaseNode* pNode);
-    virtual BaseNodeID GetNodeID();
+    SocketReaderNode(BaseSessionCallback* callback = NULL);
+    virtual ~SocketReaderNode();
+    virtual kBaseNodeId GetNodeId();
     virtual ImsMediaResult Start();
     virtual void Stop();
     virtual bool IsRunTime();

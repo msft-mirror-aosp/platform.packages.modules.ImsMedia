@@ -30,9 +30,9 @@
 class VideoRtpPayloadEncoderNode : public BaseNode
 {
 public:
-    static BaseNode* GetInstance();
-    static void ReleaseInstance(BaseNode* pNode);
-    virtual BaseNodeID GetNodeID();
+    VideoRtpPayloadEncoderNode(BaseSessionCallback* callback = NULL);
+    virtual ~VideoRtpPayloadEncoderNode();
+    virtual kBaseNodeId GetNodeId();
     virtual ImsMediaResult Start();
     virtual void Stop();
     virtual bool IsRunTime();
@@ -42,8 +42,6 @@ public:
     virtual void ProcessData();
 
 private:
-    VideoRtpPayloadEncoderNode();
-    ~VideoRtpPayloadEncoderNode();
     bool ResetStartTime();
     uint8_t* FindAvcStartCode(uint8_t* pData, uint32_t nDataSize, uint32_t* pnSkipSize = NULL);
     uint8_t* FindHevcStartCode(uint8_t* pData, uint32_t nDataSize, uint32_t* pnSkipSize = NULL);

@@ -15,73 +15,38 @@
  */
 
 #include <BaseNode.h>
-#include <BaseNodeID.h>
-#include <ImsMediaAudioNodeList.h>
-#include <ImsMediaNodeList.h>
 #include <ImsMediaTrace.h>
-#include <ImsMediaVideoNodeList.h>
 #include <stdlib.h>
 
-tNodeListEntry gNodeList[] = {
-        {NODEID_SOCKETWRITER, "NODEID_SOCKETWRITER", SocketWriterNode::GetInstance,
-         SocketWriterNode::ReleaseInstance},
-        {NODEID_SOCKETREADER, "NODEID_SOCKETREADER", SocketReaderNode::GetInstance,
-         SocketReaderNode::ReleaseInstance},
-        {NODEID_RTPENCODER, "NODEID_RTPENCODER", RtpEncoderNode::GetInstance,
-         RtpEncoderNode::ReleaseInstance},
-        {NODEID_RTPDECODER, "NODEID_RTPDECODER", RtpDecoderNode::GetInstance,
-         RtpDecoderNode::ReleaseInstance},
-        {NODEID_RTCPENCODER, "NODEID_RTCPENCODER", RtcpEncoderNode::GetInstance,
-         RtcpEncoderNode::ReleaseInstance},
-        {NODEID_RTCPDECODER, "NODEID_RTCPDECODER", RtcpDecoderNode::GetInstance,
-         RtcpDecoderNode::ReleaseInstance},
-        {NODEID_AUDIOSOURCE, "NODEID_AUDIOSOURCE", IAudioSourceNode::GetInstance,
-         IAudioSourceNode::ReleaseInstance},
-        {NODEID_AUDIOPLAYER, "NODEID_AUDIOPLAYER", IAudioPlayerNode::GetInstance,
-         IAudioPlayerNode::ReleaseInstance},
-        {NODEID_DTMFENCODER, "NODEID_DTMFENCODER", DtmfEncoderNode::GetInstance,
-         DtmfEncoderNode::ReleaseInstance},
-        {NODEID_DTMFSENDER, "NODEID_DTMFSENDER", DtmfSenderNode::GetInstance,
-         DtmfSenderNode::ReleaseInstance},
-        {NODEID_RTPPAYLOAD_ENCODER_AUDIO, "NODEID_RTPPAYLOAD_ENCODER_AUDIO",
-         AudioRtpPayloadEncoderNode::GetInstance,
-         AudioRtpPayloadEncoderNode::ReleaseInstance},
-        {NODEID_RTPPAYLOAD_DECODER_AUDIO, "NODEID_RTPPAYLOAD_DECODER_AUDIO",
-         AudioRtpPayloadDecoderNode::GetInstance,
-         AudioRtpPayloadDecoderNode::ReleaseInstance},
-        {NODEID_VIDEOSOURCE, "NODEID_VIDEOSOURCE", IVideoSourceNode::GetInstance,
-         IVideoSourceNode::ReleaseInstance},
-        {NODEID_VIDEORENDERER, "NODEID_VIDEORENDERER", IVideoRendererNode::GetInstance,
-         IVideoRendererNode::ReleaseInstance},
-        {NODEID_RTPPAYLOAD_ENCODER_VIDEO, "NODEID_RTPPAYLOAD_ENCODER_VIDEO",
-         VideoRtpPayloadEncoderNode::GetInstance,
-         VideoRtpPayloadEncoderNode::ReleaseInstance},
-        {NODEID_RTPPAYLOAD_DECODER_VIDEO, "NODEID_RTPPAYLOAD_DECODER_VIDEO",
-         VideoRtpPayloadDecoderNode::GetInstance,
-         VideoRtpPayloadDecoderNode::ReleaseInstance},
-        {NODEID_MAX, "",   NULL, NULL},
+using NODE_ID_PAIR = std::pair<kBaseNodeId, const char*>;
+static std::vector<NODE_ID_PAIR> vectorNodeId{
+        std::make_pair(kNodeIdUnknown, "NodeUnknown"),
+        std::make_pair(kNodeIdSocketWriter, "SocketWriter"),
+        std::make_pair(kNodeIdSocketReader, "SocketReader"),
+        std::make_pair(kNodeIdRtpEncoder, "RtpEncoder"),
+        std::make_pair(kNodeIdRtpDecoder, "RtpDecoder"),
+        std::make_pair(kNodeIdRtcpEncoder, "RtcpEncoder"),
+        std::make_pair(kNodeIdRtcpDecoder, "RtcpDecoder"),
+        std::make_pair(kNodeIdAudioSource, "AudioSource"),
+        std::make_pair(kNodeIdAudioPlayer, "AudioPlayer"),
+        std::make_pair(kNodeIdDtmfEncoder, "DtmfEncoder"),
+        std::make_pair(kNodeIdDtmfSender, "DtmfSender"),
+        std::make_pair(kNodeIdAudioPayloadEncoder, "AudioPayloadEncoder"),
+        std::make_pair(kNodeIdAudioPayloadDecoder, "AudioPayloadDecoder"),
+        std::make_pair(kNodeIdVideoSource, "VideoSource"),
+        std::make_pair(kNodeIdVideoRenderer, "VideoRenderer"),
+        std::make_pair(kNodeIdVideoPayloadEncoder, "VideoPayloadEncoder"),
+        std::make_pair(kNodeIdVideoPayloadDecoder, "VideoPayloadDecoder"),
+        std::make_pair(kNodeIdTextSource, "TextSource"),
+        std::make_pair(kNodeIdTextReceiver, "TextReceiver"),
+        std::make_pair(kNodeIdTextPayloadEncoder, "TextPayloadEncoder"),
+        std::make_pair(kNodeIdTextPayloadDecoder, "TextPayloadDecoder"),
 };
 
-static const char* gNullNodeName = "NODEID_NULL";
-static uint32_t g_NumOfNodeList = 0;
-uint32_t GetNumOfNodeList()
-{
-    uint32_t i;
-    if (g_NumOfNodeList > 0)
-        return g_NumOfNodeList;
-    for (i = 0; i < NODEID_MAX; i++)
-    {
-        if (gNodeList[i].NodeID == NODEID_MAX)
-            break;
-    }
-    g_NumOfNodeList = i;
-    return g_NumOfNodeList;
-}
-
-BaseNode::BaseNode()
+BaseNode::BaseNode(BaseSessionCallback* callback)
 {
     mScheduler = NULL;
-    mCallback = NULL;
+    mCallback = callback;
     mNodeState = kNodeStateStopped;
     mFrontNode = NULL;
     mRearNode = NULL;
@@ -90,51 +55,8 @@ BaseNode::BaseNode()
 
 BaseNode::~BaseNode()
 {
+    ClearDataQueue();
     mNodeState = kNodeStateStopped;
-}
-
-BaseNode* BaseNode::Load(BaseNodeID eID, BaseSessionCallback* callback)
-{
-    BaseNode* pNode = NULL;
-    uint32_t nNumOfTotalNode = GetNumOfNodeList();
-    uint32_t i;
-    IMLOGD1("eID[%d]", eID);
-    for (i = 0; i < nNumOfTotalNode; i++)
-    {
-        if (gNodeList[i].NodeID == eID)
-        {
-            pNode = gNodeList[i].GetInstance();
-            pNode->SetSessionCallback(callback);
-            break;
-        }
-    }
-    if (pNode == NULL)
-    {
-        IMLOGE1("Can't Load Node [%d]", eID);
-    }
-    else
-    {
-        IMLOGD1("success [%s]", pNode->GetNodeName());
-    }
-    return pNode;
-}
-
-void BaseNode::UnLoad(BaseNode* pNode)
-{
-    BaseNodeID eID = pNode->GetNodeID();
-    uint32_t nNumOfTotalNode = GetNumOfNodeList();
-    uint32_t i;
-    for (i = 0; i < nNumOfTotalNode; i++)
-    {
-        if (gNodeList[i].NodeID == eID)
-        {
-            // disconnect front/rear nodes
-            pNode->DisconnectFrontNode(pNode->GetFrontNode());
-            pNode->DisconnectRearNode(pNode->GetRearNode());
-            // delete object
-            gNodeList[i].DeleteInstance(pNode);
-        }
-    }
 }
 
 void BaseNode::SetSessionCallback(BaseSessionCallback* callback)
@@ -204,10 +126,9 @@ void BaseNode::ClearDataQueue()
     mDataQueue.Clear();
 }
 
-BaseNodeID BaseNode::GetNodeID()
+kBaseNodeId BaseNode::GetNodeId()
 {
-    IMLOGW0("[GetNodeID] Error - base method");
-    return NODEID_MAX;
+    return kNodeIdUnknown;
 }
 
 void BaseNode::SetConfig(void* config)
@@ -261,24 +182,16 @@ void BaseNode::ProcessData()
 
 const char* BaseNode::GetNodeName()
 {
-    const char* ret = NULL;
-    BaseNodeID eID = GetNodeID();
-    uint32_t nNumOfTotalNode = GetNumOfNodeList();
-    uint32_t i;
-
-    for (i = 0; i < nNumOfTotalNode; i++)
+    typedef typename std::vector<std::pair<kBaseNodeId, const char*>>::iterator iterator;
+    for (iterator it = vectorNodeId.begin(); it != vectorNodeId.end(); ++it)
     {
-        if (gNodeList[i].NodeID == eID)
+        if (it->first == GetNodeId())
         {
-            ret = gNodeList[i].NodeName;
-            break;
+            return it->second;
         }
     }
 
-    if (ret == NULL)
-        ret = gNullNodeName;
-
-    return ret;
+    return NULL;
 }
 
 void BaseNode::SetMediaType(ImsMediaType eType)
@@ -295,6 +208,11 @@ ImsMediaType BaseNode::GetMediaType()
 kBaseNodeState BaseNode::GetState()
 {
     return mNodeState;
+}
+
+void BaseNode::SetState(kBaseNodeState state)
+{
+    mNodeState = state;
 }
 
 uint32_t BaseNode::GetDataCount()
@@ -355,7 +273,7 @@ void BaseNode::SendDataToRearNode(ImsMediaSubType subtype, uint8_t* pData, uint3
     bool nNeedRunCount = false;
     if (mRearNode)
     {
-        if (mRearNode->mNodeState == kNodeStateRunning)
+        if (mRearNode->GetState() == kNodeStateRunning)
         {
             mRearNode->OnDataFromFrontNode(
                     subtype, pData, nDataSize, nTimestamp, bMark, nSeqNum, nDataType);

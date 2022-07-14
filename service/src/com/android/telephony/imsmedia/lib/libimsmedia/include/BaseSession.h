@@ -55,6 +55,7 @@ protected:
     int mRtpFd;
     int mRtcpFd;
     MediaQualityThreshold mThreshold;
+    int mState;
 };
 
 #endif

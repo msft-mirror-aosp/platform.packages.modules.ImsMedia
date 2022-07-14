@@ -24,7 +24,8 @@ using namespace android::telephony::imsmedia;
 
 #define DEFAULT_UNDEFINE -1
 
-IVideoSourceNode::IVideoSourceNode()
+IVideoSourceNode::IVideoSourceNode(BaseSessionCallback* callback) :
+        BaseNode(callback)
 {
     std::unique_ptr<ImsMediaVideoSource> source(new ImsMediaVideoSource());
     mVideoSource = std::move(source);
@@ -48,19 +49,9 @@ IVideoSourceNode::IVideoSourceNode()
 
 IVideoSourceNode::~IVideoSourceNode() {}
 
-BaseNode* IVideoSourceNode::GetInstance()
+kBaseNodeId IVideoSourceNode::GetNodeId()
 {
-    return new IVideoSourceNode();
-}
-
-void IVideoSourceNode::ReleaseInstance(BaseNode* pNode)
-{
-    delete (IVideoSourceNode*)pNode;
-}
-
-BaseNodeID IVideoSourceNode::GetNodeID()
-{
-    return BaseNodeID::NODEID_VIDEOSOURCE;
+    return kNodeIdVideoSource;
 }
 
 ImsMediaResult IVideoSourceNode::Start()

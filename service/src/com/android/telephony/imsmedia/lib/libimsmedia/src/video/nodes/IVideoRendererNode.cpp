@@ -28,8 +28,8 @@ using namespace android::telephony::imsmedia;
 
 #define DEFAULT_UNDEFINED -1
 
-IVideoRendererNode::IVideoRendererNode() :
-        JitterBufferControlNode(IMS_MEDIA_VIDEO)
+IVideoRendererNode::IVideoRendererNode(BaseSessionCallback* callback) :
+        JitterBufferControlNode(callback, IMS_MEDIA_VIDEO)
 {
     std::unique_ptr<ImsMediaVideoRenderer> renderer(new ImsMediaVideoRenderer());
     mVideoRenderer = std::move(renderer);
@@ -53,19 +53,9 @@ IVideoRendererNode::IVideoRendererNode() :
 }
 IVideoRendererNode::~IVideoRendererNode() {}
 
-BaseNode* IVideoRendererNode::GetInstance()
+kBaseNodeId IVideoRendererNode::GetNodeId()
 {
-    return new IVideoRendererNode();
-}
-
-void IVideoRendererNode::ReleaseInstance(BaseNode* pNode)
-{
-    delete (IVideoRendererNode*)pNode;
-}
-
-BaseNodeID IVideoRendererNode::GetNodeID()
-{
-    return BaseNodeID::NODEID_VIDEORENDERER;
+    return kNodeIdVideoRenderer;
 }
 
 ImsMediaResult IVideoRendererNode::Start()

@@ -15,11 +15,13 @@
  */
 
 #include <VideoStreamGraphRtpRx.h>
-#include <ImsMediaNodeList.h>
-#include <ImsMediaVideoNodeList.h>
 #include <ImsMediaTrace.h>
 #include <ImsMediaNetworkUtil.h>
 #include <VideoConfig.h>
+#include <RtpDecoderNode.h>
+#include <SocketReaderNode.h>
+#include <VideoRtpPayloadDecoderNode.h>
+#include <IVideoRendererNode.h>
 
 VideoStreamGraphRtpRx::VideoStreamGraphRtpRx(BaseSessionCallback* callback, int localFd) :
         BaseStreamGraph(callback, localFd)
@@ -28,17 +30,17 @@ VideoStreamGraphRtpRx::VideoStreamGraphRtpRx(BaseSessionCallback* callback, int 
     mSurface = NULL;
 }
 
-VideoStreamGraphRtpRx::~VideoStreamGraphRtpRx()
-{
-    if (mConfig)
-    {
-        delete mConfig;
-    }
-}
+VideoStreamGraphRtpRx::~VideoStreamGraphRtpRx() {}
 
 ImsMediaResult VideoStreamGraphRtpRx::create(void* config)
 {
-    IMLOGD0("[create]");
+    IMLOGD1("[createGraph] state[%d]", mGraphState);
+
+    if (config == NULL)
+    {
+        return RESULT_INVALID_PARAM;
+    }
+
     mConfig = new VideoConfig(reinterpret_cast<VideoConfig*>(config));
 
     char localIp[MAX_IP_LEN];
@@ -46,13 +48,7 @@ ImsMediaResult VideoStreamGraphRtpRx::create(void* config)
     ImsMediaNetworkUtil::getLocalIpPortFromSocket(mLocalFd, localIp, MAX_IP_LEN, localPort);
     RtpAddress localAddress(localIp, localPort);
 
-    BaseNode* pNodeSocketReader = BaseNode::Load(BaseNodeID::NODEID_SOCKETREADER, mCallback);
-
-    if (pNodeSocketReader == NULL)
-    {
-        return RESULT_NOT_READY;
-    }
-
+    BaseNode* pNodeSocketReader = new SocketReaderNode(mCallback);
     pNodeSocketReader->SetMediaType(IMS_MEDIA_VIDEO);
     ((SocketReaderNode*)pNodeSocketReader)->SetLocalFd(mLocalFd);
     ((SocketReaderNode*)pNodeSocketReader)->SetLocalAddress(localAddress);
@@ -60,38 +56,20 @@ ImsMediaResult VideoStreamGraphRtpRx::create(void* config)
     pNodeSocketReader->SetConfig(config);
     AddNode(pNodeSocketReader);
 
-    BaseNode* pNodeRtpDecoder = BaseNode::Load(BaseNodeID::NODEID_RTPDECODER, mCallback);
-
-    if (pNodeRtpDecoder == NULL)
-    {
-        return RESULT_NOT_READY;
-    }
-
+    BaseNode* pNodeRtpDecoder = new RtpDecoderNode(mCallback);
     pNodeRtpDecoder->SetMediaType(IMS_MEDIA_VIDEO);
     pNodeRtpDecoder->SetConfig(mConfig);
     ((RtpDecoderNode*)pNodeRtpDecoder)->SetLocalAddress(localAddress);
     AddNode(pNodeRtpDecoder);
     pNodeSocketReader->ConnectRearNode(pNodeRtpDecoder);
 
-    BaseNode* pNodeRtpPayloadDecoder =
-            BaseNode::Load(BaseNodeID::NODEID_RTPPAYLOAD_DECODER_VIDEO, mCallback);
-
-    if (pNodeRtpPayloadDecoder == NULL)
-    {
-        return RESULT_NOT_READY;
-    }
-
+    BaseNode* pNodeRtpPayloadDecoder = new VideoRtpPayloadDecoderNode(mCallback);
     pNodeRtpPayloadDecoder->SetMediaType(IMS_MEDIA_VIDEO);
     pNodeRtpPayloadDecoder->SetConfig(mConfig);
     AddNode(pNodeRtpPayloadDecoder);
     pNodeRtpDecoder->ConnectRearNode(pNodeRtpPayloadDecoder);
 
-    BaseNode* pNodeRenderer = BaseNode::Load(BaseNodeID::NODEID_VIDEORENDERER, mCallback);
-
-    if (pNodeRenderer == NULL)
-    {
-        return RESULT_NOT_READY;
-    }
+    BaseNode* pNodeRenderer = new IVideoRendererNode(mCallback);
     pNodeRenderer->SetMediaType(IMS_MEDIA_VIDEO);
     pNodeRenderer->SetConfig(mConfig);
     AddNode(pNodeRenderer);
@@ -236,7 +214,7 @@ void VideoStreamGraphRtpRx::setMediaQualityThreshold(MediaQualityThreshold* thre
     bool found = false;
     for (auto& node : mListNodeToStart)
     {
-        if (node != NULL && node->GetNodeID() == BaseNodeID::NODEID_RTPDECODER)
+        if (node != NULL && node->GetNodeId() == kNodeIdRtpDecoder)
         {
             RtpDecoderNode* pNode = reinterpret_cast<RtpDecoderNode*>(node);
             pNode->SetInactivityTimerSec(threshold->getRtpInactivityTimerMillis() / 1000);
@@ -249,7 +227,7 @@ void VideoStreamGraphRtpRx::setMediaQualityThreshold(MediaQualityThreshold* thre
     {
         for (auto& node : mListNodeStarted)
         {
-            if (node != NULL && node->GetNodeID() == NODEID_RTPDECODER)
+            if (node != NULL && node->GetNodeId() == kNodeIdRtpDecoder)
             {
                 RtpDecoderNode* pNode = reinterpret_cast<RtpDecoderNode*>(node);
                 pNode->SetInactivityTimerSec(threshold->getRtpInactivityTimerMillis() / 1000);
@@ -261,7 +239,7 @@ void VideoStreamGraphRtpRx::setMediaQualityThreshold(MediaQualityThreshold* thre
 
 void VideoStreamGraphRtpRx::setSurface(ANativeWindow* surface)
 {
-    IMLOGD1("[setSurface] state[%d]", mGraphState);
+    IMLOGD0("[setSurface]");
 
     if (surface == NULL)
     {
@@ -273,7 +251,7 @@ void VideoStreamGraphRtpRx::setSurface(ANativeWindow* surface)
     bool found = false;
     for (auto& node : mListNodeToStart)
     {
-        if (node != NULL && node->GetNodeID() == NODEID_VIDEORENDERER)
+        if (node != NULL && node->GetNodeId() == kNodeIdVideoRenderer)
         {
             IVideoRendererNode* pNode = reinterpret_cast<IVideoRendererNode*>(node);
             pNode->UpdateSurface(surface);
@@ -286,7 +264,7 @@ void VideoStreamGraphRtpRx::setSurface(ANativeWindow* surface)
     {
         for (auto& node : mListNodeStarted)
         {
-            if (node != NULL && node->GetNodeID() == NODEID_VIDEORENDERER)
+            if (node != NULL && node->GetNodeId() == kNodeIdVideoRenderer)
             {
                 IVideoRendererNode* pNode = reinterpret_cast<IVideoRendererNode*>(node);
                 pNode->UpdateSurface(surface);

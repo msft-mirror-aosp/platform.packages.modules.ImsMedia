@@ -232,8 +232,10 @@ bool ImsMediaVideoSource::Start()
 
     if (mVideoMode == kVideoModePreview || mVideoMode == kVideoModeRecording)
     {
-        mCamera = new ImsMediaCamera();
+        mCamera = ImsMediaCamera::getInstance();
+        mCamera->Initialize();
         mCamera->SetCameraConfig(mCameraId, mCameraZoom, mFramerate);
+
         if (!mCamera->OpenCamera())
         {
             IMLOGE0("[Start] error open camera");
@@ -245,7 +247,17 @@ bool ImsMediaVideoSource::Start()
         }
 
         ANativeWindow* recording = mRecordingSurface ? mRecordingSurface : mImageReaderSurface;
-        mCamera->CreateSession(mWindow, recording);
+
+        if (mCamera->CreateSession(mWindow, recording) == false)
+        {
+            IMLOGE0("[Start] error create camera session");
+            AMediaCodec_delete(mCodec);
+            mCodec = NULL;
+            AMediaFormat_delete(mFormat);
+            mFormat = NULL;
+            return false;
+        }
+
         if (mCamera->StartSession(mVideoMode == kVideoModeRecording) == false)
         {
             IMLOGE0("[Start] error camera start");
@@ -293,7 +305,7 @@ void ImsMediaVideoSource::Stop()
     if (mCamera != NULL)
     {
         mCamera->DeleteSession();
-        delete mCamera;
+        mCamera->DeInitialize();
         mCamera = NULL;
     }
 

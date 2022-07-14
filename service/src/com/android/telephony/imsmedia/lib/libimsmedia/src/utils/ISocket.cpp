@@ -27,10 +27,6 @@ ISocket* ISocket::GetInstance(
         if (pSocket)
             pSocket->mSocketClass = SOCKET_CLASS_DEFAULT;
     }
-    // for socket bridge
-    /*
-    pSocket = (ISocket*)SocketBridgeProxy::GetInstance(pNetworkInfo, pPortInfo);
-    if (pSocket) pSocket->mSocketClass = _SOCKET_CLASS_PROXY;*/
 
     return pSocket;
 }
@@ -40,7 +36,5 @@ void ISocket::ReleaseInstance(ISocket* pSocket)
     if (pSocket->mSocketClass == SOCKET_CLASS_DEFAULT)
     {
         ImsMediaSocket::ReleaseInstance((ImsMediaSocket*)pSocket);
-    } /*else {
-        SocketBridgeProxy::ReleaseInstance((SocketBridgeProxy*)pSocket);
-    }*/
+    }
 }

@@ -17,7 +17,8 @@
 #include <SocketWriterNode.h>
 #include <ImsMediaTrace.h>
 
-SocketWriterNode::SocketWriterNode()
+SocketWriterNode::SocketWriterNode(BaseSessionCallback* callback) :
+        BaseNode(callback)
 {
     mSocket = NULL;
     mbSocketOpened = false;
@@ -32,19 +33,9 @@ SocketWriterNode::~SocketWriterNode()
     }
 }
 
-BaseNode* SocketWriterNode::GetInstance()
+kBaseNodeId SocketWriterNode::GetNodeId()
 {
-    return new SocketWriterNode();
-}
-
-void SocketWriterNode::ReleaseInstance(BaseNode* pNode)
-{
-    delete (SocketWriterNode*)pNode;
-}
-
-BaseNodeID SocketWriterNode::GetNodeID()
-{
-    return BaseNodeID::NODEID_SOCKETWRITER;
+    return kNodeIdSocketWriter;
 }
 
 ImsMediaResult SocketWriterNode::Start()

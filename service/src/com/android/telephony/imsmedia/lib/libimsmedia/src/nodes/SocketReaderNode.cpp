@@ -17,7 +17,8 @@
 #include <SocketReaderNode.h>
 #include <ImsMediaTrace.h>
 
-SocketReaderNode::SocketReaderNode() :
+SocketReaderNode::SocketReaderNode(BaseSessionCallback* callback) :
+        BaseNode(callback),
         mLocalFd(0)
 {
 }
@@ -34,19 +35,9 @@ void SocketReaderNode::OnReceiveEnabled()
     }
 }
 
-BaseNode* SocketReaderNode::GetInstance()
+kBaseNodeId SocketReaderNode::GetNodeId()
 {
-    return new SocketReaderNode();
-}
-
-void SocketReaderNode::ReleaseInstance(BaseNode* pNode)
-{
-    delete (SocketReaderNode*)pNode;
-}
-
-BaseNodeID SocketReaderNode::GetNodeID()
-{
-    return BaseNodeID::NODEID_SOCKETREADER;
+    return kNodeIdSocketReader;
 }
 
 ImsMediaResult SocketReaderNode::Start()

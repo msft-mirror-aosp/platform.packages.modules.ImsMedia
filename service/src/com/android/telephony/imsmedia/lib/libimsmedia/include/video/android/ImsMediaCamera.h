@@ -22,7 +22,6 @@
 #include <string>
 #include <vector>
 #include <map>
-#include <mutex>
 #include <camera/NdkCameraManager.h>
 #include <camera/NdkCameraError.h>
 #include <camera/NdkCameraDevice.h>
@@ -106,67 +105,110 @@ enum kCameraMode
 
 class ImsMediaCamera
 {
-public:
+private:
     ImsMediaCamera();
-    ~ImsMediaCamera();
-    bool OpenCamera();
+    virtual ~ImsMediaCamera();
+
+public:
+    static ImsMediaCamera* getInstance();
+
     /**
-     * @brief Set the Camera Config
+     * @brief Creates camera manager and register the valid camera device to the list
+     */
+    void Initialize();
+
+    /**
+     * @brief Deletes camera manager and clear the camera list
+     */
+    void DeInitialize();
+
+    /**
+     * @brief Opens camera with pre configured camera configuration by SetCameraConfig.
+     *
+     * @return true Returns when open camera successfully
+     * @return false Returns when there is error during opening camera
+     */
+    bool OpenCamera();
+
+    /**
+     * @brief Sets the Camera Config
      *
      * @param cameraId active camera id
      * @param cameraZoom camera zoom level
      * @param framerate framerate
      */
     void SetCameraConfig(int32_t cameraId, int32_t cameraZoom, int32_t framerate);
+
     /**
-     * @brief Create a Session object
+     * @brief Creates a Session object
      *
-     * @param preview
-     * @param recording
+     * @param preview The mandatory prameter to run the camera
+     * @param recording The optional parameter to run camera, it is mandatory if you want to run
+     * camera as recording mode
+     *
+     * @return true Returns when create camera session successfully
+     * @return false Returns when there is error during create camera session
      */
-    void CreateSession(ANativeWindow* preview, ANativeWindow* recording);
-    void DeleteSession();
+    bool CreateSession(ANativeWindow* preview, ANativeWindow* recording);
+
     /**
-     * @brief
+     * @brief Delete the camera capture session, request and release the target surfaces and
+     * resources.
      *
-     * @param bRecording
-     * @return true
-     * @return false
+     * @return true Deletes camera session and release the resources succeed
+     * @return false Failed when there is error during the release the resources
+     */
+    bool DeleteSession();
+
+    /**
+     * @brief Starts camera preview or recording session
+     *
+     * @param bRecording Sets true to run recording session, it would be failed when the surface or
+     * camera id is not valid.
+     * @return true Starts camera session without error
+     * @return false Failed when there is any error during starting camera session
      */
     bool StartSession(bool bRecording);
+
     /**
-     * @brief
+     * @brief Stops the running camera capture session.
      *
+     * @return true Stop camera session succeed
+     * @return false Failed when there is any error during stopping camera session
      */
-    void StopSession();
+    bool StopSession();
+
     /**
-     * @brief handles Callback from ACameraManager
+     * @brief Handles callback from ACameraManager
      *
-     * @param id
-     * @param available
+     * @param id The camera id to update
+     * @param available The state of camera, set true when the camera is available
      */
-    void OnCameraStatusChanged(const char* id, bool available);
+    virtual void OnCameraStatusChanged(const char* id, bool available);
+
     /**
      * @brief Handle Camera DeviceStateChanges msg, notify device is disconnected
      * simply close the camera
      *
      * @param dev device instance to get state
      */
-    void OnDeviceState(ACameraDevice* dev);
+    virtual void OnDeviceState(ACameraDevice* dev);
+
     /**
      * @brief Handles Camera's deviceErrorChanges message, no action; mainly debugging purpose
      *
-     * @param dev
-     * @param err
+     * @param dev The camera device object has error
+     * @param err The error code
      */
-    void OnDeviceError(ACameraDevice* dev, int err);
+    virtual void OnDeviceError(ACameraDevice* dev, int err);
+
     /**
      * @brief  Handles capture session state changes. Update into internal session state.
      *
-     * @param ses
-     * @param state
+     * @param ses The camera capture session object to change the state
+     * @param state The camera state to changes
      */
-    void OnSessionState(ACameraCaptureSession* ses, CaptureSessionState state);
+    virtual void OnSessionState(ACameraCaptureSession* ses, CaptureSessionState state);
 
     /**
      * @brief Retrieve the camera facing and sensor orientation of requested camera id;
@@ -196,6 +238,7 @@ private:
      */
     bool GetExposureRange(int64_t* min, int64_t* max, int64_t* curVal);
     /**
+
      * Retrieve Camera sensitivity range.
      *
      * @param min Camera minimium sensitivity
@@ -205,6 +248,7 @@ private:
      *         false camera has not initialized, no value available
      */
     bool GetSensitivityRange(int64_t* min, int64_t* max, int64_t* curVal);
+
     /**
      * @brief Construct a camera manager listener on the fly and return to caller
      *
@@ -215,8 +259,8 @@ private:
     ACameraCaptureSession_stateCallbacks* GetSessionListener();
     bool MatchCaptureSizeRequest(ANativeWindow* window);
 
+    static ImsMediaCamera gCamera;
     static std::map<std::string, CameraId> gCameraIds;
-    static std::mutex gMutex;
     static ImsMediaCondition gCondition;
     ACameraManager* mManager;
     CaptureRequestInfo mCaptureRequest;
