@@ -39,7 +39,7 @@ public:
      *
      * @param pstNtpTime    Calculated NTP Timestamp
      */
-    static RtpDt_Void GetNtpTime(tRTP_NTP_TIME* pstNtpTime);
+    static RtpDt_Void GetNtpTime(tRTP_NTP_TIME& pstNtpTime);
 
     /**
      *  Initializes pseudo-random number generator using system time as seed
