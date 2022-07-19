@@ -1,0 +1,273 @@
+/**
+ * Copyright (C) 2022 The Android Open Source Project
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package com.android.telephony.imsmedia;
+
+import android.hardware.radio.ims.media.IImsMediaSession;
+import android.os.Handler;
+import android.os.Looper;
+import android.os.Message;
+import android.os.RemoteException;
+import android.support.annotation.VisibleForTesting;
+import android.telephony.Rlog;
+import android.telephony.imsmedia.IImsTextSession;
+import android.telephony.imsmedia.IImsTextSessionCallback;
+import android.telephony.imsmedia.ImsMediaSession;
+import android.telephony.imsmedia.MediaQualityThreshold;
+import android.telephony.imsmedia.TextConfig;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+
+import com.android.telephony.imsmedia.Utils.OpenSessionParams;
+
+/**
+ * Text session binder implementation which handles all text session APIs from the text service.
+ */
+public final class TextSession extends IImsTextSession.Stub implements IMediaSession {
+    private static final String TAG = "TextSession";
+
+    public static final int CMD_OPEN_SESSION = 101;
+    public static final int CMD_CLOSE_SESSION = 102;
+    public static final int CMD_MODIFY_SESSION = 103;
+    public static final int CMD_SET_MEDIA_QUALITY_THRESHOLD = 104;
+    public static final int CMD_SEND_RTT = 105;
+
+    public static final int EVENT_OPEN_SESSION_SUCCESS = 201;
+    public static final int EVENT_OPEN_SESSION_FAILURE = 202;
+    public static final int EVENT_MODIFY_SESSION_RESPONSE = 203;
+    public static final int EVENT_SESSION_CHANGED_IND = 204;
+    public static final int EVENT_MEDIA_INACTIVITY_IND = 205;
+    public static final int EVENT_RTT_RECEIVED = 206;
+
+    private int mSessionId;
+    private int mSessionState;
+    private IImsTextSessionCallback mCallback;
+    private IImsMediaSession mHalSession;
+    private TextSessionHandler mHandler;
+    private TextService mTextService;
+    private TextListener mTextListener;
+    private TextLocalSession mLocalSession;
+
+    TextSession(final int sessionId, final IImsTextSessionCallback callback) {
+        mSessionId = sessionId;
+        mSessionState = ImsMediaSession.SESSION_STATE_CLOSED;
+        mCallback = callback;
+        mHandler = new TextSessionHandler(Looper.getMainLooper());
+        Rlog.d(TAG, "Initialize local text service");
+        mTextService = new TextService();
+        mTextListener = new TextListener(mHandler);
+        mTextService.setListener(mTextListener);
+        mTextListener.setNativeObject(mTextService.getNativeObject());
+    }
+
+    @VisibleForTesting
+    TextSession(final int sessionId,
+            final @NonNull IImsTextSessionCallback callback,
+            final @Nullable TextService textService,
+            final @Nullable TextLocalSession localSession) {
+        mSessionId = sessionId;
+        mSessionState = ImsMediaSession.SESSION_STATE_CLOSED;
+        mCallback = callback;
+        mHandler = new TextSessionHandler(Looper.getMainLooper());
+        mTextService = textService;
+        mLocalSession = localSession;
+        mTextListener = new TextListener(mHandler);
+    }
+
+    @VisibleForTesting
+    TextSessionHandler getTextSessionHandler() {
+        return mHandler;
+    }
+
+    @VisibleForTesting
+    TextListener getTextListener() {
+        return mTextListener;
+    }
+
+    @Override
+    public void openSession(OpenSessionParams sessionParams) {
+        Utils.sendMessage(mHandler, CMD_OPEN_SESSION, sessionParams);
+    }
+
+    @Override
+    public void closeSession() {
+        Utils.sendMessage(mHandler, CMD_CLOSE_SESSION);
+    }
+
+    @Override
+    public int getSessionId() {
+        return mSessionId;
+    }
+
+    @Override
+    public int getSessionState() {
+        return mSessionState;
+    }
+
+    @Override
+    public void modifySession(TextConfig config) {
+        Rlog.d(TAG, "modifySession: " + config);
+        Utils.sendMessage(mHandler, CMD_MODIFY_SESSION, config);
+    }
+
+    @Override
+    public void setMediaQualityThreshold(MediaQualityThreshold threshold) {
+        Rlog.d(TAG, "setMediaQualityThreshold: " + threshold);
+        Utils.sendMessage(mHandler, CMD_SET_MEDIA_QUALITY_THRESHOLD, threshold);
+    }
+
+    @Override
+    public void sendRtt(String text) {
+        Rlog.d(TAG, "sendRtt: ");
+        Utils.sendMessage(mHandler, CMD_SEND_RTT, text);
+    }
+
+    @Override
+    public void onOpenSessionSuccess(Object session) {
+        Rlog.d(TAG, "onOpenSessionSuccess");
+        Utils.sendMessage(mHandler, EVENT_OPEN_SESSION_SUCCESS, session);
+    }
+
+    @Override
+    public void onOpenSessionFailure(int error) {
+        Rlog.d(TAG, "onOpenSessionFailure: error=" + error);
+        Utils.sendMessage(mHandler, EVENT_OPEN_SESSION_FAILURE, error);
+    }
+
+    /**
+     * Text session message mHandler
+     */
+    class TextSessionHandler extends Handler {
+        TextSessionHandler(Looper looper) {
+            super(looper);
+        }
+
+        @Override
+        public void handleMessage(Message msg) {
+            Rlog.d(TAG, "handleMessage: " + msg.what);
+            switch (msg.what) {
+                case CMD_OPEN_SESSION:
+                    handleOpenSession((OpenSessionParams) msg.obj);
+                    break;
+                case CMD_CLOSE_SESSION:
+                    handleCloseSession();
+                    break;
+                case CMD_MODIFY_SESSION:
+                    handleModifySession((TextConfig) msg.obj);
+                    break;
+                case CMD_SET_MEDIA_QUALITY_THRESHOLD:
+                    handleSetMediaQualityThreshold((MediaQualityThreshold) msg.obj);
+                    break;
+                case CMD_SEND_RTT:
+                    handleSendRtt((String) msg.obj);
+                    break;
+                case EVENT_OPEN_SESSION_SUCCESS:
+                    handleOpenSuccess(msg.obj);
+                    break;
+                case EVENT_OPEN_SESSION_FAILURE:
+                    handleOpenFailure((int) msg.obj);
+                    break;
+                case EVENT_MODIFY_SESSION_RESPONSE:
+                    handleModifySessionRespose((TextConfig) msg.obj, msg.arg1);
+                    break;
+                case EVENT_SESSION_CHANGED_IND:
+                    handleSessionChangedInd((int) msg.obj);
+                    break;
+                case EVENT_MEDIA_INACTIVITY_IND:
+                    handleNotifyMediaInactivityInd(msg.arg1);
+                    break;
+                case EVENT_RTT_RECEIVED:
+                    handleRttReceived((String) msg.obj);
+                    break;
+                default:
+            }
+        }
+    }
+
+    private void handleOpenSession(OpenSessionParams sessionParams) {
+        mTextListener.setMediaCallback(sessionParams.getCallback());
+        Rlog.d(TAG, "handleOpenSession");
+        mTextService.openSession(mSessionId, sessionParams);
+    }
+
+    private void handleCloseSession() {
+        Rlog.d(TAG, "handleCloseSession");
+        mTextService.closeSession(mSessionId);
+    }
+
+    private void handleModifySession(TextConfig config) {
+        mLocalSession.modifySession(config);
+    }
+
+    private void handleSetMediaQualityThreshold(MediaQualityThreshold threshold) {
+        mLocalSession.setMediaQualityThreshold(threshold);
+    }
+
+    private void handleSendRtt(String text) {
+        mLocalSession.sendRtt(text);
+    }
+
+    private void handleOpenSuccess(Object session) {
+        mLocalSession = (TextLocalSession) session;
+        try {
+            mCallback.onOpenSessionSuccess(this);
+        } catch (RemoteException e) {
+            Rlog.e(TAG, "Failed to notify openSuccess: " + e);
+        }
+    }
+
+    private void handleOpenFailure(int error) {
+        try {
+            mCallback.onOpenSessionFailure(error);
+        } catch (RemoteException e) {
+            Rlog.e(TAG, "Failed to notify openFailure: " + e);
+        }
+    }
+
+    private void handleModifySessionRespose(TextConfig config, int error) {
+        try {
+            mCallback.onModifySessionResponse(config, error);
+        } catch (RemoteException e) {
+            Rlog.e(TAG, "Failed to notify modifySessionResponse: " + e);
+        }
+    }
+
+    private void handleSessionChangedInd(int state) {
+        try {
+            mSessionState = state;
+            mCallback.onSessionChanged(state);
+        } catch (RemoteException e) {
+            Rlog.e(TAG, "Failed to notify onSessionChanged: " + e);
+        }
+    }
+
+    private void handleNotifyMediaInactivityInd(int packetType) {
+        try {
+            mCallback.notifyMediaInactivity(packetType);
+        } catch (RemoteException e) {
+            Rlog.e(TAG, "Failed to notify media timeout: " + e);
+        }
+    }
+
+    private void handleRttReceived(String text) {
+        try {
+            mCallback.onRttReceived(text);
+        } catch (RemoteException e) {
+            Rlog.e(TAG, "Failed to notify rtt received: " + e);
+        }
+    }
+}

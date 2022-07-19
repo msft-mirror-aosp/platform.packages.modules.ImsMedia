@@ -550,41 +550,41 @@ public final class VideoConfig extends RtpConfig {
 
         /**
          * Sets video mode
-         * @param mVideoMode video mode for preview, recording and puse image streaming
+         * @param videoMode video mode for preview, recording and puse image streaming
          * @return
          */
-        public Builder setVideoMode(final @VideoMode int mVideoMode) {
-            this.mVideoMode = mVideoMode;
+        public Builder setVideoMode(final @VideoMode int videoMode) {
+            this.mVideoMode = videoMode;
             return this;
         }
 
         /**
          * Sets video Codec type. It can be H.264, HEVC codec.
-         * @param mCodecType codec type, see {@link CodecType}
+         * @param codecType codec type, see {@link CodecType}
          * @return
          */
-        public Builder setCodecType(final @CodecType int mCodecType) {
-            this.mCodecType = mCodecType;
+        public Builder setCodecType(final @CodecType int codecType) {
+            this.mCodecType = codecType;
             return this;
         }
 
         /**
          * Sets video frame rate in encoding streaming
-         * @param mFramerate frame rate per second
+         * @param framerate frame rate per second
          * @return
          */
-        public Builder setFramerate(final int mFramerate) {
-            this.mFramerate = mFramerate;
+        public Builder setFramerate(final int framerate) {
+            this.mFramerate = framerate;
             return this;
         }
 
         /**
          * Sets video mBitrate of encoding streaming
-         * @param mBitrate mBitrate per second
+         * @param bitrate mBitrate per second
          * @return
          */
-        public Builder setBitrate(final int mBitrate) {
-            this.mBitrate = mBitrate;
+        public Builder setBitrate(final int bitrate) {
+            this.mBitrate = bitrate;
             return this;
         }
 
@@ -600,102 +600,102 @@ public final class VideoConfig extends RtpConfig {
 
         /**
          * Sets video codec encoder profile
-         * @param mCodecProfile codec profile, see {@link CodecProfile}
+         * @param codecProfile codec profile, see {@link CodecProfile}
          * @return
          */
-        public Builder setCodecProfile(final @CodecProfile int mCodecProfile) {
-            this.mCodecProfile = mCodecProfile;
+        public Builder setCodecProfile(final @CodecProfile int codecProfile) {
+            this.mCodecProfile = codecProfile;
             return this;
         }
 
         /**
          * Sets video codec encoder level
-         * @param mCodecLevel codec level, see {@link CodecLevel}
+         * @param codecLevel codec level, see {@link CodecLevel}
          * @return
          */
-        public Builder setCodecLevel(final @CodecLevel int mCodecLevel) {
-            this.mCodecLevel = mCodecLevel;
+        public Builder setCodecLevel(final @CodecLevel int codecLevel) {
+            this.mCodecLevel = codecLevel;
             return this;
         }
 
         /**
          * Sets video codec encoder interval of intra-frames in seconds
-         * @param mIntraFrameIntervalSec interval of frame in seconds unit
+         * @param intraFrameIntervalSec interval of frame in seconds unit
          * @return
          */
-        public Builder setIntraFrameIntervalSec(final int mIntraFrameIntervalSec) {
-            this.mIntraFrameIntervalSec = mIntraFrameIntervalSec;
+        public Builder setIntraFrameIntervalSec(final int intraFrameIntervalSec) {
+            this.mIntraFrameIntervalSec = intraFrameIntervalSec;
             return this;
         }
 
         /**
          * Sets video Rtp packetization mode.
-         * @param mPacketizationMode it supports 0 and 1. 0 means Single NAL unit mode,
+         * @param packetizationMode it supports 0 and 1. 0 means Single NAL unit mode,
          * 1 means non-interleaved mode. And Interleaved mode is not supported. Check RFC 6184.
          * @return
          */
-        public Builder setPacketizationMode(final int mPacketizationMode) {
-            this.mPacketizationMode = mPacketizationMode;
+        public Builder setPacketizationMode(final int packetizationMode) {
+            this.mPacketizationMode = packetizationMode;
             return this;
         }
 
         /**
          * Sets an identification of camera device to use for video source
-         * @param mCameraId camera device identification
+         * @param cameraId camera device identification
          * @return
          */
-        public Builder setCameraId(final int mCameraId) {
-            this.mCameraId = mCameraId;
+        public Builder setCameraId(final int cameraId) {
+            this.mCameraId = cameraId;
             return this;
         }
 
         /**
          * Sets a level of zoom of camera device.
-         * @param mCameraZoom zoom level, it can be 0 to 10.
+         * @param cameraZoom zoom level, it can be 0 to 10.
          * @return
          */
-        public Builder setCameraZoom(final int mCameraZoom) {
-            this.mCameraZoom = mCameraZoom;
+        public Builder setCameraZoom(final int cameraZoom) {
+            this.mCameraZoom = cameraZoom;
             return this;
         }
 
         /**
          * Sets width of resolution in transmit streaming.
-         * @param mResolutionWidth width of video resolution
+         * @param resolutionWidth width of video resolution
          * @return
          */
-        public Builder setResolutionWidth(final int mResolutionWidth) {
-            this.mResolutionWidth = mResolutionWidth;
+        public Builder setResolutionWidth(final int resolutionWidth) {
+            this.mResolutionWidth = resolutionWidth;
             return this;
         }
 
         /**
          * Sets height of resolution in transmit streaming.
-         * @param mResolutionHeight height of video resolution
+         * @param resolutionHeight height of video resolution
          * @return
          */
-        public Builder setResolutionHeight(final int mResolutionHeight) {
-            this.mResolutionHeight = mResolutionHeight;
+        public Builder setResolutionHeight(final int resolutionHeight) {
+            this.mResolutionHeight = resolutionHeight;
             return this;
         }
 
         /**
          * Sets path of jpg image file for video mode VIDEO_MODE_PAUSE_IMAGE.
-         * @param mPauseImagePath image file path
+         * @param pauseImagePath image file path
          * @return
          */
-        public Builder setPauseImagePath(final String mPauseImagePath) {
-            this.mPauseImagePath = mPauseImagePath;
+        public Builder setPauseImagePath(final String pauseImagePath) {
+            this.mPauseImagePath = pauseImagePath;
             return this;
         }
 
         /**
          * Sets a device orientation in degree unit captured from device sensor.
-         * @param mDeviceOrientationDegree degree of device orientation.
+         * @param deviceOrientationDegree degree of device orientation.
          * @return
          */
-        public Builder setDeviceOrientationDegree(final int mDeviceOrientationDegree) {
-            this.mDeviceOrientationDegree = mDeviceOrientationDegree;
+        public Builder setDeviceOrientationDegree(final int deviceOrientationDegree) {
+            this.mDeviceOrientationDegree = deviceOrientationDegree;
             return this;
         }
 
@@ -704,21 +704,21 @@ public final class VideoConfig extends RtpConfig {
          * When the flag is set, MediaStack sends CVO RTP extension byte in the RTP header when the
          * sendHeaderExtension is invoked and the Video IDR frame is sent. if this value is -1,
          * CVO is disabled, and non zero means CVO enabled with specified offset. Check RFC 5285
-         * @param mCvoValue It is the local identifier of extension. valid range is 1-14.
+         * @param cvoValue It is the local identifier of extension. valid range is 1-14.
          * @return
          */
-        public Builder setCvoValue(final int mCvoValue) {
-            this.mCvoValue = mCvoValue;
+        public Builder setCvoValue(final int cvoValue) {
+            this.mCvoValue = cvoValue;
             return this;
         }
 
         /**
          * Sets RTPFB, PSFB configuration with RTCP Protocol.
-         * @param mRtcpFbTypes type of rtcp feedback protocols. see {@link RtcpFbTypes}
+         * @param rtcpFbTypes type of rtcp feedback protocols. see {@link RtcpFbTypes}
          * @return
          */
-        public Builder setRtcpFbTypes(final @RtcpFbTypes int mRtcpFbTypes) {
-            this.mRtcpFbTypes = mRtcpFbTypes;
+        public Builder setRtcpFbTypes(final @RtcpFbTypes int rtcpFbTypes) {
+            this.mRtcpFbTypes = rtcpFbTypes;
             return this;
         }
 

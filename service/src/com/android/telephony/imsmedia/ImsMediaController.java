@@ -25,6 +25,8 @@ import android.telephony.Rlog;
 import android.telephony.imsmedia.IImsAudioSession;
 import android.telephony.imsmedia.IImsAudioSessionCallback;
 import android.telephony.imsmedia.IImsMedia;
+import android.telephony.imsmedia.IImsTextSession;
+import android.telephony.imsmedia.IImsTextSessionCallback;
 import android.telephony.imsmedia.IImsVideoSession;
 import android.telephony.imsmedia.IImsVideoSessionCallback;
 import android.telephony.imsmedia.ImsMediaSession;
@@ -67,6 +69,9 @@ public class ImsMediaController extends Service {
                                 IImsVideoSessionCallback.Stub.asInterface(callback));
                         break;
                     case ImsMediaSession.SESSION_TYPE_RTT:
+                        session = new TextSession(sessionId,
+                                IImsTextSessionCallback.Stub.asInterface(callback));
+                        break;
                     default:
                         session = null;
                 }
@@ -84,7 +89,6 @@ public class ImsMediaController extends Service {
         public void closeSession(IBinder session) {
             Rlog.d(TAG, "closeSession: " + session);
             synchronized (mSessions) {
-                /** TODO handle for all types */
                 if (session instanceof AudioSession) {
                     final AudioSession audioSession =
                             (AudioSession) IImsAudioSession.Stub.asInterface(session);
@@ -95,6 +99,11 @@ public class ImsMediaController extends Service {
                             (VideoSession) IImsVideoSession.Stub.asInterface(session);
                     videoSession.closeSession();
                     mSessions.remove(videoSession.getSessionId());
+                } else if (session instanceof TextSession) {
+                    final TextSession textSession =
+                            (TextSession) IImsTextSession.Stub.asInterface(session);
+                    textSession.closeSession();
+                    mSessions.remove(textSession.getSessionId());
                 }
             }
         }

@@ -33,79 +33,84 @@ import java.lang.annotation.RetentionPolicy;
  * @hide
  */
 public interface ImsMediaSession {
-    public static final int SESSION_TYPE_AUDIO = 0;
-    public static final int SESSION_TYPE_VIDEO = 1;
-    public static final int SESSION_TYPE_RTT = 2;
+    int SESSION_TYPE_AUDIO = 0;
+    int SESSION_TYPE_VIDEO = 1;
+    int SESSION_TYPE_RTT = 2;
+
     /** @hide */
-    @IntDef(
-        value = {
-           SESSION_TYPE_AUDIO,
-           SESSION_TYPE_VIDEO,
-           SESSION_TYPE_RTT,
+    @IntDef(value = {
+            SESSION_TYPE_AUDIO,
+            SESSION_TYPE_VIDEO,
+            SESSION_TYPE_RTT,
     })
     @Retention(RetentionPolicy.SOURCE)
-    public @interface SessionType {}
+    public @interface SessionType {
+    }
 
     /** The RTP session is opened but media flow has not started */
-    public static final int SESSION_STATE_OPEN = RtpSessionState.OPEN;
+    int SESSION_STATE_OPEN = RtpSessionState.OPEN;
     /** The RTP session has active media flow */
-    public static final int SESSION_STATE_ACTIVE = RtpSessionState.ACTIVE;
+    int SESSION_STATE_ACTIVE = RtpSessionState.ACTIVE;
     /** The RTP session is suspended */
-    public static final int SESSION_STATE_SUSPENDED = RtpSessionState.SUSPENDED;
+    int SESSION_STATE_SUSPENDED = RtpSessionState.SUSPENDED;
     /** The RTP session is closed */
-    public static final int SESSION_STATE_CLOSED = RtpSessionState.CLOSED;
+    int SESSION_STATE_CLOSED = RtpSessionState.CLOSED;
+
     /** @hide */
-    @IntDef(
-        value = {
-           SESSION_STATE_OPEN,
-           SESSION_STATE_ACTIVE,
-           SESSION_STATE_SUSPENDED,
-           SESSION_STATE_CLOSED,
+    @IntDef(value = {
+            SESSION_STATE_OPEN,
+            SESSION_STATE_ACTIVE,
+            SESSION_STATE_SUSPENDED,
+            SESSION_STATE_CLOSED,
     })
     @Retention(RetentionPolicy.SOURCE)
-    public @interface SessionState {}
+    public @interface SessionState {
+    }
 
     /** Real Time Protocol, see RFC 3550 */
-    public static final int PACKET_TYPE_RTP = MediaProtocolType.RTP;
+    int PACKET_TYPE_RTP = MediaProtocolType.RTP;
     /** Real Time Control Protocol, see RFC 3550 */
-    public static final int PACKET_TYPE_RTCP = MediaProtocolType.RTCP;
+    int PACKET_TYPE_RTCP = MediaProtocolType.RTCP;
+
     /** @hide */
-    @IntDef(
-        value = {
-           PACKET_TYPE_RTP,
-           PACKET_TYPE_RTCP,
+    @IntDef(value = {
+            PACKET_TYPE_RTP,
+            PACKET_TYPE_RTCP,
     })
     @Retention(RetentionPolicy.SOURCE)
-    public @interface PacketType {}
+    public @interface PacketType {
+    }
 
     /** Result of a session operation is successful */
-    public static final int RESULT_SUCCESS = RtpError.NONE;
+    int RESULT_SUCCESS = RtpError.NONE;
     /** Failed because of invalid parameters passed in the request */
-    public static final int RESULT_INVALID_PARAM = RtpError.INVALID_PARAM;
+    int RESULT_INVALID_PARAM = RtpError.INVALID_PARAM;
     /** The RTP stack is not ready to handle the request */
-    public static final int RESULT_NOT_READY = RtpError.NOT_READY;
+    int RESULT_NOT_READY = RtpError.NOT_READY;
     /** Unable to handle the request due to memory allocation failure */
-    public static final int RESULT_NO_MEMORY = RtpError.NO_MEMORY;
-    /** Unable to handle the request due to no sufficient resources such as audio, codec */
-    public static final int RESULT_NO_RESOURCES = RtpError.NO_RESOURCES;
+    int RESULT_NO_MEMORY = RtpError.NO_MEMORY;
+    /**
+     * Unable to handle the request due to no sufficient resources such as audio, codec
+     */
+    int RESULT_NO_RESOURCES = RtpError.NO_RESOURCES;
     /** The requested port number is not available */
-    public static final int RESULT_PORT_UNAVAILABLE = RtpError.PORT_UNAVAILABLE;
+    int RESULT_PORT_UNAVAILABLE = RtpError.PORT_UNAVAILABLE;
     /** The request is not supported by the vendor implementation */
-    public static final int RESULT_NOT_SUPPORTED = RtpError.NOT_SUPPORTED;
+    int RESULT_NOT_SUPPORTED = RtpError.NOT_SUPPORTED;
 
     /** @hide */
-    @IntDef(
-        value = {
-           RESULT_SUCCESS,
-           RESULT_INVALID_PARAM,
-           RESULT_NOT_READY,
-           RESULT_NO_MEMORY,
-           RESULT_NO_RESOURCES,
-           RESULT_PORT_UNAVAILABLE,
-           RESULT_NOT_SUPPORTED,
+    @IntDef(value = {
+            RESULT_SUCCESS,
+            RESULT_INVALID_PARAM,
+            RESULT_NOT_READY,
+            RESULT_NO_MEMORY,
+            RESULT_NO_RESOURCES,
+            RESULT_PORT_UNAVAILABLE,
+            RESULT_NOT_SUPPORTED,
     })
     @Retention(RetentionPolicy.SOURCE)
-    public @interface SessionOperationResult {}
+    public @interface SessionOperationResult {
+    }
 
     /** @hide */
     public IBinder getBinder();
@@ -117,12 +122,11 @@ public interface ImsMediaSession {
     public @SessionState int getSessionState();
 
     /**
-     * Modifies the configuration of the RTP session after the session is opened.
-     * It can be used to modify the direction, access network, codec parameters,
-     * {@link RtcpConfig}, remote address and remote port number. The service will
-     * apply if anything changed in this invocation compared to previous and respond
-     * the updated {@link RtpConfig} in {@link ImsMediaSession#onModifySessionResponse()}
-     * API.
+     * Modifies the configuration of the RTP session after the session is opened. It can be used to
+     * modify the direction, access network, codec parameters, {@link RtcpConfig}, remote address
+     * and remote port number. The service will apply if anything changed in this invocation
+     * compared to previous and respond the updated {@link RtpConfig} in
+     * {@link ImsMediaSession#onModifySessionResponse()} API.
      *
      * @param config provides remote end point info and codec details
      */
@@ -133,8 +137,7 @@ public interface ImsMediaSession {
      * media quality notifications.
      *
      * @param threshold media quality thresholds for various quality
-     *        parameters
+     *                  parameters
      */
     void setMediaQualityThreshold(final MediaQualityThreshold threshold);
 }
-
