@@ -81,7 +81,10 @@ ImsMediaResult RtcpEncoderNode::Start()
             mRtcpXrBlockType);
     mRtpSession->SetRtcpEncoderListener(this);
     mRtpSession->SetRtcpInterval(mRtcpInterval);
-    mRtpSession->StartRtcp(mEnableRtcpBye);
+    if (mRtcpInterval > 0)
+    {
+        mRtpSession->StartRtcp(mEnableRtcpBye);
+    }
 
     if (mTimer == NULL)
     {
