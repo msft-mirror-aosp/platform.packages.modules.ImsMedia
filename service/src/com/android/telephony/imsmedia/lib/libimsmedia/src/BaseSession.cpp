@@ -18,14 +18,29 @@
 #include <ImsMediaTrace.h>
 #include <ImsMediaEventHandler.h>
 #include <string.h>
+#include <ImsMediaNetworkUtil.h>
 
 BaseSession::BaseSession() :
         mRtpFd(-1),
-        mRtcpFd(-1)
+        mRtcpFd(-1),
+        mState(kSessionStateClosed)
 {
 }
 
-BaseSession::~BaseSession() {}
+BaseSession::~BaseSession()
+{
+    if (mRtpFd != -1)
+    {
+        IMLOGD0("[~BaseSession] close rtp fd");
+        ImsMediaNetworkUtil::closeSocket(mRtpFd);
+    }
+
+    if (mRtcpFd != -1)
+    {
+        IMLOGD0("[~BaseSession] close rtcp fd");
+        ImsMediaNetworkUtil::closeSocket(mRtcpFd);
+    }
+}
 
 void BaseSession::setSessionId(int sessionId)
 {

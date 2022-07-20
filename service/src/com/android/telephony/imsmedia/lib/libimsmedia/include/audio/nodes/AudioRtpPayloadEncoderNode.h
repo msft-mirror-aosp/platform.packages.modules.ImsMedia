@@ -22,14 +22,10 @@
 
 class AudioRtpPayloadEncoderNode : public BaseNode
 {
-private:
-    AudioRtpPayloadEncoderNode();
-    virtual ~AudioRtpPayloadEncoderNode();
-
 public:
-    static BaseNode* GetInstance();
-    static void ReleaseInstance(BaseNode* pNode);
-    virtual BaseNodeID GetNodeID();
+    AudioRtpPayloadEncoderNode(BaseSessionCallback* callback = NULL);
+    virtual ~AudioRtpPayloadEncoderNode();
+    virtual kBaseNodeId GetNodeId();
     virtual ImsMediaResult Start();
     virtual void Stop();
     virtual bool IsRunTime();

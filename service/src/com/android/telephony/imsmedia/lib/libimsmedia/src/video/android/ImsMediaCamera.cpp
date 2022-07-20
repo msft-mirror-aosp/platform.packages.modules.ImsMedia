@@ -76,8 +76,13 @@ static const uint64_t kMinExposureTime = static_cast<uint64_t>(1000000);
 static const uint64_t kMaxExposureTime = static_cast<uint64_t>(250000000);
 
 std::map<std::string, CameraId> ImsMediaCamera::gCameraIds;
-std::mutex ImsMediaCamera::gMutex;
 ImsMediaCondition ImsMediaCamera::gCondition;
+ImsMediaCamera ImsMediaCamera::gCamera;
+
+ImsMediaCamera* ImsMediaCamera::getInstance()
+{
+    return &gCamera;
+}
 
 ImsMediaCamera::ImsMediaCamera() :
         mManager(NULL),
@@ -94,11 +99,22 @@ ImsMediaCamera::ImsMediaCamera() :
         mFramerate(-1)
 {
     IMLOGD0("[ImsMediaCamera]");
+}
+
+ImsMediaCamera::~ImsMediaCamera()
+{
+    IMLOGD0("[~ImsMediaCamera]");
+}
+
+void ImsMediaCamera::Initialize()
+{
+    IMLOGD0("[Initialize]");
     gCameraIds.clear();
     mManager = ACameraManager_create();
+
     if (mManager == NULL)
     {
-        IMLOGD0("[ImsMediaCamera] manager is not created");
+        IMLOGD0("[Initialize] manager is not created");
         return;
     }
 
@@ -108,9 +124,9 @@ ImsMediaCamera::ImsMediaCamera() :
     mCaptureRequest.targets.resize(0);
 }
 
-ImsMediaCamera::~ImsMediaCamera()
+void ImsMediaCamera::DeInitialize()
 {
-    IMLOGD0("[~ImsMediaCamera]");
+    IMLOGD0("[DeInitialize]");
 
     for (auto& cam : gCameraIds)
     {
@@ -122,7 +138,37 @@ ImsMediaCamera::~ImsMediaCamera()
 
     if (mManager)
     {
-        ACameraManager_unregisterAvailabilityCallback(mManager, GetManagerListener());
+        camera_status_t status =
+                ACameraManager_unregisterAvailabilityCallback(mManager, GetManagerListener());
+
+        if (status != ACAMERA_OK)
+        {
+            IMLOGE0("[DeInitialize] error[%s], GetErrorStr(status)");
+        }
+
+        ACameraManager_delete(mManager);
+        mManager = NULL;
+    }
+
+    gCameraIds.clear();
+    for (auto& cam : gCameraIds)
+    {
+        if (cam.second.mDevice)
+        {
+            ACameraDevice_close(cam.second.mDevice);
+        }
+    }
+
+    if (mManager)
+    {
+        camera_status_t status =
+                ACameraManager_unregisterAvailabilityCallback(mManager, GetManagerListener());
+
+        if (status != ACAMERA_OK)
+        {
+            IMLOGE0("[~ImsMediaCamera] error[%s], GetErrorStr(status)");
+        }
+
         ACameraManager_delete(mManager);
         mManager = NULL;
     }
@@ -132,11 +178,16 @@ ImsMediaCamera::~ImsMediaCamera()
 
 bool ImsMediaCamera::OpenCamera()
 {
-    IMLOGD0("[OpenCamera]");
-    std::lock_guard<std::mutex> guard(gMutex);
+    IMLOGD1("[OpenCamera] active camera[%s]", mActiveCameraId.c_str());
 
     if (mManager == NULL)
     {
+        return false;
+    }
+
+    if (mActiveCameraId.compare(std::string("")) == 0)
+    {
+        IMLOGE0("[OpenCamera] no active camera");
         return false;
     }
 
@@ -151,6 +202,7 @@ bool ImsMediaCamera::OpenCamera()
     }
 
     status = ACameraManager_registerAvailabilityCallback(mManager, GetManagerListener());
+
     if (status != ACAMERA_OK)
     {
         IMLOGE1("[OpenCamera] fail to register manager callback, error[%s]", GetErrorStr(status));
@@ -172,7 +224,9 @@ bool ImsMediaCamera::OpenCamera()
         {
             mExposureRange.min = kMinExposureTime;
         }
+
         mExposureRange.max = val.data.i64[1];
+
         if (mExposureRange.max > kMaxExposureTime)
         {
             mExposureRange.max = kMaxExposureTime;
@@ -224,17 +278,17 @@ void ImsMediaCamera::SetCameraConfig(int32_t cameraId, int32_t cameraZoom, int32
     mFramerate = framerate;
 }
 
-void ImsMediaCamera::CreateSession(ANativeWindow* preview, ANativeWindow* recording)
+bool ImsMediaCamera::CreateSession(ANativeWindow* preview, ANativeWindow* recording)
 {
     if (preview == NULL)
     {
-        return;
+        return false;
     }
 
     if (MatchCaptureSizeRequest(preview) == false)
     {
         IMLOGE0("[CreateSession] resolution is not matched");
-        return;
+        return false;
     }
 
     mCaptureRequest.outputNativeWindows.push_back(preview);
@@ -252,9 +306,11 @@ void ImsMediaCamera::CreateSession(ANativeWindow* preview, ANativeWindow* record
                       : mCaptureRequest.requestTemplate = TEMPLATE_RECORD;
 
     camera_status_t status = ACaptureSessionOutputContainer_create(&mSessionOutputContainer);
+
     if (status != ACAMERA_OK)
     {
         IMLOGE1("[CreateSession] create output container, error[%s]", GetErrorStr(status));
+        return false;
     }
 
     for (int idxTarget = 0; idxTarget < mCaptureRequest.outputNativeWindows.size(); idxTarget++)
@@ -287,7 +343,7 @@ void ImsMediaCamera::CreateSession(ANativeWindow* preview, ANativeWindow* record
     {
         if (gCondition.wait_timeout(MAX_WAIT_RESTART))
         {
-            return;
+            return false;
         }
     }
 
@@ -296,6 +352,7 @@ void ImsMediaCamera::CreateSession(ANativeWindow* preview, ANativeWindow* record
     if (status != ACAMERA_OK)
     {
         IMLOGE1("[CreateSession] create capture request, error[%s]", GetErrorStr(status));
+        return false;
     }
 
     for (int idxTarget = 0; idxTarget < mCaptureRequest.outputNativeWindows.size(); idxTarget++)
@@ -308,33 +365,30 @@ void ImsMediaCamera::CreateSession(ANativeWindow* preview, ANativeWindow* record
     mCaptureSessionState = CaptureSessionState::kStateReady;
     status = ACameraDevice_createCaptureSession(gCameraIds[mActiveCameraId].mDevice,
             mSessionOutputContainer, GetSessionListener(), &mCaptureSession);
+
     if (status != ACAMERA_OK)
     {
         IMLOGE1("[CreateSession] create capture session, error[%s]", GetErrorStr(status));
+        return false;
     }
 
-    IMLOGD1("[CreateSession] create capture session[%p]", mCaptureSession);
+    gCondition.wait_timeout(MAX_WAIT_RESTART);
 
-    /*
-        uint8_t aeModeOff = ACAMERA_CONTROL_AE_MODE_OFF;
-        ACaptureRequest_setEntry_u8(mCaptureRequest.request,
-                                    ACAMERA_CONTROL_AE_MODE, 1, &aeModeOff);
-        ACaptureRequest_setEntry_i32(mCaptureRequest.request,
-                                     ACAMERA_SENSOR_SENSITIVITY, 1, &mSensitivity);
-        ACaptureRequest_setEntry_i64(mCaptureRequest.request,
-                                     ACAMERA_SENSOR_EXPOSURE_TIME, 1, &mExposureTime);*/
+    IMLOGD1("[CreateSession] create capture session[%p]", mCaptureSession);
 
     uint8_t afModeAuto = ACAMERA_CONTROL_AF_MODE_AUTO;
     ACaptureRequest_setEntry_u8(mCaptureRequest.request, ACAMERA_CONTROL_AF_MODE, 1, &afModeAuto);
     const int32_t targetFps[2] = {mFramerate, mFramerate};
     ACaptureRequest_setEntry_i32(
             mCaptureRequest.request, ACAMERA_CONTROL_AE_TARGET_FPS_RANGE, 2, targetFps);
+
+    return true;
 }
 
-void ImsMediaCamera::DeleteSession()
+bool ImsMediaCamera::DeleteSession()
 {
     IMLOGD0("[DeleteSession]");
-    std::lock_guard<std::mutex> guard(gMutex);
+    camera_status_t status;
 
     if (mCaptureSession != NULL)
     {
@@ -350,10 +404,24 @@ void ImsMediaCamera::DeleteSession()
             continue;
         }
 
-        ACaptureRequest_removeTarget(mCaptureRequest.request, mCaptureRequest.targets[idxTarget]);
+        status = ACaptureRequest_removeTarget(
+                mCaptureRequest.request, mCaptureRequest.targets[idxTarget]);
+
+        if (status != ACAMERA_OK)
+        {
+            IMLOGE1("[DeleteSession] error ACaptureRequest_removeTarget[%s]", GetErrorStr(status));
+        }
+
         ACameraOutputTarget_free(mCaptureRequest.targets[idxTarget]);
-        ACaptureSessionOutputContainer_remove(
+        status = ACaptureSessionOutputContainer_remove(
                 mSessionOutputContainer, mCaptureRequest.sessionOutputs[idxTarget]);
+
+        if (status != ACAMERA_OK)
+        {
+            IMLOGE1("[DeleteSession] error ACaptureSessionOutputContainer_remove[%s]",
+                    GetErrorStr(status));
+        }
+
         ACaptureSessionOutput_free(mCaptureRequest.sessionOutputs[idxTarget]);
         ANativeWindow_release(mCaptureRequest.outputNativeWindows[idxTarget]);
     }
@@ -373,6 +441,8 @@ void ImsMediaCamera::DeleteSession()
     {
         ACaptureSessionOutputContainer_free(mSessionOutputContainer);
     }
+
+    return true;
 }
 
 bool ImsMediaCamera::StartSession(bool bRecording)
@@ -393,25 +463,23 @@ bool ImsMediaCamera::StartSession(bool bRecording)
     return true;
 }
 
-void ImsMediaCamera::StopSession()
+bool ImsMediaCamera::StopSession()
 {
     IMLOGD1("[StopSession] state[%d]", mCaptureSessionState);
 
     if (mCaptureSessionState == CaptureSessionState::kStateActive)
     {
-        /*
-        camera_status_t status = ACameraCaptureSession_abortCaptures(mCaptureSession);
-        if (status != ACAMERA_OK)
-        {
-            IMLOGE1("[StopSession] abortCaptures error[%s]", GetErrorStr(status));
-        }*/
-
         camera_status_t status = ACameraCaptureSession_stopRepeating(mCaptureSession);
+
         if (status != ACAMERA_OK)
         {
             IMLOGE1("[StopSession] stopRepeating error[%s]", GetErrorStr(status));
+            return false;
         }
     }
+
+    gCondition.wait_timeout(MAX_WAIT_RESTART);
+    return true;
 }
 
 /*
@@ -420,12 +488,21 @@ void ImsMediaCamera::StopSession()
 void OnCameraAvailable(void* context, const char* id)
 {
     IMLOGD1("[OnCameraAvailable] id[%s]", id == NULL ? "NULL" : id);
-    reinterpret_cast<ImsMediaCamera*>(context)->OnCameraStatusChanged(id, true);
+
+    if (context != NULL)
+    {
+        reinterpret_cast<ImsMediaCamera*>(context)->OnCameraStatusChanged(id, true);
+    }
 }
+
 void OnCameraUnavailable(void* context, const char* id)
 {
     IMLOGD1("[OnCameraUnavailable] id[%s]", id == NULL ? "NULL" : id);
-    reinterpret_cast<ImsMediaCamera*>(context)->OnCameraStatusChanged(id, false);
+
+    if (context != NULL)
+    {
+        reinterpret_cast<ImsMediaCamera*>(context)->OnCameraStatusChanged(id, false);
+    }
 }
 
 void ImsMediaCamera::OnCameraStatusChanged(const char* id, bool available)
@@ -461,6 +538,8 @@ ACameraManager_AvailabilityCallbacks* ImsMediaCamera::GetManagerListener()
  */
 void OnDeviceStateChanges(void* context, ACameraDevice* dev)
 {
+    IMLOGW0("[OnDeviceStateChanges]");
+
     if (context != NULL)
     {
         reinterpret_cast<ImsMediaCamera*>(context)->OnDeviceState(dev);
@@ -469,6 +548,8 @@ void OnDeviceStateChanges(void* context, ACameraDevice* dev)
 
 void OnDeviceErrorChanges(void* context, ACameraDevice* dev, int err)
 {
+    IMLOGW0("[OnDeviceErrorChanges]");
+
     if (context != NULL)
     {
         reinterpret_cast<ImsMediaCamera*>(context)->OnDeviceError(dev, err);
@@ -580,7 +661,6 @@ ACameraCaptureSession_stateCallbacks* ImsMediaCamera::GetSessionListener()
 void ImsMediaCamera::OnSessionState(ACameraCaptureSession* session, CaptureSessionState state)
 {
     IMLOGD0("[OnSessionState]");
-    std::lock_guard<std::mutex> guard(gMutex);
 
     if (mCaptureSession == NULL)
     {
@@ -601,6 +681,7 @@ void ImsMediaCamera::OnSessionState(ACameraCaptureSession* session, CaptureSessi
     else
     {
         mCaptureSessionState = state;
+        gCondition.signal();
         IMLOGD1("[OnSessionState] state[%d]", state);
     }
 }

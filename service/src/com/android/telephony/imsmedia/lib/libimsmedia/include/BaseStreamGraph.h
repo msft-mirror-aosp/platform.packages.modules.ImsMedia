@@ -40,14 +40,57 @@ protected:
     virtual void deleteNodes();
 
 public:
+    /**
+     * @brief Construct
+     *
+     * @param callback Callback interface to send event to session
+     * @param localFd
+     */
     BaseStreamGraph(BaseSessionCallback* callback, int localFd = 0);
     virtual ~BaseStreamGraph();
-    void setLocalFd(int localFd) { mLocalFd = localFd; }
-    int getLocalFd() { return mLocalFd; }
+
+    /**
+     * @brief Sets the local socket file descriptor
+     *
+     * @param localFd socket file descriptor to set
+     */
+    void setLocalFd(int localFd);
+
+    /**
+     * @brief Gets the local socket file descriptor
+     *
+     * @return int The socket file descriptor
+     */
+    int getLocalFd();
+
+    /**
+     * @brief Starts the nodes in the graph
+     *
+     * @return ImsMediaResult RESULT_SUCCESS when the start succeeded
+     */
     virtual ImsMediaResult start();
+
+    /**
+     * @brief Stops the nodes in the graph
+     *
+     * @return ImsMediaResult RESULT_SUCCESS when the stop succeeded
+     */
     virtual ImsMediaResult stop();
-    void setState(StreamState state) { mGraphState = state; }
-    StreamState getState() { return mGraphState; }
+
+    /**
+     * @brief Sets the stream state
+     *
+     * @param state state to update.
+     */
+    void setState(StreamState state);
+
+    /**
+     * @brief Gets the stream state
+     *
+     * @return StreamState state of stream
+     */
+    StreamState getState();
+
     /**
      * @brief Checks StreamGraph has a config is same with argument
      *
@@ -73,14 +116,17 @@ public:
      * @param threshold threshold parameter to set.
      */
     virtual void setMediaQualityThreshold(MediaQualityThreshold* threshold);
+
     /**
      * @brief Handles event from the session or trigger by the other nodes
      *
      * @param type event type check kImsMediaInternalRequestType in ImsMediaDefine.h
      * @param param1 parameter to set
      * @param param2 parameter to set
+     * @return true The event sent to target node successfully
+     * @return false The event cannot pass to the target node
      */
-    virtual void OnEvent(int32_t type, uint64_t param1, uint64_t param2);
+    virtual bool OnEvent(int32_t type, uint64_t param1, uint64_t param2);
 
 protected:
     RtpConfig* mConfig;

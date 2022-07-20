@@ -26,25 +26,10 @@
  */
 class IAudioSourceNode : public BaseNode, IFrameCallback
 {
-private:
-    IAudioSourceNode();
-    ~IAudioSourceNode();
-
 public:
-    /**
-     * @brief Creates the instance of IAudioSourceNode
-     *
-     * @return BaseNode* The node of instance created
-     */
-    static BaseNode* GetInstance();
-
-    /**
-     * @brief Release the instance of iAudioSourceNode
-     *
-     * @param pNode The node to release
-     */
-    static void ReleaseInstance(BaseNode* pNode);
-    virtual BaseNodeID GetNodeID();
+    IAudioSourceNode(BaseSessionCallback* callback = NULL);
+    virtual ~IAudioSourceNode();
+    virtual kBaseNodeId GetNodeId();
     virtual ImsMediaResult Start();
     virtual void Stop();
     virtual bool IsRunTime();

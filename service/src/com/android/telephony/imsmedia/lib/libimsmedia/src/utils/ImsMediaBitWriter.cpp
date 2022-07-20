@@ -47,7 +47,7 @@ void ImsMediaBitWriter::Write(uint32_t nValue, uint32_t nSize)
 
     if (m_pbBuffer == NULL || nSize > 24 || m_bBufferFull)
     {
-        IMLOGE2("[ImsMediaBitWriter::PutBit] nSize[%d], bBufferFull[%d]", nSize, m_bBufferFull);
+        IMLOGE2("[PutBit] nSize[%d], bBufferFull[%d]", nSize, m_bBufferFull);
         return;
     }
 

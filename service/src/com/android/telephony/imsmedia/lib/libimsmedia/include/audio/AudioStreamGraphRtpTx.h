@@ -28,7 +28,27 @@ public:
     virtual ~AudioStreamGraphRtpTx();
     virtual ImsMediaResult create(void* config);
     virtual ImsMediaResult update(void* config);
-    void sendDtmf(char digit, int duration);
+
+    /**
+     * @brief Create a graph for send dtmf digit to network
+     *
+     * @param config AudioConfig for setting the parameters for nodes
+     * @param rtpEncoderNode The RtpEncoderNode instance to connect as a rear node after the
+     * DtmfSenderNode, if it is null, no dtmf packet will be delivered to RtpEncoderNode.
+     * @return true Returns when the graph created without error
+     * @return false Returns when the given parameters are invalid.
+     */
+    bool createDtmfGraph(void* config, BaseNode* rtpEncoderNode);
+
+    /**
+     * @brief Creates and send dtmf packet to the network through the node created
+     *
+     * @param digit A digit to send as a RtpEvent packet
+     * @param duration The milliseconds unit of duration how long to send the dtmf packet.
+     * @return true Returns true when the dtmf digit is sent without error.
+     * @return false Returns false when the dtmf digit cannot be sent to the node.
+     */
+    bool sendDtmf(char digit, int duration);
 
 private:
     std::list<BaseNode*> mListDtmfNodes;

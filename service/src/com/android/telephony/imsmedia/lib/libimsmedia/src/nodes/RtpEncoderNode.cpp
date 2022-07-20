@@ -36,7 +36,8 @@
 #define DEBUG_JITTER_LOSS_LOSS_PACKET   1
 #endif
 
-RtpEncoderNode::RtpEncoderNode()
+RtpEncoderNode::RtpEncoderNode(BaseSessionCallback* callback) :
+        BaseNode(callback)
 {
     mRtpSession = NULL;
     mDTMFMode = false;
@@ -69,19 +70,9 @@ RtpEncoderNode::~RtpEncoderNode()
     }
 }
 
-BaseNode* RtpEncoderNode::GetInstance()
+kBaseNodeId RtpEncoderNode::GetNodeId()
 {
-    return new RtpEncoderNode();
-}
-
-void RtpEncoderNode::ReleaseInstance(BaseNode* pNode)
-{
-    delete (RtpEncoderNode*)pNode;
-}
-
-BaseNodeID RtpEncoderNode::GetNodeID()
-{
-    return BaseNodeID::NODEID_RTPENCODER;
+    return kNodeIdRtpEncoder;
 }
 
 ImsMediaResult RtpEncoderNode::Start()

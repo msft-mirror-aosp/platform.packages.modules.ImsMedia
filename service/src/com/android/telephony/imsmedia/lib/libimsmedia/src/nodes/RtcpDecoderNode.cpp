@@ -17,7 +17,8 @@
 #include <RtcpDecoderNode.h>
 #include <ImsMediaTrace.h>
 
-RtcpDecoderNode::RtcpDecoderNode()
+RtcpDecoderNode::RtcpDecoderNode(BaseSessionCallback* callback) :
+        BaseNode(callback)
 {
     mRtpSession = NULL;
     mInactivityTime = 0;
@@ -35,26 +36,9 @@ RtcpDecoderNode::~RtcpDecoderNode()
     }
 }
 
-BaseNode* RtcpDecoderNode::GetInstance()
+kBaseNodeId RtcpDecoderNode::GetNodeId()
 {
-    BaseNode* pNode;
-    pNode = new RtcpDecoderNode();
-
-    if (pNode == NULL)
-    {
-        IMLOGE0("[GetInstance] Can't create RtcpDecoderNode");
-    }
-    return pNode;
-}
-
-void RtcpDecoderNode::ReleaseInstance(BaseNode* pNode)
-{
-    delete (RtcpDecoderNode*)pNode;
-}
-
-BaseNodeID RtcpDecoderNode::GetNodeID()
-{
-    return NODEID_RTCPDECODER;
+    return kNodeIdRtcpDecoder;
 }
 
 ImsMediaResult RtcpDecoderNode::Start()

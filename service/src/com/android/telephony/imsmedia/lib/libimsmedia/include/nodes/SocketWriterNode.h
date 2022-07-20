@@ -22,14 +22,10 @@
 
 class SocketWriterNode : public BaseNode
 {
-private:
-    SocketWriterNode();
-    virtual ~SocketWriterNode();
-
 public:
-    static BaseNode* GetInstance();
-    static void ReleaseInstance(BaseNode* pNode);
-    virtual BaseNodeID GetNodeID();
+    SocketWriterNode(BaseSessionCallback* callback = NULL);
+    virtual ~SocketWriterNode();
+    virtual kBaseNodeId GetNodeId();
     virtual ImsMediaResult Start();
     virtual void Stop();
     virtual bool IsRunTime();

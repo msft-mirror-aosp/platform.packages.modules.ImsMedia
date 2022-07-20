@@ -23,9 +23,9 @@
 class VideoRtpPayloadDecoderNode : public BaseNode
 {
 public:
-    static BaseNode* GetInstance();
-    static void ReleaseInstance(BaseNode* pNode);
-    virtual BaseNodeID GetNodeID();
+    VideoRtpPayloadDecoderNode(BaseSessionCallback* callback = NULL);
+    virtual ~VideoRtpPayloadDecoderNode();
+    virtual kBaseNodeId GetNodeId();
     virtual ImsMediaResult Start();
     virtual void Stop();
     virtual bool IsRunTime();
@@ -35,10 +35,6 @@ public:
     virtual void OnDataFromFrontNode(ImsMediaSubType subtype, uint8_t* pData, uint32_t nDataSize,
             uint32_t nTimeStamp, bool bMark, uint32_t nSeqNum,
             ImsMediaSubType nDataType = MEDIASUBTYPE_UNDEFINED);
-
-protected:
-    VideoRtpPayloadDecoderNode();
-    virtual ~VideoRtpPayloadDecoderNode();
 
 private:
     void DecodeAvc(ImsMediaSubType subtype, uint8_t* pData, uint32_t nDataSize, uint32_t nTimeStamp,

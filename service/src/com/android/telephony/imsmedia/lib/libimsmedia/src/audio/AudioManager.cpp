@@ -32,6 +32,7 @@ AudioManager* AudioManager::getInstance()
     {
         sManager = new AudioManager();
     }
+
     return sManager;
 }
 
@@ -389,7 +390,7 @@ void AudioManager::ResponseHandler::processEvent(
                 // fail reason
                 parcel.writeInt32(static_cast<int>(paramA));
             }
-            AudioManager::getInstance()->getCallback()(
+            AudioManager::getInstance()->sendResponse(
                     reinterpret_cast<uint64_t>(AudioManager::getInstance()), parcel);
             break;
         case kAudioModifySessionResponse:  // fall through
@@ -403,18 +404,22 @@ void AudioManager::ResponseHandler::processEvent(
             {
                 config->writeToParcel(&parcel);
 
-                AudioManager::getInstance()->getCallback()(
+                AudioManager::getInstance()->sendResponse(
                         reinterpret_cast<uint64_t>(AudioManager::getInstance()), parcel);
                 delete config;
             }
         }
         break;
         case kAudioSessionChangedInd:
-            // TODO : add implementation
+            parcel.writeInt32(event);
+            parcel.writeInt32(static_cast<int>(sessionId));
+            parcel.writeInt32(paramA);  // state
+            AudioManager::getInstance()->sendResponse(
+                    reinterpret_cast<uint64_t>(AudioManager::getInstance()), parcel);
             break;
         case kAudioFirstMediaPacketInd:
             parcel.writeInt32(event);
-            AudioManager::getInstance()->getCallback()(
+            AudioManager::getInstance()->sendResponse(
                     reinterpret_cast<uint64_t>(AudioManager::getInstance()), parcel);
             break;
         case kAudioRtpHeaderExtensionInd:
@@ -424,7 +429,7 @@ void AudioManager::ResponseHandler::processEvent(
             parcel.writeInt32(event);
             parcel.writeInt32(static_cast<int>(paramA));  // type
             parcel.writeInt32(static_cast<int>(paramB));  // duration
-            AudioManager::getInstance()->getCallback()(
+            AudioManager::getInstance()->sendResponse(
                     reinterpret_cast<uint64_t>(AudioManager::getInstance()), parcel);
             break;
         case kAudioPacketLossInd:

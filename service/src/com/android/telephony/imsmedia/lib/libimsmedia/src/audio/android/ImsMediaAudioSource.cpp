@@ -22,7 +22,7 @@
 #include <ImsMediaDefine.h>
 #include <ImsMediaTimer.h>
 #include <ImsMediaTrace.h>
-#include <ImsMediaAudioFmt.h>
+#include <ImsMediaAudioUtil.h>
 #include <ImsMediaAudioSource.h>
 #include <utils/Errors.h>
 #include <thread>
@@ -71,7 +71,7 @@ void ImsMediaAudioSource::SetCodecMode(uint32_t mode)
 
 void ImsMediaAudioSource::SetEvsBitRate(uint32_t mode)
 {
-    mEvsBitRate = ImsMediaAudioFmt::ConvertEVSModeToBitRate(mode);
+    mEvsBitRate = ImsMediaAudioUtil::ConvertEVSModeToBitRate(mode);
     IMLOGD1("[SetEvsBitRate] EvsBitRate[%d]", mEvsBitRate);
 }
 
@@ -105,12 +105,12 @@ bool ImsMediaAudioSource::Start()
     if (mCodecType == kAudioCodecAmr)
     {
         sprintf(kMimeType, "audio/3gpp");
-        amrBitrate = ImsMediaAudioFmt::ConvertAmrModeToBitrate(mMode);
+        amrBitrate = ImsMediaAudioUtil::ConvertAmrModeToBitrate(mMode);
     }
     else if (mCodecType == kAudioCodecAmrWb)
     {
         sprintf(kMimeType, "audio/amr-wb");
-        amrBitrate = ImsMediaAudioFmt::ConvertAmrWbModeToBitrate(mMode);
+        amrBitrate = ImsMediaAudioUtil::ConvertAmrWbModeToBitrate(mMode);
     }
     else if (mCodecType == kAudioCodecEvs)
     {

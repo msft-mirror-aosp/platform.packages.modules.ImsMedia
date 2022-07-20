@@ -32,7 +32,8 @@
 
 using namespace android::telephony::imsmedia;
 
-VideoRtpPayloadEncoderNode::VideoRtpPayloadEncoderNode()
+VideoRtpPayloadEncoderNode::VideoRtpPayloadEncoderNode(BaseSessionCallback* callback) :
+        BaseNode(callback)
 {
     mCodecType = VideoConfig::CODEC_AVC;
     mPayloadMode = kRtpPyaloadHeaderModeNonInterleaved;
@@ -46,26 +47,9 @@ VideoRtpPayloadEncoderNode::VideoRtpPayloadEncoderNode()
 
 VideoRtpPayloadEncoderNode::~VideoRtpPayloadEncoderNode() {}
 
-BaseNode* VideoRtpPayloadEncoderNode::GetInstance()
+kBaseNodeId VideoRtpPayloadEncoderNode::GetNodeId()
 {
-    BaseNode* pNode;
-    pNode = new VideoRtpPayloadEncoderNode();
-
-    if (pNode == NULL)
-    {
-        IMLOGE0("[GetInstance] Can't create VideoRtpPayloadEncoderNode");
-    }
-    return pNode;
-}
-
-void VideoRtpPayloadEncoderNode::ReleaseInstance(BaseNode* pNode)
-{
-    delete (VideoRtpPayloadEncoderNode*)pNode;
-}
-
-BaseNodeID VideoRtpPayloadEncoderNode::GetNodeID()
-{
-    return NODEID_RTPPAYLOAD_ENCODER_VIDEO;
+    return kNodeIdVideoPayloadEncoder;
 }
 
 ImsMediaResult VideoRtpPayloadEncoderNode::Start()

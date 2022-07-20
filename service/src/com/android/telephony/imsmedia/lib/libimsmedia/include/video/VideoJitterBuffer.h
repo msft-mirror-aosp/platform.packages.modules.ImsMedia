@@ -52,8 +52,8 @@ private:
     bool CheckHeader(uint8_t* pbBuffer);
     void CheckValidIDR(DataEntry* pIDREntry);
     void InitLostPktList();
-    void RemoveLossPacket(uint16_t nCurrentPkt, bool bRemOldPkt = false);
-    void CheckLossPacket(uint16_t nCurrentPkt, uint16_t nLastRecvPkt);
+    void RemoveLossPacket(uint16_t seqNum, bool bRemOldPkt = false);
+    void CheckLossPacket(uint16_t seqNum, uint16_t nLastRecvPkt);
     bool CalcLostPacket(
             uint16_t nLostPkt, uint16_t* nSecondNACKPkt, uint16_t* nPLIPkt, bool* bPLIPkt);
     bool UpdateLostPktList(LostPktEntry* pTempEntry, uint16_t nLostPkt, uint16_t* nSecondNACKPkt,

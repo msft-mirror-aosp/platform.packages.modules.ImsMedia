@@ -22,14 +22,10 @@
 
 class RtcpDecoderNode : public BaseNode, public IRtcpDecoderListener
 {
-private:
-    RtcpDecoderNode();
-    ~RtcpDecoderNode();
-
 public:
-    static BaseNode* GetInstance();
-    static void ReleaseInstance(BaseNode* pNode);
-    virtual BaseNodeID GetNodeID();
+    RtcpDecoderNode(BaseSessionCallback* callback = NULL);
+    virtual ~RtcpDecoderNode();
+    virtual kBaseNodeId GetNodeId();
     virtual ImsMediaResult Start();
     virtual void Stop();
     virtual void OnDataFromFrontNode(ImsMediaSubType subtype, uint8_t* pData, uint32_t nDataSize,

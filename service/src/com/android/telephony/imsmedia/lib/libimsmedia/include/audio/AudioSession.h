@@ -32,9 +32,16 @@ public:
     virtual ~AudioSession();
     virtual SessionState getState();
     virtual ImsMediaResult startGraph(void* config);
-    // BaseSessionCallback
+
+    /**
+     * @brief Called when the BaseSessionCallback SendEvent invoked.
+     *
+     * @param type The ImsMediaType type defined in ImsMediaDefine.h
+     * @param param1 The parameter to set
+     * @param param2 The parameter to set
+     */
     virtual void onEvent(int32_t type, uint64_t param1, uint64_t param2);
-    // dtmf method
+
     /**
      * @brief Add and start stream graph instance of the session. It has to be called only to
      *        create new StreamGraph should be added with different RtpConfig as a argument.
@@ -44,6 +51,7 @@ public:
      *         returns RESULT_SUCCESS. check #ImsMediaDefine.h.
      */
     ImsMediaResult addGraph(RtpConfig* config);
+
     /**
      * @brief Determine to remain only one StreamGraph instance and remove other StreamGraph.
      *        If the target StreamGraph is not in RUN state, call start instance to change to
@@ -57,6 +65,7 @@ public:
      *         returns RESULT_SUCCESS. check #ImsMediaDefine.h.
      */
     ImsMediaResult confirmGraph(RtpConfig* config);
+
     /**
      * @brief Delete a StreamGraph which has a matched RtpConfig argument.
      *
@@ -65,6 +74,14 @@ public:
      *         no error, it returns RESULT_SUCCESS. check #ImsMediaDefine.h.
      */
     ImsMediaResult deleteGraph(RtpConfig* config);
+
+    /**
+     * @brief Send Dtmf digit to the network
+     *
+     * @param digit A digit character
+     * @param duration The duration of millisecond unit indicate how long to send the digit as a rtp
+     * event packet
+     */
     void sendDtmf(char digit, int duration);
 
 private:

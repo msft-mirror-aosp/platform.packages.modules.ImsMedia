@@ -26,7 +26,7 @@
 #include <ImsMediaDefine.h>
 #include <ImsMediaTrace.h>
 #include <ImsMediaTimer.h>
-#include <ImsMediaAudioFmt.h>
+#include <ImsMediaAudioUtil.h>
 #include <ImsMediaAudioPlayer.h>
 #include <utils/Errors.h>
 
@@ -53,7 +53,7 @@ void ImsMediaAudioPlayer::SetCodec(int32_t type)
 
 void ImsMediaAudioPlayer::SetEvsBitRate(uint32_t mode)
 {
-    mEvsBitRate = ImsMediaAudioFmt::ConvertEVSModeToBitRate(mode);
+    mEvsBitRate = ImsMediaAudioUtil::ConvertEVSModeToBitRate(mode);
     IMLOGD1("[SetEvsBitRate] EvsBitRate[%d]", mEvsBitRate);
 }
 

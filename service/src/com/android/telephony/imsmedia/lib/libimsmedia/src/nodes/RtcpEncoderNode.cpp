@@ -17,7 +17,8 @@
 #include <RtcpEncoderNode.h>
 #include <ImsMediaTrace.h>
 
-RtcpEncoderNode::RtcpEncoderNode()
+RtcpEncoderNode::RtcpEncoderNode(BaseSessionCallback* callback) :
+        BaseNode(callback)
 {
     mRtpSession = NULL;
     mEnableRtcpBye = false;
@@ -41,26 +42,9 @@ RtcpEncoderNode::~RtcpEncoderNode()
     mRtcpXrCounter = 0;
 }
 
-BaseNode* RtcpEncoderNode::GetInstance()
+kBaseNodeId RtcpEncoderNode::GetNodeId()
 {
-    BaseNode* pNode;
-    pNode = new RtcpEncoderNode();
-
-    if (pNode == NULL)
-    {
-        IMLOGE0("[GetInstance] - Can't create RtcpEncoderNode");
-    }
-    return pNode;
-}
-
-void RtcpEncoderNode::ReleaseInstance(BaseNode* pNode)
-{
-    delete (RtcpEncoderNode*)pNode;
-}
-
-BaseNodeID RtcpEncoderNode::GetNodeID()
-{
-    return NODEID_RTCPENCODER;
+    return kNodeIdRtcpEncoder;
 }
 
 ImsMediaResult RtcpEncoderNode::Start()

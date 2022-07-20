@@ -17,13 +17,14 @@
 #include <IAudioSourceNode.h>
 #include <ImsMediaAudioSource.h>
 #include <ImsMediaTrace.h>
-#include <ImsMediaAudioFmt.h>
+#include <ImsMediaAudioUtil.h>
 #include <string.h>
 #include <AudioConfig.h>
 #include <RtpConfig.h>
 #include <EvsParams.h>
 
-IAudioSourceNode::IAudioSourceNode()
+IAudioSourceNode::IAudioSourceNode(BaseSessionCallback* callback) :
+        BaseNode(callback)
 {
     std::unique_ptr<ImsMediaAudioSource> recoder(new ImsMediaAudioSource());
     mAudioSource = std::move(recoder);
@@ -34,19 +35,9 @@ IAudioSourceNode::IAudioSourceNode()
 
 IAudioSourceNode::~IAudioSourceNode() {}
 
-BaseNode* IAudioSourceNode::GetInstance()
+kBaseNodeId IAudioSourceNode::GetNodeId()
 {
-    return new IAudioSourceNode();
-}
-
-void IAudioSourceNode::ReleaseInstance(BaseNode* pNode)
-{
-    delete (IAudioSourceNode*)pNode;
-}
-
-BaseNodeID IAudioSourceNode::GetNodeID()
-{
-    return BaseNodeID::NODEID_AUDIOSOURCE;
+    return kNodeIdAudioSource;
 }
 
 ImsMediaResult IAudioSourceNode::Start()
@@ -110,7 +101,7 @@ void IAudioSourceNode::SetConfig(void* config)
     }
 
     AudioConfig* pConfig = reinterpret_cast<AudioConfig*>(config);
-    mCodecType = ImsMediaAudioFmt::ConvertCodecType(pConfig->getCodecType());
+    mCodecType = ImsMediaAudioUtil::ConvertCodecType(pConfig->getCodecType());
     if (mCodecType == kAudioCodecAmr || mCodecType == kAudioCodecAmrWb)
     {
         mMode = pConfig->getAmrParams().getAmrMode();
@@ -118,7 +109,7 @@ void IAudioSourceNode::SetConfig(void* config)
     else if (mCodecType == kAudioCodecEvs)
     {
         mMode = pConfig->getEvsParams().getEvsMode();
-        mEvsBandwidth = (kEvsBandwidth)ImsMediaAudioFmt::FindMaxEvsBandwidthFromRange(
+        mEvsBandwidth = (kEvsBandwidth)ImsMediaAudioUtil::FindMaxEvsBandwidthFromRange(
                 pConfig->getEvsParams().getEvsBandwidth());
         mEvsChAwOffset = pConfig->getEvsParams().getChannelAwareMode();
     }
@@ -135,7 +126,7 @@ bool IAudioSourceNode::IsSameConfig(void* config)
 
     AudioConfig* pConfig = reinterpret_cast<AudioConfig*>(config);
 
-    if (mCodecType == ImsMediaAudioFmt::ConvertCodecType(pConfig->getCodecType()))
+    if (mCodecType == ImsMediaAudioUtil::ConvertCodecType(pConfig->getCodecType()))
     {
         if (mCodecType == kAudioCodecAmr || mCodecType == kAudioCodecAmrWb)
         {
@@ -146,7 +137,7 @@ bool IAudioSourceNode::IsSameConfig(void* config)
         {
             return (mMode == pConfig->getEvsParams().getEvsMode() &&
                     mEvsBandwidth ==
-                            (kEvsBandwidth)ImsMediaAudioFmt::FindMaxEvsBandwidthFromRange(
+                            (kEvsBandwidth)ImsMediaAudioUtil::FindMaxEvsBandwidthFromRange(
                                     pConfig->getEvsParams().getEvsBandwidth()) &&
                     mEvsChAwOffset == pConfig->getEvsParams().getChannelAwareMode() &&
                     mSamplingRate == pConfig->getSamplingRateKHz());

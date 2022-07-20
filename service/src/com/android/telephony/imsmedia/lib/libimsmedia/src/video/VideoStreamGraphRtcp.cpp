@@ -29,27 +29,21 @@ VideoStreamGraphRtcp::VideoStreamGraphRtcp(BaseSessionCallback* callback, int lo
     mConfig = NULL;
 }
 
-VideoStreamGraphRtcp::~VideoStreamGraphRtcp()
-{
-    if (mConfig != NULL)
-    {
-        delete mConfig;
-        mConfig = NULL;
-    }
-}
+VideoStreamGraphRtcp::~VideoStreamGraphRtcp() {}
 
 ImsMediaResult VideoStreamGraphRtcp::create(void* config)
 {
-    IMLOGD0("[createGraph]");
-    mConfig = new VideoConfig(reinterpret_cast<VideoConfig*>(config));
-    BaseNode* pNodeRtcpEncoder = BaseNode::Load(BaseNodeID::NODEID_RTCPENCODER, mCallback);
+    IMLOGD1("[createGraph] state[%d]", mGraphState);
 
-    if (pNodeRtcpEncoder == NULL)
+    if (config == NULL)
     {
-        return RESULT_NOT_READY;
+        return RESULT_INVALID_PARAM;
     }
 
+    mConfig = new VideoConfig(reinterpret_cast<VideoConfig*>(config));
+    BaseNode* pNodeRtcpEncoder = new RtcpEncoderNode(mCallback);
     pNodeRtcpEncoder->SetMediaType(IMS_MEDIA_VIDEO);
+
     char localIp[MAX_IP_LEN];
     uint32_t localPort = 0;
     ImsMediaNetworkUtil::getLocalIpPortFromSocket(mLocalFd, localIp, MAX_IP_LEN, localPort);
@@ -58,13 +52,7 @@ ImsMediaResult VideoStreamGraphRtcp::create(void* config)
     pNodeRtcpEncoder->SetConfig(config);
     AddNode(pNodeRtcpEncoder);
 
-    BaseNode* pNodeSocketWriter = BaseNode::Load(BaseNodeID::NODEID_SOCKETWRITER, mCallback);
-
-    if (pNodeSocketWriter == NULL)
-    {
-        return RESULT_NOT_READY;
-    }
-
+    BaseNode* pNodeSocketWriter = new SocketWriterNode(mCallback);
     pNodeSocketWriter->SetMediaType(IMS_MEDIA_VIDEO);
     ((SocketWriterNode*)pNodeSocketWriter)->SetLocalFd(mLocalFd);
     ((SocketWriterNode*)pNodeSocketWriter)->SetLocalAddress(RtpAddress(localIp, localPort));
@@ -73,13 +61,7 @@ ImsMediaResult VideoStreamGraphRtcp::create(void* config)
     AddNode(pNodeSocketWriter);
     pNodeRtcpEncoder->ConnectRearNode(pNodeSocketWriter);
 
-    BaseNode* pNodeSocketReader = BaseNode::Load(BaseNodeID::NODEID_SOCKETREADER, mCallback);
-
-    if (pNodeSocketReader == NULL)
-    {
-        return RESULT_NOT_READY;
-    }
-
+    BaseNode* pNodeSocketReader = new SocketReaderNode(mCallback);
     pNodeSocketReader->SetMediaType(IMS_MEDIA_VIDEO);
     ((SocketReaderNode*)pNodeSocketReader)->SetLocalFd(mLocalFd);
     ((SocketReaderNode*)pNodeSocketReader)->SetLocalAddress(RtpAddress(localIp, localPort));
@@ -87,27 +69,25 @@ ImsMediaResult VideoStreamGraphRtcp::create(void* config)
     pNodeSocketReader->SetConfig(config);
     AddNode(pNodeSocketReader);
 
-    BaseNode* pNodeRtcpDecoder = BaseNode::Load(BaseNodeID::NODEID_RTCPDECODER, mCallback);
-
-    if (pNodeRtcpDecoder == NULL)
-    {
-        return RESULT_NOT_READY;
-    }
-
+    BaseNode* pNodeRtcpDecoder = new RtcpDecoderNode(mCallback);
     pNodeRtcpDecoder->SetMediaType(IMS_MEDIA_VIDEO);
     ((RtcpDecoderNode*)pNodeRtcpDecoder)->SetLocalAddress(localAddress);
     pNodeRtcpDecoder->SetConfig(config);
     AddNode(pNodeRtcpDecoder);
     pNodeSocketReader->ConnectRearNode(pNodeRtcpDecoder);
+
     setState(StreamState::kStreamStateCreated);
     return ImsMediaResult::RESULT_SUCCESS;
 }
 
 ImsMediaResult VideoStreamGraphRtcp::update(void* config)
 {
-    IMLOGD0("[update]");
+    IMLOGD1("[update] state[%d]", mGraphState);
+
     if (config == NULL)
+    {
         return RESULT_INVALID_PARAM;
+    }
 
     VideoConfig* pConfig = reinterpret_cast<VideoConfig*>(config);
 
@@ -168,12 +148,14 @@ ImsMediaResult VideoStreamGraphRtcp::update(void* config)
 void VideoStreamGraphRtcp::setMediaQualityThreshold(MediaQualityThreshold* threshold)
 {
     if (threshold == NULL)
+    {
         return;
+    }
 
     bool found = false;
     for (auto& node : mListNodeToStart)
     {
-        if (node != NULL && node->GetNodeID() == BaseNodeID::NODEID_RTCPDECODER)
+        if (node != NULL && node->GetNodeId() == kNodeIdRtcpDecoder)
         {
             RtcpDecoderNode* pNode = reinterpret_cast<RtcpDecoderNode*>(node);
             pNode->SetInactivityTimerSec(threshold->getRtcpInactivityTimerMillis() / 1000);
@@ -186,7 +168,7 @@ void VideoStreamGraphRtcp::setMediaQualityThreshold(MediaQualityThreshold* thres
     {
         for (auto& node : mListNodeStarted)
         {
-            if (node != NULL && node->GetNodeID() == NODEID_RTCPDECODER)
+            if (node != NULL && node->GetNodeId() == kNodeIdRtcpDecoder)
             {
                 RtcpDecoderNode* pNode = reinterpret_cast<RtcpDecoderNode*>(node);
                 pNode->SetInactivityTimerSec(threshold->getRtcpInactivityTimerMillis() / 1000);

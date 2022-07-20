@@ -15,12 +15,13 @@
  */
 
 #include <AudioRtpPayloadEncoderNode.h>
-#include <ImsMediaAudioFmt.h>
+#include <ImsMediaAudioUtil.h>
 #include <ImsMediaTrace.h>
 #include <AudioConfig.h>
 #include <EvsParams.h>
 
-AudioRtpPayloadEncoderNode::AudioRtpPayloadEncoderNode()
+AudioRtpPayloadEncoderNode::AudioRtpPayloadEncoderNode(BaseSessionCallback* callback) :
+        BaseNode(callback)
 {
     mPtime = 0;
     mFirstFrame = false;
@@ -32,19 +33,9 @@ AudioRtpPayloadEncoderNode::AudioRtpPayloadEncoderNode()
 
 AudioRtpPayloadEncoderNode::~AudioRtpPayloadEncoderNode() {}
 
-BaseNode* AudioRtpPayloadEncoderNode::GetInstance()
+kBaseNodeId AudioRtpPayloadEncoderNode::GetNodeId()
 {
-    return new AudioRtpPayloadEncoderNode();
-}
-
-void AudioRtpPayloadEncoderNode::ReleaseInstance(BaseNode* pNode)
-{
-    delete (AudioRtpPayloadEncoderNode*)pNode;
-}
-
-BaseNodeID AudioRtpPayloadEncoderNode::GetNodeID()
-{
-    return BaseNodeID::NODEID_RTPPAYLOAD_ENCODER_AUDIO;
+    return kNodeIdAudioPayloadEncoder;
 }
 
 ImsMediaResult AudioRtpPayloadEncoderNode::Start()
@@ -116,7 +107,7 @@ void AudioRtpPayloadEncoderNode::SetConfig(void* config)
     AudioConfig* pConfig = reinterpret_cast<AudioConfig*>(config);
     if (pConfig != NULL)
     {
-        mCodecType = ImsMediaAudioFmt::ConvertCodecType(pConfig->getCodecType());
+        mCodecType = ImsMediaAudioUtil::ConvertCodecType(pConfig->getCodecType());
         if (mCodecType == kAudioCodecAmr || mCodecType == kAudioCodecAmrWb)
         {
             mOctetAligned = pConfig->getAmrParams().getOctetAligned();
@@ -127,10 +118,10 @@ void AudioRtpPayloadEncoderNode::SetConfig(void* config)
             mEvsPayloadHeaderMode =
                     (kRtpPyaloadHeaderMode)pConfig->getEvsParams().getUseHeaderFullOnlyOnTx();
             mEvsMode = (kEvsBitrate)pConfig->getEvsParams().getEvsMode();
-            mEvsCodecMode = (kEvsCodecMode)ImsMediaAudioFmt::ConvertEvsCodecMode(
+            mEvsCodecMode = (kEvsCodecMode)ImsMediaAudioUtil::ConvertEvsCodecMode(
                     pConfig->getEvsParams().getEvsMode());
-            mEvsBitRate =
-                    ImsMediaAudioFmt::ConvertEVSModeToBitRate(pConfig->getEvsParams().getEvsMode());
+            mEvsBitRate = ImsMediaAudioUtil::ConvertEVSModeToBitRate(
+                    pConfig->getEvsParams().getEvsMode());
             mEvsOffset = pConfig->getEvsParams().getChannelAwareMode();
             mSendCMR = pConfig->getCodecModeRequest();
         }
@@ -145,7 +136,7 @@ bool AudioRtpPayloadEncoderNode::IsSameConfig(void* config)
         return true;
     AudioConfig* pConfig = reinterpret_cast<AudioConfig*>(config);
 
-    if (mCodecType == ImsMediaAudioFmt::ConvertCodecType(pConfig->getCodecType()))
+    if (mCodecType == ImsMediaAudioUtil::ConvertCodecType(pConfig->getCodecType()))
     {
         if (mCodecType == kAudioCodecAmr || mCodecType == kAudioCodecAmrWb)
         {
@@ -158,11 +149,11 @@ bool AudioRtpPayloadEncoderNode::IsSameConfig(void* config)
                             (kRtpPyaloadHeaderMode)pConfig->getEvsParams()
                                     .getUseHeaderFullOnlyOnRx() &&
                     mEvsCodecMode ==
-                            ImsMediaAudioFmt::ConvertEvsCodecMode(
+                            ImsMediaAudioUtil::ConvertEvsCodecMode(
                                     pConfig->getEvsParams().getEvsMode()) &&
                     mEvsMode == (kEvsBitrate)pConfig->getEvsParams().getEvsMode() &&
                     mEvsBitRate ==
-                            ImsMediaAudioFmt::ConvertEVSModeToBitRate(
+                            ImsMediaAudioUtil::ConvertEVSModeToBitRate(
                                     pConfig->getEvsParams().getEvsMode()) &&
                     mEvsOffset == pConfig->getEvsParams().getChannelAwareMode());
         }
@@ -199,14 +190,14 @@ void AudioRtpPayloadEncoderNode::EncodePayloadAmr(
     if (mCodecType == kAudioCodecAmr)
     {
         nCmr = 0x0F;
-        ft = ImsMediaAudioFmt::ConvertLenToAmrMode(nDataSize);
-        nDataBitSize = ImsMediaAudioFmt::ConvertAmrModeToBitLen(ft);
+        ft = ImsMediaAudioUtil::ConvertLenToAmrMode(nDataSize);
+        nDataBitSize = ImsMediaAudioUtil::ConvertAmrModeToBitLen(ft);
     }
     else
     {
         nCmr = 0x0F;
-        ft = ImsMediaAudioFmt::ConvertLenToAmrWbMode(nDataSize);
-        nDataBitSize = ImsMediaAudioFmt::ConvertAmrWbModeToBitLen(ft);
+        ft = ImsMediaAudioUtil::ConvertLenToAmrWbMode(nDataSize);
+        nDataBitSize = ImsMediaAudioUtil::ConvertAmrWbModeToBitLen(ft);
     }
 
     q = 1;
@@ -343,7 +334,7 @@ void AudioRtpPayloadEncoderNode::EncodePayloadEvs(
 
     // primary or amr-wb io mode, default is primary mode
     // primary or amr-wb io mode base on frameSize.
-    // kEvsCodecMode = ImsMediaAudioFmt::CheckEVSCodecMode(nDataSize);
+    // kEvsCodecMode = ImsMediaAudioUtil::CheckEVSCodecMode(nDataSize);
     mCurrNumOfFrame++;
 
     if (eEVSPayloadFormat == kRtpPyaloadHeaderModeEvsCompact)
@@ -357,8 +348,8 @@ void AudioRtpPayloadEncoderNode::EncodePayloadEvs(
         if (kEvsCodecMode == kEvsCodecModePrimary)
         {
             // calculate nDataBitSize from nDataSize
-            nFrameType = (uint32_t)ImsMediaAudioFmt::ConvertLenToEVSAudioMode(nDataSize);
-            nDataBitSize = ImsMediaAudioFmt::ConvertEVSAudioModeToBitLen(
+            nFrameType = (uint32_t)ImsMediaAudioUtil::ConvertLenToEVSAudioMode(nDataSize);
+            nDataBitSize = ImsMediaAudioUtil::ConvertEVSAudioModeToBitLen(
                     (kImsAudioEvsPrimaryMode)nFrameType);
 
             if (nDataBitSize == 0)
@@ -406,8 +397,8 @@ void AudioRtpPayloadEncoderNode::EncodePayloadEvs(
         {
             IMLOGE0("[EncodePayloadEvs] COMPACT and AMR_WB_IO");
             // calculate nDataBitSize from nDataSize
-            nFrameType = (uint32_t)ImsMediaAudioFmt::ConvertLenToAmrWbMode(nDataSize);
-            nDataBitSize = ImsMediaAudioFmt::ConvertAmrWbModeToBitLen(nFrameType);
+            nFrameType = (uint32_t)ImsMediaAudioUtil::ConvertLenToAmrWbMode(nDataSize);
+            nDataBitSize = ImsMediaAudioUtil::ConvertAmrWbModeToBitLen(nFrameType);
 
             // 0: 6.6, 1: 8.85, 2: 12.65, 3: 15.85, 4: 18.25, 5: 23.05, 6: 23.85, 7: none
             // 0111(7) is no request.
@@ -547,8 +538,8 @@ void AudioRtpPayloadEncoderNode::EncodePayloadEvs(
             toc_ft_m = 0;  // EVS mode(1bit), Primary mode is 0
             toc_ft_q = 0;  // Q bit(1bit) - zero for kEvsCodecModePrimary
             toc_ft_b =
-                    ImsMediaAudioFmt::ConvertLenToEVSAudioMode(nDataSize);  // EVS bit rate(4bits)
-            nDataBitSize = ImsMediaAudioFmt::ConvertEVSAudioModeToBitLen(
+                    ImsMediaAudioUtil::ConvertLenToEVSAudioMode(nDataSize);  // EVS bit rate(4bits)
+            nDataBitSize = ImsMediaAudioUtil::ConvertEVSAudioModeToBitLen(
                     (kImsAudioEvsPrimaryMode)toc_ft_b);
 
             // write CMR and seek the position of the first paylaod
@@ -647,8 +638,8 @@ void AudioRtpPayloadEncoderNode::EncodePayloadEvs(
             // for ORG EVS to avoid the issue -#EURAVOLTE-567
             toc_ft_q = 1;
             // EVS AMR WB IO bit rate(4bits)
-            toc_ft_b = (uint32_t)ImsMediaAudioFmt::ConvertLenToAmrWbMode(nDataSize);
-            nDataBitSize = ImsMediaAudioFmt::ConvertAmrWbModeToBitLen(toc_ft_b);
+            toc_ft_b = (uint32_t)ImsMediaAudioUtil::ConvertLenToAmrWbMode(nDataSize);
+            nDataBitSize = ImsMediaAudioUtil::ConvertAmrWbModeToBitLen(toc_ft_b);
 
             // write CMR and seek the position of the first paylaod
             if (mCurrNumOfFrame == 1)
@@ -865,8 +856,8 @@ uint8_t AudioRtpPayloadEncoderNode::GenerateCMRForEVS(kRtpPyaloadHeaderMode eEVS
     uint8_t nCmrD = 0;
     uint8_t nCmr = 0;
 
-    uint32_t nOriginBR = ImsMediaAudioFmt::FindMaxEVSBitrate(mEvsBitRate, mEvsCodecMode);
-    uint32_t nOriginBW = ImsMediaAudioFmt::FindMaxEVSBandwidth(mEvsBandwidth);
+    uint32_t nOriginBR = ImsMediaAudioUtil::FindMaxEVSBitrate(mEvsBitRate, mEvsCodecMode);
+    uint32_t nOriginBW = ImsMediaAudioUtil::FindMaxEVSBandwidth(mEvsBandwidth);
 
     if (eEVSPayloadFormat == kRtpPyaloadHeaderModeEvsCompact)
     {
@@ -942,7 +933,7 @@ uint32_t AudioRtpPayloadEncoderNode::CheckPaddingNecessity(uint32_t nTotalSize)
 
     // check EVS compact size
     while (nSize != 0 &&
-            ImsMediaAudioFmt::ConvertEVSPayloadMode(nSize, &kEvsCodecMode, &nEVSCompactId) ==
+            ImsMediaAudioUtil::ConvertEVSPayloadMode(nSize, &kEvsCodecMode, &nEVSCompactId) ==
                     kRtpPyaloadHeaderModeEvsCompact)
     {
         mPayload[nSize] = 0;

@@ -14,21 +14,19 @@
  * limitations under the License.
  */
 
-#include <VideoConfig.h>
-#include <VideoManager.h>
 #include <gtest/gtest.h>
-#include <gmock/gmock.h>
 #include <ImsMediaNetworkUtil.h>
 #include <media/NdkImageReader.h>
-#include <ImsMediaCondition.h>
-#include <ImsMediaTrace.h>
+#include <VideoConfig.h>
+#include <VideoStreamGraphRtpRx.h>
 
 using namespace android::telephony::imsmedia;
+
 // RtpConfig
-const int32_t kMediaDirection = RtpConfig::MEDIA_DIRECTION_NO_FLOW;
-const android::String8 kRemoteAddress("0.0.0.0");
-const int32_t kRemotePort = 1000;
-const int32_t kMtu = 1500;
+const int32_t kMediaDirection = RtpConfig::MEDIA_DIRECTION_RECEIVE_ONLY;
+const android::String8 kRemoteAddress("127.0.0.1");
+const int32_t kRemotePort = 10000;
+const int32_t kMtu = 1300;
 const int8_t kDscp = 0;
 const int8_t kRxPayload = 102;
 const int8_t kTxPayload = 102;
@@ -36,8 +34,8 @@ const int8_t kSamplingRate = 90;
 
 // RtcpConfig
 const android::String8 kCanonicalName("name");
-const int32_t kTransmitPort = 1001;
-const int32_t kIntervalSec = 1500;
+const int32_t kTransmitPort = 10001;
+const int32_t kIntervalSec = 5;
 const int32_t kRtcpXrBlockTypes = RtcpConfig::FLAG_RTCPXR_STATISTICS_SUMMARY_REPORT_BLOCK |
         RtcpConfig::FLAG_RTCPXR_VOIP_METRICS_REPORT_BLOCK;
 
@@ -59,43 +57,22 @@ const int32_t kDeviceOrientationDegree = 0;
 const int32_t kCvoValue = 1;
 const int32_t kRtcpFbTypes = VideoConfig::RTP_FB_NONE;
 
-using namespace android::telephony::imsmedia;
-
-class VideoManagerTest : public ::testing::Test
+class VideoStreamGraphRtpRxTest : public ::testing::Test
 {
 public:
-    VideoManagerTest() {}
-    ~VideoManagerTest() {}
-
-    AImageReader* previewReader;
-    AImageReader* displayReader;
-    ANativeWindow* previewSurface;
-    ANativeWindow* displaySurface;
-    RtcpConfig rtcp;
+    VideoStreamGraphRtpRx* graph;
     VideoConfig config;
-    VideoManager* manager;
+    RtcpConfig rtcp;
+    AImageReader* displayReader;
+    ANativeWindow* displaySurface;
+    int socketRtpFd;
+
+    VideoStreamGraphRtpRxTest() {}
+    virtual ~VideoStreamGraphRtpRxTest() {}
 
 protected:
     virtual void SetUp() override
     {
-        manager = VideoManager::getInstance();
-
-        auto status = AImageReader_new(
-                kResolutionWidth, kResolutionHeight, AIMAGE_FORMAT_YUV_420_888, 1, &previewReader);
-        if (status != AMEDIA_OK)
-        {
-            IMLOGE0("[SetUp] error");
-        }
-        AImageReader_getWindow(previewReader, &previewSurface);
-
-        status = AImageReader_new(
-                kResolutionWidth, kResolutionHeight, AIMAGE_FORMAT_YUV_420_888, 1, &displayReader);
-        if (status != AMEDIA_OK)
-        {
-            IMLOGE0("[SetUp] error");
-        }
-        AImageReader_getWindow(displayReader, &displaySurface);
-
         rtcp.setCanonicalName(kCanonicalName);
         rtcp.setTransmitPort(kTransmitPort);
         rtcp.setIntervalSec(kIntervalSec);
@@ -125,14 +102,32 @@ protected:
         config.setDeviceOrientationDegree(kDeviceOrientationDegree);
         config.setCvoValue(kCvoValue);
         config.setRtcpFbType(kRtcpFbTypes);
+
+        const char testIp[] = "127.0.0.1";
+        unsigned int testPort = 30000;
+        socketRtpFd = ImsMediaNetworkUtil::openSocket(testIp, testPort, AF_INET);
+        EXPECT_NE(socketRtpFd, -1);
+
+        graph = new VideoStreamGraphRtpRx(NULL, socketRtpFd);
+
+        EXPECT_EQ(AImageReader_new(kResolutionWidth, kResolutionHeight, AIMAGE_FORMAT_YUV_420_888,
+                          1, &displayReader),
+                AMEDIA_OK);
+        AImageReader_getWindow(displayReader, &displaySurface);
     }
 
     virtual void TearDown() override
     {
-        if (previewReader != NULL)
+        if (graph != NULL)
         {
-            AImageReader_delete(previewReader);
+            delete graph;
         }
+
+        if (socketRtpFd != -1)
+        {
+            ImsMediaNetworkUtil::closeSocket(socketRtpFd);
+        }
+
         if (displayReader != NULL)
         {
             AImageReader_delete(displayReader);
@@ -140,44 +135,52 @@ protected:
     }
 };
 
-TEST_F(VideoManagerTest, TestVideoPreview)
+TEST_F(VideoStreamGraphRtpRxTest, TestGraphError)
 {
-    ImsMediaCondition condition;
-    config.setVideoMode(VideoConfig::VIDEO_MODE_PREVIEW);
-    int sessionId = 0;
+    EXPECT_EQ(graph->create(nullptr), RESULT_INVALID_PARAM);
+    EXPECT_EQ(graph->getState(), kStreamStateIdle);
+}
 
-    const char testIp[] = "127.0.0.1";
-    unsigned int testPort = 12340;
-    int socketRtpFd = ImsMediaNetworkUtil::openSocket(testIp, testPort, AF_INET);
-    int socketRtcpFd = ImsMediaNetworkUtil::openSocket(testIp, testPort + 1, AF_INET);
-    EXPECT_NE(socketRtpFd, -1);
-    EXPECT_NE(socketRtcpFd, -1);
+TEST_F(VideoStreamGraphRtpRxTest, TestRtpRxStreamDirectionUpdate)
+{
+    EXPECT_EQ(graph->create(&config), RESULT_SUCCESS);
+    EXPECT_EQ(graph->start(), RESULT_SUCCESS);
+    EXPECT_EQ(graph->getState(), kStreamStateWaitSurface);
 
-    android::Parcel parcel;
-    parcel.writeInt32(kVideoOpenSession);
-    parcel.writeInt32(socketRtpFd);
-    parcel.writeInt32(socketRtcpFd);
-    config.writeToParcel(&parcel);
-    parcel.setDataPosition(0);
+    graph->setSurface(displaySurface);
+    EXPECT_EQ(graph->getState(), kStreamStateRunning);
 
-    manager->sendMessage(sessionId, parcel);
-    condition.wait_timeout(500);
-    EXPECT_EQ(manager->getState(sessionId), kSessionStateSuspended);
+    EXPECT_EQ(graph->update(nullptr), RESULT_INVALID_PARAM);
 
-    manager->setPreviewSurface(sessionId, previewSurface);
-    condition.wait_timeout(500);
-    EXPECT_EQ(manager->getState(sessionId), kSessionStateActive);
-    condition.wait_timeout(500);
+    config.setMediaDirection(RtpConfig::MEDIA_DIRECTION_INACTIVE);
+    EXPECT_EQ(graph->update(&config), RESULT_SUCCESS);
+    EXPECT_EQ(graph->getState(), kStreamStateCreated);
 
-    android::Parcel parcel2;
-    parcel2.writeInt32(kVideoCloseSession);
-    parcel2.writeInt32(sessionId);
-    parcel2.setDataPosition(0);
+    config.setMediaDirection(RtpConfig::MEDIA_DIRECTION_SEND_RECEIVE);
+    EXPECT_EQ(graph->update(&config), RESULT_SUCCESS);
+    EXPECT_EQ(graph->getState(), kStreamStateRunning);
 
-    manager->sendMessage(sessionId, parcel2);
-    condition.wait_timeout(500);
-    EXPECT_EQ(manager->getState(sessionId), kSessionStateClosed);
+    config.setMediaDirection(RtpConfig::MEDIA_DIRECTION_NO_FLOW);
+    EXPECT_EQ(graph->update(&config), RESULT_SUCCESS);
 
-    ImsMediaNetworkUtil::closeSocket(socketRtpFd);
-    ImsMediaNetworkUtil::closeSocket(socketRtcpFd);
+    EXPECT_EQ(graph->stop(), RESULT_SUCCESS);
+    EXPECT_EQ(graph->getState(), kStreamStateCreated);
+}
+
+TEST_F(VideoStreamGraphRtpRxTest, TestRtpRxStreamCodecUpdate)
+{
+    config.setMediaDirection(RtpConfig::MEDIA_DIRECTION_SEND_RECEIVE);
+    EXPECT_EQ(graph->create(&config), RESULT_SUCCESS);
+    EXPECT_EQ(graph->start(), RESULT_SUCCESS);
+    EXPECT_EQ(graph->getState(), kStreamStateWaitSurface);
+
+    graph->setSurface(displaySurface);
+    EXPECT_EQ(graph->getState(), kStreamStateRunning);
+
+    config.setFramerate(24);
+    EXPECT_EQ(graph->update(&config), RESULT_SUCCESS);
+    EXPECT_EQ(graph->getState(), kStreamStateRunning);
+
+    EXPECT_EQ(graph->stop(), RESULT_SUCCESS);
+    EXPECT_EQ(graph->getState(), kStreamStateCreated);
 }

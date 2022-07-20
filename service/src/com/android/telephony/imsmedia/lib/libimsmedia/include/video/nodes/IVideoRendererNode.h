@@ -35,9 +35,9 @@
 class IVideoRendererNode : public JitterBufferControlNode
 {
 public:
-    static BaseNode* GetInstance();
-    static void ReleaseInstance(BaseNode* pNode);
-    virtual BaseNodeID GetNodeID();
+    IVideoRendererNode(BaseSessionCallback* callback = NULL);
+    virtual ~IVideoRendererNode();
+    virtual kBaseNodeId GetNodeId();
     virtual ImsMediaResult Start();
     virtual void Stop();
     virtual bool IsRunTime();
@@ -45,11 +45,12 @@ public:
     virtual void SetConfig(void* config);
     virtual bool IsSameConfig(void* config);
     virtual void ProcessData();
+    /**
+     * @brief Updates display surface
+     *
+     * @param window surface buffer to update
+     */
     void UpdateSurface(ANativeWindow* window);
-
-protected:
-    IVideoRendererNode();
-    virtual ~IVideoRendererNode();
 
 private:
     bool IsIntraFrame(uint8_t* pbBuffer, uint32_t nBufferSize);

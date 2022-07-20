@@ -15,11 +15,13 @@
  */
 
 #include <VideoStreamGraphRtpTx.h>
-#include <ImsMediaNodeList.h>
-#include <ImsMediaVideoNodeList.h>
 #include <ImsMediaTrace.h>
 #include <ImsMediaNetworkUtil.h>
 #include <VideoConfig.h>
+#include <RtpEncoderNode.h>
+#include <SocketWriterNode.h>
+#include <VideoRtpPayloadEncoderNode.h>
+#include <IVideoSourceNode.h>
 
 VideoStreamGraphRtpTx::VideoStreamGraphRtpTx(BaseSessionCallback* callback, int localFd) :
         BaseStreamGraph(callback, localFd)
@@ -29,17 +31,12 @@ VideoStreamGraphRtpTx::VideoStreamGraphRtpTx(BaseSessionCallback* callback, int 
     mVideoMode = -1;
 }
 
-VideoStreamGraphRtpTx::~VideoStreamGraphRtpTx()
-{
-    if (mConfig)
-    {
-        delete mConfig;
-    }
-}
+VideoStreamGraphRtpTx::~VideoStreamGraphRtpTx() {}
 
 ImsMediaResult VideoStreamGraphRtpTx::create(void* config)
 {
-    IMLOGD0("[create]");
+    IMLOGD1("[createGraph] state[%d]", mGraphState);
+
     if (config == NULL)
     {
         return RESULT_INVALID_PARAM;
@@ -65,50 +62,25 @@ ImsMediaResult VideoStreamGraphRtpTx::create(void* config)
     ImsMediaNetworkUtil::getLocalIpPortFromSocket(mLocalFd, localIp, MAX_IP_LEN, localPort);
     RtpAddress localAddress(localIp, localPort);
 
-    BaseNode* pNodeSource = BaseNode::Load(BaseNodeID::NODEID_VIDEOSOURCE, mCallback);
-
-    if (pNodeSource == NULL)
-    {
-        return RESULT_NOT_READY;
-    }
-
+    BaseNode* pNodeSource = new IVideoSourceNode(mCallback);
     pNodeSource->SetMediaType(IMS_MEDIA_VIDEO);
     pNodeSource->SetConfig(mConfig);
     AddNode(pNodeSource);
 
-    BaseNode* pNodeRtpPayloadEncoder =
-            BaseNode::Load(BaseNodeID::NODEID_RTPPAYLOAD_ENCODER_VIDEO, mCallback);
-
-    if (pNodeRtpPayloadEncoder == NULL)
-    {
-        return RESULT_NOT_READY;
-    }
-
+    BaseNode* pNodeRtpPayloadEncoder = new VideoRtpPayloadEncoderNode(mCallback);
     pNodeRtpPayloadEncoder->SetMediaType(IMS_MEDIA_VIDEO);
     pNodeRtpPayloadEncoder->SetConfig(mConfig);
     AddNode(pNodeRtpPayloadEncoder);
     pNodeSource->ConnectRearNode(pNodeRtpPayloadEncoder);
 
-    BaseNode* pNodeRtpEncoder = BaseNode::Load(BaseNodeID::NODEID_RTPENCODER, mCallback);
-
-    if (pNodeRtpEncoder == NULL)
-    {
-        return RESULT_NOT_READY;
-    }
-
+    BaseNode* pNodeRtpEncoder = new RtpEncoderNode(mCallback);
     pNodeRtpEncoder->SetMediaType(IMS_MEDIA_VIDEO);
     pNodeRtpEncoder->SetConfig(mConfig);
     ((RtpEncoderNode*)pNodeRtpEncoder)->SetLocalAddress(localAddress);
     AddNode(pNodeRtpEncoder);
     pNodeRtpPayloadEncoder->ConnectRearNode(pNodeRtpEncoder);
 
-    BaseNode* pNodeSocketWriter = BaseNode::Load(BaseNodeID::NODEID_SOCKETWRITER, mCallback);
-
-    if (pNodeSocketWriter == NULL)
-    {
-        return RESULT_NOT_READY;
-    }
-
+    BaseNode* pNodeSocketWriter = new SocketWriterNode(mCallback);
     pNodeSocketWriter->SetMediaType(IMS_MEDIA_VIDEO);
     ((SocketWriterNode*)pNodeSocketWriter)->SetLocalFd(mLocalFd);
     ((SocketWriterNode*)pNodeSocketWriter)->SetLocalAddress(localAddress);
@@ -116,9 +88,9 @@ ImsMediaResult VideoStreamGraphRtpTx::create(void* config)
     pNodeSocketWriter->SetConfig(config);
     AddNode(pNodeSocketWriter);
     pNodeRtpEncoder->ConnectRearNode(pNodeSocketWriter);
+
     setState(StreamState::kStreamStateCreated);
     mVideoMode = pConfig->getVideoMode();
-
     return RESULT_SUCCESS;
 }
 
@@ -279,7 +251,7 @@ ImsMediaResult VideoStreamGraphRtpTx::start()
 
 void VideoStreamGraphRtpTx::setSurface(ANativeWindow* surface)
 {
-    IMLOGD1("[setSurface] state[%d]", mGraphState);
+    IMLOGD0("[setSurface]");
 
     if (surface == NULL)
     {
@@ -291,7 +263,7 @@ void VideoStreamGraphRtpTx::setSurface(ANativeWindow* surface)
 
     for (auto& node : mListNodeToStart)
     {
-        if (node != NULL && node->GetNodeID() == NODEID_VIDEOSOURCE)
+        if (node != NULL && node->GetNodeId() == kNodeIdVideoSource)
         {
             IVideoSourceNode* pNode = reinterpret_cast<IVideoSourceNode*>(node);
             pNode->UpdateSurface(surface);
@@ -304,7 +276,7 @@ void VideoStreamGraphRtpTx::setSurface(ANativeWindow* surface)
     {
         for (auto& node : mListNodeStarted)
         {
-            if (node != NULL && node->GetNodeID() == NODEID_VIDEOSOURCE)
+            if (node != NULL && node->GetNodeId() == kNodeIdVideoSource)
             {
                 IVideoSourceNode* pNode = reinterpret_cast<IVideoSourceNode*>(node);
                 pNode->UpdateSurface(surface);
@@ -335,24 +307,18 @@ ImsMediaResult VideoStreamGraphRtpTx::createPreviewMode(void* config)
     }
 
     IMLOGD0("[createPreviewMode]");
-
     mConfig = new VideoConfig(reinterpret_cast<VideoConfig*>(config));
-    BaseNode* pNodeSource = BaseNode::Load(BaseNodeID::NODEID_VIDEOSOURCE, mCallback);
-
-    if (pNodeSource == NULL)
-    {
-        return RESULT_NOT_READY;
-    }
-
+    BaseNode* pNodeSource = new IVideoSourceNode(mCallback);
     pNodeSource->SetMediaType(IMS_MEDIA_VIDEO);
     pNodeSource->SetConfig(mConfig);
     AddNode(pNodeSource);
+
     setState(StreamState::kStreamStateCreated);
     mVideoMode = VideoConfig::VIDEO_MODE_PREVIEW;
     return RESULT_SUCCESS;
 }
 
-void VideoStreamGraphRtpTx::OnEvent(int32_t type, uint64_t param1, uint64_t param2)
+bool VideoStreamGraphRtpTx::OnEvent(int32_t type, uint64_t param1, uint64_t param2)
 {
     IMLOGD3("[OnEvent] type[%d], param1[%d], param2[%d]", type, param1, param2);
 
@@ -362,7 +328,7 @@ void VideoStreamGraphRtpTx::OnEvent(int32_t type, uint64_t param1, uint64_t para
         case kRequestVideoCvoUpdate:
             for (auto& node : mListNodeToStart)
             {
-                if (node != NULL && node->GetNodeID() == NODEID_RTPENCODER)
+                if (node != NULL && node->GetNodeId() == kNodeIdRtpEncoder)
                 {
                     RtpEncoderNode* pNode = reinterpret_cast<RtpEncoderNode*>(node);
                     pNode->SetCvoExtension(param1, param2);
@@ -375,15 +341,16 @@ void VideoStreamGraphRtpTx::OnEvent(int32_t type, uint64_t param1, uint64_t para
             {
                 for (auto& node : mListNodeStarted)
                 {
-                    if (node != NULL && node->GetNodeID() == NODEID_RTPENCODER)
+                    if (node != NULL && node->GetNodeId() == kNodeIdRtpEncoder)
                     {
                         RtpEncoderNode* pNode = reinterpret_cast<RtpEncoderNode*>(node);
                         pNode->SetCvoExtension(param1, param2);
+                        found = true;
                         break;
                     }
                 }
             }
-            break;
+            return found;
         case kRequestVideoBitrateChange:
             break;
         case kRequestVideoIdrFrame:
@@ -393,4 +360,6 @@ void VideoStreamGraphRtpTx::OnEvent(int32_t type, uint64_t param1, uint64_t para
         default:
             break;
     }
+
+    return false;
 }

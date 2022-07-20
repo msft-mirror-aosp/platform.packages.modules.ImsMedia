@@ -28,9 +28,9 @@
 class IVideoSourceNode : public BaseNode, IVideoSourceCallback
 {
 public:
-    static BaseNode* GetInstance();
-    static void ReleaseInstance(BaseNode* pNode);
-    virtual BaseNodeID GetNodeID();
+    IVideoSourceNode(BaseSessionCallback* callback = NULL);
+    virtual ~IVideoSourceNode();
+    virtual kBaseNodeId GetNodeId();
     virtual ImsMediaResult Start();
     virtual void Stop();
     virtual bool IsRunTime();
@@ -38,16 +38,17 @@ public:
     virtual void SetConfig(void* config);
     virtual bool IsSameConfig(void* config);
     virtual ImsMediaResult UpdateConfig(void* config);
+    /**
+     * @brief Updates preview surface
+     *
+     * @param window surface buffer to update
+     */
     void UpdateSurface(ANativeWindow* window);
     // callback from ImsMediaVideoSource
     virtual void OnUplinkEvent(uint8_t* pBitstream, uint32_t nSize, int64_t pstUsec, uint32_t flag);
     virtual void OnEvent(int32_t type, int32_t param1, int32_t param2);
 
 protected:
-    IVideoSourceNode();
-    ~IVideoSourceNode();
-
-private:
     std::unique_ptr<ImsMediaVideoSource> mVideoSource;
     std::mutex mMutex;
     uint32_t mCodecType;

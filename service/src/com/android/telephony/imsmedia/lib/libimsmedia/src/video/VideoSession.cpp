@@ -41,6 +41,7 @@ VideoSession::~VideoSession()
         {
             mGraphRtpTx->stop();
         }
+
         delete mGraphRtpTx;
     }
 
@@ -50,6 +51,7 @@ VideoSession::~VideoSession()
         {
             mGraphRtpRx->stop();
         }
+
         delete mGraphRtpRx;
     }
 
@@ -59,37 +61,27 @@ VideoSession::~VideoSession()
         {
             mGraphRtcp->stop();
         }
-        delete mGraphRtcp;
-    }
 
-    if (mRtpFd != -1)
-    {
-        IMLOGD0("[~VideoSession] close rtp fd");
-        close(mRtpFd);
-    }
-    if (mRtcpFd != -1)
-    {
-        IMLOGD0("[~VideoSession] close rtcp fd");
-        close(mRtcpFd);
+        delete mGraphRtcp;
     }
 }
 
 SessionState VideoSession::getState()
 {
-    SessionState state = kSessionStateOpen;
+    SessionState state = kSessionStateOpened;
 
-    if (mGraphRtpTx->getState() == kStreamStateWaitSurface ||
-            mGraphRtpRx->getState() == kStreamStateWaitSurface)
+    if ((mGraphRtpTx != NULL && mGraphRtpTx->getState() == kStreamStateWaitSurface) ||
+            (mGraphRtpRx != NULL && mGraphRtpRx->getState() == kStreamStateWaitSurface))
     {
         return kSessionStateSuspended;
     }
-    else if (mGraphRtpTx->getState() == kStreamStateRunning ||
-            mGraphRtpRx->getState() == kStreamStateRunning)
+    else if ((mGraphRtpTx != NULL && mGraphRtpTx->getState() == kStreamStateRunning) ||
+            (mGraphRtpRx != NULL && mGraphRtpRx->getState() == kStreamStateRunning))
     {
         return kSessionStateActive;
     }
 
-    if (mGraphRtcp->getState() == kStreamStateRunning)
+    if (mGraphRtcp != NULL && mGraphRtcp->getState() == kStreamStateRunning)
     {
         return kSessionStateSuspended;
     }
@@ -235,6 +227,15 @@ void VideoSession::onEvent(int32_t type, uint64_t param1, uint64_t param2)
     {
         case kImsMediaEventNotifyError:
             // TODO: need to add to send error to the client
+            break;
+        case kImsMediaEventStateChanged:
+            if (mState != getState())
+            {
+                mState = getState();
+                IMLOGD1("[onEvent] session state changed - state[%d]", mState);
+                ImsMediaEventHandler::SendEvent(
+                        "VIDEO_RESPONSE_EVENT", kVideoSessionChangedInd, mSessionId, mState);
+            }
             break;
         case kImsMediaEventFirstPacketReceived:
             ImsMediaEventHandler::SendEvent(

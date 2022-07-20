@@ -29,14 +29,10 @@
  */
 class IAudioPlayerNode : public JitterBufferControlNode, IImsMediaThread
 {
-private:
-    IAudioPlayerNode();
-    virtual ~IAudioPlayerNode();
-
 public:
-    static BaseNode* GetInstance();
-    static void ReleaseInstance(BaseNode* pNode);
-    virtual BaseNodeID GetNodeID();
+    IAudioPlayerNode(BaseSessionCallback* callback = NULL);
+    virtual ~IAudioPlayerNode();
+    virtual kBaseNodeId GetNodeId();
     virtual ImsMediaResult Start();
     virtual void Stop();
     virtual bool IsRunTime();

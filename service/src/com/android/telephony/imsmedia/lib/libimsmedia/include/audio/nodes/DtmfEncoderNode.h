@@ -25,14 +25,10 @@
 
 class DtmfEncoderNode : public BaseNode, IImsMediaThread
 {
-private:
-    DtmfEncoderNode();
-    ~DtmfEncoderNode();
-
 public:
-    static BaseNode* GetInstance();
-    static void ReleaseInstance(BaseNode* pNode);
-    virtual BaseNodeID GetNodeID();
+    DtmfEncoderNode(BaseSessionCallback* callback = NULL);
+    virtual ~DtmfEncoderNode();
+    virtual kBaseNodeId GetNodeId();
     virtual ImsMediaResult Start();
     virtual void Stop();
     virtual bool IsRunTime();
@@ -42,9 +38,6 @@ public:
     virtual void OnDataFromFrontNode(ImsMediaSubType subtype, uint8_t* pData, uint32_t nDataSize,
             uint32_t nTimeStamp, bool bMark, uint32_t nSeqNum,
             ImsMediaSubType nDataType = MEDIASUBTYPE_UNDEFINED);
-    void SetSamplingRate(uint32_t samplingrate);
-    void SetDuration(uint32_t nDuration, uint32_t endBitDuration);
-    void SetVolume(uint32_t nVolume);
     virtual void* run();
 
 private:
@@ -63,6 +56,7 @@ private:
     uint32_t mRetransmitDuration;  // msec unit, duration of retransmitting the last packet
     uint32_t mVolume;              // Volume of DTMF, 0~63, default value is 10.
     uint32_t mAudioFrameDuration;
+    uint32_t mPtime;
 };
 
 #endif  // DTMFENCODERNODE_H_INCLUDED

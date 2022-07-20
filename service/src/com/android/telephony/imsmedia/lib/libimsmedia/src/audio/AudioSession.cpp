@@ -19,7 +19,6 @@
 #include <ImsMediaEventHandler.h>
 #include <AudioConfig.h>
 #include <string>
-#include <sys/socket.h>
 
 AudioSession::AudioSession()
 {
@@ -59,45 +58,31 @@ AudioSession::~AudioSession()
         mListGraphRtcp.pop_front();
         delete graph;
     }
-
-    if (mRtpFd != -1)
-    {
-        IMLOGD0("[~AudioSession] close rtp fd");
-        close(mRtpFd);
-    }
-    if (mRtcpFd != -1)
-    {
-        IMLOGD0("[~AudioSession] close rtcp fd");
-        close(mRtcpFd);
-    }
 }
 
 SessionState AudioSession::getState()
 {
-    SessionState state = kSessionStateOpen;
+    SessionState state = kSessionStateOpened;
 
-    while (mListGraphRtpTx.size() > 0)
+    for (auto& graph : mListGraphRtpTx)
     {
-        AudioStreamGraphRtpTx* graph = mListGraphRtpTx.front();
-        if (graph->getState() == kStreamStateRunning)
+        if (graph != NULL && graph->getState() == kStreamStateRunning)
         {
             return kSessionStateActive;
         }
     }
 
-    while (mListGraphRtpRx.size() > 0)
+    for (auto& graph : mListGraphRtpRx)
     {
-        AudioStreamGraphRtpRx* graph = mListGraphRtpRx.front();
-        if (graph->getState() == kStreamStateRunning)
+        if (graph != NULL && graph->getState() == kStreamStateRunning)
         {
             return kSessionStateActive;
         }
     }
 
-    while (mListGraphRtcp.size() > 0)
+    for (auto& graph : mListGraphRtcp)
     {
-        AudioStreamGraphRtcp* graph = mListGraphRtcp.front();
-        if (graph->getState() == kStreamStateRunning)
+        if (graph != NULL && graph->getState() == kStreamStateRunning)
         {
             return kSessionStateSuspended;
         }
@@ -109,6 +94,7 @@ SessionState AudioSession::getState()
 ImsMediaResult AudioSession::startGraph(void* config)
 {
     IMLOGD0("[startGraph]");
+
     if (config == NULL)
     {
         return RESULT_INVALID_PARAM;
@@ -504,6 +490,15 @@ void AudioSession::onEvent(int32_t type, uint64_t param1, uint64_t param2)
     IMLOGD3("[onEvent] type[%d], param1[%d], param2[%d]", type, param1, param2);
     switch (type)
     {
+        case kImsMediaEventStateChanged:
+            if (mState != getState())
+            {
+                mState = getState();
+                IMLOGD1("[onEvent] session state changed - state[%d]", mState);
+                ImsMediaEventHandler::SendEvent(
+                        "AUDIO_RESPONSE_EVENT", kAudioSessionChangedInd, mSessionId, mState);
+            }
+            break;
         case kImsMediaEventNotifyError:
             break;
         case kImsMediaEventFirstPacketReceived:

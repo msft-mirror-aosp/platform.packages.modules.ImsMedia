@@ -22,25 +22,22 @@
 
 class DtmfSenderNode : public BaseNode
 {
-private:
-    DtmfSenderNode();
-    ~DtmfSenderNode();
-
 public:
-    static BaseNode* GetInstance();
-    static void ReleaseInstance(BaseNode* pNode);
-    virtual BaseNodeID GetNodeID();
+    DtmfSenderNode(BaseSessionCallback* callback = NULL);
+    virtual ~DtmfSenderNode();
+    virtual kBaseNodeId GetNodeId();
     virtual ImsMediaResult Start();
     virtual void Stop();
     virtual bool IsRunTime();
     virtual bool IsSourceNode();
+    virtual void SetConfig(void* config);
+    virtual bool IsSameConfig(void* config);
     virtual void ProcessData();
-    void SetInterval(uint32_t interval);
 
 private:
     uint32_t mNextTime;
     uint32_t mPrevTime;
-    uint32_t mInterval;  // msec unit, interval of two DTMF signals
+    uint32_t mPtime;  // msec unit, interval between dtmf packets
 };
 
 #endif  // DTMFSENDERNODE_H_INCLUDED

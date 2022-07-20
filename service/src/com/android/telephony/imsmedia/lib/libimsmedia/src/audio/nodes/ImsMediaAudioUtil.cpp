@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#include <ImsMediaAudioFmt.h>
+#include <ImsMediaAudioUtil.h>
 #include <ImsMediaDefine.h>
 #include <AudioConfig.h>
 #include <ImsMediaTrace.h>
@@ -662,7 +662,7 @@ void amrWbFmt_Deframing(uint8_t* pDst, uint8_t* pRawData, int32_t* pnSrcBitIndex
     }
 }
 
-int32_t ImsMediaAudioFmt::ConvertCodecType(int32_t type)
+int32_t ImsMediaAudioUtil::ConvertCodecType(int32_t type)
 {
     switch (type)
     {
@@ -680,7 +680,7 @@ int32_t ImsMediaAudioFmt::ConvertCodecType(int32_t type)
     }
 }
 
-int32_t ImsMediaAudioFmt::ConvertEvsCodecMode(int32_t evsMode)
+int32_t ImsMediaAudioUtil::ConvertEvsCodecMode(int32_t evsMode)
 {
     if (evsMode > 8 && evsMode <= 20)
     {
@@ -696,7 +696,7 @@ int32_t ImsMediaAudioFmt::ConvertEvsCodecMode(int32_t evsMode)
     }
 }
 
-void ImsMediaAudioFmt::AmrFmtFraming(kImsAudioFrameEntype eFrameType, kImsAudioAmrMode mode,
+void ImsMediaAudioUtil::AmrFmtFraming(kImsAudioFrameEntype eFrameType, kImsAudioAmrMode mode,
         uint8_t* pRawData, uint8_t* pEncodedData)
 {
     int32_t i, nStartingBit;
@@ -754,7 +754,7 @@ void ImsMediaAudioFmt::AmrFmtFraming(kImsAudioFrameEntype eFrameType, kImsAudioA
     }
 }
 
-void ImsMediaAudioFmt::AmrFmtDeframing(kImsAudioFrameEntype eFrameType, kImsAudioAmrMode mode,
+void ImsMediaAudioUtil::AmrFmtDeframing(kImsAudioFrameEntype eFrameType, kImsAudioAmrMode mode,
         uint8_t* pRawData, uint8_t* pEncodedData)
 {
     int32_t i, nStartingBit;
@@ -788,7 +788,7 @@ void ImsMediaAudioFmt::AmrFmtDeframing(kImsAudioFrameEntype eFrameType, kImsAudi
     }
 }
 
-void ImsMediaAudioFmt::AmrWbFmtFraming(kImsAudioFrameEntype eFrameType, kImsAudioAmrWbMode mode,
+void ImsMediaAudioUtil::AmrWbFmtFraming(kImsAudioFrameEntype eFrameType, kImsAudioAmrWbMode mode,
         uint8_t* pRawData, uint8_t* pEncodedData)
 {
     int32_t i, nStartingBit;
@@ -877,7 +877,7 @@ void ImsMediaAudioFmt::AmrWbFmtFraming(kImsAudioFrameEntype eFrameType, kImsAudi
     }
 }
 
-void ImsMediaAudioFmt::AmrFmtWbDeframing(kImsAudioFrameEntype eFrameType, kImsAudioAmrWbMode mode,
+void ImsMediaAudioUtil::AmrFmtWbDeframing(kImsAudioFrameEntype eFrameType, kImsAudioAmrWbMode mode,
         uint8_t* pRawData, uint8_t* pEncodedData)
 {
     int32_t i, nStartingBit;
@@ -922,7 +922,7 @@ void ImsMediaAudioFmt::AmrFmtWbDeframing(kImsAudioFrameEntype eFrameType, kImsAu
     }
 }
 
-void ImsMediaAudioFmt::AmrFmtSwap(uint8_t* pSrc, uint8_t* pDst, uint32_t nNumOfByte)
+void ImsMediaAudioUtil::AmrFmtSwap(uint8_t* pSrc, uint8_t* pDst, uint32_t nNumOfByte)
 {
     uint8_t tbyte;
     nNumOfByte++;
@@ -934,7 +934,7 @@ void ImsMediaAudioFmt::AmrFmtSwap(uint8_t* pSrc, uint8_t* pDst, uint32_t nNumOfB
     }
 }
 
-uint32_t ImsMediaAudioFmt::ConvertAmrModeToLen(uint32_t mode)
+uint32_t ImsMediaAudioUtil::ConvertAmrModeToLen(uint32_t mode)
 {
     if (mode > kImsAudioAmrModeSID)
     {  // over SID
@@ -943,7 +943,7 @@ uint32_t ImsMediaAudioFmt::ConvertAmrModeToLen(uint32_t mode)
     return gaAMRLen[mode];
 }
 
-uint32_t ImsMediaAudioFmt::ConvertAmrModeToBitLen(uint32_t mode)
+uint32_t ImsMediaAudioUtil::ConvertAmrModeToBitLen(uint32_t mode)
 {
     if (mode > kImsAudioAmrModeSID)
     {  // over SID
@@ -952,7 +952,7 @@ uint32_t ImsMediaAudioFmt::ConvertAmrModeToBitLen(uint32_t mode)
     return gaAMRBitLen[mode];
 }
 
-uint32_t ImsMediaAudioFmt::ConvertLenToAmrMode(uint32_t nLen)
+uint32_t ImsMediaAudioUtil::ConvertLenToAmrMode(uint32_t nLen)
 {
     uint32_t i;
     if (nLen == 0)
@@ -968,7 +968,7 @@ uint32_t ImsMediaAudioFmt::ConvertLenToAmrMode(uint32_t nLen)
     return 0;
 }
 
-uint32_t ImsMediaAudioFmt::ConvertAmrWbModeToLen(uint32_t mode)
+uint32_t ImsMediaAudioUtil::ConvertAmrWbModeToLen(uint32_t mode)
 {
     if (mode == kImsAudioAmrWbModeNoData)
         return 0;
@@ -977,7 +977,7 @@ uint32_t ImsMediaAudioFmt::ConvertAmrWbModeToLen(uint32_t mode)
     return gaAMRWBLen[mode];
 }
 
-uint32_t ImsMediaAudioFmt::ConvertAmrWbModeToBitLen(uint32_t mode)
+uint32_t ImsMediaAudioUtil::ConvertAmrWbModeToBitLen(uint32_t mode)
 {
     if (mode == kImsAudioAmrWbModeNoData)
         return 0;
@@ -986,7 +986,7 @@ uint32_t ImsMediaAudioFmt::ConvertAmrWbModeToBitLen(uint32_t mode)
     return gaAMRWBbitLen[mode];
 }
 
-uint32_t ImsMediaAudioFmt::ConvertLenToAmrWbMode(uint32_t nLen)
+uint32_t ImsMediaAudioUtil::ConvertLenToAmrWbMode(uint32_t nLen)
 {
     uint32_t i;
     if (nLen == 0)
@@ -999,7 +999,7 @@ uint32_t ImsMediaAudioFmt::ConvertLenToAmrWbMode(uint32_t nLen)
     return 0;
 }
 
-uint32_t ImsMediaAudioFmt::ConvertLenToEVSAudioMode(uint32_t nLen)
+uint32_t ImsMediaAudioUtil::ConvertLenToEVSAudioMode(uint32_t nLen)
 {
     uint32_t i = 0;
     if (nLen == 0)
@@ -1013,7 +1013,7 @@ uint32_t ImsMediaAudioFmt::ConvertLenToEVSAudioMode(uint32_t nLen)
     return 0;
 }
 
-uint32_t ImsMediaAudioFmt::ConvertLenToEVSAMRIOAudioMode(uint32_t nLen)
+uint32_t ImsMediaAudioUtil::ConvertLenToEVSAMRIOAudioMode(uint32_t nLen)
 {
     uint32_t i = 0;
     if (nLen == 0)
@@ -1026,7 +1026,7 @@ uint32_t ImsMediaAudioFmt::ConvertLenToEVSAMRIOAudioMode(uint32_t nLen)
     return 0;
 }
 
-uint32_t ImsMediaAudioFmt::ConvertEVSAudioModeToBitLen(uint32_t mode)
+uint32_t ImsMediaAudioUtil::ConvertEVSAudioModeToBitLen(uint32_t mode)
 {
     if (mode == 15)
         return 0;
@@ -1035,7 +1035,7 @@ uint32_t ImsMediaAudioFmt::ConvertEVSAudioModeToBitLen(uint32_t mode)
     return gaEVSPrimaryBitLen[mode];
 }
 
-uint32_t ImsMediaAudioFmt::ConvertEVSAMRIOAudioModeToBitLen(uint32_t mode)
+uint32_t ImsMediaAudioUtil::ConvertEVSAMRIOAudioModeToBitLen(uint32_t mode)
 {
     if (mode == 15)
         return 0;
@@ -1044,7 +1044,7 @@ uint32_t ImsMediaAudioFmt::ConvertEVSAMRIOAudioModeToBitLen(uint32_t mode)
     return gaEVSAmrWbIoBitLen[mode];
 }
 
-uint32_t ImsMediaAudioFmt::ConvertAmrModeToBitrate(int mode)
+uint32_t ImsMediaAudioUtil::ConvertAmrModeToBitrate(int mode)
 {
     switch ((kImsAudioAmrMode)mode)
     {
@@ -1068,7 +1068,7 @@ uint32_t ImsMediaAudioFmt::ConvertAmrModeToBitrate(int mode)
     }
 }
 
-uint32_t ImsMediaAudioFmt::ConvertAmrWbModeToBitrate(int mode)
+uint32_t ImsMediaAudioUtil::ConvertAmrWbModeToBitrate(int mode)
 {
     switch ((kImsAudioAmrWbMode)mode)
     {
@@ -1094,7 +1094,7 @@ uint32_t ImsMediaAudioFmt::ConvertAmrWbModeToBitrate(int mode)
     }
 }
 
-int32_t ImsMediaAudioFmt::ConvertEVSModeToBitRate(int32_t EvsModeToBitRate)
+int32_t ImsMediaAudioUtil::ConvertEVSModeToBitRate(int32_t EvsModeToBitRate)
 {
     switch (EvsModeToBitRate)
     {
@@ -1167,7 +1167,7 @@ int32_t ImsMediaAudioFmt::ConvertEVSModeToBitRate(int32_t EvsModeToBitRate)
     }
 }
 
-kEvsBitrate ImsMediaAudioFmt::FindMaxEVSBitrate(
+kEvsBitrate ImsMediaAudioUtil::FindMaxEVSBitrate(
         uint32_t nEVSBitrateSet, kEvsCodecMode kEvsCodecMode)
 {
     // find EVS bitrate.
@@ -1223,7 +1223,7 @@ kEvsBitrate ImsMediaAudioFmt::FindMaxEVSBitrate(
     return (kEvsBitrate)nEVSBitrate;
 }
 
-kEvsCodecMode ImsMediaAudioFmt::CheckEVSCodecMode(uint32_t nAudioFrameLength)
+kEvsCodecMode ImsMediaAudioUtil::CheckEVSCodecMode(uint32_t nAudioFrameLength)
 {
     switch (nAudioFrameLength)
     {
@@ -1258,7 +1258,7 @@ kEvsCodecMode ImsMediaAudioFmt::CheckEVSCodecMode(uint32_t nAudioFrameLength)
     }
 }
 
-kRtpPyaloadHeaderMode ImsMediaAudioFmt::ConvertEVSPayloadMode(
+kRtpPyaloadHeaderMode ImsMediaAudioUtil::ConvertEVSPayloadMode(
         uint32_t nDataSize, kEvsCodecMode* pEVSCodecMode, uint32_t* pEVSCompactId)
 {
     uint32_t i = 0;
@@ -1294,7 +1294,7 @@ kRtpPyaloadHeaderMode ImsMediaAudioFmt::ConvertEVSPayloadMode(
     return kRtpPyaloadHeaderModeEvsHeaderFull;
 }
 
-kEvsBandwidth ImsMediaAudioFmt::FindMaxEVSBandwidth(uint32_t nEVSBandwidthSet)
+kEvsBandwidth ImsMediaAudioUtil::FindMaxEVSBandwidth(uint32_t nEVSBandwidthSet)
 {
     // find EVS bandwidth.
     uint32_t nEVSBandwidth = 0;
@@ -1335,7 +1335,7 @@ kEvsBandwidth ImsMediaAudioFmt::FindMaxEVSBandwidth(uint32_t nEVSBandwidthSet)
     return (kEvsBandwidth)nEVSBandwidth;
 }
 
-kEvsBandwidth ImsMediaAudioFmt::FindMaxEvsBandwidthFromRange(int32_t EvsBandwidthRange)
+kEvsBandwidth ImsMediaAudioUtil::FindMaxEvsBandwidthFromRange(int32_t EvsBandwidthRange)
 {
     if (EvsBandwidthRange & kEvsBandwidthFB)
     {

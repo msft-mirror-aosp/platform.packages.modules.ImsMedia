@@ -18,33 +18,55 @@
 #include <BaseStreamGraph.h>
 
 BaseStreamGraph::BaseStreamGraph(BaseSessionCallback* callback, int localFd) :
+        mConfig(NULL),
         mCallback(callback),
-        mLocalFd(localFd)
+        mLocalFd(localFd),
+        mGraphState(kStreamStateIdle)
 {
     IMLOGD0("[BaseStreamGraph]");
     std::unique_ptr<StreamScheduler> scheduler(new StreamScheduler());
     mScheduler = std::move(scheduler);
+
+    if (mCallback != NULL)
+    {
+        mCallback->SendEvent(kImsMediaEventStateChanged);
+    }
 }
 
 BaseStreamGraph::~BaseStreamGraph()
 {
-    if (mListNodeToStart.size() > 0)
+    deleteNodes();
+
+    if (mConfig != NULL)
     {
-        deleteNodes();
+        delete mConfig;
+        mConfig = NULL;
     }
 
+    setState(kStreamStateIdle);
     IMLOGD0("[~BaseStreamGraph]");
+}
+
+void BaseStreamGraph::setLocalFd(int localFd)
+{
+    mLocalFd = localFd;
+}
+int BaseStreamGraph::getLocalFd()
+{
+    return mLocalFd;
 }
 
 ImsMediaResult BaseStreamGraph::start()
 {
     IMLOGD0("[start]");
     ImsMediaResult ret = startNodes();
+
     if (ret != RESULT_SUCCESS)
     {
         return ret;
     }
-    setState(StreamState::kStreamStateRunning);
+
+    setState(kStreamStateRunning);
     return RESULT_SUCCESS;
 }
 
@@ -52,12 +74,32 @@ ImsMediaResult BaseStreamGraph::stop()
 {
     IMLOGD0("[stop]");
     ImsMediaResult ret = stopNodes();
+
     if (ret != RESULT_SUCCESS)
     {
         return ret;
     }
-    setState(StreamState::kStreamStateCreated);
+
+    setState(kStreamStateCreated);
     return RESULT_SUCCESS;
+}
+
+void BaseStreamGraph::setState(StreamState state)
+{
+    if (mGraphState != state)
+    {
+        mGraphState = state;
+
+        if (mCallback != NULL)
+        {
+            mCallback->SendEvent(kImsMediaEventStateChanged);
+        }
+    }
+}
+
+StreamState BaseStreamGraph::getState()
+{
+    return mGraphState;
 }
 
 void BaseStreamGraph::AddNode(BaseNode* pNode, bool bReverse)
@@ -68,6 +110,7 @@ void BaseStreamGraph::AddNode(BaseNode* pNode, bool bReverse)
     }
 
     IMLOGD1("[AddNode] node[%s]", pNode->GetNodeName());
+
     if (bReverse == true)
     {
         mListNodeToStart.push_front(pNode);  // reverse direction
@@ -76,6 +119,7 @@ void BaseStreamGraph::AddNode(BaseNode* pNode, bool bReverse)
     {
         mListNodeToStart.push_back(pNode);
     }
+
     if (pNode->IsRunTime() == false)
     {
         IMLOGD1("[AddNode] Add to scheduler[%s]", pNode->GetNodeName());
@@ -95,7 +139,9 @@ void BaseStreamGraph::RemoveNode(BaseNode* pNode)
         mScheduler->DeRegisterNode(pNode);
     }
 
-    BaseNode::UnLoad(pNode);
+    pNode->DisconnectFrontNode(pNode->GetFrontNode());
+    pNode->DisconnectRearNode(pNode->GetRearNode());
+    delete pNode;
 }
 
 ImsMediaResult BaseStreamGraph::startNodes()
@@ -103,6 +149,7 @@ ImsMediaResult BaseStreamGraph::startNodes()
     BaseNode* pNode = NULL;
     std::list<BaseNode*>::iterator iter;
     ImsMediaResult ret = ImsMediaResult::RESULT_NOT_READY;
+
     while (mListNodeToStart.size() > 0)
     {
         pNode = mListNodeToStart.front();
@@ -127,6 +174,7 @@ ImsMediaResult BaseStreamGraph::stopNodes()
     BaseNode* pNode;
     mScheduler->Stop();
     std::list<BaseNode*>::iterator iter;
+
     while (mListNodeStarted.size() > 0)
     {
         pNode = mListNodeStarted.front();
@@ -136,6 +184,7 @@ ImsMediaResult BaseStreamGraph::stopNodes()
         mListNodeStarted.pop_front();
         mListNodeToStart.push_front(pNode);
     }
+
     return RESULT_SUCCESS;
 }
 
@@ -143,7 +192,7 @@ void BaseStreamGraph::deleteNodes()
 {
     BaseNode* pNode = NULL;
 
-    if (mGraphState != StreamState::kStreamStateCreated)
+    if (mGraphState != kStreamStateCreated)
     {
         stop();
     }
@@ -162,6 +211,8 @@ void BaseStreamGraph::deleteNodes()
         RemoveNode(pNode);
         mListNodeToStart.pop_front();
     }
+
+    setState(kStreamStateIdle);
 }
 
 void BaseStreamGraph::setMediaQualityThreshold(MediaQualityThreshold* threshold)
@@ -171,10 +222,11 @@ void BaseStreamGraph::setMediaQualityThreshold(MediaQualityThreshold* threshold)
     // base implementation
 }
 
-void BaseStreamGraph::OnEvent(int32_t type, uint64_t param1, uint64_t param2)
+bool BaseStreamGraph::OnEvent(int32_t type, uint64_t param1, uint64_t param2)
 {
     (void)type;
     (void)param1;
     (void)param2;
     IMLOGW0("[OnEvent] base");
+    return false;
 }
