@@ -23,7 +23,6 @@ import android.content.ServiceConnection;
 import android.os.IBinder;
 import android.os.ParcelFileDescriptor;
 import android.os.RemoteException;
-import android.telephony.imsmedia.ImsMediaSession;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
@@ -101,6 +100,24 @@ public class ImsMediaManager {
         if (isConnected()) {
             try {
                 mImsMedia.closeSession(session.getBinder());
+            } catch (RemoteException e) {
+                Log.e(TAG, "Failed to closeSession: " + e);
+            }
+        }
+    }
+
+    /**
+     * Generates the array of SPROP strings for the given array of video
+     * configurations and returns via IImsMediaCallback.
+     *
+     * @param videoConfigList array of video configuration for which sprop should be generated.
+     * @param callback Binder interface implemented by caller and called with array of generated
+     * sprop values.
+     **/
+    public void generateVideoSprop(@NonNull VideoConfig[] videoConfigList, IBinder callback) {
+        if (isConnected()) {
+            try {
+                mImsMedia.generateVideoSprop(videoConfigList, callback);
             } catch (RemoteException e) {
                 Log.e(TAG, "Failed to closeSession: " + e);
             }

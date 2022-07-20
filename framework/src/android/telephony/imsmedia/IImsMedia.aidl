@@ -18,6 +18,7 @@ package android.telephony.imsmedia;
 
 import android.os.ParcelFileDescriptor;
 import android.telephony.imsmedia.RtpConfig;
+import android.telephony.imsmedia.VideoConfig;
 
 /**
  * See ImsMediaManager for more information
@@ -33,5 +34,11 @@ oneway interface IImsMedia {
         in IBinder callback);
 
     void closeSession(in IBinder session);
+
+    /**
+    * Generates the array of SPROP strings for the given array of video
+    * configurations and returns via IImsMediaCallback.
+    **/
+    void generateVideoSprop(in VideoConfig[] videoConfigList, in IBinder callback);
 }
 

@@ -19,18 +19,22 @@ package com.android.telephony.imsmedia;
 import android.app.Service;
 import android.content.Intent;
 import android.os.IBinder;
+import android.os.Parcel;
 import android.os.ParcelFileDescriptor;
 import android.support.annotation.GuardedBy;
 import android.telephony.Rlog;
 import android.telephony.imsmedia.IImsAudioSession;
 import android.telephony.imsmedia.IImsAudioSessionCallback;
 import android.telephony.imsmedia.IImsMedia;
+import android.telephony.imsmedia.IImsMediaCallback;
 import android.telephony.imsmedia.IImsTextSession;
 import android.telephony.imsmedia.IImsTextSessionCallback;
 import android.telephony.imsmedia.IImsVideoSession;
 import android.telephony.imsmedia.IImsVideoSessionCallback;
 import android.telephony.imsmedia.ImsMediaSession;
 import android.telephony.imsmedia.RtpConfig;
+import android.telephony.imsmedia.VideoConfig;
+import android.util.Log;
 import android.util.SparseArray;
 
 import com.android.telephony.imsmedia.Utils.OpenSessionParams;
@@ -105,6 +109,33 @@ public class ImsMediaController extends Service {
                     textSession.closeSession();
                     mSessions.remove(textSession.getSessionId());
                 }
+            }
+        }
+
+        @Override
+        public void generateVideoSprop(VideoConfig[] videoConfigList, IBinder callback) {
+
+            if (videoConfigList == null || callback == null) {
+                Log.d(TAG, "[SPROP] Invalid params");
+                return;
+            }
+
+            try {
+                int len = videoConfigList.length;
+                String[] spropList = new String[len];
+
+                int idx = 0;
+                for (VideoConfig config : videoConfigList) {
+                    Parcel parcel = Parcel.obtain();
+                    config.writeToParcel(parcel, 0);
+                    parcel.setDataPosition(0);
+                    spropList[idx] = JNIImsMediaService.generateSprop(parcel.marshall());
+                    parcel.recycle();
+                    idx++;
+                }
+                IImsMediaCallback.Stub.asInterface(callback).onVideoSpropResponse(spropList);
+            } catch (Exception e) {
+                Log.e(TAG, "[SPROP] Error: " + e.toString());
             }
         }
     }
