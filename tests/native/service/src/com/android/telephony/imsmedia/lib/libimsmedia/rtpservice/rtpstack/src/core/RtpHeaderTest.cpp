@@ -197,23 +197,8 @@ TEST(RtpHeaderTest, TestFormHeader)
      * Timestamp: 79466
      * Synchronization Source identifier: 0xaecd8c02 (2932706306)
      */
-    uint8_t pExpectedBuffer[RTP_FIXED_HDR_LEN] = {0};
 
-    uint8_t versionToSeq[] = {0x80, 0x7f, 0xb0, 0x45};
-    uint8_t timeStamp[] = {0x00, 0x01, 0x36, 0x6a};
-    uint8_t ssrc[] = {0xae, 0xcd, 0x8c, 0x02};
-    uint8_t* pRtpHeaderBuffer = pExpectedBuffer;
-
-    *(RtpDt_UInt32*)pRtpHeaderBuffer = RtpOsUtil::Ntohl(*versionToSeq);
-    pRtpHeaderBuffer = pRtpHeaderBuffer + RTP_WORD_SIZE;
-
-    // time stamp
-    *(RtpDt_UInt32*)pRtpHeaderBuffer = RtpOsUtil::Ntohl(*timeStamp);
-    pRtpHeaderBuffer = pRtpHeaderBuffer + RTP_WORD_SIZE;
-
-    // ssrc
-    *(RtpDt_UInt32*)pRtpHeaderBuffer = RtpOsUtil::Ntohl(*ssrc);
-
+    // set Rtp headers
     rtpHeader.setVersion(RTP_TWO);
     rtpHeader.setExtension(RTP_ZERO);
     rtpHeader.setCsrcCount(RTP_ZERO);
@@ -222,13 +207,18 @@ TEST(RtpHeaderTest, TestFormHeader)
     rtpHeader.setRtpTimestamp(79466);
     rtpHeader.setRtpSsrc(2932706306);
 
+    // define expected Rtp packet output.
+    uint8_t pExpectedBuffer[] = {
+            0x80, 0x7f, 0xb0, 0x45, 0x00, 0x01, 0x36, 0x6a, 0xae, 0xcd, 0x8c, 0x02};
+
+    // form Rtp Header
     uint8_t puiRtpBuffer[RTP_FIXED_HDR_LEN] = {0};
     RtpBuffer rtpPacket(RTP_FIXED_HDR_LEN, puiRtpBuffer);
     eRtp_Bool eResult = rtpHeader.formHeader(&rtpPacket);
     EXPECT_EQ(eResult, eRTP_TRUE);
 
     // Compare formed Rtp buffer with expected buffer
-    EXPECT_EQ(strncmp((char*)puiRtpBuffer, (char*)pExpectedBuffer, RTP_FIXED_HDR_LEN), 0);
+    EXPECT_EQ(memcmp(rtpPacket.getBuffer(), pExpectedBuffer, RTP_FIXED_HDR_LEN), 0);
 }
 
 // TODO : csrc list boundary test case to be added.
