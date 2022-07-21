@@ -26,13 +26,13 @@
 #include <SocketWriterNode.h>
 
 AudioStreamGraphRtpTx::AudioStreamGraphRtpTx(BaseSessionCallback* callback, int localFd) :
-        BaseStreamGraph(callback, localFd)
+        AudioStreamGraph(callback, localFd)
 {
 }
 
 AudioStreamGraphRtpTx::~AudioStreamGraphRtpTx() {}
 
-ImsMediaResult AudioStreamGraphRtpTx::create(void* config)
+ImsMediaResult AudioStreamGraphRtpTx::create(RtpConfig* config)
 {
     IMLOGD1("[create], state[%d]", mGraphState);
 
@@ -83,7 +83,7 @@ ImsMediaResult AudioStreamGraphRtpTx::create(void* config)
     return RESULT_SUCCESS;
 }
 
-ImsMediaResult AudioStreamGraphRtpTx::update(void* config)
+ImsMediaResult AudioStreamGraphRtpTx::update(RtpConfig* config)
 {
     IMLOGD1("[update], state[%d]", mGraphState);
 
@@ -155,7 +155,7 @@ ImsMediaResult AudioStreamGraphRtpTx::update(void* config)
     return ret;
 }
 
-bool AudioStreamGraphRtpTx::createDtmfGraph(void* config, BaseNode* rtpEncoderNode)
+bool AudioStreamGraphRtpTx::createDtmfGraph(RtpConfig* config, BaseNode* rtpEncoderNode)
 {
     if (config == NULL)
     {

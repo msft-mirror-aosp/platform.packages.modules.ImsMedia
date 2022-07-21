@@ -31,7 +31,7 @@ public:
     AudioSession();
     virtual ~AudioSession();
     virtual SessionState getState();
-    virtual ImsMediaResult startGraph(void* config);
+    virtual ImsMediaResult startGraph(RtpConfig* config);
 
     /**
      * @brief Called when the BaseSessionCallback SendEvent invoked.

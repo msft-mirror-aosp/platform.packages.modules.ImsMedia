@@ -18,17 +18,16 @@
 #define VIDEO_STREAM_GRAPH_RTP_RX_H
 
 #include <ImsMediaDefine.h>
-#include <BaseStreamGraph.h>
-#include <BaseNode.h>
+#include <VideoStreamGraph.h>
 #include <android/native_window.h>
 
-class VideoStreamGraphRtpRx : public BaseStreamGraph
+class VideoStreamGraphRtpRx : public VideoStreamGraph
 {
 public:
     VideoStreamGraphRtpRx(BaseSessionCallback* callback, int localFd = 0);
     virtual ~VideoStreamGraphRtpRx();
-    virtual ImsMediaResult create(void* config);
-    virtual ImsMediaResult update(void* config);
+    virtual ImsMediaResult create(RtpConfig* config);
+    virtual ImsMediaResult update(RtpConfig* config);
     virtual ImsMediaResult start();
     virtual void setMediaQualityThreshold(MediaQualityThreshold* threshold);
     void setSurface(ANativeWindow* surface);

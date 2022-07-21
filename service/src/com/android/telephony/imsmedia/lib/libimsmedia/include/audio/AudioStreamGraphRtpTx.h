@@ -18,16 +18,15 @@
 #define AUDIO_STREAM_GRAPH_RTP_TX_H
 
 #include <ImsMediaDefine.h>
-#include <BaseStreamGraph.h>
-#include <BaseNode.h>
+#include <AudioStreamGraph.h>
 
-class AudioStreamGraphRtpTx : public BaseStreamGraph
+class AudioStreamGraphRtpTx : public AudioStreamGraph
 {
 public:
     AudioStreamGraphRtpTx(BaseSessionCallback* callback, int localFd = 0);
     virtual ~AudioStreamGraphRtpTx();
-    virtual ImsMediaResult create(void* config);
-    virtual ImsMediaResult update(void* config);
+    virtual ImsMediaResult create(RtpConfig* config);
+    virtual ImsMediaResult update(RtpConfig* config);
 
     /**
      * @brief Create a graph for send dtmf digit to network
@@ -38,7 +37,7 @@ public:
      * @return true Returns when the graph created without error
      * @return false Returns when the given parameters are invalid.
      */
-    bool createDtmfGraph(void* config, BaseNode* rtpEncoderNode);
+    bool createDtmfGraph(RtpConfig* config, BaseNode* rtpEncoderNode);
 
     /**
      * @brief Creates and send dtmf packet to the network through the node created

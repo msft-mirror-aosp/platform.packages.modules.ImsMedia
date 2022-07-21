@@ -24,13 +24,13 @@
 #include <AudioConfig.h>
 
 AudioStreamGraphRtpRx::AudioStreamGraphRtpRx(BaseSessionCallback* callback, int localFd) :
-        BaseStreamGraph(callback, localFd)
+        AudioStreamGraph(callback, localFd)
 {
 }
 
 AudioStreamGraphRtpRx::~AudioStreamGraphRtpRx() {}
 
-ImsMediaResult AudioStreamGraphRtpRx::create(void* config)
+ImsMediaResult AudioStreamGraphRtpRx::create(RtpConfig* config)
 {
     IMLOGD1("[create], state[%d]", mGraphState);
 
@@ -75,7 +75,7 @@ ImsMediaResult AudioStreamGraphRtpRx::create(void* config)
     return RESULT_SUCCESS;
 }
 
-ImsMediaResult AudioStreamGraphRtpRx::update(void* config)
+ImsMediaResult AudioStreamGraphRtpRx::update(RtpConfig* config)
 {
     IMLOGD1("[update], state[%d]", mGraphState);
 

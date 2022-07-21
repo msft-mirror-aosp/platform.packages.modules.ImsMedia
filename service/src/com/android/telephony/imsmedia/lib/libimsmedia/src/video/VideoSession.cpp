@@ -89,7 +89,7 @@ SessionState VideoSession::getState()
     return state;
 }
 
-ImsMediaResult VideoSession::startGraph(void* config)
+ImsMediaResult VideoSession::startGraph(RtpConfig* config)
 {
     IMLOGD0("[startGraph]");
     if (config == NULL)
@@ -103,6 +103,7 @@ ImsMediaResult VideoSession::startGraph(void* config)
     if (mGraphRtpTx != NULL)
     {
         ret = mGraphRtpTx->update(config);
+
         if (ret != RESULT_SUCCESS)
         {
             IMLOGE1("[startGraph] update error[%d]", ret);
@@ -118,6 +119,7 @@ ImsMediaResult VideoSession::startGraph(void* config)
     {
         mGraphRtpTx = new VideoStreamGraphRtpTx(this, mRtpFd);
         ret = mGraphRtpTx->create(config);
+
         if (ret == RESULT_SUCCESS)
         {
             if (pConfig->getVideoMode() == VideoConfig::VIDEO_MODE_PREVIEW)

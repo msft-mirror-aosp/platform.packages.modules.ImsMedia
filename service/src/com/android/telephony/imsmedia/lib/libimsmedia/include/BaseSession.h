@@ -49,7 +49,7 @@ protected:
      * @return ImsMediaResult result of create or start graph. If the result has no error, it
      *         returns RESULT_SUCCESS. check #ImsMediaDefine.h.
      */
-    virtual ImsMediaResult startGraph(void* config) = 0;
+    virtual ImsMediaResult startGraph(RtpConfig* config) = 0;
 
     int mSessionId;
     int mRtpFd;

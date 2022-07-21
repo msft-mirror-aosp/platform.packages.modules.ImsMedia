@@ -341,10 +341,7 @@ bool ImsMediaCamera::CreateSession(ANativeWindow* preview, ANativeWindow* record
 
     if (gCameraIds[mActiveCameraId].mAvailable == false)
     {
-        if (gCondition.wait_timeout(MAX_WAIT_RESTART))
-        {
-            return false;
-        }
+        gCondition.wait_timeout(MAX_WAIT_CAMERA);
     }
 
     status = ACameraDevice_createCaptureRequest(gCameraIds[mActiveCameraId].mDevice,
@@ -372,8 +369,6 @@ bool ImsMediaCamera::CreateSession(ANativeWindow* preview, ANativeWindow* record
         return false;
     }
 
-    gCondition.wait_timeout(MAX_WAIT_RESTART);
-
     IMLOGD1("[CreateSession] create capture session[%p]", mCaptureSession);
 
     uint8_t afModeAuto = ACAMERA_CONTROL_AF_MODE_AUTO;
@@ -393,7 +388,9 @@ bool ImsMediaCamera::DeleteSession()
     if (mCaptureSession != NULL)
     {
         IMLOGD0("[DeleteSession] session close");
+        gCondition.reset();
         ACameraCaptureSession_close(mCaptureSession);
+        gCondition.wait_timeout(MAX_WAIT_CAMERA);
         mCaptureSession = NULL;
     }
 
@@ -426,10 +423,9 @@ bool ImsMediaCamera::DeleteSession()
         ANativeWindow_release(mCaptureRequest.outputNativeWindows[idxTarget]);
     }
 
-    IMLOGD0("[DeleteSession] free resources");
-
     if (mCaptureRequest.request != NULL)
     {
+        IMLOGD0("[DeleteSession] free request");
         ACaptureRequest_free(mCaptureRequest.request);
     }
 
@@ -439,6 +435,7 @@ bool ImsMediaCamera::DeleteSession()
 
     if (mSessionOutputContainer != NULL)
     {
+        IMLOGD0("[DeleteSession] free container");
         ACaptureSessionOutputContainer_free(mSessionOutputContainer);
     }
 
@@ -451,6 +448,8 @@ bool ImsMediaCamera::StartSession(bool bRecording)
 
     camera_status_t status;
     bRecording ? mCameraMode = kCameraModeRecord : kCameraModePreview;
+
+    gCondition.reset();
     status = ACameraCaptureSession_setRepeatingRequest(
             mCaptureSession, NULL, 1, &mCaptureRequest.request, NULL);
 
@@ -460,6 +459,7 @@ bool ImsMediaCamera::StartSession(bool bRecording)
         return false;
     }
 
+    gCondition.wait_timeout(MAX_WAIT_CAMERA);
     return true;
 }
 
@@ -469,6 +469,7 @@ bool ImsMediaCamera::StopSession()
 
     if (mCaptureSessionState == CaptureSessionState::kStateActive)
     {
+        gCondition.reset();
         camera_status_t status = ACameraCaptureSession_stopRepeating(mCaptureSession);
 
         if (status != ACAMERA_OK)
@@ -478,7 +479,7 @@ bool ImsMediaCamera::StopSession()
         }
     }
 
-    gCondition.wait_timeout(MAX_WAIT_RESTART);
+    gCondition.wait_timeout(MAX_WAIT_CAMERA);
     return true;
 }
 
@@ -710,6 +711,7 @@ void ImsMediaCamera::EnumerateCamera()
         int32_t count = 0;
         const uint32_t* tags = NULL;
         ACameraMetadata_getAllTags(metadataObj, &count, &tags);
+
         for (int tagIdx = 0; tagIdx < count; ++tagIdx)
         {
             if (ACAMERA_LENS_FACING == tags[tagIdx])
@@ -742,6 +744,7 @@ bool ImsMediaCamera::GetSensorOrientation(const int cameraId, int32_t* facing, i
     {
         return false;
     }
+
     camera_status_t status;
     ACameraMetadata* metadataObj;
     std::string targetCameraId;
@@ -765,8 +768,6 @@ bool ImsMediaCamera::GetSensorOrientation(const int cameraId, int32_t* facing, i
 
                 mCameraFacing == 0 ? * facing = kCameraFacingFront : * facing = kCameraFacingRear;
                 *angle = mCameraOrientation;
-
-                IMLOGD2("[GetSensorOrientation] facing[%d], sensor[%d]", *facing, *angle);
                 return true;
             }
         }

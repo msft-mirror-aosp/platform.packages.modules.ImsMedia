@@ -118,11 +118,6 @@ protected:
 
     virtual void TearDown() override
     {
-        if (graph != NULL)
-        {
-            delete graph;
-        }
-
         if (socketRtpFd != -1)
         {
             ImsMediaNetworkUtil::closeSocket(socketRtpFd);
@@ -131,6 +126,11 @@ protected:
         if (previewReader != NULL)
         {
             AImageReader_delete(previewReader);
+        }
+
+        if (graph != NULL)
+        {
+            delete graph;
         }
     }
 };

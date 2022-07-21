@@ -18,16 +18,15 @@
 #define AUDIO_STREAM_GRAPH_RTCP_H
 
 #include <ImsMediaDefine.h>
-#include <BaseStreamGraph.h>
-#include <BaseNode.h>
+#include <AudioStreamGraph.h>
 
-class AudioStreamGraphRtcp : public BaseStreamGraph
+class AudioStreamGraphRtcp : public AudioStreamGraph
 {
 public:
     AudioStreamGraphRtcp(BaseSessionCallback* callback, int localFd = 0);
     virtual ~AudioStreamGraphRtcp();
-    virtual ImsMediaResult create(void* config);
-    virtual ImsMediaResult update(void* config);
+    virtual ImsMediaResult create(RtpConfig* config);
+    virtual ImsMediaResult update(RtpConfig* config);
     virtual void setMediaQualityThreshold(MediaQualityThreshold* threshold);
 };
 

@@ -24,16 +24,15 @@
 #include <IVideoSourceNode.h>
 
 VideoStreamGraphRtpTx::VideoStreamGraphRtpTx(BaseSessionCallback* callback, int localFd) :
-        BaseStreamGraph(callback, localFd)
+        VideoStreamGraph(callback, localFd)
 {
-    mConfig = NULL;
     mSurface = NULL;
     mVideoMode = -1;
 }
 
 VideoStreamGraphRtpTx::~VideoStreamGraphRtpTx() {}
 
-ImsMediaResult VideoStreamGraphRtpTx::create(void* config)
+ImsMediaResult VideoStreamGraphRtpTx::create(RtpConfig* config)
 {
     IMLOGD1("[createGraph] state[%d]", mGraphState);
 
@@ -94,7 +93,7 @@ ImsMediaResult VideoStreamGraphRtpTx::create(void* config)
     return RESULT_SUCCESS;
 }
 
-ImsMediaResult VideoStreamGraphRtpTx::update(void* config)
+ImsMediaResult VideoStreamGraphRtpTx::update(RtpConfig* config)
 {
     IMLOGD2("[update] current mode[%d], state[%d]", mVideoMode, mGraphState);
 
@@ -293,7 +292,7 @@ void VideoStreamGraphRtpTx::setSurface(ANativeWindow* surface)
     }
 }
 
-ImsMediaResult VideoStreamGraphRtpTx::createPreviewMode(void* config)
+ImsMediaResult VideoStreamGraphRtpTx::createPreviewMode(RtpConfig* config)
 {
     if (config == NULL)
     {

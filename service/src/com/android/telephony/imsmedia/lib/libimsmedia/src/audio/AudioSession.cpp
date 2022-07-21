@@ -91,7 +91,7 @@ SessionState AudioSession::getState()
     return state;
 }
 
-ImsMediaResult AudioSession::startGraph(void* config)
+ImsMediaResult AudioSession::startGraph(RtpConfig* config)
 {
     IMLOGD0("[startGraph]");
 
@@ -208,30 +208,36 @@ ImsMediaResult AudioSession::addGraph(RtpConfig* config)
         return RESULT_INVALID_PARAM;
     }
 
-    for (auto& i : mListGraphRtpTx)
+    for (auto& graph : mListGraphRtpTx)
     {
-        if (i->isSameConfig(config))
+        if (graph != NULL && graph->isSameGraph(config))
         {
             IMLOGE0("[addGraph] same config is exist");
             return RESULT_INVALID_PARAM;
         }
     }
 
-    for (auto& i : mListGraphRtpTx)
+    for (auto& graph : mListGraphRtpTx)
     {
-        i->stop();
-    }
-
-    for (auto& i : mListGraphRtpRx)
-    {
-        i->stop();
-    }
-
-    for (auto& i : mListGraphRtcp)
-    {
-        if (i->getState() != kStreamStateRunning)
+        if (graph != NULL)
         {
-            i->start();
+            graph->stop();
+        }
+    }
+
+    for (auto& graph : mListGraphRtpRx)
+    {
+        if (graph != NULL)
+        {
+            graph->stop();
+        }
+    }
+
+    for (auto& graph : mListGraphRtcp)
+    {
+        if (graph != NULL && graph->getState() != kStreamStateRunning)
+        {
+            graph->start();
         }
     }
 
@@ -294,27 +300,27 @@ ImsMediaResult AudioSession::confirmGraph(RtpConfig* config)
     ImsMediaResult ret = RESULT_NOT_READY;
 
     /** Stop unmatched running instances of StreamGraph. */
-    for (auto& i : mListGraphRtpTx)
+    for (auto& graph : mListGraphRtpTx)
     {
-        if (!i->isSameConfig(config))
+        if (graph != NULL && !graph->isSameGraph(config))
         {
-            i->stop();
+            graph->stop();
         }
     }
 
-    for (auto& i : mListGraphRtpRx)
+    for (auto& graph : mListGraphRtpRx)
     {
-        if (!i->isSameConfig(config))
+        if (graph != NULL && !graph->isSameGraph(config))
         {
-            i->stop();
+            graph->stop();
         }
     }
 
-    for (auto& i : mListGraphRtcp)
+    for (auto& graph : mListGraphRtcp)
     {
-        if (!i->isSameConfig(config))
+        if (graph != NULL && !graph->isSameGraph(config))
         {
-            i->stop();
+            graph->stop();
         }
     }
 
@@ -323,7 +329,13 @@ ImsMediaResult AudioSession::confirmGraph(RtpConfig* config)
             iter != mListGraphRtpTx.end();)
     {
         AudioStreamGraphRtpTx* graph = *iter;
-        if (!graph->isSameConfig(config))
+
+        if (graph == NULL)
+        {
+            continue;
+        }
+
+        if (!graph->isSameGraph(config))
         {
             iter = mListGraphRtpTx.erase(iter);
             delete graph;
@@ -356,7 +368,13 @@ ImsMediaResult AudioSession::confirmGraph(RtpConfig* config)
             iter != mListGraphRtpRx.end();)
     {
         AudioStreamGraphRtpRx* graph = *iter;
-        if (!graph->isSameConfig(config))
+
+        if (graph == NULL)
+        {
+            continue;
+        }
+
+        if (!graph->isSameGraph(config))
         {
             iter = mListGraphRtpRx.erase(iter);
             delete graph;
@@ -382,7 +400,13 @@ ImsMediaResult AudioSession::confirmGraph(RtpConfig* config)
             iter != mListGraphRtcp.end();)
     {
         AudioStreamGraphRtcp* graph = *iter;
-        if (!graph->isSameConfig(config))
+
+        if (graph == NULL)
+        {
+            continue;
+        }
+
+        if (!graph->isSameGraph(config))
         {
             iter = mListGraphRtcp.erase(iter);
             delete graph;
@@ -415,7 +439,13 @@ ImsMediaResult AudioSession::deleteGraph(RtpConfig* config)
             iter != mListGraphRtpTx.end();)
     {
         AudioStreamGraphRtpTx* graph = *iter;
-        if (graph->isSameConfig(config))
+
+        if (graph == NULL)
+        {
+            continue;
+        }
+
+        if (graph->isSameGraph(config))
         {
             if (graph->getState() == kStreamStateRunning)
             {
@@ -443,7 +473,13 @@ ImsMediaResult AudioSession::deleteGraph(RtpConfig* config)
             iter != mListGraphRtpRx.end();)
     {
         AudioStreamGraphRtpRx* graph = *iter;
-        if (graph->isSameConfig(config))
+
+        if (graph == NULL)
+        {
+            continue;
+        }
+
+        if (graph->isSameGraph(config))
         {
             if (graph->getState() == kStreamStateRunning)
             {
@@ -465,7 +501,13 @@ ImsMediaResult AudioSession::deleteGraph(RtpConfig* config)
             iter != mListGraphRtcp.end();)
     {
         AudioStreamGraphRtcp* graph = *iter;
-        if (graph->isSameConfig(config))
+
+        if (graph == NULL)
+        {
+            continue;
+        }
+
+        if (graph->isSameGraph(config))
         {
             if (graph->getState() == kStreamStateRunning)
             {
@@ -531,7 +573,8 @@ void AudioSession::sendDtmf(char digit, int duration)
             iter != mListGraphRtpTx.end(); iter++)
     {
         AudioStreamGraphRtpTx* graph = *iter;
-        if (graph->getState() == kStreamStateRunning)
+
+        if (graph != NULL && graph->getState() == kStreamStateRunning)
         {
             graph->sendDtmf(digit, duration);
         }
