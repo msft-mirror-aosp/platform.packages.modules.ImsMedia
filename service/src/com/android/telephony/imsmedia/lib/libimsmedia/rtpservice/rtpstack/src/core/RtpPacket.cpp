@@ -151,7 +151,7 @@ eRtp_Bool RtpPacket::decodePacket(IN RtpBuffer* pobjRtpPktBuf)
     // extension header
     if (m_objRtpHeader.getExtension())
     {
-        //        RTP_TRACE_DEBUG("[XHdr] Header detected", 0, 0);
+        RTP_TRACE_MESSAGE("[XHdr] Extension Header detected", 0, 0);
         m_pobjExt = new RtpBuffer();
         if (m_pobjExt == RTP_NULL)
         {
