@@ -1,7 +1,7 @@
 cc_library_headers {
     name: "libimsmedia_config_headers",
     export_include_dirs: [
-        "android/telephony/imsmedia",
+        "include",
     ],
 }
 
