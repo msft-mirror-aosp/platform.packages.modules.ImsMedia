@@ -31,8 +31,8 @@
 class BaseStreamGraph
 {
 protected:
-    virtual ImsMediaResult create(void* config) = 0;
-    virtual ImsMediaResult update(void* config) = 0;
+    virtual ImsMediaResult create(RtpConfig* config) = 0;
+    virtual ImsMediaResult update(RtpConfig* config) = 0;
     virtual void AddNode(BaseNode* pNode, bool bReverse = true);
     virtual void RemoveNode(BaseNode* pNode);
     virtual ImsMediaResult startNodes();
@@ -92,23 +92,13 @@ public:
     StreamState getState();
 
     /**
-     * @brief Checks StreamGraph has a config is same with argument
+     * @brief Checks StreamGraph is same graph based on the parameter
      *
      * @param config RtpConfig for the StreamGraph operates nodes in the graph
      * @return true The remote IP address and port number is same
      * @return false The remote IP address or port number is not the same
      */
-    virtual bool isSameConfig(RtpConfig* config)
-    {
-        if (mConfig == NULL || config == NULL)
-            return false;
-        if (mConfig->getRemoteAddress() == config->getRemoteAddress() &&
-                mConfig->getRemotePort() == config->getRemotePort())
-        {
-            return true;
-        }
-        return false;
-    }
+    virtual bool isSameGraph(RtpConfig* config) = 0;
 
     /**
      * @brief Set the MediaQualityThreshold to the nodes.
@@ -129,7 +119,6 @@ public:
     virtual bool OnEvent(int32_t type, uint64_t param1, uint64_t param2);
 
 protected:
-    RtpConfig* mConfig;
     BaseSessionCallback* mCallback;
     int mLocalFd;
     StreamState mGraphState;

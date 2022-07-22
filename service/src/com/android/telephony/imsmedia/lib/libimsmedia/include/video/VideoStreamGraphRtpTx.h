@@ -18,23 +18,22 @@
 #define VIDEO_STREAM_GRAPH_RTP_TX_H
 
 #include <ImsMediaDefine.h>
-#include <BaseStreamGraph.h>
-#include <BaseNode.h>
+#include <VideoStreamGraph.h>
 #include <android/native_window.h>
 
-class VideoStreamGraphRtpTx : public BaseStreamGraph
+class VideoStreamGraphRtpTx : public VideoStreamGraph
 {
 public:
     VideoStreamGraphRtpTx(BaseSessionCallback* callback, int localFd = 0);
     virtual ~VideoStreamGraphRtpTx();
-    virtual ImsMediaResult create(void* config);
-    virtual ImsMediaResult update(void* config);
+    virtual ImsMediaResult create(RtpConfig* config);
+    virtual ImsMediaResult update(RtpConfig* config);
     virtual ImsMediaResult start();
     void setSurface(ANativeWindow* surface);
     virtual bool OnEvent(int32_t type, uint64_t param1, uint64_t param2);
 
 private:
-    ImsMediaResult createPreviewMode(void* config);
+    ImsMediaResult createPreviewMode(RtpConfig* config);
     ANativeWindow* mSurface;
     int32_t mVideoMode;
 };

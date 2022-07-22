@@ -23,14 +23,14 @@
 #include <ImsMediaTrace.h>
 
 AudioStreamGraphRtcp::AudioStreamGraphRtcp(BaseSessionCallback* callback, int localFd) :
-        BaseStreamGraph(callback, localFd)
+        AudioStreamGraph(callback, localFd)
 {
     mConfig = NULL;
 }
 
 AudioStreamGraphRtcp::~AudioStreamGraphRtcp() {}
 
-ImsMediaResult AudioStreamGraphRtcp::create(void* config)
+ImsMediaResult AudioStreamGraphRtcp::create(RtpConfig* config)
 {
     IMLOGD1("[createGraph], state[%d]", mGraphState);
 
@@ -77,7 +77,7 @@ ImsMediaResult AudioStreamGraphRtcp::create(void* config)
     return ImsMediaResult::RESULT_SUCCESS;
 }
 
-ImsMediaResult AudioStreamGraphRtcp::update(void* config)
+ImsMediaResult AudioStreamGraphRtcp::update(RtpConfig* config)
 {
     IMLOGD1("[update], state[%d]", mGraphState);
 

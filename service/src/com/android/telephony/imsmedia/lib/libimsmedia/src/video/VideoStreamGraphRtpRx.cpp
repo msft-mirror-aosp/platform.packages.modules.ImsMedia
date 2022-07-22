@@ -24,15 +24,14 @@
 #include <IVideoRendererNode.h>
 
 VideoStreamGraphRtpRx::VideoStreamGraphRtpRx(BaseSessionCallback* callback, int localFd) :
-        BaseStreamGraph(callback, localFd)
+        VideoStreamGraph(callback, localFd)
 {
-    mConfig = NULL;
     mSurface = NULL;
 }
 
 VideoStreamGraphRtpRx::~VideoStreamGraphRtpRx() {}
 
-ImsMediaResult VideoStreamGraphRtpRx::create(void* config)
+ImsMediaResult VideoStreamGraphRtpRx::create(RtpConfig* config)
 {
     IMLOGD1("[createGraph] state[%d]", mGraphState);
 
@@ -78,7 +77,7 @@ ImsMediaResult VideoStreamGraphRtpRx::create(void* config)
     return RESULT_SUCCESS;
 }
 
-ImsMediaResult VideoStreamGraphRtpRx::update(void* config)
+ImsMediaResult VideoStreamGraphRtpRx::update(RtpConfig* config)
 {
     IMLOGD1("[update] state[%d]", mGraphState);
 

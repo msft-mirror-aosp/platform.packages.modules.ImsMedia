@@ -31,7 +31,7 @@ public:
     VideoSession();
     virtual ~VideoSession();
     virtual SessionState getState();
-    virtual ImsMediaResult startGraph(void* config);
+    virtual ImsMediaResult startGraph(RtpConfig* config);
     // BaseSessionCallback
     virtual void onEvent(int32_t type, uint64_t param1, uint64_t param2);
     ImsMediaResult setPreviewSurface(ANativeWindow* surface);

@@ -18,16 +18,15 @@
 #define VIDEO_STREAM_GRAPH_RTCP_H
 
 #include <ImsMediaDefine.h>
-#include <BaseStreamGraph.h>
-#include <BaseNode.h>
+#include <VideoStreamGraph.h>
 
-class VideoStreamGraphRtcp : public BaseStreamGraph
+class VideoStreamGraphRtcp : public VideoStreamGraph
 {
 public:
     VideoStreamGraphRtcp(BaseSessionCallback* callback, int localFd = 0);
     virtual ~VideoStreamGraphRtcp();
-    virtual ImsMediaResult create(void* config);
-    virtual ImsMediaResult update(void* config);
+    virtual ImsMediaResult create(RtpConfig* config);
+    virtual ImsMediaResult update(RtpConfig* config);
     virtual void setMediaQualityThreshold(MediaQualityThreshold* threshold);
 };
 

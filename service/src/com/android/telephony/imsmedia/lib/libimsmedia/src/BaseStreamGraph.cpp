@@ -18,7 +18,6 @@
 #include <BaseStreamGraph.h>
 
 BaseStreamGraph::BaseStreamGraph(BaseSessionCallback* callback, int localFd) :
-        mConfig(NULL),
         mCallback(callback),
         mLocalFd(localFd),
         mGraphState(kStreamStateIdle)
@@ -36,12 +35,6 @@ BaseStreamGraph::BaseStreamGraph(BaseSessionCallback* callback, int localFd) :
 BaseStreamGraph::~BaseStreamGraph()
 {
     deleteNodes();
-
-    if (mConfig != NULL)
-    {
-        delete mConfig;
-        mConfig = NULL;
-    }
 
     setState(kStreamStateIdle);
     IMLOGD0("[~BaseStreamGraph]");

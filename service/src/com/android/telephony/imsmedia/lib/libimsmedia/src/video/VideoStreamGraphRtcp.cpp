@@ -24,14 +24,13 @@
 #include <VideoConfig.h>
 
 VideoStreamGraphRtcp::VideoStreamGraphRtcp(BaseSessionCallback* callback, int localFd) :
-        BaseStreamGraph(callback, localFd)
+        VideoStreamGraph(callback, localFd)
 {
-    mConfig = NULL;
 }
 
 VideoStreamGraphRtcp::~VideoStreamGraphRtcp() {}
 
-ImsMediaResult VideoStreamGraphRtcp::create(void* config)
+ImsMediaResult VideoStreamGraphRtcp::create(RtpConfig* config)
 {
     IMLOGD1("[createGraph] state[%d]", mGraphState);
 
@@ -80,7 +79,7 @@ ImsMediaResult VideoStreamGraphRtcp::create(void* config)
     return ImsMediaResult::RESULT_SUCCESS;
 }
 
-ImsMediaResult VideoStreamGraphRtcp::update(void* config)
+ImsMediaResult VideoStreamGraphRtcp::update(RtpConfig* config)
 {
     IMLOGD1("[update] state[%d]", mGraphState);
 
