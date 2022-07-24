@@ -38,37 +38,50 @@ public:
     ~RtpStackUtil();
 
     /**
-        Parse and retrieve seq number from a RTP packet
-        @param[in] pobjRecvdPkt RTCP packet from network
-        */
-    static RtpDt_UInt16 getSequenceNumber(IN RtpDt_UChar* pcRtpHdrBuf);
-    /**
-        Parse and retrieve ssrc from a RTP packet
-        @param[in] pobjRecvdPkt RTP packet from network
-    */
-    static RtpDt_UInt32 getRtpSsrc(IN RtpBuffer* pobjRecvdPkt);
+     * @brief Parse and retrieve seq number from a RTP packet
+     * @param pucRtpHdrBuf RTP packet buffer from network
+     * @return Retrieved sequence Number
+     */
+    static RtpDt_UInt16 getSequenceNumber(IN RtpDt_UChar* pucRtpHdrBuf);
 
     /**
-        Parse and retrieve ssrc from a RTCP packet
-        @param[in] pobjRecvdPkt RTCP packet from network
-    */
-    static RtpDt_UInt32 getRtcpSsrc(IN RtpBuffer* pobjRecvdPkt);
+     * @brief Parse and retrieve ssrc from a RTP packet
+     * @param pucRecvdRtpPkt RTP packet buffer from network
+     * @return Retrieved ssrc
+     */
+    static RtpDt_UInt32 getRtpSsrc(IN RtpDt_UChar* pucRecvdRtpPkt);
 
     /**
-    Utility to generate new ssrc
-    @return new generated ssrc
-    */
+     * @brief Parse and retrieve ssrc from a RTCP packet
+     * @param pucRecvdRtcpPkt RTCP packet from network
+     * @return Retrieved ssrc
+     */
+    static RtpDt_UInt32 getRtcpSsrc(IN RtpDt_UChar* pucRecvdRtcpPkt);
+
+    /**
+     * @brief Utility to generate new ssrc
+     * @param uiTermNum Terminal number
+     * @return new generated ssrc
+     */
     static RtpDt_UInt32 generateNewSsrc(IN RtpDt_UInt32 uiTermNum);
 
-    /** It calculates RTP time stamp
+    /**
+     * @brief It gets middle four octets from Ntp timestamp
+     * @param pstNtpTs Ntp timestamp
+     * @return Middle four octets of Ntp timestamp
      */
-    static RtpDt_UInt32 calcRtpTimestamp(IN RtpDt_UInt32 uiPrevRtpTs, IN tRTP_NTP_TIME* stCurRtpTs,
-            IN tRTP_NTP_TIME* stPrevRtpTs, IN RtpDt_UInt32 uiSamplingRate);
+    static RtpDt_UInt32 getMidFourOctets(IN tRTP_NTP_TIME* pstNtpTs);
 
     /**
-    It gets middle four octets from Ntp timestamp
-    */
-    static RtpDt_UInt32 getMidFourOctets(IN tRTP_NTP_TIME* pstNtpTs);
+     * @brief Calculates RTP time stamp
+     * @param uiPrevRtpTs Previous Rtp timestamp
+     * @param pstCurNtpTs Current Ntp timestamp
+     * @param pstPrevNtpTs Previous Ntp timestamp
+     * @param uiSamplingRate Sampling Rate
+     * @return Calculated RTP time stamp
+     */
+    static RtpDt_UInt32 calcRtpTimestamp(IN RtpDt_UInt32 uiPrevRtpTs, IN tRTP_NTP_TIME* pstCurNtpTs,
+            IN tRTP_NTP_TIME* pstPrevNtpTs, IN RtpDt_UInt32 uiSamplingRate);
 };
 
 #endif  //__RTP_STACK_UTIL_H__
