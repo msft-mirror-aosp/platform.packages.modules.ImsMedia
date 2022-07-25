@@ -14,26 +14,24 @@
  * limitations under the License.
  */
 
-#include <VideoSession.h>
+#include <TextSession.h>
 #include <ImsMediaTrace.h>
 #include <ImsMediaEventHandler.h>
-#include <VideoConfig.h>
+#include <TextConfig.h>
 #include <string>
 #include <sys/socket.h>
 
-VideoSession::VideoSession()
+TextSession::TextSession()
 {
-    IMLOGD0("[VideoSession]");
+    IMLOGD0("[TextSession]");
     mGraphRtpTx = NULL;
     mGraphRtpRx = NULL;
     mGraphRtcp = NULL;
-    mPreviewSurface = NULL;
-    mDisplaySurface = NULL;
 }
 
-VideoSession::~VideoSession()
+TextSession::~TextSession()
 {
-    IMLOGD0("[~VideoSession]");
+    IMLOGD0("[~TextSession]");
 
     if (mGraphRtpTx != NULL)
     {
@@ -66,7 +64,7 @@ VideoSession::~VideoSession()
     }
 }
 
-SessionState VideoSession::getState()
+SessionState TextSession::getState()
 {
     SessionState state = kSessionStateOpened;
 
@@ -89,7 +87,7 @@ SessionState VideoSession::getState()
     return state;
 }
 
-ImsMediaResult VideoSession::startGraph(RtpConfig* config)
+ImsMediaResult TextSession::startGraph(RtpConfig* config)
 {
     IMLOGD0("[startGraph]");
     if (config == NULL)
@@ -97,7 +95,7 @@ ImsMediaResult VideoSession::startGraph(RtpConfig* config)
         return RESULT_INVALID_PARAM;
     }
 
-    VideoConfig* pConfig = reinterpret_cast<VideoConfig*>(config);
+    TextConfig* pConfig = reinterpret_cast<TextConfig*>(config);
     ImsMediaResult ret = RESULT_NOT_READY;
 
     if (mGraphRtpTx != NULL)
@@ -109,70 +107,39 @@ ImsMediaResult VideoSession::startGraph(RtpConfig* config)
             IMLOGE1("[startGraph] update error[%d]", ret);
             return ret;
         }
-
-        if (mPreviewSurface != NULL)
-        {
-            mGraphRtpTx->setSurface(mPreviewSurface);
-        }
     }
     else
     {
-        mGraphRtpTx = new VideoStreamGraphRtpTx(this, mRtpFd);
+        mGraphRtpTx = new TextStreamGraphRtpTx(this, mRtpFd);
         ret = mGraphRtpTx->create(config);
 
-        if (ret == RESULT_SUCCESS)
+        if (ret == RESULT_SUCCESS &&
+                (pConfig->getMediaDirection() == RtpConfig::MEDIA_DIRECTION_SEND_ONLY ||
+                        pConfig->getMediaDirection() == RtpConfig::MEDIA_DIRECTION_SEND_RECEIVE))
         {
-            if (pConfig->getVideoMode() == VideoConfig::VIDEO_MODE_PREVIEW)
-            {
-                ret = mGraphRtpTx->start();
-            }
-            else
-            {
-                if (pConfig->getMediaDirection() == RtpConfig::MEDIA_DIRECTION_SEND_ONLY ||
-                        pConfig->getMediaDirection() == RtpConfig::MEDIA_DIRECTION_SEND_RECEIVE)
-                {
-                    ret = mGraphRtpTx->start();
-                }
-            }
+            ret = mGraphRtpTx->start();
 
             if (ret != RESULT_SUCCESS)
             {
                 IMLOGE1("[startGraph] start error[%d]", ret);
                 return ret;
             }
-
-            if (mPreviewSurface != NULL)
-            {
-                mGraphRtpTx->setSurface(mPreviewSurface);
-            }
         }
-    }
-
-    if (pConfig->getVideoMode() == VideoConfig::VIDEO_MODE_PREVIEW &&
-            std::strcmp(pConfig->getRemoteAddress().c_str(), "") == 0)
-    {
-        return RESULT_SUCCESS;
     }
 
     if (mGraphRtpRx != NULL)
     {
         mGraphRtpRx->setMediaQualityThreshold(&mThreshold);
         ret = mGraphRtpRx->update(config);
-
         if (ret != RESULT_SUCCESS)
         {
             IMLOGE1("[startGraph] update error[%d]", ret);
             return ret;
         }
-
-        if (mDisplaySurface != NULL)
-        {
-            mGraphRtpRx->setSurface(mDisplaySurface);
-        }
     }
     else
     {
-        mGraphRtpRx = new VideoStreamGraphRtpRx(this, mRtpFd);
+        mGraphRtpRx = new TextStreamGraphRtpRx(this, mRtpFd);
         ret = mGraphRtpRx->create(config);
 
         if (ret == RESULT_SUCCESS &&
@@ -187,11 +154,6 @@ ImsMediaResult VideoSession::startGraph(RtpConfig* config)
                 IMLOGE1("[startGraph] start error[%d]", ret);
                 return ret;
             }
-
-            if (mDisplaySurface != NULL)
-            {
-                mGraphRtpRx->setSurface(mDisplaySurface);
-            }
         }
     }
 
@@ -199,7 +161,6 @@ ImsMediaResult VideoSession::startGraph(RtpConfig* config)
     {
         mGraphRtcp->setMediaQualityThreshold(&mThreshold);
         ret = mGraphRtcp->update(config);
-
         if (ret != RESULT_SUCCESS)
         {
             IMLOGE1("[startGraph] update error[%d]", ret);
@@ -208,13 +169,14 @@ ImsMediaResult VideoSession::startGraph(RtpConfig* config)
     }
     else
     {
-        mGraphRtcp = new VideoStreamGraphRtcp(this, mRtcpFd);
+        mGraphRtcp = new TextStreamGraphRtcp(this, mRtcpFd);
         ret = mGraphRtcp->create(config);
 
         if (ret == RESULT_SUCCESS)
         {
             mGraphRtcp->setMediaQualityThreshold(&mThreshold);
             ret = mGraphRtcp->start();
+
             if (ret != RESULT_SUCCESS)
             {
                 IMLOGE1("[startGraph] start error[%d]", ret);
@@ -226,7 +188,18 @@ ImsMediaResult VideoSession::startGraph(RtpConfig* config)
     return ret;
 }
 
-void VideoSession::onEvent(int32_t type, uint64_t param1, uint64_t param2)
+ImsMediaResult TextSession::sendRtt(const android::String8* text)
+{
+    if (mGraphRtpTx != NULL && mGraphRtpTx->getState() == kStreamStateRunning)
+    {
+        mGraphRtpTx->sendRtt(text);
+        return RESULT_SUCCESS;
+    }
+
+    return RESULT_NOT_READY;
+}
+
+void TextSession::onEvent(int32_t type, uint64_t param1, uint64_t param2)
 {
     IMLOGD3("[onEvent] type[%d], param1[%d], param2[%d]", type, param1, param2);
     switch (type)
@@ -240,81 +213,18 @@ void VideoSession::onEvent(int32_t type, uint64_t param1, uint64_t param2)
                 mState = getState();
                 IMLOGD1("[onEvent] session state changed - state[%d]", mState);
                 ImsMediaEventHandler::SendEvent(
-                        "VIDEO_RESPONSE_EVENT", kVideoSessionChangedInd, mSessionId, mState);
+                        "TEXT_RESPONSE_EVENT", kTextSessionChangedInd, mSessionId, mState);
             }
-            break;
-        case kImsMediaEventFirstPacketReceived:
-            ImsMediaEventHandler::SendEvent(
-                    "VIDEO_RESPONSE_EVENT", kVideoFirstMediaPacketInd, param1, param2);
-            break;
-        case kImsMediaEventResolutionChanged:
-            ImsMediaEventHandler::SendEvent(
-                    "VIDEO_RESPONSE_EVENT", kVideoPeerDimensionChanged, mSessionId, param1, param2);
-            break;
-        case kImsMediaEventHeaderExtensionReceived:
-            ImsMediaEventHandler::SendEvent("VIDEO_RESPONSE_EVENT", kVideoRtpHeaderExtensionInd,
-                    mSessionId, param1, param2);
             break;
         case kImsMediaEventMediaInactivity:
             ImsMediaEventHandler::SendEvent(
-                    "VIDEO_RESPONSE_EVENT", kVideoMediaInactivityInd, mSessionId, param1, param2);
+                    "TEXT_RESPONSE_EVENT", kTextMediaInactivityInd, mSessionId, param1, param2);
             break;
-        case kImsMediaEventPacketLoss:
+        case kImsMediaEventNotifyRttReceived:
             ImsMediaEventHandler::SendEvent(
-                    "VIDEO_RESPONSE_EVENT", kVideoPacketLossInd, mSessionId, param1, param2);
-            break;
-        case kImsMediaEventNotifyVideoDataUsage:
-            ImsMediaEventHandler::SendEvent(
-                    "VIDEO_RESPONSE_EVENT", kVideoDataUsageInd, mSessionId, param1, param2);
-            break;
-        case kRequestVideoCvoUpdate:
-            if (mGraphRtpTx != NULL)
-            {
-                mGraphRtpTx->OnEvent(kRequestVideoCvoUpdate, param1, param2);
-            }
-            break;
-        case kRequestVideoBitrateChange:
-            /** TODO: implements bitrate change */
-            break;
-        case kRequestVideoIdrFrame:
-            /** TODO: implements request idr frame */
-            break;
-        case kRequestVideoSendNack:
-            /** TODO: implements request send nack */
+                    "TEXT_RESPONSE_EVENT", kTextRttReceived, mSessionId, param1, param2);
             break;
         default:
             break;
     }
-}
-
-ImsMediaResult VideoSession::setPreviewSurface(ANativeWindow* surface)
-{
-    if (surface == NULL)
-    {
-        return RESULT_INVALID_PARAM;
-    }
-
-    mPreviewSurface = surface;
-
-    if (mGraphRtpTx != NULL)
-    {
-        mGraphRtpTx->setSurface(surface);
-    }
-    return RESULT_SUCCESS;
-}
-
-ImsMediaResult VideoSession::setDisplaySurface(ANativeWindow* surface)
-{
-    if (surface == NULL)
-    {
-        return RESULT_INVALID_PARAM;
-    }
-
-    mDisplaySurface = surface;
-
-    if (mGraphRtpRx != NULL)
-    {
-        mGraphRtpRx->setSurface(surface);
-    }
-    return RESULT_SUCCESS;
 }

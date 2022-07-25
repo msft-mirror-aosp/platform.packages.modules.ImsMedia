@@ -17,6 +17,7 @@
 #include <JitterBufferControlNode.h>
 #include <AudioJitterBuffer.h>
 #include <VideoJitterBuffer.h>
+#include <TextJitterBuffer.h>
 #include <ImsMediaTrace.h>
 
 JitterBufferControlNode::JitterBufferControlNode(BaseSessionCallback* callback, ImsMediaType type) :
@@ -30,6 +31,10 @@ JitterBufferControlNode::JitterBufferControlNode(BaseSessionCallback* callback, 
     else if (mMediaType == IMS_MEDIA_VIDEO)
     {
         mJitterBuffer = new VideoJitterBuffer();
+    }
+    else if (mMediaType == IMS_MEDIA_TEXT)
+    {
+        mJitterBuffer = new TextJitterBuffer();
     }
 }
 

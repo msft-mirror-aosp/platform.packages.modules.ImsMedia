@@ -14,11 +14,21 @@
  * limitations under the License.
  */
 
-#include <BaseSessionCallback.h>
-#include <ImsMediaDefine.h>
+#ifndef TEXT_STREAM_GRAPH_RTP_TX_H
+#define TEXT_STREAM_GRAPH_RTP_TX_H
 
-class MockBaseSessionCallback : public BaseSessionCallback
+#include <ImsMediaDefine.h>
+#include <TextStreamGraph.h>
+
+class TextStreamGraphRtpTx : public TextStreamGraph
 {
 public:
-    MOCK_METHOD(void, onEvent, (int32_t type, uint64_t param1, uint64_t param2), (override));
+    TextStreamGraphRtpTx(BaseSessionCallback* callback, int localFd = 0);
+    virtual ~TextStreamGraphRtpTx();
+    virtual ImsMediaResult create(RtpConfig* config);
+    virtual ImsMediaResult update(RtpConfig* config);
+    virtual ImsMediaResult start();
+    bool sendRtt(const android::String8* text);
 };
+
+#endif

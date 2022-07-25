@@ -7,6 +7,7 @@ cc_library_shared {
     defaults: [
         "libimsmedia_audio_defaults",
         "libimsmedia_video_defaults",
+        "libimsmedia_text_defaults",
     ],
     header_libs: [
         "libimsmedia_header",

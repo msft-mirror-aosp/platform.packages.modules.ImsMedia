@@ -47,6 +47,7 @@ enum kImsMediaEventType
     kImsMediaEventNotifyJitter,
     kImsMediaEventResolutionChanged,
     kImsMediaEventNotifyVideoDataUsage,
+    kImsMediaEventNotifyRttReceived,
 };
 
 // Internal Request Event
@@ -330,6 +331,32 @@ enum ImsMediaVideoMsgResponse
     kVideoPacketLossInd,
     kVideoDataUsageInd,
 };
+
+enum ImsMediaTextMsgRequest
+{
+    kTextOpenSession = 101,
+    kTextCloseSession,
+    kTextModifySession,
+    kTextSetMediaQualityThreshold,
+    kTextSendRtt,
+};
+
+enum ImsMediaTextMsgResponse
+{
+    kTextOpenSessionSuccess = 201,
+    kTextOpenSessionFailure,
+    kTextModifySessionResponse,
+    kTextSessionChangedInd,
+    kTextMediaInactivityInd,
+    kTextRttReceived,
+};
+
+#define T140_BUFFERING_TIME                        300
+#define RTT_MAX_CHAR_PER_SEC                       30  // ATIS_GTT : 30 characters per second
+#define RTT_MAX_UNICODE_UTF8                       4
+#define MAX_RTT_LEN                                RTT_MAX_CHAR_PER_SEC* RTT_MAX_UNICODE_UTF8
+#define T140_MAX_CHUNK                             2
+#define PAYLOADENCODER_TEXT_MAX_REDUNDANT_INTERVAL 16383
 
 struct EventParamOpenSession
 {

@@ -59,7 +59,7 @@ enum kBaseNodeId
     kNodeIdVideoPayloadDecoder,
     // for Text
     kNodeIdTextSource,
-    kNodeIdTextReceiver,
+    kNodeIdTextRenderer,
     kNodeIdTextPayloadEncoder,
     kNodeIdTextPayloadDecoder,
 };

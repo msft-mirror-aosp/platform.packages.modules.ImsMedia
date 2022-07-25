@@ -1126,7 +1126,49 @@ public class MainActivity extends AppCompatActivity {
             RtcpConfig rtcpConfig, int audioCodec, AmrParams amrParams, EvsParams evsParams) {
         AudioConfig config;
 
-        if (audioCodec == AudioConfig.CODEC_AMR || audioCodec == AudioConfig.CODEC_AMR_WB) {
+        if (audioCodec == AudioConfig.CODEC_AMR) {
+            config = new AudioConfig.Builder()
+                    .setMediaDirection(RtpConfig.MEDIA_DIRECTION_SEND_RECEIVE)
+                    .setAccessNetwork(AccessNetworkType.EUTRAN)
+                    .setRemoteRtpAddress(remoteRtpAddress)
+                    .setRtcpConfig(rtcpConfig)
+                    .setDscp((byte) DSCP)
+                    .setRxPayloadTypeNumber((byte) AUDIO_RX_PAYLOAD_TYPE_NUMBER)
+                    .setTxPayloadTypeNumber((byte) AUDIO_TX_PAYLOAD_TYPE_NUMBER)
+                    .setSamplingRateKHz((byte) 8)
+                    .setPtimeMillis((byte) P_TIME_MILLIS)
+                    .setMaxPtimeMillis((byte) MAX_P_TIME_MILLIS)
+                    .setCodecModeRequest((byte) CODEC_MODE_REQUEST)
+                    .setDtxEnabled(true)
+                    .setDtmfPayloadTypeNumber((byte) DTMF_PAYLOAD_TYPE_NUMBER)
+                    .setDtmfSamplingRateKHz((byte) 8)
+                    .setCodecType(audioCodec)
+                    .setAmrParams(amrParams)
+                    // TODO audio is currently only working when amr params are set as well
+                    .setEvsParams(evsParams)
+                    .build();
+        } else if (audioCodec == AudioConfig.CODEC_AMR_WB) {
+            config = new AudioConfig.Builder()
+                    .setMediaDirection(RtpConfig.MEDIA_DIRECTION_SEND_RECEIVE)
+                    .setAccessNetwork(AccessNetworkType.EUTRAN)
+                    .setRemoteRtpAddress(remoteRtpAddress)
+                    .setRtcpConfig(rtcpConfig)
+                    .setDscp((byte) DSCP)
+                    .setRxPayloadTypeNumber((byte) AUDIO_RX_PAYLOAD_TYPE_NUMBER)
+                    .setTxPayloadTypeNumber((byte) AUDIO_TX_PAYLOAD_TYPE_NUMBER)
+                    .setSamplingRateKHz((byte) SAMPLING_RATE_KHZ)
+                    .setPtimeMillis((byte) P_TIME_MILLIS)
+                    .setMaxPtimeMillis((byte) MAX_P_TIME_MILLIS)
+                    .setCodecModeRequest((byte) CODEC_MODE_REQUEST)
+                    .setDtxEnabled(true)
+                    .setDtmfPayloadTypeNumber((byte) DTMF_PAYLOAD_TYPE_NUMBER)
+                    .setDtmfSamplingRateKHz((byte) SAMPLING_RATE_KHZ)
+                    .setCodecType(audioCodec)
+                    .setAmrParams(amrParams)
+                    // TODO audio is currently only working when amr params are set as well
+                    .setEvsParams(evsParams)
+                    .build();
+        } else if (audioCodec == AudioConfig.CODEC_EVS) {
             config = new AudioConfig.Builder()
                     .setMediaDirection(RtpConfig.MEDIA_DIRECTION_SEND_RECEIVE)
                     .setAccessNetwork(AccessNetworkType.EUTRAN)
@@ -1143,33 +1185,10 @@ public class MainActivity extends AppCompatActivity {
                     .setDtmfPayloadTypeNumber((byte) DTMF_PAYLOAD_TYPE_NUMBER)
                     .setDtmfSamplingRateKHz((byte) DTMF_SAMPLING_RATE_KHZ)
                     .setCodecType(audioCodec)
+                    // TODO audio is currently only working when amr params are set as well
                     .setAmrParams(amrParams)
-                    // TODO - audio is currently only working when evs params are set as well
                     .setEvsParams(evsParams)
                     .build();
-
-        } else if (audioCodec == AudioConfig.CODEC_EVS) {
-            config = new AudioConfig.Builder()
-                .setMediaDirection(RtpConfig.MEDIA_DIRECTION_SEND_RECEIVE)
-                .setAccessNetwork(AccessNetworkType.EUTRAN)
-                .setRemoteRtpAddress(remoteRtpAddress)
-                .setRtcpConfig(rtcpConfig)
-                .setDscp((byte) DSCP)
-                .setRxPayloadTypeNumber((byte) AUDIO_RX_PAYLOAD_TYPE_NUMBER)
-                .setTxPayloadTypeNumber((byte) AUDIO_TX_PAYLOAD_TYPE_NUMBER)
-                .setSamplingRateKHz((byte) SAMPLING_RATE_KHZ)
-                .setPtimeMillis((byte) P_TIME_MILLIS)
-                .setMaxPtimeMillis((byte) MAX_P_TIME_MILLIS)
-                .setCodecModeRequest((byte) CODEC_MODE_REQUEST)
-                .setDtxEnabled(true)
-                .setDtmfPayloadTypeNumber((byte) DTMF_PAYLOAD_TYPE_NUMBER)
-                .setDtmfSamplingRateKHz((byte) DTMF_SAMPLING_RATE_KHZ)
-                .setCodecType(audioCodec)
-                // TODO - audio is currently only working when amr params are set as well
-                .setAmrParams(amrParams)
-                .setEvsParams(evsParams)
-                .build();
-
         } else {
             config = new AudioConfig.Builder()
                     .setMediaDirection(RtpConfig.MEDIA_DIRECTION_SEND_RECEIVE)

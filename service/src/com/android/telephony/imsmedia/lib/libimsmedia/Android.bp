@@ -28,6 +28,14 @@ cc_library_headers {
 }
 
 cc_library_headers {
+    name: "libimsmedia_text_header",
+    export_include_dirs: [
+        "include/text",
+        "include/text/nodes",
+    ],
+}
+
+cc_library_headers {
     name: "libimsmedia_utils_header",
     export_include_dirs: [
         "include/utils",
@@ -77,6 +85,17 @@ cc_defaults {
     ],
 }
 
+cc_defaults {
+    name: "libimsmedia_text_defaults",
+    cflags: [
+    ],
+    header_libs: [
+        "libimsmedia_header",
+        "libimsmedia_text_header",
+        "libimsmedia_config_headers",
+    ],
+}
+
 cc_library_shared {
     name: "libimsmedia",
     defaults: [
@@ -84,6 +103,7 @@ cc_library_shared {
         "libimsmedia_shared_defaults",
         "libimsmedia_audio_defaults",
         "libimsmedia_video_defaults",
+        "libimsmedia_text_defaults",
     ],
     srcs: [
         "src/**/*.cpp",

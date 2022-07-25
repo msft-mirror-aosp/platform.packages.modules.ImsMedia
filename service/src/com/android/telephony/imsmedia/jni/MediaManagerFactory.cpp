@@ -17,10 +17,12 @@
 #include <MediaManagerFactory.h>
 #include <AudioManager.h>
 #include <VideoManager.h>
+#include <TextManager.h>
 
 BaseManager* MediaManagerFactory::getInterface(int mediatype)
 {
     BaseManager* pManager = NULL;
+
     switch ((IMS_MEDIA_TYPE)mediatype)
     {
         case MEDIA_TYPE_AUDIO:
@@ -28,6 +30,9 @@ BaseManager* MediaManagerFactory::getInterface(int mediatype)
             break;
         case MEDIA_TYPE_VIDEO:
             pManager = VideoManager::getInstance();
+            break;
+        case MEDIA_TYPE_TEXT:
+            pManager = TextManager::getInstance();
             break;
         default:
             return NULL;

@@ -4,7 +4,8 @@ cc_defaults {
         "librtp_defaults",
         "libimsmedia_shared_defaults",
         "libimsmedia_audio_defaults",
-        "libimsmedia_video_defaults"
+        "libimsmedia_video_defaults",
+        "libimsmedia_text_defaults",
     ],
     test_suites: [
         "device-tests"
@@ -40,6 +41,9 @@ cc_test {
     ],
     srcs: [
         "**/*.cpp",
+    ],
+    local_include_dirs: [
+        "service/src/com/android/telephony/imsmedia/lib/libimsmedia/include",
     ],
     test_config: "imsmedia_tests.xml",
     enabled: true,

@@ -140,7 +140,6 @@ void BaseStreamGraph::RemoveNode(BaseNode* pNode)
 ImsMediaResult BaseStreamGraph::startNodes()
 {
     BaseNode* pNode = NULL;
-    std::list<BaseNode*>::iterator iter;
     ImsMediaResult ret = ImsMediaResult::RESULT_NOT_READY;
 
     while (mListNodeToStart.size() > 0)
@@ -151,6 +150,7 @@ ImsMediaResult BaseStreamGraph::startNodes()
         ret = pNode->Start();
         mListNodeToStart.pop_front();
         mListNodeStarted.push_front(pNode);
+
         if (ret != RESULT_SUCCESS)
         {
             IMLOGE2("[startNodes] error start node[%s], ret[%d]", pNode->GetNodeName(), ret);
@@ -166,7 +166,6 @@ ImsMediaResult BaseStreamGraph::stopNodes()
 {
     BaseNode* pNode;
     mScheduler->Stop();
-    std::list<BaseNode*>::iterator iter;
 
     while (mListNodeStarted.size() > 0)
     {

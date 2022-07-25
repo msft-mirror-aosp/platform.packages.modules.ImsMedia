@@ -170,7 +170,6 @@ void StreamScheduler::Stop()
 
 void StreamScheduler::Awake()
 {
-    IMLOGD_PACKET0(IM_PACKET_LOG_SCHEDULER, "[Awake]");
     mCondMain.signal();
 }
 
@@ -209,7 +208,6 @@ void StreamScheduler::RunRegisteredNode()
 {
     BaseNode* pNode;
     uint32_t nMaxDataInNode;
-    IMLOGD_PACKET1(IM_PACKET_LOG_SCHEDULER, "[RunRegisteredNode] Run Source Nodes [%p]", this);
 
     // run source nodes
     for (auto& node : mlistSourceNode)

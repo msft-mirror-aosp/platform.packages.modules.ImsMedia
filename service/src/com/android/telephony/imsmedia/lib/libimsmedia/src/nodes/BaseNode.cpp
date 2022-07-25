@@ -38,7 +38,7 @@ static std::vector<NODE_ID_PAIR> vectorNodeId{
         std::make_pair(kNodeIdVideoPayloadEncoder, "VideoPayloadEncoder"),
         std::make_pair(kNodeIdVideoPayloadDecoder, "VideoPayloadDecoder"),
         std::make_pair(kNodeIdTextSource, "TextSource"),
-        std::make_pair(kNodeIdTextReceiver, "TextReceiver"),
+        std::make_pair(kNodeIdTextRenderer, "TextRenderer"),
         std::make_pair(kNodeIdTextPayloadEncoder, "TextPayloadEncoder"),
         std::make_pair(kNodeIdTextPayloadDecoder, "TextPayloadDecoder"),
 };
