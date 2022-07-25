@@ -196,13 +196,18 @@ eRtp_Bool RtpSession::compareRtpSessions(IN RtpSession* pobjSession)
     {
         if (m_usRtpPort == pobjSession->getRtpPort())
         {
+            RtpBuffer* objRtpBuff = pobjSession->getRtpTransAddr();
+            if (m_pobjTransAddr == RTP_NULL && objRtpBuff == RTP_NULL)
+            {
+                return eRTP_SUCCESS;
+            }
             RtpDt_UChar* pcTranAddr1 = m_pobjTransAddr->getBuffer();
             RtpDt_UInt32 uiTBufLen = m_pobjTransAddr->getLength();
-            RtpBuffer* objRtpBuff = pobjSession->getRtpTransAddr();
-
-            // const RtpDt_Char *pcTranAddr1 = (const RtpDt_Char*)pucTBuf;
             RtpDt_UChar* pcTranAddr2 = objRtpBuff->getBuffer();
-            // const RtpDt_Char* pcTranAddr2 = (RtpDt_Char*)pcDesAddr;
+            if (pcTranAddr1 == RTP_NULL || pcTranAddr2 == RTP_NULL)
+            {
+                return eRTP_FAILURE;
+            }
             if (memcmp(pcTranAddr1, pcTranAddr2, uiTBufLen) == RTP_ZERO)
             {
                 return eRTP_SUCCESS;

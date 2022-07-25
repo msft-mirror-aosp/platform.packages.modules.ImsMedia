@@ -38,51 +38,64 @@ class RtpSession;
 class RtpStack
 {
     /**
-    list of Rtp_Session currently active in the stack
-    */
+     * list of RtpSession currently active in the stack
+     */
     std::list<RtpSession*> m_objRtpSessionList;
+
     /**
-    Profile for this stack
-    */
+     * Profile for this stack
+     */
     RtpStackProfile* m_pobjStackProfile;
 
 public:
     /**
-    Create stack with default profile
-    */
+     * @brief Create stack with default profile
+     */
     RtpStack();
     /**
-    Delete stack
-    */
+     * @brief Delete stack
+     */
     ~RtpStack();
 
     /**
-     * Create stack with pobjStackProfile.
-     * However application can modify this profile at a later stage by using setStackProfile().
-     * @param[in] pobjStackProfile Configure the stack as per profile.
+     * @brief Create stack with pobjStackProfile. However application can modify
+     * this profile at a later stage by using setStackProfile().
+     * @param pobjStackProfile Configure the stack as per profile.
      */
     RtpStack(IN RtpStackProfile* pobjStackProfile);
 
     /**
-     * Create a RTP session.
+     * @brief Creates a RTP session, assigns SSRC to it and adds to m_objRtpSessionList.
+     * @return Created RtpSession object pointer
      */
     RtpSession* createRtpSession();
 
     /**
-     * Delete a RTP session.
-     * memory of pobjSession will be freed
+     * @brief finds whether pobjSession exists in RtpSessionList or not
+     * @param pobjSession pointer to RtpSession that has to be searched
+     * @return eRTP_SUCCESS if RTP session present in the m_objRtpSessionList
+     */
+    eRtp_Bool isValidRtpSession(IN RtpSession* pobjSession);
+
+    /**
+     * @brief Finds and deletes the RTP session from m_objRtpSessionList.
+     * Memory of pobjSession will be freed
+     * @param pobjSession pointer to RtpSession that has to be deleted
+     * @return RTP_SUCCESS, if RTP session is deleted from m_objRtpSessionList
      */
     eRTP_STATUS_CODE deleteRtpSession(IN RtpSession* pobjSession);
+
     /**
-     * Get method for m_pobjStackProfile
+     * @brief Get method for m_pobjStackProfile
+     * @return current RtpStack profile
      */
     RtpStackProfile* getStackProfile();
+
     /**
-     * Set method for m_pobjStackProfile
+     * @brief Set method for m_pobjStackProfile
+     * @param pobjStackProfile pointer to RtpStack profile
      */
     RtpDt_Void setStackProfile(IN RtpStackProfile* pobjStackProfile);
-
-    eRtp_Bool isRtpSessionPresent(IN RtpSession* pobjSession);
 };
 
 #endif  //__RTP_STACK_H__
