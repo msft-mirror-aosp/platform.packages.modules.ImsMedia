@@ -16,31 +16,14 @@
 
 #include <RtpStack.h>
 #include <RtpStackUtil.h>
-#include <RtpError.h>
 #include <RtpTrace.h>
 
-/*********************************************************
- * Function name        : RtpStack
- * Description          : Constructor
- * Return type          : None
- * Argument             : None
- * Preconditions        : None
- * Side Effects            : None
- ********************************************************/
 RtpStack::RtpStack() :
         m_objRtpSessionList(std::list<RtpSession*>()),
         m_pobjStackProfile(RTP_NULL)
 {
 }
 
-/*********************************************************
- * Function name        : ~RtpStack
- * Description          : Destructor
- * Return type          : None
- * Argument             : None
- * Preconditions        : None
- * Side Effects            : None
- ********************************************************/
 RtpStack::~RtpStack()
 {
     // clear stack profile
@@ -57,30 +40,11 @@ RtpStack::~RtpStack()
     m_objRtpSessionList.clear();
 }
 
-/*********************************************************
- * Function name        : RtpStack
- * Description          : single argument Constructor
- * Return type          : None
- * Argument             : RtpStackProfile*: In
- *                          pointer to RtpStackProfile.
- *                          It contains RTP profile info.
- * Preconditions        : None
- * Side Effects            : None
- ********************************************************/
 RtpStack::RtpStack(IN RtpStackProfile* pobjStackProfile)
 {
     m_pobjStackProfile = pobjStackProfile;
 }
 
-/*********************************************************
- * Function name        : createRtpSession
- * Description          : It creates RtpSession object and assigns SSRC to it.
- * Return type          : RtpSession*
- *                          Generated RtpSession object pointer.
- * Argument             : None
- * Preconditions        : Rtp Stack shall be initialized.
- * Side Effects            : None
- ********************************************************/
 RtpSession* RtpStack::createRtpSession()
 {
     RtpDt_UInt32 uiTermNum = m_pobjStackProfile->getTermNumber();
@@ -102,19 +66,7 @@ RtpSession* RtpStack::createRtpSession()
     return pobjRtpSession;
 }
 
-/*********************************************************
- * Function name        : isRtpSessionPresent
- * Description          : It checks Rtp session is present in RtpSession list.
- * Return type          : eRtp_Bool
- *                          eRTP_SUCCESS if RTP session present in the m_objRtpSessionList.
- * Argument             : RtpSession*: In
- *                          Rtp Session pointer
- * Argument                : RtpDt_UInt16* : Out
- *                          Rtp Session object position in m_objRtpSessionList
- * Preconditions        : Rtp Stack shall be initialized.
- * Side Effects            : None
- ********************************************************/
-eRtp_Bool RtpStack::isRtpSessionPresent(IN RtpSession* pobjSession)
+eRtp_Bool RtpStack::isValidRtpSession(IN RtpSession* pobjSession)
 {
     for (auto& pobjRtpSesItem : m_objRtpSessionList)
     {
@@ -128,16 +80,6 @@ eRtp_Bool RtpStack::isRtpSessionPresent(IN RtpSession* pobjSession)
     return eRTP_FAILURE;
 }
 
-/*********************************************************
- * Function name        : deleteRtpSession
- * Description          : It deletes Rtp session from m_objRtpSessionList
- * Return type          : eRTP_STATUS_CODE
- *                          RTP_SUCCESS, if RTP session deletes from m_objRtpSessionList
- * Argument             : RtpSession*: In
- *                          Rtp Session pointer
- * Preconditions        : Rtp Stack shall be initialized.
- * Side Effects            : None
- ********************************************************/
 eRTP_STATUS_CODE RtpStack::deleteRtpSession(IN RtpSession* pobjRtpSession)
 {
     if (pobjRtpSession == RTP_NULL)
@@ -147,7 +89,7 @@ eRTP_STATUS_CODE RtpStack::deleteRtpSession(IN RtpSession* pobjRtpSession)
     }
 
     eRtp_Bool bisRtpSes = eRTP_SUCCESS;
-    bisRtpSes = isRtpSessionPresent(pobjRtpSession);
+    bisRtpSes = isValidRtpSession(pobjRtpSession);
 
     if (bisRtpSes == eRTP_SUCCESS)
     {
@@ -160,29 +102,11 @@ eRTP_STATUS_CODE RtpStack::deleteRtpSession(IN RtpSession* pobjRtpSession)
     return RTP_FAILURE;
 }
 
-/*********************************************************
- * Function name        : getStackProfile
- * Description          : get method for m_pobjStackProfile
- * Return type          : RtpStackProfile*
- *                          it returns m_pobjStackProfile
- * Argument             : None
- * Preconditions        : Rtp Stack shall be initialized.
- * Side Effects            : None
- ********************************************************/
 RtpStackProfile* RtpStack::getStackProfile()
 {
     return m_pobjStackProfile;
 }
 
-/*********************************************************
- * Function name        : setStackProfile
- * Description          : set method for m_pobjStackProfile
- * Return type          : RtpDt_Void
- * Argument             : RtpStackProfile* : In
- *                          pointer to Rtp Stack profile object.
- * Preconditions        : Rtp Stack shall be initialized.
- * Side Effects            : None
- ********************************************************/
 RtpDt_Void RtpStack::setStackProfile(IN RtpStackProfile* pobjStackProfile)
 {
     m_pobjStackProfile = pobjStackProfile;
