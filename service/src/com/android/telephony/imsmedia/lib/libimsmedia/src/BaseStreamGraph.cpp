@@ -56,6 +56,7 @@ ImsMediaResult BaseStreamGraph::start()
 
     if (ret != RESULT_SUCCESS)
     {
+        stopNodes();
         return ret;
     }
 
@@ -145,16 +146,22 @@ ImsMediaResult BaseStreamGraph::startNodes()
     while (mListNodeToStart.size() > 0)
     {
         pNode = mListNodeToStart.front();
-        IMLOGD2("[startNodes] media[%d], start node[%s]", pNode->GetMediaType(),
-                pNode->GetNodeName());
-        ret = pNode->Start();
-        mListNodeToStart.pop_front();
-        mListNodeStarted.push_front(pNode);
 
-        if (ret != RESULT_SUCCESS)
+        if (pNode != NULL)
         {
-            IMLOGE2("[startNodes] error start node[%s], ret[%d]", pNode->GetNodeName(), ret);
-            return ret;
+            IMLOGD2("[startNodes] media[%d], start node[%s]", pNode->GetMediaType(),
+                    pNode->GetNodeName());
+
+            ret = pNode->Start();
+
+            if (ret != RESULT_SUCCESS)
+            {
+                IMLOGE2("[startNodes] error start node[%s], ret[%d]", pNode->GetNodeName(), ret);
+                return ret;
+            }
+
+            mListNodeToStart.pop_front();
+            mListNodeStarted.push_front(pNode);
         }
     }
 
@@ -170,11 +177,15 @@ ImsMediaResult BaseStreamGraph::stopNodes()
     while (mListNodeStarted.size() > 0)
     {
         pNode = mListNodeStarted.front();
-        IMLOGD2("[stopNodes] media[%d], stop node[%s]", pNode->GetMediaType(),
-                pNode->GetNodeName());
-        pNode->Stop();
-        mListNodeStarted.pop_front();
-        mListNodeToStart.push_front(pNode);
+
+        if (pNode != NULL)
+        {
+            IMLOGD2("[stopNodes] media[%d], stop node[%s]", pNode->GetMediaType(),
+                    pNode->GetNodeName());
+            pNode->Stop();
+            mListNodeStarted.pop_front();
+            mListNodeToStart.push_front(pNode);
+        }
     }
 
     return RESULT_SUCCESS;
@@ -182,25 +193,27 @@ ImsMediaResult BaseStreamGraph::stopNodes()
 
 void BaseStreamGraph::deleteNodes()
 {
-    BaseNode* pNode = NULL;
-
-    if (mGraphState != kStreamStateCreated)
+    if (mListNodeStarted.size() > 0)
     {
         stop();
     }
 
     if (mListNodeStarted.size() > 0)
     {
-        IMLOGE2("[deleteNodes] media[%d], error node remained[%d]", pNode->GetMediaType(),
-                mListNodeStarted.size());
+        IMLOGE1("[deleteNodes] error node remained[%d]", mListNodeStarted.size());
     }
 
     while (mListNodeToStart.size() > 0)
     {
-        pNode = mListNodeToStart.front();
-        IMLOGD2("[deleteNodes] media[%d], delete node[%s]", pNode->GetMediaType(),
-                pNode->GetNodeName());
-        RemoveNode(pNode);
+        BaseNode* pNode = mListNodeToStart.front();
+
+        if (pNode != NULL)
+        {
+            IMLOGD2("[deleteNodes] media[%d], delete node[%s]", pNode->GetMediaType(),
+                    pNode->GetNodeName());
+            RemoveNode(pNode);
+        }
+
         mListNodeToStart.pop_front();
     }
 
