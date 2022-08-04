@@ -21,7 +21,8 @@ import android.telephony.Rlog;
 import android.telephony.imsmedia.MediaQualityThreshold;
 import android.telephony.imsmedia.TextConfig;
 
-/** Text session implementation for internal AP based RTP stack. This handles all API calls from
+/**
+ * Text session implementation for internal AP based RTP stack. This handles all API calls from
  * applications and passes it to native library.
  */
 public class TextLocalSession {
@@ -32,7 +33,7 @@ public class TextLocalSession {
     /**
      * Instantiates a new text session
      *
-     * @param sessionId : session identifier
+     * @param sessionId    : session identifier
      * @param nativeObject : jni object modifier for calling jni methods
      */
     TextLocalSession(final int sessionId, final long nativeObject) {
@@ -47,14 +48,17 @@ public class TextLocalSession {
     }
 
     /**
-     * Send request message with the corresponding arguments to libimsmediajni library to operate
+     * Send request message with the corresponding arguments to libimsmediajni
+     * library to operate
      *
      * @param sessionId : session identifier
-     * @param parcel : parcel argument to send to jni
+     * @param parcel    : parcel argument to send to jni
      */
     public void sendRequest(final int sessionId, final Parcel parcel) {
         if (mNativeObject != 0) {
-            if (parcel == null) return;
+            if (parcel == null) {
+                return;
+            }
             byte[] data = parcel.marshall();
             JNIImsMediaService.sendMessage(mNativeObject, sessionId, data);
             parcel.recycle();
@@ -102,6 +106,9 @@ public class TextLocalSession {
      */
     public void sendRtt(String text) {
         Rlog.d(TAG, "sendRtt");
-        // TODO: add implementation
+        Parcel parcel = Parcel.obtain();
+        parcel.writeInt(TextSession.CMD_SEND_RTT);
+        parcel.writeString(text);
+        sendRequest(mSessionId, parcel);
     }
 }

@@ -190,6 +190,15 @@ void TextManager::sendMessage(const int sessionId, const android::Parcel& parcel
                     "TEXT_REQUEST_EVENT", nMsg, sessionId, reinterpret_cast<uint64_t>(threshold));
         }
         break;
+        case kTextSendRtt:
+        {
+            android::String16 text;
+            parcel.readString16(&text);
+            android::String8* rttText = new String8(text.string());
+            ImsMediaEventHandler::SendEvent(
+                    "TEXT_REQUEST_EVENT", nMsg, sessionId, reinterpret_cast<uint64_t>(rttText));
+        }
+        break;
         default:
             break;
     }
@@ -259,6 +268,7 @@ void TextManager::RequestHandler::processEvent(
         case kTextSetMediaQualityThreshold:
         {
             MediaQualityThreshold* threshold = reinterpret_cast<MediaQualityThreshold*>(paramA);
+
             if (threshold != NULL)
             {
                 TextManager::getInstance()->setMediaQualityThreshold(
@@ -268,9 +278,16 @@ void TextManager::RequestHandler::processEvent(
         }
         break;
         case kTextSendRtt:
-            TextManager::getInstance()->sendRtt(
-                    static_cast<int>(sessionId), reinterpret_cast<android::String8*>(paramA));
-            break;
+        {
+            android::String8* text = reinterpret_cast<android::String8*>(paramA);
+
+            if (text != NULL)
+            {
+                TextManager::getInstance()->sendRtt(static_cast<int>(sessionId), text);
+                delete text;
+            }
+        }
+        break;
         default:
             break;
     }
