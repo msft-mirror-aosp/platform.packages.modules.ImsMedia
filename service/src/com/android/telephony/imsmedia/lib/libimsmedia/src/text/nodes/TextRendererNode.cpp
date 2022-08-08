@@ -43,12 +43,14 @@ ImsMediaResult TextRendererNode::Start()
         return RESULT_INVALID_PARAM;
     }
 
+    mNodeState = kNodeStateRunning;
     return RESULT_SUCCESS;
 }
 
 void TextRendererNode::Stop()
 {
     IMLOGD0("[Stop]");
+    mNodeState = kNodeStateStopped;
 }
 
 bool TextRendererNode::IsRunTime()

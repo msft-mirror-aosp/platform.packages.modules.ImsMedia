@@ -17,6 +17,7 @@
 #include <RtpDecoderNode.h>
 #include <ImsMediaTrace.h>
 #include <AudioConfig.h>
+#include <TextConfig.h>
 #include <VideoConfig.h>
 
 RtpDecoderNode::RtpDecoderNode(BaseSessionCallback* callback) :
@@ -31,6 +32,7 @@ RtpDecoderNode::RtpDecoderNode(BaseSessionCallback* callback) :
     mRtpDtmfPayload = 0;
     mDtmfSamplingRate = 0;
     mCvoValue = CVO_DEFINE_NONE;
+    mRedundantPayload = 0;
 }
 
 RtpDecoderNode::~RtpDecoderNode()
@@ -71,6 +73,10 @@ ImsMediaResult RtpDecoderNode::Start()
                 mRtpDtmfPayload, mDtmfSamplingRate * 1000);
     }
     else if (mMediaType == IMS_MEDIA_VIDEO)
+    {
+        mRtpSession->SetRtpPayloadParam(mRtpPayloadTx, mRtpPayloadRx, mSamplingRate * 1000);
+    }
+    else if (mMediaType == IMS_MEDIA_TEXT)
     {
         mRtpSession->SetRtpPayloadParam(mRtpPayloadTx, mRtpPayloadRx, mSamplingRate * 1000);
     }
@@ -144,6 +150,15 @@ void RtpDecoderNode::SetConfig(void* config)
         mRtpPayloadRx = pConfig->getRxPayloadTypeNumber();
         mCvoValue = pConfig->getCvoValue();
     }
+    else if (mMediaType == IMS_MEDIA_TEXT)
+    {
+        TextConfig* pConfig = reinterpret_cast<TextConfig*>(config);
+        mPeerAddress = RtpAddress(pConfig->getRemoteAddress().c_str(), pConfig->getRemotePort());
+        mSamplingRate = pConfig->getSamplingRateKHz();
+        mRtpPayloadTx = pConfig->getTxPayloadTypeNumber();
+        mRtpPayloadRx = pConfig->getRxPayloadTypeNumber();
+        mRedundantPayload = pConfig->getRedundantPayload();
+    }
 
     IMLOGD2("[SetConfig] peer Ip[%s], port[%d]", mPeerAddress.ipAddress, mPeerAddress.port);
 }
@@ -176,6 +191,16 @@ bool RtpDecoderNode::IsSameConfig(void* config)
                 mRtpPayloadRx == pConfig->getRxPayloadTypeNumber() &&
                 mCvoValue == pConfig->getCvoValue());
     }
+    else if (mMediaType == IMS_MEDIA_TEXT)
+    {
+        TextConfig* pConfig = reinterpret_cast<TextConfig*>(config);
+        return (mPeerAddress ==
+                        RtpAddress(pConfig->getRemoteAddress().c_str(), pConfig->getRemotePort()) &&
+                mSamplingRate == pConfig->getSamplingRateKHz() &&
+                mRtpPayloadTx == pConfig->getTxPayloadTypeNumber() &&
+                mRtpPayloadRx == pConfig->getRxPayloadTypeNumber() &&
+                mRedundantPayload == pConfig->getRedundantPayload());
+    }
 
     return false;
 }
@@ -206,7 +231,7 @@ void RtpDecoderNode::OnMediaDataInd(unsigned char* pData, uint32_t nDataSize, ui
     }
 
     // TODO : add checking incoming dtmf by the payload type number
-    (void)nPayloadType;
+    // (void)nPayloadType;
 
     if (bExtension == true)
     {
@@ -250,6 +275,31 @@ void RtpDecoderNode::OnMediaDataInd(unsigned char* pData, uint32_t nDataSize, ui
 
             IMLOGD4("[OnMediaDataInd] extensionId[%d], camId[%d], rot[%d], subtype[%d]",
                     nExtensionID, nCamID, nRotation, subtype);
+        }
+    }
+    else if (mMediaType == IMS_MEDIA_TEXT)
+    {
+        IMLOGD3("[OnMediaDataInd] nPayloadType[%d], mRtpPayloadTx[%d], mRedundantPayload[%d]",
+                nPayloadType, mRtpPayloadTx, mRedundantPayload);
+        if (nPayloadType == mRtpPayloadTx)
+        {
+            if (mRedundantPayload == 0)
+            {
+                subtype = MEDIASUBTYPE_BITSTREAM_T140;
+            }
+            else
+            {
+                subtype = MEDIASUBTYPE_BITSTREAM_T140_RED;
+            }
+        }
+        else if (nPayloadType == mRedundantPayload)
+        {
+            subtype = MEDIASUBTYPE_BITSTREAM_T140;
+        }
+        else
+        {
+            IMLOGD2("[OnMediaDataInd] MediaType[%d] INVALID payload[%d] is received", mMediaType,
+                    nPayloadType);
         }
     }
 

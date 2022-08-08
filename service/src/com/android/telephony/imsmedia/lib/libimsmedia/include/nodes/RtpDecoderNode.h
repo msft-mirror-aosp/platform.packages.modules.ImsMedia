@@ -59,6 +59,7 @@ private:
     uint32_t mReceivingSSRC;
     uint32_t mInactivityTime;
     uint32_t mNoRtpTime;
+    int8_t mRedundantPayload;
 };
 
 #endif

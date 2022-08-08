@@ -41,12 +41,14 @@ ImsMediaResult TextRtpPayloadDecoderNode::Start()
         return RESULT_INVALID_PARAM;
     }
 
+    mNodeState = kNodeStateRunning;
     return RESULT_SUCCESS;
 }
 
 void TextRtpPayloadDecoderNode::Stop()
 {
     IMLOGD0("[Stop]");
+    mNodeState = kNodeStateStopped;
 }
 
 bool TextRtpPayloadDecoderNode::IsRunTime()

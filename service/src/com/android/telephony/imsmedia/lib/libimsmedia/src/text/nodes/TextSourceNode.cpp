@@ -57,12 +57,14 @@ ImsMediaResult TextSourceNode::Start()
     mTimeLastSent = 0;
     mSentBOM = false;
 
+    mNodeState = kNodeStateRunning;
     return RESULT_SUCCESS;
 }
 
 void TextSourceNode::Stop()
 {
     IMLOGD0("[Stop]");
+    mNodeState = kNodeStateStopped;
 }
 
 bool TextSourceNode::IsRunTime()
@@ -130,24 +132,6 @@ void TextSourceNode::ProcessData()
 
     int32_t redCount = mRedCount;
 
-    for (int32_t i = 0; i < mListTextSource.size(); i++)
-    {
-        // get first node data
-        android::String8* str = mListTextSource.front();
-
-        mTimeLastSent = ImsMediaTimer::GetTimeInMilliSeconds();
-        SendDataToRearNode(MEDIASUBTYPE_BITSTREAM_T140, (uint8_t*)str->string(), str->length(),
-                mTimeLastSent, false, 0);
-
-        if (mRedCount == 0)
-        {
-            redCount = 1;
-        }
-
-        delete str;
-        mListTextSource.pop_front();
-    }
-
     if (mListTextSource.empty())
     {
         if (redCount > 0)
@@ -158,6 +142,27 @@ void TextSourceNode::ProcessData()
             SendDataToRearNode(MEDIASUBTYPE_BITSTREAM_T140, NULL, 0, mTimeLastSent, false, 0);
             redCount--;
         }
+        mTimeLastSent = ImsMediaTimer::GetTimeInMilliSeconds();
+        return;
+    }
+
+    for (int32_t i = 0; i < mListTextSource.size(); i++)
+    {
+        // get first node data
+        android::String8* str = mListTextSource.front();
+
+        mTimeLastSent = ImsMediaTimer::GetTimeInMilliSeconds();
+        IMLOGD1("[ProcessData] send[%s]", str->string());
+        SendDataToRearNode(MEDIASUBTYPE_BITSTREAM_T140, (uint8_t*)str->string(), str->length(),
+                mTimeLastSent, false, 0);
+
+        if (mRedCount == 0)
+        {
+            redCount = 1;
+        }
+
+        delete str;
+        mListTextSource.pop_front();
     }
 }
 

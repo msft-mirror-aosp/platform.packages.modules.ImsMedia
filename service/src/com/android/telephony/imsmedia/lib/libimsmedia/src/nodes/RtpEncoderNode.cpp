@@ -19,6 +19,7 @@
 #include <ImsMediaTrace.h>
 #include <ImsMediaVideoUtil.h>
 #include <AudioConfig.h>
+#include <TextConfig.h>
 #include <VideoConfig.h>
 #include <string.h>
 
@@ -42,6 +43,7 @@ RtpEncoderNode::RtpEncoderNode(BaseSessionCallback* callback) :
     mRtpSession = NULL;
     mDTMFMode = false;
     mAudioMark = false;
+    mTextMark = false;
     mPrevTimestamp = 0;
     mDTMFTimestamp = 0;
     mSamplingRate = 0;
@@ -50,6 +52,8 @@ RtpEncoderNode::RtpEncoderNode(BaseSessionCallback* callback) :
     mRtpDtmfPayload = 0;
     mDtmfSamplingRate = 0;
     mCvoValue = CVO_DEFINE_NONE;
+    mRedundantPayload = 0;
+    mRedundantLevel = 0;
 #ifdef DEBUG_JITTER_GEN_SIMULATION_DELAY
     mNextTime = 0;
 #endif
@@ -101,10 +105,15 @@ ImsMediaResult RtpEncoderNode::Start()
     {
         mRtpSession->SetRtpPayloadParam(mRtpPayloadTx, mRtpPayloadRx, mSamplingRate * 1000);
     }
+    else if (mMediaType == IMS_MEDIA_TEXT)
+    {
+        mRtpSession->SetRtpPayloadParam(mRtpPayloadTx, mRtpPayloadRx, mSamplingRate * 1000);
+    }
 
     mRtpSession->StartRtp();
     mDTMFMode = false;
     mAudioMark = true;
+    mTextMark = true;
     mPrevTimestamp = 0;
     mDTMFTimestamp = 0;
     // mRtpSession->EnableRtpMonitoring(true);
@@ -168,6 +177,10 @@ void RtpEncoderNode::ProcessData()
     {
         ProcessVideoData(eSubType, pData, nDataSize, nTimestamp, bMark);
     }
+    else if (mMediaType == IMS_MEDIA_TEXT)
+    {
+        ProcessTextData(eSubType, pData, nDataSize, nTimestamp, bMark);
+    }
 
     DeleteData();
 }
@@ -210,6 +223,16 @@ void RtpEncoderNode::SetConfig(void* config)
         mRtpPayloadRx = pConfig->getRxPayloadTypeNumber();
         mCvoValue = pConfig->getCvoValue();
     }
+    else if (mMediaType == IMS_MEDIA_TEXT)
+    {
+        TextConfig* pConfig = reinterpret_cast<TextConfig*>(config);
+        mPeerAddress = RtpAddress(pConfig->getRemoteAddress().c_str(), pConfig->getRemotePort());
+        mSamplingRate = pConfig->getSamplingRateKHz();
+        mRtpPayloadTx = pConfig->getTxPayloadTypeNumber();
+        mRtpPayloadRx = pConfig->getRxPayloadTypeNumber();
+        mRedundantPayload = pConfig->getRedundantPayload();
+        mRedundantLevel = pConfig->getRedundantLevel();
+    }
 
     IMLOGD2("[SetConfig] peer Ip[%s], port[%d]", mPeerAddress.ipAddress, mPeerAddress.port);
 }
@@ -241,6 +264,17 @@ bool RtpEncoderNode::IsSameConfig(void* config)
                 mRtpPayloadTx == pConfig->getTxPayloadTypeNumber() &&
                 mRtpPayloadRx == pConfig->getRxPayloadTypeNumber() &&
                 mCvoValue == pConfig->getCvoValue());
+    }
+    else if (mMediaType == IMS_MEDIA_TEXT)
+    {
+        TextConfig* pConfig = reinterpret_cast<TextConfig*>(config);
+        return (mPeerAddress ==
+                        RtpAddress(pConfig->getRemoteAddress().c_str(), pConfig->getRemotePort()) &&
+                mSamplingRate == pConfig->getSamplingRateKHz() &&
+                mRtpPayloadTx == pConfig->getTxPayloadTypeNumber() &&
+                mRtpPayloadRx == pConfig->getRxPayloadTypeNumber() &&
+                mRedundantPayload == pConfig->getRedundantPayload() &&
+                mRedundantLevel == pConfig->getRedundantLevel());
     }
 
     return false;
@@ -538,4 +572,47 @@ void RtpEncoderNode::ProcessVideoData(ImsMediaSubType eSubType, uint8_t* pData, 
         mRtpSession->SendRtpPacket(
                 mRtpPayloadTx, pData, nDataSize, nTimestamp, bMark, 0, false, NULL);
     }
+}
+
+void RtpEncoderNode::ProcessTextData(ImsMediaSubType eSubType, uint8_t* pData, uint32_t nDataSize,
+        uint32_t nTimestamp, bool bMark)
+{
+    IMLOGD_PACKET4(IM_PACKET_LOG_RTP,
+            "[ProcessData] eSubType[%d], nDataSize[%d], nTimestamp[%d], bMark[%d]", eSubType,
+            nDataSize, nTimestamp, bMark);
+
+    uint32_t nTimeDiff;
+    if (mTextMark == true)
+    {
+        nTimeDiff = 0;
+    }
+    else
+    {
+        nTimeDiff = nTimestamp - mPrevTimestamp;
+    }
+
+    if (eSubType == MEDIASUBTYPE_BITSTREAM_T140)
+    {
+        if (mRedundantLevel > 1 && mRedundantPayload > 0)
+        {
+            mRtpSession->SendRtpPacket(
+                    mRedundantPayload, pData, nDataSize, nTimestamp, bMark, nTimeDiff, 0, NULL);
+        }
+        else
+        {
+            mRtpSession->SendRtpPacket(
+                    mRtpPayloadRx, pData, nDataSize, nTimestamp, bMark, nTimeDiff, 0, NULL);
+        }
+    }
+    else if (eSubType == MEDIASUBTYPE_BITSTREAM_T140_RED)
+    {
+        mRtpSession->SendRtpPacket(
+                mRtpPayloadTx, pData, nDataSize, nTimestamp, bMark, nTimeDiff, 0, NULL);
+    }
+
+    if (mTextMark)
+    {
+        mTextMark = false;
+    }
+    mPrevTimestamp = nTimestamp;
 }
