@@ -19,8 +19,8 @@
 #include <ImsMediaTrace.h>
 #include <ImsMediaVideoUtil.h>
 #include <AudioConfig.h>
-#include <TextConfig.h>
 #include <VideoConfig.h>
+#include <TextConfig.h>
 #include <string.h>
 
 #ifdef DEBUG_JITTER_GEN_SIMULATION_DELAY
@@ -42,8 +42,7 @@ RtpEncoderNode::RtpEncoderNode(BaseSessionCallback* callback) :
 {
     mRtpSession = NULL;
     mDTMFMode = false;
-    mAudioMark = false;
-    mTextMark = false;
+    mMark = false;
     mPrevTimestamp = 0;
     mDTMFTimestamp = 0;
     mSamplingRate = 0;
@@ -52,8 +51,8 @@ RtpEncoderNode::RtpEncoderNode(BaseSessionCallback* callback) :
     mRtpDtmfPayload = 0;
     mDtmfSamplingRate = 0;
     mCvoValue = CVO_DEFINE_NONE;
-    mRedundantPayload = 0;
     mRedundantLevel = 0;
+    mRedundantPayload = 0;
 #ifdef DEBUG_JITTER_GEN_SIMULATION_DELAY
     mNextTime = 0;
 #endif
@@ -81,7 +80,7 @@ kBaseNodeId RtpEncoderNode::GetNodeId()
 
 ImsMediaResult RtpEncoderNode::Start()
 {
-    IMLOGD0("[Start]");
+    IMLOGD1("[Start] type[%d]", mMediaType);
 
     if (mRtpSession == NULL)
     {
@@ -107,16 +106,22 @@ ImsMediaResult RtpEncoderNode::Start()
     }
     else if (mMediaType == IMS_MEDIA_TEXT)
     {
-        mRtpSession->SetRtpPayloadParam(mRtpPayloadTx, mRtpPayloadRx, mSamplingRate * 1000);
+        if (mRedundantPayload > 0)
+        {
+            mRtpSession->SetRtpPayloadParam(mRtpPayloadTx, mRtpPayloadRx, mSamplingRate * 1000,
+                    mRedundantPayload, mSamplingRate * 1000);
+        }
+        else
+        {
+            mRtpSession->SetRtpPayloadParam(mRtpPayloadTx, mRtpPayloadRx, mSamplingRate * 1000);
+        }
     }
 
     mRtpSession->StartRtp();
     mDTMFMode = false;
-    mAudioMark = true;
-    mTextMark = true;
+    mMark = true;
     mPrevTimestamp = 0;
     mDTMFTimestamp = 0;
-    // mRtpSession->EnableRtpMonitoring(true);
 #ifdef DEBUG_JITTER_GEN_SIMULATION_DELAY
     mNextTime = 0;
 #endif
@@ -130,7 +135,7 @@ ImsMediaResult RtpEncoderNode::Start()
 
 void RtpEncoderNode::Stop()
 {
-    IMLOGD0("[Stop]");
+    IMLOGD1("[Stop] type[%d]", mMediaType);
 
     if (mRtpSession)
     {
@@ -142,14 +147,14 @@ void RtpEncoderNode::Stop()
 
 void RtpEncoderNode::ProcessData()
 {
-    ImsMediaSubType eSubType;
+    ImsMediaSubType subtype;
     uint8_t* pData = NULL;
     uint32_t nDataSize = 0;
     uint32_t nTimestamp = 0;
     bool bMark = false;
     uint32_t nSeqNum = 0;
 
-    if (GetData(&eSubType, &pData, &nDataSize, &nTimestamp, &bMark, &nSeqNum, NULL) == false)
+    if (GetData(&subtype, &pData, &nDataSize, &nTimestamp, &bMark, &nSeqNum, NULL) == false)
     {
         return;
     }
@@ -171,15 +176,15 @@ void RtpEncoderNode::ProcessData()
 #endif
     if (mMediaType == IMS_MEDIA_AUDIO)
     {
-        ProcessAudioData(eSubType, pData, nDataSize, nTimestamp);
+        ProcessAudioData(subtype, pData, nDataSize, nTimestamp);
     }
     else if (mMediaType == IMS_MEDIA_VIDEO)
     {
-        ProcessVideoData(eSubType, pData, nDataSize, nTimestamp, bMark);
+        ProcessVideoData(subtype, pData, nDataSize, nTimestamp, bMark);
     }
     else if (mMediaType == IMS_MEDIA_TEXT)
     {
-        ProcessTextData(eSubType, pData, nDataSize, nTimestamp, bMark);
+        ProcessTextData(subtype, pData, nDataSize, nTimestamp, bMark);
     }
 
     DeleteData();
@@ -462,30 +467,30 @@ void RtpEncoderNode::SetRtpHeaderExtension(tRtpHeaderExtensionInfo& tExtension)
 }
 
 void RtpEncoderNode::ProcessAudioData(
-        ImsMediaSubType eSubType, uint8_t* pData, uint32_t nDataSize, uint32_t nTimestamp)
+        ImsMediaSubType subtype, uint8_t* pData, uint32_t nDataSize, uint32_t nTimestamp)
 {
     uint32_t nCurrTimestamp;
     uint32_t nTimeDiff;
     uint32_t nTimeDiff_RTPTSUnit;
 
-    if (eSubType == MEDIASUBTYPE_DTMFSTART)
+    if (subtype == MEDIASUBTYPE_DTMFSTART)
     {
-        IMLOGD0("[ProcessData] SetDTMF mode true");
+        IMLOGD0("[ProcessAudioData] SetDTMF mode true");
         mDTMFMode = true;
-        mAudioMark = true;
+        mMark = true;
     }
-    else if (eSubType == MEDIASUBTYPE_DTMFEND)
+    else if (subtype == MEDIASUBTYPE_DTMFEND)
     {
-        IMLOGD0("[ProcessData] SetDTMF mode false");
+        IMLOGD0("[ProcessAudioData] SetDTMF mode false");
         mDTMFMode = false;
-        mAudioMark = true;
+        mMark = true;
     }
-    else if (eSubType == MEDIASUBTYPE_DTMF_PAYLOAD)
+    else if (subtype == MEDIASUBTYPE_DTMF_PAYLOAD)
     {
         if (mDTMFMode)
         {
-            IMLOGD_PACKET2(IM_PACKET_LOG_RTP, "[ProcessData] DTMF - size[%d], TS[%d]", nDataSize,
-                    mDTMFTimestamp);
+            IMLOGD_PACKET2(IM_PACKET_LOG_RTP, "[ProcessAudioData] DTMF - size[%d], TS[%d]",
+                    nDataSize, mDTMFTimestamp);
             // the first dtmf event
             if (nTimestamp == 0)
             {
@@ -504,11 +509,13 @@ void RtpEncoderNode::ProcessAudioData(
             }
 
             nTimeDiff_RTPTSUnit = nTimeDiff * mSamplingRate;
-            mRtpSession->SendRtpPacket(mRtpDtmfPayload, pData, nDataSize, mDTMFTimestamp,
-                    mAudioMark, nTimeDiff_RTPTSUnit);
+            mRtpSession->SendRtpPacket(
+                    mRtpDtmfPayload, pData, nDataSize, mDTMFTimestamp, mMark, nTimeDiff_RTPTSUnit);
 
-            if (mAudioMark)
-                mAudioMark = false;
+            if (mMark)
+            {
+                mMark = false;
+            }
         }
     }
     else
@@ -532,7 +539,7 @@ void RtpEncoderNode::ProcessAudioData(
                 }
                 else if (nTimeDiff == 0)
                 {
-                    IMLOGW2("[ProcessData] skip this turn orev[%u] curr[%u]", mPrevTimestamp,
+                    IMLOGW2("[ProcessAudioData] skip this turn orev[%u] curr[%u]", mPrevTimestamp,
                             nCurrTimestamp);
                     return;
                 }
@@ -543,26 +550,26 @@ void RtpEncoderNode::ProcessAudioData(
             }
 
             nTimeDiff_RTPTSUnit = nTimeDiff * mSamplingRate;
-            IMLOGD_PACKET3(IM_PACKET_LOG_RTP, "[ProcessData] PayloadTx[%d], Size[%d], TS[%d]",
+            IMLOGD_PACKET3(IM_PACKET_LOG_RTP, "[ProcessAudioData] PayloadTx[%d], Size[%d], TS[%d]",
                     mRtpPayloadTx, nDataSize, nCurrTimestamp);
-            mRtpSession->SendRtpPacket(mRtpPayloadTx, pData, nDataSize, nCurrTimestamp, mAudioMark,
-                    nTimeDiff_RTPTSUnit);
+            mRtpSession->SendRtpPacket(
+                    mRtpPayloadTx, pData, nDataSize, nCurrTimestamp, mMark, nTimeDiff_RTPTSUnit);
 
-            if (mAudioMark)
+            if (mMark)
             {
-                mAudioMark = false;
+                mMark = false;
             }
         }
     }
 }
 
-void RtpEncoderNode::ProcessVideoData(ImsMediaSubType eSubType, uint8_t* pData, uint32_t nDataSize,
+void RtpEncoderNode::ProcessVideoData(ImsMediaSubType subtype, uint8_t* pData, uint32_t nDataSize,
         uint32_t nTimestamp, bool bMark)
 {
-    IMLOGD_PACKET2(
-            IM_PACKET_LOG_RTP, "[ProcessData] nSize[%d], nTimestamp[%u]", nDataSize, nTimestamp);
+    IMLOGD_PACKET2(IM_PACKET_LOG_RTP, "[ProcessVideoData] nSize[%d], nTimestamp[%u]", nDataSize,
+            nTimestamp);
 
-    if (mCvoValue > 0 && bMark == true && eSubType == MEDIASUBTYPE_VIDEO_IDR_FRAME)
+    if (mCvoValue > 0 && bMark == true && subtype == MEDIASUBTYPE_VIDEO_IDR_FRAME)
     {
         mRtpSession->SendRtpPacket(
                 mRtpPayloadTx, pData, nDataSize, nTimestamp, bMark, 0, true, &mRtpExtension);
@@ -574,15 +581,16 @@ void RtpEncoderNode::ProcessVideoData(ImsMediaSubType eSubType, uint8_t* pData, 
     }
 }
 
-void RtpEncoderNode::ProcessTextData(ImsMediaSubType eSubType, uint8_t* pData, uint32_t nDataSize,
+void RtpEncoderNode::ProcessTextData(ImsMediaSubType subtype, uint8_t* pData, uint32_t nDataSize,
         uint32_t nTimestamp, bool bMark)
 {
     IMLOGD_PACKET4(IM_PACKET_LOG_RTP,
-            "[ProcessData] eSubType[%d], nDataSize[%d], nTimestamp[%d], bMark[%d]", eSubType,
+            "[ProcessTextData] subtype[%d], nDataSize[%d], nTimestamp[%d], bMark[%d]", subtype,
             nDataSize, nTimestamp, bMark);
 
     uint32_t nTimeDiff;
-    if (mTextMark == true)
+
+    if (mMark == true)
     {
         nTimeDiff = 0;
     }
@@ -591,7 +599,7 @@ void RtpEncoderNode::ProcessTextData(ImsMediaSubType eSubType, uint8_t* pData, u
         nTimeDiff = nTimestamp - mPrevTimestamp;
     }
 
-    if (eSubType == MEDIASUBTYPE_BITSTREAM_T140)
+    if (subtype == MEDIASUBTYPE_BITSTREAM_T140)
     {
         if (mRedundantLevel > 1 && mRedundantPayload > 0)
         {
@@ -604,15 +612,12 @@ void RtpEncoderNode::ProcessTextData(ImsMediaSubType eSubType, uint8_t* pData, u
                     mRtpPayloadRx, pData, nDataSize, nTimestamp, bMark, nTimeDiff, 0, NULL);
         }
     }
-    else if (eSubType == MEDIASUBTYPE_BITSTREAM_T140_RED)
+    else if (subtype == MEDIASUBTYPE_BITSTREAM_T140_RED)
     {
         mRtpSession->SendRtpPacket(
                 mRtpPayloadTx, pData, nDataSize, nTimestamp, bMark, nTimeDiff, 0, NULL);
     }
 
-    if (mTextMark)
-    {
-        mTextMark = false;
-    }
+    mMark = false;
     mPrevTimestamp = nTimestamp;
 }

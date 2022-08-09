@@ -42,12 +42,15 @@ private:
     void SendBOM();
 
     int32_t mCodecType;
-    int32_t mRedCount;
+    int32_t mRedundantLevel;
+    int32_t mRedundantCount;
     int32_t mTimeLastSent;
     int32_t mBitrate;
     bool mBomEnabled;
     bool mSentBOM;
-    std::list<android::String8*> mListTextSource;
+    std::list<uint32_t> mListTextSourceSize;
+    std::list<uint8_t*> mListTextSource;
+    uint8_t mTextToSend[MAX_RTT_LEN];
     std::mutex mMutex;
     int8_t mBuffer;
 };

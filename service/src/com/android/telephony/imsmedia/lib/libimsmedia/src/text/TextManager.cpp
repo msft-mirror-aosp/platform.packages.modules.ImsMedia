@@ -55,8 +55,7 @@ ImsMediaResult TextManager::openSession(
     IMLOGD1("[openSession] sessionId[%d]", sessionId);
 
     // set debug log
-    ImsMediaTrace::IMSetDebugLog(
-            ImsMediaTrace::IMGetDebugLog() | IM_PACKET_LOG_TEXT | IM_PACKET_LOG_RTPSTACK);
+    ImsMediaTrace::IMSetDebugLog(ImsMediaTrace::IMGetDebugLog() | IM_PACKET_LOG_TEXT);
 
     if (rtpFd == -1 || rtcpFd == -1)
     {
@@ -131,7 +130,7 @@ void TextManager::setMediaQualityThreshold(const int sessionId, MediaQualityThre
 ImsMediaResult TextManager::sendRtt(const int sessionId, const android::String8* text)
 {
     auto session = mSessions.find(sessionId);
-    IMLOGD1("setMediaQualityThreshold() - sessionId[%d]", sessionId);
+    IMLOGD1("sendRtt() - sessionId[%d]", sessionId);
 
     if (session != mSessions.end())
     {

@@ -276,7 +276,7 @@ uint32_t ImsMediaSocket::ReceiveFrom(uint8_t* pData, uint32_t nBufferSize)
         static char pSourceIP[MAX_IP_LEN];
         memset(pSourceIP, 0, sizeof(pSourceIP));
         // TODO : add filtering operation with peer ip address and port
-        IMLOGD_PACKET1(IM_PACKET_LOG_SOCKET, "[ReceiveFrom] str_len[%d]", nLen);
+        IMLOGD_PACKET2(IM_PACKET_LOG_SOCKET, "[ReceiveFrom] fd[%d], len[%d]", mSocketFd, nLen);
     }
     else if (EWOULDBLOCK == errno)
     {

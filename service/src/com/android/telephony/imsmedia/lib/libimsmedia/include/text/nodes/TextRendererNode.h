@@ -37,10 +37,11 @@ public:
     virtual void ProcessData();
 
 private:
+    char mBuffer[MAX_RTT_LEN];
     int32_t mCodecType;
     int32_t mRedundantRevel;
     bool mBOMReceived;
-    uint16_t mLastPlayedSeq;
+    int32_t mLastPlayedSeq;
     uint32_t mLossWaitTime;
 };
 

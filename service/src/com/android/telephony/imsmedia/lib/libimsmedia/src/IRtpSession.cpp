@@ -156,7 +156,7 @@ void IRtpSession::SetRtcpDecoderListener(IRtcpDecoderListener* pRtcpDecoderListe
 }
 
 void IRtpSession::SetRtpPayloadParam(int32_t payloadNumTx, int32_t payloadNumRx,
-        int32_t samplingRate, int32_t dtmfPayloadTypeNum, int32_t dtmfSamplingRate)
+        int32_t samplingRate, int32_t subPayloadTypeNum, int32_t subSamplingRate)
 {
     mNumPayloadParam = 0;
     std::memset(mPayloadParam, 0, sizeof(tRtpSvc_SetPayloadParam) * MAX_NUM_PAYLOAD_PARAM);
@@ -176,14 +176,14 @@ void IRtpSession::SetRtpPayloadParam(int32_t payloadNumTx, int32_t payloadNumRx,
         mNumPayloadParam++;
     }
 
-    if (mMediaType == IMS_MEDIA_AUDIO)
+    if (mMediaType == IMS_MEDIA_AUDIO || mMediaType == IMS_MEDIA_TEXT)
     {
         mEnableDTMF = false;
 
-        if (dtmfPayloadTypeNum != 0)
+        if (subPayloadTypeNum != 0)
         {
-            IMLOGD2("[SetRtpDtmfPayloadParam] payload[%d], samplingRate[%d]", dtmfPayloadTypeNum,
-                    dtmfSamplingRate);
+            IMLOGD2("[SetRtpPayloadParam] sub payload[%d], sub samplingRate[%d]", subPayloadTypeNum,
+                    subSamplingRate);
 
             if (mNumPayloadParam >= MAX_NUM_PAYLOAD_PARAM)
             {
@@ -191,10 +191,14 @@ void IRtpSession::SetRtpPayloadParam(int32_t payloadNumTx, int32_t payloadNumRx,
             }
             else
             {
-                mEnableDTMF = true;
+                if (mMediaType == IMS_MEDIA_AUDIO)
+                {
+                    mEnableDTMF = true;
+                }
+
                 mPayloadParam[mNumPayloadParam].frameInterval = 100;  // not used in stack
-                mPayloadParam[mNumPayloadParam].payloadType = dtmfPayloadTypeNum;
-                mPayloadParam[mNumPayloadParam].samplingRate = dtmfSamplingRate;
+                mPayloadParam[mNumPayloadParam].payloadType = subPayloadTypeNum;
+                mPayloadParam[mNumPayloadParam].samplingRate = subSamplingRate;
                 mNumPayloadParam++;
             }
         }

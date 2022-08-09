@@ -42,17 +42,16 @@ public:
 
 private:
     void ProcessAudioData(
-            ImsMediaSubType eSubType, uint8_t* pData, uint32_t nDataSize, uint32_t nTimestamp);
-    void ProcessTextData(ImsMediaSubType eSubType, uint8_t* pData, uint32_t nDataSize,
+            ImsMediaSubType subtype, uint8_t* pData, uint32_t nDataSize, uint32_t nTimestamp);
+    void ProcessVideoData(ImsMediaSubType subtype, uint8_t* pData, uint32_t nDataSize,
             uint32_t nTimestamp, bool bMark);
-    void ProcessVideoData(ImsMediaSubType eSubType, uint8_t* pData, uint32_t nDataSize,
+    void ProcessTextData(ImsMediaSubType subtype, uint8_t* pData, uint32_t nDataSize,
             uint32_t nTimestamp, bool bMark);
     IRtpSession* mRtpSession;
     RtpAddress mLocalAddress;
     RtpAddress mPeerAddress;
     bool mDTMFMode;
-    bool mAudioMark;
-    bool mTextMark;
+    bool mMark;
     uint32_t mPrevTimestamp;
     uint32_t mDTMFTimestamp;
     uint32_t mSamplingRate;
@@ -61,9 +60,9 @@ private:
     int32_t mRtpDtmfPayload;
     int32_t mDtmfSamplingRate;
     int32_t mCvoValue;
+    int32_t mRedundantPayload;
+    int32_t mRedundantLevel;
     tRtpHeaderExtensionInfo mRtpExtension;
-    int8_t mRedundantPayload;
-    int8_t mRedundantLevel;
 #ifdef DEBUG_JITTER_GEN_SIMULATION_DELAY
     uint32_t mNextTime;
 #endif

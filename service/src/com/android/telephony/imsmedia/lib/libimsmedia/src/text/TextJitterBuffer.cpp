@@ -19,8 +19,6 @@
 
 /** Maximum Jitter Buffer size to save in frame unit */
 #define TEXT_JITTER_MAX_SAVEPACKET_NUM 3
-/** Maximum Jitter Buffer size to save redundant packets*/
-#define TEXT_JITTER_MAX_WAITING_TIME   1000
 
 TextJitterBuffer::TextJitterBuffer() :
         BaseJitterBuffer()
@@ -30,7 +28,6 @@ TextJitterBuffer::TextJitterBuffer() :
     mLastPlayedTime = 0;
     mLastTimestamp = 0;
     mCurrPlayingTimestamp = 0;
-    mIsFirstPkt = false;
 }
 
 TextJitterBuffer::~TextJitterBuffer() {}
@@ -64,11 +61,7 @@ void TextJitterBuffer::Add(ImsMediaSubType subtype, uint8_t* buffer, uint32_t si
                 "[Add] Receive Old or already played data. Seq[%u], LastPlayedSeqNum[%u]", seqNum,
                 mLastPlayedSeqNum);
 
-        if (mIsFirstPkt == false)
-            return;
-
-        IMLOGD1("[Add] first packet received, Seq[%u]", seqNum);
-        mIsFirstPkt = false;
+        return;
     }
 
     if (mDataQueue.GetCount() == 0)  // jitter buffer is empty
@@ -117,7 +110,6 @@ void TextJitterBuffer::Add(ImsMediaSubType subtype, uint8_t* buffer, uint32_t si
 
     mDataCount++;
     mNewInputData = true;
-    mIsFirstPkt = false;
 }
 
 bool TextJitterBuffer::Get(ImsMediaSubType* subtype, uint8_t** data, uint32_t* dataSize,
@@ -171,4 +163,20 @@ bool TextJitterBuffer::Get(ImsMediaSubType* subtype, uint8_t** data, uint32_t* d
 
         return false;
     }
+}
+
+void TextJitterBuffer::Delete()
+{
+    DataEntry* pEntry;
+    std::lock_guard<std::mutex> guard(mMutex);
+    mDataQueue.Get(&pEntry);
+
+    if (pEntry == NULL)
+    {
+        return;
+    }
+
+    mLastPlayedSeqNum = pEntry->nSeqNum;
+    mLastPlayedTimestamp = pEntry->nTimestamp;
+    mDataQueue.Delete();
 }

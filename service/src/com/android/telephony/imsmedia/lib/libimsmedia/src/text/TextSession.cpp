@@ -90,12 +90,19 @@ SessionState TextSession::getState()
 ImsMediaResult TextSession::startGraph(RtpConfig* config)
 {
     IMLOGD0("[startGraph]");
+
     if (config == NULL)
     {
         return RESULT_INVALID_PARAM;
     }
 
     TextConfig* pConfig = reinterpret_cast<TextConfig*>(config);
+
+    if (std::strcmp(pConfig->getRemoteAddress().c_str(), "") == 0)
+    {
+        return RESULT_INVALID_PARAM;
+    }
+
     ImsMediaResult ret = RESULT_NOT_READY;
 
     if (mGraphRtpTx != NULL)
