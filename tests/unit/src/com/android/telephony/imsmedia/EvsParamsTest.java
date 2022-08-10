@@ -20,48 +20,45 @@ import static com.google.common.truth.Truth.assertThat;
 
 import android.os.Parcel;
 import android.telephony.imsmedia.EvsParams;
+
 import androidx.test.runner.AndroidJUnit4;
 
-import org.junit.runner.RunWith;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
 @RunWith(AndroidJUnit4.class)
 public class EvsParamsTest {
     private static final byte CHANNEL_AWARE_MODE = 7;
-    private static final boolean USE_HEADER_FULL_ONLY_TX = true;
-    private static final boolean USE_HEADER_FULL_ONLY_RX = false;
+    private static final boolean USE_HEADER_FULL_ONLY = true;
 
     private EvsParams createEvsParams(
             final int evsBandwidth,
             final int evsMode,
             final byte channelAwareMode,
-            final boolean useHeaderFullOnlyOnTx,
-            final boolean useHeaderFullOnlyOnRx) {
+            final boolean useHeaderFullOnly) {
         return new EvsParams.Builder()
                 .setEvsbandwidth(evsBandwidth)
                 .setEvsMode(evsMode)
                 .setChannelAwareMode(channelAwareMode)
-                .setHeaderFullOnlyOnTx(useHeaderFullOnlyOnTx)
-                .setHeaderFullOnlyOnRx(useHeaderFullOnlyOnRx)
+                .setHeaderFullOnly(useHeaderFullOnly)
                 .build();
     }
 
     @Test
     public void testConstructorAndGetters() {
         EvsParams evs = createEvsParams(EvsParams.EVS_WIDE_BAND, EvsParams.EVS_MODE_7,
-                CHANNEL_AWARE_MODE, USE_HEADER_FULL_ONLY_TX, USE_HEADER_FULL_ONLY_RX);
+                CHANNEL_AWARE_MODE, USE_HEADER_FULL_ONLY);
 
         assertThat(evs.getEvsBandwidth()).isEqualTo(EvsParams.EVS_WIDE_BAND);
         assertThat(evs.getEvsMode()).isEqualTo(EvsParams.EVS_MODE_7);
         assertThat(evs.getChannelAwareMode()).isEqualTo(CHANNEL_AWARE_MODE);
-        assertThat(evs.getUseHeaderFullOnlyOnTx()).isEqualTo(USE_HEADER_FULL_ONLY_TX);
-        assertThat(evs.getUseHeaderFullOnlyOnRx()).isEqualTo(USE_HEADER_FULL_ONLY_RX);
+        assertThat(evs.getUseHeaderFullOnly()).isEqualTo(USE_HEADER_FULL_ONLY);
     }
 
     @Test
     public void testParcel() {
         EvsParams evs = createEvsParams(EvsParams.EVS_WIDE_BAND, EvsParams.EVS_MODE_7,
-                CHANNEL_AWARE_MODE, USE_HEADER_FULL_ONLY_TX, USE_HEADER_FULL_ONLY_RX);
+                CHANNEL_AWARE_MODE, USE_HEADER_FULL_ONLY);
 
         Parcel parcel = Parcel.obtain();
         evs.writeToParcel(parcel, 0);
@@ -74,10 +71,10 @@ public class EvsParamsTest {
     @Test
     public void testEqual() {
         EvsParams evs1 = createEvsParams(EvsParams.EVS_WIDE_BAND, EvsParams.EVS_MODE_7,
-                CHANNEL_AWARE_MODE, USE_HEADER_FULL_ONLY_TX, USE_HEADER_FULL_ONLY_RX);
+                CHANNEL_AWARE_MODE, USE_HEADER_FULL_ONLY);
 
         EvsParams evs2 = createEvsParams(EvsParams.EVS_WIDE_BAND, EvsParams.EVS_MODE_7,
-                CHANNEL_AWARE_MODE, USE_HEADER_FULL_ONLY_TX, USE_HEADER_FULL_ONLY_RX);
+                CHANNEL_AWARE_MODE, USE_HEADER_FULL_ONLY);
 
         assertThat(evs1).isEqualTo(evs2);
     }
@@ -85,30 +82,25 @@ public class EvsParamsTest {
     @Test
     public void testNotEqual() {
         EvsParams evs1 = createEvsParams(EvsParams.EVS_WIDE_BAND, EvsParams.EVS_MODE_7,
-                CHANNEL_AWARE_MODE, USE_HEADER_FULL_ONLY_TX, USE_HEADER_FULL_ONLY_RX);
+                CHANNEL_AWARE_MODE, USE_HEADER_FULL_ONLY);
 
         EvsParams evs2 = createEvsParams(EvsParams.EVS_WIDE_BAND, EvsParams.EVS_MODE_6,
-                CHANNEL_AWARE_MODE, USE_HEADER_FULL_ONLY_TX, USE_HEADER_FULL_ONLY_RX);
+                CHANNEL_AWARE_MODE, USE_HEADER_FULL_ONLY);
 
         assertThat(evs1).isNotEqualTo(evs2);
 
         EvsParams evs3 = createEvsParams(EvsParams.EVS_WIDE_BAND, EvsParams.EVS_MODE_7,
-                (byte)8, USE_HEADER_FULL_ONLY_TX, USE_HEADER_FULL_ONLY_RX);
+                (byte) 8, USE_HEADER_FULL_ONLY);
 
         assertThat(evs1).isNotEqualTo(evs3);
 
         EvsParams evs4 = createEvsParams(EvsParams.EVS_WIDE_BAND, EvsParams.EVS_MODE_7,
-                CHANNEL_AWARE_MODE, false, USE_HEADER_FULL_ONLY_RX);
+                CHANNEL_AWARE_MODE, false);
 
         assertThat(evs1).isNotEqualTo(evs4);
 
-        EvsParams evs5 = createEvsParams(EvsParams.EVS_WIDE_BAND, EvsParams.EVS_MODE_7,
-                CHANNEL_AWARE_MODE, USE_HEADER_FULL_ONLY_TX, true);
-
-        assertThat(evs1).isNotEqualTo(evs5);
-
         EvsParams evs6 = createEvsParams(EvsParams.EVS_SUPER_WIDE_BAND, EvsParams.EVS_MODE_7,
-                CHANNEL_AWARE_MODE, USE_HEADER_FULL_ONLY_TX, USE_HEADER_FULL_ONLY_RX);
+                CHANNEL_AWARE_MODE, USE_HEADER_FULL_ONLY);
 
         assertThat(evs1).isNotEqualTo(evs6);
     }

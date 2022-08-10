@@ -1267,8 +1267,7 @@ public class MainActivity extends AppCompatActivity {
                 .setEvsbandwidth(evsBand)
                 .setEvsMode(evsMode)
                 .setChannelAwareMode((byte) 3)
-                .setHeaderFullOnlyOnTx(true)
-                .setHeaderFullOnlyOnRx(true)
+                .setHeaderFullOnly(true)
                 .build();
     }
 
@@ -1361,8 +1360,7 @@ public class MainActivity extends AppCompatActivity {
                 .setEvsbandwidth(EvsParams.EVS_BAND_NONE)
                 .setEvsMode(EvsParams.EVS_MODE_0)
                 .setChannelAwareMode((byte) 3)
-                .setHeaderFullOnlyOnTx(true)
-                .setHeaderFullOnlyOnRx(true)
+                .setHeaderFullOnly(true)
                 .build();
 
         switch (audioCodec) {
@@ -1672,8 +1670,7 @@ public class MainActivity extends AppCompatActivity {
                 .setEvsbandwidth(EvsParams.EVS_BAND_NONE)
                 .setEvsMode(EvsParams.EVS_MODE_0)
                 .setChannelAwareMode((byte) 3)
-                .setHeaderFullOnlyOnTx(true)
-                .setHeaderFullOnlyOnRx(true)
+                .setHeaderFullOnly(true)
                 .build();
 
                 amrParams = createAmrParams(mBottomSheetAudioCodecSettings.getAmrMode(), true, 0);

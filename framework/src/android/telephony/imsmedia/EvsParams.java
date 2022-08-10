@@ -17,11 +17,11 @@
 package android.telephony.imsmedia;
 
 import android.annotation.IntDef;
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import android.os.Parcel;
 import android.os.Parcelable;
-import android.os.ParcelFileDescriptor;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -130,27 +130,22 @@ public final class EvsParams implements Parcelable {
     private final @EvsBandwidth int evsBandwidth;
     private final @EvsMode int evsMode;
     private final byte channelAwareMode;
-    private final boolean useHeaderFullOnlyOnTx;
-    private final boolean useHeaderFullOnlyOnRx;
-
+    private final boolean mUseHeaderFullOnly;
 
     /** @hide **/
     public EvsParams(Parcel in) {
         evsBandwidth = in.readInt();
         evsMode = in.readInt();
         channelAwareMode = in.readByte();
-        useHeaderFullOnlyOnTx = in.readBoolean();
-        useHeaderFullOnlyOnRx = in.readBoolean();
+        mUseHeaderFullOnly = in.readBoolean();
     }
 
     private EvsParams(final @EvsBandwidth int evsBandwidth, final @EvsMode int evsMode,
-            final byte channelAwareMode, final boolean useHeaderFullOnlyOnTx,
-            final boolean useHeaderFullOnlyOnRx) {
+            final byte channelAwareMode, final boolean mUseHeaderFullOnly) {
         this.evsBandwidth = evsBandwidth;
         this.evsMode = evsMode;
         this.channelAwareMode = channelAwareMode;
-        this.useHeaderFullOnlyOnTx = useHeaderFullOnlyOnTx;
-        this.useHeaderFullOnlyOnRx = useHeaderFullOnlyOnRx;
+        this.mUseHeaderFullOnly = mUseHeaderFullOnly;
     }
 
     /** @hide **/
@@ -169,13 +164,8 @@ public final class EvsParams implements Parcelable {
     }
 
     /** @hide **/
-    public boolean getUseHeaderFullOnlyOnTx() {
-        return useHeaderFullOnlyOnTx;
-    }
-
-    /** @hide **/
-    public boolean getUseHeaderFullOnlyOnRx() {
-        return useHeaderFullOnlyOnRx;
+    public boolean getUseHeaderFullOnly() {
+        return mUseHeaderFullOnly;
     }
 
     @NonNull
@@ -184,15 +174,13 @@ public final class EvsParams implements Parcelable {
         return "EvsParams: {evsBandwidth=" + evsBandwidth
                 + ", evsMode=" + evsMode
                 + ", channelAwareMode=" + channelAwareMode
-                + ", useHeaderFullOnlyOnTx=" + useHeaderFullOnlyOnTx
-                + ", useHeaderFullOnlyOnRx=" + useHeaderFullOnlyOnRx
+                + ", mUseHeaderFullOnly=" + mUseHeaderFullOnly
                 + " }";
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(evsBandwidth, evsMode, channelAwareMode,
-                useHeaderFullOnlyOnTx, useHeaderFullOnlyOnRx);
+        return Objects.hash(evsBandwidth, evsMode, channelAwareMode, mUseHeaderFullOnly);
     }
 
     @Override
@@ -210,8 +198,7 @@ public final class EvsParams implements Parcelable {
         return (evsBandwidth == s.evsBandwidth
                 && evsMode == s.evsMode
                 && channelAwareMode == s.channelAwareMode
-                && useHeaderFullOnlyOnTx == s.useHeaderFullOnlyOnTx
-                && useHeaderFullOnlyOnRx == s.useHeaderFullOnlyOnRx);
+                && mUseHeaderFullOnly == s.mUseHeaderFullOnly);
     }
 
     /**
@@ -228,8 +215,7 @@ public final class EvsParams implements Parcelable {
         dest.writeInt(evsBandwidth);
         dest.writeInt(evsMode);
         dest.writeByte(channelAwareMode);
-        dest.writeBoolean(useHeaderFullOnlyOnTx);
-        dest.writeBoolean(useHeaderFullOnlyOnRx);
+        dest.writeBoolean(mUseHeaderFullOnly);
     }
 
     public static final @NonNull Parcelable.Creator<EvsParams>
@@ -252,8 +238,7 @@ public final class EvsParams implements Parcelable {
         private @EvsBandwidth int evsBandwidth;
         private @EvsMode int evsMode;
         private byte channelAwareMode;
-        private boolean useHeaderFullOnlyOnTx;
-        private boolean useHeaderFullOnlyOnRx;
+        private boolean mUseHeaderFullOnly;
 
         /**
          * Default constructor for Builder.
@@ -305,30 +290,15 @@ public final class EvsParams implements Parcelable {
         /**
          * Set header full only mode the outgoing packets
          *
-         * hf-only: Header full only is used for the outgoing packets. If it's true
+         * hf-only: Header full only is used for the outgoing/incoming packets. If it's true
          * then the session shall support header full format only else the session
          * could support both header full format and compact format.
          *
-         * @param useHeaderFullOnlyOnTx {@code true} if header full only needs to enabled
+         * @param mUseHeaderFullOnly {@code true} if header full only needs to enabled
          * @return The same instance of the builder.
          */
-        public @NonNull Builder setHeaderFullOnlyOnTx(final boolean useHeaderFullOnlyOnTx) {
-            this.useHeaderFullOnlyOnTx = useHeaderFullOnlyOnTx;
-            return this;
-        }
-
-        /**
-         * Set the header full only for the incoming packets
-         *
-         * hf-only: Header full only used on the incoming packets. If it's true then the
-         * session shall support header full format only else the session could support
-         * both header full format and compact format.
-         *
-         * @param useHeaderFullOnlyOnRx {@code true} if header full only needs to enabled
-         * @return The same instance of the builder.
-         */
-        public @NonNull Builder setHeaderFullOnlyOnRx(final boolean useHeaderFullOnlyOnRx) {
-            this.useHeaderFullOnlyOnRx = useHeaderFullOnlyOnRx;
+        public @NonNull Builder setHeaderFullOnly(final boolean mUseHeaderFullOnly) {
+            this.mUseHeaderFullOnly = mUseHeaderFullOnly;
             return this;
         }
 
@@ -339,8 +309,7 @@ public final class EvsParams implements Parcelable {
          */
         public @NonNull EvsParams build() {
             // TODO validation
-            return new EvsParams(evsBandwidth, evsMode, channelAwareMode,
-                    useHeaderFullOnlyOnTx, useHeaderFullOnlyOnRx);
+            return new EvsParams(evsBandwidth, evsMode, channelAwareMode, mUseHeaderFullOnly);
         }
     }
 }

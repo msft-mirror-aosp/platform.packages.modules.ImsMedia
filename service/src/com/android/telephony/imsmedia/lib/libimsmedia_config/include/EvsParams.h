@@ -108,10 +108,8 @@ public:
     int32_t getEvsMode();
     void setChannelAwareMode(int8_t mode);
     int8_t getChannelAwareMode();
-    void setUseHeaderFullOnlyOnTx(const bool enable);
-    bool getUseHeaderFullOnlyOnTx();
-    void setUseHeaderFullOnlyOnRx(const bool enable);
-    bool getUseHeaderFullOnlyOnRx();
+    void setUseHeaderFullOnly(const bool enable);
+    bool getUseHeaderFullOnly();
 
 private:
     /** bw: EVS codec bandwidth range */
@@ -129,17 +127,11 @@ private:
      */
     int8_t channelAwareMode;
     /**
-     * hf-only: Header full only is used for the outgoing packets. If it's true then
+     * hf-only: Header full only is used for the outgoing/incoming packets. If it's true then
      * the session shall support header full format only else the session could
      * support both header full format and compact format.
      */
-    bool useHeaderFullOnlyOnTx;
-    /**
-     * hf-only: Header full only used on the incoming packets. If it's true then the
-     * session shall support header full format only else the session could support
-     * both header full format and compact format.
-     */
-    bool useHeaderFullOnlyOnRx;
+    bool useHeaderFullOnly;
 };
 
 }  // namespace imsmedia

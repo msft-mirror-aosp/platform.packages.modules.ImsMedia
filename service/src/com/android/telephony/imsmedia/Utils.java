@@ -141,10 +141,8 @@ public final class Utils {
         evsParams.bandwidth = audioConfig.getEvsParams().getEvsBandwidth();
         evsParams.evsMode = audioConfig.getEvsParams().getEvsMode();
         evsParams.channelAwareMode = audioConfig.getEvsParams().getChannelAwareMode();
-        evsParams.useHeaderFullOnlyOnTx =
-                audioConfig.getEvsParams().getUseHeaderFullOnlyOnTx();
-        evsParams.useHeaderFullOnlyOnRx =
-                audioConfig.getEvsParams().getUseHeaderFullOnlyOnRx();
+        evsParams.useHeaderFullOnly =
+                audioConfig.getEvsParams().getUseHeaderFullOnly();
 
         return evsParams;
     }
@@ -251,8 +249,7 @@ public final class Utils {
                 .setEvsbandwidth(evs.bandwidth)
                 .setEvsMode(evs.evsMode)
                 .setChannelAwareMode(evs.channelAwareMode)
-                .setHeaderFullOnlyOnTx(evs.useHeaderFullOnlyOnTx)
-                .setHeaderFullOnlyOnRx(evs.useHeaderFullOnlyOnRx)
+                .setHeaderFullOnly(evs.useHeaderFullOnly)
                 .build();
         }
 
