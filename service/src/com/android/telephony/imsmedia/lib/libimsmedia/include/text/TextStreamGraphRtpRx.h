@@ -28,7 +28,7 @@ public:
     virtual ImsMediaResult create(RtpConfig* config);
     virtual ImsMediaResult update(RtpConfig* config);
     virtual ImsMediaResult start();
-    virtual void setMediaQualityThreshold(MediaQualityThreshold* threshold);
+    virtual bool setMediaQualityThreshold(MediaQualityThreshold* threshold);
 };
 
 #endif

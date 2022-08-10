@@ -38,6 +38,7 @@ protected:
     virtual ImsMediaResult startNodes();
     virtual ImsMediaResult stopNodes();
     virtual void deleteNodes();
+    virtual BaseNode* findNode(kBaseNodeId id);
 
 public:
     /**
@@ -105,7 +106,7 @@ public:
      *
      * @param threshold threshold parameter to set.
      */
-    virtual void setMediaQualityThreshold(MediaQualityThreshold* threshold);
+    virtual bool setMediaQualityThreshold(MediaQualityThreshold* threshold);
 
     /**
      * @brief Handles event from the session or trigger by the other nodes

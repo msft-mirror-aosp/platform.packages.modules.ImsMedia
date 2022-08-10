@@ -18,6 +18,7 @@
 #include <ImsMediaNetworkUtil.h>
 #include <media/NdkImageReader.h>
 #include <VideoConfig.h>
+#include <MediaQualityThreshold.h>
 #include <VideoStreamGraphRtpRx.h>
 
 using namespace android::telephony::imsmedia;
@@ -65,6 +66,7 @@ public:
     RtcpConfig rtcp;
     AImageReader* displayReader;
     ANativeWindow* displaySurface;
+    MediaQualityThreshold threshold;
     int socketRtpFd;
 
     VideoStreamGraphRtpRxTest() {}
@@ -77,6 +79,7 @@ protected:
         rtcp.setTransmitPort(kTransmitPort);
         rtcp.setIntervalSec(kIntervalSec);
         rtcp.setRtcpXrBlockTypes(kRtcpXrBlockTypes);
+        threshold.setRtpInactivityTimerMillis(10000);
         config.setMediaDirection(kMediaDirection);
         config.setRemoteAddress(kRemoteAddress);
         config.setRemotePort(kRemotePort);
@@ -141,9 +144,15 @@ TEST_F(VideoStreamGraphRtpRxTest, TestGraphError)
     EXPECT_EQ(graph->getState(), kStreamStateIdle);
 }
 
+TEST_F(VideoStreamGraphRtpRxTest, TestGraphSetMediaThresholdFail)
+{
+    EXPECT_EQ(graph->setMediaQualityThreshold(&threshold), false);
+}
+
 TEST_F(VideoStreamGraphRtpRxTest, TestRtpRxStreamDirectionUpdate)
 {
     EXPECT_EQ(graph->create(&config), RESULT_SUCCESS);
+    EXPECT_EQ(graph->setMediaQualityThreshold(&threshold), true);
     EXPECT_EQ(graph->start(), RESULT_SUCCESS);
     EXPECT_EQ(graph->getState(), kStreamStateWaitSurface);
 

@@ -190,36 +190,19 @@ ImsMediaResult TextStreamGraphRtpRx::start()
     return RESULT_SUCCESS;
 }
 
-void TextStreamGraphRtpRx::setMediaQualityThreshold(MediaQualityThreshold* threshold)
+bool TextStreamGraphRtpRx::setMediaQualityThreshold(MediaQualityThreshold* threshold)
 {
-    if (threshold == NULL)
+    if (threshold != NULL)
     {
-        return;
-    }
+        BaseNode* node = findNode(kNodeIdRtpDecoder);
 
-    bool found = false;
-
-    for (auto& node : mListNodeToStart)
-    {
-        if (node != NULL && node->GetNodeId() == kNodeIdRtpDecoder)
+        if (node != NULL)
         {
-            RtpDecoderNode* pNode = reinterpret_cast<RtpDecoderNode*>(node);
-            pNode->SetInactivityTimerSec(threshold->getRtpInactivityTimerMillis() / 1000);
-            found = true;
-            break;
+            RtpDecoderNode* decoder = reinterpret_cast<RtpDecoderNode*>(node);
+            decoder->SetInactivityTimerSec(threshold->getRtpInactivityTimerMillis() / 1000);
+            return true;
         }
     }
 
-    if (found == false)
-    {
-        for (auto& node : mListNodeStarted)
-        {
-            if (node != NULL && node->GetNodeId() == kNodeIdRtpDecoder)
-            {
-                RtpDecoderNode* pNode = reinterpret_cast<RtpDecoderNode*>(node);
-                pNode->SetInactivityTimerSec(threshold->getRtpInactivityTimerMillis() / 1000);
-                break;
-            }
-        }
-    }
+    return false;
 }

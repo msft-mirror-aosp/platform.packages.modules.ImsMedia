@@ -27,7 +27,7 @@ public:
     virtual ~TextStreamGraphRtcp();
     virtual ImsMediaResult create(RtpConfig* config);
     virtual ImsMediaResult update(RtpConfig* config);
-    virtual void setMediaQualityThreshold(MediaQualityThreshold* threshold);
+    virtual bool setMediaQualityThreshold(MediaQualityThreshold* threshold);
 };
 
 #endif

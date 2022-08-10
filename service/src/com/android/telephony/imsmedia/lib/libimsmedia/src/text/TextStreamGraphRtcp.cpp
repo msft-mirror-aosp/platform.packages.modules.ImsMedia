@@ -145,36 +145,19 @@ ImsMediaResult TextStreamGraphRtcp::update(RtpConfig* config)
     return ret;
 }
 
-void TextStreamGraphRtcp::setMediaQualityThreshold(MediaQualityThreshold* threshold)
+bool TextStreamGraphRtcp::setMediaQualityThreshold(MediaQualityThreshold* threshold)
 {
-    if (threshold == NULL)
+    if (threshold != NULL)
     {
-        return;
-    }
+        BaseNode* node = findNode(kNodeIdRtcpDecoder);
 
-    bool found = false;
-
-    for (auto& node : mListNodeToStart)
-    {
-        if (node != NULL && node->GetNodeId() == kNodeIdRtcpDecoder)
+        if (node != NULL)
         {
-            RtcpDecoderNode* pNode = reinterpret_cast<RtcpDecoderNode*>(node);
-            pNode->SetInactivityTimerSec(threshold->getRtcpInactivityTimerMillis() / 1000);
-            found = true;
-            break;
+            RtcpDecoderNode* decoder = reinterpret_cast<RtcpDecoderNode*>(node);
+            decoder->SetInactivityTimerSec(threshold->getRtcpInactivityTimerMillis() / 1000);
+            return true;
         }
     }
 
-    if (found == false)
-    {
-        for (auto& node : mListNodeStarted)
-        {
-            if (node != NULL && node->GetNodeId() == kNodeIdRtcpDecoder)
-            {
-                RtcpDecoderNode* pNode = reinterpret_cast<RtcpDecoderNode*>(node);
-                pNode->SetInactivityTimerSec(threshold->getRtcpInactivityTimerMillis() / 1000);
-                break;
-            }
-        }
-    }
+    return false;
 }

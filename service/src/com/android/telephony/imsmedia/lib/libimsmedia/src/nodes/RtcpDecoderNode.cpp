@@ -166,7 +166,7 @@ void RtcpDecoderNode::SetPeerAddress(const RtpAddress address)
 
 void RtcpDecoderNode::SetInactivityTimerSec(const uint32_t time)
 {
-    IMLOGD1("[SetInactivityTimerSec] time[%d] reset", time);
+    IMLOGD2("[SetInactivityTimerSec] media[%d], time[%d] reset", mMediaType, time);
     mInactivityTime = time;
     mNoRtcpTime = 0;
 }

@@ -17,6 +17,7 @@
 #include <gtest/gtest.h>
 #include <ImsMediaNetworkUtil.h>
 #include <AudioConfig.h>
+#include <MediaQualityThreshold.h>
 #include <AudioStreamGraphRtpRx.h>
 
 using namespace android::telephony::imsmedia;
@@ -65,6 +66,7 @@ public:
     RtcpConfig rtcp;
     AmrParams amr;
     EvsParams evs;
+    MediaQualityThreshold threshold;
     int socketRtpFd;
 
     AudioStreamGraphRtpRxTest() {}
@@ -86,6 +88,8 @@ protected:
         evs.setEvsMode(kEvsMode);
         evs.setChannelAwareMode(kChannelAwareMode);
         evs.setUseHeaderFullOnly(kUseHeaderFullOnly);
+
+        threshold.setRtpInactivityTimerMillis(10000);
 
         config.setMediaDirection(kMediaDirection);
         config.setRemoteAddress(kRemoteAddress);
@@ -133,9 +137,15 @@ TEST_F(AudioStreamGraphRtpRxTest, TestGraphError)
     EXPECT_EQ(graph->getState(), kStreamStateIdle);
 }
 
+TEST_F(AudioStreamGraphRtpRxTest, TestGraphSetMediaThresholdFail)
+{
+    EXPECT_EQ(graph->setMediaQualityThreshold(&threshold), false);
+}
+
 TEST_F(AudioStreamGraphRtpRxTest, TestRtpRxStreamDirectionUpdate)
 {
     EXPECT_EQ(graph->create(&config), RESULT_SUCCESS);
+    EXPECT_EQ(graph->setMediaQualityThreshold(&threshold), true);
     EXPECT_EQ(graph->start(), RESULT_SUCCESS);
     EXPECT_EQ(graph->getState(), kStreamStateRunning);
 

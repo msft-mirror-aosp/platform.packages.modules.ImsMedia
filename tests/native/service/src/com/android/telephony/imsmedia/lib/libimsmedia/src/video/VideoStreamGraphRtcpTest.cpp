@@ -17,6 +17,7 @@
 #include <gtest/gtest.h>
 #include <ImsMediaNetworkUtil.h>
 #include <VideoConfig.h>
+#include <MediaQualityThreshold.h>
 #include <VideoStreamGraphRtcp.h>
 
 using namespace android::telephony::imsmedia;
@@ -66,6 +67,7 @@ protected:
     VideoStreamGraphRtcp* graph;
     VideoConfig config;
     RtcpConfig rtcp;
+    MediaQualityThreshold threshold;
     int socketRtcpFd;
 
     virtual void SetUp() override
@@ -74,6 +76,7 @@ protected:
         rtcp.setTransmitPort(kTransmitPort);
         rtcp.setIntervalSec(kIntervalSec);
         rtcp.setRtcpXrBlockTypes(kRtcpXrBlockTypes);
+        threshold.setRtcpInactivityTimerMillis(10000);
         config.setMediaDirection(kMediaDirection);
         config.setRemoteAddress(kRemoteAddress);
         config.setRemotePort(kRemotePort);
@@ -128,9 +131,15 @@ TEST_F(VideoStreamGraphRtcpTest, TestGraphError)
     EXPECT_EQ(graph->getState(), kStreamStateIdle);
 }
 
+TEST_F(VideoStreamGraphRtcpTest, TestGraphSetMediaThresholdFail)
+{
+    EXPECT_EQ(graph->setMediaQualityThreshold(&threshold), false);
+}
+
 TEST_F(VideoStreamGraphRtcpTest, TestRtcpStreamAndUpdate)
 {
     EXPECT_EQ(graph->create(&config), RESULT_SUCCESS);
+    EXPECT_EQ(graph->setMediaQualityThreshold(&threshold), true);
     EXPECT_EQ(graph->start(), RESULT_SUCCESS);
     EXPECT_EQ(graph->getState(), kStreamStateRunning);
 

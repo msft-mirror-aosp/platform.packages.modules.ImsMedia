@@ -252,43 +252,23 @@ void VideoStreamGraphRtpTx::setSurface(ANativeWindow* surface)
 {
     IMLOGD0("[setSurface]");
 
-    if (surface == NULL)
+    if (surface != NULL)
     {
-        return;
-    }
+        mSurface = surface;
 
-    mSurface = surface;
-    bool found = false;
+        BaseNode* node = findNode(kNodeIdVideoSource);
 
-    for (auto& node : mListNodeToStart)
-    {
-        if (node != NULL && node->GetNodeId() == kNodeIdVideoSource)
+        if (node != NULL)
         {
-            IVideoSourceNode* pNode = reinterpret_cast<IVideoSourceNode*>(node);
-            pNode->UpdateSurface(surface);
-            found = true;
-            break;
-        }
-    }
+            IVideoSourceNode* source = reinterpret_cast<IVideoSourceNode*>(node);
+            source->UpdateSurface(surface);
 
-    if (found == false)
-    {
-        for (auto& node : mListNodeStarted)
-        {
-            if (node != NULL && node->GetNodeId() == kNodeIdVideoSource)
+            if (getState() == StreamState::kStreamStateWaitSurface)
             {
-                IVideoSourceNode* pNode = reinterpret_cast<IVideoSourceNode*>(node);
-                pNode->UpdateSurface(surface);
-                found = true;
-                break;
+                setState(StreamState::kStreamStateCreated);
+                start();
             }
         }
-    }
-
-    if (getState() == StreamState::kStreamStateWaitSurface)
-    {
-        setState(StreamState::kStreamStateCreated);
-        start();
     }
 }
 
@@ -321,35 +301,20 @@ bool VideoStreamGraphRtpTx::OnEvent(int32_t type, uint64_t param1, uint64_t para
 {
     IMLOGD3("[OnEvent] type[%d], param1[%d], param2[%d]", type, param1, param2);
 
-    bool found = false;
     switch (type)
     {
         case kRequestVideoCvoUpdate:
-            for (auto& node : mListNodeToStart)
-            {
-                if (node != NULL && node->GetNodeId() == kNodeIdRtpEncoder)
-                {
-                    RtpEncoderNode* pNode = reinterpret_cast<RtpEncoderNode*>(node);
-                    pNode->SetCvoExtension(param1, param2);
-                    found = true;
-                    break;
-                }
-            }
+        {
+            BaseNode* node = findNode(kNodeIdRtpEncoder);
 
-            if (found == false)
+            if (node != NULL)
             {
-                for (auto& node : mListNodeStarted)
-                {
-                    if (node != NULL && node->GetNodeId() == kNodeIdRtpEncoder)
-                    {
-                        RtpEncoderNode* pNode = reinterpret_cast<RtpEncoderNode*>(node);
-                        pNode->SetCvoExtension(param1, param2);
-                        found = true;
-                        break;
-                    }
-                }
+                RtpEncoderNode* pNode = reinterpret_cast<RtpEncoderNode*>(node);
+                pNode->SetCvoExtension(param1, param2);
+                return true;
             }
-            return found;
+        }
+        break;
         case kRequestVideoBitrateChange:
             break;
         case kRequestVideoIdrFrame:

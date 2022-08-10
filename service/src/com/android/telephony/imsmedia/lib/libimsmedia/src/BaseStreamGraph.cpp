@@ -220,11 +220,32 @@ void BaseStreamGraph::deleteNodes()
     setState(kStreamStateIdle);
 }
 
-void BaseStreamGraph::setMediaQualityThreshold(MediaQualityThreshold* threshold)
+BaseNode* BaseStreamGraph::findNode(kBaseNodeId id)
+{
+    for (auto& node : mListNodeToStart)
+    {
+        if (node != NULL && node->GetNodeId() == id)
+        {
+            return node;
+        }
+    }
+
+    for (auto& node : mListNodeStarted)
+    {
+        if (node != NULL && node->GetNodeId() == id)
+        {
+            return node;
+        }
+    }
+
+    return NULL;
+}
+
+bool BaseStreamGraph::setMediaQualityThreshold(MediaQualityThreshold* threshold)
 {
     (void)threshold;
     IMLOGW0("[setMediaQualityThreshold] base");
-    // base implementation
+    return false;
 }
 
 bool BaseStreamGraph::OnEvent(int32_t type, uint64_t param1, uint64_t param2)

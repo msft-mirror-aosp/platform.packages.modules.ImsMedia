@@ -114,6 +114,7 @@ ImsMediaResult VideoStreamGraphRtpRx::update(RtpConfig* config)
         IMLOGD0("[update] pause RX");
         return stop();
     }
+
     ImsMediaResult ret = RESULT_NOT_READY;
 
     if (mGraphState == kStreamStateRunning)
@@ -203,78 +204,43 @@ ImsMediaResult VideoStreamGraphRtpRx::start()
     return RESULT_SUCCESS;
 }
 
-void VideoStreamGraphRtpRx::setMediaQualityThreshold(MediaQualityThreshold* threshold)
+bool VideoStreamGraphRtpRx::setMediaQualityThreshold(MediaQualityThreshold* threshold)
 {
-    if (threshold == NULL)
+    if (threshold != NULL)
     {
-        return;
-    }
+        BaseNode* node = findNode(kNodeIdRtpDecoder);
 
-    bool found = false;
-    for (auto& node : mListNodeToStart)
-    {
-        if (node != NULL && node->GetNodeId() == kNodeIdRtpDecoder)
+        if (node != NULL)
         {
-            RtpDecoderNode* pNode = reinterpret_cast<RtpDecoderNode*>(node);
-            pNode->SetInactivityTimerSec(threshold->getRtpInactivityTimerMillis() / 1000);
-            found = true;
-            break;
+            RtpDecoderNode* decoder = reinterpret_cast<RtpDecoderNode*>(node);
+            decoder->SetInactivityTimerSec(threshold->getRtpInactivityTimerMillis() / 1000);
+            return true;
         }
     }
 
-    if (found == false)
-    {
-        for (auto& node : mListNodeStarted)
-        {
-            if (node != NULL && node->GetNodeId() == kNodeIdRtpDecoder)
-            {
-                RtpDecoderNode* pNode = reinterpret_cast<RtpDecoderNode*>(node);
-                pNode->SetInactivityTimerSec(threshold->getRtpInactivityTimerMillis() / 1000);
-                break;
-            }
-        }
-    }
+    return false;
 }
 
 void VideoStreamGraphRtpRx::setSurface(ANativeWindow* surface)
 {
     IMLOGD0("[setSurface]");
 
-    if (surface == NULL)
+    if (surface != NULL)
     {
-        return;
-    }
+        mSurface = surface;
 
-    mSurface = surface;
+        BaseNode* node = findNode(kNodeIdVideoRenderer);
 
-    bool found = false;
-    for (auto& node : mListNodeToStart)
-    {
-        if (node != NULL && node->GetNodeId() == kNodeIdVideoRenderer)
+        if (node != NULL)
         {
-            IVideoRendererNode* pNode = reinterpret_cast<IVideoRendererNode*>(node);
-            pNode->UpdateSurface(surface);
-            found = true;
-            break;
-        }
-    }
+            IVideoRendererNode* renderer = reinterpret_cast<IVideoRendererNode*>(node);
+            renderer->UpdateSurface(surface);
 
-    if (found == false)
-    {
-        for (auto& node : mListNodeStarted)
-        {
-            if (node != NULL && node->GetNodeId() == kNodeIdVideoRenderer)
+            if (getState() == StreamState::kStreamStateWaitSurface)
             {
-                IVideoRendererNode* pNode = reinterpret_cast<IVideoRendererNode*>(node);
-                pNode->UpdateSurface(surface);
-                break;
+                setState(StreamState::kStreamStateCreated);
+                start();
             }
         }
-    }
-
-    if (getState() == StreamState::kStreamStateWaitSurface)
-    {
-        setState(StreamState::kStreamStateCreated);
-        start();
     }
 }
