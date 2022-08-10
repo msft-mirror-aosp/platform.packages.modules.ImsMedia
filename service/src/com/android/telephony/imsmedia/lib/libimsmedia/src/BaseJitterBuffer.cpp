@@ -79,7 +79,9 @@ void BaseJitterBuffer::Delete()
     mDataQueue.Get(&pEntry);
 
     if (pEntry == NULL)
+    {
         return;
+    }
 
     mDataQueue.Delete();
 }

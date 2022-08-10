@@ -30,6 +30,7 @@ public:
             ImsMediaSubType dataType = ImsMediaSubType::MEDIASUBTYPE_UNDEFINED);
     virtual bool Get(ImsMediaSubType* subtype, uint8_t** data, uint32_t* dataSize,
             uint32_t* timestamp, bool* mark, uint32_t* seqNum, uint32_t* checker = NULL);
+    virtual void Delete();
 
 private:
     uint32_t mSavedFrameNum;
@@ -37,7 +38,6 @@ private:
     uint32_t mLastPlayedTime;
     uint32_t mLastTimestamp;
     uint32_t mCurrPlayingTimestamp;
-    bool mIsFirstPkt;
 };
 
 #endif

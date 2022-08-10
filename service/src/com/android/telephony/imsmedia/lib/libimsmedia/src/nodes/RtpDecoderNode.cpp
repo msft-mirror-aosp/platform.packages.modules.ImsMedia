@@ -17,8 +17,8 @@
 #include <RtpDecoderNode.h>
 #include <ImsMediaTrace.h>
 #include <AudioConfig.h>
-#include <TextConfig.h>
 #include <VideoConfig.h>
+#include <TextConfig.h>
 
 RtpDecoderNode::RtpDecoderNode(BaseSessionCallback* callback) :
         BaseNode(callback)
@@ -54,7 +54,7 @@ kBaseNodeId RtpDecoderNode::GetNodeId()
 
 ImsMediaResult RtpDecoderNode::Start()
 {
-    IMLOGD0("[Start]");
+    IMLOGD1("[Start] type[%d]", mMediaType);
 
     if (mRtpSession == NULL)
     {
@@ -78,7 +78,15 @@ ImsMediaResult RtpDecoderNode::Start()
     }
     else if (mMediaType == IMS_MEDIA_TEXT)
     {
-        mRtpSession->SetRtpPayloadParam(mRtpPayloadTx, mRtpPayloadRx, mSamplingRate * 1000);
+        if (mRedundantPayload > 0)
+        {
+            mRtpSession->SetRtpPayloadParam(mRtpPayloadTx, mRtpPayloadRx, mSamplingRate * 1000,
+                    mRedundantPayload, mSamplingRate * 1000);
+        }
+        else
+        {
+            mRtpSession->SetRtpPayloadParam(mRtpPayloadTx, mRtpPayloadRx, mSamplingRate * 1000);
+        }
     }
 
     mRtpSession->SetRtpDecoderListener(this);
@@ -91,7 +99,8 @@ ImsMediaResult RtpDecoderNode::Start()
 
 void RtpDecoderNode::Stop()
 {
-    IMLOGD0("[Stop]");
+    IMLOGD1("[Stop] type[%d]", mMediaType);
+
     mReceivingSSRC = 0;
 
     if (mRtpSession)
@@ -102,14 +111,13 @@ void RtpDecoderNode::Stop()
     mNodeState = kNodeStateStopped;
 }
 
-void RtpDecoderNode::OnDataFromFrontNode(ImsMediaSubType subtype, uint8_t* pData,
-        uint32_t nDataSize, uint32_t nTimestamp, bool bMark, uint32_t nSeqNum,
-        ImsMediaSubType nDataType)
+void RtpDecoderNode::OnDataFromFrontNode(ImsMediaSubType subtype, uint8_t* data, uint32_t datasize,
+        uint32_t timestamp, bool mark, uint32_t seq, ImsMediaSubType nDataType)
 {
     IMLOGD_PACKET6(IM_PACKET_LOG_RTP,
             "[OnDataFromFrontNode] subtype[%d] Size[%d], TS[%d], Mark[%d], Seq[%d], datatype[%d]",
-            subtype, nDataSize, nTimestamp, bMark, nSeqNum, nDataType);
-    mRtpSession->ProcRtpPacket(pData, nDataSize);
+            subtype, datasize, timestamp, mark, seq, nDataType);
+    mRtpSession->ProcRtpPacket(data, datasize);
 }
 
 bool RtpDecoderNode::IsRunTime()
@@ -124,7 +132,7 @@ bool RtpDecoderNode::IsSourceNode()
 
 void RtpDecoderNode::SetConfig(void* config)
 {
-    IMLOGD0("[SetConfig]");
+    IMLOGD1("[SetConfig] type[%d]", mMediaType);
 
     if (config == NULL)
     {
@@ -205,35 +213,34 @@ bool RtpDecoderNode::IsSameConfig(void* config)
     return false;
 }
 
-void RtpDecoderNode::OnMediaDataInd(unsigned char* pData, uint32_t nDataSize, uint32_t nTimestamp,
-        bool bMark, uint16_t nSeqNum, uint32_t nPayloadType, uint32_t nSSRC, bool bExtension,
+void RtpDecoderNode::OnMediaDataInd(unsigned char* data, uint32_t datasize, uint32_t timestamp,
+        bool mark, uint16_t seq, uint32_t payloadType, uint32_t ssrc, bool extension,
         uint16_t nExtensionData)
 {
     static ImsMediaSubType subtype = MEDIASUBTYPE_RTPPAYLOAD;
 
-    IMLOGD_PACKET7(IM_PACKET_LOG_RTP,
-            "[OnMediaDataInd] media[%d] size[%d], TS[%d], mark[%d], seq[%d], sampling[%d], "
-            "bExtension[%d]",
-            mMediaType, nDataSize, nTimestamp, bMark, nSeqNum, mSamplingRate, bExtension);
+    IMLOGD_PACKET8(IM_PACKET_LOG_RTP,
+            "[OnMediaDataInd] media[%d] size[%d], TS[%d], mark[%d], seq[%d], payloadType[%d] "
+            "sampling[%d], ext[%d]",
+            mMediaType, datasize, timestamp, mark, seq, payloadType, mSamplingRate, extension);
 
     // no need to change to timestamp to msec in video or text packet
     if (mMediaType != IMS_MEDIA_VIDEO && mSamplingRate != 0)
     {
-        nTimestamp = nTimestamp / (mSamplingRate);
+        timestamp = timestamp / (mSamplingRate);
     }
 
-    if (mReceivingSSRC != nSSRC)
+    if (mReceivingSSRC != ssrc)
     {
-        IMLOGD3("[OnMediaDataInd] media[%d] SSRC changed, received SSRC[%x], nSSRC[%x]", mMediaType,
-                mReceivingSSRC, nSSRC);
-        mReceivingSSRC = nSSRC;
+        IMLOGD3("[OnMediaDataInd] media[%d] SSRC changed, received SSRC[%x], ssrc[%x]", mMediaType,
+                mReceivingSSRC, ssrc);
+        mReceivingSSRC = ssrc;
         SendDataToRearNode(MEDIASUBTYPE_REFRESHED, NULL, 0, 0, 0, 0);
     }
 
-    // TODO : add checking incoming dtmf by the payload type number
-    // (void)nPayloadType;
+    /** TODO : add checking receiving dtmf by the payload type number */
 
-    if (bExtension == true)
+    if (extension == true)
     {
         if (mMediaType == IMS_MEDIA_VIDEO && mCvoValue != CVO_DEFINE_NONE)
         {
@@ -277,11 +284,10 @@ void RtpDecoderNode::OnMediaDataInd(unsigned char* pData, uint32_t nDataSize, ui
                     nExtensionID, nCamID, nRotation, subtype);
         }
     }
-    else if (mMediaType == IMS_MEDIA_TEXT)
+
+    if (mMediaType == IMS_MEDIA_TEXT)
     {
-        IMLOGD3("[OnMediaDataInd] nPayloadType[%d], mRtpPayloadTx[%d], mRedundantPayload[%d]",
-                nPayloadType, mRtpPayloadTx, mRedundantPayload);
-        if (nPayloadType == mRtpPayloadTx)
+        if (payloadType == mRtpPayloadTx)
         {
             if (mRedundantPayload == 0)
             {
@@ -292,18 +298,18 @@ void RtpDecoderNode::OnMediaDataInd(unsigned char* pData, uint32_t nDataSize, ui
                 subtype = MEDIASUBTYPE_BITSTREAM_T140_RED;
             }
         }
-        else if (nPayloadType == mRedundantPayload)
+        else if (payloadType == mRedundantPayload)
         {
             subtype = MEDIASUBTYPE_BITSTREAM_T140;
         }
         else
         {
             IMLOGD2("[OnMediaDataInd] MediaType[%d] INVALID payload[%d] is received", mMediaType,
-                    nPayloadType);
+                    payloadType);
         }
     }
 
-    SendDataToRearNode(subtype, pData, nDataSize, nTimestamp, bMark, nSeqNum);
+    SendDataToRearNode(subtype, data, datasize, timestamp, mark, seq);
 }
 
 void RtpDecoderNode::OnNumReceivedPacket(uint32_t nNumRtpPacket)

@@ -102,10 +102,11 @@ bool TextRtpPayloadDecoderNode::IsSameConfig(void* config)
 }
 
 void TextRtpPayloadDecoderNode::DecodeT140(uint8_t* data, uint32_t size, ImsMediaSubType subtype,
-        uint32_t timestamp, bool bMark, uint32_t nSeqNum)
+        uint32_t timestamp, bool mark, uint32_t seq)
 {
-    IMLOGD_PACKET3(IM_PACKET_LOG_PH, "[Decode_PH_T140] Decode_PH_T140[%u], subtype[%u], size[%u]",
-            mCodecType, subtype, size);
+    IMLOGD_PACKET5(IM_PACKET_LOG_PH,
+            "[DecodeT140] subtype[%u], size[%u], timestamp[%d], mark[%d], seq[%d]", subtype, size,
+            timestamp, mark, seq);
 
     if (subtype == MEDIASUBTYPE_BITSTREAM_T140 || subtype == MEDIASUBTYPE_BITSTREAM_T140_RED)
     {
@@ -128,9 +129,9 @@ void TextRtpPayloadDecoderNode::DecodeT140(uint8_t* data, uint32_t size, ImsMedi
 
         // Primary Data Only
         // Red header + primary header = 5 byte
-        if ((subtype == MEDIASUBTYPE_BITSTREAM_T140) && (data != NULL))
+        if (subtype == MEDIASUBTYPE_BITSTREAM_T140)
         {
-            SendDataToRearNode(MEDIASUBTYPE_BITSTREAM_T140, data, size, timestamp, bMark, nSeqNum);
+            SendDataToRearNode(MEDIASUBTYPE_BITSTREAM_T140, data, size, timestamp, mark, seq);
             return;
         }
 
@@ -144,8 +145,8 @@ void TextRtpPayloadDecoderNode::DecodeT140(uint8_t* data, uint32_t size, ImsMedi
             lstTSOffset.push_back(nTSOffset);  // timestamp offset
             lstLength.push_back(nLen);         // block length
 
-            IMLOGD_PACKET3(IM_PACKET_LOG_PH, "[Decode_PH_T140] nPT[%u], nTSOffset[%u], nLen[%u]",
-                    nPT, nTSOffset, nLen);
+            IMLOGD_PACKET3(IM_PACKET_LOG_PH, "[DecodeT140] nPT[%u], nTSOffset[%u], nLen[%u]", nPT,
+                    nTSOffset, nLen);
             nReadByte += 4;
             nRedCount++;
         }
@@ -169,20 +170,20 @@ void TextRtpPayloadDecoderNode::DecodeT140(uint8_t* data, uint32_t size, ImsMedi
                 mBitReader.ReadByteBuffer(mPayload, nRedLength * 8);
                 nReadByte += nRedLength;
 
-                if (nSeqNum < nRedCount)
+                if (seq < nRedCount)
                 {
-                    nRedSeqNum = nSeqNum + 0xffff - nRedCount;  // round trip
+                    nRedSeqNum = seq + 0xffff - nRedCount;  // round trip
                 }
                 else
                 {
-                    nRedSeqNum = nSeqNum - nRedCount;
+                    nRedSeqNum = seq - nRedCount;
                 }
 
                 IMLOGD_PACKET3(IM_PACKET_LOG_PH,
-                        "[Decode_PH_T140] nRedTimestamp[%u], nRedLength[%u], nRedSeqNum[%u]",
+                        "[DecodeT140] nRedTimestamp[%u], nRedLength[%u], nRedSeqNum[%u]",
                         timestamp - nRedTimestamp, nRedLength, nRedSeqNum);
                 SendDataToRearNode(MEDIASUBTYPE_BITSTREAM_T140, mPayload, nRedLength,
-                        timestamp - nRedTimestamp, bMark, nRedSeqNum);
+                        timestamp - nRedTimestamp, mark, nRedSeqNum);
             }
 
             nRedCount--;
@@ -196,11 +197,11 @@ void TextRtpPayloadDecoderNode::DecodeT140(uint8_t* data, uint32_t size, ImsMedi
             mBitReader.ReadByteBuffer(mPayload, (size - nReadByte) * 8);
         }
 
-        SendDataToRearNode(MEDIASUBTYPE_BITSTREAM_T140, mPayload, (size - nReadByte), timestamp,
-                bMark, nSeqNum);
+        SendDataToRearNode(
+                MEDIASUBTYPE_BITSTREAM_T140, mPayload, (size - nReadByte), timestamp, mark, seq);
     }
     else
     {
-        IMLOGE1("[Decode_PH_T140] INVALID media sub type[%u]", subtype);
+        IMLOGW1("[DecodeT140] INVALID media sub type[%u]", subtype);
     }
 }

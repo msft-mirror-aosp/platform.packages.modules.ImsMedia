@@ -66,7 +66,7 @@ bool TextRtpPayloadEncoderNode::IsSourceNode()
 }
 
 void TextRtpPayloadEncoderNode::OnDataFromFrontNode(ImsMediaSubType subtype, uint8_t* data,
-        uint32_t size, uint32_t timestamp, bool bMark, uint32_t seqNum, ImsMediaSubType dataType)
+        uint32_t size, uint32_t timestamp, bool mark, uint32_t seqNum, ImsMediaSubType dataType)
 {
     (void)subtype;
     (void)seqNum;
@@ -76,7 +76,7 @@ void TextRtpPayloadEncoderNode::OnDataFromFrontNode(ImsMediaSubType subtype, uin
     {
         case TextConfig::TEXT_T140:
         case TextConfig::TEXT_T140_RED:
-            EncodeT140(data, size, timestamp, bMark);
+            EncodeT140(data, size, timestamp, mark);
             break;
         default:
             IMLOGE1("[ProcessData] invalid codec type[%d]", mCodecType);
@@ -114,9 +114,9 @@ bool TextRtpPayloadEncoderNode::IsSameConfig(void* config)
 }
 
 void TextRtpPayloadEncoderNode::EncodeT140(
-        uint8_t* data, uint32_t size, uint32_t timestamp, bool bMark)
+        uint8_t* data, uint32_t size, uint32_t timestamp, bool mark)
 {
-    (void)bMark;
+    (void)mark;
 
     uint32_t nTSInterval = 0;
     bool bNewMark = false;
@@ -132,8 +132,9 @@ void TextRtpPayloadEncoderNode::EncodeT140(
 
     uint32_t codecType = mCodecType;
 
-    IMLOGD6("[Encode_PH_T140] Size[%u], Mark[%d], RedLevel[%d], TS[%u], LastTS[%d], nRed[%u]", size,
-            bNewMark, mRedundantLevel, timestamp, mLastTimestampSent, mBufferQueue.GetCount());
+    IMLOGD6("[EncodeT140] Size[%u], Mark[%d], RedLevel[%d], TS[%u], LastTS[%u], queue size[%u]",
+            size, bNewMark, mRedundantLevel, timestamp, mLastTimestampSent,
+            mBufferQueue.GetCount());
 
     // check RFC4103 5.2 - send an empty T.140 at the beginning of idle period
     if (size == 0 && mBufferQueue.GetCount() == 0)
@@ -162,7 +163,7 @@ void TextRtpPayloadEncoderNode::EncodeT140(
 
             // Remove a very old redundant data
             IMLOGD_PACKET4(IM_PACKET_LOG_PH,
-                    "[Encode_PH_T140] timestamp[%d], pEntry->timestamp[%d], nTSInterval[%d], "
+                    "[EncodeT140] timestamp[%u], pEntry->timestamp[%u], nTSInterval[%d], "
                     "nInputTime[%d]",
                     timestamp, pEntry->nTimestamp, nTSInterval, pEntry->nInputTime);
 
@@ -188,7 +189,7 @@ void TextRtpPayloadEncoderNode::EncodeT140(
             {
                 if (pEntry->nBufferSize > 0)
                 {
-                    IMLOGD_PACKET2(IM_PACKET_LOG_PH, "[Encode_PH_T140] Found Data[%d/%d]", i,
+                    IMLOGD_PACKET2(IM_PACKET_LOG_PH, "[EncodeT140] Found Data[%d/%d]", i,
                             mBufferQueue.GetCount());
                     bRealData = true;
                     break;
@@ -200,15 +201,15 @@ void TextRtpPayloadEncoderNode::EncodeT140(
         {
             if (bRealData == false)
             {
-                // If there are redundant data only and bMark is false (after IDLE period), clear
+                // If there are redundant data only and mark is false (after IDLE period), clear
                 // buffer
                 mBufferQueue.Clear();
             }
             else
             {
-                // If there are non-redundant (real) data and bMark is true, set Mark False
+                // If there are non-redundant (real) data and mark is true, set Mark False
                 // (exception handling)
-                IMLOGD0("[Encode_PH_T140] reset marker");
+                IMLOGD0("[EncodeT140] reset marker");
                 bNewMark = false;
             }
         }
@@ -230,7 +231,7 @@ void TextRtpPayloadEncoderNode::EncodeT140(
                 nullRED.nTimestamp = timestamp;
                 nullRED.nInputTime = 1;  // Remained time to be retransmitted
                 mBufferQueue.InsertAt(0, &nullRED);
-                IMLOGD0("[Encode_PH_T140] add null red");
+                IMLOGD0("[EncodeT140] add null red");
             }
         }
 
@@ -260,8 +261,8 @@ void TextRtpPayloadEncoderNode::EncodeT140(
                 pEntry->nInputTime -= 1;
 
                 IMLOGD_PACKET6(IM_PACKET_LOG_PH,
-                        "[Encode_PH_T140] RED Packet [%d/%d] - RemaindTime[%d], RedSubPT[%d], "
-                        "offset[%d], nSize[%d]",
+                        "[EncodeT140] RED payload [%d/%d] - RemaindTime[%d], RED payload[%d], "
+                        "offset[%d], data size[%d]",
                         i, mBufferQueue.GetCount(), pEntry->nInputTime, mRedundantPayload,
                         nTSInterval, pEntry->nBufferSize);
 
@@ -287,8 +288,7 @@ void TextRtpPayloadEncoderNode::EncodeT140(
             mBWPayload.WriteByteBuffer(data, size * 8);
         }
 
-        IMLOGD_PACKET3(IM_PACKET_LOG_PH,
-                "[Encode_PH_T140] Packet Size[%d], timestamp[%d], bNewMark[%d]",
+        IMLOGD_PACKET3(IM_PACKET_LOG_PH, "[EncodeT140] data size[%d], timestamp[%u], mark[%d]",
                 mBWPayload.GetBufferSize(), timestamp, bNewMark);
 
         if (mBufferQueue.GetCount() > 0)

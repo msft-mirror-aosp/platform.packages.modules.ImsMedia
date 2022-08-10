@@ -19,11 +19,16 @@
 #include <ImsMediaTimer.h>
 #include <ImsMediaTrace.h>
 
+/** Maximum waiting time when packet loss found */
+#define TEXT_LOSS_MAX_WAITING_TIME 1000
+
 TextRendererNode::TextRendererNode(BaseSessionCallback* callback) :
         JitterBufferControlNode(callback, IMS_MEDIA_TEXT)
 {
     mCodecType = TextConfig::TEXT_CODEC_NONE;
     mBOMReceived = false;
+    mLastPlayedSeq = -1;
+    mLossWaitTime = 0;
 }
 
 TextRendererNode::~TextRendererNode() {}
@@ -36,13 +41,15 @@ kBaseNodeId TextRendererNode::GetNodeId()
 ImsMediaResult TextRendererNode::Start()
 {
     IMLOGD1("[Start] codec[%d], redCount[%d]", mCodecType);
-    mBOMReceived = false;
 
     if (mCodecType == TextConfig::TEXT_CODEC_NONE)
     {
         return RESULT_INVALID_PARAM;
     }
 
+    mBOMReceived = false;
+    mLastPlayedSeq = -1;
+    mLossWaitTime = 0;
     mNodeState = kNodeStateRunning;
     return RESULT_SUCCESS;
 }
@@ -91,28 +98,46 @@ bool TextRendererNode::IsSameConfig(void* config)
 void TextRendererNode::ProcessData()
 {
     static const char* CHAR_REPLACEMENT = "\xEf\xbf\xbd";
-    uint8_t* pData;
-    uint32_t nDataSize;
-    uint32_t nTimeStamp;
-    uint32_t nSeqNum;
-    bool bMark;
+    uint8_t* data;
+    uint32_t size;
+    uint32_t timestamp;
+    uint32_t seq;
+    bool mark;
     ImsMediaSubType subtype;
     ImsMediaSubType dataType;
     uint32_t nCurTime = 0;
 
-    while (GetData(&subtype, &pData, &nDataSize, &nTimeStamp, &bMark, &nSeqNum, &dataType))
+    while (GetData(&subtype, &data, &size, &timestamp, &mark, &seq, &dataType))
     {
-        if (pData == NULL)
-            break;
+        IMLOGD4("[ProcessData] Size[%u],TS[%u],Mark[%u],Seq[%u]", size, timestamp, mark, seq);
 
-        IMLOGD4("[ProcessData] Size[%u],TS[%u],Mark[%u],Seq[%u]", nDataSize, nTimeStamp, bMark,
-                nSeqNum);
+        // ignore empty t.140
+        if (size == 0)
+        {
+            mLastPlayedSeq = (uint32_t)seq;
+            DeleteData();
+            break;
+        }
+
+        if (data == NULL)
+        {
+            IMLOGD0("[ProcessData] invalid data");
+            break;
+        }
 
         if (mLastPlayedSeq != -1)
         {
+            uint32_t lostCount = seq - mLastPlayedSeq - 1;
             // detect lost packet
-            if (nSeqNum - mLastPlayedSeq > 1)
+            if (lostCount > 0)
             {
+                /* it is out of idle period, lost packet is empty t.140, ignore this */
+                if (lostCount == 1 && mark == true)
+                {
+                    mLastPlayedSeq++;
+                    break;
+                }
+
                 // to wait 1000 sec - RFC4103 - 5.4 - Compensation for Packets Out of Order
                 nCurTime = ImsMediaTimer::GetTimeInMilliSeconds();
 
@@ -121,7 +146,7 @@ void TextRendererNode::ProcessData()
                     mLossWaitTime = nCurTime;
                 }
 
-                if (nCurTime - mLossWaitTime <= 1000)
+                if (nCurTime - mLossWaitTime <= TEXT_LOSS_MAX_WAITING_TIME)
                 {
                     IMLOGD1("[ProcessData] Lost wait[%u]", nCurTime - mLossWaitTime);
                     break;
@@ -129,14 +154,13 @@ void TextRendererNode::ProcessData()
 
                 // lost count should consider redundant level, maximum lost count = lost packet
                 // count - (redundancy level - 1)
-                uint32_t nLostCount = 0;
-                mRedundantRevel == 0 ? nLostCount = nSeqNum - mLastPlayedSeq - 1
-                                     : nLostCount = nSeqNum - mLastPlayedSeq - mRedundantRevel;
+                mRedundantRevel == 0 ? lostCount = seq - mLastPlayedSeq - 1
+                                     : lostCount = seq - mLastPlayedSeq - mRedundantRevel;
 
-                IMLOGD1("[ProcessData] nLostCount[%d]", nLostCount);
+                IMLOGD1("[ProcessData] lostCount[%d]", lostCount);
 
                 // Send a lost T140 as question mark
-                for (uint32_t nIndex = 0; nIndex < nLostCount; nIndex++)
+                for (uint32_t nIndex = 0; nIndex < lostCount; nIndex++)
                 {
                     // send replacement character in case of lost packet detected
                     android::String8* text = new android::String8(CHAR_REPLACEMENT);
@@ -151,39 +175,41 @@ void TextRendererNode::ProcessData()
         }
 
         // send event to notify to transfer rtt data received
-        uint32_t nTransSize = 0;
-        uint32_t nOffset = nDataSize;
+        uint32_t transSize = 0;
+        uint32_t offset = size;
 
-        while (nOffset > 0 && pData != NULL &&
-                (nSeqNum > (uint32_t)mLastPlayedSeq || mLastPlayedSeq == -1))
+        while (offset > 0 && data != NULL && (seq > mLastPlayedSeq || mLastPlayedSeq == -1))
         {
             // remain last null data
-            nOffset > MAX_RTT_LEN - 1 ? nTransSize = MAX_RTT_LEN - 1 : nTransSize = nOffset;
+            offset > MAX_RTT_LEN - 1 ? transSize = MAX_RTT_LEN - 1 : transSize = offset;
 
-            if (mBOMReceived == false && pData[0] == 0xef && pData[1] == 0xbb && pData[2] == 0xbf)
+            if (mBOMReceived == false && offset >= 3 && data[0] == 0xef && data[1] == 0xbb &&
+                    data[2] == 0xbf)
             {
                 // it is BOM - optional packet
                 IMLOGD0("[ProcessData] got BOM");
                 mBOMReceived = true;
-                pData += 3;
-                nTransSize -= 3;
-                nOffset -= 3;
+                data += 3;
+                transSize -= 3;
+                offset -= 3;
             }
 
-            if (nTransSize > 0 && pData != NULL)
+            if (transSize > 0 && data != NULL)
             {
-                android::String8* text = new android::String8(reinterpret_cast<char*>(pData));
+                memset(mBuffer, 0, MAX_RTT_LEN);
+                memcpy(mBuffer, data, transSize);
+                android::String8* text = new android::String8(mBuffer);
                 mCallback->SendEvent(
                         kImsMediaEventNotifyRttReceived, reinterpret_cast<uint64_t>(text), 0);
-                IMLOGD_PACKET2(IM_PACKET_LOG_TEXT, "[ProcessData] data[%s], text[%s]", pData,
+                IMLOGD_PACKET2(IM_PACKET_LOG_TEXT, "[ProcessData] data[%s], text[%s]", data,
                         text->string());
             }
 
-            pData += nTransSize;
-            nOffset -= nTransSize;
+            data += transSize;
+            offset -= transSize;
         }
 
-        mLastPlayedSeq = (uint32_t)nSeqNum;
+        mLastPlayedSeq = (uint32_t)seq;
         DeleteData();
     }
 }

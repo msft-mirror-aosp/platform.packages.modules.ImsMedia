@@ -93,7 +93,7 @@ public:
     void SetRtcpEncoderListener(IRtcpEncoderListener* pRtcpEncoderListener);
     void SetRtcpDecoderListener(IRtcpDecoderListener* pRtcpDecoderListener);
     void SetRtpPayloadParam(int32_t payloadNumTx, int32_t payloadNumRx, int32_t samplingRate,
-            int32_t dtmfPayloadTypeNum = 0, int32_t dtmfSamplingRate = 0);
+            int32_t subPayloadTypeNum = 0, int32_t subSamplingRate = 0);
     void SetRtcpInterval(int32_t nInterval);
     void StartRtp();
     void StopRtp();
