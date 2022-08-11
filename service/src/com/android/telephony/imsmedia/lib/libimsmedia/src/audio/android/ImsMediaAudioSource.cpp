@@ -47,6 +47,7 @@ ImsMediaAudioSource::ImsMediaAudioSource()
     mEvsBandwidth = kEvsBandwidthNone;
     mEvsBitRate = 0;
     mEvsChAwOffset = 0;
+    mIsEvsInitialized = false;
 }
 
 ImsMediaAudioSource::~ImsMediaAudioSource() {}
@@ -101,6 +102,8 @@ bool ImsMediaAudioSource::Start()
     char kMimeType[128] = {'\0'};
     auto codecResult = 0;
     int amrBitrate;
+    // TODO: Integration with libEVS is required.
+    ImsMediaAudioUtil::ConvertEvsBandwidthToStr(mEvsBandwidth, mEvsbandwidthStr);
 
     if (mCodecType == kAudioCodecAmr)
     {
@@ -114,6 +117,7 @@ bool ImsMediaAudioSource::Start()
     }
     else if (mCodecType == kAudioCodecEvs)
     {
+        // TODO: Integration with libEVS is required.
         sprintf(kMimeType, "audio/evs");
     }
     else
@@ -162,6 +166,11 @@ bool ImsMediaAudioSource::Start()
             mFormat = NULL;
             return false;
         }
+    }
+    else if (mCodecType == kAudioCodecEvs)
+    {
+        // TODO: Integration with libEVS is required.
+        mIsEvsInitialized = true;
     }
     auto audioResult = AAudioStream_requestStart(mAudioStream);
     if (audioResult != AAUDIO_OK)
@@ -308,6 +317,12 @@ void* ImsMediaAudioSource::run()
     IMLOGD0("[run] enter");
     uint32_t nNextTime = ImsMediaTimer::GetTimeInMilliSeconds();
     int16_t buffer[PCM_BUFFER_SIZE];
+    int64_t ptsUsec = 0;
+    uint32_t evsFlags = 2;
+    uint8_t outputBuf[PCM_BUFFER_SIZE];
+    int size = 0;
+
+    outputBuf[0] = 0;
 
     for (;;)
     {
@@ -325,7 +340,30 @@ void* ImsMediaAudioSource::run()
             if (readSize > 0)
             {
                 IMLOGD_PACKET1(IM_PACKET_LOG_AUDIO, "[run] nReadSize[%d]", readSize);
-                queueInputBuffer(buffer, readSize * sizeof(uint16_t));
+                if (mCodecType == kAudioCodecAmr || mCodecType == kAudioCodecAmrWb)
+                {
+                    queueInputBuffer(buffer, readSize * sizeof(uint16_t));
+                }
+                else if (mCodecType == kAudioCodecEvs)
+                {
+                    // TODO: Integration with libEVS is required.
+                    if (!mIsEvsInitialized)
+                    {
+                        mIsEvsInitialized = true;
+                    }
+
+                    if (ptsUsec == 0)
+                    {
+                        ptsUsec = ImsMediaTimer::GetTimeInMicroSeconds() / 1000;
+                    }
+
+                    if (mCallback != NULL && outputBuf[0] != 0)
+                    {
+                        // TODO: integration with libEVS is require to encode outputBuf
+                        mCallback->onDataFrame(outputBuf, size, ptsUsec, evsFlags);
+                    }
+                    size = 0;
+                }
             }
         }
 

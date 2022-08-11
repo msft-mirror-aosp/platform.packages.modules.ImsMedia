@@ -41,6 +41,8 @@ ImsMediaAudioPlayer::ImsMediaAudioPlayer()
     mCodec = NULL;
     mSamplingRate = DEFAULT_SAMPLING_RATE;
     mEvsCodecHeaderMode = kRtpPyaloadHeaderModeEvsHeaderFull;
+    mFirstFrame = false;
+    mIsEvsInitialized = false;
 }
 
 ImsMediaAudioPlayer::~ImsMediaAudioPlayer() {}
@@ -51,10 +53,9 @@ void ImsMediaAudioPlayer::SetCodec(int32_t type)
     mCodecType = type;
 }
 
-void ImsMediaAudioPlayer::SetEvsBitRate(uint32_t mode)
+void ImsMediaAudioPlayer::SetEvsBitRate(int32_t bitRate)
 {
-    mEvsBitRate = ImsMediaAudioUtil::ConvertEVSModeToBitRate(mode);
-    IMLOGD1("[SetEvsBitRate] EvsBitRate[%d]", mEvsBitRate);
+    mEvsBitRate = bitRate;
 }
 
 void ImsMediaAudioPlayer::SetEvsChAwOffset(int32_t offset)
@@ -77,6 +78,12 @@ void ImsMediaAudioPlayer::SetEvsPayloadHeaderMode(kRtpPyaloadHeaderMode EvsPaylo
     mEvsCodecHeaderMode = EvsPayloadHeaderMode;
 }
 
+void ImsMediaAudioPlayer::SetCodecMode(uint32_t mode)
+{
+    IMLOGD1("[SetCodecMode] mode[%d]", mode);
+    mCodecMode = mode;
+}
+
 bool ImsMediaAudioPlayer::Start()
 {
     char kMimeType[128] = {'\0'};
@@ -92,6 +99,7 @@ bool ImsMediaAudioPlayer::Start()
     }
     else if (mCodecType == kAudioCodecEvs)
     {
+        // TODO: Integration with libEVS is required.
         sprintf(kMimeType, "audio/evs");
     }
     else
@@ -235,13 +243,36 @@ void ImsMediaAudioPlayer::Stop()
 bool ImsMediaAudioPlayer::onDataFrame(uint8_t* buffer, uint32_t size)
 {
     std::lock_guard<std::mutex> guard(mMutex);
-    if ((mCodecType == kAudioCodecAmr || mCodecType == kAudioCodecAmrWb) &&
-            (size == 0 || mCodec == NULL || mAudioStream == NULL || buffer == NULL ||
-                    AAudioStream_getState(mAudioStream) != AAUDIO_STREAM_STATE_STARTED))
+    if (mCodecType == kAudioCodecAmr || mCodecType == kAudioCodecAmrWb)
     {
-        return false;
+        if (size == 0 || mCodec == NULL || mAudioStream == NULL || buffer == NULL ||
+                AAudioStream_getState(mAudioStream) != AAUDIO_STREAM_STATE_STARTED)
+        {
+            return false;
+        }
+        else
+        {
+            return decodeAmr(buffer, size);
+        }
     }
+    else if (mCodecType == kAudioCodecEvs)
+    {
+        // TODO: Integration with libEVS is required.
+        if (size == 0 || buffer == NULL ||
+                AAudioStream_getState(mAudioStream) != AAUDIO_STREAM_STATE_STARTED)
+        {
+            return false;
+        }
+        else
+        {
+            return decodeEvs(buffer, size);
+        }
+    }
+    return false;
+}
 
+bool ImsMediaAudioPlayer::decodeAmr(uint8_t* buffer, uint32_t size)
+{
     static int kTimeout = 100000;  // be responsive on signal
     auto index = AMediaCodec_dequeueInputBuffer(mCodec, kTimeout);
 
@@ -253,19 +284,19 @@ bool ImsMediaAudioPlayer::onDataFrame(uint8_t* buffer, uint32_t size)
         {
             memcpy(inputBuffer, buffer, size);
             IMLOGD_PACKET2(IM_PACKET_LOG_AUDIO,
-                    "[onDataFrame] queue input buffer index[%d], size[%d]", index, size);
+                    "[decodeAmr] queue input buffer index[%d], size[%d]", index, size);
 
             auto err = AMediaCodec_queueInputBuffer(
                     mCodec, index, 0, size, ImsMediaTimer::GetTimeInMicroSeconds(), 0);
             if (err != AMEDIA_OK)
             {
-                IMLOGE1("[onDataFrame] Unable to queue input buffers - err[%d]", err);
+                IMLOGE1("[decodeAmr] Unable to queue input buffers - err[%d]", err);
             }
         }
     }
     else
     {
-        IMLOGE1("[onDataFrame] Unable to get input buffers - err[%d]", index);
+        IMLOGE1("[decodeAmr] Unable to get input buffers - err[%d]", index);
     }
 
     AMediaCodecBufferInfo info;
@@ -274,7 +305,7 @@ bool ImsMediaAudioPlayer::onDataFrame(uint8_t* buffer, uint32_t size)
     if (index >= 0)
     {
         IMLOGD_PACKET5(IM_PACKET_LOG_AUDIO,
-                "[onDataFrame] index[%d], size[%d], offset[%d], time[%ld], flags[%d]", index,
+                "[decodeAmr] index[%d], size[%d], offset[%d], time[%ld], flags[%d]", index,
                 info.size, info.offset, info.presentationTimeUs, info.flags);
 
         if (info.size > 0)
@@ -293,7 +324,7 @@ bool ImsMediaAudioPlayer::onDataFrame(uint8_t* buffer, uint32_t size)
     }
     else if (index == AMEDIACODEC_INFO_OUTPUT_BUFFERS_CHANGED)
     {
-        IMLOGD0("[onDataFrame] output buffer changed");
+        IMLOGD0("[decodeAmr] output buffer changed");
     }
     else if (index == AMEDIACODEC_INFO_OUTPUT_FORMAT_CHANGED)
     {
@@ -302,18 +333,48 @@ bool ImsMediaAudioPlayer::onDataFrame(uint8_t* buffer, uint32_t size)
             AMediaFormat_delete(mFormat);
         }
         mFormat = AMediaCodec_getOutputFormat(mCodec);
-        IMLOGD1("[onDataFrame] format changed, format[%s]", AMediaFormat_toString(mFormat));
+        IMLOGD1("[decodeAmr] format changed, format[%s]", AMediaFormat_toString(mFormat));
     }
     else if (index == AMEDIACODEC_INFO_TRY_AGAIN_LATER)
     {
-        IMLOGD0("[onDataFrame] no output buffer");
+        IMLOGD0("[decodeAmr] no output buffer");
     }
     else
     {
-        IMLOGD1("[onDataFrame] unexpected index[%d]", index);
+        IMLOGD1("[decodeAmr] unexpected index[%d]", index);
     }
 
-    return false;
+    return true;
+}
+
+// TODO: Integration with libEVS is required.
+bool ImsMediaAudioPlayer::decodeEvs(uint8_t* buffer, uint32_t size)
+{
+    int32_t nFrameType;
+    uint16_t output[PCM_BUFFER_SIZE];
+    int decodeSize = 0;
+
+    // TODO: Integration with libEVS is required to decode buffer data.
+    buffer;
+
+    if (!mIsEvsInitialized)
+    {
+        IMLOGD0("[decodeEvs] Decoder has been initialised");
+        mIsEvsInitialized = true;
+    }
+
+    nFrameType = (uint32_t)ImsMediaAudioUtil::ConvertLenToEVSAudioMode(size);
+
+    if (!mFirstFrame)
+    {
+        IMLOGD0("[decodeEvs] First frame has been decoded");
+        mFirstFrame = true;
+    }
+
+    AAudioStream_write(mAudioStream, output, (decodeSize / 2), 0);
+    memset(output, 0, PCM_BUFFER_SIZE);
+
+    return true;
 }
 
 void ImsMediaAudioPlayer::openAudioStream()

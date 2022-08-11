@@ -43,7 +43,7 @@ public:
      *
      * @param mode
      */
-    void SetEvsBitRate(uint32_t mode);
+    void SetEvsBitRate(int32_t bitRate);
 
     /**
      * @brief Sets the Sampling rate of the audio player
@@ -51,6 +51,13 @@ public:
      * @param samplingRate
      */
     void SetSamplingRate(int32_t samplingRate);
+
+    /**
+     * @brief sets the Evs Codec mode.
+     *
+     * @param mode used to define evs codec mode.
+     */
+    void SetCodecMode(uint32_t mode);
 
     /**
      * @brief Sets the EVS codec offset of the channel aware mode
@@ -91,8 +98,8 @@ public:
     void Stop();
 
     /**
-     * @brief queue the encoded audio frame to audio codec to decode and plays the decoded audio
-     * frame to aaduio to the configured device
+     * @brief Gets input audio frames from jitter buffer and decodes Amr and Evs codec
+     * based on input buffer and size.
      *
      * @param buffer The audio frames to decode and play
      * @param size The size of encoded audio frame
@@ -105,6 +112,8 @@ private:
     void openAudioStream();
     void restartAudioStream();
     static void audioErrorCallback(AAudioStream* stream, void* userData, aaudio_result_t error);
+    bool decodeAmr(uint8_t* buffer, uint32_t size);
+    bool decodeEvs(uint8_t* buffer, uint32_t size);
 
     AAudioStream* mAudioStream;
     AMediaCodec* mCodec;
@@ -118,6 +127,8 @@ private:
     std::mutex mMutex;
     int32_t mEvsBitRate;
     kRtpPyaloadHeaderMode mEvsCodecHeaderMode;
+    bool mFirstFrame;
+    bool mIsEvsInitialized;
 };
 
 #endif

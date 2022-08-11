@@ -136,9 +136,11 @@ private:
     uint32_t mSamplingRate;
     uint32_t mBufferSize;
     kEvsBandwidth mEvsBandwidth;
+    char mEvsbandwidthStr[5];
     int32_t mEvsBitRate;
     int32_t mEvsChAwOffset;
     ImsMediaCondition mConditionExit;
+    bool mIsEvsInitialized;
 };
 
 #endif

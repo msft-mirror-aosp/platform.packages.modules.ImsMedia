@@ -680,6 +680,31 @@ int32_t ImsMediaAudioUtil::ConvertCodecType(int32_t type)
     }
 }
 
+void ImsMediaAudioUtil::ConvertEvsBandwidthToStr(kEvsBandwidth bandwidth, char* nBandwidth)
+{
+    switch (bandwidth)
+    {
+        case kEvsBandwidthNone:
+            strcpy(nBandwidth, "NONE");
+            break;
+        case kEvsBandwidthNB:
+            strcpy(nBandwidth, "NB");
+            break;
+        case kEvsBandwidthWB:
+            strcpy(nBandwidth, "WB");
+            break;
+        case kEvsBandwidthSWB:
+            strcpy(nBandwidth, "SWB");
+            break;
+        case kEvsBandwidthFB:
+            strcpy(nBandwidth, "FB");
+            break;
+        default:
+            strcpy(nBandwidth, "SWB");
+            break;
+    }
+}
+
 int32_t ImsMediaAudioUtil::ConvertEvsCodecMode(int32_t evsMode)
 {
     if (evsMode > 8 && evsMode <= 20)

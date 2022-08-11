@@ -219,6 +219,7 @@ public:
     static uint32_t ConvertAmrModeToLen(uint32_t mode);
     static uint32_t ConvertAmrModeToBitLen(uint32_t mode);
     static uint32_t ConvertLenToAmrMode(uint32_t nLen);
+    static void ConvertEvsBandwidthToStr(kEvsBandwidth bandwidth, char* nBandwidth);
     static uint32_t ConvertAmrWbModeToLen(uint32_t mode);
     static uint32_t ConvertAmrWbModeToBitLen(uint32_t mode);
     static uint32_t ConvertLenToAmrWbMode(uint32_t nLen);
