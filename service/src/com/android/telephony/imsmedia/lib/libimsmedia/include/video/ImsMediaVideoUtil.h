@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#ifndef IMSMEDIA_VIDEOUTIL_H_INCLUDED
-#define IMSMEDIA_VIDEOUTIL_H_INCLUDED
+#ifndef IMSMEDIA_VIDEO_UTIL_H_INCLUDED
+#define IMSMEDIA_VIDEO_UTIL_H_INCLUDED
 
 #include <stdint.h>
 #include <ImsMediaDefine.h>
@@ -25,7 +25,7 @@
 #define MAX_VIDEO_WIDTH             1920
 #define MAX_VIDEO_HEIGHT            1920
 #define MAX_WAIT_RESTART            1000
-#define MAX_WAIT_CAMERA             500
+#define MAX_WAIT_CAMERA             1000
 #define MAX_RTP_PAYLOAD_BUFFER_SIZE (MAX_VIDEO_WIDTH * MAX_VIDEO_HEIGHT * 3 >> 1)
 
 enum kVideoResolution
