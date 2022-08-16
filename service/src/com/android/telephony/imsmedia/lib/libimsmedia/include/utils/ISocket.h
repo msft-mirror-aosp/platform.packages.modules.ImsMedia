@@ -31,7 +31,10 @@ class ISocketListener
 public:
     ISocketListener() {}
     virtual ~ISocketListener() {}
-    virtual void OnReceiveEnabled() = 0;
+    /**
+     * @brief Read data from the socket
+     */
+    virtual void OnReadDataFromSocket() = 0;
 };
 
 class ISocketBridgeDataListener
@@ -66,7 +69,7 @@ public:
     virtual char* GetLocalIPAddress() = 0;
     virtual char* GetPeerIPAddress() = 0;
     virtual bool Open(int localFd = 0) = 0;
-    virtual bool Listen(ISocketListener* listener) = 0;
+    virtual void Listen(ISocketListener* listener) = 0;
     virtual uint32_t SendTo(uint8_t* pData, uint32_t nDataSize) = 0;
     virtual uint32_t ReceiveFrom(uint8_t* pData, uint32_t nBufferSize) = 0;
     virtual void Close() = 0;

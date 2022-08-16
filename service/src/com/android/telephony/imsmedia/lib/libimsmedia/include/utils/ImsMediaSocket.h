@@ -36,22 +36,76 @@ private:
     virtual ~ImsMediaSocket();
     static void StartSocketMonitor();
     static void StopSocketMonitor();
-    static void* SocketMonitorThread(void*);
+    static void SocketMonitorThread();
     static uint32_t SetSocketFD(void* pReadFds, void* pWriteFds, void* pExceptFds);
-    static void SendNotify(void* pReadfds);
+    static void ReadDataFromSocket(void* pReadfds);
 
 public:
+    /**
+     * @brief Set the local ip address and port number
+     */
     virtual void SetLocalEndpoint(const char* ipAddress, const uint32_t port);
+
+    /**
+     * @brief Set the peer ip address and port number
+     */
     virtual void SetPeerEndpoint(const char* ipAddress, const uint32_t port);
     virtual int GetLocalPort();
     virtual int GetPeerPort();
     virtual char* GetLocalIPAddress();
     virtual char* GetPeerIPAddress();
+
+    /**
+     * @brief Add socket file descriptor to the list, stack into list is done only once when the
+     * socket reference counter is zero
+     *
+     * @param socketFd The unique socket file descriptor
+     * @return true Returns when the give argument is valid
+     * @return false Returns when the give argument is invalid
+     */
     virtual bool Open(int socketFd = -1);
-    virtual bool Listen(ISocketListener* listener);
+
+    /**
+     * @brief Add socket listener to the rx socket list for callback when the socket listener is not
+     * null, if the listener is null, remove the socket instance from the rx socket list
+     *
+     * @param listener The listener to decide add or remove from the rx socket list.
+     */
+    virtual void Listen(ISocketListener* listener);
+
+    /**
+     * @brief Send data to registered socket
+     *
+     * @param pData The data array
+     * @param nDataSize The length of data
+     * @return uint32_t The length of data which is sent successfully, return -1 when it is failed
+     * to send
+     */
     virtual uint32_t SendTo(uint8_t* pData, uint32_t nDataSize);
+
+    /**
+     * @brief Receive data to the give buffer
+     *
+     * @param pData The data buffer to copy
+     * @param nBufferSize The size of buffer
+     * @return uint32_t The length of data which is received successfully, return -1 when it is
+     * failed to received or has invalid arguments
+     */
     virtual uint32_t ReceiveFrom(uint8_t* pData, uint32_t nBufferSize);
+
+    /**
+     * @brief Remove the socket from the socket list
+     */
     virtual void Close();
+
+    /**
+     * @brief Set the socket option, calls setsockopt
+     *
+     * @param nOption The option type
+     * @param nOptionValue The value to set
+     * @return true Returns when the setsockopt returns valid status
+     * @return false Returns when the setsockopt returns -1
+     */
     virtual bool SetSocketOpt(eSocketOpt nOption, uint32_t nOptionValue);
     int32_t GetSocketFd();
     ISocketListener* GetListener();
@@ -61,10 +115,9 @@ private:
     static std::list<ImsMediaSocket*> slistRxSocket;
     static int32_t sRxSocketCount;
     static bool mSocketListUpdated;
-    static bool mbTerminateMonitor;
+    static bool mTerminateMonitor;
     static std::mutex sMutexRxSocket;
     static std::mutex sMutexSocketList;
-    static std::mutex sMutexSocketMonitorThread;
     static ImsMediaCondition mConditionExit;
     int32_t mSocketFd;
     int32_t mRefCount;

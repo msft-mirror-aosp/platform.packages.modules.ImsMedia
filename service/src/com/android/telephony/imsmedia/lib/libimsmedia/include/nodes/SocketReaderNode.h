@@ -19,6 +19,7 @@
 
 #include <BaseNode.h>
 #include <ISocket.h>
+#include <mutex>
 
 class SocketReaderNode : public BaseNode, public ISocketListener
 {
@@ -28,28 +29,41 @@ public:
     virtual kBaseNodeId GetNodeId();
     virtual ImsMediaResult Start();
     virtual void Stop();
+    virtual void ProcessData();
     virtual bool IsRunTime();
     virtual bool IsSourceNode();
     void SetConfig(void* config);
     virtual bool IsSameConfig(void* config);
-    virtual void OnDataFromFrontNode(ImsMediaSubType subtype, uint8_t* pData, uint32_t nDataSize,
-            uint32_t nTimestamp, bool bMark, uint32_t nSeqNum,
-            ImsMediaSubType nDataType = ImsMediaSubType::MEDIASUBTYPE_UNDEFINED);
+    virtual void OnReadDataFromSocket();
+
+    /**
+     * @brief Set the local socket file descriptor
+     */
     void SetLocalFd(int fd);
+
+    /**
+     * @brief Set the local ip address and port number
+     */
     void SetLocalAddress(const RtpAddress address);
+
+    /**
+     * @brief Set the peer ip address and port number
+     */
     void SetPeerAddress(const RtpAddress address);
+
+    /**
+     * @brief Set the protocol type defined as ImsMediaProtocolType
+     */
     void SetProtocolType(ImsMediaProtocolType type) { mProtocolType = type; }
 
 private:
-    void OnReceiveEnabled();
-
     int mLocalFd;
     ImsMediaProtocolType mProtocolType;
     ISocket* mSocket;
-    uint8_t mBuffer[1500];
     RtpAddress mLocalAddress;
     RtpAddress mPeerAddress;
-    bool mbSocketOpened;
+    bool mSocketOpened;
+    std::mutex mMutex;
 };
 
 #endif

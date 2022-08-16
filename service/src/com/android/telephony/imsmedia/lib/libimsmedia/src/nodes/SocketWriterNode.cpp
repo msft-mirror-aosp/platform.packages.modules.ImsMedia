@@ -21,7 +21,7 @@ SocketWriterNode::SocketWriterNode(BaseSessionCallback* callback) :
         BaseNode(callback)
 {
     mSocket = NULL;
-    mbSocketOpened = false;
+    mSocketOpened = false;
     mDisableSocket = false;
 }
 
@@ -40,13 +40,12 @@ kBaseNodeId SocketWriterNode::GetNodeId()
 
 ImsMediaResult SocketWriterNode::Start()
 {
-    IMLOGD0("[Start]");
+    IMLOGD1("[Start] media[%d]", mMediaType);
     mSocket = ISocket::GetInstance(mLocalAddress.port, mPeerAddress.ipAddress, mPeerAddress.port);
 
     if (mSocket == NULL)
     {
         IMLOGE0("[Start] can't create socket instance");
-        mbSocketOpened = false;
         return RESULT_NOT_READY;
     }
 
@@ -58,25 +57,31 @@ ImsMediaResult SocketWriterNode::Start()
     if (mSocket->Open(mLocalFd) == false)
     {
         IMLOGE0("[Start] can't open socket");
-        mbSocketOpened = false;
+        mSocketOpened = false;
         return RESULT_PORT_UNAVAILABLE;
     }
 
-    mbSocketOpened = true;
+    mSocketOpened = true;
     mNodeState = kNodeStateRunning;
     return RESULT_SUCCESS;
 }
 
 void SocketWriterNode::Stop()
 {
-    IMLOGD0("[Stop]");
+    IMLOGD1("[Stop] media[%d]", mMediaType);
+
     if (mSocket != NULL)
     {
-        mSocket->Close();
+        if (mSocketOpened)
+        {
+            mSocket->Close();
+            mSocketOpened = false;
+        }
+
         ISocket::ReleaseInstance(mSocket);
         mSocket = NULL;
-        mbSocketOpened = false;
     }
+
     mNodeState = kNodeStateStopped;
 }
 

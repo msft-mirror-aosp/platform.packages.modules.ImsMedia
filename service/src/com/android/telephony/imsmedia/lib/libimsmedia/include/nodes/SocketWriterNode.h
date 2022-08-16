@@ -47,7 +47,7 @@ private:
     RtpAddress mLocalAddress;
     RtpAddress mPeerAddress;
     int32_t mDscp;
-    bool mbSocketOpened;
+    bool mSocketOpened;
     bool mDisableSocket;
 };
 

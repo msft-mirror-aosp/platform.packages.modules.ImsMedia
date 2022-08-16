@@ -22,11 +22,11 @@
 #include <netinet/in.h>
 #include <netdb.h>
 #include <string.h>
-#include <pthread.h>
 #include <errno.h>
 #include <arpa/inet.h>
 #include <sys/ioctl.h>
 #include <net/if.h>
+#include <thread>
 #include <ImsMediaSocket.h>
 #include <ImsMediaTrace.h>
 #include <ImsMediaNetworkUtil.h>
@@ -36,17 +36,17 @@ std::list<ImsMediaSocket*> ImsMediaSocket::slistRxSocket;
 std::list<ImsMediaSocket*> ImsMediaSocket::slistSocket;
 int32_t ImsMediaSocket::sRxSocketCount = 0;
 bool ImsMediaSocket::mSocketListUpdated = false;
-bool ImsMediaSocket::mbTerminateMonitor = false;
+bool ImsMediaSocket::mTerminateMonitor = false;
 ImsMediaCondition ImsMediaSocket::mConditionExit;
 std::mutex ImsMediaSocket::sMutexRxSocket;
 std::mutex ImsMediaSocket::sMutexSocketList;
-std::mutex ImsMediaSocket::sMutexSocketMonitorThread;
 
 ImsMediaSocket* ImsMediaSocket::GetInstance(
         uint32_t localPort, const char* peerIpAddress, uint32_t peerPort)
 {
     ImsMediaSocket* pImsMediaSocket = NULL;
     std::lock_guard<std::mutex> guard(sMutexSocketList);
+
     for (auto& i : slistSocket)
     {
         if (strcmp(i->GetPeerIPAddress(), peerIpAddress) == 0 && i->GetLocalPort() == localPort &&
@@ -55,6 +55,7 @@ ImsMediaSocket* ImsMediaSocket::GetInstance(
             return i;
         }
     }
+
     pImsMediaSocket = new ImsMediaSocket();
     return pImsMediaSocket;
 }
@@ -158,11 +159,10 @@ bool ImsMediaSocket::Open(int socketFd)
     return true;
 }
 
-bool ImsMediaSocket::Listen(ISocketListener* listener)
+void ImsMediaSocket::Listen(ISocketListener* listener)
 {
     IMLOGD0("[Listen]");
     mListener = listener;
-    std::lock_guard<std::mutex> guard(sMutexSocketMonitorThread);
 
     if (listener != NULL)
     {
@@ -179,6 +179,7 @@ bool ImsMediaSocket::Listen(ISocketListener* listener)
         {
             mSocketListUpdated = true;
         }
+
         sRxSocketCount++;
         IMLOGD1("[Listen] add sRxSocketCount[%d]", sRxSocketCount);
     }
@@ -198,10 +199,9 @@ bool ImsMediaSocket::Listen(ISocketListener* listener)
         {
             mSocketListUpdated = true;
         }
+
         IMLOGD1("[Listen] remove RxSocketCount[%d]", sRxSocketCount);
     }
-
-    return true;
 }
 
 uint32_t ImsMediaSocket::SendTo(uint8_t* pData, uint32_t nDataSize)
@@ -268,7 +268,6 @@ uint32_t ImsMediaSocket::ReceiveFrom(uint8_t* pData, uint32_t nBufferSize)
     socklen_t nSockAddrLen = 0;
     sockaddr_storage ss;
     pstSockAddr = reinterpret_cast<sockaddr*>(&ss);
-
     nLen = recvfrom(mSocketFd, pData, nBufferSize, 0, pstSockAddr, &nSockAddrLen);
 
     if (nLen > 0)
@@ -294,6 +293,7 @@ void ImsMediaSocket::Close()
 {
     IMLOGD1("[Close] enter, nRefCount[%d]", mRefCount);
     mRefCount--;
+
     if (mRefCount > 0)
     {
         IMLOGD0("[Close] exit - Socket is used");
@@ -318,6 +318,7 @@ bool ImsMediaSocket::SetSocketOpt(eSocketOpt nOption, uint32_t nOptionValue)
     {
         case SOCKET_OPT_IP_QOS:
             mToS = nOptionValue;
+
             if (mLocalIPVersion == IPV4)
             {
                 if (-1 == setsockopt(mSocketFd, IPPROTO_IP, IP_TOS, (void*)&mToS, sizeof(uint32_t)))
@@ -359,51 +360,25 @@ ISocketListener* ImsMediaSocket::GetListener()
 
 void ImsMediaSocket::StartSocketMonitor()
 {
-    if (mbTerminateMonitor == true)
+    if (mTerminateMonitor == true)
     {
         IMLOGD0("[StartSocketMonitor] Send Signal");
-        mbTerminateMonitor = false;
+        mTerminateMonitor = false;
         mConditionExit.signal();
         return;
     }
 
-    mbTerminateMonitor = false;
+    mTerminateMonitor = false;
     IMLOGD_PACKET0(IM_PACKET_LOG_SOCKET, "[StartSocketMonitor] start monitor thread");
 
-    pthread_t thr;
-    pthread_attr_t attr;
-
-    if (pthread_attr_init(&attr) != 0)
-    {
-        IMLOGE0("[StartSocketMonitor] pthread_attr_init() FAILED");
-        return;
-    }
-
-    if (pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED) != 0)
-    {
-        pthread_attr_destroy(&attr);
-        IMLOGE0("[StartSocketMonitor] pthread_attr_setdetachstate() FAILED");
-        return;
-    }
-
-    if (pthread_create(&thr, &attr, SocketMonitorThread, NULL) != 0)
-    {
-        pthread_attr_destroy(&attr);
-        IMLOGE0("[StartSocketMonitor] pthread_create() FAILED");
-        return;
-    }
-
-    if (pthread_attr_destroy(&attr) != 0)
-    {
-        IMLOGE0("[StartSocketMonitor] pthread_attr_destroy() FAILED");
-        return;
-    }
+    std::thread socketMonitorThread(&ImsMediaSocket::SocketMonitorThread);
+    socketMonitorThread.detach();
 }
 
 void ImsMediaSocket::StopSocketMonitor()
 {
     IMLOGD_PACKET0(IM_PACKET_LOG_SOCKET, "[StopSocketMonitor] stop monitor thread");
-    mbTerminateMonitor = true;
+    mTerminateMonitor = true;
     mConditionExit.wait();
 }
 
@@ -420,36 +395,43 @@ uint32_t ImsMediaSocket::SetSocketFD(void* pReadFds, void* pWriteFds, void* pExc
     {
         int32_t socketFD = i->GetSocketFd();
         FD_SET(socketFD, (fd_set*)pReadFds);
+
         if (socketFD > nMaxSD)
+        {
             nMaxSD = socketFD;
+        }
     }
 
     mSocketListUpdated = false;
     return nMaxSD;
 }
 
-void ImsMediaSocket::SendNotify(void* pReadfds)
+void ImsMediaSocket::ReadDataFromSocket(void* pReadfds)
 {
     std::lock_guard<std::mutex> guard(sMutexRxSocket);
-    IMLOGD_PACKET0(IM_PACKET_LOG_SOCKET, "[SendNotify]");
+    IMLOGD_PACKET0(IM_PACKET_LOG_SOCKET, "[ReadDataFromSocket]");
 
     for (auto& rxSocket : slistRxSocket)
     {
         if (rxSocket != NULL)
         {
             int32_t socketFD = rxSocket->GetSocketFd();
+
             if (FD_ISSET(socketFD, (fd_set*)pReadfds))
             {
-                IMLOGD_PACKET1(IM_PACKET_LOG_SOCKET, "[SendNotify] send notify to listener %p",
-                        rxSocket->GetListener());
+                IMLOGD_PACKET1(IM_PACKET_LOG_SOCKET,
+                        "[ReadDataFromSocket] send notify to listener %p", rxSocket->GetListener());
+
                 if (rxSocket->GetListener() != NULL)
-                    rxSocket->GetListener()->OnReceiveEnabled();
+                {
+                    rxSocket->GetListener()->OnReadDataFromSocket();
+                }
             }
         }
     }
 }
 
-void* ImsMediaSocket::SocketMonitorThread(void*)
+void ImsMediaSocket::SocketMonitorThread()
 {
     static fd_set ReadFds;
     static fd_set WriteFds;
@@ -467,10 +449,12 @@ void* ImsMediaSocket::SocketMonitorThread(void*)
         struct timeval tv;
         tv.tv_sec = 0;
         tv.tv_usec = 100 * 1000;  // micro-second
-        if (mbTerminateMonitor)
+
+        if (mTerminateMonitor)
         {
             break;
         }
+
         if (mSocketListUpdated)
         {
             nMaxSD = SetSocketFD(&ReadFds, &WriteFds, &ExceptFds);
@@ -481,7 +465,8 @@ void* ImsMediaSocket::SocketMonitorThread(void*)
         memcpy(&TmpExcepfds, &ExceptFds, sizeof(fd_set));
 
         nRes = select(nMaxSD + 1, &TmpReadfds, &TmpWritefds, &TmpExcepfds, &tv);
-        if (mbTerminateMonitor)
+
+        if (mTerminateMonitor)
         {
             break;
         }
@@ -495,12 +480,11 @@ void* ImsMediaSocket::SocketMonitorThread(void*)
         }
         else
         {
-            SendNotify(&TmpReadfds);
+            ReadDataFromSocket(&TmpReadfds);
         }
     }
 
     IMLOGD0("[SocketMonitorThread] exit");
-    mbTerminateMonitor = false;
+    mTerminateMonitor = false;
     mConditionExit.signal();
-    return NULL;
 }

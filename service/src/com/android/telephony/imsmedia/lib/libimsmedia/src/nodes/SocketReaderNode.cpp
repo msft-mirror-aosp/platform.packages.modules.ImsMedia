@@ -16,6 +16,7 @@
 
 #include <SocketReaderNode.h>
 #include <ImsMediaTrace.h>
+#include <thread>
 
 SocketReaderNode::SocketReaderNode(BaseSessionCallback* callback) :
         BaseNode(callback),
@@ -23,16 +24,9 @@ SocketReaderNode::SocketReaderNode(BaseSessionCallback* callback) :
 {
 }
 
-SocketReaderNode::~SocketReaderNode() {}
-
-void SocketReaderNode::OnReceiveEnabled()
+SocketReaderNode::~SocketReaderNode()
 {
-    int nLen = mSocket->ReceiveFrom(mBuffer, 1500);
-    if (nLen > 0)
-    {
-        IMLOGD_PACKET1(IM_PACKET_LOG_SOCKET, "[OnReceiveEnabled] read %d bytes", nLen);
-        SendDataToRearNode(MEDIASUBTYPE_UNDEFINED, (uint8_t*)mBuffer, nLen, 0, 0, 0);
-    }
+    IMLOGD1("[~SocketReaderNode] queue size[%d]", GetDataCount());
 }
 
 kBaseNodeId SocketReaderNode::GetNodeId()
@@ -42,13 +36,12 @@ kBaseNodeId SocketReaderNode::GetNodeId()
 
 ImsMediaResult SocketReaderNode::Start()
 {
-    IMLOGD0("[Start]");
+    IMLOGD1("[Start] media[%d]", mMediaType);
     mSocket = ISocket::GetInstance(mLocalAddress.port, mPeerAddress.ipAddress, mPeerAddress.port);
 
     if (mSocket == NULL)
     {
         IMLOGE0("[Start] can't create socket instance");
-        mbSocketOpened = false;
         return RESULT_NOT_READY;
     }
 
@@ -59,40 +52,62 @@ ImsMediaResult SocketReaderNode::Start()
     if (mSocket->Open(mLocalFd) != true)
     {
         IMLOGE0("[Start] can't open socket");
-        mbSocketOpened = false;
+        mSocketOpened = false;
         return RESULT_PORT_UNAVAILABLE;
     }
 
-    if (mSocket->Listen(this) != true)
-    {
-        IMLOGE0("[Start] can't listen socket");
-        mbSocketOpened = false;
-        return RESULT_NOT_READY;
-    }
-
-    memset(mBuffer, 0, sizeof(mBuffer));
-    mbSocketOpened = true;
+    mSocket->Listen(this);
+    mSocketOpened = true;
     mNodeState = kNodeStateRunning;
     return RESULT_SUCCESS;
 }
 
 void SocketReaderNode::Stop()
 {
-    IMLOGD0("[Stop]");
+    IMLOGD1("[Stop] media[%d]", mMediaType);
+    std::lock_guard<std::mutex> guard(mMutex);
+
     if (mSocket != NULL)
     {
         mSocket->Listen(NULL);
-        mSocket->Close();
+
+        if (mSocketOpened)
+        {
+            mSocket->Close();
+        }
+
         ISocket::ReleaseInstance(mSocket);
         mSocket = NULL;
-        mbSocketOpened = false;
+        mSocketOpened = false;
     }
+
     mNodeState = kNodeStateStopped;
+}
+
+void SocketReaderNode::ProcessData()
+{
+    std::lock_guard<std::mutex> guard(mMutex);
+    uint8_t* data = NULL;
+    uint32_t dataSize = 0;
+    uint32_t timeStamp = 0;
+    bool bMark = false;
+    uint32_t seqNum = 0;
+    ImsMediaSubType subtype;
+    ImsMediaSubType dataType;
+
+    while (GetData(&subtype, &data, &dataSize, &timeStamp, &bMark, &seqNum, &dataType))
+    {
+        IMLOGD_PACKET2(
+                IM_PACKET_LOG_SOCKET, "[ProcessData] media[%d], size[%d]", mMediaType, dataSize);
+
+        SendDataToRearNode(MEDIASUBTYPE_UNDEFINED, (uint8_t*)data, dataSize, 0, 0, 0);
+        DeleteData();
+    }
 }
 
 bool SocketReaderNode::IsRunTime()
 {
-    return true;
+    return false;
 }
 
 bool SocketReaderNode::IsSourceNode()
@@ -103,8 +118,12 @@ bool SocketReaderNode::IsSourceNode()
 void SocketReaderNode::SetConfig(void* config)
 {
     if (config == NULL)
+    {
         return;
+    }
+
     RtpConfig* pConfig = reinterpret_cast<RtpConfig*>(config);
+
     if (mProtocolType == RTP)
     {
         mPeerAddress = RtpAddress(pConfig->getRemoteAddress().c_str(), pConfig->getRemotePort());
@@ -119,7 +138,10 @@ void SocketReaderNode::SetConfig(void* config)
 bool SocketReaderNode::IsSameConfig(void* config)
 {
     if (config == NULL)
+    {
         return true;
+    }
+
     RtpConfig* pConfig = reinterpret_cast<RtpConfig*>(config);
     RtpAddress peerAddress;
 
@@ -135,28 +157,24 @@ bool SocketReaderNode::IsSameConfig(void* config)
     return (mPeerAddress == peerAddress);
 }
 
-void SocketReaderNode::OnDataFromFrontNode(ImsMediaSubType subtype, uint8_t* pData,
-        uint32_t nDataSize, uint32_t nTimestamp, bool bMark, uint32_t nSeqNum,
-        ImsMediaSubType nDataType)
+void SocketReaderNode::OnReadDataFromSocket()
 {
-    (void)nDataType;
+    uint8_t* data = new uint8_t[DEFAULT_MTU];
+    memset(data, 0, DEFAULT_MTU);
 
-    IMLOGD_PACKET3(IM_PACKET_LOG_SOCKET,
-            "[OnDataFromFrontNode] type[%d], subtype[%d] before sendto %d bytes", mMediaType,
-            subtype, nDataSize);
+    int nLen = mSocket->ReceiveFrom(data, DEFAULT_MTU);
 
-    if (bMark == true)
+    if (nLen <= 0)
     {
-        IMLOGD_PACKET2(IM_PACKET_LOG_SOCKET, "[OnDataFromFrontNode] TS[%d], SeqNum[%d]", nTimestamp,
-                nSeqNum);
-    }
-
-    if (mSocket == NULL)
-    {
+        delete[] data;
         return;
     }
 
-    mSocket->SendTo(pData, nDataSize);
+    IMLOGD_PACKET3(IM_PACKET_LOG_SOCKET,
+            "[OnReadDataFromSocket] media[%d], data size[%d], queue size[%d]", mMediaType, nLen,
+            GetDataCount());
+    std::lock_guard<std::mutex> guard(mMutex);
+    OnDataFromFrontNode(MEDIASUBTYPE_UNDEFINED, data, nLen, 0, 0, 0);
 }
 
 void SocketReaderNode::SetLocalFd(int fd)
