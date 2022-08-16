@@ -44,7 +44,7 @@ enum kImsMediaVideoMode
 
 enum kVideoSourceEvent
 {
-    kVideoSourceEventUpdateCamera = 0,
+    kVideoSourceEventUpdateOrientation = 0,
     kVideoSourceEventCameraError,
 };
 
@@ -57,21 +57,96 @@ class ImsMediaVideoSource
 public:
     ImsMediaVideoSource();
     ~ImsMediaVideoSource();
+
+    /**
+     * @brief Set the IVideoSourceCallback object listener
+     */
     void SetListener(IVideoSourceCallback* listener);
+
+    /**
+     * @brief Set the VideoMode defined in VideoConfig
+     */
     void SetVideoMode(const int32_t mode);
+
+    /**
+     * @brief Set the Camera configuration parameter, it should set before open camera
+     *
+     * @param cameraId The camera device id
+     * @param cameraZoom The camera zoom level
+     */
     void SetCameraConfig(const uint32_t cameraId, const uint32_t cameraZoom);
+
+    /**
+     * @brief Set the pause image path stored
+     */
     void SetImagePath(const android::String8 path);
+
+    /**
+     * @brief Set the Codec configuration parameter, this method should be called before calling
+     * start method of the ImsMediaVideoSource instance
+     *
+     * @param codecType The codec type to run, Avc and HEVC codec is available
+     * @param profile The codec profile
+     * @param level The codec level
+     * @param bitrate The bitrate of encoding frames in kbps units
+     * @param framerate The framerate of the encoding frames
+     * @param interval The interval of the idr frames
+     */
     void SetCodecConfig(const int32_t codecType, const uint32_t profile, const uint32_t level,
             const uint32_t bitrate, const uint32_t framerate, const uint32_t interval);
+
+    /**
+     * @brief Set the resolution of encoded output frames required
+     */
     void SetResolution(const uint32_t width, const uint32_t height);
+
+    /**
+     * @brief Set the surface buffer for preview surface view
+     */
     void SetSurface(ANativeWindow* window);
+
+    /**
+     * @brief Set the device orientation value
+     *
+     * @param degree The orientation in degree units
+     */
     void SetDeviceOrientation(const uint32_t degree);
+
+    /** Start the acquires raw frame from the source and encode or sends it to the preview surface
+     * buffer based on the VideoMode configured*/
     bool Start();
+
+    /** Stop the image flow */
     void Stop();
-    void processFormatChanged(AMediaFormat* format);
-    void processOutputBuffer();
+
+    /**
+     * @brief Get the video source node is stopped
+     */
+    bool IsStopped();
+
+    /**
+     * @brief Called when the valid input camera frame is ready.
+     *
+     * @param pImage The camera frame object
+     */
+    void onCameraFrame(AImage* pImage);
+
+    /**
+     * @brief Change bitrate of the encoding frames
+     *
+     * @param bitrate The bitrate in kbps units
+     */
+    void changeBitrate(const uint32_t bitrate);
+
+    /**
+     * @brief Request a new IDR frame to the codec output streaming
+     */
+    void requestIdrFrame();
 
 private:
+    void processOutputBuffer();
+    ANativeWindow* CreateImageReader(int width, int height);
+
     ImsMediaCamera* mCamera;
     ANativeWindow* mWindow;
     AMediaCodec* mCodec;
@@ -99,9 +174,5 @@ private:
     uint64_t mTimestamp;
     uint64_t mPrevTimestamp;
     bool mStopped;
-
-    ANativeWindow* CreateImageReader(int width, int height);
-    void onCameraFrame(AImage* pImage);
-    static void ImageCallback(void* context, AImageReader* reader);
 };
 #endif
