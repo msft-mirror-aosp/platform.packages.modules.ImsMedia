@@ -58,12 +58,14 @@ ImsMediaResult IVideoSourceNode::Start()
 {
     IMLOGD2("[Start] codec[%d], mode[%d]", mCodecType, mVideoMode);
     std::lock_guard<std::mutex> guard(mMutex);
+
     if (mVideoSource)
     {
         mVideoSource->SetCodecConfig(
                 mCodecType, mCodecProfile, mCodecLevel, mBitrate, mFramerate, mIntraInterval);
         mVideoSource->SetVideoMode(mVideoMode);
         mVideoSource->SetResolution(mWidth, mHeight);
+
         if (mVideoMode == VideoConfig::VIDEO_MODE_PREVIEW ||
                 mVideoMode == VideoConfig::VIDEO_MODE_RECORDING)
         {
@@ -79,11 +81,14 @@ ImsMediaResult IVideoSourceNode::Start()
         {
             mVideoSource->SetImagePath(mImagePath);
         }
+
         mVideoSource->SetSurface(mWindow);
+
         if (mVideoSource->Start() == false)
         {
             return RESULT_NOT_READY;
         }
+
         mVideoSource->SetDeviceOrientation(mDeviceOrientation);
     }
     mNodeState = kNodeStateRunning;
@@ -94,10 +99,12 @@ void IVideoSourceNode::Stop()
 {
     IMLOGD0("[Stop]");
     std::lock_guard<std::mutex> guard(mMutex);
+
     if (mVideoSource)
     {
         mVideoSource->Stop();
     }
+
     mNodeState = kNodeStateStopped;
 }
 
@@ -114,7 +121,10 @@ bool IVideoSourceNode::IsSourceNode()
 void IVideoSourceNode::SetConfig(void* config)
 {
     if (config == NULL)
+    {
         return;
+    }
+
     VideoConfig* pConfig = reinterpret_cast<VideoConfig*>(config);
     mCodecType = ImsMediaVideoUtil::ConvertCodecType(pConfig->getCodecType());
     mVideoMode = pConfig->getVideoMode();
@@ -126,6 +136,7 @@ void IVideoSourceNode::SetConfig(void* config)
     mWidth = pConfig->getResolutionWidth();
     mHeight = pConfig->getResolutionHeight();
     mIntraInterval = pConfig->getIntraFrameInterval();
+
     if (mVideoMode == VideoConfig::VIDEO_MODE_PREVIEW ||
             mVideoMode == VideoConfig::VIDEO_MODE_RECORDING)
     {
@@ -169,6 +180,7 @@ ImsMediaResult IVideoSourceNode::UpdateConfig(void* config)
     }
 
     bool isRestart = false;
+
     if (IsSameConfig(config))
     {
         IMLOGD0("[UpdateConfig] no update");
@@ -238,21 +250,21 @@ void IVideoSourceNode::OnUplinkEvent(
 
 void IVideoSourceNode::OnEvent(int32_t type, int32_t param1, int32_t param2)
 {
-    IMLOGD1("[OnEvent] type[%d]", type);
-
-    if (mCallback == NULL)
-    {
-        IMLOGE0("[OnEvent] callback is null");
-        return;
-    }
+    IMLOGD3("[OnEvent] type[%d], param1[%d], param2[%d]", type, param1, param2);
 
     switch (type)
     {
-        case kVideoSourceEventUpdateCamera:
-            mCallback->SendEvent(kRequestVideoCvoUpdate, param1, param2);
+        case kVideoSourceEventUpdateOrientation:
+            if (mCallback != NULL)
+            {
+                mCallback->SendEvent(kRequestVideoCvoUpdate, param1, param2);
+            }
             break;
         case kVideoSourceEventCameraError:
-            mCallback->SendEvent(kImsMediaEventNotifyError, param1, param2);
+            if (mCallback != NULL)
+            {
+                mCallback->SendEvent(kImsMediaEventNotifyError, param1, param2);
+            }
             break;
         default:
             break;

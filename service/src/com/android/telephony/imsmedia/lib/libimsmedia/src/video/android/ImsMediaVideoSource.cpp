@@ -109,35 +109,51 @@ void ImsMediaVideoSource::SetDeviceOrientation(const uint32_t degree)
 
     if (mDeviceOrientation != degree)
     {
-        if (mCamera != NULL && mVideoMode == kVideoModeRecording)
+        if (mVideoMode == kVideoModeRecording)
         {
-            int32_t facing, sensorOrientation;
-            if (mCamera->GetSensorOrientation(mCameraId, &facing, &sensorOrientation) &&
-                    mListener != NULL)
+            int32_t facing = kCameraFacingFront;
+            int32_t sensorOrientation = 0;
+            int32_t rotateDegree = 0;
+
+            if (mCamera != NULL)
             {
-                int32_t rotateDegree = 0;
+                mCamera->GetSensorOrientation(mCameraId, &facing, &sensorOrientation);
+                IMLOGD2("[SetDeviceOrientation] camera facing[%d], sensorOrientation[%d]", facing,
+                        sensorOrientation);
+            }
 
-                // assume device is always portrait
-                if (mWidth > mHeight)
+            rotateDegree = 0;
+
+            // assume device is always portrait
+            if (mWidth > mHeight)
+            {
+                if (facing == kCameraFacingFront)
                 {
-                    if (facing == kCameraFacingFront)  // front
-                    {
-                        sensorOrientation = (sensorOrientation + 180) % 360;
-                    }
+                    sensorOrientation = (sensorOrientation + 180) % 360;
+                }
 
-                    rotateDegree = sensorOrientation - degree;
+                rotateDegree = sensorOrientation - degree;
 
-                    if (rotateDegree < 0)
-                    {
-                        rotateDegree += 360;
-                    }
+                if (rotateDegree < 0)
+                {
+                    rotateDegree += 360;
+                }
+            }
+            else
+            {
+                if (degree == 90 || degree == 270)
+                {
+                    rotateDegree = (degree + 180) % 360;
                 }
                 else
                 {
                     rotateDegree = degree;
                 }
+            }
 
-                mListener->OnEvent(kVideoSourceEventUpdateCamera, facing, rotateDegree);
+            if (mListener != NULL)
+            {
+                mListener->OnEvent(kVideoSourceEventUpdateOrientation, facing, rotateDegree);
             }
         }
 
@@ -147,7 +163,7 @@ void ImsMediaVideoSource::SetDeviceOrientation(const uint32_t degree)
 
 bool ImsMediaVideoSource::Start()
 {
-    IMLOGD0("[Start]");
+    IMLOGD1("[Start], VideoMode[%d]", mVideoMode);
     mRecordingSurface = NULL;
 
     if (mVideoMode == kVideoModeRecording)
@@ -158,6 +174,7 @@ bool ImsMediaVideoSource::Start()
 
         char kMimeType[128] = {'\0'};
         sprintf(kMimeType, "video/avc");
+
         if (mCodecType == kVideoCodecHevc)
         {
             sprintf(kMimeType, "video/hevc");
@@ -177,6 +194,7 @@ bool ImsMediaVideoSource::Start()
         AMediaFormat_setInt32(mFormat, AMEDIAFORMAT_KEY_MAX_INPUT_SIZE, mWidth * mHeight * 10);
 
         mCodec = AMediaCodec_createEncoderByType(kMimeType);
+
         if (mCodec == NULL)
         {
             IMLOGE0("[Start] Unable to create encoder");
@@ -185,6 +203,7 @@ bool ImsMediaVideoSource::Start()
 
         media_status_t err = AMediaCodec_configure(
                 mCodec, mFormat, NULL, NULL, AMEDIACODEC_CONFIGURE_FLAG_ENCODE);
+
         if (err != AMEDIA_OK)
         {
             IMLOGE1("[Start] configure error[%d]", err);
@@ -198,6 +217,7 @@ bool ImsMediaVideoSource::Start()
         if (mWidth > mHeight)  // Is Landscape Mode
         {
             err = AMediaCodec_createInputSurface(mCodec, &mRecordingSurface);
+
             if (err != AMEDIA_OK)
             {
                 IMLOGE1("[Start] create input surface error[%d]", err);
@@ -211,6 +231,7 @@ bool ImsMediaVideoSource::Start()
         else
         {
             mImageReaderSurface = CreateImageReader(mWidth, mHeight);
+
             if (mImageReaderSurface == NULL)
             {
                 IMLOGE0("[Start] create image reader failed");
@@ -219,6 +240,7 @@ bool ImsMediaVideoSource::Start()
         }
 
         err = AMediaCodec_start(mCodec);
+
         if (err != AMEDIA_OK)
         {
             IMLOGE1("[Start] codec start[%d]", err);
@@ -287,20 +309,22 @@ void ImsMediaVideoSource::Stop()
 {
     IMLOGD0("[Stop]");
 
+    mMutex.lock();
+    mStopped = true;
+    mMutex.unlock();
+
     if (mCamera != NULL)
     {
         mCamera->StopSession();
     }
-
-    mMutex.lock();
-    mStopped = true;
-    mMutex.unlock();
 
     if (mVideoMode == kVideoModeRecording)
     {
         mConditionExit.reset();
         mConditionExit.wait_timeout(MAX_WAIT_RESTART);
     }
+
+    IMLOGD0("[Stop] deinitialize camera");
 
     if (mCamera != NULL)
     {
@@ -339,178 +363,31 @@ void ImsMediaVideoSource::Stop()
     }
 }
 
-void ImsMediaVideoSource::processOutputBuffer()
+bool ImsMediaVideoSource::IsStopped()
 {
-    static int kTimeout = 100000;  // be responsive on signal
-    static int kMaxUplinkBuffer = 100;
-    uint32_t nextTime = ImsMediaTimer::GetTimeInMilliSeconds();
-    uint32_t timeInterval = 66;
-    uint32_t timeDiff = 0;
-    std::list<uint8_t*> uplinkBuffers;
-
-    if (mFramerate != 0)
-    {
-        timeInterval = 1000 / mFramerate;
-    }
-
-    IMLOGD1("[processOutputBuffer] interval[%d]", timeInterval);
-
-    for (;;)
-    {
-        uint32_t nCurrTime;
-        mMutex.lock();
-        if (mStopped)
-        {
-            IMLOGD0("[processOutputBuffer] terminated");
-            mMutex.unlock();
-            break;
-        }
-        mMutex.unlock();
-
-        AMediaCodecBufferInfo info;
-        auto index = AMediaCodec_dequeueOutputBuffer(mCodec, &info, kTimeout);
-
-        if (index >= 0)
-        {
-            IMLOGD_PACKET5(IM_PACKET_LOG_VIDEO,
-                    "[processOutputBuffer] index[%d], size[%d], offset[%d], time[%ld], flags[%d]",
-                    index, info.size, info.offset, info.presentationTimeUs, info.flags);
-
-            if (info.size > 0)
-            {
-                size_t buffCapacity;
-                uint8_t* buf = AMediaCodec_getOutputBuffer(mCodec, index, &buffCapacity);
-                if (buf != NULL && buffCapacity > 0)
-                {
-                    uint8_t* data = new uint8_t[info.size];
-                    memcpy(data, buf, info.size);
-                    uplinkBuffers.push_back(data);
-
-                    if (mListener != NULL)
-                    {
-                        mListener->OnUplinkEvent(
-                                data, info.size, info.presentationTimeUs, info.flags);
-                    }
-                }
-            }
-
-            AMediaCodec_releaseOutputBuffer(mCodec, index, false);
-        }
-        else if (index == AMEDIACODEC_INFO_OUTPUT_BUFFERS_CHANGED)
-        {
-            IMLOGD0("[processOutputBuffer] Encoder output buffer changed");
-        }
-        else if (index == AMEDIACODEC_INFO_OUTPUT_FORMAT_CHANGED)
-        {
-            if (mFormat != NULL)
-            {
-                AMediaFormat_delete(mFormat);
-            }
-            mFormat = AMediaCodec_getOutputFormat(mCodec);
-            IMLOGD1("[processOutputBuffer] Encoder format changed, format[%s]",
-                    AMediaFormat_toString(mFormat));
-        }
-        else if (index == AMEDIACODEC_INFO_TRY_AGAIN_LATER)
-        {
-            IMLOGD_PACKET0(IM_PACKET_LOG_VIDEO, "[processOutputBuffer] no output buffer");
-        }
-        else
-        {
-            IMLOGD1("[processOutputBuffer] unexpected index[%d]", index);
-        }
-
-        if (uplinkBuffers.size() > kMaxUplinkBuffer)
-        {
-            uint8_t* data = uplinkBuffers.front();
-            delete[] data;
-            uplinkBuffers.pop_front();
-        }
-
-        nextTime += timeInterval;
-        nCurrTime = ImsMediaTimer::GetTimeInMilliSeconds();
-        if (nextTime > nCurrTime)
-        {
-            timeDiff = nextTime - nCurrTime;
-            IMLOGD_PACKET1(IM_PACKET_LOG_VIDEO, "[processOutputBuffer] timeDiff[%u]", timeDiff);
-            ImsMediaTimer::Sleep(timeDiff);
-        }
-    }
-
-    while (uplinkBuffers.size())
-    {
-        uint8_t* data = uplinkBuffers.front();
-        delete data;
-        uplinkBuffers.pop_front();
-    }
-
-    uplinkBuffers.clear();
-    mConditionExit.signal();
-    IMLOGD0("[processOutputBuffer] exit");
-}
-
-void ImsMediaVideoSource::ImageCallback(void* context, AImageReader* reader)
-{
-    AImage* image = nullptr;
-    auto status = AImageReader_acquireNextImage(reader, &image);
-    // TODO: check status.
-
-    ImsMediaVideoSource* pVideoSource = static_cast<ImsMediaVideoSource*>(context);
-    pVideoSource->onCameraFrame(image);
-    AImage_delete(image);
-}
-
-ANativeWindow* ImsMediaVideoSource::CreateImageReader(int width, int height)
-{
-    media_status_t status =
-            AImageReader_new(width, height, AIMAGE_FORMAT_YUV_420_888, 2, &mImageReader);
-    if (status != AMEDIA_OK)
-    {
-        return NULL;
-    }
-
-    AImageReader_ImageListener listener{
-            .context = this,
-            .onImageAvailable = ImageCallback,
-    };
-
-    AImageReader_setImageListener(mImageReader, &listener);
-
-    ANativeWindow* nativeWindow;
-    AImageReader_getWindow(mImageReader, &nativeWindow);
-    return nativeWindow;
-}
-
-// Get time in micro seconds
-static double now_us(void)
-{
-    struct timespec res;
-    clock_gettime(CLOCK_MONOTONIC, &res);
-    return 1000000.0 * res.tv_sec + (double)res.tv_nsec / 1e3;
+    std::lock_guard<std::mutex> guard(mMutex);
+    return mStopped;
 }
 
 void ImsMediaVideoSource::onCameraFrame(AImage* pImage)
 {
-    if (mCodec == NULL || pImage == NULL)
-    {
-        IMLOGE2("[processInputBuffer] Failed Codec[%x] image[%x]", mCodec, pImage);
-        return;
-    }
-
     std::lock_guard<std::mutex> guard(mImageReaderMutex);
-    if (mImageReader == NULL)
+
+    if (mImageReader == NULL || pImage == NULL)
     {
         return;
     }
 
     auto index = AMediaCodec_dequeueInputBuffer(mCodec, 100000);
+
     if (index >= 0)
     {
         size_t buffCapacity = 0;
         uint8_t* encoderBuf = AMediaCodec_getInputBuffer(mCodec, index, &buffCapacity);
+
         if (!encoderBuf && !buffCapacity)
         {
-            IMLOGE1("[processInputBuffer] getInputBuffer returned null buffer pointer or "
-                    "buffCapacity[%d]",
+            IMLOGE1("[onCameraFrame] returned null buffer pointer or buffCapacity[%d]",
                     buffCapacity);
             return;
         }
@@ -524,6 +401,7 @@ void ImsMediaVideoSource::onCameraFrame(AImage* pImage)
 
         int32_t facing, sensorOrientation;
         mCamera->GetSensorOrientation(mCameraId, &facing, &sensorOrientation);
+
         switch (facing)
         {
             case ACAMERA_LENS_FACING_FRONT:
@@ -548,10 +426,212 @@ void ImsMediaVideoSource::onCameraFrame(AImage* pImage)
             break;
         }
 
-        AMediaCodec_queueInputBuffer(mCodec, index, 0, ylen + uvlen, now_us(), 0);
+        IMLOGD_PACKET1(IM_PACKET_LOG_VIDEO, "[onCameraFrame] queue buffer size[%d]", ylen + uvlen);
+
+        AMediaCodec_queueInputBuffer(
+                mCodec, index, 0, ylen + uvlen, ImsMediaTimer::GetTimeInMicroSeconds(), 0);
     }
     else
     {
-        IMLOGE1("[processInputBuffer] dequeueInputBuffer returned index[%d]", index);
+        IMLOGE1("[onCameraFrame] dequeueInputBuffer returned index[%d]", index);
     }
+}
+
+void ImsMediaVideoSource::changeBitrate(const uint32_t bitrate)
+{
+    IMLOGD1("[changeBitrate] bitrate[%d]", bitrate);
+    std::lock_guard<std::mutex> guard(mMutex);
+
+    if (mStopped)
+    {
+        return;
+    }
+
+    AMediaFormat* params = AMediaFormat_new();
+    AMediaFormat_setInt32(params, AMEDIAFORMAT_KEY_BIT_RATE, bitrate * 1000);
+    media_status_t status = AMediaCodec_setParameters(mCodec, params);
+
+    if (status != AMEDIA_OK)
+    {
+        IMLOGE1("[changeBitrate] error[%d]", status);
+    }
+}
+
+void ImsMediaVideoSource::requestIdrFrame()
+{
+    IMLOGD0("[requestIdrFrame]");
+    std::lock_guard<std::mutex> guard(mMutex);
+
+    if (mStopped)
+    {
+        return;
+    }
+
+    AMediaFormat* params = AMediaFormat_new();
+    AMediaFormat_setInt32(params, AMEDIACODEC_KEY_REQUEST_SYNC_FRAME, 0);
+    media_status_t status = AMediaCodec_setParameters(mCodec, params);
+
+    if (status != AMEDIA_OK)
+    {
+        IMLOGE1("[requestIdrFrame] error[%d]", status);
+    }
+}
+
+void ImsMediaVideoSource::processOutputBuffer()
+{
+    static int kTimeout = 100000;  // be responsive on signal
+    static int kMaxUplinkBuffer = 50;
+    uint32_t nextTime = ImsMediaTimer::GetTimeInMilliSeconds();
+    uint32_t timeInterval = 66;
+    uint32_t timeDiff = 0;
+    std::list<uint8_t*> uplinkBuffers;
+
+    if (mFramerate != 0)
+    {
+        timeInterval = 1000 / mFramerate;
+    }
+
+    IMLOGD1("[processOutputBuffer] interval[%d]", timeInterval);
+
+    for (;;)
+    {
+        uint32_t nCurrTime;
+        mMutex.lock();
+
+        if (mStopped)
+        {
+            IMLOGD0("[processOutputBuffer] terminated");
+            mMutex.unlock();
+            break;
+        }
+
+        mMutex.unlock();
+        AMediaCodecBufferInfo info;
+        auto index = AMediaCodec_dequeueOutputBuffer(mCodec, &info, kTimeout);
+
+        if (index >= 0)
+        {
+            IMLOGD_PACKET5(IM_PACKET_LOG_VIDEO,
+                    "[processOutputBuffer] index[%d], size[%d], offset[%d], time[%ld], flags[%d]",
+                    index, info.size, info.offset, info.presentationTimeUs, info.flags);
+
+            if (info.size > 0)
+            {
+                size_t buffCapacity;
+                uint8_t* buf = AMediaCodec_getOutputBuffer(mCodec, index, &buffCapacity);
+
+                if (buf != NULL && buffCapacity > 0)
+                {
+                    uint8_t* data = new uint8_t[info.size];
+                    memcpy(data, buf + info.offset, info.size);
+                    uplinkBuffers.push_back(data);
+
+                    if (mListener != NULL)
+                    {
+                        mListener->OnUplinkEvent(
+                                data, info.size, info.presentationTimeUs, info.flags);
+                    }
+                }
+            }
+
+            AMediaCodec_releaseOutputBuffer(mCodec, index, false);
+        }
+        else if (index == AMEDIACODEC_INFO_OUTPUT_BUFFERS_CHANGED)
+        {
+            IMLOGD0("[processOutputBuffer] Encoder output buffer changed");
+        }
+        else if (index == AMEDIACODEC_INFO_OUTPUT_FORMAT_CHANGED)
+        {
+            if (mFormat != NULL)
+            {
+                AMediaFormat_delete(mFormat);
+            }
+
+            mFormat = AMediaCodec_getOutputFormat(mCodec);
+            IMLOGD1("[processOutputBuffer] Encoder format changed, format[%s]",
+                    AMediaFormat_toString(mFormat));
+        }
+        else if (index == AMEDIACODEC_INFO_TRY_AGAIN_LATER)
+        {
+            IMLOGD_PACKET0(IM_PACKET_LOG_VIDEO, "[processOutputBuffer] no output buffer");
+        }
+        else
+        {
+            IMLOGD1("[processOutputBuffer] unexpected index[%d]", index);
+        }
+
+        if (uplinkBuffers.size() > kMaxUplinkBuffer)
+        {
+            uint8_t* data = uplinkBuffers.front();
+            delete[] data;
+            uplinkBuffers.pop_front();
+        }
+
+        nextTime += timeInterval;
+        nCurrTime = ImsMediaTimer::GetTimeInMilliSeconds();
+
+        if (nextTime > nCurrTime)
+        {
+            timeDiff = nextTime - nCurrTime;
+            IMLOGD_PACKET1(IM_PACKET_LOG_VIDEO, "[processOutputBuffer] timeDiff[%u]", timeDiff);
+            ImsMediaTimer::Sleep(timeDiff);
+        }
+    }
+
+    while (uplinkBuffers.size())
+    {
+        uint8_t* data = uplinkBuffers.front();
+        delete[] data;
+        uplinkBuffers.pop_front();
+    }
+
+    uplinkBuffers.clear();
+    mConditionExit.signal();
+    IMLOGD0("[processOutputBuffer] exit");
+}
+
+static void ImageCallback(void* context, AImageReader* reader)
+{
+    if (context != NULL)
+    {
+        ImsMediaVideoSource* pVideoSource = static_cast<ImsMediaVideoSource*>(context);
+
+        if (pVideoSource->IsStopped())
+        {
+            return;
+        }
+
+        AImage* image = nullptr;
+        auto status = AImageReader_acquireNextImage(reader, &image);
+
+        if (status != AMEDIA_OK)
+        {
+            return;
+        }
+
+        pVideoSource->onCameraFrame(image);
+        AImage_delete(image);
+    }
+}
+
+ANativeWindow* ImsMediaVideoSource::CreateImageReader(int width, int height)
+{
+    media_status_t status =
+            AImageReader_new(width, height, AIMAGE_FORMAT_YUV_420_888, 2, &mImageReader);
+
+    if (status != AMEDIA_OK)
+    {
+        return NULL;
+    }
+
+    AImageReader_ImageListener listener{
+            .context = this,
+            .onImageAvailable = ImageCallback,
+    };
+
+    AImageReader_setImageListener(mImageReader, &listener);
+
+    ANativeWindow* nativeWindow;
+    AImageReader_getWindow(mImageReader, &nativeWindow);
+    return nativeWindow;
 }
