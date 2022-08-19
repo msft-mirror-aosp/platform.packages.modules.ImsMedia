@@ -38,6 +38,8 @@ public:
     virtual void SetConfig(void* config);
     virtual bool IsSameConfig(void* config);
     virtual ImsMediaResult UpdateConfig(void* config);
+    virtual void ProcessData();
+
     /**
      * @brief Updates preview surface
      *

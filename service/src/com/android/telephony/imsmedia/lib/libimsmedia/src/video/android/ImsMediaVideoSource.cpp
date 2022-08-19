@@ -300,7 +300,6 @@ bool ImsMediaVideoSource::Start()
     }
 
     mDeviceOrientation = -1;
-
     IMLOGD0("[Start] exit");
     return true;
 }
@@ -311,12 +310,13 @@ void ImsMediaVideoSource::Stop()
 
     mMutex.lock();
     mStopped = true;
-    mMutex.unlock();
 
     if (mCamera != NULL)
     {
         mCamera->StopSession();
     }
+
+    mMutex.unlock();
 
     if (mVideoMode == kVideoModeRecording)
     {
@@ -480,11 +480,9 @@ void ImsMediaVideoSource::requestIdrFrame()
 void ImsMediaVideoSource::processOutputBuffer()
 {
     static int kTimeout = 100000;  // be responsive on signal
-    static int kMaxUplinkBuffer = 50;
     uint32_t nextTime = ImsMediaTimer::GetTimeInMilliSeconds();
     uint32_t timeInterval = 66;
     uint32_t timeDiff = 0;
-    std::list<uint8_t*> uplinkBuffers;
 
     if (mFramerate != 0)
     {
@@ -522,14 +520,10 @@ void ImsMediaVideoSource::processOutputBuffer()
 
                 if (buf != NULL && buffCapacity > 0)
                 {
-                    uint8_t* data = new uint8_t[info.size];
-                    memcpy(data, buf + info.offset, info.size);
-                    uplinkBuffers.push_back(data);
-
                     if (mListener != NULL)
                     {
                         mListener->OnUplinkEvent(
-                                data, info.size, info.presentationTimeUs, info.flags);
+                                buf + info.offset, info.size, info.presentationTimeUs, info.flags);
                     }
                 }
             }
@@ -560,13 +554,6 @@ void ImsMediaVideoSource::processOutputBuffer()
             IMLOGD1("[processOutputBuffer] unexpected index[%d]", index);
         }
 
-        if (uplinkBuffers.size() > kMaxUplinkBuffer)
-        {
-            uint8_t* data = uplinkBuffers.front();
-            delete[] data;
-            uplinkBuffers.pop_front();
-        }
-
         nextTime += timeInterval;
         nCurrTime = ImsMediaTimer::GetTimeInMilliSeconds();
 
@@ -578,14 +565,6 @@ void ImsMediaVideoSource::processOutputBuffer()
         }
     }
 
-    while (uplinkBuffers.size())
-    {
-        uint8_t* data = uplinkBuffers.front();
-        delete[] data;
-        uplinkBuffers.pop_front();
-    }
-
-    uplinkBuffers.clear();
     mConditionExit.signal();
     IMLOGD0("[processOutputBuffer] exit");
 }

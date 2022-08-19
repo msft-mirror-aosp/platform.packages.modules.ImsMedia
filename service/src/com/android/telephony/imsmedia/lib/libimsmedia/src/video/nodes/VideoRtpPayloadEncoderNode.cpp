@@ -77,6 +77,7 @@ ImsMediaResult VideoRtpPayloadEncoderNode::Start()
 void VideoRtpPayloadEncoderNode::Stop()
 {
     std::lock_guard<std::mutex> guard(mMutexExit);
+
     if (mBuffer)
     {
         free(mBuffer);
@@ -88,7 +89,7 @@ void VideoRtpPayloadEncoderNode::Stop()
 
 bool VideoRtpPayloadEncoderNode::IsRunTime()
 {
-    return false;
+    return true;
 }
 
 bool VideoRtpPayloadEncoderNode::IsSourceNode()
@@ -122,19 +123,13 @@ bool VideoRtpPayloadEncoderNode::IsSameConfig(void* config)
             mMaxFragmentUnitSize == pConfig->getMaxMtuBytes());
 }
 
-void VideoRtpPayloadEncoderNode::ProcessData()
+void VideoRtpPayloadEncoderNode::OnDataFromFrontNode(ImsMediaSubType subtype, uint8_t* pData,
+        uint32_t nDataSize, uint32_t nTimestamp, bool bMark, uint32_t nSeqNum,
+        ImsMediaSubType nDataType)
 {
-    ImsMediaSubType eSubType;
-    uint8_t* pData = NULL;
-    uint32_t nDataSize = 0;
-    uint32_t nTimestamp = 0;
-    bool bMark = false;
-    uint32_t nSeqNum = 0;
-
-    if (GetData(&eSubType, &pData, &nDataSize, &nTimestamp, &bMark, &nSeqNum, NULL) == false)
-    {
-        return;
-    }
+    (void)subtype;
+    (void)nSeqNum;
+    (void)nDataType;
 
     switch (mCodecType)
     {
@@ -145,12 +140,10 @@ void VideoRtpPayloadEncoderNode::ProcessData()
             EncodeHevc(pData, nDataSize, nTimestamp, bMark);
             break;
         default:
-            IMLOGE1("[ProcessData] invalid codec type[%d]", mCodecType);
+            IMLOGE1("[OnDataFromFrontNode] invalid codec type[%d]", mCodecType);
             SendDataToRearNode(MEDIASUBTYPE_RTPPAYLOAD, pData, nDataSize, nTimestamp, bMark, 0);
             break;
     }
-
-    DeleteData();
 }
 
 uint8_t* VideoRtpPayloadEncoderNode::FindAvcStartCode(
@@ -557,8 +550,11 @@ void VideoRtpPayloadEncoderNode::EncodeHevcNALUnit(
         uint8_t bFUHeader;
 
         std::lock_guard<std::mutex> guard(mMutexExit);
+
         if (mBuffer == NULL)
+        {
             return;
+        }
 
         // Make FU indicator and save NAL unit type
         // bNALUnitType = pCurDataPos[0] & 0x7E;         // copy NAL unit type from NAL unit header
