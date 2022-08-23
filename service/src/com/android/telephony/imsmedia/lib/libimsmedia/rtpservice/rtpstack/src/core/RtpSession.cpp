@@ -864,16 +864,13 @@ eRTP_STATUS_CODE RtpSession::populateReportPacket(
         return RTP_MEMORY_FAIL;
     }
 
-    RtpDt_UInt32 uiListPos = RTP_ZERO;
+    eRtp_Bool bFirstPos = eRTP_TRUE;
     RtpDt_UInt32 uiTmpRecpCount = RTP_ZERO;
     std::list<RtpReceiverInfo*>::iterator iter;
     // populate report blocks
-    for (iter = m_pobjUtlRcvrList->begin(); iter != m_pobjUtlRcvrList->end(); iter++)
+    for (auto& pobjRcvrElm : *m_pobjRtpRcvrInfoList)
     {
-        RtpReceiverInfo* pobjRcvrElm = RTP_NULL;
-
         // get the member information
-        pobjRcvrElm = m_pobjRtpRcvrInfoList->front();
         if ((pobjRcvrElm->isSender() == eRTP_TRUE) && (uiTmpRecpCount <= uiRecepCount))
         {
             RtcpReportBlock* pobjRepBlk = new RtcpReportBlock();
@@ -899,14 +896,21 @@ eRTP_STATUS_CODE RtpSession::populateReportPacket(
             }
             else
             {
-                m_pobjUtlRcvrList->insert(iter, pobjRcvrElm);
-                uiListPos = uiListPos + RTP_ONE;
+                if (bFirstPos == eRTP_TRUE)
+                {
+                    m_pobjUtlRcvrList->push_front(pobjRcvrElm);
+                    iter = m_pobjUtlRcvrList->begin();
+                    bFirstPos = eRTP_FALSE;
+                }
+                else
+                {
+                    m_pobjUtlRcvrList->insert(iter, pobjRcvrElm);
+                }
             }
         }
-
-        m_pobjRtpRcvrInfoList->pop_front();
     }
 
+    m_pobjRtpRcvrInfoList->clear();
     m_pobjRtpRcvrInfoList = m_pobjUtlRcvrList;
     delete pobjTmpRcvrList;
 #ifdef ENABLE_RTCPEXT
