@@ -36,6 +36,7 @@ public:
     virtual void onEvent(int32_t type, uint64_t param1, uint64_t param2);
     ImsMediaResult setPreviewSurface(ANativeWindow* surface);
     ImsMediaResult setDisplaySurface(ANativeWindow* surface);
+    void SendInternalEvent(int32_t type, uint64_t param1, uint64_t param2);
 
 private:
     VideoStreamGraphRtpTx* mGraphRtpTx;

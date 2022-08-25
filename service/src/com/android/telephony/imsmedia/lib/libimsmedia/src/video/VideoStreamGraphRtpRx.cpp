@@ -216,6 +216,16 @@ bool VideoStreamGraphRtpRx::setMediaQualityThreshold(MediaQualityThreshold* thre
             decoder->SetInactivityTimerSec(threshold->getRtpInactivityTimerMillis() / 1000);
             return true;
         }
+
+        node = findNode(kNodeIdVideoRenderer);
+
+        if (node != NULL)
+        {
+            IVideoRendererNode* decoder = reinterpret_cast<IVideoRendererNode*>(node);
+            decoder->SetPacketLossParam(
+                    threshold->getRtpPacketLossDurationMillis(), threshold->getRtpPacketLossRate());
+            return true;
+        }
     }
 
     return false;
@@ -243,4 +253,29 @@ void VideoStreamGraphRtpRx::setSurface(ANativeWindow* surface)
             }
         }
     }
+}
+
+bool VideoStreamGraphRtpRx::OnEvent(int32_t type, uint64_t param1, uint64_t param2)
+{
+    IMLOGD3("[OnEvent] type[%d], param1[%d], param2[%d]", type, param1, param2);
+
+    switch (type)
+    {
+        case kRequestRoundTripTimeDelayUpdate:
+        {
+            BaseNode* node = findNode(kNodeIdVideoRenderer);
+
+            if (node != NULL)
+            {
+                IVideoRendererNode* pNode = reinterpret_cast<IVideoRendererNode*>(node);
+                pNode->UpdateRoundTripTimeDelay(param1);
+                return true;
+            }
+        }
+        break;
+        default:
+            break;
+    }
+
+    return false;
 }

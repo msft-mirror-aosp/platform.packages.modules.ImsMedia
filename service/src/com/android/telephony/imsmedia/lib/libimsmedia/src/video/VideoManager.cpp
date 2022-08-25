@@ -31,12 +31,14 @@ VideoManager* VideoManager::getInstance()
     {
         manager = new VideoManager();
     }
+
     return manager;
 }
 
 int VideoManager::getState(int sessionId)
 {
     auto session = mSessions.find(sessionId);
+
     if (session != mSessions.end())
     {
         return (session->second)->getState();
@@ -68,6 +70,7 @@ ImsMediaResult VideoManager::openSession(
         session->setLocalEndPoint(rtpFd, rtcpFd);
         mSessions.insert(std::make_pair(sessionId, std::move(session)));
         ImsMediaResult ret = session->startGraph(config);
+
         if (ret != RESULT_SUCCESS)
         {
             IMLOGD1("[openSession] startGraph failed[%d]", ret);
@@ -84,11 +87,13 @@ ImsMediaResult VideoManager::openSession(
 ImsMediaResult VideoManager::closeSession(const int sessionId)
 {
     IMLOGD1("closeSession() - sessionId[%d]", sessionId);
+
     if (mSessions.count(sessionId))
     {
         mSessions.erase(sessionId);
         return RESULT_SUCCESS;
     }
+
     return RESULT_INVALID_PARAM;
 }
 
@@ -96,6 +101,7 @@ ImsMediaResult VideoManager::setPreviewSurfaceToSession(const int sessionId, ANa
 {
     auto session = mSessions.find(sessionId);
     IMLOGD1("setPreviewSurfaceToSession() - sessionId[%d]", sessionId);
+
     if (session != mSessions.end())
     {
         return (session->second)->setPreviewSurface(surface);
@@ -111,6 +117,7 @@ ImsMediaResult VideoManager::setDisplaySurfaceToSession(const int sessionId, ANa
 {
     auto session = mSessions.find(sessionId);
     IMLOGD1("setDisplaySurfaceToSession() - sessionId[%d]", sessionId);
+
     if (session != mSessions.end())
     {
         return (session->second)->setDisplaySurface(surface);
@@ -126,6 +133,7 @@ ImsMediaResult VideoManager::modifySession(const int sessionId, VideoConfig* con
 {
     auto session = mSessions.find(sessionId);
     IMLOGD1("modifySession() - sessionId[%d]", sessionId);
+
     if (session != mSessions.end())
     {
         return (session->second)->startGraph(config);
@@ -137,15 +145,11 @@ ImsMediaResult VideoManager::modifySession(const int sessionId, VideoConfig* con
     }
 }
 
-/*void VideoManager::sendHeaderExtension(const int sessionId, RtpHeaderExtension* data) {
-    (void)sessionId;
-    (void)data;
-}*/
-
 void VideoManager::setMediaQualityThreshold(const int sessionId, MediaQualityThreshold* threshold)
 {
     auto session = mSessions.find(sessionId);
     IMLOGD1("setMediaQualityThreshold() - sessionId[%d]", sessionId);
+
     if (session != mSessions.end())
     {
         (session->second)->setMediaQualityThreshold(*threshold);
@@ -160,6 +164,7 @@ void VideoManager::sendMessage(const int sessionId, const android::Parcel& parce
 {
     int nMsg = parcel.readInt32();
     status_t err = NO_ERROR;
+
     switch (nMsg)
     {
         case kVideoOpenSession:
@@ -168,10 +173,12 @@ void VideoManager::sendMessage(const int sessionId, const android::Parcel& parce
             int rtcpFd = parcel.readInt32();
             VideoConfig* config = new VideoConfig();
             err = config->readFromParcel(&parcel);
+
             if (err != NO_ERROR)
             {
                 IMLOGE1("sendMessage() - error readFromParcel[%d]", err);
             }
+
             EventParamOpenSession* param = new EventParamOpenSession(rtpFd, rtcpFd, config);
             ImsMediaEventHandler::SendEvent(
                     "VIDEO_REQUEST_EVENT", nMsg, sessionId, reinterpret_cast<uint64_t>(param));
@@ -184,10 +191,12 @@ void VideoManager::sendMessage(const int sessionId, const android::Parcel& parce
         {
             VideoConfig* config = new VideoConfig();
             config->readFromParcel(&parcel);
+
             if (err != NO_ERROR)
             {
                 IMLOGE1("sendMessage() - error readFromParcel[%d]", err);
             }
+
             ImsMediaEventHandler::SendEvent(
                     "VIDEO_REQUEST_EVENT", nMsg, sessionId, reinterpret_cast<uint64_t>(config));
         }
@@ -222,6 +231,22 @@ void VideoManager::setDisplaySurface(const int sessionId, ANativeWindow* surface
             reinterpret_cast<uint64_t>(surface));
 }
 
+void VideoManager::SendInternalEvent(
+        uint32_t event, uint64_t sessionId, uint64_t paramA, uint64_t paramB)
+{
+    auto session = mSessions.find(sessionId);
+    IMLOGD1("SendInternalEvent() - sessionId[%d]", sessionId);
+
+    if (session != mSessions.end())
+    {
+        (session->second)->SendInternalEvent(event, paramA, paramB);
+    }
+    else
+    {
+        IMLOGE1("SendInternalEvent() - no session id[%d]", sessionId);
+    }
+}
+
 VideoManager::RequestHandler::RequestHandler() :
         ImsMediaEventHandler("VIDEO_REQUEST_EVENT")
 {
@@ -235,16 +260,19 @@ void VideoManager::RequestHandler::processEvent(
     IMLOGD4("[processEvent] event[%d], sessionId[%d], paramA[%d], paramB[%d]", event, sessionId,
             paramA, paramB);
     ImsMediaResult result = RESULT_SUCCESS;
+
     switch (event)
     {
         case kVideoOpenSession:
         {
             EventParamOpenSession* param = reinterpret_cast<EventParamOpenSession*>(paramA);
+
             if (param != NULL)
             {
                 VideoConfig* pConfig = reinterpret_cast<VideoConfig*>(param->mConfig);
                 result = VideoManager::getInstance()->openSession(
                         static_cast<int>(sessionId), param->rtpFd, param->rtcpFd, pConfig);
+
                 if (result == RESULT_SUCCESS)
                 {
                     ImsMediaEventHandler::SendEvent(
@@ -291,11 +319,12 @@ void VideoManager::RequestHandler::processEvent(
         }
         break;
         case kVideoSendHeaderExtension:
-            // TO DO : add implementation
+            /** TODO: add implementation */
             break;
         case kVideoSetMediaQualityThreshold:
         {
             MediaQualityThreshold* threshold = reinterpret_cast<MediaQualityThreshold*>(paramA);
+
             if (threshold != NULL)
             {
                 VideoManager::getInstance()->setMediaQualityThreshold(
@@ -304,6 +333,14 @@ void VideoManager::RequestHandler::processEvent(
             }
         }
         break;
+        case kRequestVideoCvoUpdate:
+        case kRequestVideoBitrateChange:
+        case kRequestVideoIdrFrame:
+        case kRequestVideoSendNack:
+        case kRequestVideoSendPictureLost:
+        case kRequestRoundTripTimeDelayUpdate:
+            VideoManager::getInstance()->SendInternalEvent(event, sessionId, paramA, paramB);
+            break;
         default:
             break;
     }
@@ -328,6 +365,7 @@ void VideoManager::ResponseHandler::processEvent(
         case kVideoOpenSessionFailure:
             parcel.writeInt32(event);
             parcel.writeInt32(static_cast<int>(sessionId));
+
             if (event == kVideoOpenSessionFailure)
             {
                 // fail reason

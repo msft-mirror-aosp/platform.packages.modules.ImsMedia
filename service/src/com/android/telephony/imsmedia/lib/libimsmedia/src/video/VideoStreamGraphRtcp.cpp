@@ -22,6 +22,7 @@
 #include <ImsMediaNetworkUtil.h>
 #include <ImsMediaTrace.h>
 #include <VideoConfig.h>
+#include <ImsMediaVideoUtil.h>
 
 VideoStreamGraphRtcp::VideoStreamGraphRtcp(BaseSessionCallback* callback, int localFd) :
         VideoStreamGraph(callback, localFd)
@@ -159,4 +160,29 @@ bool VideoStreamGraphRtcp::setMediaQualityThreshold(MediaQualityThreshold* thres
     }
 
     return false;
+}
+
+bool VideoStreamGraphRtcp::OnEvent(int32_t type, uint64_t param1, uint64_t param2)
+{
+    IMLOGD3("[OnEvent] type[%d], param1[%d], param2[%d]", type, param1, param2);
+
+    bool ret = false;
+
+    switch (type)
+    {
+        case kRequestVideoSendNack:
+        case kRequestVideoSendPictureLost:
+        {
+            /** TODO: add implementation of calling node method */
+            InternalRequestEventParam* param = reinterpret_cast<InternalRequestEventParam*>(param1);
+
+            if (param != NULL)
+            {
+                delete param;
+            }
+        }
+        break;
+    }
+
+    return ret;
 }

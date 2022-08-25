@@ -171,6 +171,7 @@ ImsMediaResult VideoStreamGraphRtpTx::update(RtpConfig* config)
             {
                 IMLOGD1("[update] update node[%s]", node->GetNodeName());
                 ret = node->UpdateConfig(mConfig);
+
                 if (ret != RESULT_SUCCESS)
                 {
                     IMLOGE2("[update] error in update node[%s], ret[%d]", node->GetNodeName(), ret);
@@ -316,10 +317,8 @@ bool VideoStreamGraphRtpTx::OnEvent(int32_t type, uint64_t param1, uint64_t para
         }
         break;
         case kRequestVideoBitrateChange:
-            break;
         case kRequestVideoIdrFrame:
-            break;
-        case kRequestVideoSendNack:
+            /** TODO: add implementation */
             break;
         default:
             break;

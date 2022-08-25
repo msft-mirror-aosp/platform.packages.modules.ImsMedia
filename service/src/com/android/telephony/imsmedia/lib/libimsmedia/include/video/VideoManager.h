@@ -79,6 +79,15 @@ public:
      */
     void setDisplaySurface(const int sessionId, ANativeWindow* surface);
 
+    /**
+     * @brief Send interval event to be handled in the StreamGraph
+     *
+     * @param event The event type
+     * @param sessionId The session id
+     */
+    void SendInternalEvent(
+            uint32_t event, uint64_t sessionId, uint64_t paramA = 0, uint64_t paramB = 0);
+
 private:
     VideoManager();
     virtual ~VideoManager();

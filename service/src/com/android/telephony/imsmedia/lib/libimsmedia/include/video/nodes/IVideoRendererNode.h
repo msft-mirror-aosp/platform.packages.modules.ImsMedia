@@ -45,12 +45,28 @@ public:
     virtual void SetConfig(void* config);
     virtual bool IsSameConfig(void* config);
     virtual void ProcessData();
+
     /**
      * @brief Updates display surface
      *
      * @param window surface buffer to update
      */
     void UpdateSurface(ANativeWindow* window);
+
+    /**
+     * @brief Update network round trip time delay to the VideoJitterBuffer
+     *
+     * @param delay time delay in ntp timestamp unit
+     */
+    void UpdateRoundTripTimeDelay(int32_t delay);
+
+    /**
+     * @brief Set the packet loss monitoring duration and packet loss rate threshold
+     *
+     * @param time The time duration of milliseconds unit to monitor the packet loss
+     * @param rate The packet loss rate threshold in the monitoring duration range
+     */
+    void SetPacketLossParam(uint32_t time, uint32_t rate);
 
 private:
     bool IsIntraFrame(uint8_t* pbBuffer, uint32_t nBufferSize);
@@ -91,6 +107,8 @@ private:
     ImsMediaSubType mSubtype;
     uint32_t mFramerate;
     uint32_t mWaitIntraFrame;
+    uint32_t mLossDuration;
+    uint32_t mLossRateThreshold;
 };
 
 #endif

@@ -306,7 +306,6 @@ void AudioJitterBuffer::Add(ImsMediaSubType subtype, uint8_t* pbBuffer, uint32_t
         }
     }
 
-    mDataCount++;
     // Count Duplicated SeqNum packets not to delete bundled packets (for maxptime 240 support)
     uint32_t nMaxBundledCount = 0;
     uint32_t nTempBundledSeqNum = 0;

@@ -20,6 +20,7 @@
 #include <ImsMediaDefine.h>
 #include <BaseJitterBuffer.h>
 #include <ImsMediaVideoUtil.h>
+#include <ImsMediaTimer.h>
 #include <mutex>
 #include <list>
 
@@ -43,40 +44,79 @@ public:
             uint32_t nTimeStamp, bool bMark, uint32_t nSeqNum, ImsMediaSubType nDataType);
     virtual bool Get(ImsMediaSubType* pImsMediaSubType, uint8_t** ppData, uint32_t* pnDataSize,
             uint32_t* pnTimeStamp, bool* pbMark, uint32_t* pnSeqNum, uint32_t* pnChecker = NULL);
+
+    /**
+     * @brief Set the video codec type
+     *
+     * @param type The video codec type defined in ImsMediaDefine.h
+     */
     void SetCodecType(uint32_t type);
+
+    /**
+     * @brief Set the video framerate
+     */
     void SetFramerate(uint32_t framerate);
-    void SetVideoDropPFrame(bool value);
-    void SetRWT(uint32_t nRWT);
+
+    /**
+     * @brief Set the response wait time. A sender should ignore FIR messages that arrive within
+     * Response Wait Time (RWT) duration after responding to a previous FIR message. Response Wait
+     * Time (RWT) is defined as RTP-level round-trip time, estimated by RTCP or some other means,
+     * plus twice the frame duration.
+     *
+     * @param time The response wait time in milliseconds unit
+     */
+    void SetResponseWaitTime(const uint32_t time);
+
+    /**
+     * @brief Start the packet loss monitoring timer to check the packet loss rate
+     *
+     * @param time The time duration of milliseconds unit to monitor the packet loss
+     * @param rate The packet loss rate in the monitoring duration range
+     */
+    void StartTimer(uint32_t time, uint32_t rate);
+
+    /**
+     * @brief Stop the packet loss monitoring timer
+     */
+    void StopTimer();
 
 private:
     bool CheckHeader(uint8_t* pbBuffer);
     void CheckValidIDR(DataEntry* pIDREntry);
     void InitLostPktList();
-    void RemoveLossPacket(uint16_t seqNum, bool bRemOldPkt = false);
-    void CheckLossPacket(uint16_t seqNum, uint16_t nLastRecvPkt);
-    bool CalcLostPacket(
-            uint16_t nLostPkt, uint16_t* nSecondNACKPkt, uint16_t* nPLIPkt, bool* bPLIPkt);
-    bool UpdateLostPktList(LostPktEntry* pTempEntry, uint16_t nLostPkt, uint16_t* nSecondNACKPkt,
+    void RemovePacketFromLostList(uint16_t seqNum, bool bRemOldPkt = false);
+    void CheckPacketLoss(uint16_t seqNum, uint16_t nLastRecvPkt);
+    bool UpdateLostPacketList(uint16_t mLossRateThreshold, uint16_t* countSecondNack,
             uint16_t* nPLIPkt, bool* bPLIPkt);
-    void RequestNack(uint16_t nLossGap, uint16_t nFLP, uint16_t nSecondNACKPkt, bool bNACK = true);
-    void RequestPicLostMSG(uint32_t eType);
+    bool UpdateNackStatus(LostPktEntry* pTempEntry, uint16_t mLossRateThreshold,
+            uint16_t* countSecondNack, uint16_t* nPLIPkt, bool* bPLIPkt);
+    void RequestSendNack(
+            uint16_t nLossGap, uint16_t PID, uint16_t countSecondNack, bool bNACK = true);
+    void RequestToSendPictureLost(uint32_t eType);
+    static void OnTimer(hTimerHandler hTimer, void* pUserData);
+    void ProcessTimer();
 
 private:
-    std::mutex mMutex;
-    uint32_t mCodecType;
     uint32_t mFramerate;
     uint32_t mFrameInterval;
+    uint32_t mMaxSaveFrameNum;
     uint32_t mSavedFrameNum;
     uint32_t mMarkedFrameNum;
     uint32_t mLastPlayedTime;
-    uint32_t mNumPlayedPacket;
+    uint32_t mNumAddedPacket;
+    uint32_t mNumLossPacket;
+    uint64_t mAccumulatedPacketSize;
     uint32_t mLastAddedTimestamp;
     uint32_t mLastAddedSeqNum;
-    uint32_t mRWT;
+    uint32_t mResponseWaitTime;
     std::list<LostPktEntry*> mLostPktList;
-    bool mDropPFrame;
-    bool mIDRFrameRemoved;
     uint32_t mIDRCheckCnt;
-    uint32_t mFIRTimeStamp;
+    uint32_t mFirTimeStamp;
+    uint32_t mIncomingBitrate;
+    uint32_t mLossDuration;
+    uint32_t mLossRateThreshold;
+    uint32_t mCountTimerExpired;
+    hTimerHandler mTimer;
+    std::mutex mMutexTimer;
 };
 #endif

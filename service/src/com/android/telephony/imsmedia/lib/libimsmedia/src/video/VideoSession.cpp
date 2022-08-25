@@ -92,6 +92,7 @@ SessionState VideoSession::getState()
 ImsMediaResult VideoSession::startGraph(RtpConfig* config)
 {
     IMLOGD0("[startGraph]");
+
     if (config == NULL)
     {
         return RESULT_INVALID_PARAM;
@@ -229,6 +230,7 @@ ImsMediaResult VideoSession::startGraph(RtpConfig* config)
 void VideoSession::onEvent(int32_t type, uint64_t param1, uint64_t param2)
 {
     IMLOGD3("[onEvent] type[%d], param1[%d], param2[%d]", type, param1, param2);
+
     switch (type)
     {
         case kImsMediaEventNotifyError:
@@ -268,19 +270,13 @@ void VideoSession::onEvent(int32_t type, uint64_t param1, uint64_t param2)
                     "VIDEO_RESPONSE_EVENT", kVideoDataUsageInd, mSessionId, param1, param2);
             break;
         case kRequestVideoCvoUpdate:
-            if (mGraphRtpTx != NULL)
-            {
-                mGraphRtpTx->OnEvent(kRequestVideoCvoUpdate, param1, param2);
-            }
-            break;
         case kRequestVideoBitrateChange:
-            /** TODO: implements bitrate change */
-            break;
         case kRequestVideoIdrFrame:
-            /** TODO: implements request idr frame */
-            break;
         case kRequestVideoSendNack:
-            /** TODO: implements request send nack */
+        case kRequestVideoSendPictureLost:
+        case kRequestRoundTripTimeDelayUpdate:
+            ImsMediaEventHandler::SendEvent(
+                    "VIDEO_REQUEST_EVENT", type, mSessionId, param1, param2);
             break;
         default:
             break;
@@ -300,6 +296,7 @@ ImsMediaResult VideoSession::setPreviewSurface(ANativeWindow* surface)
     {
         mGraphRtpTx->setSurface(surface);
     }
+
     return RESULT_SUCCESS;
 }
 
@@ -316,5 +313,38 @@ ImsMediaResult VideoSession::setDisplaySurface(ANativeWindow* surface)
     {
         mGraphRtpRx->setSurface(surface);
     }
+
     return RESULT_SUCCESS;
+}
+
+void VideoSession::SendInternalEvent(int32_t type, uint64_t param1, uint64_t param2)
+{
+    IMLOGD3("[SendInternalEvent] type[%d], param1[%d], param2[%d]", type, param1, param2);
+
+    switch (type)
+    {
+        case kRequestVideoCvoUpdate:
+        case kRequestVideoBitrateChange:
+        case kRequestVideoIdrFrame:
+            if (mGraphRtpTx != NULL)
+            {
+                mGraphRtpTx->OnEvent(type, param1, param2);
+            }
+            break;
+        case kRequestVideoSendNack:
+        case kRequestVideoSendPictureLost:
+            if (mGraphRtcp != NULL)
+            {
+                mGraphRtcp->OnEvent(type, param1, param2);
+            }
+            break;
+        case kRequestRoundTripTimeDelayUpdate:
+            if (mGraphRtpRx != NULL)
+            {
+                mGraphRtpRx->OnEvent(type, param1, param2);
+            }
+            break;
+        default:
+            break;
+    }
 }
