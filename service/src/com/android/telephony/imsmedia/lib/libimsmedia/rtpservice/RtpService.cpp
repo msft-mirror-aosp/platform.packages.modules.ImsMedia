@@ -684,8 +684,8 @@ GLOBAL eRtp_Bool IMS_RtpSvc_ProcRtcpPacket(IN RtpServiceListener* pobjIRtpSessio
             pobjIRtpSession->OnPeerInd(stackInd, (RtpDt_Void*)&stSrRtcpMsg);
         }
 
-        // RtpDt_UInt32 rttd = pobjRtpSession->getRTTD();
-        // pobjIRtpSession->OnPeerRtcpComponents((RtpDt_Void*)&rttd);
+        RtpDt_UInt32 rttd = pobjRtpSession->getRTTD();
+        pobjIRtpSession->OnPeerRtcpComponents((RtpDt_Void*)&rttd);
     }
     else
     {
@@ -700,8 +700,8 @@ GLOBAL eRtp_Bool IMS_RtpSvc_ProcRtcpPacket(IN RtpServiceListener* pobjIRtpSessio
                 pobjIRtpSession->OnPeerInd(stackInd, (RtpDt_Void*)&stRrRtcpMsg);
             }
 
-            // RtpDt_UInt32 rttd = pobjRtpSession->getRTTD();
-            // pobjIRtpSession->OnPeerRtcpComponents((RtpDt_Void*)&rttd);
+            RtpDt_UInt32 rttd = pobjRtpSession->getRTTD();
+            pobjIRtpSession->OnPeerRtcpComponents((RtpDt_Void*)&rttd);
         }
     }  // end else
 

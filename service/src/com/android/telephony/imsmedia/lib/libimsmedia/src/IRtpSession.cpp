@@ -17,55 +17,64 @@
 #include <IRtpSession.h>
 #include <RtpService.h>
 #include <ImsMediaTrace.h>
+#include <ImsMediaVideoUtil.h>
 
 std::list<IRtpSession*> IRtpSession::mListRtpSession;
 
 IRtpSession* IRtpSession::GetInstance(
-        ImsMediaType mediaSubtype, const RtpAddress localAddress, const RtpAddress peerAddress)
+        ImsMediaType type, const RtpAddress localAddress, const RtpAddress peerAddress)
 {
-    IMLOGD1("[GetInstance] mediaSubtype[%d]", mediaSubtype);
+    IMLOGD1("[GetInstance] media[%d]", type);
+
     for (auto& i : mListRtpSession)
     {
-        if (i != NULL && i->isSameInstance(mediaSubtype, localAddress, peerAddress))
+        if (i != NULL && i->isSameInstance(type, localAddress, peerAddress))
         {
             i->increaseRefCounter();
             return i;
         }
     }
+
     if (mListRtpSession.size() == 0)
     {
         IMLOGD0("[GetInstance] Initialize Rtp Stack");
         IMS_RtpSvc_Initialize();
     }
-    IRtpSession* pSession = new IRtpSession(mediaSubtype, localAddress, peerAddress);
+
+    IRtpSession* pSession = new IRtpSession(type, localAddress, peerAddress);
     mListRtpSession.push_back(pSession);
     pSession->increaseRefCounter();
     return pSession;
 }
 
-void IRtpSession::ReleaseInstance(IRtpSession* pSession)
+void IRtpSession::ReleaseInstance(IRtpSession* session)
 {
-    IMLOGD2("[ReleaseInstance] MediaType[%x], mRefCount[%d]", pSession->getMediaType(),
-            pSession->getRefCounter());
-    pSession->decreaseRefCounter();
-    if (pSession->getRefCounter() == 0)
+    if (session == NULL)
     {
-        mListRtpSession.remove(pSession);
-        delete pSession;
+        return;
     }
+
+    IMLOGD2("[ReleaseInstance] media[%d], RefCount[%d]", session->getMediaType(),
+            session->getRefCounter());
+    session->decreaseRefCounter();
+
+    if (session->getRefCounter() == 0)
+    {
+        mListRtpSession.remove(session);
+        delete session;
+    }
+
     if (mListRtpSession.size() == 0)
     {
         IMLOGD0("[ReleaseInstance] Deinitialize Rtp Stack");
         IMS_RtpSvc_Deinitialize();
     }
-
-    IMLOGD0("[ReleaseInstance] Exit");
 }
 
 IRtpSession::IRtpSession(
-        ImsMediaType mediaSubtype, const RtpAddress localAddress, const RtpAddress peerAddress)
+        ImsMediaType mediatype, const RtpAddress localAddress, const RtpAddress peerAddress)
 {
-    mMediaType = mediaSubtype;
+    mMediaType = mediatype;
     mRtpSessionId = 0;
     mRefCount = 0;
     mLocalAddress = localAddress;
@@ -97,9 +106,10 @@ IRtpSession::IRtpSession(
     // create rtp stack session
     IMS_RtpSvc_CreateSession(
             mLocalAddress.ipAddress, mLocalAddress.port, this, &mLocalRtpSsrc, &mRtpSessionId);
-    IMLOGD5("[IRtpSession] localIp[%s], localPort[%d], peerIp[%s], peerPort[%d], sessionId[%d]",
-            mLocalAddress.ipAddress, mLocalAddress.port, mPeerAddress.ipAddress, mPeerAddress.port,
-            mRtpSessionId);
+    IMLOGD6("[IRtpSession] media[%d], localIp[%s], localPort[%d], peerIp[%s], peerPort[%d], "
+            "sessionId[%d]",
+            mMediaType, mLocalAddress.ipAddress, mLocalAddress.port, mPeerAddress.ipAddress,
+            mPeerAddress.port, mRtpSessionId);
 }
 
 IRtpSession::~IRtpSession()
@@ -118,16 +128,18 @@ bool IRtpSession::operator==(const IRtpSession& obj2)
     {
         return true;
     }
+
     return false;
 }
 
 bool IRtpSession::isSameInstance(
-        ImsMediaType mediaSubtype, const RtpAddress local, const RtpAddress peer)
+        ImsMediaType mediatype, const RtpAddress local, const RtpAddress peer)
 {
-    if (mMediaType == mediaSubtype && mLocalAddress == local && mPeerAddress == peer)
+    if (mMediaType == mediatype && mLocalAddress == local && mPeerAddress == peer)
     {
         return true;
     }
+
     return false;
 }
 
@@ -216,7 +228,7 @@ void IRtpSession::SetRtcpInterval(int32_t nInterval)
 
 void IRtpSession::StartRtp()
 {
-    IMLOGD1("[StartRtp] mbRtpStarted[%d]", mRtpStarted);
+    IMLOGD1("[StartRtp] RtpStarted[%d]", mRtpStarted);
 
     if (mRtpStarted == 0)
     {
@@ -229,7 +241,7 @@ void IRtpSession::StartRtp()
 
 void IRtpSession::StopRtp()
 {
-    IMLOGD1("[StopRtp] mbRtpStarted[%d]", mRtpStarted);
+    IMLOGD1("[StopRtp] RtpStarted[%d]", mRtpStarted);
 
     if (mRtpStarted == 0)
     {
@@ -247,7 +259,7 @@ void IRtpSession::StopRtp()
 
 void IRtpSession::StartRtcp(bool bSendRtcpBye)
 {
-    IMLOGD1("[StartRtcp] nRtcpStarted[%d]", mRtcpStarted);
+    IMLOGD1("[StartRtcp] RtcpStarted[%d]", mRtcpStarted);
 
     if (mRtcpStarted == 0)
     {
@@ -260,7 +272,8 @@ void IRtpSession::StartRtcp(bool bSendRtcpBye)
 
 void IRtpSession::StopRtcp()
 {
-    IMLOGD1("[StopRtcp] nRtcpStarted[%d]", mRtcpStarted);
+    IMLOGD1("[StopRtcp] RtcpStarted[%d]", mRtcpStarted);
+
     if (mRtcpStarted == 0)
     {
         return;
@@ -316,11 +329,18 @@ bool IRtpSession::ProcRtpPacket(uint8_t* pData, uint32_t nDataSize)
 {
     IMLOGD_PACKET1(IM_PACKET_LOG_RTP, "[ProcRtpPacket] size[%d]", nDataSize);
     mNumRtpProcPacket++;
-    // test loopback
-    unsigned int ssrc;
-    ssrc = *(unsigned int*)(pData + 8);
-    ssrc++;
-    *(unsigned int*)(pData + 8) = ssrc;
+
+    /** if it is loopback, change the ssrc */
+    if (mLocalAddress == mPeerAddress)
+    {
+        unsigned int ssrc;
+        ssrc = *(unsigned int*)(pData + 8);
+        ssrc++;
+        *(unsigned int*)(pData + 8) = ssrc;
+
+        IMLOGD1("[ProcRtcpPacket] loopback mode, ssrc changed[%d]", ssrc);
+    }
+
     IMS_RtpSvc_ProcRtpPacket(this, mRtpSessionId, pData, nDataSize, mPeerAddress.ipAddress,
             mPeerAddress.port, mPeerRtpSsrc);
     return true;
@@ -337,21 +357,13 @@ bool IRtpSession::ProcRtcpPacket(uint8_t* pData, uint32_t nDataSize)
 
 int IRtpSession::OnRtpPacket(unsigned char* pData, RtpSvc_Length wLen)
 {
-    std::lock_guard<std::mutex> guard(mutexEncoder);
     IMLOGD_PACKET1(IM_PACKET_LOG_RTP, "[OnRtpPacket] size[%d]", wLen);
+    std::lock_guard<std::mutex> guard(mutexEncoder);
 
     if (mRtpEncoderListener)
     {
         mNumRtpPacketSent++;
-        /*if (mbLoopback == true) {
-            unsigned int ssrc;
-            ssrc = *(unsigned int*)(pData+8);
-            ssrc++;
-            *(unsigned int*)(pData+8) = ssrc;
-            ProcRtpPacket(pData, wLen);
-        } else {*/
         mRtpEncoderListener->OnRtpPacket(pData, wLen);
-        //}
         return wLen;
     }
     return 0;
@@ -385,13 +397,14 @@ int IRtpSession::OnRtcpPacket(unsigned char* pData, RtpSvc_Length wLen)
     return 0;
 }
 
-void IRtpSession::OnPeerInd(tRtpSvc_IndicationFromStack eIndType, void* pMsg)
+void IRtpSession::OnPeerInd(tRtpSvc_IndicationFromStack type, void* pMsg)
 {
+    IMLOGD_PACKET2(IM_PACKET_LOG_RTP, "[OnPeerInd] media[%d], type[%d]", mMediaType, type);
     std::lock_guard<std::mutex> guard(mutexDecoder);
-    switch (eIndType)
+
+    switch (type)
     {
         case RTPSVC_RECEIVE_RTP_IND:
-            IMLOGD_PACKET1(IM_PACKET_LOG_RTP, "[OnPeerInd] RTP eIndType[%d]", eIndType);
             mNumRtpPacket++;
             if (mRtpDecoderListener)
             {
@@ -421,50 +434,52 @@ void IRtpSession::OnPeerInd(tRtpSvc_IndicationFromStack eIndType, void* pMsg)
             break;
 
         case RTPSVC_RECEIVE_RTCP_SR_IND:
-            IMLOGD_PACKET1(IM_PACKET_LOG_RTCP, "[OnPeerInd] RtcpSr-eIndType[%d]", eIndType);
             mNumSRPacket++;
+
             if (mRtcpDecoderListener)
             {
-                tNotifyReceiveRtcpSrInd* pstRtcp = (tNotifyReceiveRtcpSrInd*)pMsg;
-                IMLOGD_PACKET2(IM_PACKET_LOG_RTCP,
-                        "[OnPeerInd] RtcpSr-fractionLost[%d], jitter[%d]",
-                        pstRtcp->stRecvRpt.fractionLost, pstRtcp->stRecvRpt.jitter);
-                mRtcpDecoderListener->OnRtcpInd(eIndType, pstRtcp);
+                mRtcpDecoderListener->OnRtcpInd(type, pMsg);
             }
             break;
         case RTPSVC_RECEIVE_RTCP_RR_IND:
-            IMLOGD_PACKET1(IM_PACKET_LOG_RTCP, "[OnPeerInd] RtcpRr-eIndType[%d]", eIndType);
             mNumRRPacket++;
+
             if (mRtcpDecoderListener)
             {
-                tNotifyReceiveRtcpRrInd* pstRtcp = (tNotifyReceiveRtcpRrInd*)pMsg;
-                IMLOGD_PACKET2(IM_PACKET_LOG_RTCP,
-                        "[OnPeerInd] RtcpRr-fractionLost[%d], jitter[%d]",
-                        pstRtcp->stRecvRpt.fractionLost, pstRtcp->stRecvRpt.jitter);
-                mRtcpDecoderListener->OnRtcpInd(eIndType, pstRtcp);
+                mRtcpDecoderListener->OnRtcpInd(type, pMsg);
             }
-            break;
-        case RTPSVC_SSRC_COLLISION_CHANGED_IND:
-            IMLOGD_PACKET0(IM_PACKET_LOG_RTCP, "[OnPeerInd] RTPSVC_SSRC_COLLISION_CHANGED_IND]");
             break;
         case RTPSVC_RECEIVE_RTCP_FB_IND:
         case RTPSVC_RECEIVE_RTCP_PAYLOAD_FB_IND:
-            IMLOGD1("[OnPeerInd] RtpSvc_RtcpFeedbackInd[%d]", eIndType);
+
+            /** TODO: add implementation
+            if (mRtcpDecoderListener)
+            {
+                mRtcpDecoderListener->ReceiveRtcpFeedback(type, pMsg);
+            }*/
+
             break;
         default:
-            IMLOGD1("[OnPeerInd] unhandled[%d]", eIndType);
+            IMLOGD1("[OnPeerInd] unhandled[%d]", type);
             break;
     }
 }
 
+void IRtpSession::OnPeerRtcpComponents(void* nMsg)
+{
+    (void)nMsg;
+    IMLOGD0("[OnPeerRtcpComponents]");
+    /** TODO: Add implementation */
+}
+
 void IRtpSession::OnTimer()
 {
-    std::lock_guard<std::mutex> guard(mutexDecoder);
-
     IMLOGD8("[OnTimer] media[%d], RXRtp[%03d/%03d], RXRtcp[%02d/%02d], TXRtp[%03d/%03d],"
             " TXRtcp[%02d]",
             mMediaType, mNumRtpProcPacket, mNumRtpPacket, mNumRtcpProcPacket,
             mNumSRPacket + mNumRRPacket, mNumRtpDataToSend, mNumRtpPacketSent, mNumRtcpPacketSent);
+
+    std::lock_guard<std::mutex> guard(mutexDecoder);
 
     if (mRtpDecoderListener)
     {
@@ -488,11 +503,48 @@ void IRtpSession::OnTimer()
 
 void IRtpSession::SendRtcpXr(uint8_t* pPayload, uint32_t nSize, uint32_t nRttdOffset)
 {
-    IMLOGD1("SendRtcpXr, nSize[%d]", nSize);
+    IMLOGD1("[SendRtcpXr] nSize[%d]", nSize);
+
     if (mRtpSessionId)
     {
         IMS_RtpSvc_SendRtcpXrPacket(mRtpSessionId, pPayload, nSize, nRttdOffset);
     }
+}
+
+bool IRtpSession::SendRtcpFeedback(int32_t type, uint8_t* pFic, uint32_t nFicSize)
+{
+    IMLOGD1("[SendRtcpFeedback] type[%d]", type);
+
+    if (!mRtcpStarted)
+    {
+        return false;
+    }
+
+    eRtp_Bool bRet = eRTP_FALSE;
+
+    if (kRtpFbNack <= type && type <= kRtpFbTmmbn)
+    {
+        // RTP-FB
+        IMLOGD1("[SendRtcpFeedback] Send rtp feedback, type[%d]", type);
+        bRet = IMS_RtpSvc_SendRtcpRtpFbPacket(
+                mRtpSessionId, type, (char*)pFic, nFicSize, mPeerRtpSsrc);
+    }
+    else if (kPsfbPli <= type && type <= kPsfbFir)
+    {
+        type -= kPsfbBoundary;
+        // PSFB
+        IMLOGD1("[SendRtcpFeedback] Send payload specific feedback, type[%d]", type);
+        bRet = IMS_RtpSvc_SendRtcpPayloadFbPacket(
+                mRtpSessionId, type, (char*)pFic, nFicSize, mPeerRtpSsrc);
+    }
+
+    if (bRet != eRTP_TRUE)
+    {
+        IMLOGE0("[SendRtcpFeedback] error");
+        return false;
+    }
+
+    return true;
 }
 
 ImsMediaType IRtpSession::getMediaType()

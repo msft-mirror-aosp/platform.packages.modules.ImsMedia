@@ -39,8 +39,10 @@ public:
     virtual int OnRtpPacket(unsigned char* pData, RtpSvc_Length wLen) = 0;
     // receive RTCP packet, send it to rtcp node
     virtual int OnRtcpPacket(unsigned char* pData, RtpSvc_Length wLen) = 0;
-    // indication from stack
+    // indication from the RtpStack
     virtual void OnPeerInd(tRtpSvc_IndicationFromStack eIndType, void* pMsg) = 0;
+    // indication from the RtpStack
+    virtual void OnPeerRtcpComponents(void* nMsg) = 0;
 };
 
 /**

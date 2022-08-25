@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#ifndef Rtp_SESSION_H
-#define Rtp_SESSION_H
+#ifndef IRTP_SESSION_H
+#define IRTP_SESSION_H
 
 #include <ImsMediaDefine.h>
 #include <AudioConfig.h>
@@ -106,6 +106,7 @@ public:
     bool ProcRtcpPacket(uint8_t* pData, uint32_t nDataSize);
     void OnTimer();
     void SendRtcpXr(uint8_t* pPayload, uint32_t nSize, uint32_t nRttdOffset);
+    bool SendRtcpFeedback(int32_t type, uint8_t* pFic, uint32_t nFicSize);
     ImsMediaType getMediaType();
     void increaseRefCounter();
     void decreaseRefCounter();
@@ -114,8 +115,10 @@ public:
     virtual int OnRtpPacket(unsigned char* pData, RtpSvc_Length wLen);
     // receive Rtcp packet, send it to rtcp node
     virtual int OnRtcpPacket(unsigned char* pData, RtpSvc_Length wLen);
-    // indication from stack
+    // indication from the RtpStack
     virtual void OnPeerInd(tRtpSvc_IndicationFromStack eIndType, void* pMsg);
+    // indication from the RtpStack
+    virtual void OnPeerRtcpComponents(void* nMsg);
 
 private:
     static std::list<IRtpSession*> mListRtpSession;
