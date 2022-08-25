@@ -66,6 +66,7 @@ ImsMediaResult TextSourceNode::Start()
 void TextSourceNode::Stop()
 {
     IMLOGD0("[Stop]");
+    ClearDataQueue();
     mNodeState = kNodeStateStopped;
 }
 

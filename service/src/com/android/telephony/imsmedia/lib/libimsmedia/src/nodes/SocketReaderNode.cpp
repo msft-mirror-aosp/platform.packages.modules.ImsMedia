@@ -81,6 +81,7 @@ void SocketReaderNode::Stop()
         mSocketOpened = false;
     }
 
+    ClearDataQueue();
     mNodeState = kNodeStateStopped;
 }
 

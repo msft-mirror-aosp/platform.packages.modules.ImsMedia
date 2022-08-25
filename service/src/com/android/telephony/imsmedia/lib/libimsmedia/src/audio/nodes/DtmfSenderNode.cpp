@@ -45,6 +45,7 @@ ImsMediaResult DtmfSenderNode::Start()
 void DtmfSenderNode::Stop()
 {
     mNextTime = 0;
+    ClearDataQueue();
     mNodeState = kNodeStateStopped;
 }
 

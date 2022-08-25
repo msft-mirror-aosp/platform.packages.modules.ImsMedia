@@ -106,6 +106,7 @@ void IVideoSourceNode::Stop()
         mVideoSource->Stop();
     }
 
+    ClearDataQueue();
     mNodeState = kNodeStateStopped;
 }
 
@@ -164,10 +165,11 @@ bool IVideoSourceNode::IsSameConfig(void* config)
     return (mCodecType == ImsMediaVideoUtil::ConvertCodecType(pConfig->getCodecType()) &&
             mVideoMode == pConfig->getVideoMode() &&
             mSamplingRate == pConfig->getSamplingRateKHz() &&
-            mCodecProfile == pConfig->getCodecProfile() && mCodecLevel == pConfig->getVideoMode() &&
-            mFramerate == pConfig->getFramerate() && mBitrate == pConfig->getBitrate() &&
-            mCameraId == pConfig->getCameraId() && mCameraZoom == pConfig->getCameraZoom() &&
-            mWidth == pConfig->getResolutionWidth() && mHeight == pConfig->getResolutionHeight() &&
+            mCodecProfile == pConfig->getCodecProfile() &&
+            mCodecLevel == pConfig->getCodecLevel() && mFramerate == pConfig->getFramerate() &&
+            mBitrate == pConfig->getBitrate() && mCameraId == pConfig->getCameraId() &&
+            mCameraZoom == pConfig->getCameraZoom() && mWidth == pConfig->getResolutionWidth() &&
+            mHeight == pConfig->getResolutionHeight() &&
             mDeviceOrientation == pConfig->getDeviceOrientationDegree());
 }
 
@@ -190,7 +192,8 @@ ImsMediaResult IVideoSourceNode::UpdateConfig(void* config)
 
     VideoConfig* pConfig = reinterpret_cast<VideoConfig*>(config);
 
-    if (mCodecType != pConfig->getCodecType() || mCodecProfile != pConfig->getCodecProfile() ||
+    if (mCodecType != ImsMediaVideoUtil::ConvertCodecType(pConfig->getCodecType()) ||
+            mCodecProfile != pConfig->getCodecProfile() ||
             mCodecLevel != pConfig->getCodecLevel() || mFramerate != pConfig->getFramerate() ||
             mCameraId != pConfig->getCameraId() || mWidth != pConfig->getResolutionWidth() ||
             mHeight != pConfig->getResolutionHeight())

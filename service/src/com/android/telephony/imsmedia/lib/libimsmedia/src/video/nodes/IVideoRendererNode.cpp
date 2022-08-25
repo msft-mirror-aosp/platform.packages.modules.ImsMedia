@@ -96,6 +96,7 @@ void IVideoRendererNode::Stop()
     {
         mVideoRenderer->Stop();
     }
+
     mNodeState = kNodeStateStopped;
 }
 
