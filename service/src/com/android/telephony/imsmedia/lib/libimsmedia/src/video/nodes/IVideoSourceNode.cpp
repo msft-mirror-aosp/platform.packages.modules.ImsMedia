@@ -91,6 +91,7 @@ ImsMediaResult IVideoSourceNode::Start()
 
         mVideoSource->SetDeviceOrientation(mDeviceOrientation);
     }
+
     mNodeState = kNodeStateRunning;
     return RESULT_SUCCESS;
 }
@@ -110,7 +111,7 @@ void IVideoSourceNode::Stop()
 
 bool IVideoSourceNode::IsRunTime()
 {
-    return true;
+    return false;
 }
 
 bool IVideoSourceNode::IsSourceNode()
@@ -200,7 +201,7 @@ ImsMediaResult IVideoSourceNode::UpdateConfig(void* config)
     {
         if (mBitrate != pConfig->getBitrate())
         {
-            // TODO : bitrate change
+            /** TODO: bitrate change */
         }
 
         if (mDeviceOrientation != pConfig->getDeviceOrientationDegree())
@@ -232,20 +233,45 @@ ImsMediaResult IVideoSourceNode::UpdateConfig(void* config)
     return RESULT_SUCCESS;
 }
 
+void IVideoSourceNode::ProcessData()
+{
+    std::lock_guard<std::mutex> guard(mMutex);
+    uint8_t* data = NULL;
+    uint32_t dataSize = 0;
+    uint32_t timestamp = 0;
+    bool mark = false;
+    uint32_t seq = 0;
+    ImsMediaSubType subtype;
+    ImsMediaSubType dataType;
+
+    while (GetData(&subtype, &data, &dataSize, &timestamp, &mark, &seq, &dataType))
+    {
+        IMLOGD_PACKET1(IM_PACKET_LOG_VIDEO, "[ProcessData] size[%d]", dataSize);
+
+        SendDataToRearNode(
+                MEDIASUBTYPE_UNDEFINED, data, dataSize, timestamp, true, MEDIASUBTYPE_UNDEFINED);
+        DeleteData();
+    }
+}
+
 void IVideoSourceNode::UpdateSurface(ANativeWindow* window)
 {
     IMLOGD1("[UpdateSurface] surface[%p]", window);
     mWindow = window;
 }
 
-void IVideoSourceNode::OnUplinkEvent(
-        uint8_t* buffer, uint32_t size, int64_t timestamp, uint32_t flag)
+void IVideoSourceNode::OnUplinkEvent(uint8_t* data, uint32_t size, int64_t timestamp, uint32_t flag)
 {
     (void)flag;
     IMLOGD_PACKET2(
             IM_PACKET_LOG_VIDEO, "[OnUplinkEvent] size[%zu], timestamp[%ld]", size, timestamp);
-    SendDataToRearNode(
-            MEDIASUBTYPE_UNDEFINED, buffer, size, timestamp, true, MEDIASUBTYPE_UNDEFINED);
+    std::lock_guard<std::mutex> guard(mMutex);
+
+    if (size > 0)
+    {
+        OnDataFromFrontNode(
+                MEDIASUBTYPE_UNDEFINED, data, size, timestamp, true, MEDIASUBTYPE_UNDEFINED);
+    }
 }
 
 void IVideoSourceNode::OnEvent(int32_t type, int32_t param1, int32_t param2)

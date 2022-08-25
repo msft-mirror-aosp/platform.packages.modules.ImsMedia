@@ -340,8 +340,9 @@ void VideoManager::ResponseHandler::processEvent(
         case kVideoModifySessionResponse:  // fall through
         {
             parcel.writeInt32(event);
-            parcel.writeInt32(paramA);  // result
+            parcel.writeInt32(static_cast<int>(paramA));  // result
             VideoConfig* config = reinterpret_cast<VideoConfig*>(paramB);
+
             if (config != NULL)
             {
                 config->writeToParcel(&parcel);
@@ -354,7 +355,7 @@ void VideoManager::ResponseHandler::processEvent(
         case kVideoSessionChangedInd:
             parcel.writeInt32(event);
             parcel.writeInt32(static_cast<int>(sessionId));
-            parcel.writeInt32(paramA);  // state
+            parcel.writeInt32(static_cast<int>(paramA));  // state
             VideoManager::getInstance()->sendResponse(
                     reinterpret_cast<uint64_t>(VideoManager::getInstance()), parcel);
             break;
@@ -365,8 +366,8 @@ void VideoManager::ResponseHandler::processEvent(
             break;
         case kVideoPeerDimensionChanged:
             parcel.writeInt32(event);
-            parcel.writeInt32(paramA);
-            parcel.writeInt32(paramB);
+            parcel.writeInt32(static_cast<int>(paramA));
+            parcel.writeInt32(static_cast<int>(paramB));
             VideoManager::getInstance()->sendResponse(
                     reinterpret_cast<uint64_t>(VideoManager::getInstance()), parcel);
             break;

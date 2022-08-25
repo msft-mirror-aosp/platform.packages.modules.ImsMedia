@@ -105,6 +105,7 @@ void BaseNode::DisconnectFrontNode(BaseNode* pFrontNode)
         mFrontNode = NULL;
         return;
     }
+
     IMLOGD3("DisconnectFrontNode] type[%d] disconnect nodes[%s] from[%s]", mMediaType,
             pFrontNode->GetNodeName(), GetNodeName());
     mFrontNode = NULL;
@@ -148,6 +149,7 @@ ImsMediaResult BaseNode::UpdateConfig(void* config)
 {
     // check config items updates
     bool isUpdateNode = false;
+
     if (IsSameConfig(config))
     {
         IMLOGD0("[UpdateConfig] no update");
@@ -159,6 +161,7 @@ ImsMediaResult BaseNode::UpdateConfig(void* config)
     }
 
     kBaseNodeState prevState = mNodeState;
+
     if (isUpdateNode && mNodeState == kNodeStateRunning)
     {
         Stop();
@@ -183,6 +186,7 @@ void BaseNode::ProcessData()
 const char* BaseNode::GetNodeName()
 {
     typedef typename std::vector<std::pair<kBaseNodeId, const char*>>::iterator iterator;
+
     for (iterator it = vectorNodeId.begin(); it != vectorNodeId.end(); ++it)
     {
         if (it->first == GetNodeId())
@@ -224,6 +228,7 @@ bool BaseNode::GetData(ImsMediaSubType* psubtype, uint8_t** ppData, uint32_t* pn
         uint32_t* pnTimestamp, bool* pbMark, uint32_t* pnSeqNum, ImsMediaSubType* peDataType)
 {
     DataEntry* pEntry;
+
     if (mDataQueue.Get(&pEntry))
     {
         if (psubtype)
@@ -271,6 +276,7 @@ void BaseNode::SendDataToRearNode(ImsMediaSubType subtype, uint8_t* pData, uint3
         uint32_t nTimestamp, bool bMark, uint32_t nSeqNum, ImsMediaSubType nDataType)
 {
     bool nNeedRunCount = false;
+
     if (mRearNode)
     {
         if (mRearNode->GetState() == kNodeStateRunning)

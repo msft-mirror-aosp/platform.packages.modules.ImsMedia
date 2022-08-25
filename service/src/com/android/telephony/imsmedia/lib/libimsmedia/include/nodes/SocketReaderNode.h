@@ -64,6 +64,7 @@ private:
     RtpAddress mPeerAddress;
     bool mSocketOpened;
     std::mutex mMutex;
+    uint8_t mBuffer[DEFAULT_MTU];
 };
 
 #endif

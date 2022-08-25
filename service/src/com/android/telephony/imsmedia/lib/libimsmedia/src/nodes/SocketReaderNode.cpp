@@ -159,22 +159,16 @@ bool SocketReaderNode::IsSameConfig(void* config)
 
 void SocketReaderNode::OnReadDataFromSocket()
 {
-    uint8_t* data = new uint8_t[DEFAULT_MTU];
-    memset(data, 0, DEFAULT_MTU);
+    int nLen = mSocket->ReceiveFrom(mBuffer, DEFAULT_MTU);
 
-    int nLen = mSocket->ReceiveFrom(data, DEFAULT_MTU);
-
-    if (nLen <= 0)
+    if (nLen > 0)
     {
-        delete[] data;
-        return;
+        IMLOGD_PACKET3(IM_PACKET_LOG_SOCKET,
+                "[OnReadDataFromSocket] media[%d], data size[%d], queue size[%d]", mMediaType, nLen,
+                GetDataCount());
+        std::lock_guard<std::mutex> guard(mMutex);
+        OnDataFromFrontNode(MEDIASUBTYPE_UNDEFINED, mBuffer, nLen, 0, 0, 0);
     }
-
-    IMLOGD_PACKET3(IM_PACKET_LOG_SOCKET,
-            "[OnReadDataFromSocket] media[%d], data size[%d], queue size[%d]", mMediaType, nLen,
-            GetDataCount());
-    std::lock_guard<std::mutex> guard(mMutex);
-    OnDataFromFrontNode(MEDIASUBTYPE_UNDEFINED, data, nLen, 0, 0, 0);
 }
 
 void SocketReaderNode::SetLocalFd(int fd)
