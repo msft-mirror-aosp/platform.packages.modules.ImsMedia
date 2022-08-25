@@ -322,7 +322,7 @@ bool IRtpSession::ProcRtpPacket(uint8_t* pData, uint32_t nDataSize)
     ssrc++;
     *(unsigned int*)(pData + 8) = ssrc;
     IMS_RtpSvc_ProcRtpPacket(this, mRtpSessionId, pData, nDataSize, mPeerAddress.ipAddress,
-            mPeerAddress.port, &mPeerRtpSsrc);
+            mPeerAddress.port, mPeerRtpSsrc);
     return true;
 }
 
