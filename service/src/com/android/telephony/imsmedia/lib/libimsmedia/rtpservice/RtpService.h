@@ -139,17 +139,17 @@ GLOBAL eRtp_Bool IMS_RtpSvc_SendRtpPacket(IN RtpServiceListener* pobjIRtpSession
  *
  * @param pMsg Received RTP packet buffer from Network node.
  *
- * @param wMsgLength Length of RTP packet buffer in bytes.
+ * @param uiMsgLength Length of RTP packet buffer in bytes.
  *
- * @param pDestIp IP Address of the RTP packet sender. Used for SSRC collision check.
+ * @param pPeerIp IP Address of the RTP packet sender. Used for SSRC collision check.
  *
- * @param wDestPort RTP port number.
+ * @param uiPeerPort RTP port number.
  *
- * @param uiDestSsrc SSRC of the Sender.
+ * @param uiPeerSsrc SSRC of the Sender.
  */
 GLOBAL eRtp_Bool IMS_RtpSvc_ProcRtpPacket(IN RtpServiceListener* pobjIRtpSession,
-        IN RTPSESSIONID hRtpSession, IN RtpDt_UChar* pMsg, IN RtpDt_UInt16 wMsgLength,
-        IN RtpDt_Char* pDestIp, IN RtpDt_UInt16 wDestPort, IN RtpDt_UInt32* uiDestSsrc);
+        IN RTPSESSIONID hRtpSession, IN RtpDt_UChar* pMsg, IN RtpDt_UInt16 uiMsgLength,
+        IN RtpDt_Char* pPeerIp, IN RtpDt_UInt16 uiPeerPort, OUT RtpDt_UInt32& uiPeerSsrc);
 
 /**
  * This API starts the RTP session. After successful return, stack is ready to send and
@@ -221,14 +221,14 @@ GLOBAL eRtp_Bool IMS_RtpSvc_SendRtcpPayloadFbPacket(IN RTPSESSIONID hRtpSession,
  * @param pobjIRtpSession   Media session Listener for sending processed info via callbacks
  * @param hRtpSession       RTP session handle
  * @param pMsg              Received RTCP packet buffer
- * @param wMsgLength        RTCp buffer length in bytes
+ * @param uiMsgLength       RTCP buffer length in bytes
  * @param pcIpAddr          Peer IP address
  * @param uiRtcpPort        RTCP Port number
- * @param uiDestSsrc        SSRC of the Source
+ * @param uiPeerSsrc        SSRC of the Source
  */
 GLOBAL eRtp_Bool IMS_RtpSvc_ProcRtcpPacket(IN RtpServiceListener* pobjIRtpSession,
-        IN RTPSESSIONID hRtpSession, IN RtpDt_UChar* pMsg, IN RtpDt_UInt16 wMsgLength,
-        IN RtpDt_Char* pcIpAddr, IN RtpDt_UInt32 uiRtcpPort, OUT RtpDt_UInt32* uiDestSsrc);
+        IN RTPSESSIONID hRtpSession, IN RtpDt_UChar* pMsg, IN RtpDt_UInt16 uiMsgLength,
+        IN RtpDt_Char* pcIpAddr, IN RtpDt_UInt32 uiRtcpPort, OUT RtpDt_UInt32* uiPeerSsrc);
 /**
  * Method to set RTCP XR info.
  *

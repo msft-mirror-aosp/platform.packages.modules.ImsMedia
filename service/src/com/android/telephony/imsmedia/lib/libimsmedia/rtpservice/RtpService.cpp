@@ -463,11 +463,9 @@ GLOBAL eRtp_Bool IMS_RtpSvc_SendRtpPacket(IN RtpServiceListener* pobjIRtpSession
 }
 
 GLOBAL eRtp_Bool IMS_RtpSvc_ProcRtpPacket(IN RtpServiceListener* pvIRtpSession,
-        IN RTPSESSIONID hRtpSession, IN RtpDt_UChar* pMsg, IN RtpDt_UInt16 wMsgLength,
-        IN RtpDt_Char* pDestIp, IN RtpDt_UInt16 wDestPort, OUT RtpDt_UInt32* uiDestSsrc)
+        IN RTPSESSIONID hRtpSession, IN RtpDt_UChar* pMsg, IN RtpDt_UInt16 uiMsgLength,
+        IN RtpDt_Char* pPeerIp, IN RtpDt_UInt16 uiPeerPort, OUT RtpDt_UInt32& uiPeerSsrc)
 {
-    (RtpDt_Void) uiDestSsrc;
-
     tRtpSvc_IndicationFromStack stackInd = RTPSVC_RECEIVE_RTP_IND;
     RtpSession* pobjRtpSession = (RtpSession*)hRtpSession;
 
@@ -491,13 +489,13 @@ GLOBAL eRtp_Bool IMS_RtpSvc_ProcRtpPacket(IN RtpServiceListener* pvIRtpSession,
     }
 
     RtpBuffer objRtpBuf;
-    objRtpBuf.setBufferInfo(wMsgLength, pMsg);
-    RtpDt_UInt32 uiTransLen = strlen((const RtpDt_Char*)pDestIp);
+    objRtpBuf.setBufferInfo(uiMsgLength, pMsg);
+    RtpDt_UInt32 uiTransLen = strlen((const RtpDt_Char*)pPeerIp);
     RtpBuffer objRmtAddr;
-    objRmtAddr.setBufferInfo(uiTransLen + 1, (RtpDt_UChar*)pDestIp);
+    objRmtAddr.setBufferInfo(uiTransLen + 1, (RtpDt_UChar*)pPeerIp);
 
     eRTP_STATUS_CODE eStatus =
-            pobjRtpSession->processRcvdRtpPkt(&objRmtAddr, wDestPort, &objRtpBuf, pobjRtpPkt);
+            pobjRtpSession->processRcvdRtpPkt(&objRmtAddr, uiPeerPort, &objRtpBuf, pobjRtpPkt);
     objRtpBuf.setBufferInfo(RTP_ZERO, RTP_NULL);
     objRmtAddr.setBufferInfo(RTP_ZERO, RTP_NULL);
     if (eStatus != RTP_SUCCESS)
@@ -505,10 +503,12 @@ GLOBAL eRtp_Bool IMS_RtpSvc_ProcRtpPacket(IN RtpServiceListener* pvIRtpSession,
         if (eStatus == RTP_OWN_SSRC_COLLISION)
             pobjRtpSession->sendRtcpByePacket();
 
-        RTP_TRACE_WARNING("process packet failed", eStatus, RTP_ZERO);
+        RTP_TRACE_WARNING("process packet failed with reason [%d]", eStatus, RTP_ZERO);
         delete pobjRtpPkt;
         return eRTP_FALSE;
     }
+
+    uiPeerSsrc = pobjRtpPkt->getRtpHeader()->getRtpSsrc();
 
     // populate stRtpIndMsg
     tRtpSvcIndSt_ReceiveRtpInd stRtpIndMsg;
@@ -631,10 +631,10 @@ GLOBAL eRtp_Bool IMS_RtpSvc_SendRtcpPayloadFbPacket(IN RTPSESSIONID hRtpSession,
 }
 
 GLOBAL eRtp_Bool IMS_RtpSvc_ProcRtcpPacket(IN RtpServiceListener* pobjIRtpSession,
-        IN RTPSESSIONID hRtpSession, IN RtpDt_UChar* pMsg, IN RtpDt_UInt16 wMsgLength,
-        IN RtpDt_Char* pcIpAddr, IN RtpDt_UInt32 uiRtcpPort, OUT RtpDt_UInt32* uiDestSsrc)
+        IN RTPSESSIONID hRtpSession, IN RtpDt_UChar* pMsg, IN RtpDt_UInt16 uiMsgLength,
+        IN RtpDt_Char* pcIpAddr, IN RtpDt_UInt32 uiRtcpPort, OUT RtpDt_UInt32* uiPeerSsrc)
 {
-    (RtpDt_Void) uiDestSsrc;
+    (RtpDt_Void) uiPeerSsrc;
 
     RtpSession* pobjRtpSession = (RtpSession*)hRtpSession;
 
@@ -642,7 +642,7 @@ GLOBAL eRtp_Bool IMS_RtpSvc_ProcRtcpPacket(IN RtpServiceListener* pobjIRtpSessio
             g_pobjRtpStack->isValidRtpSession(pobjRtpSession) == eRTP_FAILURE)
         return eRTP_FALSE;
 
-    if (pMsg == RTP_NULL || wMsgLength == RTP_ZERO || pcIpAddr == RTP_NULL)
+    if (pMsg == RTP_NULL || uiMsgLength == RTP_ZERO || pcIpAddr == RTP_NULL)
     {
         return eRTP_FALSE;
     }
@@ -653,7 +653,7 @@ GLOBAL eRtp_Bool IMS_RtpSvc_ProcRtcpPacket(IN RtpServiceListener* pobjIRtpSessio
 
     // decrypt RTCP message
     RtpBuffer objRtcpBuf;
-    objRtcpBuf.setBufferInfo(wMsgLength, pMsg);
+    objRtcpBuf.setBufferInfo(uiMsgLength, pMsg);
 
     // process RTCP message
     RtcpPacket objRtcpPkt;
