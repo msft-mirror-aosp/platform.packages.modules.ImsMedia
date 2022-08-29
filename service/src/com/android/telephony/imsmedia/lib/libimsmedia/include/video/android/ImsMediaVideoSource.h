@@ -156,7 +156,6 @@ private:
     AImageReader* mImageReader;
     std::mutex mMutex;
     std::mutex mImageReaderMutex;
-    ImsMediaCondition mConditionExit;
     IVideoSourceCallback* mListener;
     int32_t mCodecType;
     int32_t mVideoMode;

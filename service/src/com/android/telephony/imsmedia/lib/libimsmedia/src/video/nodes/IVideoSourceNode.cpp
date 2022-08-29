@@ -56,7 +56,7 @@ kBaseNodeId IVideoSourceNode::GetNodeId()
 
 ImsMediaResult IVideoSourceNode::Start()
 {
-    IMLOGD2("[Start] codec[%d], mode[%d]", mCodecType, mVideoMode);
+    IMLOGD3("[Start] codec[%d], mode[%d], cameraId[%d]", mCodecType, mVideoMode, mCameraId);
     std::lock_guard<std::mutex> guard(mMutex);
 
     if (mVideoSource)
