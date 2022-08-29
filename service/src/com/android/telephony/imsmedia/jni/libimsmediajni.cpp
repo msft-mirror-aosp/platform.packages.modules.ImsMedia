@@ -24,6 +24,7 @@
 #include <MediaManagerFactory.h>
 #include <AudioManager.h>
 #include <VideoManager.h>
+#include <ImsMediaVideoUtil.h>
 #include <android/native_window_jni.h>
 
 #define IMS_MEDIA_JNI_VERSION JNI_VERSION_1_4
@@ -165,13 +166,39 @@ static void JNIImsMediaService_setDisplaySurface(
     manager->setDisplaySurface(sessionId, ANativeWindow_fromSurface(env, surface));
 }
 
+static jstring JNIImsMediaUtil_generateSPROP(JNIEnv* env, jobject, jbyteArray baData)
+{
+    android::Parcel parcel;
+    jbyte* pBuff = env->GetByteArrayElements(baData, NULL);
+    int nBuffSize = env->GetArrayLength(baData);
+    parcel.setData((const uint8_t*)pBuff, nBuffSize);
+    parcel.setDataPosition(0);
+
+    VideoConfig videoConfig;
+    videoConfig.readFromParcel(&parcel);
+    env->ReleaseByteArrayElements(baData, pBuff, 0);
+    ALOGE("[GenerateVideoSprop] Profile[%d] level[%d]", videoConfig.getCodecProfile(),
+            videoConfig.getCodecLevel());
+
+    char* sprop = ImsMediaVideoUtil::GenerateVideoSprop(&videoConfig);
+    jstring str = NULL;
+    if (sprop != NULL)
+    {
+        str = env->NewStringUTF(sprop);
+        free(sprop);
+    }
+
+    return str;
+}
+
 static JNINativeMethod gMethods[] = {
-        {"getInterface","(I)J",(void*)JNIImsMediaService_getInterface},
-        {"sendMessage","(JI[B)V",(void*)JNIImsMediaService_sendMessage},
-        {"setPreviewSurface","(JILandroid/view/Surface;)V",
-         (void*)JNIImsMediaService_setPreviewSurface},
-        {"setDisplaySurface","(JILandroid/view/Surface;)V",
-         (void*)JNIImsMediaService_setDisplaySurface},
+        {"getInterface", "(I)J", (void*)JNIImsMediaService_getInterface},
+        {"sendMessage", "(JI[B)V", (void*)JNIImsMediaService_sendMessage},
+        {"setPreviewSurface", "(JILandroid/view/Surface;)V",
+                (void*)JNIImsMediaService_setPreviewSurface},
+        {"setDisplaySurface", "(JILandroid/view/Surface;)V",
+                (void*)JNIImsMediaService_setDisplaySurface},
+        {"generateSprop", "([B)Ljava/lang/String;", (void*)JNIImsMediaUtil_generateSPROP},
 };
 
 jint ImsMediaServiceJni_OnLoad(JNIEnv* env)

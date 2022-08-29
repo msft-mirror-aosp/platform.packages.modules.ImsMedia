@@ -19,6 +19,7 @@
 
 #include <stdint.h>
 #include <ImsMediaDefine.h>
+#include <VideoConfig.h>
 
 #define MAX_CONFIG_LEN              256
 #define MAX_CONFIG_INDEX            3
@@ -187,6 +188,7 @@ public:
     static ImsMediaResult ParseHevcSpropParam(const char* szSpropparam, tCodecConfig* pInfo);
     static bool ParseAvcSps(uint8_t* pbBuffer, uint32_t nBufferSize, tCodecConfig* pInfo);
     static bool ParseHevcSps(uint8_t* pbBuffer, uint32_t nBufferSize, tCodecConfig* pInfo);
+    static char* GenerateVideoSprop(VideoConfig* pVideoConfig);
 };
 
 #endif  // IMSMEDIA_VIDEOUTIL_H_INCLUDED

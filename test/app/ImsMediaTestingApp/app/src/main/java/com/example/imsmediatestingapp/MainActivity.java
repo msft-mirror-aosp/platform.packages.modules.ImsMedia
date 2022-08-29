@@ -18,6 +18,7 @@ import android.telephony.imsmedia.AmrParams;
 import android.telephony.imsmedia.AudioConfig;
 import android.telephony.imsmedia.AudioSessionCallback;
 import android.telephony.imsmedia.EvsParams;
+import android.telephony.imsmedia.IImsMediaCallback;
 import android.telephony.imsmedia.ImsAudioSession;
 import android.telephony.imsmedia.ImsMediaManager;
 import android.telephony.imsmedia.ImsMediaSession;
@@ -2253,5 +2254,44 @@ public class MainActivity extends AppCompatActivity {
         mLoopbackSwitch.setEnabled(false);
         mLoopbackSwitch.setClickable(false);
         mLoopbackSwitch.setAlpha(DISABLED_ALPHA);
+    }
+
+    private IImsMediaCallback.Stub mMediaUtilCallback = new IImsMediaCallback.Stub() {
+        @Override
+        public void onVideoSpropResponse(String[] spropList) {
+            Log.d(TAG, "[GetSprop]onVideoSprop");
+            for (String sprop : spropList) {
+                Log.d(TAG, "[GetSprop]SPROP : " + sprop);
+            }
+        }
+    };
+
+    public void generateSprop(View btn) {
+        if (!mIsMediaManagerReady) {
+            Log.d(TAG, "[GetSprop]Media Manager not ready");
+            return;
+        }
+
+        VideoConfig[] videoConfigList = new VideoConfig[1];
+        VideoConfig.Builder vcbuilder = new VideoConfig.Builder();
+        vcbuilder.setBitrate(384)
+                .setCodecType(VideoConfig.VIDEO_CODEC_AVC)
+                .setCodecProfile(VideoConfig.AVC_PROFILE_CONSTRAINED_BASELINE)
+                .setCodecLevel(VideoConfig.AVC_LEVEL_12)
+                .setFramerate(10)
+                .setIntraFrameIntervalSec(1)
+                .setPacketizationMode(VideoConfig.MODE_NON_INTERLEAVED)
+                .setResolutionWidth(480)
+                .setResolutionHeight(640)
+                .setVideoMode(VideoConfig.VIDEO_MODE_RECORDING)
+                .setMaxMtuBytes(1500);
+
+        videoConfigList[0] = vcbuilder.build();
+
+        try {
+            mImsMediaManager.generateVideoSprop(videoConfigList, mMediaUtilCallback.asBinder());
+        } catch (Exception e) {
+            Log.d(TAG, e.toString());
+        }
     }
 }

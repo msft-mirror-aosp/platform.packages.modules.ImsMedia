@@ -14,12 +14,19 @@
  * limitations under the License.
  */
 
+#include <media/NdkMediaCodec.h>
+#include <media/NdkMediaFormat.h>
 #include <ImsMediaVideoUtil.h>
 #include <ImsMediaBitReader.h>
 #include <ImsMediaBinaryFormat.h>
 #include <ImsMediaTrace.h>
 #include <VideoConfig.h>
 #include <string.h>
+
+#define START_CODE_PREFIX_LEN           4
+#define MAX_OUTPUT_BUFFER_READ_ATTEMPTS 5
+#define FRAME_TYPE_SPS                  7
+#define FRAME_TYPE_PPS                  8
 
 ImsMediaVideoUtil::ImsMediaVideoUtil() {}
 
@@ -103,7 +110,7 @@ bool ImsMediaVideoUtil::ModifyAvcSpropParameterSet(
 
     IMLOGW1("[ModifyAvcSpropParameterSet] input data[%s]", pSPSConfig);
 
-    // convert base64 to binary
+    // Convert base64 to binary
     bool ret = ImsMediaBinaryFormat::Base00ToBinary(
             pbSPSConfig, &nSPSConfigSize, MAX_CONFIG_LEN, pSPSConfig, BINARY_FORMAT_BASE64);
 
@@ -113,8 +120,6 @@ bool ImsMediaVideoUtil::ModifyAvcSpropParameterSet(
         return false;
     }
 
-    // IMLOGW1("[ModifyAvcSpropParameterSet] binary size[%d]", nSPSConfigSize);
-
     pbSPSConfigModified = (uint8_t*)malloc(nSPSConfigSize);
 
     if (pbSPSConfigModified == NULL)
@@ -122,12 +127,12 @@ bool ImsMediaVideoUtil::ModifyAvcSpropParameterSet(
 
     memcpy(pbSPSConfigModified, pbSPSConfig, nSPSConfigSize);
 
-    // skip profile modification
+    // Skip profile modification
 
-    // level modification
+    // Level modification
     pbSPSConfigModified[3] = nLevel;
 
-    // for copy modified sps formed base64
+    // For copy modified sps formed base64
     pSPSConfigModified = (char*)malloc(MAX_CONFIG_LEN);
 
     if (pSPSConfigModified == NULL)
@@ -135,7 +140,7 @@ bool ImsMediaVideoUtil::ModifyAvcSpropParameterSet(
 
     memset(pSPSConfigModified, 0, MAX_CONFIG_LEN);
 
-    // convert binary to base64
+    // Convert binary to base64
     ret = ImsMediaBinaryFormat::BinaryToBase00(pSPSConfigModified, MAX_CONFIG_LEN,
             pbSPSConfigModified, nSPSConfigSize, BINARY_FORMAT_BASE64);
 
@@ -211,18 +216,18 @@ ImsMediaResult ImsMediaVideoUtil::ParseAvcSpropParam(const char* szSpropparam, t
     bitreader.SetBuffer(pszSpropparam, nSPSConfigSize);
     bitreader.Read(8);
 
-    uint32_t Profile_idc = bitreader.Read(8);  // read profile_idc
+    uint32_t Profile_idc = bitreader.Read(8);  // Read profile_idc
 
-    // read constraint
-    bitreader.Read(1);  // constraint_set0
-    bitreader.Read(1);  // constraint_set1
-    bitreader.Read(1);  // constraint_set2
-    bitreader.Read(1);  // constraint_set3
-    bitreader.Read(1);  // constraint_set4
-    bitreader.Read(3);  // read reserved_zeor_3bits
+    // Read constraint
+    bitreader.Read(1);  // Constraint_set0
+    bitreader.Read(1);  // Constraint_set1
+    bitreader.Read(1);  // Constraint_set2
+    bitreader.Read(1);  // Constraint_set3
+    bitreader.Read(1);  // Constraint_set4
+    bitreader.Read(3);  // Read reserved_zeor_3bits
 
-    uint32_t Level_idc = bitreader.Read(8);  // read level_idc
-    bitreader.ReadByUEMode();                // read Seq_parameter_set_id
+    uint32_t Level_idc = bitreader.Read(8);  // Read level_idc
+    bitreader.ReadByUEMode();                // Read Seq_parameter_set_id
 
     if (Profile_idc == 100 || Profile_idc == 11 || Profile_idc == 122 || Profile_idc == 244 ||
             Profile_idc == 44 || Profile_idc == 83 || Profile_idc == 86 || Profile_idc == 118)
@@ -231,18 +236,18 @@ ImsMediaResult ImsMediaVideoUtil::ParseAvcSpropParam(const char* szSpropparam, t
 
         if (chroma_format_idc == 3)
         {
-            bitreader.Read(1);  // separate_colour_plane
+            bitreader.Read(1);  // Separate_colour_plane
         }
 
-        bitreader.ReadByUEMode();  // read bit_depth_luma_minus8
-        bitreader.ReadByUEMode();  // read bit_depth_chroma_minus8
-        bitreader.Read(1);         // read qpprime_y_zero_transformypass
+        bitreader.ReadByUEMode();  // Read bit_depth_luma_minus8
+        bitreader.ReadByUEMode();  // Read bit_depth_chroma_minus8
+        bitreader.Read(1);         // Read qpprime_y_zero_transformypass
 
-        // read seq_scaling_matrix_present
+        // Read seq_scaling_matrix_present
         if (bitreader.Read(1))
         {
             uint32_t i = ((chroma_format_idc != 3) ? 8 : 12);
-            // set scaling_list... not implement
+            // Set scaling_list... not implement
             bitreader.Read(i);
         }
     }
@@ -250,32 +255,32 @@ ImsMediaResult ImsMediaVideoUtil::ParseAvcSpropParam(const char* szSpropparam, t
     pInfo->nProfile = Profile_idc;
     pInfo->nLevel = Level_idc;
 
-    bitreader.ReadByUEMode();                                // read log2_max_frame_num_minus4
-    uint32_t pic_order_cnt_type = bitreader.ReadByUEMode();  // read pic_order_cnt_type
+    bitreader.ReadByUEMode();                                // Read log2_max_frame_num_minus4
+    uint32_t pic_order_cnt_type = bitreader.ReadByUEMode();  // Read pic_order_cnt_type
 
     if (pic_order_cnt_type == 0)
     {
-        bitreader.ReadByUEMode();  // read log2_max_pic_order_cnt_lsb_minus4
+        bitreader.ReadByUEMode();  // Read log2_max_pic_order_cnt_lsb_minus4
     }
     else if (pic_order_cnt_type == 1)
     {
-        bitreader.Read(1);         // read delta_pic_order_always_zero_flag
-        bitreader.ReadByUEMode();  // reda offset_for_non_ref_pic...
-        bitreader.ReadByUEMode();  // read offset_for_top_to_bottom_field
+        bitreader.Read(1);         // Read delta_pic_order_always_zero_flag
+        bitreader.ReadByUEMode();  // Reda offset_for_non_ref_pic...
+        bitreader.ReadByUEMode();  // Read offset_for_top_to_bottom_field
         uint32_t num_ref_frames_in_pic_order_cnt_cycle =
-                bitreader.ReadByUEMode();  // read num_ref_frames_in_pic_order_cnt_cycle
+                bitreader.ReadByUEMode();  // Read num_ref_frames_in_pic_order_cnt_cycle
         for (uint32_t i = 0; i < num_ref_frames_in_pic_order_cnt_cycle; i++)
         {
-            bitreader.ReadByUEMode();  // read offset_for_ref_frame[i];
+            bitreader.ReadByUEMode();  // Read offset_for_ref_frame[i];
         }
     }
 
-    bitreader.ReadByUEMode();  // read max_num_ref_frames
-    bitreader.Read(1);         // read gaps_in_frame_num_value_allowed
+    bitreader.ReadByUEMode();  // Read max_num_ref_frames
+    bitreader.Read(1);         // Read gaps_in_frame_num_value_allowed
 
-    uint32_t pic_width_in_mbs_minus1 = bitreader.ReadByUEMode();  // read pic_width_in_mbs_minus1
+    uint32_t pic_width_in_mbs_minus1 = bitreader.ReadByUEMode();  // Read pic_width_in_mbs_minus1
     uint32_t pic_height_in_map_units_minus1 =
-            bitreader.ReadByUEMode();  // read pic_height_in_map_units_minus1
+            bitreader.ReadByUEMode();  // Read pic_height_in_map_units_minus1
     uint32_t frame_mbs_only = bitreader.Read(1);
 
     pInfo->nWidth = pic_width_in_mbs_minus1 * 16 + 16;
@@ -283,23 +288,23 @@ ImsMediaResult ImsMediaVideoUtil::ParseAvcSpropParam(const char* szSpropparam, t
 
     if (!frame_mbs_only)
     {
-        bitreader.Read(1);  // read mb_adaptive_frame_field
+        bitreader.Read(1);  // Read mb_adaptive_frame_field
     }
 
-    bitreader.Read(1);                            // read direct_8x8_inferencce_flag
-    uint32_t frame_cropping = bitreader.Read(1);  // read frame_cropping_flag
+    bitreader.Read(1);                            // Read direct_8x8_inferencce_flag
+    uint32_t frame_cropping = bitreader.Read(1);  // Read frame_cropping_flag
 
     if (frame_cropping)
     {
-        uint32_t frame_crop_left_offset = bitreader.ReadByUEMode();   // read frame_crop_left_offset
-        uint32_t frame_crop_right_offset = bitreader.ReadByUEMode();  // read
+        uint32_t frame_crop_left_offset = bitreader.ReadByUEMode();   // Read frame_crop_left_offset
+        uint32_t frame_crop_right_offset = bitreader.ReadByUEMode();  // Read
                                                                       // frame_crop_right_offset
-        uint32_t frame_crop_top_offset = bitreader.ReadByUEMode();    // read frame_crop_top_offset
+        uint32_t frame_crop_top_offset = bitreader.ReadByUEMode();    // Read frame_crop_top_offset
         uint32_t frame_crop_bottom_offset =
-                bitreader.ReadByUEMode();  // read frame_crop_bottom_offset
+                bitreader.ReadByUEMode();  // Read frame_crop_bottom_offset
         uint32_t cropX, cropY = 0;
 
-        if (chroma_format_idc == 0 /* monochrome */)
+        if (chroma_format_idc == 0 /* Monochrome */)
         {
             cropX = 1;
             cropY = 2 - frame_mbs_only;
@@ -368,7 +373,7 @@ ImsMediaResult ImsMediaVideoUtil::ParseHevcSpropParam(const char* szSpropparam, 
 
     memcpy(pszSpropparam, pbSPSConfig, nSPSConfigSize);
 
-    // check binary
+    // Check binary
     ImsMediaTrace::IMLOGD_BINARY("[ParseHevcSpropParam] sps=", pszSpropparam, nSPSConfigSize);
 
     uint32_t nOffset = 0;
@@ -491,7 +496,7 @@ ImsMediaResult ImsMediaVideoUtil::ParseHevcSpropParam(const char* szSpropparam, 
                 conf_win_right_offset, conf_win_top_offset, conf_win_bottom_offset);
     }
 
-    // round down by 16 unit
+    // Round down by 16 unit
     uint32_t nRoundDownWidth = (pInfo->nWidth) / 16 * 16;
     uint32_t nRoundDownHeight = (pInfo->nHeight) / 16 * 16;
 
@@ -527,16 +532,16 @@ bool ImsMediaVideoUtil::ParseAvcSps(uint8_t* pbBuffer, uint32_t nBufferSize, tCo
     bitreader.Read(8);
     bitreader.Read(8);
 
-    uint32_t Profile_idc = bitreader.Read(8);  // read profile_idc
-    // read constraint
+    uint32_t Profile_idc = bitreader.Read(8);  // Read profile_idc
+    // Read constraint
     uint32_t constraint_set0 = bitreader.Read(1);
     uint32_t constraint_set1 = bitreader.Read(1);
     uint32_t constraint_set2 = bitreader.Read(1);
     uint32_t constraint_set3 = bitreader.Read(1);
     uint32_t constraint_set4 = bitreader.Read(1);
-    bitreader.Read(3);                       // read reserved_zeor_3bits
-    uint32_t Level_idc = bitreader.Read(8);  // read level_idc
-    bitreader.ReadByUEMode();                // read Seq_parameter_set_id
+    bitreader.Read(3);                       // Read reserved_zeor_3bits
+    uint32_t Level_idc = bitreader.Read(8);  // Read level_idc
+    bitreader.ReadByUEMode();                // Read Seq_parameter_set_id
 
     if (Profile_idc == 100 || Profile_idc == 110 || Profile_idc == 122 || Profile_idc == 244 ||
             Profile_idc == 44 || Profile_idc == 83 || Profile_idc == 86 || Profile_idc == 118)
@@ -548,11 +553,11 @@ bool ImsMediaVideoUtil::ParseAvcSps(uint8_t* pbBuffer, uint32_t nBufferSize, tCo
             bitreader.Read(1);  // separate_colour_plane
         }
 
-        bitreader.ReadByUEMode();  // read bit_depth_luma_minus8
-        bitreader.ReadByUEMode();  // read bit_depth_chroma_minus8
-        bitreader.Read(1);         // read qpprime_y_zero_transform_bypass
+        bitreader.ReadByUEMode();  // Read bit_depth_luma_minus8
+        bitreader.ReadByUEMode();  // Read bit_depth_chroma_minus8
+        bitreader.Read(1);         // Read qpprime_y_zero_transform_bypass
 
-        // read seq_scaling_matrix_present
+        // Read seq_scaling_matrix_present
         if (bitreader.Read(1))
         {
             uint32_t i = ((chroma_format_idc != 3) ? 8 : 12);
@@ -576,28 +581,28 @@ bool ImsMediaVideoUtil::ParseAvcSps(uint8_t* pbBuffer, uint32_t nBufferSize, tCo
     IMLOGD_PACKET2(IM_PACKET_LOG_VIDEO, "[ParseAvcSps] Profile_idc[%d], Level_idc[%d]", Profile_idc,
             Level_idc);
 
-    bitreader.ReadByUEMode();                                // read log2_max_frame_num_minus4
-    uint32_t pic_order_cnt_type = bitreader.ReadByUEMode();  // read pic_order_cnt_type
+    bitreader.ReadByUEMode();                                // Read log2_max_frame_num_minus4
+    uint32_t pic_order_cnt_type = bitreader.ReadByUEMode();  // Read pic_order_cnt_type
 
     if (pic_order_cnt_type == 0)
     {
-        bitreader.ReadByUEMode();  // read log2_max_pic_order_cnt_lsb_minus4
+        bitreader.ReadByUEMode();  // Read log2_max_pic_order_cnt_lsb_minus4
     }
     else if (pic_order_cnt_type == 1)
     {
-        bitreader.Read(1);         // read delta_pic_order_always_zero_flag
-        bitreader.ReadByUEMode();  // reda offset_for_non_ref_pic...
-        bitreader.ReadByUEMode();  // read offset_for_top_to_bottom_field
+        bitreader.Read(1);         // Read delta_pic_order_always_zero_flag
+        bitreader.ReadByUEMode();  // Reda offset_for_non_ref_pic...
+        bitreader.ReadByUEMode();  // Read offset_for_top_to_bottom_field
         uint32_t num_ref_frames_in_pic_order_cnt_cycle = bitreader.ReadByUEMode();
 
         for (uint32_t i = 0; i < num_ref_frames_in_pic_order_cnt_cycle; i++)
         {
-            bitreader.ReadByUEMode();  // read offset_for_ref_frame[i];
+            bitreader.ReadByUEMode();  // Read offset_for_ref_frame[i];
         }
     }
 
-    bitreader.ReadByUEMode();  // read max_num_ref_frames
-    bitreader.Read(1);         // read gaps_in_frame_num_value_allowed
+    bitreader.ReadByUEMode();  // Read max_num_ref_frames
+    bitreader.Read(1);         // Read gaps_in_frame_num_value_allowed
 
     uint32_t pic_width_in_mbs_minus1 = bitreader.ReadByUEMode();
     uint32_t pic_height_in_map_units_minus1 = bitreader.ReadByUEMode();
@@ -608,11 +613,11 @@ bool ImsMediaVideoUtil::ParseAvcSps(uint8_t* pbBuffer, uint32_t nBufferSize, tCo
 
     if (!frame_mbs_only)
     {
-        bitreader.Read(1);  // read mb_adaptive_frame_field
+        bitreader.Read(1);  // Read mb_adaptive_frame_field
     }
 
-    bitreader.Read(1);                            // read direct_8x8_inferencce_flag
-    uint32_t frame_cropping = bitreader.Read(1);  // read frame_cropping_flag
+    bitreader.Read(1);                            // Read direct_8x8_inferencce_flag
+    uint32_t frame_cropping = bitreader.Read(1);  // Read frame_cropping_flag
 
     if (frame_cropping)
     {
@@ -755,7 +760,7 @@ bool ImsMediaVideoUtil::ParseHevcSps(uint8_t* pbBuffer, uint32_t nBufferSize, tC
         pInfo->nHeight -= conf_win_top_offset + conf_win_bottom_offset;
     }
 
-    // round down by 16 unit
+    // Round down by 16 unit
     uint32_t nRoundDownWidth = (pInfo->nWidth) / 16 * 16;
     uint32_t nRoundDownHeight = (pInfo->nHeight) / 16 * 16;
 
@@ -763,4 +768,214 @@ bool ImsMediaVideoUtil::ParseHevcSps(uint8_t* pbBuffer, uint32_t nBufferSize, tC
     pInfo->nHeight = nRoundDownHeight;
 
     return true;
+}
+
+uint8_t* FindAvcStartCode(uint8_t* pData, uint32_t nDataSize, uint32_t* pnSkipSize)
+{
+    uint8_t* pCurDataPos = pData;
+    uint32_t nSkipSize = 0;
+
+    // Remove leading zero bytes and start code prefix
+    while (nDataSize >= START_CODE_PREFIX_LEN)
+    {
+        // Start Code 00 00 00 01 case.
+        if (pCurDataPos[0] == 0x00 && pCurDataPos[1] == 0x00 && pCurDataPos[2] == 0x00 &&
+                pCurDataPos[3] == 0x01)
+        {
+            if (pnSkipSize)
+                *pnSkipSize = nSkipSize;
+            return pCurDataPos;
+        }
+        else
+        {
+            pCurDataPos += 1;
+            nDataSize -= 1;
+            nSkipSize += 1;
+        }
+    }
+
+    if (pnSkipSize)
+        *pnSkipSize = nSkipSize;
+    return NULL;
+}
+
+char* ImsMediaVideoUtil::GenerateVideoSprop(VideoConfig* pVideoConfig)
+{
+    if (pVideoConfig == NULL)
+    {
+        IMLOGE0("[GenerateVideoSprop] pVideoConfig is null");
+        return NULL;
+    }
+
+    // Configure Encoder
+    AMediaFormat* pFormat = AMediaFormat_new();
+    AMediaFormat_setInt32(pFormat, AMEDIAFORMAT_KEY_WIDTH, pVideoConfig->getResolutionWidth());
+    AMediaFormat_setInt32(pFormat, AMEDIAFORMAT_KEY_HEIGHT, pVideoConfig->getResolutionHeight());
+
+    char kMimeType[128] = {'\0'};
+    sprintf(kMimeType, "video/avc");
+    if (pVideoConfig->getCodecType() == VideoConfig::CODEC_HEVC)
+    {
+        sprintf(kMimeType, "video/hevc");
+    }
+
+    IMLOGD1("[GenerateVideoSprop] MimeType[%s]", kMimeType);
+    IMLOGD2("[GenerateVideoSprop] Resolution[%dx%d].", pVideoConfig->getResolutionWidth(),
+            pVideoConfig->getResolutionHeight());
+    IMLOGD2("[GenerateVideoSprop] Profile[%d] level[%d]", pVideoConfig->getCodecProfile(),
+            pVideoConfig->getCodecLevel());
+    IMLOGD2("[GenerateVideoSprop] Bitrate[%d], FrameRate[%d]", pVideoConfig->getBitrate(),
+            pVideoConfig->getFramerate());
+
+    AMediaFormat_setString(pFormat, AMEDIAFORMAT_KEY_MIME, kMimeType);
+    AMediaFormat_setInt32(pFormat, AMEDIAFORMAT_KEY_COLOR_FORMAT,
+            0x00000015);  // COLOR_FormatYUV420SemiPlanar
+
+    AMediaFormat_setInt32(pFormat, AMEDIAFORMAT_KEY_BIT_RATE, pVideoConfig->getBitrate() * 1000);
+    AMediaFormat_setInt32(pFormat, AMEDIAFORMAT_KEY_PROFILE, pVideoConfig->getCodecProfile());
+    AMediaFormat_setInt32(pFormat, AMEDIAFORMAT_KEY_LEVEL, pVideoConfig->getCodecLevel());
+    AMediaFormat_setInt32(pFormat, AMEDIAFORMAT_KEY_BITRATE_MODE, 2);  // #2 : BITRATE_MODE_CBR
+    AMediaFormat_setFloat(pFormat, AMEDIAFORMAT_KEY_FRAME_RATE, pVideoConfig->getFramerate());
+    AMediaFormat_setInt32(
+            pFormat, AMEDIAFORMAT_KEY_I_FRAME_INTERVAL, pVideoConfig->getIntraFrameInterval());
+    AMediaFormat_setInt32(pFormat, AMEDIAFORMAT_KEY_MAX_INPUT_SIZE,
+            pVideoConfig->getResolutionWidth() * pVideoConfig->getResolutionHeight() * 10);
+
+    AMediaCodec* pCodec = AMediaCodec_createEncoderByType(kMimeType);
+    if (pCodec == NULL)
+    {
+        IMLOGE1("[GenerateVideoSprop] Unable to create encoder. MimeType[%s]", kMimeType);
+        return NULL;
+    }
+
+    media_status_t err =
+            AMediaCodec_configure(pCodec, pFormat, NULL, NULL, AMEDIACODEC_CONFIGURE_FLAG_ENCODE);
+    if (err != AMEDIA_OK)
+    {
+        IMLOGE1("[GenerateVideoSprop] Encoder configure error[%d]", err);
+        AMediaCodec_delete(pCodec);
+        pCodec = NULL;
+        AMediaFormat_delete(pFormat);
+        pFormat = NULL;
+        return NULL;
+    }
+
+    err = AMediaCodec_start(pCodec);
+    if (err != AMEDIA_OK)
+    {
+        IMLOGE1("[GenerateVideoSprop] Encoder start Err[%d]", err);
+        AMediaCodec_delete(pCodec);
+        pCodec = NULL;
+        AMediaFormat_delete(pFormat);
+        pFormat = NULL;
+        return NULL;
+    }
+
+    bool bSpsRead = false, bPpsRead = false;
+    int8_t nMaxBufferReads = MAX_OUTPUT_BUFFER_READ_ATTEMPTS;
+    char* pSpropStr = (char*)malloc(MAX_CONFIG_LEN);
+    pSpropStr[0] = '\0';
+    while (!bSpsRead || !bPpsRead)
+    {
+        // Get output buffer
+        AMediaCodecBufferInfo info;
+        auto index = AMediaCodec_dequeueOutputBuffer(pCodec, &info, 100000);
+        IMLOGD2("[GenerateVideoSprop] dequeueOutputBuffer returned index[%d] frameSize[%d]", index,
+                info.size);
+        if (index >= 0 && info.size > 0)
+        {
+            size_t buffCapacity = 0;
+            uint8_t* buf = AMediaCodec_getOutputBuffer(pCodec, index, &buffCapacity);
+            IMLOGD1("[GenerateVideoSprop] getOutputBuffer returned buffCapacity[%d]", buffCapacity);
+
+            buf += info.offset;
+            buffCapacity = info.size;
+
+            while (buf != NULL && buffCapacity > 0)
+            {
+                uint32_t skipLen = 0;
+                uint8_t* tempBufPtr = FindAvcStartCode(buf, buffCapacity, &skipLen);
+                if (tempBufPtr != NULL)
+                {
+                    buf = tempBufPtr;
+                    buffCapacity -= skipLen;
+                }
+
+                if (buf == NULL || buffCapacity < START_CODE_PREFIX_LEN)
+                    continue;
+
+                // Remove start sequence
+                buf += START_CODE_PREFIX_LEN;
+                buffCapacity -= START_CODE_PREFIX_LEN;
+
+                uint8_t frameType = buf[0] & 0x1F;
+
+                // Extract frame
+                int frameLen = buffCapacity;
+                tempBufPtr = FindAvcStartCode(buf, buffCapacity, &skipLen);
+                if (tempBufPtr != NULL)
+                {
+                    frameLen = tempBufPtr - buf;
+                }
+
+                int16_t SpropStrlen = strlen(pSpropStr);
+                bool ret = ImsMediaBinaryFormat::BinaryToBase00(pSpropStr + SpropStrlen,
+                        MAX_CONFIG_LEN, buf, frameLen, BINARY_FORMAT_BASE64);
+                if (ret == false)
+                {
+                    IMLOGE0("[GenerateVideoSprop] BinaryToBase64 failed");
+                    free(pSpropStr);
+                    pSpropStr = NULL;
+                    AMediaCodec_releaseOutputBuffer(pCodec, index, false);
+                    goto JP_Exit_GenerateSprop;
+                }
+
+                if (frameType == FRAME_TYPE_SPS)  // Check if SPS
+                {
+                    strcat(pSpropStr, ",");
+                    bSpsRead = true;
+                }
+                else if (frameType == FRAME_TYPE_PPS)  // Check if PPS
+                {
+                    bPpsRead = true;
+                }
+
+                buffCapacity -= frameLen;
+                buf += frameLen;
+            }
+
+            AMediaCodec_releaseOutputBuffer(pCodec, index, false);
+        }
+        else
+        {
+            IMLOGE2("[GenerateVideoSprop] dequeueOutputBuffer returned invalid index[%d] "
+                    "info.size[%d]",
+                    index, info.size);
+        }
+
+        if (--nMaxBufferReads <= 0)
+        {
+            free(pSpropStr);
+            pSpropStr = NULL;
+            goto JP_Exit_GenerateSprop;
+        }
+    }
+
+JP_Exit_GenerateSprop:
+    // Stop Encoder
+    if (pCodec != NULL)
+    {
+        IMLOGD0("[GenerateVideoSprop] Stop encoder");
+        AMediaCodec_signalEndOfInputStream(pCodec);
+        AMediaCodec_stop(pCodec);
+        AMediaCodec_delete(pCodec);
+    }
+
+    if (pFormat != NULL)
+    {
+        AMediaFormat_delete(pFormat);
+    }
+
+    IMLOGD1("[GenerateVideoSprop] Returning sprop[%s]", pSpropStr);
+    return pSpropStr;
 }

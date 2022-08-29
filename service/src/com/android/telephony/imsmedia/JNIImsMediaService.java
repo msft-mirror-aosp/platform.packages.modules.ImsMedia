@@ -69,6 +69,14 @@ public class JNIImsMediaService {
     public static native void setDisplaySurface(long nativeObj, int sessionId, Surface surface);
 
     /**
+     * Generates SPROP list for the given set of video configurations.
+     *
+     * @param videoConfig video configuration for which sprop should be generated.
+     * @return returns the generated sprop value.
+     */
+    public static native String generateSprop(byte[] videoConfig);
+
+    /**
      * Gets intance of JNIImsMediaService for jni interface
      *
      * @return instance of JNIImsMediaService
