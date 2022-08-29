@@ -310,18 +310,11 @@ void ImsMediaVideoSource::Stop()
 
     mMutex.lock();
     mStopped = true;
+    mMutex.unlock();
 
     if (mCamera != NULL)
     {
         mCamera->StopSession();
-    }
-
-    mMutex.unlock();
-
-    if (mVideoMode == kVideoModeRecording)
-    {
-        mConditionExit.reset();
-        mConditionExit.wait_timeout(MAX_WAIT_RESTART);
     }
 
     IMLOGD0("[Stop] deinitialize camera");
@@ -528,7 +521,10 @@ void ImsMediaVideoSource::processOutputBuffer()
                 }
             }
 
-            AMediaCodec_releaseOutputBuffer(mCodec, index, false);
+            if (!IsStopped())
+            {
+                AMediaCodec_releaseOutputBuffer(mCodec, index, false);
+            }
         }
         else if (index == AMEDIACODEC_INFO_OUTPUT_BUFFERS_CHANGED)
         {
@@ -565,7 +561,6 @@ void ImsMediaVideoSource::processOutputBuffer()
         }
     }
 
-    mConditionExit.signal();
     IMLOGD0("[processOutputBuffer] exit");
 }
 
