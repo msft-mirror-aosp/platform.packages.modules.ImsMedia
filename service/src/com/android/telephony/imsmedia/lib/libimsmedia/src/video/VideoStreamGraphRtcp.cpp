@@ -103,12 +103,6 @@ ImsMediaResult VideoStreamGraphRtcp::update(RtpConfig* config)
 
     mConfig = new VideoConfig(pConfig);
 
-    if (mConfig->getRtcpConfig().getIntervalSec() == 0)
-    {
-        IMLOGD0("[update] pause RTCP");
-        return stop();
-    }
-
     ImsMediaResult ret = ImsMediaResult::RESULT_NOT_READY;
     // stop scheduler
     if (mGraphState == kStreamStateRunning)

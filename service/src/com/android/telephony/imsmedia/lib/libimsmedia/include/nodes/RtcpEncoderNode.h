@@ -42,9 +42,6 @@ public:
     void ProcessTimer();
     void SetLocalAddress(const RtpAddress address);
     void SetPeerAddress(const RtpAddress address);
-    void SetRtcpInterval(const uint32_t interval);
-    void SetRtcpXrBlockType(const uint32_t rtcpXrBlockType);
-    void SetRtcpByeEnable(const bool bEnable);
 
 private:
     IRtpSession* mRtpSession;
@@ -55,6 +52,7 @@ private:
     bool mEnableRtcpBye;
     uint32_t mRtcpXrBlockType;
     int32_t mRtcpXrCounter;
+    int32_t mRtcpFbTypes;
     hTimerHandler mTimer;
     std::mutex mMutexTimer;
 };

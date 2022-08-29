@@ -16,13 +16,15 @@
 
 #include <RtcpEncoderNode.h>
 #include <ImsMediaTrace.h>
+#include <VideoConfig.h>
 
 RtcpEncoderNode::RtcpEncoderNode(BaseSessionCallback* callback) :
         BaseNode(callback)
 {
     mRtpSession = NULL;
-    mEnableRtcpBye = false;
+    mRtcpInterval = 0;
     mRtcpXrPayload = NULL;
+    mEnableRtcpBye = false;
     mRtcpXrBlockType = RtcpConfig::FLAG_RTCPXR_NONE;
     mRtcpXrCounter = 0;
     mTimer = NULL;
@@ -50,6 +52,7 @@ kBaseNodeId RtcpEncoderNode::GetNodeId()
 ImsMediaResult RtcpEncoderNode::Start()
 {
     std::lock_guard<std::mutex> guard(mMutexTimer);
+
     if (mRtpSession == NULL)
     {
         mRtpSession = IRtpSession::GetInstance(mMediaType, mLocalAddress, mPeerAddress);
@@ -61,10 +64,11 @@ ImsMediaResult RtcpEncoderNode::Start()
         }
     }
 
-    IMLOGD3("[Start] interval[%d], rtcpBye[%d], rtcpXrBlock[%d]", mRtcpInterval, mEnableRtcpBye,
-            mRtcpXrBlockType);
+    IMLOGD4("[Start] interval[%d], rtcpBye[%d], rtcpXrBlock[%d], rtcpFbTypes[%d]", mRtcpInterval,
+            mEnableRtcpBye, mRtcpXrBlockType, mRtcpFbTypes);
     mRtpSession->SetRtcpEncoderListener(this);
     mRtpSession->SetRtcpInterval(mRtcpInterval);
+
     if (mRtcpInterval > 0)
     {
         mRtpSession->StartRtcp(mEnableRtcpBye);
@@ -115,11 +119,19 @@ void RtcpEncoderNode::SetConfig(void* config)
 {
     RtpConfig* pConfig = reinterpret_cast<RtpConfig*>(config);
     mPeerAddress = RtpAddress(pConfig->getRemoteAddress().c_str(), pConfig->getRemotePort());
-    SetRtcpInterval(pConfig->getRtcpConfig().getIntervalSec());
-    SetRtcpXrBlockType(pConfig->getRtcpConfig().getRtcpXrBlockTypes());
-    SetRtcpByeEnable(false);
+    mRtcpInterval = pConfig->getRtcpConfig().getIntervalSec();
+    mRtcpXrBlockType = pConfig->getRtcpConfig().getRtcpXrBlockTypes();
+    mEnableRtcpBye = false;
+
     IMLOGD4("[SetConfig] peer Ip[%s], port[%d], interval[%d], rtcpxr[%d]", mPeerAddress.ipAddress,
             mPeerAddress.port, mRtcpInterval, mRtcpXrBlockType);
+
+    if (mMediaType == IMS_MEDIA_VIDEO)
+    {
+        VideoConfig* videoConfig = reinterpret_cast<VideoConfig*>(config);
+        mRtcpFbTypes = videoConfig->getRtcpFbType();
+        IMLOGD1("[SetConfig] rtcpFbTypes[%d]", mRtcpFbTypes);
+    }
 }
 
 bool RtcpEncoderNode::IsSameConfig(void* config)
@@ -133,9 +145,20 @@ bool RtcpEncoderNode::IsSameConfig(void* config)
     RtpAddress peerAddress =
             RtpAddress(pConfig->getRemoteAddress().c_str(), pConfig->getRemotePort());
 
-    return (mPeerAddress == peerAddress &&
-            mRtcpInterval == pConfig->getRtcpConfig().getIntervalSec() &&
-            mRtcpXrBlockType == pConfig->getRtcpConfig().getRtcpXrBlockTypes());
+    if (mMediaType == IMS_MEDIA_VIDEO)
+    {
+        VideoConfig* videoConfig = reinterpret_cast<VideoConfig*>(config);
+        return (mPeerAddress == peerAddress &&
+                mRtcpInterval == videoConfig->getRtcpConfig().getIntervalSec() &&
+                mRtcpXrBlockType == videoConfig->getRtcpConfig().getRtcpXrBlockTypes() &&
+                mRtcpFbTypes == videoConfig->getRtcpFbType());
+    }
+    else
+    {
+        return (mPeerAddress == peerAddress &&
+                mRtcpInterval == pConfig->getRtcpConfig().getIntervalSec() &&
+                mRtcpXrBlockType == pConfig->getRtcpConfig().getRtcpXrBlockTypes());
+    }
 }
 
 void RtcpEncoderNode::OnRtcpPacket(unsigned char* pData, uint32_t wLen)
@@ -177,7 +200,7 @@ void RtcpEncoderNode::OnRtcpPacket(unsigned char* pData, uint32_t wLen)
 void RtcpEncoderNode::OnTimer(hTimerHandler hTimer, void* pUserData)
 {
     (void)hTimer;
-    RtcpEncoderNode* pNode = (RtcpEncoderNode*)pUserData;
+    RtcpEncoderNode* pNode = reinterpret_cast<RtcpEncoderNode*>(pUserData);
 
     if (pNode != NULL)
     {
@@ -205,19 +228,4 @@ void RtcpEncoderNode::SetLocalAddress(const RtpAddress address)
 void RtcpEncoderNode::SetPeerAddress(const RtpAddress address)
 {
     mPeerAddress = address;
-}
-
-void RtcpEncoderNode::SetRtcpInterval(const uint32_t interval)
-{
-    mRtcpInterval = interval;
-}
-
-void RtcpEncoderNode::SetRtcpXrBlockType(const uint32_t rtcpXrBlockType)
-{
-    mRtcpXrBlockType = rtcpXrBlockType;
-}
-
-void RtcpEncoderNode::SetRtcpByeEnable(const bool bEnable)
-{
-    mEnableRtcpBye = bEnable;
 }
