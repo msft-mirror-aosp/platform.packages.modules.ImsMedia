@@ -265,6 +265,8 @@ public abstract class RtpConfig implements Parcelable {
                             return new AudioConfig(in);
                         case TYPE_VIDEO:
                             return new VideoConfig(in);
+                        case TYPE_TEXT:
+                            return new TextConfig(in);
                         default:
                             throw new IllegalArgumentException("Bad Type Parcel");
                     }

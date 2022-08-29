@@ -75,10 +75,11 @@ public class TextService {
      *                      packets and RtpConfig to create session.
      */
     public void openSession(final int sessionId, final OpenSessionParams sessionParams) {
-        Rlog.d(LOG_TAG, "openSession");
         if (sessionParams == null) {
             return;
         }
+        Rlog.d(LOG_TAG, "openSession: sessionId = " + sessionId
+                    + "," + sessionParams.getRtpConfig());
         Parcel parcel = Parcel.obtain();
         parcel.writeInt(TextSession.CMD_OPEN_SESSION);
         final int socketFdRtp = sessionParams.getRtpFd().detachFd();
@@ -86,7 +87,7 @@ public class TextService {
         parcel.writeInt(socketFdRtp);
         parcel.writeInt(socketFdRtcp);
         if (sessionParams.getRtpConfig() != null) {
-            sessionParams.getRtpConfig().writeToParcel(parcel, 0);
+            sessionParams.getRtpConfig().writeToParcel(parcel, ImsMediaSession.SESSION_TYPE_RTT);
         }
         sendRequest(sessionId, parcel);
     }

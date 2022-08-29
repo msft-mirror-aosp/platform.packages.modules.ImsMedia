@@ -46,7 +46,9 @@ RtpConfig::~RtpConfig() {}
 RtpConfig::RtpConfig(RtpConfig* config)
 {
     if (config == NULL)
+    {
         return;
+    }
     type = config->type;
     direction = config->direction;
     accessNetwork = config->accessNetwork;
@@ -157,7 +159,6 @@ status_t RtpConfig::writeToParcel(Parcel* out) const
     }
 
     err = rtcpConfig.writeToParcel(out);
-    // err = out->writeParcelable(rtcpConfig);
     if (err != NO_ERROR)
     {
         return err;
@@ -218,12 +219,18 @@ status_t RtpConfig::readFromParcel(const Parcel* in)
 
     String16 address;
     err = in->readString16(&address);
-    if (err != NO_ERROR)
+    if (err == UNEXPECTED_NULL)
+    {
+        remoteAddress = String8("");
+    }
+    else if (err == NO_ERROR)
+    {
+        remoteAddress = String8(address.string());
+    }
+    else
     {
         return err;
     }
-
-    remoteAddress = String8(address.string());
 
     err = in->readInt32(&remotePort);
     if (err != NO_ERROR)

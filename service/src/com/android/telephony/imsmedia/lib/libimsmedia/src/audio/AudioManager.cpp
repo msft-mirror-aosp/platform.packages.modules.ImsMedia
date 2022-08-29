@@ -69,6 +69,7 @@ ImsMediaResult AudioManager::openSession(int sessionId, int rtpFd, int rtcpFd, A
         session->setLocalEndPoint(rtpFd, rtcpFd);
         mSessions.insert(std::make_pair(sessionId, std::move(session)));
         ImsMediaResult ret = session->startGraph(config);
+
         if (ret != RESULT_SUCCESS)
         {
             IMLOGD1("[openSession] startGraph failed[%d]", ret);
@@ -198,7 +199,8 @@ void AudioManager::sendMessage(const int sessionId, const android::Parcel& parce
             int rtcpFd = parcel.readInt32();
             AudioConfig* config = new AudioConfig();
             err = config->readFromParcel(&parcel);
-            if (err != NO_ERROR)
+
+            if (err != NO_ERROR && err != -ENODATA)
             {
                 IMLOGE1("sendMessage() - error readFromParcel[%d]", err);
             }

@@ -154,7 +154,7 @@ void TextManager::sendMessage(const int sessionId, const android::Parcel& parcel
             TextConfig* config = new TextConfig();
             err = config->readFromParcel(&parcel);
 
-            if (err != NO_ERROR)
+            if (err != NO_ERROR && err != -ENODATA)
             {
                 IMLOGE1("sendMessage() - error readFromParcel[%d]", err);
             }
