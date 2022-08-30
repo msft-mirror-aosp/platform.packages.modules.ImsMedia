@@ -66,6 +66,12 @@ void TextRtpPayloadDecoderNode::OnDataFromFrontNode(ImsMediaSubType subtype, uin
 {
     (void)dataType;
 
+    if (subtype == MEDIASUBTYPE_REFRESHED)
+    {
+        SendDataToRearNode(subtype, NULL, size, 0, 0, 0, MEDIASUBTYPE_UNDEFINED);
+        return;
+    }
+
     switch (mCodecType)
     {
         case TextConfig::TEXT_T140:

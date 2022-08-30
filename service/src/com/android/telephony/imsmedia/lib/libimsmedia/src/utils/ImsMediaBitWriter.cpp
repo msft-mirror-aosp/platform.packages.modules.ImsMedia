@@ -20,24 +20,24 @@
 
 ImsMediaBitWriter::ImsMediaBitWriter()
 {
-    m_pbBuffer = NULL;
-    m_nMaxBufferSize = 0;
-    m_nBytePos = 0;
-    m_nBitPos = 0;
-    m_nBitBuffer = 0;
-    m_bBufferFull = false;
+    mBuffer = NULL;
+    mMaxBufferSize = 0;
+    mBytePos = 0;
+    mBitPos = 0;
+    mBitBuffer = 0;
+    mBufferFull = false;
 }
 
 ImsMediaBitWriter::~ImsMediaBitWriter() {}
 
 void ImsMediaBitWriter::SetBuffer(uint8_t* pbBuffer, uint32_t nBufferSize)
 {
-    m_nBytePos = 0;
-    m_nBitPos = 0;
-    m_nBitBuffer = 0;
-    m_bBufferFull = false;
-    m_pbBuffer = pbBuffer;
-    m_nMaxBufferSize = nBufferSize;
+    mBytePos = 0;
+    mBitPos = 0;
+    mBitBuffer = 0;
+    mBufferFull = false;
+    mBuffer = pbBuffer;
+    mMaxBufferSize = nBufferSize;
 }
 
 void ImsMediaBitWriter::Write(uint32_t nValue, uint32_t nSize)
@@ -45,27 +45,27 @@ void ImsMediaBitWriter::Write(uint32_t nValue, uint32_t nSize)
     if (nSize == 0)
         return;
 
-    if (m_pbBuffer == NULL || nSize > 24 || m_bBufferFull)
+    if (mBuffer == NULL || nSize > 24 || mBufferFull)
     {
-        IMLOGE2("[PutBit] nSize[%d], bBufferFull[%d]", nSize, m_bBufferFull);
+        IMLOGE2("[Write] nSize[%d], BufferFull[%d]", nSize, mBufferFull);
         return;
     }
 
     // write to bit buffer
-    m_nBitBuffer += (nValue << (32 - nSize) >> m_nBitPos);
-    m_nBitPos += nSize;
+    mBitBuffer += (nValue << (32 - nSize) >> mBitPos);
+    mBitPos += nSize;
 
     // write to byte buffer
-    while (m_nBitPos >= 8)
+    while (mBitPos >= 8)
     {
-        m_pbBuffer[m_nBytePos++] = (uint8_t)(m_nBitBuffer >> 24);
-        m_nBitBuffer <<= 8;
-        m_nBitPos -= 8;
+        mBuffer[mBytePos++] = (uint8_t)(mBitBuffer >> 24);
+        mBitBuffer <<= 8;
+        mBitPos -= 8;
     }
 
-    if (m_nBytePos >= m_nMaxBufferSize)
+    if (mBytePos >= mMaxBufferSize)
     {
-        m_bBufferFull = true;
+        mBufferFull = true;
     }
 }
 
@@ -76,10 +76,10 @@ void ImsMediaBitWriter::WriteByteBuffer(uint8_t* pbSrc, uint32_t nBitSize)
     nByteSize = nBitSize >> 3;
     nRemainBitSize = nBitSize & 0x07;
 
-    if (m_nBitPos == 0)
+    if (mBitPos == 0)
     {
-        memcpy(m_pbBuffer + m_nBytePos, pbSrc, nByteSize);
-        m_nBytePos += nByteSize;
+        memcpy(mBuffer + mBytePos, pbSrc, nByteSize);
+        mBytePos += nByteSize;
     }
     else
     {
@@ -114,36 +114,36 @@ void ImsMediaBitWriter::WriteByteBuffer(uint32_t value)
 void ImsMediaBitWriter::Seek(uint32_t nSize)
 {
     Flush();
-    m_nBitPos += nSize;
+    mBitPos += nSize;
 
-    while (m_nBitPos >= 8)
+    while (mBitPos >= 8)
     {
-        m_nBytePos++;
-        m_nBitPos -= 8;
+        mBytePos++;
+        mBitPos -= 8;
     }
 }
 
 void ImsMediaBitWriter::AddPadding()
 {
-    if (m_nBitPos > 0)
+    if (mBitPos > 0)
     {
-        Write(0, 8 - m_nBitPos);
+        Write(0, 8 - mBitPos);
     }
 }
 
 uint32_t ImsMediaBitWriter::GetBufferSize()
 {
     uint32_t nSize;
-    nSize = (m_nBitPos + 7) >> 3;
-    nSize += m_nBytePos;
+    nSize = (mBitPos + 7) >> 3;
+    nSize += mBytePos;
     return nSize;
 }
 
 void ImsMediaBitWriter::Flush()
 {
-    if (m_nBitPos > 0)
+    if (mBitPos > 0)
     {
-        m_pbBuffer[m_nBytePos] += (uint8_t)(m_nBitBuffer >> 24);
-        m_nBitBuffer = 0;
+        mBuffer[mBytePos] += (uint8_t)(mBitBuffer >> 24);
+        mBitBuffer = 0;
     }
 }

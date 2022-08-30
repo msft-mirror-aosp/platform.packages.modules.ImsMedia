@@ -845,8 +845,6 @@ bool AudioJitterBuffer::Get(ImsMediaSubType* psubtype, uint8_t** ppData, uint32_
             *pbMark = false;
         if (pnSeqNum)
             *pnSeqNum = 0;
-        if (mDataQueue.GetCount() == 0)
-            mDataCount = 0;
 
         IMLOGD_PACKET2(IM_PACKET_LOG_JITTER, "[Get] fail - dtx mode[%d], curTS[%d]", mDtxOn,
                 mCurrPlayingTS);

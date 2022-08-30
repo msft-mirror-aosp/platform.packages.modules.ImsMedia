@@ -451,13 +451,10 @@ void IRtpSession::OnPeerInd(tRtpSvc_IndicationFromStack type, void* pMsg)
             break;
         case RTPSVC_RECEIVE_RTCP_FB_IND:
         case RTPSVC_RECEIVE_RTCP_PAYLOAD_FB_IND:
-
-            /** TODO: add implementation
             if (mRtcpDecoderListener)
             {
-                mRtcpDecoderListener->ReceiveRtcpFeedback(type, pMsg);
-            }*/
-
+                mRtcpDecoderListener->OnRtcpInd(type, pMsg);
+            }
             break;
         default:
             IMLOGD1("[OnPeerInd] unhandled[%d]", type);
@@ -467,9 +464,13 @@ void IRtpSession::OnPeerInd(tRtpSvc_IndicationFromStack type, void* pMsg)
 
 void IRtpSession::OnPeerRtcpComponents(void* nMsg)
 {
-    (void)nMsg;
     IMLOGD0("[OnPeerRtcpComponents]");
-    /** TODO: Add implementation */
+
+    if (nMsg != NULL && mRtcpDecoderListener != NULL)
+    {
+        int32_t roundTripTimeDelay = *reinterpret_cast<int32_t*>(nMsg);
+        mRtcpDecoderListener->OnEvent(kRequestRoundTripTimeDelayUpdate, roundTripTimeDelay);
+    }
 }
 
 void IRtpSession::OnTimer()

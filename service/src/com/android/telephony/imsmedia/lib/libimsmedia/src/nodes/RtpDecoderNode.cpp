@@ -20,6 +20,20 @@
 #include <VideoConfig.h>
 #include <TextConfig.h>
 
+#ifdef DEBUG_JITTER_GEN_SIMULATION_DELAY
+#include <ImsMediaTimer.h>
+#define DEBUG_JITTER_MAX_PACKET_INTERVAL 70  // msec, minimum value is 30
+#endif
+#ifdef DEBUG_JITTER_GEN_SIMULATION_REORDER
+#include <ImsMediaDataQueue.h>
+#define DEBUG_JITTER_REORDER_MAX 4
+#define DEBUG_JITTER_REORDER_MIN 4
+#define DEBUG_JITTER_NORMAL      2
+#endif
+#ifdef DEBUG_JITTER_GEN_SIMULATION_LOSS
+#define DEBUG_JITTER_LOSS_LOSS_PACKET_INTERVAL 50
+#endif
+
 RtpDecoderNode::RtpDecoderNode(BaseSessionCallback* callback) :
         BaseNode(callback)
 {
@@ -33,6 +47,15 @@ RtpDecoderNode::RtpDecoderNode(BaseSessionCallback* callback) :
     mDtmfSamplingRate = 0;
     mCvoValue = CVO_DEFINE_NONE;
     mRedundantPayload = 0;
+#ifdef DEBUG_JITTER_GEN_SIMULATION_LOSS
+    mPacketCounter = 1;
+#endif
+#ifdef DEBUG_JITTER_GEN_SIMULATION_DELAY
+    mNextTime = 0;
+#endif
+#ifdef DEBUG_JITTER_GEN_SIMULATION_REORDER
+    mReorderDataCount = 0;
+#endif
 }
 
 RtpDecoderNode::~RtpDecoderNode()
@@ -94,6 +117,9 @@ ImsMediaResult RtpDecoderNode::Start()
     mReceivingSSRC = 0;
     mNoRtpTime = 0;
     mNodeState = kNodeStateRunning;
+#ifdef DEBUG_JITTER_GEN_SIMULATION_LOSS
+    mPacketCounter = 1;
+#endif
     return RESULT_SUCCESS;
 }
 
@@ -114,10 +140,123 @@ void RtpDecoderNode::Stop()
 void RtpDecoderNode::OnDataFromFrontNode(ImsMediaSubType subtype, uint8_t* data, uint32_t datasize,
         uint32_t timestamp, bool mark, uint32_t seq, ImsMediaSubType nDataType)
 {
-    IMLOGD_PACKET6(IM_PACKET_LOG_RTP,
-            "[OnDataFromFrontNode] subtype[%d] Size[%d], TS[%d], Mark[%d], Seq[%d], datatype[%d]",
-            subtype, datasize, timestamp, mark, seq, nDataType);
+    IMLOGD_PACKET7(IM_PACKET_LOG_RTP,
+            "[OnDataFromFrontNode] media[%d], subtype[%d] Size[%d], TS[%d], Mark[%d], Seq[%d], "
+            "datatype[%d]",
+            mMediaType, subtype, datasize, timestamp, mark, seq, nDataType);
+
+#ifdef DEBUG_JITTER_GEN_SIMULATION_DELAY
+    {
+        uint32_t nCurrTime = ImsMediaTimer::GetTimeInMilliSeconds();
+
+        if ((GetDataCount(mMediaType) <= 1) && mNextTime && nCurrTime < mNextTime)
+        {
+            return;
+        }
+        else
+        {
+            uint32_t max_interval_1 = ImsMediaTimer::GenerateRandom(
+                    (DEBUG_JITTER_MAX_PACKET_INTERVAL - 30) / GetDataCount(mMediaType));
+            uint32_t max_interval_2 = 30 + max_interval_1;
+            mNextTime = nCurrTime + ImsMediaTimer::GenerateRandom(max_interval_2);
+        }
+    }
+#endif
+
+#ifdef DEBUG_JITTER_GEN_SIMULATION_LOSS
+    bool nLossFlag = false;
+
+    if ((mPacketCounter % DEBUG_JITTER_LOSS_LOSS_PACKET_INTERVAL) == 0)
+    {
+        nLossFlag = true;
+    }
+
+    mPacketCounter++;
+#endif
+#ifdef DEBUG_JITTER_GEN_SIMULATION_REORDER
+    {
+        // add data to jitter gen buffer
+        DataEntry entry;
+        entry.subtype = MEDIASUBTYPE_RTPPACKET;
+        entry.pbBuffer = data;
+        entry.nBufferSize = datasize;
+        entry.nTimestamp = 0;
+        entry.bMark = 0;
+        entry.nSeqNum = 0;
+
+        if (mReorderDataCount < DEBUG_JITTER_NORMAL)
+        {
+            jitterData.push_back(&entry);
+        }
+        else if (mReorderDataCount < DEBUG_JITTER_NORMAL + DEBUG_JITTER_REORDER_MAX)
+        {
+            int32_t nCurrReorderSize;
+            int32_t nInsertPos;
+            uint32_t nCurrJitterBufferSize;
+            nCurrJitterBufferSize = jitterData.GetCount();
+
+            if (DEBUG_JITTER_REORDER_MAX > DEBUG_JITTER_REORDER_MIN)
+            {
+                nCurrReorderSize = mReorderDataCount - DEBUG_JITTER_NORMAL + 1 -
+                        ImsMediaTimer::GenerateRandom(
+                                DEBUG_JITTER_REORDER_MAX - DEBUG_JITTER_REORDER_MIN + 1);
+            }
+            else
+            {
+                nCurrReorderSize = mReorderDataCount - DEBUG_JITTER_NORMAL + 1;
+            }
+
+            if (nCurrReorderSize > 0)
+            {
+                nCurrReorderSize = ImsMediaTimer::GenerateRandom(nCurrReorderSize + 1);
+            }
+
+            nInsertPos = nCurrJitterBufferSize - nCurrReorderSize;
+
+            if (nInsertPos < 0)
+            {
+                nInsertPos = 0;
+            }
+
+            jitterData.InsertAt(nInsertPos, &entry);
+        }
+
+        mReorderDataCount++;
+
+        if (mReorderDataCount >= DEBUG_JITTER_NORMAL + DEBUG_JITTER_REORDER_MAX)
+        {
+            mReorderDataCount = 0;
+        }
+
+        // send
+        while (jitterData.GetCount() >= DEBUG_JITTER_REORDER_MAX)
+        {
+            DataEntry* pEntry;
+
+            if (jitterData.Get(&pEntry))
+            {
+#ifdef DEBUG_JITTER_GEN_SIMULATION_LOSS
+                if (nLossFlag == false)
+                {
+                    mRtpSession->ProcRtpPacket(pEntry->pbBuffer, pEntry->nBufferSize);
+                }
+#else
+                mRtpSession->ProcRtpPacket(pEntry->pbBuffer, pEntry->nBufferSize);
+#endif
+                jitterData.Delete();
+            }
+        }
+    }
+#else
+#ifdef DEBUG_JITTER_GEN_SIMULATION_LOSS
+    if (nLossFlag == false)
+    {
+        mRtpSession->ProcRtpPacket(data, datasize);
+    }
+#else
     mRtpSession->ProcRtpPacket(data, datasize);
+#endif
+#endif
 }
 
 bool RtpDecoderNode::IsRunTime()
@@ -224,7 +363,7 @@ void RtpDecoderNode::OnMediaDataInd(unsigned char* data, uint32_t datasize, uint
             "sampling[%d], ext[%d]",
             mMediaType, datasize, timestamp, mark, seq, payloadType, mSamplingRate, extension);
 
-    // no need to change to timestamp to msec in video or text packet
+    // no need to change to timestamp to msec in audio or text packet
     if (mMediaType != IMS_MEDIA_VIDEO && mSamplingRate != 0)
     {
         timestamp = timestamp / (mSamplingRate);
@@ -232,10 +371,10 @@ void RtpDecoderNode::OnMediaDataInd(unsigned char* data, uint32_t datasize, uint
 
     if (mReceivingSSRC != ssrc)
     {
-        IMLOGD3("[OnMediaDataInd] media[%d] SSRC changed, received SSRC[%x], ssrc[%x]", mMediaType,
-                mReceivingSSRC, ssrc);
+        IMLOGD3("[OnMediaDataInd] media[%d] SSRC changed, [%x] -> [%x]", mMediaType, mReceivingSSRC,
+                ssrc);
         mReceivingSSRC = ssrc;
-        SendDataToRearNode(MEDIASUBTYPE_REFRESHED, NULL, 0, 0, 0, 0);
+        SendDataToRearNode(MEDIASUBTYPE_REFRESHED, NULL, mReceivingSSRC, 0, 0, 0);
     }
 
     /** TODO : add checking receiving dtmf by the payload type number */

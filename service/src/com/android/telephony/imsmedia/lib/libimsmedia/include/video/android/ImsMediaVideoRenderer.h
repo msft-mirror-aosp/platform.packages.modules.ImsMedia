@@ -33,11 +33,13 @@ public:
             uint8_t* data = NULL, uint32_t size = 0, uint32_t timestamp = 0, bool isConfig = false)
     {
         this->data = NULL;
+
         if (size != 0 && data != NULL)
         {
             this->data = new uint8_t[size];
             memcpy(this->data, data, size);
         }
+
         this->size = size;
         this->timestamp = timestamp;
         this->isConfig = isConfig;
@@ -50,6 +52,7 @@ public:
             delete[] data;
         }
     }
+
     uint8_t* data;
     uint32_t size;
     uint32_t timestamp;

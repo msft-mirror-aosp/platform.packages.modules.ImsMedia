@@ -74,7 +74,7 @@ ImsMediaResult IVideoRendererNode::Start()
         jitter->SetCodecType(mCodecType);
         jitter->SetFramerate(mFramerate);
         jitter->SetJitterBufferSize(15, 15, 25);
-        jitter->StartTimer(mLossDuration, mLossRateThreshold);
+        jitter->StartTimer(mLossDuration / 1000, mLossRateThreshold);
     }
 
     Reset();

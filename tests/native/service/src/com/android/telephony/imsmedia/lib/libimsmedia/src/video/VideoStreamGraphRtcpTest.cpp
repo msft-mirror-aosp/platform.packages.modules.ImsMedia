@@ -19,6 +19,7 @@
 #include <VideoConfig.h>
 #include <MediaQualityThreshold.h>
 #include <VideoStreamGraphRtcp.h>
+#include <ImsMediaVideoUtil.h>
 
 using namespace android::telephony::imsmedia;
 
@@ -55,7 +56,8 @@ const int32_t kResolutionHeight = DEFAULT_RESOLUTION_HEIGHT;
 const android::String8 kPauseImagePath("data/user_de/0/com.android.telephony.imsmedia/test.jpg");
 const int32_t kDeviceOrientationDegree = 0;
 const int32_t kCvoValue = 1;
-const int32_t kRtcpFbTypes = VideoConfig::RTP_FB_NONE;
+const int32_t kRtcpFbTypes = VideoConfig::RTP_FB_NACK | VideoConfig::RTP_FB_TMMBR |
+        VideoConfig::RTP_FB_TMMBN | VideoConfig::PSFB_PLI | VideoConfig::PSFB_FIR;
 
 class VideoStreamGraphRtcpTest : public ::testing::Test
 {
@@ -150,15 +152,40 @@ TEST_F(VideoStreamGraphRtcpTest, TestRtcpStreamAndUpdate)
     EXPECT_EQ(graph->update(&config), RESULT_SUCCESS);
     EXPECT_EQ(graph->getState(), kStreamStateRunning);
 
-    rtcp.setIntervalSec(0);
-    config.setRtcpConfig(rtcp);
-    EXPECT_EQ(graph->update(&config), RESULT_SUCCESS);
+    EXPECT_EQ(graph->stop(), RESULT_SUCCESS);
     EXPECT_EQ(graph->getState(), kStreamStateCreated);
+}
 
-    rtcp.setIntervalSec(5);
-    config.setRtcpConfig(rtcp);
-    EXPECT_EQ(graph->update(&config), RESULT_SUCCESS);
+TEST_F(VideoStreamGraphRtcpTest, TestRtcpStreamInternalEvent)
+{
+    EXPECT_EQ(graph->create(&config), RESULT_SUCCESS);
+    EXPECT_EQ(graph->setMediaQualityThreshold(&threshold), true);
+    EXPECT_EQ(graph->start(), RESULT_SUCCESS);
     EXPECT_EQ(graph->getState(), kStreamStateRunning);
+
+    InternalRequestEventParam* nackEvent =
+            new InternalRequestEventParam(kRequestVideoSendNack, NackParams(0, 0, 0, true));
+    EXPECT_EQ(
+            graph->OnEvent(kRequestVideoSendNack, reinterpret_cast<uint64_t>(nackEvent), 0), true);
+
+    InternalRequestEventParam* pliEvent =
+            new InternalRequestEventParam(kRequestVideoSendPictureLost, kPsfbPli);
+    EXPECT_EQ(graph->OnEvent(kRequestVideoSendPictureLost, reinterpret_cast<uint64_t>(pliEvent), 0),
+            true);
+
+    InternalRequestEventParam* firEvent =
+            new InternalRequestEventParam(kRequestVideoSendPictureLost, kPsfbFir);
+    EXPECT_EQ(graph->OnEvent(kRequestVideoSendPictureLost, reinterpret_cast<uint64_t>(firEvent), 0),
+            true);
+
+    InternalRequestEventParam* tmmbrEvent =
+            new InternalRequestEventParam(kRtpFbTmmbr, TmmbrParams(100000, 0, 0, 0));
+    EXPECT_EQ(graph->OnEvent(kRequestVideoSendTmmbr, reinterpret_cast<uint64_t>(tmmbrEvent), 0),
+            true);
+
+    InternalRequestEventParam* tmmbn =
+            new InternalRequestEventParam(kRtpFbTmmbn, TmmbrParams(100000, 0, 0, 0));
+    EXPECT_EQ(graph->OnEvent(kRequestVideoSendTmmbn, reinterpret_cast<uint64_t>(tmmbn), 0), true);
 
     EXPECT_EQ(graph->stop(), RESULT_SUCCESS);
     EXPECT_EQ(graph->getState(), kStreamStateCreated);

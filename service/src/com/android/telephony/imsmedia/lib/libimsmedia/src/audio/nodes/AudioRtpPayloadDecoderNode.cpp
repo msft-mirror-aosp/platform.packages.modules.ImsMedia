@@ -121,8 +121,9 @@ void AudioRtpPayloadDecoderNode::OnDataFromFrontNode(ImsMediaSubType subtype, ui
         uint32_t nDataSize, uint32_t nTimestamp, bool bMark, uint32_t nSeqNum,
         ImsMediaSubType nDataType)
 {
-    if (subtype == MEDIASUBTYPE_REFRESHED || pData == NULL || nDataSize == 0)
+    if (subtype == MEDIASUBTYPE_REFRESHED)
     {
+        SendDataToRearNode(subtype, NULL, nDataSize, 0, 0, 0, MEDIASUBTYPE_UNDEFINED);
         return;
     }
 
@@ -151,6 +152,11 @@ void AudioRtpPayloadDecoderNode::OnDataFromFrontNode(ImsMediaSubType subtype, ui
 void AudioRtpPayloadDecoderNode::DecodePayloadAmr(
         uint8_t* pData, uint32_t nDataSize, uint32_t nTimestamp, bool bMark, uint32_t nSeqNum)
 {
+    if (pData == NULL || nDataSize == 0)
+    {
+        return;
+    }
+
     (void)bMark;
     uint32_t timestamp = nTimestamp;
     static std::list<uint32_t> listFrameType;  // defined as static variable for memory management
@@ -253,6 +259,11 @@ void AudioRtpPayloadDecoderNode::DecodePayloadAmr(
 void AudioRtpPayloadDecoderNode::DecodePayloadEvs(
         uint8_t* pData, uint32_t nDataSize, uint32_t nTimeStamp, bool bMark, uint32_t nSeqNum)
 {
+    if (pData == NULL || nDataSize == 0)
+    {
+        return;
+    }
+
     kRtpPyaloadHeaderMode eEVSPHFormat = kRtpPyaloadHeaderModeEvsCompact;
     kRtpPyaloadHeaderMode eEVSReceivedPHFormat = kRtpPyaloadHeaderModeEvsCompact;
     kEvsCodecMode kEvsCodecMode = kEvsCodecModePrimary;

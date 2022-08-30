@@ -274,6 +274,8 @@ void VideoSession::onEvent(int32_t type, uint64_t param1, uint64_t param2)
         case kRequestVideoIdrFrame:
         case kRequestVideoSendNack:
         case kRequestVideoSendPictureLost:
+        case kRequestVideoSendTmmbr:
+        case kRequestVideoSendTmmbn:
         case kRequestRoundTripTimeDelayUpdate:
             ImsMediaEventHandler::SendEvent(
                     "VIDEO_REQUEST_EVENT", type, mSessionId, param1, param2);
@@ -328,20 +330,31 @@ void VideoSession::SendInternalEvent(int32_t type, uint64_t param1, uint64_t par
         case kRequestVideoIdrFrame:
             if (mGraphRtpTx != NULL)
             {
-                mGraphRtpTx->OnEvent(type, param1, param2);
+                if (!mGraphRtpTx->OnEvent(type, param1, param2))
+                {
+                    IMLOGE0("[SendInternalEvent] fail to send event");
+                }
             }
             break;
         case kRequestVideoSendNack:
         case kRequestVideoSendPictureLost:
+        case kRequestVideoSendTmmbr:
+        case kRequestVideoSendTmmbn:
             if (mGraphRtcp != NULL)
             {
-                mGraphRtcp->OnEvent(type, param1, param2);
+                if (!mGraphRtcp->OnEvent(type, param1, param2))
+                {
+                    IMLOGE0("[SendInternalEvent] fail to send event");
+                }
             }
             break;
         case kRequestRoundTripTimeDelayUpdate:
             if (mGraphRtpRx != NULL)
             {
-                mGraphRtpRx->OnEvent(type, param1, param2);
+                if (!mGraphRtpRx->OnEvent(type, param1, param2))
+                {
+                    IMLOGE0("[SendInternalEvent] fail to send event");
+                }
             }
             break;
         default:

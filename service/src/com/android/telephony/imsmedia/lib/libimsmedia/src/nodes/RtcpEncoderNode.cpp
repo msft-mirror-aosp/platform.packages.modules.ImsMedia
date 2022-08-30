@@ -18,6 +18,8 @@
 #include <ImsMediaTrace.h>
 #include <VideoConfig.h>
 
+#define RTCPFBMNGR_PLI_FIR_REQUEST_MIN_INTERVAL 1000
+
 RtcpEncoderNode::RtcpEncoderNode(BaseSessionCallback* callback) :
         BaseNode(callback)
 {
@@ -28,6 +30,8 @@ RtcpEncoderNode::RtcpEncoderNode(BaseSessionCallback* callback) :
     mRtcpXrBlockType = RtcpConfig::FLAG_RTCPXR_NONE;
     mRtcpXrCounter = 0;
     mTimer = NULL;
+    mLastTimeSentPli = 0;
+    mLastTimeSentFir = 0;
 }
 
 RtcpEncoderNode::~RtcpEncoderNode()
@@ -228,4 +232,122 @@ void RtcpEncoderNode::SetLocalAddress(const RtpAddress address)
 void RtcpEncoderNode::SetPeerAddress(const RtpAddress address)
 {
     mPeerAddress = address;
+}
+
+bool RtcpEncoderNode::SendNack(NackParams* param)
+{
+    if (param == NULL)
+    {
+        return false;
+    }
+
+    if (mRtcpFbTypes & VideoConfig::RTP_FB_NACK)
+    {
+        IMLOGD3("[SendNack] PID[%d], BLP[%d], nSecNackCnt[%d]", param->PID, param->BLP,
+                param->nSecNackCnt);
+
+        /* Generic NACK format
+            0                   1                   2                   3
+            0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+           +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+           |            PID                |             BLP               |
+           +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+*/
+
+        // create a Nack payload
+        static uint8_t pNackBuff[4];
+        mBitWriter.SetBuffer(pNackBuff, 32);
+        mBitWriter.Write(param->PID, 16);  // PID
+        mBitWriter.Write(param->BLP, 16);  // BLP
+
+        if (param->bNackReport)
+        {
+            if (mRtpSession != NULL)
+            {
+                return mRtpSession->SendRtcpFeedback(kRtpFbNack, pNackBuff, 4);
+            }
+        }
+    }
+
+    return false;
+}
+
+bool RtcpEncoderNode::SendPictureLost(const uint32_t type)
+{
+    if (mRtpSession == NULL)
+    {
+        return false;
+    }
+
+    IMLOGD1("[SendPictureLost] type[%d]", type);
+
+    uint32_t nCurrentTime = ImsMediaTimer::GetTimeInMilliSeconds();
+
+    if (type == kPsfbPli && mRtcpFbTypes & VideoConfig::PSFB_PLI)
+    {
+        if (mLastTimeSentPli == 0 ||
+                (mLastTimeSentPli + RTCPFBMNGR_PLI_FIR_REQUEST_MIN_INTERVAL < nCurrentTime))
+        {
+            if (mRtpSession->SendRtcpFeedback(kPsfbPli, NULL, 0))
+            {
+                mLastTimeSentPli = nCurrentTime;
+                return true;
+            }
+        }
+    }
+    else if (type == kPsfbFir && mRtcpFbTypes & VideoConfig::PSFB_FIR)
+    {
+        if (mLastTimeSentFir == 0 ||
+                (mLastTimeSentFir + RTCPFBMNGR_PLI_FIR_REQUEST_MIN_INTERVAL < nCurrentTime))
+        {
+            if (mRtpSession->SendRtcpFeedback(kPsfbFir, NULL, 0))
+            {
+                mLastTimeSentFir = nCurrentTime;
+                return true;
+            }
+        }
+    }
+
+    return false;
+}
+
+bool RtcpEncoderNode::SendTmmbrn(const uint32_t type, TmmbrParams* param)
+{
+    if (mRtpSession == NULL || param == NULL)
+    {
+        return false;
+    }
+
+    IMLOGD5("[SendTmmbrn] type[%d], ssrc[%x], exp[%d], mantissa[%d], overhead[%d]", type,
+            param->ssrc, param->exp, param->mantissa, param->overhead);
+
+    /** TMMBR/TMMBN message format
+       0                   1                   2                   3
+       0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+       +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+       |                              SSRC                             |
+       +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+       | MxTBR Exp |  MxTBR Mantissa                 |Measured Overhead|
+       +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+    */
+
+    static uint8_t buffer[8];
+    mBitWriter.SetBuffer(buffer, 64);
+    mBitWriter.Write((param->ssrc & 0xFFFF0000) >> 16, 16);
+    mBitWriter.Write(param->ssrc & 0x0000FFFF, 16);
+    // MxTBR = mantissa * 2^exp
+    mBitWriter.Write(param->exp, 6);        // MxTBR Exp
+    mBitWriter.Write(param->mantissa, 17);  // MxTBR Mantissa
+    // avg_OH (new) = 15/16*avg_OH (old) + 1/16*pckt_OH,
+    mBitWriter.Write(param->overhead, 9);  // Measured Overhead
+
+    if (type == kRtpFbTmmbr && mRtcpFbTypes & VideoConfig::RTP_FB_TMMBR)
+    {
+        return mRtpSession->SendRtcpFeedback(kRtpFbTmmbr, buffer, 8);
+    }
+    else if (type == kRtpFbTmmbn && mRtcpFbTypes & VideoConfig::RTP_FB_TMMBN)
+    {
+        return mRtpSession->SendRtcpFeedback(kRtpFbTmmbn, buffer, 8);
+    }
+
+    return false;
 }

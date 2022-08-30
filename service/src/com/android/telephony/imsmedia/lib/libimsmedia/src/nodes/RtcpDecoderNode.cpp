@@ -16,6 +16,7 @@
 
 #include <RtcpDecoderNode.h>
 #include <ImsMediaTrace.h>
+#include <ImsMediaVideoUtil.h>
 
 RtcpDecoderNode::RtcpDecoderNode(BaseSessionCallback* callback) :
         BaseNode(callback)
@@ -121,11 +122,70 @@ bool RtcpDecoderNode::IsSameConfig(void* config)
     return (mPeerAddress == peerAddress);
 }
 
-void RtcpDecoderNode::OnRtcpInd(tRtpSvc_IndicationFromStack type, void* pMsg)
+void RtcpDecoderNode::OnRtcpInd(tRtpSvc_IndicationFromStack type, void* data)
 {
-    (void)type;
-    (void)pMsg;
-    // TODO : add implementation for rtcp report handling for media metic
+    if (data == NULL)
+    {
+        return;
+    }
+
+    switch (type)
+    {
+        case RTPSVC_RECEIVE_RTCP_SR_IND:
+        {
+            tNotifyReceiveRtcpSrInd* payload = reinterpret_cast<tNotifyReceiveRtcpSrInd*>(data);
+            IMLOGD_PACKET2(IM_PACKET_LOG_RTCP, "[OnRtcpInd] RtcpSr - fractionLost[%d], jitter[%d]",
+                    payload->stRecvRpt.fractionLost, payload->stRecvRpt.jitter);
+        }
+        break;
+        case RTPSVC_RECEIVE_RTCP_RR_IND:
+        {
+            tNotifyReceiveRtcpRrInd* payload = reinterpret_cast<tNotifyReceiveRtcpRrInd*>(data);
+            IMLOGD_PACKET2(IM_PACKET_LOG_RTCP, "[OnRtcpInd] RtcpRr - fractionLost[%d], jitter[%d]",
+                    payload->stRecvRpt.fractionLost, payload->stRecvRpt.jitter);
+        }
+        break;
+        case RTPSVC_RECEIVE_RTCP_FB_IND:
+        case RTPSVC_RECEIVE_RTCP_PAYLOAD_FB_IND:
+        {
+            tRtpSvcIndSt_ReceiveRtcpFeedbackInd* payload =
+                    reinterpret_cast<tRtpSvcIndSt_ReceiveRtcpFeedbackInd*>(data);
+            uint32_t feedbackType = 0;
+
+            if (type == RTPSVC_RECEIVE_RTCP_FB_IND)
+            {
+                feedbackType = payload->wFmt;
+            }
+            else if (type == RTPSVC_RECEIVE_RTCP_PAYLOAD_FB_IND)
+            {
+                feedbackType = payload->wFmt + kPsfbBoundary;
+            }
+
+            switch (feedbackType)
+            {
+                case kRtpFbNack:
+                    /** do nothing */
+                    break;
+                case kRtpFbTmmbr:
+                    ReceiveTmmbr(payload);
+                    break;
+                case kRtpFbTmmbn:
+                    break;
+                case kPsfbPli:  // FALL_THROUGH
+                case kPsfbFir:
+                    RequestIdrFrame();
+                    break;
+                default:
+                    IMLOGD2("[OnRtcpInd] unhandled payload[%d], fmt[%d]", payload->wPayloadType,
+                            payload->wFmt);
+                    break;
+            }
+        }
+        break;
+        default:
+            IMLOGD1("[OnRtcpInd] unhandled type[%d]", type);
+            break;
+    }
 }
 
 void RtcpDecoderNode::OnNumReceivedPacket(uint32_t nNumRtcpSRPacket, uint32_t nNumRtcpRRPacket)
@@ -152,6 +212,11 @@ void RtcpDecoderNode::OnNumReceivedPacket(uint32_t nNumRtcpSRPacket, uint32_t nN
     }
 }
 
+void RtcpDecoderNode::OnEvent(uint32_t event, uint32_t param)
+{
+    mCallback->SendEvent(event, param);
+}
+
 void RtcpDecoderNode::SetLocalAddress(const RtpAddress address)
 {
     mLocalAddress = address;
@@ -167,4 +232,47 @@ void RtcpDecoderNode::SetInactivityTimerSec(const uint32_t time)
     IMLOGD2("[SetInactivityTimerSec] media[%d], time[%d] reset", mMediaType, time);
     mInactivityTime = time;
     mNoRtcpTime = 0;
+}
+
+void RtcpDecoderNode::ReceiveTmmbr(const tRtpSvcIndSt_ReceiveRtcpFeedbackInd* payload)
+{
+    if (payload == NULL || payload->pMsg == NULL || mCallback == NULL)
+    {
+        return;
+    }
+
+    // Read bitrate from TMMBR
+    mBitReader.SetBuffer(payload->pMsg, 64);
+    /** read 16 bit and combine it */
+    uint32_t receivedSsrc = mBitReader.Read(16);
+    receivedSsrc = (receivedSsrc << 16) | mBitReader.Read(16);
+    uint32_t receivedExp = mBitReader.Read(6);
+    uint32_t receivedMantissa = mBitReader.Read(17);
+    uint32_t receivedOverhead = mBitReader.Read(9);
+    uint32_t bitrate = receivedMantissa << receivedExp;
+
+    IMLOGD3("[ReceiveTmmbr] received TMMBR, exp[%d], mantissa[%d], bitrate[%d]", receivedExp,
+            receivedMantissa, bitrate);
+
+    // Set the bitrate to encoder
+    mCallback->SendEvent(kRequestVideoBitrateChange, bitrate);
+
+    // Send TMMBN to peer
+    uint32_t exp = 0;
+    uint32_t mantissa = 0;
+    ImsMediaVideoUtil::ConvertBitrateToPower(bitrate, exp, mantissa);
+
+    InternalRequestEventParam* pParam = new InternalRequestEventParam(
+            kRtpFbTmmbr, TmmbrParams(receivedSsrc, exp, mantissa, receivedOverhead));
+    mCallback->SendEvent(kRequestVideoSendTmmbn, reinterpret_cast<uint64_t>(pParam));
+}
+
+void RtcpDecoderNode::RequestIdrFrame()
+{
+    IMLOGD0("[RequestIdrFrame]");
+
+    if (mCallback != NULL)
+    {
+        mCallback->SendEvent(kRequestVideoIdrFrame, 0);
+    }
 }

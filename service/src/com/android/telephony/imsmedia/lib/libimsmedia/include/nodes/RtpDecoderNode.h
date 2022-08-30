@@ -20,6 +20,10 @@
 #include <BaseNode.h>
 #include <IRtpSession.h>
 
+// #define DEBUG_JITTER_GEN_SIMULATION_DELAY
+// #define DEBUG_JITTER_GEN_SIMULATION_REORDER
+// #define DEBUG_JITTER_GEN_SIMULATION_LOSS
+
 /**
  * @brief      This class describes a rtp decoder.
  */
@@ -41,9 +45,21 @@ public:
             bool bMark, uint16_t nSeqNum, uint32_t nPayloadType, uint32_t nSSRC, bool bExtension,
             uint16_t nExtensionData);
     // IRtpDecoderListener
-    void OnNumReceivedPacket(uint32_t nNumRtpPacket);
+    virtual void OnNumReceivedPacket(uint32_t nNumRtpPacket);
+
+    /**
+     * @brief Set the local ip address and port number
+     */
     void SetLocalAddress(const RtpAddress address);
+
+    /**
+     * @brief Set the peer ip address and port number
+     */
     void SetPeerAddress(const RtpAddress address);
+
+    /**
+     * @brief Set the inactivity timer in second unit
+     */
     void SetInactivityTimerSec(const uint32_t time);
 
 private:
@@ -60,6 +76,16 @@ private:
     uint32_t mInactivityTime;
     uint32_t mNoRtpTime;
     int32_t mRedundantPayload;
+#ifdef DEBUG_JITTER_GEN_SIMULATION_LOSS
+    uint32_t mPacketCounter;
+#endif
+#ifdef DEBUG_JITTER_GEN_SIMULATION_DELAY
+    uint32_t mNextTime;
+#endif
+#ifdef DEBUG_JITTER_GEN_SIMULATION_REORDER
+    ImsMediaDataQueue jitterData;
+    uint32_t mReorderDataCount;
+#endif
 };
 
 #endif

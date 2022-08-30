@@ -21,14 +21,6 @@
 
 class ImsMediaBitWriter
 {
-private:
-    uint8_t* m_pbBuffer;
-    uint32_t m_nMaxBufferSize;
-    uint32_t m_nBytePos;
-    uint32_t m_nBitPos;
-    uint32_t m_nBitBuffer;
-    bool m_bBufferFull;
-
 public:
     ImsMediaBitWriter();
     ~ImsMediaBitWriter();
@@ -40,6 +32,14 @@ public:
     void AddPadding();
     uint32_t GetBufferSize();
     void Flush();
+
+private:
+    uint8_t* mBuffer;
+    uint32_t mMaxBufferSize;
+    uint32_t mBytePos;
+    uint32_t mBitPos;
+    uint32_t mBitBuffer;
+    bool mBufferFull;
 };
 
 #endif

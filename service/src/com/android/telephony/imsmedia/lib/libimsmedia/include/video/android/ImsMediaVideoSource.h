@@ -134,7 +134,7 @@ public:
     /**
      * @brief Change bitrate of the encoding frames
      *
-     * @param bitrate The bitrate in kbps units
+     * @param bitrate The bitrate in bps units
      */
     void changeBitrate(const uint32_t bitrate);
 

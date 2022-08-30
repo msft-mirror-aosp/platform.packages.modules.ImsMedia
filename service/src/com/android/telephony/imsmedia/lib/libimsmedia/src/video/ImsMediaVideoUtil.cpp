@@ -979,3 +979,21 @@ JP_Exit_GenerateSprop:
     IMLOGD1("[GenerateVideoSprop] Returning sprop[%s]", pSpropStr);
     return pSpropStr;
 }
+
+void ImsMediaVideoUtil::ConvertBitrateToPower(
+        const uint32_t nInputBitrate, uint32_t& nOutExp, uint32_t& nOutMantissa)
+{
+    nOutExp = 0;
+    nOutMantissa = (nInputBitrate % 2 == 0) ? (nInputBitrate) : (nInputBitrate + 1);
+
+    while (nOutMantissa % 2 == 0)
+    {
+        nOutExp++;
+        nOutMantissa = nOutMantissa >> 1;
+
+        if (nOutMantissa >= 0x1ffff)
+        {
+            nOutMantissa = (nOutMantissa % 2 == 0) ? (nOutMantissa) : (nOutMantissa + 1);
+        }
+    }
+}

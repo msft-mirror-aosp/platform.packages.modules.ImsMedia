@@ -20,24 +20,24 @@
 
 ImsMediaBitReader::ImsMediaBitReader()
 {
-    m_pbBuffer = NULL;
-    m_nMaxBufferSize = 0;
-    m_nBytePos = 0;
-    m_nBitPos = 0;
-    m_nBitBuffer = 0;
-    m_bBufferEOF = false;
+    mBuffer = NULL;
+    mMaxBufferSize = 0;
+    mBytePos = 0;
+    mBitPos = 0;
+    mBitBuffer = 0;
+    mBufferEOF = false;
 }
 
 ImsMediaBitReader::~ImsMediaBitReader() {}
 
 void ImsMediaBitReader::SetBuffer(uint8_t* pbBuffer, uint32_t nBufferSize)
 {
-    m_nBytePos = 0;
-    m_nBitPos = 32;
-    m_nBitBuffer = 0;
-    m_bBufferEOF = false;
-    m_pbBuffer = pbBuffer;
-    m_nMaxBufferSize = nBufferSize;
+    mBytePos = 0;
+    mBitPos = 32;
+    mBitBuffer = 0;
+    mBufferEOF = false;
+    mBuffer = pbBuffer;
+    mMaxBufferSize = nBufferSize;
 }
 
 uint32_t ImsMediaBitReader::Read(uint32_t nSize)
@@ -45,31 +45,31 @@ uint32_t ImsMediaBitReader::Read(uint32_t nSize)
     uint32_t value;
     if (nSize == 0)
         return 0;
-    if (m_pbBuffer == NULL || nSize > 24 || m_bBufferEOF)
+    if (mBuffer == NULL || nSize > 24 || mBufferEOF)
     {
-        IMLOGE2("[ImsMediaBitReader::GetBit] nSize[%d], bBufferEOF[%d]", nSize, m_bBufferEOF);
+        IMLOGE2("[Read] nSize[%d], bBufferEOF[%d]", nSize, mBufferEOF);
         return 0;
     }
 
     // read from byte buffer
-    while ((32 - m_nBitPos) < nSize)
+    while ((32 - mBitPos) < nSize)
     {
-        if (m_nBytePos >= m_nMaxBufferSize)
+        if (mBytePos >= mMaxBufferSize)
         {
-            m_bBufferEOF = true;
-            IMLOGE2("[ImsMediaBitReader::GetBit] End of Buffer : nBytePos[%d], nMaxBufferSize[%d]",
-                    m_nBytePos, m_nMaxBufferSize);
+            mBufferEOF = true;
+            IMLOGE2("[Read] End of Buffer : nBytePos[%d], nMaxBufferSize[%d]", mBytePos,
+                    mMaxBufferSize);
             return 0;
         }
 
-        m_nBitPos -= 8;
-        m_nBitBuffer <<= 8;
-        m_nBitBuffer += m_pbBuffer[m_nBytePos++];
+        mBitPos -= 8;
+        mBitBuffer <<= 8;
+        mBitBuffer += mBuffer[mBytePos++];
     }
 
     // read from bit buffer
-    value = m_nBitBuffer << m_nBitPos >> (32 - nSize);
-    m_nBitPos += nSize;
+    value = mBitBuffer << mBitPos >> (32 - nSize);
+    mBitPos += nSize;
     return value;
 }
 
@@ -81,10 +81,10 @@ void ImsMediaBitReader::ReadByteBuffer(uint8_t* pbDst, uint32_t nBitSize)
     nByteSize = nBitSize >> 3;
     nRemainBitSize = nBitSize & 0x07;
 
-    if (m_nBitPos == 32)
+    if (mBitPos == 32)
     {
-        memcpy(pbDst, m_pbBuffer + m_nBytePos, nByteSize);
-        m_nBytePos += nByteSize;
+        memcpy(pbDst, mBuffer + mBytePos, nByteSize);
+        mBytePos += nByteSize;
         dst_pos += nByteSize;
     }
     else
@@ -111,7 +111,7 @@ uint32_t ImsMediaBitReader::ReadByUEMode()
     uint32_t k = 1;
     uint32_t result = 0;
 
-    while (Read(1) == 0 && m_bBufferEOF == false)
+    while (Read(1) == 0 && mBufferEOF == false)
     {
         i++;
     }

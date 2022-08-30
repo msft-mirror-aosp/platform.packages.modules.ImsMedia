@@ -21,14 +21,6 @@
 
 class ImsMediaBitReader
 {
-private:
-    uint8_t* m_pbBuffer;
-    uint32_t m_nMaxBufferSize;
-    uint32_t m_nBytePos;
-    uint32_t m_nBitPos;  // start bit position of valid data in m_nBitBuffer
-    uint32_t m_nBitBuffer;
-    bool m_bBufferEOF;
-
 public:
     ImsMediaBitReader();
     ~ImsMediaBitReader();
@@ -36,6 +28,14 @@ public:
     uint32_t Read(uint32_t nSize);
     void ReadByteBuffer(uint8_t* pbDst, uint32_t nBitSize);
     uint32_t ReadByUEMode();
+
+private:
+    uint8_t* mBuffer;
+    uint32_t mMaxBufferSize;
+    uint32_t mBytePos;
+    uint32_t mBitPos;  // start bit position of valid data in mBitBuffer
+    uint32_t mBitBuffer;
+    bool mBufferEOF;
 };
 
 #endif

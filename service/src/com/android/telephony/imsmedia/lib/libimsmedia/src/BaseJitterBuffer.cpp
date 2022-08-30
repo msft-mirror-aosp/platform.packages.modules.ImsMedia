@@ -15,12 +15,19 @@
  */
 
 #include <BaseJitterBuffer.h>
+#include <ImsMediaTrace.h>
 
 BaseJitterBuffer::BaseJitterBuffer()
 {
+    mSsrc = 0;
+    mCodecType = 0;
     mInitJitterBufferSize = 4;
     mMinJitterBufferSize = 4;
     mMaxJitterBufferSize = 9;
+    mNewInputData = false;
+    mLastPlayedSeqNum = 0;
+    mLastPlayedTimestamp = 0;
+    mMaxSaveFrameNum = 0;
 }
 
 BaseJitterBuffer::~BaseJitterBuffer() {}
@@ -28,6 +35,12 @@ BaseJitterBuffer::~BaseJitterBuffer() {}
 void BaseJitterBuffer::SetSessionCallback(BaseSessionCallback* callback)
 {
     mCallback = callback;
+}
+
+void BaseJitterBuffer::SetSsrc(uint32_t ssrc)
+{
+    IMLOGD1("[SetSsrc] ssrc[%x]", ssrc);
+    mSsrc = ssrc;
 }
 
 void BaseJitterBuffer::SetCodecType(uint32_t type)
@@ -65,7 +78,6 @@ void BaseJitterBuffer::Reset()
 
     while (mDataQueue.GetCount() > 0)
     {
-        // CollectJitterStatus(RTP_PACKET_STATUS_OK);
         mDataQueue.Delete();
     }
 }

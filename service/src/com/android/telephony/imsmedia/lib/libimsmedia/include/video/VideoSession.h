@@ -34,8 +34,32 @@ public:
     virtual ImsMediaResult startGraph(RtpConfig* config);
     // BaseSessionCallback
     virtual void onEvent(int32_t type, uint64_t param1, uint64_t param2);
+
+    /**
+     * @brief Set the preview surface
+     *
+     * @param surface The preview surface
+     * @return ImsMediaResult Returns RESULT_SUCCESS when the surface set properly, and returns
+     * RESULT_INVALID_PARAM when the parameter is not valid
+     */
     ImsMediaResult setPreviewSurface(ANativeWindow* surface);
+
+    /**
+     * @brief Set the display surface
+     *
+     * @param surface The preview surface
+     * @return ImsMediaResult Returns RESULT_SUCCESS when the surface set properly, and returns
+     * RESULT_INVALID_PARAM when the parameter is not valid
+     */
     ImsMediaResult setDisplaySurface(ANativeWindow* surface);
+
+    /**
+     * @brief Send internal event to process in the stream graph
+     *
+     * @param type The type of internal event defined in ImsMediaDefine.h
+     * @param param1 The additional parameter to set
+     * @param param2 The additional parameter to set
+     */
     void SendInternalEvent(int32_t type, uint64_t param1, uint64_t param2);
 
 private:

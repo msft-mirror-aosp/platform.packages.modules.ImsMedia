@@ -22,7 +22,6 @@
 #include <ImsMediaNetworkUtil.h>
 #include <ImsMediaTrace.h>
 #include <VideoConfig.h>
-#include <ImsMediaVideoUtil.h>
 
 VideoStreamGraphRtcp::VideoStreamGraphRtcp(BaseSessionCallback* callback, int localFd) :
         VideoStreamGraph(callback, localFd)
@@ -166,12 +165,29 @@ bool VideoStreamGraphRtcp::OnEvent(int32_t type, uint64_t param1, uint64_t param
     {
         case kRequestVideoSendNack:
         case kRequestVideoSendPictureLost:
+        case kRequestVideoSendTmmbr:
+        case kRequestVideoSendTmmbn:
         {
-            /** TODO: add implementation of calling node method */
+            BaseNode* node = findNode(kNodeIdRtcpEncoder);
             InternalRequestEventParam* param = reinterpret_cast<InternalRequestEventParam*>(param1);
 
-            if (param != NULL)
+            if (node != NULL && param != NULL)
             {
+                RtcpEncoderNode* encoder = reinterpret_cast<RtcpEncoderNode*>(node);
+
+                if (type == kRequestVideoSendNack)
+                {
+                    ret = encoder->SendNack(&param->nackParams);
+                }
+                else if (type == kRequestVideoSendPictureLost)
+                {
+                    ret = encoder->SendPictureLost(param->value);
+                }
+                else if (type == kRequestVideoSendTmmbr || type == kRequestVideoSendTmmbn)
+                {
+                    ret = encoder->SendTmmbrn(param->type, &param->tmmbrParams);
+                }
+
                 delete param;
             }
         }
