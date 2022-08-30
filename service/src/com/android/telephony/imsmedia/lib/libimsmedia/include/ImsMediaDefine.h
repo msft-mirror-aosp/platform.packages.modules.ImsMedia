@@ -38,7 +38,7 @@ enum ImsMediaResult
 
 enum kImsMediaEventType
 {
-    kImsMediaEventNotifyError,
+    kImsMediaEventNotifyError = 0,
     kImsMediaEventStateChanged,
     kImsMediaEventFirstPacketReceived,
     kImsMediaEventHeaderExtensionReceived,
@@ -60,6 +60,8 @@ enum kImsMediaInternalRequestType
     kRequestVideoBitrateChange,
     kRequestVideoIdrFrame,
     kRequestVideoSendNack,
+    kRequestVideoSendPictureLost,
+    kRequestRoundTripTimeDelayUpdate,
 };
 
 enum kImsMediaErrorNotify
@@ -351,6 +353,7 @@ enum ImsMediaTextMsgResponse
     kTextRttReceived,
 };
 
+#define UNDEFINED_SOCKET_FD                        -1
 #define T140_BUFFERING_TIME                        300
 #define RTT_MAX_CHAR_PER_SEC                       30  // ATIS_GTT : 30 characters per second
 #define RTT_MAX_UNICODE_UTF8                       4
@@ -364,7 +367,8 @@ public:
     void* mConfig;
     int rtpFd;
     int rtcpFd;
-    EventParamOpenSession(int rtp, int rtcp, void* config) :
+    EventParamOpenSession(
+            int rtp = UNDEFINED_SOCKET_FD, int rtcp = UNDEFINED_SOCKET_FD, void* config = NULL) :
             mConfig(config),
             rtpFd(rtp),
             rtcpFd(rtcp)

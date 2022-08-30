@@ -29,6 +29,7 @@ public:
             mConfig(NULL)
     {
     }
+
     virtual ~VideoStreamGraph()
     {
         if (mConfig != NULL)
@@ -48,6 +49,8 @@ public:
         return (mConfig->getRemoteAddress() == config->getRemoteAddress() &&
                 mConfig->getRemotePort() == config->getRemotePort());
     }
+
+    virtual bool OnEvent(int32_t type, uint64_t param1, uint64_t param2) = 0;
 
 protected:
     virtual ImsMediaResult create(RtpConfig* config) = 0;

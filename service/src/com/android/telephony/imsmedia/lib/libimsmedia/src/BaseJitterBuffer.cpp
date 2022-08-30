@@ -59,8 +59,6 @@ uint32_t BaseJitterBuffer::GetCount()
 
 void BaseJitterBuffer::Reset()
 {
-    // reset the analyzer
-    mDataCount = 0;
     mNewInputData = false;
     mLastPlayedSeqNum = 0;
     mLastPlayedTimestamp = 0;

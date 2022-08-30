@@ -41,6 +41,7 @@ IVideoRendererNode::IVideoRendererNode(BaseSessionCallback* callback) :
     }
 
     mWindow = NULL;
+    mCondition.reset();
     mCodecType = DEFAULT_UNDEFINED;
     mWidth = 0;
     mHeight = 0;
@@ -50,7 +51,13 @@ IVideoRendererNode::IVideoRendererNode(BaseSessionCallback* callback) :
     memset(mConfigLen, 0, MAX_CONFIG_INDEX * sizeof(uint32_t));
     mDeviceOrientation = 0;
     mFirstFrame = false;
+    mSubtype = MEDIASUBTYPE_UNDEFINED;
+    mFramerate = 0;
+    mWaitIntraFrame = 0;
+    mLossDuration = 0;
+    mLossRateThreshold = 0;
 }
+
 IVideoRendererNode::~IVideoRendererNode() {}
 
 kBaseNodeId IVideoRendererNode::GetNodeId()
@@ -67,6 +74,7 @@ ImsMediaResult IVideoRendererNode::Start()
         jitter->SetCodecType(mCodecType);
         jitter->SetFramerate(mFramerate);
         jitter->SetJitterBufferSize(15, 15, 25);
+        jitter->StartTimer(mLossDuration, mLossRateThreshold);
     }
 
     Reset();
@@ -78,11 +86,13 @@ ImsMediaResult IVideoRendererNode::Start()
         mVideoRenderer->SetResolution(mWidth, mHeight);
         mVideoRenderer->SetDeviceOrientation(mDeviceOrientation);
         mVideoRenderer->SetSurface(mWindow);
+
         if (mVideoRenderer->Start() == false)
         {
             return RESULT_NOT_READY;
         }
     }
+
     mFirstFrame = false;
     mNodeState = kNodeStateRunning;
     return RESULT_SUCCESS;
@@ -92,9 +102,16 @@ void IVideoRendererNode::Stop()
 {
     IMLOGD0("[Stop]");
     std::lock_guard<std::mutex> guard(mMutex);
+
     if (mVideoRenderer)
     {
         mVideoRenderer->Stop();
+    }
+
+    if (mJitterBuffer != NULL)
+    {
+        VideoJitterBuffer* jitter = reinterpret_cast<VideoJitterBuffer*>(mJitterBuffer);
+        jitter->StopTimer();
     }
 
     mNodeState = kNodeStateStopped;
@@ -113,7 +130,10 @@ bool IVideoRendererNode::IsSourceNode()
 void IVideoRendererNode::SetConfig(void* config)
 {
     if (config == NULL)
+    {
         return;
+    }
+
     VideoConfig* pConfig = reinterpret_cast<VideoConfig*>(config);
     mCodecType = ImsMediaVideoUtil::ConvertCodecType(pConfig->getCodecType());
     mSamplingRate = pConfig->getSamplingRateKHz();
@@ -127,7 +147,10 @@ void IVideoRendererNode::SetConfig(void* config)
 bool IVideoRendererNode::IsSameConfig(void* config)
 {
     if (config == NULL)
+    {
         return true;
+    }
+
     VideoConfig* pConfig = reinterpret_cast<VideoConfig*>(config);
     return (mCodecType == ImsMediaVideoUtil::ConvertCodecType(pConfig->getCodecType()) &&
             mWidth == pConfig->getResolutionWidth() && mHeight == pConfig->getResolutionHeight() &&
@@ -211,7 +234,8 @@ void IVideoRendererNode::ProcessData()
 
         if (IsSps(pDataBuff, nDatabufferSize, &nBufferOffset) == true)
         {
-            IMLOGD1("[ProcessData] parse SPS - nOffset[%d]", nBufferOffset);
+            IMLOGD_PACKET1(
+                    IM_PACKET_LOG_VIDEO, "[ProcessData] parse SPS - nOffset[%d]", nBufferOffset);
             tCodecConfig codecConfig;
 
             if (mCodecType == kVideoCodecAvc)
@@ -289,8 +313,8 @@ void IVideoRendererNode::ProcessData()
         if (mSubtype != subtype)
         {
             mSubtype = subtype;
-
             int degree = 0;
+
             switch (mSubtype)
             {
                 default:
@@ -327,6 +351,27 @@ void IVideoRendererNode::UpdateSurface(ANativeWindow* window)
 {
     IMLOGD1("[UpdateSurface] surface[%p]", window);
     mWindow = window;
+}
+
+void IVideoRendererNode::UpdateRoundTripTimeDelay(int32_t delay)
+{
+    IMLOGD1("[UpdateRoundTripTimeDelay] delay[%d]", delay);
+
+    if (mJitterBuffer != NULL)
+    {
+        VideoJitterBuffer* jitter = reinterpret_cast<VideoJitterBuffer*>(mJitterBuffer);
+
+        // calculate Response wait time : RWT = RTTD (mm) + 2 * frame duration
+        jitter->SetResponseWaitTime((delay / DEMON_NTP2MSEC) + 2 * (1000 / mFramerate));
+    }
+}
+
+void IVideoRendererNode::SetPacketLossParam(uint32_t time, uint32_t rate)
+{
+    IMLOGD2("[SetPacketLossParam] time[%d], rate[%d]", time, rate);
+
+    mLossDuration = time;
+    mLossRateThreshold = rate;
 }
 
 bool IVideoRendererNode::IsIntraFrame(uint8_t* pbBuffer, uint32_t nBufferSize)

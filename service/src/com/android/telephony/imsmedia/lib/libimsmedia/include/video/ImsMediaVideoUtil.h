@@ -84,7 +84,7 @@ enum kRtcpFeedbackType
 
 enum kNackRequestType
 {
-    kRequestNackNone = 0,
+    kRequestSendNackNone = 0,
     kRequestInitialNack,
     kRequestSecondNack,
     kRequestPli,
@@ -94,30 +94,30 @@ struct NackParams
 {
 public:
     NackParams() :
-            nFLP(0),
-            nBLP(0),
-            nSecNACKCnt(0),
-            bNACKReport(false)
+            PID(0),
+            BLP(0),
+            nSecNackCnt(0),
+            bNackReport(false)
     {
     }
     NackParams(const NackParams& p)
     {
-        nFLP = p.nFLP;
-        nBLP = p.nBLP;
-        nSecNACKCnt = p.nSecNACKCnt;
-        bNACKReport = p.bNACKReport;
+        PID = p.PID;
+        BLP = p.BLP;
+        nSecNackCnt = p.nSecNackCnt;
+        bNackReport = p.bNackReport;
     }
     NackParams(uint16_t f, uint16_t b, uint16_t cnt, bool r) :
-            nFLP(f),
-            nBLP(b),
-            nSecNACKCnt(cnt),
-            bNACKReport(r)
+            PID(f),
+            BLP(b),
+            nSecNackCnt(cnt),
+            bNackReport(r)
     {
     }
-    uint16_t nFLP;
-    uint16_t nBLP;
-    uint16_t nSecNACKCnt;
-    bool bNACKReport;
+    uint16_t PID;
+    uint16_t BLP;
+    uint16_t nSecNackCnt;
+    bool bNackReport;
 };
 
 enum kCameraFacing
@@ -130,18 +130,18 @@ struct LostPktEntry
 {
 public:
     LostPktEntry() :
-            nLostPktSeqNum(0),
+            nSeqNum(0),
             nReqTime(0),
             nNACKReqType(0)
     {
     }
     LostPktEntry(uint16_t seq, uint32_t time, uint32_t type) :
-            nLostPktSeqNum(seq),
+            nSeqNum(seq),
             nReqTime(time),
             nNACKReqType(type)
     {
     }
-    uint16_t nLostPktSeqNum;
+    uint16_t nSeqNum;
     uint32_t nReqTime;
     uint32_t nNACKReqType;
 };

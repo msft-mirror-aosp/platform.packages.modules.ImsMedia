@@ -108,7 +108,6 @@ void TextJitterBuffer::Add(ImsMediaSubType subtype, uint8_t* buffer, uint32_t si
         }
     }
 
-    mDataCount++;
     mNewInputData = true;
 }
 
@@ -156,8 +155,6 @@ bool TextJitterBuffer::Get(ImsMediaSubType* subtype, uint8_t** data, uint32_t* d
             *mark = false;
         if (seqNum)
             *seqNum = 0;
-        if (mDataQueue.GetCount() == 0)
-            mDataCount = 0;
 
         IMLOGD_PACKET0(IM_PACKET_LOG_JITTER, "[Get] fail");
 

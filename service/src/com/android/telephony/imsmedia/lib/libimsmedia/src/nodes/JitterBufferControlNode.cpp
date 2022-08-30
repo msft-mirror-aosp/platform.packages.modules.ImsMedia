@@ -49,6 +49,7 @@ JitterBufferControlNode::~JitterBufferControlNode()
 void JitterBufferControlNode::SetJitterBufferSize(uint32_t nInit, uint32_t nMin, uint32_t nMax)
 {
     IMLOGD3("[SetJitterBufferSize] init[%d], min[%d], max[%d]", nInit, nMin, nMax);
+
     if (mJitterBuffer)
     {
         mJitterBuffer->SetJitterBufferSize(nInit, nMin, nMax);
@@ -60,6 +61,7 @@ void JitterBufferControlNode::SetJitterOptions(
 {
     IMLOGD5("[SetJitterOptions] nReduceTH[%d], nStepSize[%d], zValue[%lf], bSID[%d], bImprove[%d]",
             nReduceTH, nStepSize, zValue, bIgnoreSID, bImprovement);
+
     if (mJitterBuffer)
     {
         mJitterBuffer->SetJitterOptions(nReduceTH, nStepSize, zValue, bIgnoreSID, bImprovement);
@@ -69,6 +71,7 @@ void JitterBufferControlNode::SetJitterOptions(
 void JitterBufferControlNode::Reset()
 {
     IMLOGD0("[Reset]");
+
     if (mJitterBuffer)
     {
         mJitterBuffer->Reset();
@@ -81,6 +84,7 @@ uint32_t JitterBufferControlNode::GetDataCount()
     {
         return mJitterBuffer->GetCount();
     }
+
     return 0;
 }
 
@@ -99,10 +103,12 @@ bool JitterBufferControlNode::GetData(ImsMediaSubType* pSubtype, uint8_t** ppDat
         ImsMediaSubType* pnDataType)
 {
     (void)pnDataType;
+
     if (mJitterBuffer)
     {
         return mJitterBuffer->Get(pSubtype, ppData, pnDataSize, pnTimestamp, pbMark, pnSeqNum);
     }
+
     return false;
 }
 
