@@ -121,17 +121,8 @@ void TextSourceNode::ProcessData()
 
     if (mBomEnabled == true && mSentBOM == false)
     {
-        uint8_t pBOMData[3];
-        // send BOM - RFC4103 the BOM character shall be transmitted as 0xEFBBBF
-        pBOMData[0] = 0xef;
-        pBOMData[1] = 0xbb;
-        pBOMData[2] = 0xbf;
-
-        mTimeLastSent = ImsMediaTimer::GetTimeInMilliSeconds();
-        SendDataToRearNode(MEDIASUBTYPE_BITSTREAM_T140, pBOMData, 3, mTimeLastSent, false, 0);
+        SendBOM();
         mSentBOM = true;
-
-        return;
     }
 
     uint32_t nLoopCount = 1;
@@ -243,4 +234,18 @@ void TextSourceNode::SendRtt(const android::String8* text)
         pData += nChunkSize;
         nSize -= nChunkSize;
     }
+}
+
+void TextSourceNode::SendBOM()
+{
+    uint8_t* buffer = (uint8_t*)malloc(4);
+    memset(buffer, 0, 4);
+    // send BOM - RFC4103 the BOM character shall be transmitted as 0xEFBBBF
+    buffer[0] = 0xef;
+    buffer[1] = 0xbb;
+    buffer[2] = 0xbf;
+
+    IMLOGD0("[ProcessData] send BOM");
+    mListTextSource.push_front(buffer);
+    mListTextSourceSize.push_front(3);
 }
