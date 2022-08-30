@@ -40,7 +40,7 @@ kBaseNodeId TextRendererNode::GetNodeId()
 
 ImsMediaResult TextRendererNode::Start()
 {
-    IMLOGD1("[Start] codec[%d], redCount[%d]", mCodecType);
+    IMLOGD1("[Start] codec[%d]", mCodecType);
 
     if (mCodecType == TextConfig::TEXT_CODEC_NONE)
     {
@@ -201,8 +201,7 @@ void TextRendererNode::ProcessData()
                 android::String8* text = new android::String8(mBuffer);
                 mCallback->SendEvent(
                         kImsMediaEventNotifyRttReceived, reinterpret_cast<uint64_t>(text), 0);
-                IMLOGD_PACKET2(IM_PACKET_LOG_TEXT, "[ProcessData] data[%s], text[%s]", data,
-                        text->string());
+                IMLOGD_PACKET1(IM_PACKET_LOG_TEXT, "[ProcessData] text[%s]", mBuffer);
             }
 
             data += transSize;
