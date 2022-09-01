@@ -26,6 +26,7 @@
 #include <VideoManager.h>
 #include <ImsMediaVideoUtil.h>
 #include <android/native_window_jni.h>
+#include <android/asset_manager_jni.h>
 
 #define IMS_MEDIA_JNI_VERSION JNI_VERSION_1_4
 
@@ -34,6 +35,7 @@ static const char* gClassPath = "com/android/telephony/imsmedia/JNIImsMediaServi
 static JavaVM* gJVM = NULL;
 static jclass gClass_JNIImsMediaService = NULL;
 static jmethodID gMethod_sendData2Java = NULL;
+AAssetManager* gpAssetManager = NULL;
 
 jint ImsMediaServiceJni_OnLoad(JNIEnv* env);
 
@@ -191,6 +193,12 @@ static jstring JNIImsMediaUtil_generateSPROP(JNIEnv* env, jobject, jbyteArray ba
     return str;
 }
 
+static void SetAssetManager(JNIEnv* env, jobject, jobject jobjAssetManager)
+{
+    gpAssetManager = AAssetManager_fromJava(env, jobjAssetManager);
+    ALOGD("[SetAssetManager] Asset manager has been set in JNI");
+}
+
 static JNINativeMethod gMethods[] = {
         {"getInterface", "(I)J", (void*)JNIImsMediaService_getInterface},
         {"sendMessage", "(JI[B)V", (void*)JNIImsMediaService_sendMessage},
@@ -199,6 +207,7 @@ static JNINativeMethod gMethods[] = {
         {"setDisplaySurface", "(JILandroid/view/Surface;)V",
                 (void*)JNIImsMediaService_setDisplaySurface},
         {"generateSprop", "([B)Ljava/lang/String;", (void*)JNIImsMediaUtil_generateSPROP},
+        {"setAssetManager", "(Landroid/content/res/AssetManager;)V", (void*)SetAssetManager},
 };
 
 jint ImsMediaServiceJni_OnLoad(JNIEnv* env)

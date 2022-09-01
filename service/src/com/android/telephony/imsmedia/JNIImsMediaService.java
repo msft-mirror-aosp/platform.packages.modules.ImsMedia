@@ -16,6 +16,7 @@
 
 package com.android.telephony.imsmedia;
 
+import android.content.res.AssetManager;
 import android.os.Parcel;
 import android.telephony.Rlog;
 import android.view.Surface;
@@ -75,6 +76,14 @@ public class JNIImsMediaService {
      * @return returns the generated sprop value.
      */
     public static native String generateSprop(byte[] videoConfig);
+
+    /**
+     * Passes the application's asset manager reference to native which will be used to access
+     * pause images assets during video call multitasking scenarios.
+     *
+     * @param assetManager Application's asset manager reference.
+     */
+    public static native void setAssetManager(AssetManager assetManager);
 
     /**
      * Gets intance of JNIImsMediaService for jni interface
@@ -156,12 +165,11 @@ public class JNIImsMediaService {
     /** local shared libimsmediajni library */
     static {
         try {
-            Rlog.d(TAG,"libimsmediajni :: loading");
-            System.loadLibrary("imsmediajni");
-            Rlog.d(TAG,"libimsmediajni :: load completed");
+            Rlog.d(TAG, "libimsmedia :: loading");
+            System.loadLibrary("imsmedia");
+            Rlog.d(TAG, "libimsmedia :: load completed");
         } catch (UnsatisfiedLinkError e) {
-            Rlog.e(TAG,"Loading fail : libimsmediajni.so");
-            e.printStackTrace();
+            Rlog.e(TAG, "Loading fail : libimsmedia.so");
         }
     }
 }

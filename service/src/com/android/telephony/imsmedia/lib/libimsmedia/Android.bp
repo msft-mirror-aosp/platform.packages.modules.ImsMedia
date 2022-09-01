@@ -5,6 +5,7 @@ cc_library_headers {
         "include/nodes",
         "include/utils",
         "rtpservice",
+        "jni",
     ],
 
 }
@@ -77,7 +78,8 @@ cc_defaults {
     ],
     shared_libs: [
         "libnativewindow",
-        "libcamera2ndk"
+        "libcamera2ndk",
+        "libandroid"
     ],
     include_dirs: [
         "frameworks/av/camera/ndk/include",
@@ -107,6 +109,7 @@ cc_library_shared {
     ],
     srcs: [
         "src/**/*.cpp",
+        "jni/*.cpp"
     ],
     local_include_dirs: [
         "include",
@@ -125,5 +128,6 @@ cc_library_shared {
         "libutils",
         "framework-permission-aidl-cpp",
         "libmediandk",
+        "libjnigraphics",
     ],
 }

@@ -175,7 +175,7 @@ bool IVideoSourceNode::IsSameConfig(void* config)
 
 ImsMediaResult IVideoSourceNode::UpdateConfig(void* config)
 {
-    IMLOGD0("[UpdateConfig]");
+    IMLOGD1("[UpdateConfig] current mode[%d]", mVideoMode);
 
     if (config == NULL)
     {
@@ -193,7 +193,7 @@ ImsMediaResult IVideoSourceNode::UpdateConfig(void* config)
     VideoConfig* pConfig = reinterpret_cast<VideoConfig*>(config);
 
     if (mCodecType != ImsMediaVideoUtil::ConvertCodecType(pConfig->getCodecType()) ||
-            mCodecProfile != pConfig->getCodecProfile() ||
+            mVideoMode != pConfig->getVideoMode() || mCodecProfile != pConfig->getCodecProfile() ||
             mCodecLevel != pConfig->getCodecLevel() || mFramerate != pConfig->getFramerate() ||
             mCameraId != pConfig->getCameraId() || mWidth != pConfig->getResolutionWidth() ||
             mHeight != pConfig->getResolutionHeight())

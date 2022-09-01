@@ -166,7 +166,7 @@ bool ImsMediaVideoSource::Start()
     IMLOGD1("[Start], VideoMode[%d]", mVideoMode);
     mRecordingSurface = NULL;
 
-    if (mVideoMode == kVideoModeRecording)
+    if (mVideoMode == kVideoModeRecording || mVideoMode == kVideoModePauseImage)
     {
         mFormat = AMediaFormat_new();
         AMediaFormat_setInt32(mFormat, AMEDIAFORMAT_KEY_WIDTH, mWidth);
@@ -252,7 +252,7 @@ bool ImsMediaVideoSource::Start()
         }
     }
 
-    if (mVideoMode == kVideoModePreview || mVideoMode == kVideoModeRecording)
+    if (mCameraId != -1 && (mVideoMode == kVideoModePreview || mVideoMode == kVideoModeRecording))
     {
         mCamera = ImsMediaCamera::getInstance();
         mCamera->Initialize();
@@ -289,6 +289,10 @@ bool ImsMediaVideoSource::Start()
             mFormat = NULL;
             return false;
         }
+    }
+    else if (mVideoMode == kVideoModePauseImage)
+    {
+        mPauseImageSource.Initialize(mWidth, mHeight);
     }
 
     // start encoder output thread
@@ -354,6 +358,8 @@ void ImsMediaVideoSource::Stop()
         mImageReader = NULL;
         mImageReaderSurface = NULL;
     }
+
+    mPauseImageSource.Uninitialize();
 }
 
 bool ImsMediaVideoSource::IsStopped()
@@ -470,6 +476,29 @@ void ImsMediaVideoSource::requestIdrFrame()
     }
 }
 
+void ImsMediaVideoSource::EncodePauseImage()
+{
+    auto index = AMediaCodec_dequeueInputBuffer(mCodec, 100000);
+    if (index >= 0)
+    {
+        size_t buffCapacity = 0;
+        uint8_t* encoderBuf = AMediaCodec_getInputBuffer(mCodec, index, &buffCapacity);
+        if (!encoderBuf && !buffCapacity)
+        {
+            IMLOGE1("[EncodePauseImage] returned null buffer pointer or buffCapacity[%d]",
+                    buffCapacity);
+            return;
+        }
+        size_t len = mPauseImageSource.GetYuvImage(encoderBuf, buffCapacity);
+        AMediaCodec_queueInputBuffer(
+                mCodec, index, 0, len, ImsMediaTimer::GetTimeInMicroSeconds(), 0);
+    }
+    else
+    {
+        IMLOGE1("[EncodePauseImage] dequeueInputBuffer returned index[%d]", index);
+    }
+}
+
 void ImsMediaVideoSource::processOutputBuffer()
 {
     static int kTimeout = 100000;  // be responsive on signal
@@ -482,7 +511,7 @@ void ImsMediaVideoSource::processOutputBuffer()
         timeInterval = 1000 / mFramerate;
     }
 
-    IMLOGD1("[processOutputBuffer] interval[%d]", timeInterval);
+    IMLOGD2("[processOutputBuffer] interval[%d] mCameraId[%d]", timeInterval, mCameraId);
 
     for (;;)
     {
@@ -497,6 +526,11 @@ void ImsMediaVideoSource::processOutputBuffer()
         }
 
         mMutex.unlock();
+        if (mVideoMode == kVideoModePauseImage)
+        {
+            EncodePauseImage();
+        }
+
         AMediaCodecBufferInfo info;
         auto index = AMediaCodec_dequeueOutputBuffer(mCodec, &info, kTimeout);
 
