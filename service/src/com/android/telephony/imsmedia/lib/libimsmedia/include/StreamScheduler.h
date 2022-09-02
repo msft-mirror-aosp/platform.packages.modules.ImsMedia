@@ -42,11 +42,8 @@ private:
     std::list<BaseNode*> mlistSourceNode;
     std::list<BaseNode*> mlistRegisteredNode;
     std::list<BaseNode*> mlistNodeToRun;
-    ImsMediaCondition mCondMain;
+    ImsMediaCondition mConditionMain;
     ImsMediaCondition mConditionExit;
-    bool mbStarted;
-    bool mbTerminate;
-    bool mbStartPending;
     std::mutex mMutex;
 };
 

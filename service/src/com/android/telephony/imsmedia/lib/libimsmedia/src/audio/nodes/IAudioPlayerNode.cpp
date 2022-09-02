@@ -47,7 +47,7 @@ ImsMediaResult IAudioPlayerNode::Start()
 
     // reset the jitter
     Reset();
-    mMutex.lock();
+
     if (mAudioPlayer)
     {
         mAudioPlayer->SetCodec(mCodecType);
@@ -68,7 +68,6 @@ ImsMediaResult IAudioPlayerNode::Start()
     }
 
     mFirstFrame = false;
-    mMutex.unlock();
     mNodeState = kNodeStateRunning;
     StartThread();
     return RESULT_SUCCESS;
@@ -77,14 +76,14 @@ ImsMediaResult IAudioPlayerNode::Start()
 void IAudioPlayerNode::Stop()
 {
     IMLOGD0("[Stop]");
-    mMutex.lock();
+
     if (mAudioPlayer)
     {
         mAudioPlayer->Stop();
     }
+
     StopThread();
-    mMutex.unlock();
-    mCondition.wait();
+    mCondition.wait_timeout(AUDIO_STOP_TIMEOUT);
     mNodeState = kNodeStateStopped;
 }
 
@@ -157,6 +156,7 @@ bool IAudioPlayerNode::IsSameConfig(void* config)
 
 void* IAudioPlayerNode::run()
 {
+    IMLOGD0("[run] enter");
     ImsMediaSubType subtype = MEDIASUBTYPE_UNDEFINED;
     ImsMediaSubType datatype = MEDIASUBTYPE_UNDEFINED;
     uint8_t* pData = NULL;
@@ -170,11 +170,9 @@ void* IAudioPlayerNode::run()
 
     while (true)
     {
-        mMutex.lock();
         if (IsThreadStopped())
         {
-            IMLOGD0("[run] exit");
-            mMutex.unlock();
+            IMLOGD0("[run] terminated");
             mCondition.signal();
             break;
         }
@@ -198,7 +196,6 @@ void* IAudioPlayerNode::run()
             DeleteData();
         }
 
-        mMutex.unlock();
         nNextTime += 20000;
         nCurrTime = ImsMediaTimer::GetTimeInMicroSeconds();
         nTime = nNextTime - nCurrTime;

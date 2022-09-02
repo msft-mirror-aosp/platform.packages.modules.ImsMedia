@@ -39,14 +39,9 @@ ImsMediaEventHandler::~ImsMediaEventHandler()
     mListParamA.clear();
     mListParamB.clear();
     mListParamC.clear();
-    mbTerminate = true;
+    StopThread();
     mCondition.signal();
     mConditionExit.wait();
-
-    if (IsMyThread())
-    {
-        IMLOGD0("[~ImsMediaEventHandler] On my thread");
-    }
 }
 
 void ImsMediaEventHandler::SendEvent(const char* strEventHandlerName, uint32_t event,
@@ -58,7 +53,6 @@ void ImsMediaEventHandler::SendEvent(const char* strEventHandlerName, uint32_t e
         return;
     }
 
-    std::lock_guard<std::mutex> guard(mMutex);
     IMLOGD5("[SendEvent] Name[%s], event[%d], paramA[%p], paramB[%p], paramC[%p]",
             strEventHandlerName, event, paramA, paramB, paramC);
 
@@ -79,32 +73,30 @@ char* ImsMediaEventHandler::getName()
 void ImsMediaEventHandler::AddEvent(
         uint32_t event, uint64_t paramA, uint64_t paramB, uint64_t paramC)
 {
-    // lock
-    IMLOGD2("[AddEvent] event[%d], size[%d]", event, mListevent.size());
+    IMLOGD3("[AddEvent] %s, event[%d], size[%d]", mName, event, mListevent.size());
     mMutexEvent.lock();
     mListevent.push_back(event);
     mListParamA.push_back(paramA);
     mListParamB.push_back(paramB);
     mListParamC.push_back(paramC);
-    // unlock
     mMutexEvent.unlock();
-    IMLOGD0("[AddEvent] signal");
     mCondition.signal();
-    IMLOGD0("[AddEvent] exit");
 }
 
 void* ImsMediaEventHandler::run()
 {
-    IMLOGD1("[run] enter, %p", this);
+    IMLOGD2("[run] %s enter, %p", mName, this);
+
     for (;;)
     {
-        IMLOGD0("[run] wait");
+        IMLOGD1("[run] %s wait", mName);
         mCondition.wait();
+
         for (;;)
         {
             // lock
             mMutexEvent.lock();
-            if (mbTerminate == true || mListevent.size() == 0)
+            if (IsThreadStopped() || mListevent.size() == 0)
             {
                 mMutexEvent.unlock();
                 break;
@@ -118,27 +110,20 @@ void* ImsMediaEventHandler::run()
             mListParamB.pop_front();
             mListParamC.pop_front();
             mMutexEvent.unlock();
-            // Only when thread needs to be destroyed inside of processEvent,
-            // this method returns "true".
+
             if (IsThreadStopped())
             {
-                mbTerminate = true;
                 break;
             }
         }
-        if (mbTerminate)
+
+        if (IsThreadStopped())
+        {
             break;
+        }
     }
 
-    bool bSelfDestroy = IsThreadStopped();
-    IMLOGD1("[run] exit, %p", this);
+    IMLOGD2("[run] %s exit, %p", mName, this);
     mConditionExit.signal();
-
-    if (bSelfDestroy)
-    {
-        IMLOGD0("[run] self-destroy");
-        delete this;
-    }
-
     return NULL;
 }

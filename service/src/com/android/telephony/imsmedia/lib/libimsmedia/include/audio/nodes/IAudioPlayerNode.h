@@ -45,7 +45,6 @@ private:
     std::unique_ptr<ImsMediaAudioPlayer> mAudioPlayer;
     int32_t mCodecType;
     uint32_t mMode;
-    std::mutex mMutex;
     ImsMediaCondition mCondition;
     bool mFirstFrame;
     int32_t mEvsChannelAwOffset;

@@ -24,12 +24,7 @@ using namespace std::chrono;
 
 #define RUN_WAIT_TIMEOUT 3
 
-StreamScheduler::StreamScheduler()
-{
-    mbStarted = false;
-    mbTerminate = false;
-    mbStartPending = false;
-}
+StreamScheduler::StreamScheduler() {}
 
 StreamScheduler::~StreamScheduler()
 {
@@ -44,8 +39,7 @@ void StreamScheduler::RegisterNode(BaseNode* pNode)
     }
 
     IMLOGD2("[RegisterNode] [%p], node[%s]", this, pNode->GetNodeName());
-
-    mMutex.lock();
+    std::lock_guard<std::mutex> guard(mMutex);
 
     if (pNode->IsSourceNode())
     {
@@ -54,14 +48,6 @@ void StreamScheduler::RegisterNode(BaseNode* pNode)
     else
     {
         mlistRegisteredNode.push_back(pNode);
-    }
-
-    mMutex.unlock();
-
-    if (mbStartPending == true)
-    {
-        IMLOGD1("[AddNode] [%p] Start Pending thread", this);
-        Start();
     }
 }
 
@@ -73,7 +59,7 @@ void StreamScheduler::DeRegisterNode(BaseNode* pNode)
     }
 
     IMLOGD2("[DeRegisterNode] [%p], node[%s]", this, pNode->GetNodeName());
-    mMutex.lock();
+    std::lock_guard<std::mutex> guard(mMutex);
 
     if (pNode->IsSourceNode())
     {
@@ -83,33 +69,12 @@ void StreamScheduler::DeRegisterNode(BaseNode* pNode)
     {
         mlistRegisteredNode.remove(pNode);
     }
-
-    mMutex.unlock();
-
-    if (mbStarted)
-    {
-        uint32_t nNumOfRegisteredNode = 0;
-        nNumOfRegisteredNode += mlistSourceNode.size();
-        nNumOfRegisteredNode += mlistRegisteredNode.size();
-
-        if (nNumOfRegisteredNode == 0)
-        {
-            IMLOGD1("[DeRegisterNode] [%p] Stop thread and goto pending state", this);
-            Stop();
-            mbStartPending = true;
-        }
-    }
 }
 
 void StreamScheduler::Start()
 {
     uint32_t nNumOfRegisteredNode = 0;
     IMLOGD1("[Start] [%p] enter", this);
-    if (mbStarted)
-    {
-        IMLOGD1("[Start] [%p] exit - scheduler is already started", this);
-        return;
-    }
 
     for (auto& node : mlistSourceNode)
     {
@@ -132,24 +97,9 @@ void StreamScheduler::Start()
     if (nNumOfRegisteredNode > 0)
     {
         IMLOGD1("[Start] [%p] Start thread", this);
-        mbStartPending = false;
-        mbTerminate = false;
-        mbStarted = true;
-        for (int i = 0; i < 3; i++)
-        {
-            if (StartThread())
-            {
-                break;
-            }
+        StartThread();
+    }
 
-            std::this_thread::sleep_for(10ms);
-        }
-    }
-    else
-    {
-        IMLOGD1("[Start] [%p] no node to run, goto pending state", this);
-        mbStartPending = true;
-    }
     IMLOGD1("[Start] [%p] exit", this);
 }
 
@@ -157,36 +107,31 @@ void StreamScheduler::Stop()
 {
     IMLOGD1("[Stop] [%p] enter", this);
 
-    if (mbStarted)
-    {
-        mbTerminate = true;
-        mbStarted = false;
-        Awake();
-        mConditionExit.wait_timeout(RUN_WAIT_TIMEOUT * 2);
-    }
+    StopThread();
+    Awake();
+    mConditionExit.wait_timeout(RUN_WAIT_TIMEOUT * 2);
 
     IMLOGD1("[Stop] [%p] exit", this);
 }
 
 void StreamScheduler::Awake()
 {
-    mCondMain.signal();
+    mConditionMain.signal();
 }
 
 BaseNode* StreamScheduler::DeterminProcessingNode(uint32_t* pnMaxDataInNode)
 {
+    if (IsThreadStopped())
+    {
+        return NULL;
+    }
+
     BaseNode* pRetNode = NULL;
     uint32_t nMaxDataInNode = 0;
 
     for (auto& node : mlistNodeToRun)
     {
         uint32_t nDataInNode;
-
-        if (mbTerminate)
-        {
-            pRetNode = NULL;
-            break;
-        }
 
         if (node != NULL)
         {
@@ -231,7 +176,7 @@ void StreamScheduler::RunRegisteredNode()
     {
         pNode = DeterminProcessingNode(&nMaxDataInNode);
 
-        if (pNode == NULL || mbTerminate)
+        if (pNode == NULL)
         {
             break;
         }
@@ -241,7 +186,7 @@ void StreamScheduler::RunRegisteredNode()
             pNode->ProcessData();
         }
 
-        if (mbTerminate)
+        if (IsThreadStopped())
         {
             break;
         }
@@ -256,24 +201,24 @@ void* StreamScheduler::run()
 {
     IMLOGD1("[run] [%p] enter", this);
 
-    while (!mbTerminate)
+    while (!IsThreadStopped())
     {
         mMutex.lock();
         RunRegisteredNode();
         mMutex.unlock();
 
-        if (mbTerminate)
+        if (IsThreadStopped())
         {
             break;
         }
 
         if (mlistSourceNode.size() > 0)
         {
-            mCondMain.wait_timeout(RUN_WAIT_TIMEOUT / 2);
+            mConditionMain.wait_timeout(RUN_WAIT_TIMEOUT / 2);
         }
         else
         {
-            mCondMain.wait_timeout(RUN_WAIT_TIMEOUT / 2);
+            mConditionMain.wait_timeout(RUN_WAIT_TIMEOUT / 2);
         }
     }
 

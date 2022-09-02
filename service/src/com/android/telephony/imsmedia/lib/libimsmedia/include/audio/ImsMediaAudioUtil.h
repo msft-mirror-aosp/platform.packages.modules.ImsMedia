@@ -101,6 +101,8 @@
 #define EVS_COMPACT_AMRWBIO_PAYLOAD_NUM 10
 #define EVS_COMPACT_PAYLOAD_MAX_NUM     32
 
+#define AUDIO_STOP_TIMEOUT              1000
+
 enum kImsAudioFrameEntype
 {
     kImsAudioFrameGsmSid = 0,        /* GSM HR, FR or EFR : silence descriptor   */

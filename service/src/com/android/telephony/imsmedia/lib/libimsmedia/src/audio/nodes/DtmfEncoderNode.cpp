@@ -59,11 +59,9 @@ ImsMediaResult DtmfEncoderNode::Start()
 void DtmfEncoderNode::Stop()
 {
     IMLOGD0("[Stop]");
-    mMutex.lock();
     StopThread();
-    mMutex.unlock();
     mConditionDtmf.signal();
-    mConditionExit.wait();
+    mConditionExit.wait_timeout(1000);
     mNodeState = kNodeStateStopped;
 }
 
@@ -155,25 +153,24 @@ void* DtmfEncoderNode::run()
     {
         IMLOGD0("[run] wait");
         mConditionDtmf.wait();
-        mMutex.lock();
 
         if (IsThreadStopped())
         {
-            mMutex.unlock();
-            IMLOGD0("[run] exit");
+            IMLOGD0("[run] terminated");
             mConditionExit.signal();
             break;
         }
 
-        mMutex.unlock();
         uint16_t nPeriod = 0;
         uint8_t pbPayload[BUNDLE_DTMF_DATA_MAX];
         uint32_t nPayloadSize;
         uint32_t nTimestamp = ImsMediaTimer::GetTimeInMilliSeconds();
+
         if (mListDtmfDigit.size() == 0)
         {
             continue;
         }
+
         bool bMarker = true;
         nPayloadSize = MakeDTMFPayload(pbPayload, mListDtmfDigit.front(), false, mVolume, nPeriod);
         SendDataToRearNode(MEDIASUBTYPE_DTMFSTART, NULL, 0, 0, 0, 0);  // set dtmf mode true
@@ -226,7 +223,7 @@ void* DtmfEncoderNode::run()
 
             if (IsThreadStopped())
             {
-                IMLOGD0("[run] terminated thread");
+                IMLOGD0("[run] terminated");
                 break;
             }
         }

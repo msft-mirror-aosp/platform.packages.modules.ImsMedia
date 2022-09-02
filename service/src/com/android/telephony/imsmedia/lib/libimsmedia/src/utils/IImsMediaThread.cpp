@@ -14,86 +14,55 @@
  * limitations under the License.
  */
 
-#include <pthread.h>
-#include <errno.h>
 #include <IImsMediaThread.h>
 #include <ImsMediaTrace.h>
+#include <thread>
 
-/**
- *    IImsMediaThread
- */
 IImsMediaThread::IImsMediaThread()
 {
-    mThread = NULL;
-    mStopped = false;
+    mThreadStopped = false;
 }
 
 IImsMediaThread::~IImsMediaThread() {}
 
+void* runThread(void* arg)
+{
+    if (arg == NULL)
+    {
+        IMLOGE0("[runThread] invalid argument");
+        return NULL;
+    }
+
+    IMLOGD0("[runThread]");
+    IImsMediaThread* thread = reinterpret_cast<IImsMediaThread*>(arg);
+    return thread->runBase();
+}
+
 bool IImsMediaThread::StartThread()
 {
-    IMLOGD0("[IImsMediaThread::StartThread]");
-    pthread_t thr;
-    pthread_attr_t attr;
-    mStopped = false;
+    IMLOGD0("[StartThread]");
+    std::lock_guard<std::mutex> guard(mThreadMutex);
+    mThreadStopped = false;
 
-    if (pthread_attr_init(&attr) < 0)
-    {
-        IMLOGD0("[IImsMediaThread::StartThread] pthread_attr_init error");
-        mStopped = true;
-        return false;
-    }
-
-    if (pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED) < 0)
-    {
-        IMLOGD0("[IImsMediaThread::StartThread] pthread_attr_setdetachstate error");
-        pthread_attr_destroy(&attr);
-        mStopped = true;
-        return false;
-    }
-
-    if (pthread_create(&thr, &attr, thread_fn, (void*)this) < 0)
-    {
-        IMLOGD0("[IImsMediaThread::StartThread] pthread_create error");
-        pthread_attr_destroy(&attr);
-        mStopped = true;
-        return false;
-    }
-
-    pthread_attr_destroy(&attr);
-    mThread = (void*)thr;
+    std::thread t1(&runThread, this);
+    t1.detach();
     return true;
 }
 
 void IImsMediaThread::StopThread()
 {
-    mStopped = true;
-}
-
-bool IImsMediaThread::IsMyThread()
-{
-    pthread_t tid = reinterpret_cast<pthread_t>(mThread);
-    return (tid == pthread_self()) ? true : false;
+    IMLOGD0("[StopThread]");
+    std::lock_guard<std::mutex> guard(mThreadMutex);
+    mThreadStopped = true;
 }
 
 bool IImsMediaThread::IsThreadStopped()
 {
-    return mStopped;
+    std::lock_guard<std::mutex> guard(mThreadMutex);
+    return mThreadStopped;
 }
 
-void* IImsMediaThread::thread_fn(void* arg)
-{
-    IImsMediaThread* thread = (IImsMediaThread*)arg;
-#if 1
-    void* exitCode = thread->run_base();
-    pthread_exit(NULL);
-    return exitCode;
-#else
-    return thread->run_base();
-#endif
-}
-
-void* IImsMediaThread::run_base()
+void* IImsMediaThread::runBase()
 {
     return run();
 }

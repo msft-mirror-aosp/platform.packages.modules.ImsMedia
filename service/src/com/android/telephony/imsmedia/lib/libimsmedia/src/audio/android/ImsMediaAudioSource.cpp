@@ -232,12 +232,16 @@ bool ImsMediaAudioSource::Start()
 
 void ImsMediaAudioSource::Stop()
 {
-    IMLOGD0("[Stop] Enter");
-    mMutexUplink.lock();
+    IMLOGD0("[Stop]");
     StopThread();
-    mMutexUplink.unlock();
-    mConditionExit.reset();
-    mConditionExit.wait_timeout(100);
+
+    if (mCodecType == kAudioCodecAmr || mCodecType == kAudioCodecAmrWb)
+    {
+        mConditionExit.reset();
+        mConditionExit.wait_timeout(AUDIO_STOP_TIMEOUT);
+    }
+
+    std::lock_guard<std::mutex> guard(mMutexUplink);
 
     aaudio_stream_state_t inputState = AAUDIO_STREAM_STATE_STOPPING;
     aaudio_stream_state_t nextState = AAUDIO_STREAM_STATE_UNINITIALIZED;
@@ -270,8 +274,6 @@ void ImsMediaAudioSource::Stop()
         AMediaFormat_delete(mFormat);
         mFormat = NULL;
     }
-
-    IMLOGD0("[Stop] Exit");
 }
 
 bool ImsMediaAudioSource::ProcessCMR(uint32_t mode)
@@ -285,7 +287,9 @@ void ImsMediaAudioSource::audioErrorCallback(
         AAudioStream* stream, void* userData, aaudio_result_t error)
 {
     if (stream == NULL || userData == NULL)
+    {
         return;
+    }
 
     aaudio_stream_state_t streamState = AAudioStream_getState(stream);
     IMLOGW2("[errorCallback] error[%s], state[%d]", AAudio_convertResultToText(error), streamState);
@@ -307,17 +311,11 @@ void* ImsMediaAudioSource::run()
 
     for (;;)
     {
-        uint32_t nCurrTime;
-        mMutexUplink.lock();
-
         if (IsThreadStopped())
         {
             IMLOGD0("[run] terminated");
-            mMutexUplink.unlock();
             break;
         }
-
-        mMutexUplink.unlock();
 
         if (mAudioStream != NULL &&
                 AAudioStream_getState(mAudioStream) == AAUDIO_STREAM_STATE_STARTED)
@@ -332,7 +330,7 @@ void* ImsMediaAudioSource::run()
         }
 
         nNextTime += mPtime;
-        nCurrTime = ImsMediaTimer::GetTimeInMilliSeconds();
+        uint32_t nCurrTime = ImsMediaTimer::GetTimeInMilliSeconds();
 
         if (nNextTime > nCurrTime)
         {
@@ -347,6 +345,7 @@ void ImsMediaAudioSource::openAudioStream()
 {
     AAudioStreamBuilder* builder = NULL;
     aaudio_result_t result = AAudio_createStreamBuilder(&builder);
+
     if (result != AAUDIO_OK)
     {
         IMLOGE1("[openAudioStream] Error creating stream builder[%s]",
@@ -395,8 +394,11 @@ void ImsMediaAudioSource::openAudioStream()
 void ImsMediaAudioSource::restartAudioStream()
 {
     std::lock_guard<std::mutex> guard(mMutexUplink);
+
     if (mAudioStream == NULL)
+    {
         return;
+    }
 
     AAudioStream_requestStop(mAudioStream);
     AAudioStream_close(mAudioStream);
@@ -404,11 +406,14 @@ void ImsMediaAudioSource::restartAudioStream()
     openAudioStream();
 
     if (mAudioStream == NULL)
+    {
         return;
+    }
 
     aaudio_stream_state_t inputState = AAUDIO_STREAM_STATE_STARTING;
     aaudio_stream_state_t nextState = AAUDIO_STREAM_STATE_UNINITIALIZED;
     aaudio_result_t result = AAudioStream_requestStart(mAudioStream);
+
     if (result != AAUDIO_OK)
     {
         IMLOGE1("[restartAudioStream] Error start stream[%s]", AAudio_convertResultToText(result));
@@ -461,22 +466,17 @@ void ImsMediaAudioSource::queueInputBuffer(int16_t* buffer, uint32_t size)
 
 void ImsMediaAudioSource::processOutputBuffer()
 {
+    IMLOGD0("[processOutputBuffer] enter");
     static int kTimeout = 100000;  // be responsive on signal
     uint32_t nNextTime = ImsMediaTimer::GetTimeInMilliSeconds();
 
     for (;;)
     {
-        uint32_t nCurrTime;
-        mMutexUplink.lock();
-
         if (IsThreadStopped())
         {
             IMLOGD0("[processOutputBuffer] terminated");
-            mMutexUplink.unlock();
             break;
         }
-
-        mMutexUplink.unlock();
 
         AMediaCodecBufferInfo info;
         auto index = AMediaCodec_dequeueOutputBuffer(mCodec, &info, kTimeout);
@@ -511,6 +511,7 @@ flags[%d]",
             {
                 AMediaFormat_delete(mFormat);
             }
+
             mFormat = AMediaCodec_getOutputFormat(mCodec);
             IMLOGD1("[processOutputBuffer] Encoder format changed, format[%s]",
                     AMediaFormat_toString(mFormat));
@@ -525,7 +526,7 @@ flags[%d]",
         }
 
         nNextTime += mPtime;
-        nCurrTime = ImsMediaTimer::GetTimeInMilliSeconds();
+        uint32_t nCurrTime = ImsMediaTimer::GetTimeInMilliSeconds();
 
         if (nNextTime > nCurrTime)
         {
