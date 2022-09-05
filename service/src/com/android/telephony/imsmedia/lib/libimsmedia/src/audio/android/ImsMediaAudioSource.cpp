@@ -285,11 +285,18 @@ void ImsMediaAudioSource::Stop()
     }
 }
 
-bool ImsMediaAudioSource::ProcessCMR(uint32_t mode)
+void ImsMediaAudioSource::ProcessCmr(const uint32_t cmr)
 {
-    (void)mode;
-    return false;
-    // do nothing
+    IMLOGD1("[ProcessCmr] cmr[%d]", cmr);
+
+    if (IsThreadStopped())
+    {
+        return;
+    }
+
+    mMode = cmr;
+    Stop();
+    Start();
 }
 
 void ImsMediaAudioSource::audioErrorCallback(

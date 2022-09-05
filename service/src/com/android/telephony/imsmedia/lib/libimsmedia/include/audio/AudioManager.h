@@ -61,6 +61,7 @@ public:
     static AudioManager* getInstance();
     virtual int getState(int sessionId);
     virtual void sendMessage(const int sessionId, const android::Parcel& parcel);
+    void SendInternalEvent(uint32_t event, uint64_t sessionId, uint64_t paramA, uint64_t paramB);
 
 private:
     AudioManager();

@@ -84,6 +84,15 @@ public:
      */
     void sendDtmf(char digit, int duration);
 
+    /**
+     * @brief Send internal event to process in the stream graph
+     *
+     * @param type The type of internal event defined in ImsMediaDefine.h
+     * @param param1 The additional parameter to set
+     * @param param2 The additional parameter to set
+     */
+    void SendInternalEvent(int32_t type, uint64_t param1, uint64_t param2);
+
 private:
     std::list<AudioStreamGraphRtpTx*> mListGraphRtpTx;
     std::list<AudioStreamGraphRtpRx*> mListGraphRtpRx;

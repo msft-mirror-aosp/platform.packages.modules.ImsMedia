@@ -29,7 +29,8 @@ IAudioSourceNode::IAudioSourceNode(BaseSessionCallback* callback) :
     std::unique_ptr<ImsMediaAudioSource> recoder(new ImsMediaAudioSource());
     mAudioSource = std::move(recoder);
     mCodecType = 0;
-    mMode = 0;
+    mCodecMode = 0;
+    mRunningCodecMode = 0;
     mFirstFrame = false;
 }
 
@@ -42,12 +43,14 @@ kBaseNodeId IAudioSourceNode::GetNodeId()
 
 ImsMediaResult IAudioSourceNode::Start()
 {
-    IMLOGD2("[Start] codec[%d], mode[%d]", mCodecType, mMode);
+    IMLOGD2("[Start] codec[%d], mode[%d]", mCodecType, mCodecMode);
+
     if (mAudioSource)
     {
         mAudioSource->SetUplinkCallback(this);
         mAudioSource->SetCodec(mCodecType);
-        mAudioSource->SetCodecMode(mMode);
+        mRunningCodecMode = ImsMediaAudioUtil::GetMaximumAmrMode(mCodecMode);
+        mAudioSource->SetCodecMode(mRunningCodecMode);
         mAudioSource->SetPtime(mPtime);
         mAudioSource->SetSamplingRate(mSamplingRate * 1000);
 
@@ -55,7 +58,9 @@ ImsMediaResult IAudioSourceNode::Start()
         {
             mAudioSource->SetEvsBandwidth(mEvsBandwidth);
             mAudioSource->SetEvsChAwOffset(mEvsChAwOffset);
-            mAudioSource->SetEvsBitRate(mMode);
+            mRunningCodecMode = ImsMediaAudioUtil::GetMaximumEvsMode(mCodecMode);
+            mAudioSource->SetEvsBitRate(
+                    ImsMediaAudioUtil::ConvertEVSModeToBitRate(mRunningCodecMode));
         }
 
         if (mAudioSource->Start())
@@ -76,10 +81,12 @@ ImsMediaResult IAudioSourceNode::Start()
 void IAudioSourceNode::Stop()
 {
     IMLOGD0("[Stop]");
+
     if (mAudioSource)
     {
         mAudioSource->Stop();
     }
+
     mNodeState = kNodeStateStopped;
 }
 
@@ -102,17 +109,19 @@ void IAudioSourceNode::SetConfig(void* config)
 
     AudioConfig* pConfig = reinterpret_cast<AudioConfig*>(config);
     mCodecType = ImsMediaAudioUtil::ConvertCodecType(pConfig->getCodecType());
+
     if (mCodecType == kAudioCodecAmr || mCodecType == kAudioCodecAmrWb)
     {
-        mMode = pConfig->getAmrParams().getAmrMode();
+        mCodecMode = pConfig->getAmrParams().getAmrMode();
     }
     else if (mCodecType == kAudioCodecEvs)
     {
-        mMode = pConfig->getEvsParams().getEvsMode();
+        mCodecMode = pConfig->getEvsParams().getEvsMode();
         mEvsBandwidth = (kEvsBandwidth)ImsMediaAudioUtil::FindMaxEvsBandwidthFromRange(
                 pConfig->getEvsParams().getEvsBandwidth());
         mEvsChAwOffset = pConfig->getEvsParams().getChannelAwareMode();
     }
+
     mSamplingRate = pConfig->getSamplingRateKHz();
     mPtime = pConfig->getPtimeMillis();
 }
@@ -130,12 +139,12 @@ bool IAudioSourceNode::IsSameConfig(void* config)
     {
         if (mCodecType == kAudioCodecAmr || mCodecType == kAudioCodecAmrWb)
         {
-            return (mMode == pConfig->getAmrParams().getAmrMode() &&
+            return (mCodecMode == pConfig->getAmrParams().getAmrMode() &&
                     mSamplingRate == pConfig->getSamplingRateKHz());
         }
         else if (mCodecType == kAudioCodecEvs)
         {
-            return (mMode == pConfig->getEvsParams().getEvsMode() &&
+            return (mCodecMode == pConfig->getEvsParams().getEvsMode() &&
                     mEvsBandwidth ==
                             (kEvsBandwidth)ImsMediaAudioUtil::FindMaxEvsBandwidthFromRange(
                                     pConfig->getEvsParams().getEvsBandwidth()) &&
@@ -157,5 +166,43 @@ void IAudioSourceNode::onDataFrame(uint8_t* buffer, uint32_t size, int64_t times
     if (!mFirstFrame)
     {
         mFirstFrame = true;
+    }
+}
+
+void IAudioSourceNode::ProcessCmr(uint32_t cmr)
+{
+    IMLOGD1("[ProcessCmr] cmr[%d]", cmr);
+
+    if (mAudioSource == NULL)
+    {
+        return;
+    }
+
+    uint32_t mode = 0;
+
+    if (cmr == 15)  // change mode to original one
+    {
+        if (mCodecType == kAudioCodecAmr || mCodecType == kAudioCodecAmrWb)
+        {
+            int32_t mode = ImsMediaAudioUtil::GetMaximumAmrMode(mCodecMode);
+
+            if (mRunningCodecMode != mode)
+            {
+                mAudioSource->ProcessCmr(mode);
+                mRunningCodecMode = mode;
+            }
+        }
+        else if (mCodecType == kAudioCodecEvs)
+        {
+            /** TODO: add implementation */
+        }
+    }
+    else
+    {
+        if (mRunningCodecMode != cmr)
+        {
+            mAudioSource->ProcessCmr(cmr);
+            mRunningCodecMode = cmr;
+        }
     }
 }

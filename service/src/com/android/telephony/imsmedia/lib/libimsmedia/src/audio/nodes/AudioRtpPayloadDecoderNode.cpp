@@ -180,27 +180,25 @@ void AudioRtpPayloadDecoderNode::DecodePayloadAmr(
         mBitReader.Read(4);
     }
 
-    if (cmr != 15 && cmr != mPrevCMR)
+    if (cmr != mPrevCMR)
     {
         if ((mCodecType == kAudioCodecAmr && cmr <= 7) ||
                 (mCodecType == kAudioCodecAmrWb && cmr <= 8))
         {
             IMLOGD2("[DecodePayloadAmr] CMR %d->%d", mPrevCMR, cmr);
             // send internal event to operate cmr operation in encoder side
+            mCallback->SendEvent(kRequestAudioCmr, cmr);
+            mPrevCMR = cmr;
+        }
+        else if (cmr == 15)
+        {
+            mCallback->SendEvent(kRequestAudioCmr, cmr);
             mPrevCMR = cmr;
         }
         else
         {
             IMLOGE1("[DecodePayloadAmr] invalid cmr value %d", cmr);
         }
-    }
-    else if (cmr == 15)
-    {
-        // send internal event to operate cmr operation in encoder side
-    }
-    else
-    {
-        IMLOGE0("[DecodePayloadAmr] Can't find Highest Negotiated Mode in negotiated mode-set");
     }
 
     // get num of frame
@@ -209,7 +207,8 @@ void AudioRtpPayloadDecoderNode::DecodePayloadAmr(
         f = mBitReader.Read(1);        // f(1)
         eRate = mBitReader.Read(4);    // ft(4)
         QbitPos = mBitReader.Read(1);  // q(2)
-        IMLOGD_PACKET2(IM_PACKET_LOG_PH, "[DecodePayloadAmr] f[%d], ft[%d]", f, eRate);
+        IMLOGD_PACKET3(
+                IM_PACKET_LOG_PH, "[DecodePayloadAmr] cmr[%d], f[%d], ft[%d]", cmr, f, eRate);
         listFrameType.push_back(eRate);
         if (mOctetAligned == true)
         {

@@ -48,12 +48,11 @@ public:
                             (void)timestamp;
                             (void)flag;
 
-                            if (mAudioPlayer != nullptr)
+                            if (mAudioPlayer != nullptr && size > 0)
                             {
                                 EXPECT_EQ(mAudioPlayer->onDataFrame(buffer, size), true);
+                                condition.signal();
                             }
-
-                            condition.signal();
                         });
     }
 
@@ -118,14 +117,14 @@ TEST_F(ImsMediaAudioTest, TestAudioStartFail)
 
 TEST_F(ImsMediaAudioTest, TestAudioAmr)
 {
+    int32_t mode = ImsMediaAudioUtil::GetMaximumAmrMode(AmrParams::AMR_MODE_7);
     EXPECT_CALL(*mockAudioCallback,
-            onDataFrame(NotNull(),
-                    ImsMediaAudioUtil::ConvertAmrModeToLen(AmrParams::AMR_MODE_7) + 1, _, _))
+            onDataFrame(NotNull(), ImsMediaAudioUtil::ConvertAmrModeToLen(mode) + 1, _, _))
             .Times(AnyNumber())
             .WillRepeatedly(Return());
 
     audioSource->SetCodec(kAudioCodecAmr);
-    audioSource->SetCodecMode(AmrParams::AMR_MODE_7);
+    audioSource->SetCodecMode(mode);
     audioSource->SetPtime(20);
     audioSource->SetSamplingRate(8000);
 
@@ -144,14 +143,14 @@ TEST_F(ImsMediaAudioTest, TestAudioAmr)
 
 TEST_F(ImsMediaAudioTest, TestAudioAmrWb)
 {
+    int32_t mode = ImsMediaAudioUtil::GetMaximumAmrMode(AmrParams::AMR_MODE_8);
     EXPECT_CALL(*mockAudioCallback,
-            onDataFrame(NotNull(),
-                    ImsMediaAudioUtil::ConvertAmrWbModeToLen(AmrParams::AMR_MODE_8) + 1, _, _))
+            onDataFrame(NotNull(), ImsMediaAudioUtil::ConvertAmrWbModeToLen(mode) + 1, _, _))
             .Times(AnyNumber())
             .WillRepeatedly(Return());
 
     audioSource->SetCodec(kAudioCodecAmrWb);
-    audioSource->SetCodecMode(AmrParams::AMR_MODE_8);
+    audioSource->SetCodecMode(mode);
     audioSource->SetPtime(20);
     audioSource->SetSamplingRate(16000);
 

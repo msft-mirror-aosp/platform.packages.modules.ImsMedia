@@ -1335,12 +1335,14 @@ public class MainActivity extends AppCompatActivity {
      */
     private int determineCommonCodecSettings(Set<Integer> localSet, Set<Integer> remoteSet,
             int[] codecSetting) {
+        Log.d(TAG, "determineCommonCodecSettings() - localSet : " + localSet);
+        int negotiatedMode = 0;
         for (int setting : codecSetting) {
             if (localSet.contains(setting) && remoteSet.contains(setting)) {
-                return setting;
+                negotiatedMode |= setting;
             }
         }
-        return -1;
+        return negotiatedMode;
     }
 
     /**

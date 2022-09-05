@@ -201,26 +201,35 @@ void AudioRtpPayloadEncoderNode::EncodePayloadAmr(
 
     q = 1;
 #ifdef USE_CMR_TEST
-    // cmr test code start
     // generate cmr
-    static int sAMRCount = 0;
-    static int bAMRUpdate = 0;
-    static int nAMRNextMode = 7;
-    static int nAMRInc = -1;
+    static int32_t sAMRCount = 0;
+    static int32_t bAMRUpdate = 0;
+    static int32_t nAMRNextMode = 7;
+    static int32_t nAMRInc = -1;
     sAMRCount++;
+
     if ((sAMRCount & 0x7F) == 0)
     {
         bAMRUpdate = 1;
     }
+
     nCmr = nAMRNextMode;
+
     if (bAMRUpdate == 1 && nDataSize > 0)
     {
-        int max_mode;
+        int32_t max_mode;
+
         if (mCodecType == kAudioCodecAmr)
+        {
             max_mode = 7;
+        }
         else
+        {
             max_mode = 8;
+        }
+
         nAMRNextMode += nAMRInc;
+
         if (nAMRNextMode < 0)
         {
             nAMRNextMode = 1;
@@ -231,9 +240,9 @@ void AudioRtpPayloadEncoderNode::EncodePayloadAmr(
             nAMRNextMode = max_mode - 1;
             nAMRInc = -1;
         }
+
         bAMRUpdate = 0;
     }
-    // cmr test code end
 #endif
     // the first paylaod
     if (mCurrNumOfFrame == 1)
@@ -409,7 +418,7 @@ void AudioRtpPayloadEncoderNode::EncodePayloadEvs(
             {
 #ifdef USE_CMR_TEST
                 uint32_t cmr_dummy = 0;
-                EVSCMRGeneratorForTest();
+                EVSCMRGeneratorForTest(nDataSize);
 #endif
                 if (mSendCMR)
                 {
@@ -615,7 +624,7 @@ void AudioRtpPayloadEncoderNode::EncodePayloadEvs(
             // set CMR byte
             // at EVS AMR WB IO Mode, CMR field shall include.
 #ifdef USE_CMR_TEST
-            EVSCMRGeneratorForTest();
+            EVSCMRGeneratorForTest(nDataSize);
 #endif
             uint32_t cmr_h, cmr_t, cmr_d;
             // Header Type identification bit(1bit) - always set to 1
@@ -713,142 +722,6 @@ void AudioRtpPayloadEncoderNode::EncodePayloadEvs(
     return;
 }
 
-void AudioRtpPayloadEncoderNode::EVSCMRGeneratorForTest()
-{
-    // cmr test code start
-    // generate cmr
-#ifdef USE_CMR_TEST
-
-    static int sCount = 0;
-    static int bUpdate = 0;
-    static int nNextMode = 0;
-    static int nInc = -1;
-    static int sCodeType = 0;
-    static int sCodeDefine = 0;
-    static int sNextType = 1;
-
-    sCount++;
-
-    // cmr test code end
-    if (ePHMode == kRtpPyaloadHeaderModeEvsCompact)
-    {
-        if (eCodecMode == kEvsCodecModeAmrIo)
-        {
-            if ((sCount & 0x7f) == 0)
-            {
-                bUpdate = 1;
-            }
-
-            if (bUpdate == 1 && DataSize > 0)
-            {
-                sCodeDefine = nNextMode;
-
-                nNextMode += nInc;
-
-                if (nNextMode < 0)
-                {
-                    nNextMode = 1;
-                    nInc = 1;
-                }
-                else if (nNextMode > 7)
-                {
-                    nNextMode = 6;
-                    nInc = -1;
-                }
-
-                bUpdate = 0;
-            }
-        }
-    }
-    else  // headerfull format.
-    {
-        int32_t nMaxCodeDefine = 0;
-        int32_t nMinCodeDefine = 0;
-
-        switch (sCodeType)
-        {
-            case 0:
-                nMinCodeDefine = 0;
-                nMaxCodeDefine = 6;
-                break;  // NB
-            case 1:
-                nMinCodeDefine = 0;
-                nMaxCodeDefine = 8;
-                break;  // AMR IO Mode
-            case 2:
-                nMinCodeDefine = 0;
-                nMaxCodeDefine = 6;
-                break;  // WB
-            case 3:
-                nMinCodeDefine = 3;
-                nMaxCodeDefine = 6;
-                break;  // SWB
-            case 5:
-                nMinCodeDefine = 0;
-                nMaxCodeDefine = 8;
-                break;  // WB ChA
-            case 6:
-                nMinCodeDefine = 0;
-                nMaxCodeDefine = 8;
-                break;  // SWB ChA
-            case 7:
-                nMinCodeDefine = 15;
-                nMaxCodeDefine = 15;
-                break;  // no request
-            default:
-                return;
-        }
-
-        if ((sCount & 0x7f) == 0)
-        {
-            bUpdate = 1;
-        }
-
-        if (bUpdate == 1 && DataSize > 0)
-        {
-            sCodeDefine = nNextMode;
-            nNextMode += 1;
-
-            if ((nNextMode - 1) > nMaxCodeDefine)
-            {
-                sCodeType = sNextType;
-                sNextType += 1;
-
-                if (sNextType == 4)  // fb case - skipped
-                    sNextType += 1;
-
-                if (sCodeType == 3)
-                {
-                    sCodeDefine = 3;
-                    nNextMode = 4;
-                }
-                else if (sCodeType == 7)
-                {
-                    sCodeDefine = 15;
-                    nNextMode = 16;
-                }
-                else
-                {
-                    sCodeDefine = 0;
-                    nNextMode = 1;
-                }
-
-                if (sNextType > 7)  // rounding case.(no request) goto NB CMR case.
-                {
-                    sNextType = 0;
-                    nNextMode = 0;
-                }
-            }
-
-            bUpdate = 0;
-        }
-    }
-
-    *CodeType = sCodeType;
-    *CodeDefine = sCodeDefine;
-#endif
-}
-
 uint8_t AudioRtpPayloadEncoderNode::GenerateCMRForEVS(kRtpPyaloadHeaderMode eEVSPayloadFormat)
 {
     uint8_t nCmrT = 0;
@@ -943,3 +816,139 @@ uint32_t AudioRtpPayloadEncoderNode::CheckPaddingNecessity(uint32_t nTotalSize)
 
     return nSize;
 }
+
+#ifdef USE_CMR_TEST
+void AudioRtpPayloadEncoderNode::EVSCMRGeneratorForTest(uint32_t datasize)
+{
+    // cmr test code start
+    // generate cmr
+    static int32_t sCount = 0;
+    static int32_t bUpdate = 0;
+    static int32_t nNextMode = 0;
+    static int32_t nInc = -1;
+    static int32_t sCodeType = 0;
+    static int32_t sCodeDefine = 0;
+    static int32_t sNextType = 1;
+
+    sCount++;
+
+    // cmr test code end
+    if (mEvsPayloadHeaderMode == kRtpPyaloadHeaderModeEvsCompact)
+    {
+        if (mEvsCodecMode == kEvsCodecModeAmrIo)
+        {
+            if ((sCount & 0x7f) == 0)
+            {
+                bUpdate = 1;
+            }
+
+            if (bUpdate == 1 && datasize > 0)
+            {
+                sCodeDefine = nNextMode;
+
+                nNextMode += nInc;
+
+                if (nNextMode < 0)
+                {
+                    nNextMode = 1;
+                    nInc = 1;
+                }
+                else if (nNextMode > 7)
+                {
+                    nNextMode = 6;
+                    nInc = -1;
+                }
+
+                bUpdate = 0;
+            }
+        }
+    }
+    else  // headerfull format.
+    {
+        int32_t nMaxCodeDefine = 0;
+        int32_t nMinCodeDefine = 0;
+
+        switch (sCodeType)
+        {
+            case 0:
+                nMinCodeDefine = 0;
+                nMaxCodeDefine = 6;
+                break;  // NB
+            case 1:
+                nMinCodeDefine = 0;
+                nMaxCodeDefine = 8;
+                break;  // AMR IO Mode
+            case 2:
+                nMinCodeDefine = 0;
+                nMaxCodeDefine = 6;
+                break;  // WB
+            case 3:
+                nMinCodeDefine = 3;
+                nMaxCodeDefine = 6;
+                break;  // SWB
+            case 5:
+                nMinCodeDefine = 0;
+                nMaxCodeDefine = 8;
+                break;  // WB ChA
+            case 6:
+                nMinCodeDefine = 0;
+                nMaxCodeDefine = 8;
+                break;  // SWB ChA
+            case 7:
+                nMinCodeDefine = 15;
+                nMaxCodeDefine = 15;
+                break;  // no request
+            default:
+                return;
+        }
+
+        if ((sCount & 0x7f) == 0)
+        {
+            bUpdate = 1;
+        }
+
+        if (bUpdate == 1 && datasize > 0)
+        {
+            sCodeDefine = nNextMode;
+            nNextMode += 1;
+
+            if ((nNextMode - 1) > nMaxCodeDefine)
+            {
+                sCodeType = sNextType;
+                sNextType += 1;
+
+                if (sNextType == 4)  // fb case - skipped
+                    sNextType += 1;
+
+                if (sCodeType == 3)
+                {
+                    sCodeDefine = 3;
+                    nNextMode = 4;
+                }
+                else if (sCodeType == 7)
+                {
+                    sCodeDefine = 15;
+                    nNextMode = 16;
+                }
+                else
+                {
+                    sCodeDefine = 0;
+                    nNextMode = 1;
+                }
+
+                if (sNextType > 7)  // rounding case.(no request) goto NB CMR case.
+                {
+                    sNextType = 0;
+                    nNextMode = 0;
+                }
+            }
+
+            bUpdate = 0;
+        }
+    }
+
+    mCodecType = sCodeType;
+    mEvsMode = ImsMediaAudioUtil::FindMaxEVSBitrate(
+            ImsMediaAudioUtil::ConvertEVSModeToBitRate(sCodeDefine), (kEvsCodecMode)sCodeDefine);
+}
+#endif

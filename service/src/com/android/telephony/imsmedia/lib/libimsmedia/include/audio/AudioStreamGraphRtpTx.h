@@ -49,6 +49,13 @@ public:
      */
     bool sendDtmf(char digit, int duration);
 
+    /**
+     * @brief Set the cmr value to change the audio mode
+     *
+     * @param cmr The codec mode request value to change
+     */
+    void processCmr(const uint32_t cmr);
+
 private:
     std::list<BaseNode*> mListDtmfNodes;
 };

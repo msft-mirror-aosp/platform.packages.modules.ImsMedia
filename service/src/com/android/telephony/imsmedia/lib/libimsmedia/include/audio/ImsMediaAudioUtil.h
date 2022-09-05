@@ -22,81 +22,6 @@
 
 #define IMSAMR_FRAME_BYTES              34
 
-#define IMSAMR_CLASS_A_BITS_BAD         0
-#define IMSAMR_CLASS_A_BITS_SID         39
-
-#define IMSAMR_CLASS_A_BITS_475         42
-#define IMSAMR_CLASS_B_BITS_475         53
-#define IMSAMR_CLASS_C_BITS_475         0
-
-#define IMSAMR_CLASS_A_BITS_515         49
-#define IMSAMR_CLASS_B_BITS_515         54
-#define IMSAMR_CLASS_C_BITS_515         0
-
-#define IMSAMR_CLASS_A_BITS_590         55
-#define IMSAMR_CLASS_B_BITS_590         63
-#define IMSAMR_CLASS_C_BITS_590         0
-
-#define IMSAMR_CLASS_A_BITS_670         58
-#define IMSAMR_CLASS_B_BITS_670         76
-#define IMSAMR_CLASS_C_BITS_670         0
-
-#define IMSAMR_CLASS_A_BITS_740         61
-#define IMSAMR_CLASS_B_BITS_740         87
-#define IMSAMR_CLASS_C_BITS_740         0
-
-#define IMSAMR_CLASS_A_BITS_795         75
-#define IMSAMR_CLASS_B_BITS_795         84
-#define IMSAMR_CLASS_C_BITS_795         0
-
-#define IMSAMR_CLASS_A_BITS_102         65
-#define IMSAMR_CLASS_B_BITS_102         99
-#define IMSAMR_CLASS_C_BITS_102         40
-
-#define IMSAMR_CLASS_A_BITS_122         81
-#define IMSAMR_CLASS_B_BITS_122         103
-#define IMSAMR_CLASS_C_BITS_122         60
-
-/* for AMRWB starts */
-#define IMSAMRWB_CLASS_A_BITS_BAD       0   // doubt
-#define IMSAMRWB_CLASS_A_BITS_SID       35  // doubt
-
-#define IMSAMRWB_CLASS_A_BITS_660       54
-#define IMSAMRWB_CLASS_B_BITS_660       78
-#define IMSAMRWB_CLASS_C_BITS_660       0
-
-#define IMSAMRWB_CLASS_A_BITS_885       64
-#define IMSAMRWB_CLASS_B_BITS_885       113
-#define IMSAMRWB_CLASS_C_BITS_885       0
-
-#define IMSAMRWB_CLASS_A_BITS_1265      72
-#define IMSAMRWB_CLASS_B_BITS_1265      181
-#define IMSAMRWB_CLASS_C_BITS_1265      0
-
-#define IMSAMRWB_CLASS_A_BITS_1425      72
-#define IMSAMRWB_CLASS_B_BITS_1425      213
-#define IMSAMRWB_CLASS_C_BITS_1425      0
-
-#define IMSAMRWB_CLASS_A_BITS_1585      72
-#define IMSAMRWB_CLASS_B_BITS_1585      245
-#define IMSAMRWB_CLASS_C_BITS_1585      0
-
-#define IMSAMRWB_CLASS_A_BITS_1825      72
-#define IMSAMRWB_CLASS_B_BITS_1825      293
-#define IMSAMRWB_CLASS_C_BITS_1825      0
-
-#define IMSAMRWB_CLASS_A_BITS_1985      72
-#define IMSAMRWB_CLASS_B_BITS_1985      325
-#define IMSAMRWB_CLASS_C_BITS_1985      0
-
-#define IMSAMRWB_CLASS_A_BITS_2305      72
-#define IMSAMRWB_CLASS_B_BITS_2305      389
-#define IMSAMRWB_CLASS_C_BITS_2305      0
-
-#define IMSAMRWB_CLASS_A_BITS_2385      72
-#define IMSAMRWB_CLASS_B_BITS_2385      405
-#define IMSAMRWB_CLASS_C_BITS_2385      0
-
 #define EVS_COMPACT_PRIMARY_PAYLOAD_NUM 13
 #define EVS_COMPACT_AMRWBIO_PAYLOAD_NUM 10
 #define EVS_COMPACT_PAYLOAD_MAX_NUM     32
@@ -207,15 +132,6 @@ class ImsMediaAudioUtil
 public:
     static int32_t ConvertCodecType(int32_t type);
     static int32_t ConvertEvsCodecMode(int32_t evsMode);
-    static void AmrFmtFraming(kImsAudioFrameEntype eFrameType, kImsAudioAmrMode eRate,
-            uint8_t* pRawData, uint8_t* pEncodedData);
-    static void AmrFmtDeframing(kImsAudioFrameEntype eFrameType, kImsAudioAmrMode eRate,
-            uint8_t* pRawData, uint8_t* pEncodedData);
-    static void AmrWbFmtFraming(kImsAudioFrameEntype eFrameType, kImsAudioAmrWbMode eRate,
-            uint8_t* pRawData, uint8_t* pEncodedData);
-    static void AmrFmtSwap(uint8_t* pSrc, uint8_t* pDst, uint32_t nNumOfByte);
-    static void AmrFmtWbDeframing(kImsAudioFrameEntype eFrameType, kImsAudioAmrWbMode eRate,
-            uint8_t* pRawData, uint8_t* pEncodedData);
     static uint32_t ConvertAmrModeToLen(uint32_t mode);
     static uint32_t ConvertAmrModeToBitLen(uint32_t mode);
     static uint32_t ConvertLenToAmrMode(uint32_t nLen);
@@ -227,8 +143,10 @@ public:
     static uint32_t ConvertLenToEVSAMRIOAudioMode(uint32_t nLen);
     static uint32_t ConvertEVSAudioModeToBitLen(uint32_t mode);
     static uint32_t ConvertEVSAMRIOAudioModeToBitLen(uint32_t mode);
-    static uint32_t ConvertAmrModeToBitrate(int mode);
-    static uint32_t ConvertAmrWbModeToBitrate(int mode);
+    static uint32_t ConvertAmrModeToBitrate(uint32_t mode);
+    static uint32_t ConvertAmrWbModeToBitrate(uint32_t mode);
+    static uint32_t GetMaximumAmrMode(int32_t bitmask);
+    static uint32_t GetMaximumEvsMode(int32_t bitmask);
     static uint32_t GetBitrateEVS(int mode);
     static kRtpPyaloadHeaderMode ConvertEVSPayloadMode(
             uint32_t nDataSize, kEvsCodecMode* pEVSCodecMode, uint32_t* pEVSCompactId);

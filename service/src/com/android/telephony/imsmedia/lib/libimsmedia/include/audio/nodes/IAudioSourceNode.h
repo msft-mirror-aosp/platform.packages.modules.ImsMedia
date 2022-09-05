@@ -48,11 +48,20 @@ public:
      */
     void onDataFrame(uint8_t* buffer, uint32_t size, int64_t timestamp, uint32_t flag);
 
+    /**
+     * @brief Change the bitrate with given cmr value
+     *
+     * @param cmr The cmr value to change. The value will be 0-7 for AMR, or 0-8 for AMR-WB. CMR
+       value 15 indicates that no mode request is present, and other values are for future use.
+     */
+    void ProcessCmr(uint32_t cmr);
+
 public:
     bool mFirstFrame;
     std::unique_ptr<ImsMediaAudioSource> mAudioSource;
     int32_t mCodecType;
-    uint32_t mMode;
+    uint32_t mCodecMode;
+    uint32_t mRunningCodecMode;
     uint32_t mPtime;
     kEvsBandwidth mEvsBandwidth;
     int32_t mSamplingRate;

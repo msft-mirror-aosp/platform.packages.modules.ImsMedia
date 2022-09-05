@@ -109,13 +109,11 @@ public:
     void Stop();
 
     /**
-     * @brief Update audio encoding bitrate with given mode
+     * @brief Change bitrate of the encoding frames with given CMR value
      *
-     * @param mode codec bitrate mode to update
-     * @return true Returns when the updates succeed
-     * @return false Returns when failed to update the codec bitrate
+     * @param cmr The codec mode request value
      */
-    bool ProcessCMR(uint32_t mode);
+    void ProcessCmr(const uint32_t cmr);
     virtual void* run();
 
 private:

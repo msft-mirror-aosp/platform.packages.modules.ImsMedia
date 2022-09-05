@@ -20,6 +20,8 @@
 #include <BaseNode.h>
 #include <ImsMediaBitWriter.h>
 
+// #define USE_CMR_TEST
+
 class AudioRtpPayloadEncoderNode : public BaseNode
 {
 public:
@@ -39,11 +41,12 @@ public:
 private:
     void EncodePayloadAmr(uint8_t* pData, uint32_t nDataSize, uint32_t nTimestamp, bool bMark);
     uint8_t GenerateCMRForEVS(kRtpPyaloadHeaderMode eEVSPayloadFormat);
-    void EVSCMRGeneratorForTest();
     void EncodePayloadEvs(uint8_t* pData, uint32_t nDataSize, uint32_t nTimeStamp);
     uint32_t CheckPaddingNecessity(uint32_t nTotalSize);
+#ifdef USE_CMR_TEST
+    void EVSCMRGeneratorForTest(uint32_t datasize);
+#endif
 
-private:
     int32_t mCodecType;
     bool mOctetAligned;
     uint32_t mPtime;

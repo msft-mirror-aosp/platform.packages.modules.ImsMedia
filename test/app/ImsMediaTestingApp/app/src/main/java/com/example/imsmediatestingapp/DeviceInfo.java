@@ -1,9 +1,8 @@
 package com.example.imsmediatestingapp;
 
-import android.hardware.radio.ims.media.AmrMode;
-import android.hardware.radio.ims.media.CodecType;
-import android.hardware.radio.ims.media.EvsBandwidth;
-import android.hardware.radio.ims.media.EvsMode;
+import android.telephony.imsmedia.AmrParams;
+import android.telephony.imsmedia.AudioConfig;
+import android.telephony.imsmedia.EvsParams;
 import android.telephony.imsmedia.VideoConfig;
 
 import androidx.annotation.NonNull;
@@ -157,21 +156,24 @@ public class DeviceInfo implements Serializable {
 
     public static final class Builder {
         private InetAddress mInetAddress;
-        private Set<Integer> mAudioCodecs = new HashSet<>(Arrays.asList(CodecType.AMR,
-                CodecType.AMR_WB, CodecType.EVS, CodecType.PCMA, CodecType.PCMU));
-        private Set<Integer> mAmrModes = new HashSet<>(Arrays.asList(AmrMode.AMR_MODE_0,
-                AmrMode.AMR_MODE_1, AmrMode.AMR_MODE_2, AmrMode.AMR_MODE_3, AmrMode.AMR_MODE_4,
-                AmrMode.AMR_MODE_5, AmrMode.AMR_MODE_6, AmrMode.AMR_MODE_7, AmrMode.AMR_MODE_8));
-        private Set<Integer> mEvsBandwidths = new HashSet<>(Arrays.asList(EvsBandwidth.NONE,
-                EvsBandwidth.NARROW_BAND, EvsBandwidth.WIDE_BAND, EvsBandwidth.SUPER_WIDE_BAND,
-                EvsBandwidth.FULL_BAND));
-        private Set<Integer> mEvsModes = new HashSet<>(Arrays.asList(EvsMode.EVS_MODE_0,
-                EvsMode.EVS_MODE_1, EvsMode.EVS_MODE_2, EvsMode.EVS_MODE_3, EvsMode.EVS_MODE_4,
-                EvsMode.EVS_MODE_5, EvsMode.EVS_MODE_6, EvsMode.EVS_MODE_7, EvsMode.EVS_MODE_8,
-                EvsMode.EVS_MODE_9, EvsMode.EVS_MODE_10, EvsMode.EVS_MODE_11, EvsMode.EVS_MODE_12,
-                EvsMode.EVS_MODE_13, EvsMode.EVS_MODE_14, EvsMode.EVS_MODE_15, EvsMode.EVS_MODE_16,
-                EvsMode.EVS_MODE_17, EvsMode.EVS_MODE_18, EvsMode.EVS_MODE_19,
-                EvsMode.EVS_MODE_20));
+        private Set<Integer> mAudioCodecs = new HashSet<>(Arrays.asList(AudioConfig.CODEC_AMR,
+                AudioConfig.CODEC_AMR_WB, AudioConfig.CODEC_EVS, AudioConfig.CODEC_PCMA,
+                AudioConfig.CODEC_PCMU));
+        private Set<Integer> mAmrModes = new HashSet<>(Arrays.asList(AmrParams.AMR_MODE_0,
+                AmrParams.AMR_MODE_1, AmrParams.AMR_MODE_2, AmrParams.AMR_MODE_3,
+                AmrParams.AMR_MODE_4, AmrParams.AMR_MODE_5, AmrParams.AMR_MODE_6,
+                AmrParams.AMR_MODE_7, AmrParams.AMR_MODE_8));
+        private Set<Integer> mEvsBandwidths = new HashSet<>(Arrays.asList(EvsParams.EVS_BAND_NONE,
+                EvsParams.EVS_NARROW_BAND, EvsParams.EVS_WIDE_BAND, EvsParams.EVS_SUPER_WIDE_BAND,
+                EvsParams.EVS_FULL_BAND));
+        private Set<Integer> mEvsModes = new HashSet<>(Arrays.asList(EvsParams.EVS_MODE_0,
+                EvsParams.EVS_MODE_1, EvsParams.EVS_MODE_2, EvsParams.EVS_MODE_3,
+                EvsParams.EVS_MODE_4, EvsParams.EVS_MODE_5, EvsParams.EVS_MODE_6,
+                EvsParams.EVS_MODE_7, EvsParams.EVS_MODE_8, EvsParams.EVS_MODE_9,
+                EvsParams.EVS_MODE_10, EvsParams.EVS_MODE_11, EvsParams.EVS_MODE_12,
+                EvsParams.EVS_MODE_13, EvsParams.EVS_MODE_14, EvsParams.EVS_MODE_15,
+                EvsParams.EVS_MODE_16, EvsParams.EVS_MODE_17, EvsParams.EVS_MODE_18,
+                EvsParams.EVS_MODE_19, EvsParams.EVS_MODE_20));
         private int mVideoCodec;
         private int mHandshakePort;
         private int mAudioRtpPort;

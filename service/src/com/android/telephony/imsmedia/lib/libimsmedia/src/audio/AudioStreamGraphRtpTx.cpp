@@ -216,3 +216,13 @@ bool AudioStreamGraphRtpTx::sendDtmf(char digit, int duration)
 
     return false;
 }
+
+void AudioStreamGraphRtpTx::processCmr(const uint32_t cmr)
+{
+    BaseNode* node = findNode(kNodeIdAudioSource);
+
+    if (node != NULL)
+    {
+        (reinterpret_cast<IAudioSourceNode*>(node))->ProcessCmr(cmr);
+    }
+}

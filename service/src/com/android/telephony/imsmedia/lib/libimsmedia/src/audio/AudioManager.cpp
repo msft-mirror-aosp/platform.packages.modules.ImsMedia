@@ -249,6 +249,22 @@ void AudioManager::sendMessage(const int sessionId, const android::Parcel& parce
     }
 }
 
+void AudioManager::SendInternalEvent(
+        uint32_t event, uint64_t sessionId, uint64_t paramA, uint64_t paramB)
+{
+    auto session = mSessions.find(sessionId);
+    IMLOGD1("[SendInternalEvent] sessionId[%d]", sessionId);
+
+    if (session != mSessions.end())
+    {
+        (session->second)->SendInternalEvent(event, paramA, paramB);
+    }
+    else
+    {
+        IMLOGE1("[SendInternalEvent] no session id[%d]", sessionId);
+    }
+}
+
 AudioManager::RequestHandler::RequestHandler() :
         ImsMediaEventHandler("AUDIO_REQUEST_EVENT")
 {
@@ -364,6 +380,10 @@ void AudioManager::RequestHandler::processEvent(
             }
         }
         break;
+        case kRequestAudioCmr:
+            AudioManager::getInstance()->SendInternalEvent(
+                    kRequestAudioCmr, static_cast<int>(sessionId), paramA, paramB);
+            break;
         default:
             break;
     }

@@ -126,8 +126,7 @@ ImsMediaResult AudioSession::startGraph(RtpConfig* config)
 
         if (ret == RESULT_SUCCESS &&
                 (pConfig->getMediaDirection() == RtpConfig::MEDIA_DIRECTION_SEND_ONLY ||
-                        pConfig->getMediaDirection() ==
-                                RtpConfig::MEDIA_DIRECTION_SEND_RECEIVE))
+                        pConfig->getMediaDirection() == RtpConfig::MEDIA_DIRECTION_SEND_RECEIVE))
         {
             ret = mListGraphRtpTx.back()->start();
             if (ret != RESULT_SUCCESS)
@@ -157,8 +156,7 @@ ImsMediaResult AudioSession::startGraph(RtpConfig* config)
 
         if (ret == RESULT_SUCCESS &&
                 (pConfig->getMediaDirection() == RtpConfig::MEDIA_DIRECTION_RECEIVE_ONLY ||
-                        pConfig->getMediaDirection() ==
-                                RtpConfig::MEDIA_DIRECTION_SEND_RECEIVE))
+                        pConfig->getMediaDirection() == RtpConfig::MEDIA_DIRECTION_SEND_RECEIVE))
         {
             mListGraphRtpRx.back()->setMediaQualityThreshold(&mThreshold);
             ret = mListGraphRtpRx.back()->start();
@@ -530,6 +528,7 @@ ImsMediaResult AudioSession::deleteGraph(RtpConfig* config)
 void AudioSession::onEvent(int32_t type, uint64_t param1, uint64_t param2)
 {
     IMLOGD3("[onEvent] type[%d], param1[%d], param2[%d]", type, param1, param2);
+
     switch (type)
     {
         case kImsMediaEventStateChanged:
@@ -562,6 +561,10 @@ void AudioSession::onEvent(int32_t type, uint64_t param1, uint64_t param2)
             ImsMediaEventHandler::SendEvent(
                     "AUDIO_RESPONSE_EVENT", kAudioJitterInd, param1, param2);
             break;
+        case kRequestAudioCmr:
+            ImsMediaEventHandler::SendEvent(
+                    "AUDIO_REQUEST_EVENT", kRequestAudioCmr, mSessionId, param1, param2);
+            break;
         default:
             break;
     }
@@ -578,5 +581,28 @@ void AudioSession::sendDtmf(char digit, int duration)
         {
             graph->sendDtmf(digit, duration);
         }
+    }
+}
+
+void AudioSession::SendInternalEvent(int32_t type, uint64_t param1, uint64_t param2)
+{
+    (void)param2;
+
+    switch (type)
+    {
+        case kRequestAudioCmr:
+            for (std::list<AudioStreamGraphRtpTx*>::iterator iter = mListGraphRtpTx.begin();
+                    iter != mListGraphRtpTx.end(); iter++)
+            {
+                AudioStreamGraphRtpTx* graph = *iter;
+
+                if (graph != NULL && graph->getState() == kStreamStateRunning)
+                {
+                    graph->processCmr(static_cast<uint32_t>(param1));
+                }
+            }
+            break;
+        default:
+            break;
     }
 }

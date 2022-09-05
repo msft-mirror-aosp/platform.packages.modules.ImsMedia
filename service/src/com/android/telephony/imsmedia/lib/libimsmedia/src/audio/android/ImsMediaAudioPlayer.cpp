@@ -332,6 +332,7 @@ bool ImsMediaAudioPlayer::decodeAmr(uint8_t* buffer, uint32_t size)
         {
             AMediaFormat_delete(mFormat);
         }
+
         mFormat = AMediaCodec_getOutputFormat(mCodec);
         IMLOGD1("[decodeAmr] format changed, format[%s]", AMediaFormat_toString(mFormat));
     }
