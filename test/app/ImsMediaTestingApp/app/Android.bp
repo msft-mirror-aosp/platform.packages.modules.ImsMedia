@@ -15,7 +15,7 @@ android_app {
     ],
     static_libs: [
         "com.google.android.material_material",
-        "android.telephony.imsmedia",
+        "ImsMediaFramework",
         "androidx.test.rules",
         "androidx.test.core",
         "androidx.test.ext.junit"

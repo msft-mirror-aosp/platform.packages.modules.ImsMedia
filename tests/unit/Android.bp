@@ -23,7 +23,7 @@ android_test {
     manifest: "AndroidManifest.xml",
     static_libs: [
         "imsmedia-core",
-        "android.telephony.imsmedia",
+        "ImsMediaFramework",
         "androidx.test.core",
         "androidx.test.ext.junit",
         "androidx.test.rules",
