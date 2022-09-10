@@ -73,6 +73,7 @@ public final class AudioSession extends IImsAudioSession.Stub implements IMediaS
     public static final int EVENT_TRIGGER_ANBR_QUERY_IND = 212;
     public static final int EVENT_DTMF_RECEIVED_IND = 213;
     public static final int EVENT_CALL_QUALITY_CHANGE_IND = 214;
+    public static final int EVENT_SESSION_CLOSED = 215;
 
     private static final int DTMF_DEFAULT_DURATION = 140;
 
@@ -227,6 +228,12 @@ public final class AudioSession extends IImsAudioSession.Stub implements IMediaS
         Utils.sendMessage(mHandler, EVENT_OPEN_SESSION_FAILURE, error);
     }
 
+    @Override
+    public void onSessionClosed() {
+        Rlog.d(TAG, "onSessionClosed");
+        Utils.sendMessage(mHandler, EVENT_SESSION_CLOSED);
+    }
+
     private boolean isAudioOffload() {
         return mIsAudioOffload;
     }
@@ -281,6 +288,9 @@ public final class AudioSession extends IImsAudioSession.Stub implements IMediaS
                     break;
                 case EVENT_OPEN_SESSION_FAILURE:
                     handleOpenFailure((int)msg.obj);
+                    break;
+                case EVENT_SESSION_CLOSED:
+                    handleSessionClosed();
                     break;
                 case EVENT_MODIFY_SESSION_RESPONSE:
                     handleModifySessionRespose((AudioConfig)msg.obj, msg.arg1);
@@ -476,6 +486,14 @@ public final class AudioSession extends IImsAudioSession.Stub implements IMediaS
             mCallback.onOpenSessionFailure(error);
         }  catch (RemoteException e) {
             Rlog.e(TAG, "Failed to notify openFailure: " + e);
+        }
+    }
+
+    private void handleSessionClosed() {
+        try {
+            mCallback.onSessionClosed();
+        }  catch (RemoteException e) {
+            Rlog.e(TAG, "Failed to notify SessionClosed: " + e);
         }
     }
 

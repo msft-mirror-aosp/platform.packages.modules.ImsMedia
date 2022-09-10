@@ -52,6 +52,7 @@ public final class TextSession extends IImsTextSession.Stub implements IMediaSes
     public static final int EVENT_SESSION_CHANGED_IND = 204;
     public static final int EVENT_MEDIA_INACTIVITY_IND = 205;
     public static final int EVENT_RTT_RECEIVED = 206;
+    public static final int EVENT_SESSION_CLOSED = 207;
 
     private int mSessionId;
     private int mSessionState;
@@ -148,6 +149,12 @@ public final class TextSession extends IImsTextSession.Stub implements IMediaSes
         Utils.sendMessage(mHandler, EVENT_OPEN_SESSION_FAILURE, error);
     }
 
+    @Override
+    public void onSessionClosed() {
+        Rlog.d(TAG, "onSessionClosed");
+        Utils.sendMessage(mHandler, EVENT_SESSION_CLOSED);
+    }
+
     /**
      * Text session message mHandler
      */
@@ -180,6 +187,9 @@ public final class TextSession extends IImsTextSession.Stub implements IMediaSes
                     break;
                 case EVENT_OPEN_SESSION_FAILURE:
                     handleOpenFailure((int) msg.obj);
+                    break;
+                case EVENT_SESSION_CLOSED:
+                    handleSessionClosed();
                     break;
                 case EVENT_MODIFY_SESSION_RESPONSE:
                     handleModifySessionRespose((TextConfig) msg.obj, msg.arg1);
@@ -235,6 +245,14 @@ public final class TextSession extends IImsTextSession.Stub implements IMediaSes
             mCallback.onOpenSessionFailure(error);
         } catch (RemoteException e) {
             Rlog.e(TAG, "Failed to notify openFailure: " + e);
+        }
+    }
+
+    private void handleSessionClosed() {
+        try {
+            mCallback.onSessionClosed();
+        }  catch (RemoteException e) {
+            Rlog.e(TAG, "Failed to notify SessionClosed: " + e);
         }
     }
 

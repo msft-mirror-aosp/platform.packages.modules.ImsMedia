@@ -29,6 +29,7 @@ import android.telephony.imsmedia.IImsAudioSession;
 oneway interface IImsAudioSessionCallback {
     void onOpenSessionSuccess(IImsAudioSession session);
     void onOpenSessionFailure(int error);
+    void onSessionClosed();
     void onSessionChanged(int state);
     void onModifySessionResponse(in AudioConfig config, int result);
     void onAddConfigResponse(in AudioConfig config, int result);

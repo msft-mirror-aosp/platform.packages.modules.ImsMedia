@@ -73,6 +73,10 @@ public class TextListener implements JNIImsMediaListener {
                 mCallback.onOpenSessionFailure(parcel.readInt(),
                         parcel.readInt());
                 break;
+            case TextSession.EVENT_SESSION_CLOSED:
+                Rlog.d(LOG_TAG, "onMessage=" + event);
+                mCallback.onSessionClosed(parcel.readInt());
+                break;
             case TextSession.EVENT_MODIFY_SESSION_RESPONSE:
                 final int result = parcel.readInt();
                 final TextConfig config = TextConfig.CREATOR.createFromParcel(parcel);

@@ -223,6 +223,39 @@ public class TextSessionTest {
         }
     }
 
+    @Test
+    public void testOpenSessionSuccess() {
+        mTextSession.onOpenSessionSuccess(mTextLocalSession);
+        processAllMessages();
+        try {
+            verify(mCallback, times(1)).onOpenSessionSuccess(mTextSession);
+        } catch (RemoteException e) {
+            fail("Failed to notify onOpenSessionSuccess: " + e);
+        }
+    }
+
+    @Test
+    public void testOpenSessionFailure() {
+        mTextSession.onOpenSessionFailure(ImsMediaSession.RESULT_INVALID_PARAM);
+        processAllMessages();
+        try {
+            verify(mCallback, times(1)).onOpenSessionFailure(ImsMediaSession.RESULT_INVALID_PARAM);
+        } catch (RemoteException e) {
+            fail("Failed to notify onOpenSessionFailure: " + e);
+        }
+    }
+
+    @Test
+    public void testSessionClosed() {
+        mTextSession.onSessionClosed();
+        processAllMessages();
+        try {
+            verify(mCallback, times(1)).onSessionClosed();
+        } catch (RemoteException e) {
+            fail("Failed to notify onSessionClosed: " + e);
+        }
+    }
+
     private void processAllMessages() {
         while (!mLooper.getLooper().getQueue().isIdle()) {
             mLooper.processAllMessages();

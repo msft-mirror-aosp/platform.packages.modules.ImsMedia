@@ -20,13 +20,12 @@ import android.hardware.radio.ims.media.IImsMedia;
 import android.hardware.radio.ims.media.IImsMediaListener;
 import android.hardware.radio.ims.media.IImsMediaSession;
 import android.hardware.radio.ims.media.LocalEndPoint;
-import android.hardware.radio.ims.media.RtpAddress;
 import android.hardware.radio.ims.media.RtpConfig;
-import android.os.IBinder;
 import android.os.RemoteException;
 import android.os.ServiceManager;
 import android.telephony.Rlog;
 import android.telephony.imsmedia.AudioConfig;
+
 import com.android.telephony.imsmedia.Utils.OpenSessionParams;
 
 /**
@@ -131,6 +130,11 @@ public class AudioOffloadService {
         @Override
         public void onOpenSessionFailure(int sessionId, int error) {
             mMediaControllerCallback.onOpenSessionFailure(sessionId, error);
+        }
+
+        @Override
+        public void onSessionClosed(int sessionId) {
+            mMediaControllerCallback.onSessionClosed(sessionId);
         }
     }
 }

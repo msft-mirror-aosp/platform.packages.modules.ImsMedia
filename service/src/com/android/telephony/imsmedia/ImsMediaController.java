@@ -97,17 +97,14 @@ public class ImsMediaController extends Service {
                     final AudioSession audioSession =
                             (AudioSession) IImsAudioSession.Stub.asInterface(session);
                     audioSession.closeSession();
-                    mSessions.remove(audioSession.getSessionId());
                 } else if (session instanceof VideoSession) {
                     final VideoSession videoSession =
                             (VideoSession) IImsVideoSession.Stub.asInterface(session);
                     videoSession.closeSession();
-                    mSessions.remove(videoSession.getSessionId());
                 } else if (session instanceof TextSession) {
                     final TextSession textSession =
                             (TextSession) IImsTextSession.Stub.asInterface(session);
                     textSession.closeSession();
-                    mSessions.remove(textSession.getSessionId());
                 }
             }
         }
@@ -188,6 +185,17 @@ public class ImsMediaController extends Service {
                 getSession(sessionId).onOpenSessionFailure(error);
                 mSessions.remove(sessionId);
             }
+        }
+
+        /**
+         * Called when the session is closed.
+         *
+         * @param sessionId identifier of the session
+         */
+        public void onSessionClosed(int sessionId) {
+            getSession(sessionId).onSessionClosed();
+            Rlog.d(TAG, "onSessionClosed: sessionId = " + sessionId);
+            mSessions.remove(sessionId);
         }
     }
 }

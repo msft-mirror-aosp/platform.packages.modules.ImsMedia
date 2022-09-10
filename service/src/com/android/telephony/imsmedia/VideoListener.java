@@ -72,6 +72,10 @@ public class VideoListener implements JNIImsMediaListener {
                 Rlog.d(LOG_TAG, "onMessage=" + event);
                 mCallback.onOpenSessionFailure(parcel.readInt(), parcel.readInt());
                 break;
+            case VideoSession.EVENT_SESSION_CLOSED:
+                Rlog.d(LOG_TAG, "onMessage=" + event);
+                mCallback.onSessionClosed(parcel.readInt());
+                break;
             case VideoSession.EVENT_MODIFY_SESSION_RESPONSE:
             {
                 final int result = parcel.readInt();

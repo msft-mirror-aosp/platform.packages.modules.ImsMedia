@@ -387,6 +387,39 @@ public class AudioSessionTest {
         }
     }
 
+    @Test
+    public void testOpenSessionSuccess() {
+        audioSession.onOpenSessionSuccess(audioLocalSession);
+        processAllMessages();
+        try {
+            verify(callback, times(1)).onOpenSessionSuccess(audioSession);
+        } catch (RemoteException e) {
+            fail("Failed to notify onOpenSessionSuccess: " + e);
+        }
+    }
+
+    @Test
+    public void testOpenSessionFailure() {
+        audioSession.onOpenSessionFailure(ImsMediaSession.RESULT_INVALID_PARAM);
+        processAllMessages();
+        try {
+            verify(callback, times(1)).onOpenSessionFailure(ImsMediaSession.RESULT_INVALID_PARAM);
+        } catch (RemoteException e) {
+            fail("Failed to notify onOpenSessionFailure: " + e);
+        }
+    }
+
+    @Test
+    public void testSessionClosed() {
+        audioSession.onSessionClosed();
+        processAllMessages();
+        try {
+            verify(callback, times(1)).onSessionClosed();
+        } catch (RemoteException e) {
+            fail("Failed to notify onSessionClosed: " + e);
+        }
+    }
+
     private void processAllMessages() {
         while (!looper.getLooper().getQueue().isIdle()) {
             looper.processAllMessages();

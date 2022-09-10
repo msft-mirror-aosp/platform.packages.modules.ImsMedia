@@ -74,6 +74,10 @@ public class AudioListener implements JNIImsMediaListener {
                 mCallback.onOpenSessionFailure(parcel.readInt(),
                     parcel.readInt());
                 break;
+            case AudioSession.EVENT_SESSION_CLOSED:
+                Rlog.d(LOG_TAG, "onMessage=" + event);
+                mCallback.onSessionClosed(parcel.readInt());
+                break;
             case AudioSession.EVENT_MODIFY_SESSION_RESPONSE:
             case AudioSession.EVENT_ADD_CONFIG_RESPONSE:
             case AudioSession.EVENT_CONFIRM_CONFIG_RESPONSE:

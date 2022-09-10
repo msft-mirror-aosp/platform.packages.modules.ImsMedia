@@ -311,6 +311,39 @@ public class VideoSessionTest {
         }
     }
 
+    @Test
+    public void testOpenSessionSuccess() {
+        mVideoSession.onOpenSessionSuccess(mVideoLocalSession);
+        processAllMessages();
+        try {
+            verify(mCallback, times(1)).onOpenSessionSuccess(mVideoSession);
+        } catch (RemoteException e) {
+            fail("Failed to notify onOpenSessionSuccess: " + e);
+        }
+    }
+
+    @Test
+    public void testOpenSessionFailure() {
+        mVideoSession.onOpenSessionFailure(ImsMediaSession.RESULT_INVALID_PARAM);
+        processAllMessages();
+        try {
+            verify(mCallback, times(1)).onOpenSessionFailure(ImsMediaSession.RESULT_INVALID_PARAM);
+        } catch (RemoteException e) {
+            fail("Failed to notify onOpenSessionFailure: " + e);
+        }
+    }
+
+    @Test
+    public void testSessionClosed() {
+        mVideoSession.onSessionClosed();
+        processAllMessages();
+        try {
+            verify(mCallback, times(1)).onSessionClosed();
+        } catch (RemoteException e) {
+            fail("Failed to notify onSessionClosed: " + e);
+        }
+    }
+
     private void processAllMessages() {
         while (!mLooper.getLooper().getQueue().isIdle()) {
             mLooper.processAllMessages();

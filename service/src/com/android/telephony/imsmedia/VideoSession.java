@@ -64,6 +64,7 @@ public final class VideoSession extends IImsVideoSession.Stub implements IMediaS
     public static final int EVENT_MEDIA_INACTIVITY_IND = 208;
     public static final int EVENT_PACKET_LOSS_IND = 209;
     public static final int EVENT_VIDEO_DATA_USAGE_IND = 210;
+    public static final int EVENT_SESSION_CLOSED = 211;
 
     private int mSessionId;
     private int mSessionState;
@@ -178,6 +179,12 @@ public final class VideoSession extends IImsVideoSession.Stub implements IMediaS
         Utils.sendMessage(mHandler, EVENT_OPEN_SESSION_FAILURE, error);
     }
 
+    @Override
+    public void onSessionClosed() {
+        Rlog.d(TAG, "onSessionClosed");
+        Utils.sendMessage(mHandler, EVENT_SESSION_CLOSED);
+    }
+
     /**
      * Video session message mHandler
      */
@@ -219,6 +226,9 @@ public final class VideoSession extends IImsVideoSession.Stub implements IMediaS
                     break;
                 case EVENT_OPEN_SESSION_FAILURE:
                     handleOpenFailure((int) msg.obj);
+                    break;
+                case EVENT_SESSION_CLOSED:
+                    handleSessionClosed();
                     break;
                 case EVENT_MODIFY_SESSION_RESPONSE:
                     handleModifySessionRespose((VideoConfig) msg.obj, msg.arg1);
@@ -298,6 +308,14 @@ public final class VideoSession extends IImsVideoSession.Stub implements IMediaS
             mCallback.onOpenSessionFailure(error);
         } catch (RemoteException e) {
             Rlog.e(TAG, "Failed to notify openFailure: " + e);
+        }
+    }
+
+    private void handleSessionClosed() {
+        try {
+            mCallback.onSessionClosed();
+        }  catch (RemoteException e) {
+            Rlog.e(TAG, "Failed to notify SessionClosed: " + e);
         }
     }
 

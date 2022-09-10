@@ -234,6 +234,13 @@ public class ImsMediaManager {
         }
 
         /**
+         * Called when the session is closed.
+         */
+        public void onSessionClosed() {
+            // Base Implementation
+        }
+
+        /**
          * Called when any change occurs to the RTP session.
          *
          * @param state session state

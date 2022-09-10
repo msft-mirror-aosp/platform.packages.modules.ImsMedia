@@ -98,6 +98,14 @@ class AudioListenerProxy implements JNIImsMediaListener {
                     Rlog.e(TAG, "Failed to notify openFailure: " + e);
                 }
                 break;
+            case AudioSession.EVENT_SESSION_CLOSED:
+                final int sessionId2 = parcel.readInt();
+                try {
+                    mListener.onSessionClosed(sessionId2);
+                } catch (RemoteException e) {
+                    Rlog.e(TAG, "Failed to notify SessionClosed: " + e);
+                }
+                break;
             case AudioSession.EVENT_MODIFY_SESSION_RESPONSE:
                 final int result1 = parcel.readInt();
                 final AudioConfig config = AudioConfig.CREATOR.createFromParcel(parcel);

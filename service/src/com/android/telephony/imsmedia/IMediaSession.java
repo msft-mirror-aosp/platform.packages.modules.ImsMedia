@@ -28,4 +28,5 @@ interface IMediaSession {
     void closeSession();
     void onOpenSessionSuccess(Object session);
     void onOpenSessionFailure(int error);
+    void onSessionClosed();
 }

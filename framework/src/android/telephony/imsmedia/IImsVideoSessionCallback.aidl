@@ -29,6 +29,7 @@ import android.telephony.imsmedia.IImsVideoSession;
 oneway interface IImsVideoSessionCallback {
     void onOpenSessionSuccess(IImsVideoSession session);
     void onOpenSessionFailure(int error);
+    void onSessionClosed();
     void onSessionChanged(int state);
     void onModifySessionResponse(in VideoConfig config, int result);
     void onFirstMediaPacketReceived(in VideoConfig config);
