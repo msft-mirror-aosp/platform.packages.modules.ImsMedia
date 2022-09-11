@@ -24,8 +24,10 @@ import android.hardware.radio.ims.media.RtpHeaderExtension;
 import android.os.Parcel;
 import android.telephony.Rlog;
 import android.telephony.imsmedia.AudioConfig;
+
 import com.android.telephony.imsmedia.AudioSession;
 import com.android.telephony.imsmedia.Utils;
+
 import java.util.List;
 
 
@@ -133,6 +135,22 @@ public class IImsMediaSessionImpl extends IImsMediaSession.Stub {
         connector.sendRequest(mSessionId, parcel);
     }
 
+    @Override
+    public void startDtmf(char dtmfDigit) {
+        Rlog.d(TAG, "startDtmf: digit= " + dtmfDigit);
+        Parcel parcel = Parcel.obtain();
+        parcel.writeInt(AudioSession.CMD_START_DTMF);
+        parcel.writeByte((byte) dtmfDigit);
+        connector.sendRequest(mSessionId, parcel);
+    }
+
+    @Override
+    public void stopDtmf() {
+        Rlog.d(TAG, "stopDtmf");
+        Parcel parcel = Parcel.obtain();
+        parcel.writeInt(AudioSession.CMD_STOP_DTMF);
+        connector.sendRequest(mSessionId, parcel);
+    }
     @Override
     public void sendHeaderExtension(List<RtpHeaderExtension> data) {
         Rlog.d(TAG, "sendHeaderExtension: " + data);

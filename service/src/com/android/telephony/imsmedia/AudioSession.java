@@ -56,6 +56,8 @@ public final class AudioSession extends IImsAudioSession.Stub implements IMediaS
     public static final int CMD_SEND_DTMF = 107;
     public static final int CMD_SEND_RTP_HDR_EXTN = 108;
     public static final int CMD_SET_MEDIA_QUALITY_THRESHOLD = 109;
+    public static final int CMD_START_DTMF = 110;
+    public static final int CMD_STOP_DTMF = 111;
 
     public static final int EVENT_OPEN_SESSION_SUCCESS = 201;
     public static final int EVENT_OPEN_SESSION_FAILURE = 202;
@@ -71,6 +73,8 @@ public final class AudioSession extends IImsAudioSession.Stub implements IMediaS
     public static final int EVENT_TRIGGER_ANBR_QUERY_IND = 212;
     public static final int EVENT_DTMF_RECEIVED_IND = 213;
     public static final int EVENT_CALL_QUALITY_CHANGE_IND = 214;
+
+    private static final int DTMF_DEFAULT_DURATION = 140;
 
     private int mSessionId;
     private int mSessionState;
@@ -189,6 +193,17 @@ public final class AudioSession extends IImsAudioSession.Stub implements IMediaS
     }
 
     @Override
+    public void startDtmf(char digit) {
+        Rlog.d(TAG, "startDtmf: digit=" + digit);
+        Utils.sendMessage(mHandler, CMD_START_DTMF, digit);
+    }
+
+    @Override
+    public void stopDtmf() {
+        Rlog.d(TAG, "stopDtmf");
+        Utils.sendMessage(mHandler, CMD_STOP_DTMF);
+    }
+    @Override
     public void sendHeaderExtension(List<RtpHeaderExtension> extensions) {
         Rlog.d(TAG, "sendHeaderExtension");
         Utils.sendMessage(mHandler, CMD_SEND_RTP_HDR_EXTN, extensions);
@@ -247,7 +262,13 @@ public final class AudioSession extends IImsAudioSession.Stub implements IMediaS
                     handleConfirmConfig((AudioConfig)msg.obj);
                     break;
                 case CMD_SEND_DTMF:
-                    handlesendDtmf((char)msg.obj, msg.arg1);
+                    handleSendDtmf((char) msg.obj, msg.arg1);
+                    break;
+                case CMD_START_DTMF:
+                    handleStartDtmf((char) msg.obj);
+                    break;
+                case CMD_STOP_DTMF:
+                    handleStopDtmf();
                     break;
                 case CMD_SEND_RTP_HDR_EXTN:
                     handleSendRtpHeaderExtension((List<RtpHeaderExtension>)msg.obj);
@@ -369,7 +390,7 @@ public final class AudioSession extends IImsAudioSession.Stub implements IMediaS
         }
     }
 
-    private void handlesendDtmf(char digit, int duration) {
+    private void handleSendDtmf(char digit, int duration) {
         if (isAudioOffload()) {
             try {
                 mHalSession.sendDtmf(digit, duration);
@@ -378,6 +399,28 @@ public final class AudioSession extends IImsAudioSession.Stub implements IMediaS
             }
         } else {
             mLocalSession.sendDtmf(digit, duration);
+        }
+    }
+
+    private void handleStartDtmf(char digit) {
+        if (isAudioOffload()) {
+            try {
+                mHalSession.startDtmf(digit);
+            } catch (RemoteException e) {
+                Rlog.e(TAG, "startDtmf : " + e);
+            }
+        } else {
+            mLocalSession.sendDtmf(digit, DTMF_DEFAULT_DURATION);
+        }
+    }
+
+    private void handleStopDtmf() {
+        if (isAudioOffload()) {
+            try {
+                mHalSession.stopDtmf();
+            } catch (RemoteException e) {
+                Rlog.e(TAG, "stopDtmf : " + e);
+            }
         }
     }
 

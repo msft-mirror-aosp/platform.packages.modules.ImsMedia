@@ -54,7 +54,7 @@ import java.util.ArrayList;
 @RunWith(JUnit4.class)
 public class AudioSessionTest {
     private static final int SESSION_ID = 1;
-    private static final int DTMF_DURATION = 120;
+    private static final int DTMF_DURATION = 140;
     private static final int UNUSED = -1;
     private static final int SUCCESS = ImsMediaSession.RESULT_SUCCESS;
     private static final int NO_RESOURCES = ImsMediaSession.RESULT_NO_RESOURCES;
@@ -243,8 +243,15 @@ public class AudioSessionTest {
     }
 
     @Test
-    public void testsendDtmf() {
+    public void testSendDtmf() {
         audioSession.sendDtmf(DTMF_DIGIT, DTMF_DURATION);
+        processAllMessages();
+        verify(audioLocalSession, times(1)).sendDtmf(eq(DTMF_DIGIT), eq(DTMF_DURATION));
+    }
+
+    @Test
+    public void testStartDtmf() {
+        audioSession.startDtmf(DTMF_DIGIT);
         processAllMessages();
         verify(audioLocalSession, times(1)).sendDtmf(eq(DTMF_DIGIT), eq(DTMF_DURATION));
     }

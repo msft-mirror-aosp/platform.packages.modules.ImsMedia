@@ -316,6 +316,29 @@ public class AudioOffloadTest {
     }
 
     @Test
+    public void testStartDtmf() {
+        audioSession.startDtmf(DTMF_DIGIT);
+        processAllMessages();
+        try {
+            verify(imsMediaSession, times(1)).startDtmf(eq(DTMF_DIGIT));
+        } catch (RemoteException e) {
+            fail("Failed to invoke startDtmf: " + e);
+        }
+    }
+
+    @Test
+    public void testStopDtmf() {
+        audioSession.stopDtmf();
+        processAllMessages();
+        try {
+            verify(imsMediaSession, times(1)).stopDtmf();
+        } catch (RemoteException e) {
+            fail("Failed to invoke stopDtmf: " + e);
+        }
+
+    }
+
+    @Test
     public void testSetMediaQualityThreshold() {
         // Set Media Quality Threshold
         MediaQualityThreshold threshold = MediaQualityThresholdTest.createMediaQualityThreshold();

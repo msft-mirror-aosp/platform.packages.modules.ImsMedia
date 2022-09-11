@@ -20,6 +20,7 @@ import android.os.IBinder;
 import android.os.RemoteException;
 import android.telephony.ims.RtpHeaderExtension;
 import android.util.Log;
+
 import java.util.List;
 
 /**
@@ -146,6 +147,33 @@ public class ImsAudioSession implements ImsMediaSession {
             miSession.sendDtmf(dtmfDigit, duration);
         } catch (RemoteException e) {
             Log.e(TAG, "Failed to send DTMF: " + e);
+        }
+    }
+
+    /**
+     * Start sending DTMF digit until the stopDtmf() API is received.
+     * If the implementation is currently sending a DTMF tone for which
+     * stopDtmf() is not received yet, then that digit must be stopped first
+     *
+     * @param dtmfDigit single char having one of 12 values: 0-9, *, #
+     */
+    public void startDtmf(final char dtmfDigit) {
+        try {
+            miSession.startDtmf(dtmfDigit);
+        } catch (RemoteException e) {
+            Log.e(TAG, "Failed to start DTMF: " + e);
+        }
+    }
+
+    /**
+     * Stop sending the last DTMF digit started by startDtmf().
+     * stopDtmf() without preceding startDtmf() must be ignored.
+     */
+    public void stopDtmf() {
+        try {
+            miSession.stopDtmf();
+        } catch (RemoteException e) {
+            Log.e(TAG, "Failed to stop DTMF: " + e);
         }
     }
 
