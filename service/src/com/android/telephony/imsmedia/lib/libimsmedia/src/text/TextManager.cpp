@@ -255,6 +255,8 @@ void TextManager::RequestHandler::processEvent(
         break;
         case kTextCloseSession:
             TextManager::getInstance()->closeSession(static_cast<int>(sessionId));
+            ImsMediaEventHandler::SendEvent(
+                    "TEXT_RESPONSE_EVENT", kTextSessionClosed, sessionId, 0, 0);
             break;
         case kTextModifySession:
         {
@@ -365,6 +367,12 @@ void TextManager::ResponseHandler::processEvent(
             }
         }
         break;
+        case kTextSessionClosed:
+            parcel.writeInt32(event);
+            parcel.writeInt32(static_cast<int>(sessionId));
+            TextManager::getInstance()->sendResponse(
+                    reinterpret_cast<uint64_t>(TextManager::getInstance()), parcel);
+            break;
         default:
             break;
     }
