@@ -62,7 +62,8 @@ public final class AudioConfig extends RtpConfig {
     private byte codecModeRequest;
     private boolean dtxEnabled;
     private @CodecType int codecType;
-    private byte dtmfPayloadTypeNumber;
+    private byte mDtmfTxPayloadTypeNumber;
+    private byte mDtmfRxPayloadTypeNumber;
     private byte dtmfSamplingRateKHz;
     @Nullable
     private AmrParams amrParams;
@@ -77,7 +78,8 @@ public final class AudioConfig extends RtpConfig {
         codecModeRequest = in.readByte();
         dtxEnabled = in.readBoolean();
         codecType = in.readInt();
-        dtmfPayloadTypeNumber = in.readByte();
+        mDtmfTxPayloadTypeNumber = in.readByte();
+        mDtmfRxPayloadTypeNumber = in.readByte();
         dtmfSamplingRateKHz = in.readByte();
         amrParams = in.readParcelable(AmrParams.class.getClassLoader(), AmrParams.class);
         evsParams = in.readParcelable(EvsParams.class.getClassLoader(), EvsParams.class);
@@ -91,7 +93,8 @@ public final class AudioConfig extends RtpConfig {
         this.codecModeRequest = builder.codecModeRequest;
         this.dtxEnabled = builder.dtxEnabled;
         this.codecType = builder.codecType;
-        this.dtmfPayloadTypeNumber = builder.dtmfPayloadTypeNumber;
+        this.mDtmfTxPayloadTypeNumber = builder.mDtmfTxPayloadTypeNumber;
+        this.mDtmfRxPayloadTypeNumber = builder.mDtmfRxPayloadTypeNumber;
         this.dtmfSamplingRateKHz = builder.dtmfSamplingRateKHz;
         this.amrParams = builder.amrParams;
         this.evsParams = builder.evsParams;
@@ -148,13 +151,23 @@ public final class AudioConfig extends RtpConfig {
     }
 
     /** @hide **/
-    public byte getDtmfPayloadTypeNumber() {
-        return dtmfPayloadTypeNumber;
+    public byte getTxDtmfPayloadTypeNumber() {
+        return mDtmfTxPayloadTypeNumber;
     }
 
     /** @hide **/
-    public void setDtmfPayloadTypeNumber(byte dtmfPayloadTypeNumber) {
-        this.dtmfPayloadTypeNumber = dtmfPayloadTypeNumber;
+    public byte getRxDtmfPayloadTypeNumber() {
+        return mDtmfRxPayloadTypeNumber;
+    }
+
+    /** @hide **/
+    public void setTxDtmfPayloadTypeNumber(byte dtmfTxPayloadTypeNumber) {
+        this.mDtmfTxPayloadTypeNumber = dtmfTxPayloadTypeNumber;
+    }
+
+    /** @hide **/
+    public void setRxDtmfPayloadTypeNumber(byte dtmfRxPayloadTypeNumber) {
+        this.mDtmfRxPayloadTypeNumber = dtmfRxPayloadTypeNumber;
     }
 
     /** @hide **/
@@ -185,7 +198,8 @@ public final class AudioConfig extends RtpConfig {
                 + ", codecModeRequest=" + codecModeRequest
                 + ", dtxEnabled=" + dtxEnabled
                 + ", codecType=" + codecType
-                + ", dtmfPayloadTypeNumber=" + dtmfPayloadTypeNumber
+                + ", mDtmfTxPayloadTypeNumber=" + mDtmfTxPayloadTypeNumber
+                + ", mDtmfRxPayloadTypeNumber=" + mDtmfRxPayloadTypeNumber
                 + ", dtmfSamplingRateKHz=" + dtmfSamplingRateKHz
                 + ", amrParams=" + amrParams
                 + ", evsParams=" + evsParams
@@ -195,8 +209,8 @@ public final class AudioConfig extends RtpConfig {
     @Override
     public int hashCode() {
         return Objects.hash(super.hashCode(), pTimeMillis, maxPtimeMillis,
-                codecModeRequest, dtxEnabled, codecType, dtmfPayloadTypeNumber,
-                dtmfSamplingRateKHz, amrParams, evsParams);
+                codecModeRequest, dtxEnabled, codecType, mDtmfTxPayloadTypeNumber,
+                mDtmfRxPayloadTypeNumber, dtmfSamplingRateKHz, amrParams, evsParams);
     }
 
     @Override
@@ -220,7 +234,8 @@ public final class AudioConfig extends RtpConfig {
                 && codecModeRequest == s.codecModeRequest
                 && dtxEnabled == s.dtxEnabled
                 && codecType == s.codecType
-                && dtmfPayloadTypeNumber == s.dtmfPayloadTypeNumber
+                && mDtmfTxPayloadTypeNumber == s.mDtmfTxPayloadTypeNumber
+                && mDtmfRxPayloadTypeNumber == s.mDtmfRxPayloadTypeNumber
                 && dtmfSamplingRateKHz == s.dtmfSamplingRateKHz
                 && Objects.equals(amrParams, s.amrParams)
                 && Objects.equals(evsParams, s.evsParams));
@@ -243,7 +258,8 @@ public final class AudioConfig extends RtpConfig {
         dest.writeByte(codecModeRequest);
         dest.writeBoolean(dtxEnabled);
         dest.writeInt(codecType);
-        dest.writeByte(dtmfPayloadTypeNumber);
+        dest.writeByte(mDtmfTxPayloadTypeNumber);
+        dest.writeByte(mDtmfRxPayloadTypeNumber);
         dest.writeByte(dtmfSamplingRateKHz);
         dest.writeParcelable(amrParams, 0);
         dest.writeParcelable(evsParams, 0);
@@ -271,7 +287,8 @@ public final class AudioConfig extends RtpConfig {
         private byte codecModeRequest;
         private boolean dtxEnabled;
         private @CodecType int codecType;
-        private byte dtmfPayloadTypeNumber;
+        private byte mDtmfTxPayloadTypeNumber;
+        private byte mDtmfRxPayloadTypeNumber;
         private byte dtmfSamplingRateKHz;
         @Nullable
         private AmrParams amrParams;
@@ -349,15 +366,28 @@ public final class AudioConfig extends RtpConfig {
         }
 
         /**
-         * Set the dynamic payload type number to be used for DTMF RTP packets.
+         * Set the dynamic Tx payload type number to be used to transmit DTMF RTP packets.
          * The values is in the range from 96 to 127 chosen during the session establishment.
-         * The PT  value of the RTP header of all DTMF packets shall be set with this value.
+         * The PT value of the RTP header of all DTMF packets shall be set with this value.
          *
-         * @param dtmfPayloadTypeNumber Payload type number for the DTMF packets
+         * @param dtmfTxPayloadTypeNumber Payload type number for the Tx DTMF packets
          * @return The same instance of the builder
          */
-        public Builder setDtmfPayloadTypeNumber(final byte dtmfPayloadTypeNumber) {
-            this.dtmfPayloadTypeNumber = dtmfPayloadTypeNumber;
+        public Builder setTxDtmfPayloadTypeNumber(final byte dtmfTxPayloadTypeNumber) {
+            this.mDtmfTxPayloadTypeNumber = dtmfTxPayloadTypeNumber;
+            return this;
+        }
+
+        /**
+         * Set the dynamic Rx payload type number to be used for DTMF received RTP packets.
+         * The values is in the range from 96 to 127 chosen during the session establishment.
+         * The PT value of the RTP header of all DTMF packets shall be set with this value.
+         *
+         * @param dtmfRxPayloadTypeNumber Payload type number for the Rx DTMF packets
+         * @return The same instance of the builder
+         */
+        public Builder setRxDtmfPayloadTypeNumber(final byte dtmfRxPayloadTypeNumber) {
+            this.mDtmfRxPayloadTypeNumber = dtmfRxPayloadTypeNumber;
             return this;
         }
 

@@ -74,7 +74,8 @@ private:
     uint32_t mSamplingRate;
     int32_t mRtpPayloadTx;
     int32_t mRtpPayloadRx;
-    int32_t mRtpDtmfPayload;
+    int32_t mRtpTxDtmfPayload;
+    int32_t mRtpRxDtmfPayload;
     int32_t mDtmfSamplingRate;
     int32_t mCvoValue;
     uint32_t mReceivingSSRC;

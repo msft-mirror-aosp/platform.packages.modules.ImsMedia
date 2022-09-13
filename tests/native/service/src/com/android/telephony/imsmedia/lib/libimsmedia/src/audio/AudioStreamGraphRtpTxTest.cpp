@@ -46,7 +46,8 @@ const int32_t kMaxPtimeMillis = 100;
 const int8_t kcodecModeRequest = 15;
 const bool kDtxEnabled = true;
 const int32_t kCodecType = AudioConfig::CODEC_AMR_WB;
-const int8_t kDtmfPayloadTypeNumber = 100;
+const int8_t kDtmfTxPayloadTypeNumber = 100;
+const int8_t kDtmfRxPayloadTypeNumber = 101;
 const int8_t kDtmfsamplingRateKHz = 16;
 
 // AmrParam
@@ -117,7 +118,8 @@ protected:
         config.setCodecModeRequest(kcodecModeRequest);
         config.setDtxEnabled(kDtxEnabled);
         config.setCodecType(kCodecType);
-        config.setDtmfPayloadTypeNumber(kDtmfPayloadTypeNumber);
+        config.setTxDtmfPayloadTypeNumber(kDtmfTxPayloadTypeNumber);
+        config.setRxDtmfPayloadTypeNumber(kDtmfRxPayloadTypeNumber);
         config.setDtmfsamplingRateKHz(kDtmfsamplingRateKHz);
         config.setAmrParams(amr);
         config.setEvsParams(evs);
@@ -192,9 +194,11 @@ TEST_F(AudioStreamGraphRtpTxTest, TestRtpTxStreamCodecUpdate)
 TEST_F(AudioStreamGraphRtpTxTest, TestDtmf)
 {
     EXPECT_EQ(graph->createDtmfGraph(nullptr, nullptr), false);
-    config.setDtmfPayloadTypeNumber(0);
+    config.setTxDtmfPayloadTypeNumber(0);
+    config.setRxDtmfPayloadTypeNumber(0);
     EXPECT_EQ(graph->createDtmfGraph(&config, nullptr), false);
-    config.setDtmfPayloadTypeNumber(kDtmfPayloadTypeNumber);
+    config.setTxDtmfPayloadTypeNumber(kDtmfTxPayloadTypeNumber);
+    config.setRxDtmfPayloadTypeNumber(kDtmfRxPayloadTypeNumber);
 
     MockRtpEncoderNode* pRtpEncoder = new MockRtpEncoderNode();
     pRtpEncoder->SetMediaType(IMS_MEDIA_AUDIO);

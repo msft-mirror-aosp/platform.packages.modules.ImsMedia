@@ -74,7 +74,7 @@ public:
     virtual void OnEvent(uint32_t event, uint32_t param) = 0;
 };
 
-#define MAX_NUM_PAYLOAD_PARAM 3
+#define MAX_NUM_PAYLOAD_PARAM 4
 
 /*!
  * @class        IRtpSession
@@ -94,7 +94,8 @@ public:
     void SetRtcpEncoderListener(IRtcpEncoderListener* pRtcpEncoderListener);
     void SetRtcpDecoderListener(IRtcpDecoderListener* pRtcpDecoderListener);
     void SetRtpPayloadParam(int32_t payloadNumTx, int32_t payloadNumRx, int32_t samplingRate,
-            int32_t subPayloadTypeNum = 0, int32_t subSamplingRate = 0);
+            int32_t subTxPayloadTypeNum = 0, int32_t subRxPayloadTypeNum = 0,
+            int32_t subSamplingRate = 0);
     void SetRtcpInterval(int32_t nInterval);
     void StartRtp();
     void StopRtp();

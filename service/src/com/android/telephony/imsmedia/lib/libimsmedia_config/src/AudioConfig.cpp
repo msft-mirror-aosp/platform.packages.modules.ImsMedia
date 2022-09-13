@@ -36,7 +36,8 @@ AudioConfig::AudioConfig() :
     codecModeRequest = 0;
     dtxEnabled = false;
     codecType = 0;
-    dtmfPayloadTypeNumber = 0;
+    mDtmfTxPayloadTypeNumber = 0;
+    mDtmfRxPayloadTypeNumber = 0;
     dtmfsamplingRateKHz = 0;
 }
 
@@ -50,7 +51,8 @@ AudioConfig::AudioConfig(AudioConfig* config) :
         codecModeRequest = config->codecModeRequest;
         dtxEnabled = config->dtxEnabled;
         codecType = config->codecType;
-        dtmfPayloadTypeNumber = config->dtmfPayloadTypeNumber;
+        mDtmfTxPayloadTypeNumber = config->mDtmfTxPayloadTypeNumber;
+        mDtmfRxPayloadTypeNumber = config->mDtmfRxPayloadTypeNumber;
         dtmfsamplingRateKHz = config->dtmfsamplingRateKHz;
         amrParams = config->amrParams;
         evsParams = config->evsParams;
@@ -65,7 +67,8 @@ AudioConfig::AudioConfig(AudioConfig& config) :
     codecModeRequest = config.codecModeRequest;
     dtxEnabled = config.dtxEnabled;
     codecType = config.codecType;
-    dtmfPayloadTypeNumber = config.dtmfPayloadTypeNumber;
+    mDtmfTxPayloadTypeNumber = config.mDtmfTxPayloadTypeNumber;
+    mDtmfRxPayloadTypeNumber = config.mDtmfRxPayloadTypeNumber;
     dtmfsamplingRateKHz = config.dtmfsamplingRateKHz;
     amrParams = config.amrParams;
     evsParams = config.evsParams;
@@ -81,7 +84,8 @@ AudioConfig& AudioConfig::operator=(const AudioConfig& config)
     codecModeRequest = config.codecModeRequest;
     dtxEnabled = config.dtxEnabled;
     codecType = config.codecType;
-    dtmfPayloadTypeNumber = config.dtmfPayloadTypeNumber;
+    mDtmfTxPayloadTypeNumber = config.mDtmfTxPayloadTypeNumber;
+    mDtmfRxPayloadTypeNumber = config.mDtmfRxPayloadTypeNumber;
     dtmfsamplingRateKHz = config.dtmfsamplingRateKHz;
     amrParams = config.amrParams;
     evsParams = config.evsParams;
@@ -94,7 +98,8 @@ bool AudioConfig::operator==(const AudioConfig& config) const
             this->maxPtimeMillis == config.maxPtimeMillis &&
             this->codecModeRequest == config.codecModeRequest &&
             this->dtxEnabled == config.dtxEnabled && this->codecType == config.codecType &&
-            this->dtmfPayloadTypeNumber == config.dtmfPayloadTypeNumber &&
+            this->mDtmfTxPayloadTypeNumber == config.mDtmfTxPayloadTypeNumber &&
+            this->mDtmfRxPayloadTypeNumber == config.mDtmfRxPayloadTypeNumber &&
             this->dtmfsamplingRateKHz == config.dtmfsamplingRateKHz &&
             this->amrParams == config.amrParams && this->evsParams == config.evsParams);
 }
@@ -105,7 +110,8 @@ bool AudioConfig::operator!=(const AudioConfig& config) const
             this->maxPtimeMillis != config.maxPtimeMillis ||
             this->codecModeRequest != config.codecModeRequest ||
             this->dtxEnabled != config.dtxEnabled || this->codecType != config.codecType ||
-            this->dtmfPayloadTypeNumber != config.dtmfPayloadTypeNumber ||
+            this->mDtmfTxPayloadTypeNumber != config.mDtmfTxPayloadTypeNumber ||
+            this->mDtmfRxPayloadTypeNumber != config.mDtmfRxPayloadTypeNumber ||
             this->dtmfsamplingRateKHz != config.dtmfsamplingRateKHz ||
             this->amrParams != config.amrParams || this->evsParams != config.evsParams);
 }
@@ -156,7 +162,13 @@ status_t AudioConfig::writeToParcel(Parcel* out) const
         return err;
     }
 
-    err = out->writeByte(dtmfPayloadTypeNumber);
+    err = out->writeByte(mDtmfTxPayloadTypeNumber);
+    if (err != NO_ERROR)
+    {
+        return err;
+    }
+
+    err = out->writeByte(mDtmfRxPayloadTypeNumber);
     if (err != NO_ERROR)
     {
         return err;
@@ -246,7 +258,13 @@ status_t AudioConfig::readFromParcel(const Parcel* in)
         return err;
     }
 
-    err = in->readByte(&dtmfPayloadTypeNumber);
+    err = in->readByte(&mDtmfTxPayloadTypeNumber);
+    if (err != NO_ERROR)
+    {
+        return err;
+    }
+
+    err = in->readByte(&mDtmfRxPayloadTypeNumber);
     if (err != NO_ERROR)
     {
         return err;
@@ -336,14 +354,24 @@ int32_t AudioConfig::getCodecType()
     return codecType;
 }
 
-void AudioConfig::setDtmfPayloadTypeNumber(const int8_t num)
+void AudioConfig::setTxDtmfPayloadTypeNumber(const int8_t num)
 {
-    dtmfPayloadTypeNumber = num;
+    mDtmfTxPayloadTypeNumber = num;
 }
 
-int8_t AudioConfig::getDtmfPayloadTypeNumber()
+void AudioConfig::setRxDtmfPayloadTypeNumber(const int8_t num)
 {
-    return dtmfPayloadTypeNumber;
+    mDtmfRxPayloadTypeNumber = num;
+}
+
+int8_t AudioConfig::getTxDtmfPayloadTypeNumber()
+{
+    return mDtmfTxPayloadTypeNumber;
+}
+
+int8_t AudioConfig::getRxDtmfPayloadTypeNumber()
+{
+    return mDtmfRxPayloadTypeNumber;
 }
 
 void AudioConfig::setDtmfsamplingRateKHz(const int8_t sampling)

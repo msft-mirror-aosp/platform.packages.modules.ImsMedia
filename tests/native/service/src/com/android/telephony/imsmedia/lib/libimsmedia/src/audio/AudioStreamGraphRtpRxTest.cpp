@@ -104,7 +104,8 @@ protected:
         config.setCodecModeRequest(kcodecModeRequest);
         config.setDtxEnabled(kDtxEnabled);
         config.setCodecType(kCodecType);
-        config.setDtmfPayloadTypeNumber(kDtmfPayloadTypeNumber);
+        config.setTxDtmfPayloadTypeNumber(kDtmfPayloadTypeNumber);
+        config.setRxDtmfPayloadTypeNumber(kDtmfPayloadTypeNumber);
         config.setDtmfsamplingRateKHz(kDtmfsamplingRateKHz);
         config.setAmrParams(amr);
         config.setEvsParams(evs);

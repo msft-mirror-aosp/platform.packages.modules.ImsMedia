@@ -168,7 +168,8 @@ void IRtpSession::SetRtcpDecoderListener(IRtcpDecoderListener* pRtcpDecoderListe
 }
 
 void IRtpSession::SetRtpPayloadParam(int32_t payloadNumTx, int32_t payloadNumRx,
-        int32_t samplingRate, int32_t subPayloadTypeNum, int32_t subSamplingRate)
+        int32_t samplingRate, int32_t subTxPayloadTypeNum, int32_t subRxPayloadTypeNum,
+        int32_t subSamplingRate)
 {
     mNumPayloadParam = 0;
     std::memset(mPayloadParam, 0, sizeof(tRtpSvc_SetPayloadParam) * MAX_NUM_PAYLOAD_PARAM);
@@ -192,10 +193,10 @@ void IRtpSession::SetRtpPayloadParam(int32_t payloadNumTx, int32_t payloadNumRx,
     {
         mEnableDTMF = false;
 
-        if (subPayloadTypeNum != 0)
+        if (subTxPayloadTypeNum != 0 && subRxPayloadTypeNum != 0)
         {
-            IMLOGD2("[SetRtpPayloadParam] sub payload[%d], sub samplingRate[%d]", subPayloadTypeNum,
-                    subSamplingRate);
+            IMLOGD3("[SetRtpPayloadParam] sub Txpayload[%d],sub Rxpayload[%d],sub samplingRate[%d]",
+                    subTxPayloadTypeNum, subRxPayloadTypeNum, subSamplingRate);
 
             if (mNumPayloadParam >= MAX_NUM_PAYLOAD_PARAM)
             {
@@ -209,9 +210,17 @@ void IRtpSession::SetRtpPayloadParam(int32_t payloadNumTx, int32_t payloadNumRx,
                 }
 
                 mPayloadParam[mNumPayloadParam].frameInterval = 100;  // not used in stack
-                mPayloadParam[mNumPayloadParam].payloadType = subPayloadTypeNum;
+                mPayloadParam[mNumPayloadParam].payloadType = subTxPayloadTypeNum;
                 mPayloadParam[mNumPayloadParam].samplingRate = subSamplingRate;
                 mNumPayloadParam++;
+
+                if (subTxPayloadTypeNum != subRxPayloadTypeNum)
+                {
+                    mPayloadParam[mNumPayloadParam].frameInterval = 100;  // not used in stack
+                    mPayloadParam[mNumPayloadParam].payloadType = subRxPayloadTypeNum;
+                    mPayloadParam[mNumPayloadParam].samplingRate = subSamplingRate;
+                    mNumPayloadParam++;
+                }
             }
         }
     }

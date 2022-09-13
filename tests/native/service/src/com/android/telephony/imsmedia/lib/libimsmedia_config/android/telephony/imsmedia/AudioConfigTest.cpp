@@ -94,7 +94,8 @@ protected:
         config1.setCodecModeRequest(kcodecModeRequest);
         config1.setDtxEnabled(kDtxEnabled);
         config1.setCodecType(kCodecType);
-        config1.setDtmfPayloadTypeNumber(kDtmfPayloadTypeNumber);
+        config1.setTxDtmfPayloadTypeNumber(kDtmfPayloadTypeNumber);
+        config1.setRxDtmfPayloadTypeNumber(kDtmfPayloadTypeNumber);
         config1.setDtmfsamplingRateKHz(kDtmfsamplingRateKHz);
         config1.setAmrParams(amr);
         config1.setEvsParams(evs);
@@ -110,7 +111,8 @@ TEST_F(AudioConfigTest, TestGetterSetter)
     EXPECT_EQ(config1.getCodecModeRequest(), kcodecModeRequest);
     EXPECT_EQ(config1.getDtxEnabled(), kDtxEnabled);
     EXPECT_EQ(config1.getCodecType(), kCodecType);
-    EXPECT_EQ(config1.getDtmfPayloadTypeNumber(), kDtmfPayloadTypeNumber);
+    EXPECT_EQ(config1.getTxDtmfPayloadTypeNumber(), kDtmfPayloadTypeNumber);
+    EXPECT_EQ(config1.getRxDtmfPayloadTypeNumber(), kDtmfPayloadTypeNumber);
     EXPECT_EQ(config1.getDtmfsamplingRateKHz(), kDtmfsamplingRateKHz);
     EXPECT_EQ(config1.getAmrParams(), amr);
     EXPECT_EQ(config1.getEvsParams(), evs);
@@ -148,7 +150,8 @@ TEST_F(AudioConfigTest, TestEqual)
     config2.setCodecModeRequest(kcodecModeRequest);
     config2.setDtxEnabled(kDtxEnabled);
     config2.setCodecType(kCodecType);
-    config2.setDtmfPayloadTypeNumber(kDtmfPayloadTypeNumber);
+    config2.setTxDtmfPayloadTypeNumber(kDtmfPayloadTypeNumber);
+    config2.setRxDtmfPayloadTypeNumber(kDtmfPayloadTypeNumber);
     config2.setDtmfsamplingRateKHz(kDtmfsamplingRateKHz);
     config2.setAmrParams(amr);
     config2.setEvsParams(evs);
@@ -170,7 +173,8 @@ TEST_F(AudioConfigTest, TestNotEqual)
     config2.setCodecModeRequest(kcodecModeRequest);
     config2.setDtxEnabled(kDtxEnabled);
     config2.setCodecType(kCodecType);
-    config2.setDtmfPayloadTypeNumber(kDtmfPayloadTypeNumber);
+    config2.setTxDtmfPayloadTypeNumber(kDtmfPayloadTypeNumber);
+    config2.setRxDtmfPayloadTypeNumber(kDtmfPayloadTypeNumber);
     config2.setDtmfsamplingRateKHz(kDtmfsamplingRateKHz);
     config2.setAmrParams(amr);
     config2.setEvsParams(evs);
@@ -188,7 +192,8 @@ TEST_F(AudioConfigTest, TestNotEqual)
     config3.setCodecModeRequest(kcodecModeRequest);
     config3.setDtxEnabled(false);
     config3.setCodecType(kCodecType);
-    config3.setDtmfPayloadTypeNumber(kDtmfPayloadTypeNumber);
+    config3.setTxDtmfPayloadTypeNumber(kDtmfPayloadTypeNumber);
+    config3.setRxDtmfPayloadTypeNumber(kDtmfPayloadTypeNumber);
     config3.setDtmfsamplingRateKHz(kDtmfsamplingRateKHz);
     config3.setAmrParams(amr);
     config3.setEvsParams(evs);

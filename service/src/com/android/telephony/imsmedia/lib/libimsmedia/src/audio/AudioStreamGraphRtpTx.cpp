@@ -164,7 +164,7 @@ bool AudioStreamGraphRtpTx::createDtmfGraph(RtpConfig* config, BaseNode* rtpEnco
 
     AudioConfig* audioConfig = reinterpret_cast<AudioConfig*>(config);
 
-    if (audioConfig->getDtmfPayloadTypeNumber() == 0)
+    if (audioConfig->getTxDtmfPayloadTypeNumber() == 0)
     {
         return false;
     }

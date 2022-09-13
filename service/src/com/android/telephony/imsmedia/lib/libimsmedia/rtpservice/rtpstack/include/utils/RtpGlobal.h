@@ -70,7 +70,7 @@
 #define RTCP_PT_SHIFT_VAL        0  // 7
 #define RTCP_FIXED_HDR_LEN       8
 
-#define RTP_MAX_PAYLOAD_TYPE     3
+#define RTP_MAX_PAYLOAD_TYPE     4
 
 /* RTP error codes*/
 typedef enum

@@ -34,7 +34,8 @@ RtpEncoderNode::RtpEncoderNode(BaseSessionCallback* callback) :
     mSamplingRate = 0;
     mRtpPayloadTx = 0;
     mRtpPayloadRx = 0;
-    mRtpDtmfPayload = 0;
+    mRtpTxDtmfPayload = 0;
+    mRtpRxDtmfPayload = 0;
     mDtmfSamplingRate = 0;
     mCvoValue = CVO_DEFINE_NONE;
     mRedundantLevel = 0;
@@ -78,7 +79,7 @@ ImsMediaResult RtpEncoderNode::Start()
     if (mMediaType == IMS_MEDIA_AUDIO)
     {
         mRtpSession->SetRtpPayloadParam(mRtpPayloadTx, mRtpPayloadRx, mSamplingRate * 1000,
-                mRtpDtmfPayload, mDtmfSamplingRate * 1000);
+                mRtpTxDtmfPayload, mRtpRxDtmfPayload, mDtmfSamplingRate * 1000);
     }
     else if (mMediaType == IMS_MEDIA_VIDEO)
     {
@@ -182,7 +183,8 @@ void RtpEncoderNode::SetConfig(void* config)
         mSamplingRate = pConfig->getSamplingRateKHz();
         mRtpPayloadTx = pConfig->getTxPayloadTypeNumber();
         mRtpPayloadRx = pConfig->getRxPayloadTypeNumber();
-        mRtpDtmfPayload = pConfig->getDtmfPayloadTypeNumber();
+        mRtpTxDtmfPayload = pConfig->getTxDtmfPayloadTypeNumber();
+        mRtpRxDtmfPayload = pConfig->getRxDtmfPayloadTypeNumber();
         mDtmfSamplingRate = pConfig->getDtmfsamplingRateKHz();
     }
     else if (mMediaType == IMS_MEDIA_VIDEO)
@@ -223,7 +225,8 @@ bool RtpEncoderNode::IsSameConfig(void* config)
                 mSamplingRate == pConfig->getSamplingRateKHz() &&
                 mRtpPayloadTx == pConfig->getTxPayloadTypeNumber() &&
                 mRtpPayloadRx == pConfig->getRxPayloadTypeNumber() &&
-                mRtpDtmfPayload == pConfig->getDtmfPayloadTypeNumber() &&
+                mRtpTxDtmfPayload == pConfig->getTxDtmfPayloadTypeNumber() &&
+                mRtpRxDtmfPayload == pConfig->getRxDtmfPayloadTypeNumber() &&
                 mDtmfSamplingRate == pConfig->getDtmfsamplingRateKHz());
     }
     else if (mMediaType == IMS_MEDIA_VIDEO)
@@ -375,8 +378,8 @@ bool RtpEncoderNode::ProcessAudioData(
             }
 
             nTimeDiff_RTPTSUnit = nTimeDiff * mSamplingRate;
-            mRtpSession->SendRtpPacket(
-                    mRtpDtmfPayload, pData, nDataSize, mDTMFTimestamp, mMark, nTimeDiff_RTPTSUnit);
+            mRtpSession->SendRtpPacket(mRtpTxDtmfPayload, pData, nDataSize, mDTMFTimestamp, mMark,
+                    nTimeDiff_RTPTSUnit);
 
             if (mMark)
             {

@@ -117,7 +117,8 @@ public final class Utils {
     private static DtmfParams buildDtmfParams(final AudioConfig audioConfig) {
         final DtmfParams dtmfParams = new DtmfParams();
 
-        dtmfParams.payloadTypeNumber = audioConfig.getDtmfPayloadTypeNumber();
+        dtmfParams.txPayloadTypeNumber = audioConfig.getTxDtmfPayloadTypeNumber();
+        dtmfParams.rxPayloadTypeNumber = audioConfig.getRxDtmfPayloadTypeNumber();
         dtmfParams.samplingRateKHz = audioConfig.getDtmfSamplingRateKHz();
 
         return dtmfParams;
@@ -332,7 +333,8 @@ public final class Utils {
                 /** Populate DTMF parameter */
                 final DtmfParams dtmfParams = rtpConfig.sessionParams.dtmfParams;
                 if (dtmfParams != null) {
-                    audioConfig.setDtmfPayloadTypeNumber(dtmfParams.payloadTypeNumber);
+                    audioConfig.setTxDtmfPayloadTypeNumber(dtmfParams.txPayloadTypeNumber);
+                    audioConfig.setRxDtmfPayloadTypeNumber(dtmfParams.rxPayloadTypeNumber);
                     audioConfig.setDtmfSamplingRateKHz(dtmfParams.samplingRateKHz);
                 }
 

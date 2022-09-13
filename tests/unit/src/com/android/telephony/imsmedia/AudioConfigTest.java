@@ -94,7 +94,8 @@ public class AudioConfigTest {
         assertThat(config.getCodecModeRequest()).isEqualTo(CMR);
         assertThat(config.getDtxEnabled()).isEqualTo(DTX_ENABLED);
         assertThat(config.getCodecType()).isEqualTo(AudioConfig.CODEC_EVS);
-        assertThat(config.getDtmfPayloadTypeNumber()).isEqualTo(DTMF_PAYLOAD);
+        assertThat(config.getTxDtmfPayloadTypeNumber()).isEqualTo(DTMF_PAYLOAD);
+        assertThat(config.getRxDtmfPayloadTypeNumber()).isEqualTo(DTMF_PAYLOAD);
         assertThat(config.getDtmfSamplingRateKHz()).isEqualTo(DTMF_SAMPLING_RATE);
         assertThat(config.getAmrParams()).isEqualTo(null);
         assertThat(config.getEvsParams()).isEqualTo(evs);
@@ -148,7 +149,8 @@ public class AudioConfigTest {
                 .setCodecModeRequest(CMR)
                 .setDtxEnabled(DTX_ENABLED)
                 .setCodecType(AudioConfig.CODEC_EVS)
-                .setDtmfPayloadTypeNumber(DTMF_PAYLOAD)
+                .setTxDtmfPayloadTypeNumber(DTMF_PAYLOAD)
+                .setRxDtmfPayloadTypeNumber(DTMF_PAYLOAD)
                 .setDtmfSamplingRateKHz(DTMF_SAMPLING_RATE)
                 .setAmrParams(amr)
                 .setEvsParams(evs)
@@ -173,7 +175,8 @@ public class AudioConfigTest {
                 .setCodecModeRequest(CMR)
                 .setDtxEnabled(DTX_ENABLED)
                 .setCodecType(AudioConfig.CODEC_EVS)
-                .setDtmfPayloadTypeNumber(DTMF_PAYLOAD)
+                .setTxDtmfPayloadTypeNumber(DTMF_PAYLOAD)
+                .setRxDtmfPayloadTypeNumber(DTMF_PAYLOAD)
                 .setDtmfSamplingRateKHz(DTMF_SAMPLING_RATE)
                 .setEvsParams(evs)
                 .build();

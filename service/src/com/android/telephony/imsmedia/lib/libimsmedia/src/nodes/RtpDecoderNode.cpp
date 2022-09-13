@@ -47,7 +47,8 @@ RtpDecoderNode::RtpDecoderNode(BaseSessionCallback* callback) :
     mNoRtpTime = 0;
     mRtpPayloadTx = 0;
     mRtpPayloadRx = 0;
-    mRtpDtmfPayload = 0;
+    mRtpTxDtmfPayload = 0;
+    mRtpRxDtmfPayload = 0;
     mDtmfSamplingRate = 0;
     mCvoValue = CVO_DEFINE_NONE;
     mRedundantPayload = 0;
@@ -98,7 +99,7 @@ ImsMediaResult RtpDecoderNode::Start()
     if (mMediaType == IMS_MEDIA_AUDIO)
     {
         mRtpSession->SetRtpPayloadParam(mRtpPayloadTx, mRtpPayloadRx, mSamplingRate * 1000,
-                mRtpDtmfPayload, mDtmfSamplingRate * 1000);
+                mRtpTxDtmfPayload, mRtpRxDtmfPayload, mDtmfSamplingRate * 1000);
     }
     else if (mMediaType == IMS_MEDIA_VIDEO)
     {
@@ -311,7 +312,8 @@ void RtpDecoderNode::SetConfig(void* config)
         mSamplingRate = pConfig->getSamplingRateKHz();
         mRtpPayloadTx = pConfig->getTxPayloadTypeNumber();
         mRtpPayloadRx = pConfig->getRxPayloadTypeNumber();
-        mRtpDtmfPayload = pConfig->getDtmfPayloadTypeNumber();
+        mRtpTxDtmfPayload = pConfig->getTxDtmfPayloadTypeNumber();
+        mRtpRxDtmfPayload = pConfig->getRxDtmfPayloadTypeNumber();
         mDtmfSamplingRate = pConfig->getDtmfsamplingRateKHz();
     }
     else if (mMediaType == IMS_MEDIA_VIDEO)
@@ -351,7 +353,8 @@ bool RtpDecoderNode::IsSameConfig(void* config)
                 mSamplingRate == pConfig->getSamplingRateKHz() &&
                 mRtpPayloadTx == pConfig->getTxPayloadTypeNumber() &&
                 mRtpPayloadRx == pConfig->getRxPayloadTypeNumber() &&
-                mRtpDtmfPayload == pConfig->getDtmfPayloadTypeNumber() &&
+                mRtpTxDtmfPayload == pConfig->getTxDtmfPayloadTypeNumber() &&
+                mRtpRxDtmfPayload == pConfig->getRxDtmfPayloadTypeNumber() &&
                 mDtmfSamplingRate == pConfig->getDtmfsamplingRateKHz());
     }
     else if (mMediaType == IMS_MEDIA_VIDEO)

@@ -74,8 +74,10 @@ public:
     bool getDtxEnabled();
     void setCodecType(const int32_t type);
     int32_t getCodecType();
-    void setDtmfPayloadTypeNumber(const int8_t num);
-    int8_t getDtmfPayloadTypeNumber();
+    void setTxDtmfPayloadTypeNumber(const int8_t num);
+    void setRxDtmfPayloadTypeNumber(const int8_t num);
+    int8_t getTxDtmfPayloadTypeNumber();
+    int8_t getRxDtmfPayloadTypeNumber();
     void setDtmfsamplingRateKHz(const int8_t sampling);
     int8_t getDtmfsamplingRateKHz();
     void setAmrParams(const AmrParams& param);
@@ -113,7 +115,14 @@ protected:
      * in the range from 96 to 127 chosen during the session establishment. The PT
      * value of the RTP header of all DTMF packets shall be set with this value.
      */
-    int8_t dtmfPayloadTypeNumber;
+    int8_t mDtmfTxPayloadTypeNumber;
+
+    /**
+     * @brief Dynamic payload type number to be used for DTMF RTP packets. The values is
+     * in the range from 96 to 127 chosen during the session establishment. The PT
+     * value of the RTP header of all DTMF packets shall be set with this value.
+     */
+    int8_t mDtmfRxPayloadTypeNumber;
     /**
      * @brief Sampling rate for DTMF tone in kHz
      */
