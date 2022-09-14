@@ -71,6 +71,7 @@ public:
     virtual ~IRtcpDecoderListener() {}
     virtual void OnRtcpInd(tRtpSvc_IndicationFromStack eIndType, void* pMsg) = 0;
     virtual void OnNumReceivedPacket(uint32_t nNumRtcpSRPacket, uint32_t nNumRtcpRRPacket) = 0;
+    virtual void OnEvent(uint32_t event, uint32_t param) = 0;
 };
 
 #define MAX_NUM_PAYLOAD_PARAM 3

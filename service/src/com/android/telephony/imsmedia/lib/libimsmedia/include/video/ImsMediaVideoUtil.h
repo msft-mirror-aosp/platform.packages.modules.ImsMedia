@@ -120,6 +120,29 @@ public:
     bool bNackReport;
 };
 
+struct TmmbrParams
+{
+public:
+    TmmbrParams(uint32_t ss = 0, uint32_t e = 0, uint32_t m = 0, uint32_t o = 0) :
+            ssrc(ss),
+            exp(e),
+            mantissa(m),
+            overhead(o)
+    {
+    }
+    TmmbrParams(const TmmbrParams& p)
+    {
+        ssrc = p.ssrc;
+        exp = p.exp;
+        mantissa = p.mantissa;
+        overhead = p.overhead;
+    }
+    uint32_t ssrc;
+    uint32_t exp;
+    uint32_t mantissa;
+    uint32_t overhead;
+};
+
 enum kCameraFacing
 {
     kCameraFacingFront = 0,
@@ -164,11 +187,17 @@ public:
             nackParams(params)
     {
     }
+    InternalRequestEventParam(uint32_t t, const TmmbrParams& params) :
+            type(t),
+            tmmbrParams(params)
+    {
+    }
     uint32_t type;
     union
     {
         uint32_t value;
         NackParams nackParams;
+        TmmbrParams tmmbrParams;
     };
 };
 
@@ -189,6 +218,8 @@ public:
     static bool ParseAvcSps(uint8_t* pbBuffer, uint32_t nBufferSize, tCodecConfig* pInfo);
     static bool ParseHevcSps(uint8_t* pbBuffer, uint32_t nBufferSize, tCodecConfig* pInfo);
     static char* GenerateVideoSprop(VideoConfig* pVideoConfig);
+    static void ConvertBitrateToPower(
+            const uint32_t nInputBitrate, uint32_t& nOutExp, uint32_t& nOutMantissa);
 };
 
 #endif  // IMSMEDIA_VIDEOUTIL_H_INCLUDED

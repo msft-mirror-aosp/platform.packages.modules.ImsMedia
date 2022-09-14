@@ -61,6 +61,8 @@ enum kImsMediaInternalRequestType
     kRequestVideoIdrFrame,
     kRequestVideoSendNack,
     kRequestVideoSendPictureLost,
+    kRequestVideoSendTmmbr,
+    kRequestVideoSendTmmbn,
     kRequestRoundTripTimeDelayUpdate,
 };
 

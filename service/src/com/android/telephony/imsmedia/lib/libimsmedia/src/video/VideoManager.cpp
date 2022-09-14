@@ -338,6 +338,8 @@ void VideoManager::RequestHandler::processEvent(
         case kRequestVideoIdrFrame:
         case kRequestVideoSendNack:
         case kRequestVideoSendPictureLost:
+        case kRequestVideoSendTmmbr:
+        case kRequestVideoSendTmmbn:
         case kRequestRoundTripTimeDelayUpdate:
             VideoManager::getInstance()->SendInternalEvent(event, sessionId, paramA, paramB);
             break;

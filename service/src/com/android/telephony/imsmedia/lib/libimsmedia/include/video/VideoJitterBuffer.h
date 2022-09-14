@@ -29,6 +29,7 @@ class VideoJitterBuffer : public BaseJitterBuffer
 public:
     VideoJitterBuffer();
     virtual ~VideoJitterBuffer();
+
     /**
      * @brief Set the Jitter Buffer Size
      *
@@ -70,7 +71,7 @@ public:
     /**
      * @brief Start the packet loss monitoring timer to check the packet loss rate
      *
-     * @param time The time duration of milliseconds unit to monitor the packet loss
+     * @param time The time duration of seconds unit to monitor the packet loss
      * @param rate The packet loss rate in the monitoring duration range
      */
     void StartTimer(uint32_t time, uint32_t rate);
@@ -93,8 +94,10 @@ private:
     void RequestSendNack(
             uint16_t nLossGap, uint16_t PID, uint16_t countSecondNack, bool bNACK = true);
     void RequestToSendPictureLost(uint32_t eType);
+    void RequestToSendTmmbr(uint32_t bitrate);
     static void OnTimer(hTimerHandler hTimer, void* pUserData);
     void ProcessTimer();
+    void CheckBitrateAdaptation(double lossRate);
 
 private:
     uint32_t mFramerate;
@@ -112,6 +115,8 @@ private:
     std::list<LostPktEntry*> mLostPktList;
     uint32_t mIDRCheckCnt;
     uint32_t mFirTimeStamp;
+    uint32_t mMaxBitrate;
+    uint32_t mRequestedBitrate;
     uint32_t mIncomingBitrate;
     uint32_t mLossDuration;
     uint32_t mLossRateThreshold;

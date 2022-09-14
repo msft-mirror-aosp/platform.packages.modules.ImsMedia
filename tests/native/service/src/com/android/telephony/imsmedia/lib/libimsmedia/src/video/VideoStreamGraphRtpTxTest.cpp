@@ -195,3 +195,23 @@ TEST_F(VideoStreamGraphRtpTxTest, TestRtpTxStreamDirectionUpdate)
     EXPECT_EQ(graph->stop(), RESULT_SUCCESS);
     EXPECT_EQ(graph->getState(), kStreamStateCreated);
 }
+
+TEST_F(VideoStreamGraphRtpTxTest, TestRtpTxStreamInternalEvent)
+{
+    config.setVideoMode(VideoConfig::VIDEO_MODE_RECORDING);
+    EXPECT_EQ(graph->create(&config), RESULT_SUCCESS);
+    EXPECT_EQ(graph->start(), RESULT_SUCCESS);
+    EXPECT_EQ(graph->getState(), kStreamStateWaitSurface);
+
+    graph->setSurface(previewSurface);
+    EXPECT_EQ(graph->getState(), kStreamStateRunning);
+
+    EXPECT_EQ(graph->OnEvent(kRequestVideoCvoUpdate, 1, 90), true);
+
+    EXPECT_EQ(graph->OnEvent(kRequestVideoBitrateChange, 512000, 0), true);
+
+    EXPECT_EQ(graph->OnEvent(kRequestVideoIdrFrame, 0, 0), true);
+
+    EXPECT_EQ(graph->stop(), RESULT_SUCCESS);
+    EXPECT_EQ(graph->getState(), kStreamStateCreated);
+}

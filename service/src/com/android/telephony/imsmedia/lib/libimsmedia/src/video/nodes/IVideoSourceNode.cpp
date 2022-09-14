@@ -295,6 +295,18 @@ void IVideoSourceNode::OnEvent(int32_t type, int32_t param1, int32_t param2)
                 mCallback->SendEvent(kImsMediaEventNotifyError, param1, param2);
             }
             break;
+        case kRequestVideoBitrateChange:
+            if (mVideoSource != NULL)
+            {
+                mVideoSource->changeBitrate(param1);
+            }
+            break;
+        case kRequestVideoIdrFrame:
+            if (mVideoSource != NULL)
+            {
+                mVideoSource->requestIdrFrame();
+            }
+            break;
         default:
             break;
     }

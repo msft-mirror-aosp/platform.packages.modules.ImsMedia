@@ -19,6 +19,7 @@
 
 #include <BaseNode.h>
 #include <IRtpSession.h>
+#include <ImsMediaBitReader.h>
 
 class RtcpDecoderNode : public BaseNode, public IRtcpDecoderListener
 {
@@ -37,9 +38,35 @@ public:
     virtual bool IsSameConfig(void* config);
     virtual void OnRtcpInd(tRtpSvc_IndicationFromStack eIndType, void* pMsg);
     virtual void OnNumReceivedPacket(uint32_t nNumRTCPSRPacket, uint32_t nNumRTCPRRPacket);
+    virtual void OnEvent(uint32_t event, uint32_t param);
+
+    /**
+     * @brief Set the local ip address and port number
+     */
     void SetLocalAddress(const RtpAddress address);
+
+    /**
+     * @brief Set the peer ip address and port number
+     */
     void SetPeerAddress(const RtpAddress address);
+
+    /**
+     * @brief Set the inactivity timer in second unit
+     */
     void SetInactivityTimerSec(const uint32_t time);
+
+    /**
+     * @brief Invokes when the tmmbr received from the RtpStack. This methods sends bitrate change
+     * event and request to send TMMBN.
+     *
+     * @param pstRtcp The payload object set received.
+     */
+    void ReceiveTmmbr(const tRtpSvcIndSt_ReceiveRtcpFeedbackInd* pstRtcp);
+
+    /**
+     * @brief Requests to send event to send IDR frame set to encoder
+     */
+    void RequestIdrFrame();
 
 private:
     IRtpSession* mRtpSession;
@@ -47,6 +74,7 @@ private:
     RtpAddress mPeerAddress;
     uint32_t mInactivityTime;
     uint32_t mNoRtcpTime;
+    ImsMediaBitReader mBitReader;
 };
 
 #endif  // RTCPDECODERNODE_H

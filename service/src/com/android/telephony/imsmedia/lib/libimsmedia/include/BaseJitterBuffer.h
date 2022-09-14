@@ -39,6 +39,7 @@ public:
     BaseJitterBuffer();
     virtual ~BaseJitterBuffer();
     virtual void SetSessionCallback(BaseSessionCallback* callback);
+    virtual void SetSsrc(uint32_t ssrc);
     virtual void SetCodecType(uint32_t type);
     virtual void SetJitterBufferSize(uint32_t nInit, uint32_t nMin, uint32_t nMax);
     virtual void SetJitterOptions(uint32_t nReduceTH, uint32_t nStepSize, double zValue,
@@ -55,6 +56,7 @@ public:
 
 protected:
     BaseSessionCallback* mCallback;
+    uint32_t mSsrc;
     uint32_t mCodecType;
     ImsMediaDataQueue mDataQueue;
     std::mutex mMutex;
@@ -62,12 +64,9 @@ protected:
     uint32_t mMinJitterBufferSize;
     uint32_t mMaxJitterBufferSize;
     bool mNewInputData;
-    uint32_t mDataCount;
     uint16_t mLastPlayedSeqNum;
     uint32_t mLastPlayedTimestamp;
     uint32_t mMaxSaveFrameNum;
-    const void* mGraph;
-    uint64_t mNumOfHandedPacket;
 };
 
 #endif

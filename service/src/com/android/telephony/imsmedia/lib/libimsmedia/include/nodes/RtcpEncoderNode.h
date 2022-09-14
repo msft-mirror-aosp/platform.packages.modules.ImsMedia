@@ -20,6 +20,8 @@
 #include <BaseNode.h>
 #include <IRtpSession.h>
 #include <ImsMediaTimer.h>
+#include <ImsMediaVideoUtil.h>
+#include <ImsMediaBitWriter.h>
 #include <mutex>
 
 #define BLOCK_LENGTH_STATISTICS   40
@@ -39,9 +41,43 @@ public:
     virtual void SetConfig(void* config);
     virtual bool IsSameConfig(void* config);
     virtual void OnRtcpPacket(unsigned char* pData, uint32_t wLen);
+
+    /**
+     * @brief The methods operates when the timer is expired
+     */
     void ProcessTimer();
+
+    /**
+     * @brief Set the local ip address and port number
+     */
     void SetLocalAddress(const RtpAddress address);
+
+    /**
+     * @brief Set the peer ip address and port number
+     */
     void SetPeerAddress(const RtpAddress address);
+
+    /**
+     * @brief Creates NACK payload and request RtpStack to send it
+     *
+     * @param param The parameters to packetize the payload
+     */
+    bool SendNack(NackParams* param);
+
+    /**
+     * @brief Create PLI/FIR payload and request RtpStack to send it
+     *
+     * @param type The type of PLI or FIR
+     */
+    bool SendPictureLost(const uint32_t type);
+
+    /**
+     * @brief Create TMMBR/TMMBN payload and request RtpStack to send it
+     *
+     * @param type The type of TMMBR or TMMBN
+     * @param param The parameters to packetize the payload
+     */
+    bool SendTmmbrn(const uint32_t type, TmmbrParams* param);
 
 private:
     IRtpSession* mRtpSession;
@@ -55,6 +91,9 @@ private:
     int32_t mRtcpFbTypes;
     hTimerHandler mTimer;
     std::mutex mMutexTimer;
+    uint32_t mLastTimeSentPli;
+    uint32_t mLastTimeSentFir;
+    ImsMediaBitWriter mBitWriter;
 };
 
 #endif  // RTCPENCODERNODE_H_INCLUDED

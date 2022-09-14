@@ -193,3 +193,19 @@ TEST_F(VideoStreamGraphRtpRxTest, TestRtpRxStreamCodecUpdate)
     EXPECT_EQ(graph->stop(), RESULT_SUCCESS);
     EXPECT_EQ(graph->getState(), kStreamStateCreated);
 }
+
+TEST_F(VideoStreamGraphRtpRxTest, TestRtpRxStreamInternalEvent)
+{
+    config.setMediaDirection(RtpConfig::MEDIA_DIRECTION_SEND_RECEIVE);
+    EXPECT_EQ(graph->create(&config), RESULT_SUCCESS);
+    EXPECT_EQ(graph->start(), RESULT_SUCCESS);
+    EXPECT_EQ(graph->getState(), kStreamStateWaitSurface);
+
+    graph->setSurface(displaySurface);
+    EXPECT_EQ(graph->getState(), kStreamStateRunning);
+
+    EXPECT_EQ(graph->OnEvent(kRequestRoundTripTimeDelayUpdate, 100, 0), true);
+
+    EXPECT_EQ(graph->stop(), RESULT_SUCCESS);
+    EXPECT_EQ(graph->getState(), kStreamStateCreated);
+}

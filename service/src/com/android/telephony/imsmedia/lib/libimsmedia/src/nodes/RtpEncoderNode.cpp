@@ -23,20 +23,6 @@
 #include <TextConfig.h>
 #include <string.h>
 
-#ifdef DEBUG_JITTER_GEN_SIMULATION_DELAY
-#define DEBUG_JITTER_MAX_PACKET_INTERVAL 70  // msec, minimum value is 30
-#endif
-#ifdef DEBUG_JITTER_GEN_SIMULATION_REORDER
-#include <ImsMediaDataQueue.h>
-#define DEBUG_JITTER_REORDER_MAX 4
-#define DEBUG_JITTER_REORDER_MIN 4
-#define DEBUG_JITTER_NORMAL      2
-#endif
-#ifdef DEBUG_JITTER_GEN_SIMULATION_LOSS
-#define DEBUG_JITTER_LOSS_NORMAT_PACKET 49
-#define DEBUG_JITTER_LOSS_LOSS_PACKET   1
-#endif
-
 RtpEncoderNode::RtpEncoderNode(BaseSessionCallback* callback) :
         BaseNode(callback)
 {
@@ -53,12 +39,6 @@ RtpEncoderNode::RtpEncoderNode(BaseSessionCallback* callback) :
     mCvoValue = CVO_DEFINE_NONE;
     mRedundantLevel = 0;
     mRedundantPayload = 0;
-#ifdef DEBUG_JITTER_GEN_SIMULATION_DELAY
-    mNextTime = 0;
-#endif
-#ifdef DEBUG_JITTER_GEN_SIMULATION_REORDER
-    mReorderDataCount = 0;
-#endif
 }
 
 RtpEncoderNode::~RtpEncoderNode()
@@ -154,40 +134,23 @@ void RtpEncoderNode::ProcessData()
     bool bMark = false;
     uint32_t nSeqNum = 0;
 
-    if (GetData(&subtype, &pData, &nDataSize, &nTimestamp, &bMark, &nSeqNum, NULL) == false)
+    if (GetData(&subtype, &pData, &nDataSize, &nTimestamp, &bMark, &nSeqNum, NULL))
     {
-        return;
-    }
-#ifdef DEBUG_JITTER_GEN_SIMULATION_DELAY
-    {
-        uint32_t nCurrTime = ImsMediaTimer::GetTimeInMilliSeconds();
-        if ((GetDataCount(mMediaType) <= 1) && mNextTime && nCurrTime < mNextTime)
+        if (mMediaType == IMS_MEDIA_AUDIO)
         {
-            return;
+            ProcessAudioData(subtype, pData, nDataSize, nTimestamp);
         }
-        else
+        else if (mMediaType == IMS_MEDIA_VIDEO)
         {
-            uint32_t max_interval_1 = GenerateRandom(
-                    (DEBUG_JITTER_MAX_PACKET_INTERVAL - 30) / GetDataCount(mMediaType));
-            uint32_t max_interval_2 = 30 + max_interval_1;
-            mNextTime = nCurrTime + GenerateRandom(max_interval_2);
+            ProcessVideoData(subtype, pData, nDataSize, nTimestamp, bMark);
         }
-    }
-#endif
-    if (mMediaType == IMS_MEDIA_AUDIO)
-    {
-        ProcessAudioData(subtype, pData, nDataSize, nTimestamp);
-    }
-    else if (mMediaType == IMS_MEDIA_VIDEO)
-    {
-        ProcessVideoData(subtype, pData, nDataSize, nTimestamp, bMark);
-    }
-    else if (mMediaType == IMS_MEDIA_TEXT)
-    {
-        ProcessTextData(subtype, pData, nDataSize, nTimestamp, bMark);
-    }
+        else if (mMediaType == IMS_MEDIA_TEXT)
+        {
+            ProcessTextData(subtype, pData, nDataSize, nTimestamp, bMark);
+        }
 
-    DeleteData();
+        DeleteData();
+    }
 }
 
 bool RtpEncoderNode::IsRunTime()
@@ -285,111 +248,9 @@ bool RtpEncoderNode::IsSameConfig(void* config)
     return false;
 }
 
-// IRtpEncoderListener
 void RtpEncoderNode::OnRtpPacket(unsigned char* pData, uint32_t nSize)
 {
-#ifdef DEBUG_JITTER_GEN_SIMULATION_LOSS
-    bool nLossFlag = false;
-    {
-        static uint32_t nLossNormalCount = 0;
-        static uint32_t nLossLossCount = 0;
-        if (nLossNormalCount < DEBUG_JITTER_LOSS_NORMAT_PACKET)
-        {
-            nLossNormalCount++;
-        }
-        else
-        {
-            if (nLossLossCount < DEBUG_JITTER_LOSS_LOSS_PACKET)
-            {
-                nLossLossCount++;
-                nLossFlag = true;
-            }
-            else
-            {
-                nLossNormalCount = 0;
-                nLossLossCount = 0;
-            }
-        }
-    }
-#endif
-#ifdef DEBUG_JITTER_GEN_SIMULATION_REORDER
-    {
-        // add data to jitter gen buffer
-        DataEntry entry;
-        entry.subtype = MEDIASUBTYPE_RTPPACKET;
-        entry.pbBuffer = pData;
-        entry.nBufferSize = nSize;
-        entry.nTimestamp = 0;
-        entry.bMark = 0;
-        entry.nSeqNum = 0;
-
-        if (mReorderDataCount < DEBUG_JITTER_NORMAL)
-        {
-            jitterData.push_back(&entry);
-        }
-        else if (mReorderDataCount < DEBUG_JITTER_NORMAL + DEBUG_JITTER_REORDER_MAX)
-        {
-            int32_t nCurrReorderSize;
-            int32_t nInsertPos;
-            uint32_t nCurrJitterBufferSize;
-            nCurrJitterBufferSize = jitterData.GetCount();
-            if (DEBUG_JITTER_REORDER_MAX > DEBUG_JITTER_REORDER_MIN)
-            {
-                nCurrReorderSize = mReorderDataCount - DEBUG_JITTER_NORMAL + 1 -
-                        GenerateRandom(DEBUG_JITTER_REORDER_MAX - DEBUG_JITTER_REORDER_MIN + 1);
-            }
-            else
-            {
-                nCurrReorderSize = mReorderDataCount - DEBUG_JITTER_NORMAL + 1;
-            }
-
-            if (nCurrReorderSize > 0)
-                nCurrReorderSize = GenerateRandom(nCurrReorderSize + 1);
-
-            nInsertPos = nCurrJitterBufferSize - nCurrReorderSize;
-            if (nInsertPos < 0)
-                nInsertPos = 0;
-            jitterData.InsertAt(nInsertPos, &entry);
-        }
-
-        mReorderDataCount++;
-
-        if (mReorderDataCount >= DEBUG_JITTER_NORMAL + DEBUG_JITTER_REORDER_MAX)
-        {
-            mReorderDataCount = 0;
-        }
-
-        // send
-        while (jitterData.GetCount() >= DEBUG_JITTER_REORDER_MAX)
-        {
-            DataEntry* pEntry;
-            if (jitterData.Get(&pEntry))
-            {
-#ifdef DEBUG_JITTER_GEN_SIMULATION_LOSS
-                if (nLossFlag == false)
-                {
-                    SendDataToRearNode(
-                            MEDIASUBTYPE_RTPPACKET, pEntry->pbBuffer, pEntry->nBufferSize, 0, 0, 0);
-                }
-#else
-                SendDataToRearNode(
-                        MEDIASUBTYPE_RTPPACKET, pEntry->pbBuffer, pEntry->nBufferSize, 0, 0, 0);
-#endif
-                jitterData.Delete();
-            }
-        }
-    }
-#else
-
-#ifdef DEBUG_JITTER_GEN_SIMULATION_LOSS
-    if (nLossFlag == false)
-    {
-        SendDataToRearNode(MEDIASUBTYPE_RTPPACKET, pData, nSize, 0, 0, 0);
-    }
-#else
     SendDataToRearNode(MEDIASUBTYPE_RTPPACKET, pData, nSize, 0, 0, 0);
-#endif
-#endif
 }
 
 void RtpEncoderNode::SetLocalAddress(const RtpAddress address)

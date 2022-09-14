@@ -35,9 +35,25 @@ public:
     virtual bool IsSameConfig(void* config);
     // IRtpEncoderListener method
     virtual void OnRtpPacket(unsigned char* pData, uint32_t nSize);
+
+    /**
+     * @brief Set the local ip address and port number
+     */
     void SetLocalAddress(const RtpAddress address);
+
+    /**
+     * @brief Set the peer ip address and port number
+     */
     void SetPeerAddress(const RtpAddress address);
+
+    /**
+     * @brief Set the camera facing and device orientation parameter for cvo extension in rtp header
+     */
     void SetCvoExtension(const int64_t facing, const int64_t orientation);
+
+    /**
+     * @brief Set the rtp header extension parameter
+     */
     void SetRtpHeaderExtension(tRtpHeaderExtensionInfo& tExtension);
 
 private:
@@ -63,13 +79,6 @@ private:
     int32_t mRedundantPayload;
     int32_t mRedundantLevel;
     tRtpHeaderExtensionInfo mRtpExtension;
-#ifdef DEBUG_JITTER_GEN_SIMULATION_DELAY
-    uint32_t mNextTime;
-#endif
-#ifdef DEBUG_JITTER_GEN_SIMULATION_REORDER
-    ImsMediaDataQueue jitterData;
-    uint32_t mReorderDataCount;
-#endif
 };
 
 #endif

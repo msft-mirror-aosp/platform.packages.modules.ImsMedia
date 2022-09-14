@@ -318,8 +318,17 @@ bool VideoStreamGraphRtpTx::OnEvent(int32_t type, uint64_t param1, uint64_t para
         break;
         case kRequestVideoBitrateChange:
         case kRequestVideoIdrFrame:
-            /** TODO: add implementation */
-            break;
+        {
+            BaseNode* node = findNode(kNodeIdVideoSource);
+
+            if (node != NULL)
+            {
+                IVideoSourceNode* pNode = reinterpret_cast<IVideoSourceNode*>(node);
+                pNode->OnEvent(type, param1, param2);
+                return true;
+            }
+        }
+        break;
         default:
             break;
     }

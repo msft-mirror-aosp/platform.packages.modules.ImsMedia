@@ -30,7 +30,9 @@
 #define CODECFILTER_AUDIO_SKIP_READCOUNTER          100
 #define RTCPNACK_SEQ_INCREASE(seq)                  (seq == 0xffff ? 0 : seq + 1)
 #define RTCPNACK_SEQ_ROUND_COMPARE(a, b)            ((a > b) && (a > 0xfff0) && (b < 0x000f))
-#define DEFAULT_BITRATE_MONITORING_TIME             1000
+#define DEFAULT_PACKET_LOSS_MONITORING_TIME         5     // sec
+#define PACKET_LOSS_RATIO                           2     // percentage
+#define BITRATE_ADAPTIVE_RATIO                      0.1f  // ratio
 
 VideoJitterBuffer::VideoJitterBuffer() :
         BaseJitterBuffer()
@@ -60,8 +62,9 @@ VideoJitterBuffer::VideoJitterBuffer() :
     mLastAddedSeqNum = 0;
     mIDRCheckCnt = DEFAULT_IDR_FRAME_CHECK_INTRERVAL;
     mFirTimeStamp = 0;
+    mMaxBitrate = 0;
     mIncomingBitrate = 0;
-    mLossDuration = 0;
+    mLossDuration = DEFAULT_PACKET_LOSS_MONITORING_TIME;
     mLossRateThreshold = 0;
     mCountTimerExpired = 0;
     mTimer = NULL;
@@ -138,14 +141,12 @@ void VideoJitterBuffer::Reset()
 
 void VideoJitterBuffer::StartTimer(uint32_t time, uint32_t rate)
 {
-    IMLOGD2("[SetRtpPacketLossRate] time[%d], rate[%u]", time, rate);
-    mLossDuration = time;
-    mLossRateThreshold = rate;
+    IMLOGD2("[StartTimer] time[%d], rate[%u]", time, rate);
 
     if (mTimer == NULL)
     {
         IMLOGD0("[StartTimer] timer start");
-        mTimer = ImsMediaTimer::TimerStart(DEFAULT_BITRATE_MONITORING_TIME, true, OnTimer, this);
+        mTimer = ImsMediaTimer::TimerStart(1000, true, OnTimer, this);
     }
 }
 
@@ -154,7 +155,12 @@ void VideoJitterBuffer::StopTimer()
     if (mTimer != NULL)
     {
         IMLOGD0("[StopTimer] stop timer");
-        ImsMediaTimer::TimerStop(mTimer, NULL);
+
+        if (ImsMediaTimer::TimerStop(mTimer, NULL) == false)
+        {
+            IMLOGE0("[StopTimer] stop timer error");
+        }
+
         mTimer = NULL;
     }
 }
@@ -923,6 +929,18 @@ void VideoJitterBuffer::RequestToSendPictureLost(uint32_t type)
     mCallback->SendEvent(kRequestVideoSendPictureLost, reinterpret_cast<uint64_t>(pParam));
 }
 
+void VideoJitterBuffer::RequestToSendTmmbr(uint32_t bitrate)
+{
+    IMLOGD2("[RequestToSendTmmbr] ssrc[%x], bitrate[%d]", mSsrc, bitrate);
+    uint32_t exp = 0;
+    uint32_t mantissa = 0;
+    ImsMediaVideoUtil::ConvertBitrateToPower(bitrate, exp, mantissa);
+
+    InternalRequestEventParam* pParam =
+            new InternalRequestEventParam(kRtpFbTmmbr, TmmbrParams(mSsrc, exp, mantissa, 40));
+    mCallback->SendEvent(kRequestVideoSendTmmbr, reinterpret_cast<uint64_t>(pParam));
+}
+
 void VideoJitterBuffer::OnTimer(hTimerHandler hTimer, void* pUserData)
 {
     (void)hTimer;
@@ -938,18 +956,35 @@ void VideoJitterBuffer::ProcessTimer()
 {
     mCountTimerExpired++;
 
-    /** calculate loss rate */
-    if (mLossDuration != 0 &&
-            mCountTimerExpired >= (mLossDuration / DEFAULT_BITRATE_MONITORING_TIME))
+    /** calculate bitrate */
+    mIncomingBitrate = mAccumulatedPacketSize * 8;
+
+    if (mIncomingBitrate > mMaxBitrate)
     {
-        double lossRate = mNumLossPacket * 100 / (mNumAddedPacket + mNumLossPacket);
+        mMaxBitrate = mIncomingBitrate;
+    }
 
-        IMLOGD3("[ProcessTimer] rate[%lf], lossPackets[%d], addedPackets[%d]", lossRate,
-                mNumLossPacket, mNumAddedPacket);
+    IMLOGD_PACKET2(IM_PACKET_LOG_JITTER, "[ProcessTimer] bitrate[%d] maxBitrate[%d]",
+            mIncomingBitrate, mMaxBitrate);
 
-        if (lossRate >= mLossRateThreshold)
+    mAccumulatedPacketSize = 0;
+
+    /** calculate loss rate in every seconds */
+    double lossRate = mNumLossPacket * 100 / (mNumAddedPacket + mNumLossPacket);
+
+    IMLOGD3("[ProcessTimer] rate[%lf], lossPackets[%d], addedPackets[%d]", lossRate, mNumLossPacket,
+            mNumAddedPacket);
+
+    if (mIncomingBitrate > 0)
+    {
+        CheckBitrateAdaptation(lossRate);
+    }
+
+    /** compare loss rate with threshold */
+    if (mLossDuration != 0 && mCountTimerExpired >= mLossDuration)
+    {
+        if (lossRate >= mLossRateThreshold && mLossRateThreshold != 0)
         {
-            /** TODO: request send TMMBR */
             /** TODO: request send loss indication event */
         }
 
@@ -957,10 +992,26 @@ void VideoJitterBuffer::ProcessTimer()
         mNumAddedPacket = 0;
         mCountTimerExpired = 0;
     }
+}
 
-    /** calculate bitrate */
-    mIncomingBitrate = mAccumulatedPacketSize * 8;
+void VideoJitterBuffer::CheckBitrateAdaptation(double lossRate)
+{
+    if (mCountTimerExpired % DEFAULT_PACKET_LOSS_MONITORING_TIME == 0)
+    {
+        if (lossRate >= PACKET_LOSS_RATIO)
+        {
+            RequestToSendTmmbr(mIncomingBitrate);
+        }
+        else if (lossRate == 0)
+        {
+            mRequestedBitrate = mIncomingBitrate + mIncomingBitrate * BITRATE_ADAPTIVE_RATIO;
 
-    IMLOGD_PACKET1(IM_PACKET_LOG_JITTER, "[ProcessTimer] IncomingBitrate[%d]", mIncomingBitrate);
-    mAccumulatedPacketSize = 0;
+            if (mRequestedBitrate > mMaxBitrate)
+            {
+                mRequestedBitrate = mMaxBitrate;
+            }
+
+            RequestToSendTmmbr(mRequestedBitrate);
+        }
+    }
 }

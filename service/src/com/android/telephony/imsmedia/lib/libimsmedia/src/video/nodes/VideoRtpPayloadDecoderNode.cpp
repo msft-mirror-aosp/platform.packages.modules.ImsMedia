@@ -99,6 +99,12 @@ void VideoRtpPayloadDecoderNode::OnDataFromFrontNode(ImsMediaSubType subtype, ui
         uint32_t nDataSize, uint32_t nTimeStamp, bool bMark, uint32_t nSeqNum,
         ImsMediaSubType nDataType)
 {
+    if (subtype == MEDIASUBTYPE_REFRESHED)
+    {
+        SendDataToRearNode(subtype, NULL, nDataSize, 0, 0, 0, MEDIASUBTYPE_UNDEFINED);
+        return;
+    }
+
     switch (mCodecType)
     {
         case VideoConfig::CODEC_AVC:
@@ -118,13 +124,6 @@ void VideoRtpPayloadDecoderNode::OnDataFromFrontNode(ImsMediaSubType subtype, ui
 void VideoRtpPayloadDecoderNode::DecodeAvc(ImsMediaSubType subtype, uint8_t* pData,
         uint32_t nDataSize, uint32_t nTimeStamp, bool bMark, uint32_t nSeqNum)
 {
-    if (subtype == MEDIASUBTYPE_REFRESHED)
-    {
-        IMLOGD0("[DecodeAvc] REFRESHED");
-        SendDataToRearNode(subtype, 0, 0, 0, 0, 0, MEDIASUBTYPE_UNDEFINED);
-        return;
-    }
-
     if (pData == NULL || nDataSize == 0)
     {
         return;
