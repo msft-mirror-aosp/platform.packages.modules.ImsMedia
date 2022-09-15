@@ -300,6 +300,8 @@ void AudioManager::RequestHandler::processEvent(
         break;
         case kAudioCloseSession:
             AudioManager::getInstance()->closeSession(static_cast<int>(sessionId));
+            ImsMediaEventHandler::SendEvent(
+                    "AUDIO_RESPONSE_EVENT", kAudioSessionClosed, sessionId, 0, 0);
             break;
         case kAudioModifySession:
         {
@@ -435,7 +437,16 @@ void AudioManager::ResponseHandler::processEvent(
             break;
         case kAudioPacketLossInd:
         case kAudioJitterInd:
-            // TODO : add implementation
+        case kAudioTriggerAnbrQueryInd:
+        case kAudioDtmfReceivedInd:
+        case kAudioCallQualityChangedInd:
+            /** TODO: add implementation */
+            break;
+        case kAudioSessionClosed:
+            parcel.writeInt32(event);
+            parcel.writeInt32(static_cast<int>(sessionId));
+            AudioManager::getInstance()->sendResponse(
+                    reinterpret_cast<uint64_t>(AudioManager::getInstance()), parcel);
             break;
         default:
             break;

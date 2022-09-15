@@ -300,6 +300,8 @@ void VideoManager::RequestHandler::processEvent(
         break;
         case kVideoCloseSession:
             VideoManager::getInstance()->closeSession(static_cast<int>(sessionId));
+            ImsMediaEventHandler::SendEvent(
+                    "VIDEO_RESPONSE_EVENT", kVideoSessionClosed, sessionId, 0, 0);
             break;
         case kVideoSetPreviewSurface:
             VideoManager::getInstance()->setPreviewSurfaceToSession(
@@ -430,6 +432,12 @@ void VideoManager::ResponseHandler::processEvent(
         case kVideoDataUsageInd:
             parcel.writeInt32(event);
             parcel.writeInt64(static_cast<int>(paramA));
+            VideoManager::getInstance()->sendResponse(
+                    reinterpret_cast<uint64_t>(VideoManager::getInstance()), parcel);
+            break;
+        case kVideoSessionClosed:
+            parcel.writeInt32(event);
+            parcel.writeInt32(static_cast<int>(sessionId));
             VideoManager::getInstance()->sendResponse(
                     reinterpret_cast<uint64_t>(VideoManager::getInstance()), parcel);
             break;

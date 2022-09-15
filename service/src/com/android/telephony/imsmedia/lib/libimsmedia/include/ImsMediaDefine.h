@@ -308,6 +308,10 @@ enum ImsMediaAudioMsgResponse
     kAudioMediaInactivityInd,
     kAudioPacketLossInd,
     kAudioJitterInd,
+    kAudioTriggerAnbrQueryInd,
+    kAudioDtmfReceivedInd,
+    kAudioCallQualityChangedInd,
+    kAudioSessionClosed,
 };
 
 enum ImsMediaVideoMsgRequest
@@ -334,6 +338,7 @@ enum ImsMediaVideoMsgResponse
     kVideoMediaInactivityInd,
     kVideoPacketLossInd,
     kVideoDataUsageInd,
+    kVideoSessionClosed,
 };
 
 enum ImsMediaTextMsgRequest
@@ -353,6 +358,7 @@ enum ImsMediaTextMsgResponse
     kTextSessionChangedInd,
     kTextMediaInactivityInd,
     kTextRttReceived,
+    kTextSessionClosed,
 };
 
 #define UNDEFINED_SOCKET_FD                        -1
