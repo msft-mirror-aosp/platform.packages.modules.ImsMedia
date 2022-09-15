@@ -19,7 +19,7 @@ package {
 
 // TODO: Make it as SDK library after API review
 android_library {
-    name: "android.telephony.imsmedia",
+    name: "ImsMediaFramework",
     srcs: [
         "src/**/*.java",
         "src/**/*.aidl",

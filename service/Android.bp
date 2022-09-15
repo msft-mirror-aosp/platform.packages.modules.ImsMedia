@@ -35,13 +35,13 @@ android_library {
     static_libs: [
         "android.hardware.radio.ims.media-V1-java",
         // TODO: move this to libs after API review
-        "android.telephony.imsmedia",
+        "ImsMediaFramework",
     ],
     platform_apis: true,
 }
 
 android_app {
-    name: "com.android.telephony.imsmedia",
+    name: "ImsMediaService",
     manifest: "AndroidManifest.xml",
     static_libs: [
         "imsmedia-core",

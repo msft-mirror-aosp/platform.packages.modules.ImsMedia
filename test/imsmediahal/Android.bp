@@ -3,7 +3,7 @@ package {
 }
 
 android_app {
-    name: "com.android.telephony.testimsmediahal",
+    name: "TestImsMediaHal",
     manifest: "AndroidManifest.xml",
     srcs: [
         "src/**/*.java",
@@ -13,7 +13,7 @@ android_app {
     ],
     static_libs: [
        "android.hardware.radio.ims.media-V1-java",
-       "android.telephony.imsmedia",
+       "ImsMediaFramework",
        "imsmedia-core",
     ],
     optimize: {
