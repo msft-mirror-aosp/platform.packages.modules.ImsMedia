@@ -165,6 +165,14 @@ int32_t RtcpConfig::getRtcpXrBlockTypes()
     return rtcpXrBlockTypes;
 }
 
+void RtcpConfig::setDefaultRtcpConfig()
+{
+    canonicalName = android::String8("");
+    transmitPort = kTransmitPort;
+    intervalSec = kIntervalSec;
+    rtcpXrBlockTypes = kRtcpXrBlockTypes;
+}
+
 }  // namespace imsmedia
 
 }  // namespace telephony

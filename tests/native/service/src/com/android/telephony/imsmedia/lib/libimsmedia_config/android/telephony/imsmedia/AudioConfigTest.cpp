@@ -197,3 +197,37 @@ TEST_F(AudioConfigTest, TestNotEqual)
     EXPECT_NE(config2, config1);
     EXPECT_NE(config3, config1);
 }
+
+TEST_F(AudioConfigTest, TestParcelWithoutRtcp)
+{
+    android::Parcel parcel;
+    AudioConfig configWrite;
+
+    configWrite.setMediaDirection(kMediaDirection);
+    configWrite.setRemoteAddress(kRemoteAddress);
+    configWrite.setRemotePort(kRemotePort);
+    configWrite.setDscp(kDscp);
+    configWrite.setRxPayloadTypeNumber(kRxPayload);
+    configWrite.setTxPayloadTypeNumber(kTxPayload);
+    configWrite.setSamplingRateKHz(kSamplingRate);
+    configWrite.setPtimeMillis(kPTimeMillis);
+    configWrite.setMaxPtimeMillis(kMaxPtimeMillis);
+    configWrite.setDtxEnabled(kDtxEnabled);
+    configWrite.setCodecType(kCodecType);
+    configWrite.setTxDtmfPayloadTypeNumber(kDtmfPayloadTypeNumber);
+    configWrite.setRxDtmfPayloadTypeNumber(kDtmfPayloadTypeNumber);
+    configWrite.setDtmfsamplingRateKHz(kDtmfsamplingRateKHz);
+    configWrite.setAmrParams(amr);
+    configWrite.setEvsParams(evs);
+    configWrite.writeToParcel(&parcel);
+    parcel.setDataPosition(0);
+
+    AudioConfig configRead;
+    configRead.readFromParcel(&parcel);
+
+    EXPECT_EQ(configRead, configWrite);
+    EXPECT_TRUE(configRead.getRtcpConfig().getCanonicalName() == "");
+    EXPECT_EQ(configRead.getRtcpConfig().getTransmitPort(), 0);
+    EXPECT_EQ(configRead.getRtcpConfig().getIntervalSec(), 0);
+    EXPECT_EQ(configRead.getRtcpConfig().getRtcpXrBlockTypes(), RtcpConfig::FLAG_RTCPXR_NONE);
+}

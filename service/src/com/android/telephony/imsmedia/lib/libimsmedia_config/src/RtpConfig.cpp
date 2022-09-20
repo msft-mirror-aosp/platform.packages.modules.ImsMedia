@@ -240,15 +240,20 @@ status_t RtpConfig::readFromParcel(const Parcel* in)
 
     String16 className;
     err = in->readString16(&className);
-    if (err != NO_ERROR)
+    if (err == NO_ERROR)
     {
-        return err;
+        // read RtcpConfig
+        err = rtcpConfig.readFromParcel(in);
+        if (err != NO_ERROR)
+        {
+            return err;
+        }
     }
-
-    // read RtcpConfig
-    String8 className2 = String8(className.string());
-    err = rtcpConfig.readFromParcel(in);
-    if (err != NO_ERROR)
+    else if (err == UNEXPECTED_NULL)
+    {
+        rtcpConfig.setDefaultRtcpConfig();
+    }
+    else
     {
         return err;
     }

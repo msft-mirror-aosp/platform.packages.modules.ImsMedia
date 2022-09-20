@@ -83,6 +83,11 @@ public:
         FLAG_RTCPXR_VOIP_METRICS_REPORT_BLOCK = 1 << 6,
     };
 
+    // Default RtcpConfig
+    const int32_t kTransmitPort = 0;
+    const int32_t kIntervalSec = 0;
+    const int32_t kRtcpXrBlockTypes = FLAG_RTCPXR_NONE;
+
     RtcpConfig();
     RtcpConfig(RtcpConfig& config);
     virtual ~RtcpConfig();
@@ -99,6 +104,7 @@ public:
     int32_t getIntervalSec();
     void setRtcpXrBlockTypes(const int32_t type);
     int32_t getRtcpXrBlockTypes();
+    void setDefaultRtcpConfig();
 
 private:
     /** Canonical name that will be sent to all session participants */
