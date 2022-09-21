@@ -142,7 +142,7 @@ TEST_F(AudioStreamGraphRtcpTest, TestGraphSetMediaThresholdFail)
     EXPECT_EQ(graph->setMediaQualityThreshold(&threshold), false);
 }
 
-TEST_F(AudioStreamGraphRtcpTest, TestRtcpStreamAndUpdate)
+TEST_F(AudioStreamGraphRtcpTest, TestRtcpStream)
 {
     EXPECT_EQ(graph->create(&config), RESULT_SUCCESS);
     EXPECT_EQ(graph->setMediaQualityThreshold(&threshold), true);
@@ -150,16 +150,6 @@ TEST_F(AudioStreamGraphRtcpTest, TestRtcpStreamAndUpdate)
     EXPECT_EQ(graph->getState(), kStreamStateRunning);
 
     EXPECT_EQ(graph->update(nullptr), RESULT_INVALID_PARAM);
-
-    rtcp.setIntervalSec(5);
-    config.setRtcpConfig(rtcp);
-    EXPECT_EQ(graph->update(&config), RESULT_SUCCESS);
-    EXPECT_EQ(graph->getState(), kStreamStateRunning);
-
-    rtcp.setIntervalSec(0);
-    config.setRtcpConfig(rtcp);
-    EXPECT_EQ(graph->update(&config), RESULT_SUCCESS);
-    EXPECT_EQ(graph->getState(), kStreamStateCreated);
 
     rtcp.setIntervalSec(5);
     config.setRtcpConfig(rtcp);

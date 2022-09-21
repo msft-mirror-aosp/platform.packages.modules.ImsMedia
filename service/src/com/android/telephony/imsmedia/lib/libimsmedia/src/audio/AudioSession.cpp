@@ -112,7 +112,15 @@ ImsMediaResult AudioSession::startGraph(RtpConfig* config)
 
     if (mListGraphRtpTx.size() != 0)
     {
-        ret = mListGraphRtpTx.front()->update(config);
+        for (auto& graph : mListGraphRtpTx)
+        {
+            if (graph != NULL && graph->isSameGraph(config))
+            {
+                ret = graph->update(config);
+                break;
+            }
+        }
+
         if (ret != RESULT_SUCCESS)
         {
             IMLOGE1("[startGraph] update error[%d]", ret);
@@ -141,8 +149,16 @@ ImsMediaResult AudioSession::startGraph(RtpConfig* config)
 
     if (mListGraphRtpRx.size() != 0)
     {
-        mListGraphRtpRx.front()->setMediaQualityThreshold(&mThreshold);
-        ret = mListGraphRtpRx.front()->update(config);
+        for (auto& graph : mListGraphRtpRx)
+        {
+            if (graph != NULL && graph->isSameGraph(config))
+            {
+                graph->setMediaQualityThreshold(&mThreshold);
+                ret = graph->update(config);
+                break;
+            }
+        }
+
         if (ret != RESULT_SUCCESS)
         {
             IMLOGE1("[startGraph] update error[%d]", ret);
@@ -172,8 +188,16 @@ ImsMediaResult AudioSession::startGraph(RtpConfig* config)
 
     if (mListGraphRtcp.size() != 0)
     {
-        mListGraphRtcp.front()->setMediaQualityThreshold(&mThreshold);
-        ret = mListGraphRtcp.front()->update(config);
+        for (auto& graph : mListGraphRtcp)
+        {
+            if (graph != NULL && graph->isSameGraph(config))
+            {
+                graph->setMediaQualityThreshold(&mThreshold);
+                ret = graph->update(config);
+                break;
+            }
+        }
+
         if (ret != RESULT_SUCCESS)
         {
             IMLOGE1("[startGraph] update error[%d]", ret);
@@ -210,8 +234,8 @@ ImsMediaResult AudioSession::addGraph(RtpConfig* config)
     {
         if (graph != NULL && graph->isSameGraph(config))
         {
-            IMLOGE0("[addGraph] same config is exist");
-            return RESULT_INVALID_PARAM;
+            IMLOGW0("[addGraph] same config is exist");
+            return startGraph(config);
         }
     }
 
