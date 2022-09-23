@@ -70,10 +70,10 @@ void ImsMediaAudioSource::SetCodecMode(uint32_t mode)
     mMode = mode;
 }
 
-void ImsMediaAudioSource::SetEvsBitRate(uint32_t mode)
+void ImsMediaAudioSource::SetEvsBitRate(uint32_t bitrate)
 {
-    mEvsBitRate = ImsMediaAudioUtil::ConvertEVSModeToBitRate(mode);
-    IMLOGD1("[SetEvsBitRate] EvsBitRate[%d]", mEvsBitRate);
+    IMLOGD1("[SetEvsBitRate] bitrate[%d]", bitrate);
+    mEvsBitRate = bitrate;
 }
 
 void ImsMediaAudioSource::SetSamplingRate(int32_t samplingRate)

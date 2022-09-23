@@ -379,83 +379,61 @@ uint32_t ImsMediaAudioUtil::GetMaximumEvsMode(int32_t bitmask)
     {
         if (bitmask & (1 << i))
         {
-            maxMode = i;
+            maxMode = 1 << i;
         }
     }
 
     return maxMode;
 }
 
-int32_t ImsMediaAudioUtil::ConvertEVSModeToBitRate(int32_t EvsModeToBitRate)
+int32_t ImsMediaAudioUtil::ConvertEVSModeToBitRate(int32_t mode)
 {
-    switch (EvsModeToBitRate)
+    switch (mode)
     {
         case EvsParams::EVS_MODE_0:
             return 6600;
-            break;
         case EvsParams::EVS_MODE_1:
             return 8850;
-            break;
         case EvsParams::EVS_MODE_2:
             return 12650;
-            break;
         case EvsParams::EVS_MODE_3:
             return 14250;
-            break;
         case EvsParams::EVS_MODE_4:
             return 15850;
-            break;
         case EvsParams::EVS_MODE_5:
             return 18250;
-            break;
         case EvsParams::EVS_MODE_6:
             return 19850;
-            break;
         case EvsParams::EVS_MODE_7:
             return 23050;
-            break;
         case EvsParams::EVS_MODE_8:
             return 23850;
-            break;
         case EvsParams::EVS_MODE_9:
             return 5900;
-            break;
         case EvsParams::EVS_MODE_10:
             return 7200;
-            break;
         case EvsParams::EVS_MODE_11:
             return 8000;
-            break;
         case EvsParams::EVS_MODE_12:
             return 9600;
-            break;
         case EvsParams::EVS_MODE_13:
             return 13200;
-            break;
         case EvsParams::EVS_MODE_14:
             return 16400;
-            break;
         case EvsParams::EVS_MODE_15:
             return 24400;
-            break;
         case EvsParams::EVS_MODE_16:
             return 32000;
-            break;
         case EvsParams::EVS_MODE_17:
             return 48000;
-            break;
         case EvsParams::EVS_MODE_18:
             return 64000;
-            break;
         case EvsParams::EVS_MODE_19:
             return 96000;
-            break;
         case EvsParams::EVS_MODE_20:
             return 128000;
-            break;
         default:
             return 13200;
-            break;
     }
 }
 
