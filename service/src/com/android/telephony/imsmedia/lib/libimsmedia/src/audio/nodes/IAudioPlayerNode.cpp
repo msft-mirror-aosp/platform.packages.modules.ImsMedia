@@ -120,7 +120,9 @@ void IAudioPlayerNode::SetConfig(void* config)
 
         mSamplingRate = pConfig->getSamplingRateKHz();
         SetJitterBufferSize(4, 4, 9);
-        SetJitterOptions(80, 1, (double)25 / 10, true, true);
+        SetJitterOptions(80, 1, (double)25 / 10,
+                false, /** TODO: when enable DTX, set this true on condition*/
+                true);
     }
 }
 

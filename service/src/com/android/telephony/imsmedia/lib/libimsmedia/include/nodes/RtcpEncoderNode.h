@@ -86,7 +86,7 @@ private:
     uint32_t mRtcpInterval;
     uint8_t* mRtcpXrPayload;
     bool mEnableRtcpBye;
-    uint32_t mRtcpXrBlockType;
+    uint32_t mRtcpXrBlockTypes;
     int32_t mRtcpXrCounter;
     int32_t mRtcpFbTypes;
     hTimerHandler mTimer;

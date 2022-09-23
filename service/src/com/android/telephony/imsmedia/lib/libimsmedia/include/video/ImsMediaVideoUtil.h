@@ -149,26 +149,6 @@ enum kCameraFacing
     kCameraFacingRear,
 };
 
-struct LostPktEntry
-{
-public:
-    LostPktEntry() :
-            nSeqNum(0),
-            nReqTime(0),
-            nNACKReqType(0)
-    {
-    }
-    LostPktEntry(uint16_t seq, uint32_t time, uint32_t type) :
-            nSeqNum(seq),
-            nReqTime(time),
-            nNACKReqType(type)
-    {
-    }
-    uint16_t nSeqNum;
-    uint32_t nReqTime;
-    uint32_t nNACKReqType;
-};
-
 struct InternalRequestEventParam
 {
 public:

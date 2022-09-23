@@ -33,17 +33,18 @@ public:
     virtual void SetConfig(void* config);
     virtual bool IsSameConfig(void* config);
     virtual void OnDataFromFrontNode(ImsMediaSubType subtype, uint8_t* pData, uint32_t nDataSize,
-            uint32_t nTimestamp, bool bMark, uint32_t nSeqNum,
-            ImsMediaSubType nDataType = ImsMediaSubType::MEDIASUBTYPE_UNDEFINED);
+            uint32_t timestamp, bool mark, uint32_t nSeqNum,
+            ImsMediaSubType nDataType = ImsMediaSubType::MEDIASUBTYPE_UNDEFINED,
+            uint32_t arrivalTime = 0);
     void SetLocalFd(int fd);
     void SetLocalAddress(const RtpAddress address);
     void SetPeerAddress(const RtpAddress address);
-    void SetProtocolType(ImsMediaProtocolType type) { mProtocolType = type; }
+    void SetProtocolType(kProtocolType type) { mProtocolType = type; }
 
 private:
     int mLocalFd;
     ISocket* mSocket;
-    ImsMediaProtocolType mProtocolType;
+    kProtocolType mProtocolType;
     RtpAddress mLocalAddress;
     RtpAddress mPeerAddress;
     int32_t mDscp;

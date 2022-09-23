@@ -83,7 +83,7 @@ ImsMediaResult VideoStreamGraphRtpTx::create(RtpConfig* config)
     pNodeSocketWriter->SetMediaType(IMS_MEDIA_VIDEO);
     ((SocketWriterNode*)pNodeSocketWriter)->SetLocalFd(mLocalFd);
     ((SocketWriterNode*)pNodeSocketWriter)->SetLocalAddress(localAddress);
-    ((SocketWriterNode*)pNodeSocketWriter)->SetProtocolType(RTP);
+    ((SocketWriterNode*)pNodeSocketWriter)->SetProtocolType(kProtocolRtp);
     pNodeSocketWriter->SetConfig(config);
     AddNode(pNodeSocketWriter);
     pNodeRtpEncoder->ConnectRearNode(pNodeSocketWriter);

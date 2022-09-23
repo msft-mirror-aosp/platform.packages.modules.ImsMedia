@@ -27,7 +27,7 @@ RtcpEncoderNode::RtcpEncoderNode(BaseSessionCallback* callback) :
     mRtcpInterval = 0;
     mRtcpXrPayload = NULL;
     mEnableRtcpBye = false;
-    mRtcpXrBlockType = RtcpConfig::FLAG_RTCPXR_NONE;
+    mRtcpXrBlockTypes = RtcpConfig::FLAG_RTCPXR_NONE;
     mRtcpXrCounter = 0;
     mTimer = NULL;
     mLastTimeSentPli = 0;
@@ -44,7 +44,7 @@ RtcpEncoderNode::~RtcpEncoderNode()
         mRtpSession = NULL;
     }
 
-    mRtcpXrBlockType = RtcpConfig::FLAG_RTCPXR_NONE;
+    mRtcpXrBlockTypes = RtcpConfig::FLAG_RTCPXR_NONE;
     mRtcpXrCounter = 0;
 }
 
@@ -69,7 +69,7 @@ ImsMediaResult RtcpEncoderNode::Start()
     }
 
     IMLOGD4("[Start] interval[%d], rtcpBye[%d], rtcpXrBlock[%d], rtcpFbTypes[%d]", mRtcpInterval,
-            mEnableRtcpBye, mRtcpXrBlockType, mRtcpFbTypes);
+            mEnableRtcpBye, mRtcpXrBlockTypes, mRtcpFbTypes);
     mRtpSession->SetRtcpEncoderListener(this);
     mRtpSession->SetRtcpInterval(mRtcpInterval);
 
@@ -124,11 +124,11 @@ void RtcpEncoderNode::SetConfig(void* config)
     RtpConfig* pConfig = reinterpret_cast<RtpConfig*>(config);
     mPeerAddress = RtpAddress(pConfig->getRemoteAddress().c_str(), pConfig->getRemotePort());
     mRtcpInterval = pConfig->getRtcpConfig().getIntervalSec();
-    mRtcpXrBlockType = pConfig->getRtcpConfig().getRtcpXrBlockTypes();
+    mRtcpXrBlockTypes = pConfig->getRtcpConfig().getRtcpXrBlockTypes();
     mEnableRtcpBye = false;
 
     IMLOGD4("[SetConfig] peer Ip[%s], port[%d], interval[%d], rtcpxr[%d]", mPeerAddress.ipAddress,
-            mPeerAddress.port, mRtcpInterval, mRtcpXrBlockType);
+            mPeerAddress.port, mRtcpInterval, mRtcpXrBlockTypes);
 
     if (mMediaType == IMS_MEDIA_VIDEO)
     {
@@ -154,14 +154,14 @@ bool RtcpEncoderNode::IsSameConfig(void* config)
         VideoConfig* videoConfig = reinterpret_cast<VideoConfig*>(config);
         return (mPeerAddress == peerAddress &&
                 mRtcpInterval == videoConfig->getRtcpConfig().getIntervalSec() &&
-                mRtcpXrBlockType == videoConfig->getRtcpConfig().getRtcpXrBlockTypes() &&
+                mRtcpXrBlockTypes == videoConfig->getRtcpConfig().getRtcpXrBlockTypes() &&
                 mRtcpFbTypes == videoConfig->getRtcpFbType());
     }
     else
     {
         return (mPeerAddress == peerAddress &&
                 mRtcpInterval == pConfig->getRtcpConfig().getIntervalSec() &&
-                mRtcpXrBlockType == pConfig->getRtcpConfig().getRtcpXrBlockTypes());
+                mRtcpXrBlockTypes == pConfig->getRtcpConfig().getRtcpXrBlockTypes());
     }
 }
 

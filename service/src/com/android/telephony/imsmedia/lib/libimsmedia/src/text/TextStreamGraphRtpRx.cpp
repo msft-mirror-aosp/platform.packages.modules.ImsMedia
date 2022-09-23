@@ -50,7 +50,7 @@ ImsMediaResult TextStreamGraphRtpRx::create(RtpConfig* config)
     pNodeSocketReader->SetMediaType(IMS_MEDIA_TEXT);
     ((SocketReaderNode*)pNodeSocketReader)->SetLocalFd(mLocalFd);
     ((SocketReaderNode*)pNodeSocketReader)->SetLocalAddress(localAddress);
-    ((SocketReaderNode*)pNodeSocketReader)->SetProtocolType(RTP);
+    ((SocketReaderNode*)pNodeSocketReader)->SetProtocolType(kProtocolRtp);
     pNodeSocketReader->SetConfig(config);
     AddNode(pNodeSocketReader);
 

@@ -31,7 +31,8 @@ public:
             bool bImprovement);
     virtual void Add(ImsMediaSubType subtype, uint8_t* pbBuffer, uint32_t nBufferSize,
             uint32_t nTimestamp, bool bMark, uint32_t nSeqNum,
-            ImsMediaSubType nDataType = ImsMediaSubType::MEDIASUBTYPE_UNDEFINED);
+            ImsMediaSubType nDataType = ImsMediaSubType::MEDIASUBTYPE_UNDEFINED,
+            uint32_t arrivalTime = 0);
     virtual bool Get(ImsMediaSubType* psubtype, uint8_t** ppData, uint32_t* pnDataSize,
             uint32_t* pnTimestamp, bool* pbMark, uint32_t* pnSeqNum, uint32_t* pnChecker = NULL);
 
@@ -52,8 +53,8 @@ private:
     uint32_t mCanNotGetCount;
     uint32_t mCurrPlayingTS;
     uint16_t mCurrPlayingSeq;
-    uint32_t mBaseTS;
-    uint32_t mBaseAT;
+    uint32_t mBaseTimestamp;
+    uint32_t mBaseArrivalTime;
     uint32_t mNullDataCount;
     uint32_t mUpdateJitterBufferSize;
     uint32_t mCheckUpdateJitterPacketCnt;

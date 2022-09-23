@@ -49,7 +49,7 @@ ImsMediaResult AudioStreamGraphRtpRx::create(RtpConfig* config)
     RtpAddress localAddress(localIp, localPort);
     ((SocketReaderNode*)pNodeSocketReader)->SetLocalFd(mLocalFd);
     ((SocketReaderNode*)pNodeSocketReader)->SetLocalAddress(localAddress);
-    ((SocketReaderNode*)pNodeSocketReader)->SetProtocolType(RTP);
+    ((SocketReaderNode*)pNodeSocketReader)->SetProtocolType(kProtocolRtp);
     pNodeSocketReader->SetConfig(config);
     AddNode(pNodeSocketReader);
 

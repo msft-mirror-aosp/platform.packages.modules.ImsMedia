@@ -58,11 +58,11 @@ public:
 
 private:
     void ProcessAudioData(
-            ImsMediaSubType subtype, uint8_t* pData, uint32_t nDataSize, uint32_t nTimestamp);
+            ImsMediaSubType subtype, uint8_t* pData, uint32_t nDataSize, uint32_t timestamp);
     void ProcessVideoData(ImsMediaSubType subtype, uint8_t* pData, uint32_t nDataSize,
-            uint32_t nTimestamp, bool bMark);
+            uint32_t timestamp, bool mark);
     void ProcessTextData(ImsMediaSubType subtype, uint8_t* pData, uint32_t nDataSize,
-            uint32_t nTimestamp, bool bMark);
+            uint32_t timestamp, bool mark);
     IRtpSession* mRtpSession;
     RtpAddress mLocalAddress;
     RtpAddress mPeerAddress;

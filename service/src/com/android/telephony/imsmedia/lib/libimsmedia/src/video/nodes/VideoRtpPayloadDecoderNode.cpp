@@ -97,7 +97,7 @@ bool VideoRtpPayloadDecoderNode::IsSameConfig(void* config)
 
 void VideoRtpPayloadDecoderNode::OnDataFromFrontNode(ImsMediaSubType subtype, uint8_t* pData,
         uint32_t nDataSize, uint32_t nTimeStamp, bool bMark, uint32_t nSeqNum,
-        ImsMediaSubType nDataType)
+        ImsMediaSubType nDataType, uint32_t arrivalTime)
 {
     if (subtype == MEDIASUBTYPE_REFRESHED)
     {
@@ -116,7 +116,7 @@ void VideoRtpPayloadDecoderNode::OnDataFromFrontNode(ImsMediaSubType subtype, ui
         default:
             IMLOGE1("[OnDataFromFrontNode] invalid codec type[%d]", mCodecType);
             SendDataToRearNode(MEDIASUBTYPE_UNDEFINED, pData, nDataSize, nTimeStamp, bMark, nSeqNum,
-                    nDataType);
+                    nDataType, arrivalTime);
             break;
     }
 }

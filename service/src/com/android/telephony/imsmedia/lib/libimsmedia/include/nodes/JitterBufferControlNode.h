@@ -32,10 +32,12 @@ public:
     void Reset();
     virtual uint32_t GetDataCount();
     virtual void OnDataFromFrontNode(ImsMediaSubType subtype, uint8_t* pData, uint32_t nDataSize,
-            uint32_t nTimestamp, bool bMark, uint32_t nSeqNum,
-            ImsMediaSubType nDataType = ImsMediaSubType::MEDIASUBTYPE_UNDEFINED);
+            uint32_t timestamp, bool mark, uint32_t nSeqNum,
+            ImsMediaSubType nDataType = ImsMediaSubType::MEDIASUBTYPE_UNDEFINED,
+            uint32_t arrivalTime = 0);
     virtual bool GetData(ImsMediaSubType* psubtype, uint8_t** ppData, uint32_t* pnDataSize,
-            uint32_t* pnTimestamp, bool* pbMark, uint32_t* pnSeqNum, ImsMediaSubType* pnDataType);
+            uint32_t* ptimestamp, bool* pmark, uint32_t* pnSeqNum,
+            ImsMediaSubType* pnDataType = NULL, uint32_t* arrivalTime = NULL);
     virtual void DeleteData();
 
 private:

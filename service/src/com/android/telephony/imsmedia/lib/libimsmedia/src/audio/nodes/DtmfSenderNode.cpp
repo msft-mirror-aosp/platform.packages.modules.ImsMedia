@@ -89,7 +89,7 @@ void DtmfSenderNode::ProcessData()
     bool bMark;
     uint32_t nCurrTime;
 
-    if (GetData(&subtype, &pData, &nDataSize, &nTimeStamp, &bMark, NULL, NULL) == false)
+    if (GetData(&subtype, &pData, &nDataSize, &nTimeStamp, &bMark, NULL) == false)
     {
         return;
     }

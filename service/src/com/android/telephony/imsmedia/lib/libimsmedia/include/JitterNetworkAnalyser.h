@@ -36,35 +36,36 @@ public:
     // initialze network analyser
     void SetMinMaxJitterBufferSize(uint32_t nMinBufferSize, uint32_t nMaxBufferSize);
     void SetJitterOptions(uint32_t nReduceTH, uint32_t nStepSize, double zValue, bool bImprovement);
-    // input data of analyser
-    void OnInputData(uint32_t nTimestamp, bool bMark, uint32_t nSeqNum, uint32_t nInputTime);
-    void OnFrameLoss();
-    void BasePacketChange(uint32_t nTimestamp, uint32_t nInputTime);
+    void BasePacketChange(uint32_t packetTime, uint32_t arrivalTime);
     // output data of analyzer
     uint32_t GetJitterBufferSize(uint32_t nCurrJitterBufferSize);
-    // Analyse packet lossRate
-    void LossPacketRateAnalyser();
-    void PrintPacketStatus();
+
+    /**
+     * @brief Calculate transit time difference
+     *
+     * @param timestamp The rtp timestamp of the packet in milliseconds
+     * @param arrivalTime The received timestamp of the packet in milliseconds
+     * @return int32_t The calculated transit time difference of the packet
+     */
+    int32_t calculateTransitTimeDifference(uint32_t timestamp, uint32_t arrivalTime);
 
 private:
-    bool JitterCalc(uint32_t nTimestamp, uint32_t nInputTime);
     double DevCalc(double* pMean);
     uint32_t GetMaxJitterValue();
 
     uint32_t mMinJitterBufferSize;
     uint32_t mMaxJitterBufferSize;
-    uint32_t mReadCount;
     uint32_t mLossPacketCount;
-    uint32_t mBaseInputTimestamp;
-    uint32_t mBaseInputTime;
-    uint32_t m_pnJitter[JITTER_LIST_SIZE];
+    uint32_t mBasePacketTime;
+    uint32_t mBaseArrivalTime;
+    uint32_t mJitters[JITTER_LIST_SIZE];
     uint32_t mJitterIndex;
-    NETWORK_STATUS m_NetworkStatus;
+    NETWORK_STATUS mNetworkStatus;
     uint32_t mGoodStatusEnteringTime;
     uint32_t mBadStatusChangedTime;
     uint32_t mBufferReduceTH;
     uint32_t mBufferStepSize;
-    double m_fBufferZValue;
+    double mBufferZValue;
     bool mImprovement;
 };
 

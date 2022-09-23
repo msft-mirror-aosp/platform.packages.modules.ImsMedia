@@ -62,9 +62,11 @@ bool TextRtpPayloadDecoderNode::IsSourceNode()
 }
 
 void TextRtpPayloadDecoderNode::OnDataFromFrontNode(ImsMediaSubType subtype, uint8_t* data,
-        uint32_t size, uint32_t timestamp, bool mark, uint32_t seqNum, ImsMediaSubType dataType)
+        uint32_t size, uint32_t timestamp, bool mark, uint32_t seqNum, ImsMediaSubType dataType,
+        uint32_t arrivalTime)
 {
     (void)dataType;
+    (void)arrivalTime;
 
     if (subtype == MEDIASUBTYPE_REFRESHED)
     {

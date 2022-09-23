@@ -76,9 +76,10 @@ void RtcpDecoderNode::Stop()
 
 void RtcpDecoderNode::OnDataFromFrontNode(ImsMediaSubType subtype, uint8_t* pData,
         uint32_t nDataSize, uint32_t nTimeStamp, bool bMark, uint32_t nSeqNum,
-        ImsMediaSubType nDataType)
+        ImsMediaSubType nDataType, uint32_t arrivalTime)
 {
     (void)nDataType;
+    (void)arrivalTime;
 
     IMLOGD_PACKET6(IM_PACKET_LOG_RTCP,
             "[OnMediaDataInd] media[%d] subtype[%d], Size[%d], TS[%u], Mark[%d], Seq[%d]",
@@ -207,7 +208,7 @@ void RtcpDecoderNode::OnNumReceivedPacket(uint32_t nNumRtcpSRPacket, uint32_t nN
     {
         if (mCallback != NULL)
         {
-            mCallback->SendEvent(kImsMediaEventMediaInactivity, RTCP, mInactivityTime);
+            mCallback->SendEvent(kImsMediaEventMediaInactivity, kProtocolRtcp, mInactivityTime);
         }
     }
 }

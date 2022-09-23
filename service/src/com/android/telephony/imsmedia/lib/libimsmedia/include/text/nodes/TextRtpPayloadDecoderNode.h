@@ -33,13 +33,14 @@ public:
     virtual bool IsSourceNode();
     virtual void OnDataFromFrontNode(ImsMediaSubType subtype, uint8_t* data, uint32_t size,
             uint32_t timestamp, bool mark, uint32_t seqNum,
-            ImsMediaSubType dataType = ImsMediaSubType::MEDIASUBTYPE_UNDEFINED);
+            ImsMediaSubType dataType = ImsMediaSubType::MEDIASUBTYPE_UNDEFINED,
+            uint32_t arrivalTime = 0);
     virtual void SetConfig(void* config);
     virtual bool IsSameConfig(void* config);
 
 private:
     void DecodeT140(uint8_t* data, uint32_t size, ImsMediaSubType subtype, uint32_t timestamp,
-            bool bMark, uint32_t nSeqNum);
+            bool mark, uint32_t nSeqNum);
 
     int32_t mCodecType;
     uint8_t mPayload[MAX_RTT_LEN];

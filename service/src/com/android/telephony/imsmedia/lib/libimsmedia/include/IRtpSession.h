@@ -101,7 +101,7 @@ public:
     void StartRtcp(bool bSendRtcpBye = false);
     void StopRtcp();
     bool SendRtpPacket(uint32_t nPayloadType, uint8_t* pData, uint32_t nDataSize,
-            uint32_t nTimestamp, bool bMark, uint32_t nTimeDiff, bool bExtension = false,
+            uint32_t timestamp, bool mark, uint32_t nTimeDiff, bool bExtension = false,
             tRtpHeaderExtensionInfo* pExtensionInfo = NULL);
     bool ProcRtpPacket(uint8_t* pData, uint32_t nDataSize);
     bool ProcRtcpPacket(uint8_t* pData, uint32_t nDataSize);
