@@ -38,6 +38,10 @@ kBaseNodeId AudioRtpPayloadDecoderNode::GetNodeId()
 ImsMediaResult AudioRtpPayloadDecoderNode::Start()
 {
     IMLOGD0("[Start]");
+    mEvsMode = (kEvsBitrate)ImsMediaAudioUtil::GetMaximumEvsMode(mCoreEvsMode);
+    mEvsCodecMode = (kEvsCodecMode)ImsMediaAudioUtil::ConvertEvsCodecMode(mEvsMode);
+    mEvsModetoBitRate = ImsMediaAudioUtil::ConvertEVSModeToBitRate(mEvsMode);
+
     std::lock_guard<std::mutex> guard(mMutexExit);
     mPrevCMR = 15;
     mNodeState = kNodeStateRunning;
@@ -74,13 +78,9 @@ void AudioRtpPayloadDecoderNode::SetConfig(void* config)
         else if (mCodecType == kAudioCodecEvs)
         {
             mEvsBandwidth = (kEvsBandwidth)pConfig->getEvsParams().getEvsBandwidth();
+            mCoreEvsMode = pConfig->getEvsParams().getEvsMode();
             mEvsPayloadHeaderMode =
                     (kRtpPyaloadHeaderMode)pConfig->getEvsParams().getUseHeaderFullOnly();
-            mEvsCodecMode = (kEvsCodecMode)ImsMediaAudioUtil::ConvertEvsCodecMode(
-                    pConfig->getEvsParams().getEvsMode());
-            mEvsMode = (kEvsBitrate)pConfig->getEvsParams().getEvsMode();
-            mEvsModetoBitRate = ImsMediaAudioUtil::ConvertEVSModeToBitRate(
-                    pConfig->getEvsParams().getEvsMode());
             mEvsOffset = pConfig->getEvsParams().getChannelAwareMode();
         }
     }
@@ -103,12 +103,8 @@ bool AudioRtpPayloadDecoderNode::IsSameConfig(void* config)
             return (mEvsBandwidth == (kEvsBandwidth)pConfig->getEvsParams().getEvsBandwidth() &&
                     mEvsPayloadHeaderMode ==
                             (kRtpPyaloadHeaderMode)pConfig->getEvsParams().getUseHeaderFullOnly() &&
-                    mEvsCodecMode ==
-                            ImsMediaAudioUtil::ConvertEvsCodecMode(
-                                    pConfig->getEvsParams().getEvsMode()) &&
-                    mEvsMode == (kEvsBitrate)pConfig->getEvsParams().getEvsMode() &&
-                    mEvsModetoBitRate ==
-                            ImsMediaAudioUtil::ConvertEVSModeToBitRate(
+                    mCoreEvsMode ==
+                            ImsMediaAudioUtil::GetMaximumEvsMode(
                                     pConfig->getEvsParams().getEvsMode()) &&
                     mEvsOffset == pConfig->getEvsParams().getChannelAwareMode());
         }
@@ -317,9 +313,9 @@ void AudioRtpPayloadDecoderNode::DecodePayloadEvs(
         {
             // calculate nDataBitSize from nDataSize
             nFrameType = (uint32_t)ImsMediaAudioUtil::ConvertLenToEVSAudioMode(nDataSize);
-            // TODO: remove kImsAudioEvsPrimaryMode
-            nDataBitSize = ImsMediaAudioUtil::ConvertEVSAudioModeToBitLen(
-                    (kImsAudioEvsPrimaryMode)nFrameType);
+            // TODO: remove kImsAudioEvsMode
+            nDataBitSize =
+                    ImsMediaAudioUtil::ConvertEVSAudioModeToBitLen((kImsAudioEvsMode)nFrameType);
 
             mBitReader.ReadByteBuffer(mPayload, nDataBitSize);
 
@@ -639,8 +635,8 @@ void AudioRtpPayloadDecoderNode::DecodePayloadEvs(
 
             if (toc_ft_m == 0)  // EVS Primary mode
             {
-                nDataBitSize = ImsMediaAudioUtil::ConvertEVSAudioModeToBitLen(
-                        (kImsAudioEvsPrimaryMode)toc_ft_b);
+                nDataBitSize =
+                        ImsMediaAudioUtil::ConvertEVSAudioModeToBitLen((kImsAudioEvsMode)toc_ft_b);
             }
             else  // AMR-WB IO mode
             {

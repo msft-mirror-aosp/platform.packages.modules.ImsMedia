@@ -65,6 +65,7 @@ private:
     kRtpPyaloadHeaderMode mEvsPayloadHeaderMode;
     int32_t mEvsModetoBitRate;
     kEvsBitrate mEvsMode;
+    int32_t mCoreEvsMode;
     int32_t mEvsOffset;
     int32_t EvsChAOffset;
 };

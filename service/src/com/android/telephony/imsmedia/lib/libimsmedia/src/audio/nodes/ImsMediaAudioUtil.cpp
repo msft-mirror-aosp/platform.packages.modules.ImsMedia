@@ -379,58 +379,57 @@ uint32_t ImsMediaAudioUtil::GetMaximumEvsMode(int32_t bitmask)
     {
         if (bitmask & (1 << i))
         {
-            maxMode = 1 << i;
+            maxMode = i;
         }
     }
-
     return maxMode;
 }
 
 int32_t ImsMediaAudioUtil::ConvertEVSModeToBitRate(int32_t mode)
 {
-    switch (mode)
+    switch ((kImsAudioEvsMode)mode)
     {
-        case EvsParams::EVS_MODE_0:
+        case kImsAudioEvsAmrWbIoMode660:
             return 6600;
-        case EvsParams::EVS_MODE_1:
+        case kImsAudioEvsAmrWbIoMode885:
             return 8850;
-        case EvsParams::EVS_MODE_2:
+        case kImsAudioEvsAmrWbIoMode1265:
             return 12650;
-        case EvsParams::EVS_MODE_3:
+        case kImsAudioEvsAmrWbIoMode1425:
             return 14250;
-        case EvsParams::EVS_MODE_4:
+        case kImsAudioEvsAmrWbIoMode1585:
             return 15850;
-        case EvsParams::EVS_MODE_5:
+        case kImsAudioEvsAmrWbIoMode1825:
             return 18250;
-        case EvsParams::EVS_MODE_6:
+        case kImsAudioEvsAmrWbIoMode1985:
             return 19850;
-        case EvsParams::EVS_MODE_7:
+        case kImsAudioEvsAmrWbIoMode2305:
             return 23050;
-        case EvsParams::EVS_MODE_8:
+        case kImsAudioEvsAmrWbIoMode2385:
             return 23850;
-        case EvsParams::EVS_MODE_9:
+        case kImsAudioEvsPrimaryMode5900:
             return 5900;
-        case EvsParams::EVS_MODE_10:
+        case kImsAudioEvsPrimaryMode7200:
             return 7200;
-        case EvsParams::EVS_MODE_11:
+        case kImsAudioEvsPrimaryMode8000:
             return 8000;
-        case EvsParams::EVS_MODE_12:
+        case kImsAudioEvsPrimaryMode9600:
             return 9600;
-        case EvsParams::EVS_MODE_13:
+        case kImsAudioEvsPrimaryMode13200:
             return 13200;
-        case EvsParams::EVS_MODE_14:
+        case kImsAudioEvsPrimaryMode16400:
             return 16400;
-        case EvsParams::EVS_MODE_15:
+        case kImsAudioEvsPrimaryMode24400:
             return 24400;
-        case EvsParams::EVS_MODE_16:
+        case kImsAudioEvsPrimaryMode32000:
             return 32000;
-        case EvsParams::EVS_MODE_17:
+        case kImsAudioEvsPrimaryMode48000:
             return 48000;
-        case EvsParams::EVS_MODE_18:
+        case kImsAudioEvsPrimaryMode64000:
             return 64000;
-        case EvsParams::EVS_MODE_19:
+        case kImsAudioEvsPrimaryMode96000:
             return 96000;
-        case EvsParams::EVS_MODE_20:
+        case kImsAudioEvsPrimaryMode128000:
             return 128000;
         default:
             return 13200;

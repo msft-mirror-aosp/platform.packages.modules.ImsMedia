@@ -88,39 +88,48 @@ enum kImsAudioAmrWbMode
     kImsAudioAmrWbModeMax
 };
 
-enum kImsAudioEvsPrimaryMode
+enum kImsAudioEvsMode
 {
-    kImsAudioEvsPrimaryMode00280 = 0,  /* 2.8 kbps, Special case */
-    kImsAudioEvsPrimaryMode00720 = 1,  /* 7.2 kbps, EVS Primary */
-    kImsAudioEvsPrimaryMode00800 = 2,  /* 8 kbps, EVS Primary */
-    kImsAudioEvsPrimaryMode00960 = 3,  /* 9.6 kbps, EVS Primary */
-    kImsAudioEvsPrimaryMode01320 = 4,  /* 13.20 kbps, EVS Primary */
-    kImsAudioEvsPrimaryMode01640 = 5,  /* 16.4 kbps, EVS Primary */
-    kImsAudioEvsPrimaryMode02440 = 6,  /* 24.4 kbps, EVS Primary */
-    kImsAudioEvsPrimaryMode03200 = 7,  /* 32 kbps, EVS Primary */
-    kImsAudioEvsPrimaryMode04800 = 8,  /* 48 kbps, EVS Primary */
-    kImsAudioEvsPrimaryMode06400 = 9,  /* 64 kbps, EVS Primary */
-    kImsAudioEvsPrimaryMode09600 = 10, /* 96 kbps, EVS Primary */
-    kImsAudioEvsPrimaryMode12800 = 11, /* 128 kbps, EVS Primary */
-    kImsAudioEvsPrimaryModeSID = 12,   /* 2.4 kbps, EVS Primary SID */
-    /* 13 is remaind for future use.. */
-    kImsAudioEvsPrimaryModeSpeechLost = 14, /* SPEECH LOST */
-    kImsAudioEvsPrimaryModeNoData = 15,     /* NO DATA */
-    kImsAudioEvsPrimaryModeMax
+    kImsAudioEvsAmrWbIoMode660 = 0,         /* 6.60 kbps AMR-IO*/
+    kImsAudioEvsAmrWbIoMode885 = 1,         /* 8.85 kbps AMR-IO*/
+    kImsAudioEvsAmrWbIoMode1265 = 2,        /* 12.65 kbps AMR-IO */
+    kImsAudioEvsAmrWbIoMode1425 = 3,        /* 14.25 kbps AMR-IO */
+    kImsAudioEvsAmrWbIoMode1585 = 4,        /* 15.85 kbps AMR-IO */
+    kImsAudioEvsAmrWbIoMode1825 = 5,        /* 18.25 kbps AMR-IO */
+    kImsAudioEvsAmrWbIoMode1985 = 6,        /* 19.85 kbps AMR-IO */
+    kImsAudioEvsAmrWbIoMode2305 = 7,        /* 23.05 kbps AMR-IO */
+    kImsAudioEvsAmrWbIoMode2385 = 8,        /* 23.85 kbps AMR-IO */
+    kImsAudioEvsPrimaryMode5900 = 9,        /* 5.9 kbps, EVS Primary */
+    kImsAudioEvsPrimaryMode7200 = 10,       /* 7.2 kbps, EVS Primary */
+    kImsAudioEvsPrimaryMode8000 = 11,       /* 8.0 kbps, EVS Primary */
+    kImsAudioEvsPrimaryMode9600 = 12,       /* 9.6 kbps, EVS Primary */
+    kImsAudioEvsPrimaryMode13200 = 13,      /* 13.2 kbps, EVS Primary */
+    kImsAudioEvsPrimaryMode16400 = 14,      /* 16.4 kbps, EVS Primary */
+    kImsAudioEvsPrimaryMode24400 = 15,      /* 24.4 kbps, EVS Primary */
+    kImsAudioEvsPrimaryMode32000 = 16,      /* 32.0 kbps, EVS Primary */
+    kImsAudioEvsPrimaryMode48000 = 17,      /* 48.0 kbps, EVS Primary */
+    kImsAudioEvsPrimaryMode64000 = 18,      /* 64.0 kbps, EVS Primary */
+    kImsAudioEvsPrimaryMode96000 = 19,      /* 96.0 kbps, EVS Primary */
+    kImsAudioEvsPrimaryMode128000 = 20,     /* 128.0 kbps, EVS Primary */
+    kImsAudioEvsPrimaryModeSID = 21,        /* 2.4 kbps, EVS Primary SID */
+    kImsAudioEvsPrimaryModeSpeechLost = 22, /* SPEECH LOST */
+    kImsAudioEvsPrimaryModeNoData = 23,     /* NO DATA */
+    kImsAudioEvsModeMax
 };
 
+// TODO: need to remove this with respective changes
 enum kImsAudioEvsAmrWbIoMode
 {
-    kImsAudioEvsAmrWbIoMode660 = 0,  /* 6.60 kbit/s */
-    kImsAudioEvsAmrWbIoMode885 = 1,  /* 8.85 kbit/s */
-    kImsAudioEvsAmrWbIoMode1265 = 2, /* 12.65 kbit/s */
-    kImsAudioEvsAmrWbIoMode1425 = 3, /* 14.25 kbit/s */
-    kImsAudioEvsAmrWbIoMode1585 = 4, /* 15.85 kbit/s */
-    kImsAudioEvsAmrWbIoMode1825 = 5, /* 18.25 kbit/s */
-    kImsAudioEvsAmrWbIoMode1985 = 6, /* 19.85 kbit/s */
-    kImsAudioEvsAmrWbIoMode2305 = 7, /* 23.05 kbit/s */
-    kImsAudioEvsAmrWbIoMode2385 = 8, /* 23.85 kbit/s */
-    kImsAudioEvsAmrWbIoModeSID = 9,  /* AMRWB SID */
+    kImsAudioEvsAmrWbIoMode0660 = 0,  /* 6.60 kbit/s */
+    kImsAudioEvsAmrWbIoMode0885 = 1,  /* 8.85 kbit/s */
+    kImsAudioEvsAmrWbIoMode01265 = 2, /* 12.65 kbit/s */
+    kImsAudioEvsAmrWbIoMode01425 = 3, /* 14.25 kbit/s */
+    kImsAudioEvsAmrWbIoMode01585 = 4, /* 15.85 kbit/s */
+    kImsAudioEvsAmrWbIoMode01825 = 5, /* 18.25 kbit/s */
+    kImsAudioEvsAmrWbIoMode01985 = 6, /* 19.85 kbit/s */
+    kImsAudioEvsAmrWbIoMode02305 = 7, /* 23.05 kbit/s */
+    kImsAudioEvsAmrWbIoMode02385 = 8, /* 23.85 kbit/s */
+    kImsAudioEvsAmrWbIoModeSID = 9,   /* AMRWB SID */
     /* 10~13: for future use */
     kImsAudioEvsAmrWbIoModeSPL = 14,    /* AMRWB Speech Lost frame */
     kImsAudioEvsAmrWbIoModeNoData = 15, /* AMRWB No Data */

@@ -66,6 +66,7 @@ private:
     bool mSendCMR;
     int32_t mEvsBitRate;
     kEvsBitrate mEvsMode;
+    int32_t mCoreEvsMode;
     kRtpPyaloadHeaderMode mEvsPayloadHeaderMode;
 };
 

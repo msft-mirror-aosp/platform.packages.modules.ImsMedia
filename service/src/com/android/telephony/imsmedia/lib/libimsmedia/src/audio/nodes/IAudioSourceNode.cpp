@@ -50,18 +50,19 @@ ImsMediaResult IAudioSourceNode::Start()
         mAudioSource->SetUplinkCallback(this);
         mAudioSource->SetCodec(mCodecType);
         mRunningCodecMode = ImsMediaAudioUtil::GetMaximumAmrMode(mCodecMode);
-        mAudioSource->SetCodecMode(mRunningCodecMode);
         mAudioSource->SetPtime(mPtime);
         mAudioSource->SetSamplingRate(mSamplingRate * 1000);
 
         if (mCodecType == kAudioCodecEvs)
         {
-            mAudioSource->SetEvsBandwidth(mEvsBandwidth);
+            mAudioSource->SetEvsBandwidth(
+                    (kEvsBandwidth)ImsMediaAudioUtil::FindMaxEvsBandwidthFromRange(mEvsBandwidth));
             mAudioSource->SetEvsChAwOffset(mEvsChAwOffset);
             mRunningCodecMode = ImsMediaAudioUtil::GetMaximumEvsMode(mCodecMode);
             mAudioSource->SetEvsBitRate(
                     ImsMediaAudioUtil::ConvertEVSModeToBitRate(mRunningCodecMode));
         }
+        mAudioSource->SetCodecMode(mRunningCodecMode);
 
         if (mAudioSource->Start())
         {
@@ -117,8 +118,7 @@ void IAudioSourceNode::SetConfig(void* config)
     else if (mCodecType == kAudioCodecEvs)
     {
         mCodecMode = pConfig->getEvsParams().getEvsMode();
-        mEvsBandwidth = (kEvsBandwidth)ImsMediaAudioUtil::FindMaxEvsBandwidthFromRange(
-                pConfig->getEvsParams().getEvsBandwidth());
+        mEvsBandwidth = (kEvsBandwidth)pConfig->getEvsParams().getEvsBandwidth();
         mEvsChAwOffset = pConfig->getEvsParams().getChannelAwareMode();
     }
 
@@ -145,9 +145,7 @@ bool IAudioSourceNode::IsSameConfig(void* config)
         else if (mCodecType == kAudioCodecEvs)
         {
             return (mCodecMode == pConfig->getEvsParams().getEvsMode() &&
-                    mEvsBandwidth ==
-                            (kEvsBandwidth)ImsMediaAudioUtil::FindMaxEvsBandwidthFromRange(
-                                    pConfig->getEvsParams().getEvsBandwidth()) &&
+                    mEvsBandwidth == (kEvsBandwidth)pConfig->getEvsParams().getEvsBandwidth() &&
                     mEvsChAwOffset == pConfig->getEvsParams().getChannelAwareMode() &&
                     mSamplingRate == pConfig->getSamplingRateKHz());
         }

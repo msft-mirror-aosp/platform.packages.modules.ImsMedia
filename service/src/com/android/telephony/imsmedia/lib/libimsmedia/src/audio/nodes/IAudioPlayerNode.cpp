@@ -57,8 +57,9 @@ ImsMediaResult IAudioPlayerNode::Start()
         {
             mAudioPlayer->SetEvsBandwidth(mEvsBandwidth);
             mAudioPlayer->SetEvsPayloadHeaderMode(mEvsPayloadHeaderMode);
-            mAudioPlayer->SetEvsBitRate(ImsMediaAudioUtil::ConvertEVSModeToBitRate(mMode));
-            mAudioPlayer->SetCodecMode(mMode);
+            mAudioPlayer->SetEvsBitRate(ImsMediaAudioUtil::ConvertEVSModeToBitRate(
+                    ImsMediaAudioUtil::GetMaximumEvsMode(mMode)));
+            mAudioPlayer->SetCodecMode(ImsMediaAudioUtil::GetMaximumEvsMode(mMode));
         }
 
         mAudioPlayer->Start();
