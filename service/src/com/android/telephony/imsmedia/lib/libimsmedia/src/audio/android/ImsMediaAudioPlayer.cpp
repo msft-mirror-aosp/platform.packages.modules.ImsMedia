@@ -243,10 +243,16 @@ void ImsMediaAudioPlayer::Stop()
 bool ImsMediaAudioPlayer::onDataFrame(uint8_t* buffer, uint32_t size)
 {
     std::lock_guard<std::mutex> guard(mMutex);
+
+    if (size == 0 || buffer == NULL || mAudioStream == NULL ||
+            AAudioStream_getState(mAudioStream) != AAUDIO_STREAM_STATE_STARTED)
+    {
+        return false;
+    }
+
     if (mCodecType == kAudioCodecAmr || mCodecType == kAudioCodecAmrWb)
     {
-        if (size == 0 || mCodec == NULL || mAudioStream == NULL || buffer == NULL ||
-                AAudioStream_getState(mAudioStream) != AAUDIO_STREAM_STATE_STARTED)
+        if (mCodec == NULL)
         {
             return false;
         }
@@ -258,15 +264,7 @@ bool ImsMediaAudioPlayer::onDataFrame(uint8_t* buffer, uint32_t size)
     else if (mCodecType == kAudioCodecEvs)
     {
         // TODO: Integration with libEVS is required.
-        if (size == 0 || buffer == NULL ||
-                AAudioStream_getState(mAudioStream) != AAUDIO_STREAM_STATE_STARTED)
-        {
-            return false;
-        }
-        else
-        {
-            return decodeEvs(buffer, size);
-        }
+        return decodeEvs(buffer, size);
     }
     return false;
 }
