@@ -69,6 +69,7 @@ public class ImsMediaController extends Service {
                                 IImsAudioSessionCallback.Stub.asInterface(callback));
                         break;
                     case ImsMediaSession.SESSION_TYPE_VIDEO:
+                        JNIImsMediaService.setAssetManager(ImsMediaController.this.getAssets());
                         session = new VideoSession(sessionId,
                                 IImsVideoSessionCallback.Stub.asInterface(callback));
                         break;

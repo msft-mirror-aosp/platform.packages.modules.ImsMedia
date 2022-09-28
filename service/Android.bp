@@ -47,7 +47,7 @@ android_app {
         "imsmedia-core",
     ],
     required: [
-        "libimsmediajni",
+        "libimsmedia",
     ],
     optimize: {
         enabled: false,
@@ -55,6 +55,9 @@ android_app {
     dex_preopt: {
         enabled: false,
     },
+    asset_dirs: [
+        "assets"
+    ],
 
     privileged: true,
     certificate: "platform",

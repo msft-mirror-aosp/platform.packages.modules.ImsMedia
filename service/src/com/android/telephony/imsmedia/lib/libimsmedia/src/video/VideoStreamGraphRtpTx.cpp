@@ -246,6 +246,7 @@ ImsMediaResult VideoStreamGraphRtpTx::start()
     }
 
     setState(StreamState::kStreamStateRunning);
+    mVideoMode = mConfig->getVideoMode();
     return RESULT_SUCCESS;
 }
 
