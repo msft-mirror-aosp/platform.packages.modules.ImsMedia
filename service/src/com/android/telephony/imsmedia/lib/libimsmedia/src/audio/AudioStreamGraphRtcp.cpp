@@ -100,33 +100,37 @@ ImsMediaResult AudioStreamGraphRtcp::update(RtpConfig* config)
         mConfig = new AudioConfig(pConfig);
     }
 
+    if (mConfig->getMediaDirection() == RtpConfig::MEDIA_DIRECTION_NO_FLOW)
+    {
+        IMLOGD0("[update] pause RTCP");
+        return stop();
+    }
+
     ImsMediaResult ret = ImsMediaResult::RESULT_NOT_READY;
-    // stop scheduler
+
+    // update in running state
     if (mGraphState == kStreamStateRunning)
     {
         mScheduler->Stop();
-    }
 
-    for (auto& node : mListNodeStarted)
-    {
-        IMLOGD1("[update] update node[%s]", node->GetNodeName());
-        ret = node->UpdateConfig(pConfig);
-        if (ret != RESULT_SUCCESS)
+        for (auto& node : mListNodeStarted)
         {
-            IMLOGE2("[update] error in update node[%s], ret[%d]", node->GetNodeName(), ret);
+            IMLOGD1("[update] update node[%s]", node->GetNodeName());
+            ret = node->UpdateConfig(pConfig);
+            if (ret != RESULT_SUCCESS)
+            {
+                IMLOGE2("[update] error in update node[%s], ret[%d]", node->GetNodeName(), ret);
+            }
         }
+
+        mScheduler->Start();
     }
 
-    if (mGraphState == kStreamStateCreated && mConfig->getRtcpConfig().getIntervalSec() != 0)
+    if (mGraphState == kStreamStateCreated &&
+            mConfig->getMediaDirection() != RtpConfig::MEDIA_DIRECTION_NO_FLOW)
     {
         IMLOGD0("[update] resume RTCP");
         return start();
-    }
-
-    // restart scheduler
-    if (mGraphState == kStreamStateRunning)
-    {
-        mScheduler->Start();
     }
 
     return ret;

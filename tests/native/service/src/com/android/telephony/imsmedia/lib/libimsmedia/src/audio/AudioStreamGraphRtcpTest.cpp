@@ -23,7 +23,7 @@
 using namespace android::telephony::imsmedia;
 
 // RtpConfig
-const int32_t kMediaDirection = RtpConfig::MEDIA_DIRECTION_NO_FLOW;
+const int32_t kMediaDirection = RtpConfig::MEDIA_DIRECTION_INACTIVE;
 const android::String8 kRemoteAddress("127.0.0.1");
 const int32_t kRemotePort = 10000;
 const int8_t kDscp = 0;
@@ -142,7 +142,7 @@ TEST_F(AudioStreamGraphRtcpTest, TestGraphSetMediaThresholdFail)
     EXPECT_EQ(graph->setMediaQualityThreshold(&threshold), false);
 }
 
-TEST_F(AudioStreamGraphRtcpTest, TestRtcpStream)
+TEST_F(AudioStreamGraphRtcpTest, TestRtcpStreamAndUpdate)
 {
     EXPECT_EQ(graph->create(&config), RESULT_SUCCESS);
     EXPECT_EQ(graph->setMediaQualityThreshold(&threshold), true);
@@ -153,6 +153,14 @@ TEST_F(AudioStreamGraphRtcpTest, TestRtcpStream)
 
     rtcp.setIntervalSec(5);
     config.setRtcpConfig(rtcp);
+    EXPECT_EQ(graph->update(&config), RESULT_SUCCESS);
+    EXPECT_EQ(graph->getState(), kStreamStateRunning);
+
+    config.setMediaDirection(RtpConfig::MEDIA_DIRECTION_NO_FLOW);
+    EXPECT_EQ(graph->update(&config), RESULT_SUCCESS);
+    EXPECT_EQ(graph->getState(), kStreamStateCreated);
+
+    config.setMediaDirection(RtpConfig::MEDIA_DIRECTION_INACTIVE);
     EXPECT_EQ(graph->update(&config), RESULT_SUCCESS);
     EXPECT_EQ(graph->getState(), kStreamStateRunning);
 
