@@ -21,7 +21,15 @@
 #include <AudioConfig.h>
 #include <string.h>
 
-#define DEFAULT_MTU 1500
+#define DEFAULT_MTU     1500
+#define SEQ_ROUND_QUARD 655  // 1% of FFFF
+#define USHORT_SEQ_ROUND_COMPARE(a, b)                                              \
+    (((a >= b) && ((b >= SEQ_ROUND_QUARD) || ((a <= 0xffff - SEQ_ROUND_QUARD)))) || \
+            ((a <= SEQ_ROUND_QUARD) && (b >= 0xffff - SEQ_ROUND_QUARD)))
+#define TS_ROUND_QUARD 3000
+#define USHORT_TS_ROUND_COMPARE(a, b)                                             \
+    (((a >= b) && ((b >= TS_ROUND_QUARD) || ((a <= 0xffff - TS_ROUND_QUARD)))) || \
+            ((a <= TS_ROUND_QUARD) && (b >= 0xffff - TS_ROUND_QUARD)))
 
 using namespace android::telephony::imsmedia;
 
@@ -75,6 +83,13 @@ enum kImsMediaErrorNotify
     kNotifyErrorDecoder,
 };
 
+enum ImsMediaStreamType
+{
+    kStreamRtpTx,
+    kStreamRtpRx,
+    kStreamRtcp,
+};
+
 enum kImsMediaDtmfNotify
 {
     kDtmfKey0 = 600,
@@ -109,10 +124,10 @@ enum ImsMediaType
     IMS_MEDIA_TEXT,
 };
 
-enum ImsMediaProtocolType
+enum kProtocolType
 {
-    RTP = 0,
-    RTCP,
+    kProtocolRtp = 0,
+    kProtocolRtcp,
 };
 
 enum kEvsBandwidth
@@ -428,7 +443,7 @@ enum kRtpPyaloadHeaderMode
     kRtpPyaloadHeaderModeMax
 };
 
-enum eIPVersion
+enum kIpVersion
 {
     IPV4,
     IPV6,
@@ -458,10 +473,25 @@ enum SessionState
     kSessionStateClosed,
 };
 
-enum eSocketOpt
+enum kSocketOption
 {
-    SOCKET_OPT_BASE = 0,
-    SOCKET_OPT_IP_QOS = 1,
+    kSocketOptionNone = 0,
+    kSocketOptionIpTos = 1,
+    kSocketOptionIpTtl = 2,
+};
+
+struct LostPktEntry
+{
+public:
+    LostPktEntry(uint16_t s = 0, uint32_t p1 = 0, uint32_t p2 = 0) :
+            seqNum(s),
+            param1(p1),
+            param2(p2)
+    {
+    }
+    uint16_t seqNum;
+    uint32_t param1;
+    uint32_t param2;
 };
 
 struct tRtpHeaderExtensionInfo

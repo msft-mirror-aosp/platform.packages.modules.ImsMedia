@@ -22,10 +22,14 @@
 
 // #define DEBUG_JITTER_GEN_SIMULATION_DELAY
 // #define DEBUG_JITTER_GEN_SIMULATION_REORDER
+// #define DEBUG_JITTER_GEN_SIMULATION_DUPLICATE
 // #define DEBUG_JITTER_GEN_SIMULATION_LOSS
 
 /**
- * @brief      This class describes a rtp decoder.
+ * @brief This class is to depacketize the rtp packet and acquires sequence number, ssrc, timestamp,
+ * mark flag from the rtp packet header by interfacing with the RtpStack module. This module can
+ * simulate the packet loss, delay, duplicate and mixed order to check the jitter buffer handles the
+ * variouse cases caused by the network condition.
  */
 class RtpDecoderNode : public BaseNode, public IRtpDecoderListener
 {
@@ -40,9 +44,10 @@ public:
     virtual void SetConfig(void* config);
     virtual bool IsSameConfig(void* config);
     virtual void OnDataFromFrontNode(ImsMediaSubType subtype, uint8_t* pData, uint32_t nDataSize,
-            uint32_t nTimestamp, bool bMark, uint32_t nSeqNum, ImsMediaSubType nDataType);
-    virtual void OnMediaDataInd(unsigned char* pData, uint32_t nDataSize, uint32_t nTimestamp,
-            bool bMark, uint16_t nSeqNum, uint32_t nPayloadType, uint32_t nSSRC, bool bExtension,
+            uint32_t timestamp, bool mark, uint32_t nSeqNum, ImsMediaSubType nDataType,
+            uint32_t arrivalTime = 0);
+    virtual void OnMediaDataInd(unsigned char* pData, uint32_t nDataSize, uint32_t timestamp,
+            bool mark, uint16_t nSeqNum, uint32_t nPayloadType, uint32_t nSSRC, bool bExtension,
             uint16_t nExtensionData);
     // IRtpDecoderListener
     virtual void OnNumReceivedPacket(uint32_t nNumRtpPacket);
@@ -76,7 +81,8 @@ private:
     uint32_t mInactivityTime;
     uint32_t mNoRtpTime;
     int32_t mRedundantPayload;
-#ifdef DEBUG_JITTER_GEN_SIMULATION_LOSS
+    uint32_t mArrivalTime;
+#if (defined(DEBUG_JITTER_GEN_SIMULATION_LOSS) || defined(DEBUG_JITTER_GEN_SIMULATION_DUPLICATE))
     uint32_t mPacketCounter;
 #endif
 #ifdef DEBUG_JITTER_GEN_SIMULATION_DELAY

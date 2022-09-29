@@ -24,16 +24,24 @@ using namespace std;
 
 struct DataEntry
 {
-    uint8_t* pbBuffer;
-    uint32_t nBufferSize;
+    uint8_t* pbBuffer;     // The data buffer
+    uint32_t nBufferSize;  // The size of data
+    /** The timestamp of data, it can be milliseconds unit or rtp timestamp unit */
     uint32_t nTimestamp;
+    /** The flag when the data has marker bit set */
     bool bMark;
+    /** The sequence number of data. it is 0 when there is no valid sequence number set */
     uint16_t nSeqNum;
-    int32_t nPayloadTime;
+    /** The flag when the data frame is header of the fragmented packet */
     bool bHeader;
+    /** The flag when the data is fully integrated from fragmented packet */
     bool bValid;
-    uint32_t nInputTime;
+    /** The arrival time of the packet */
+    uint32_t arrivalTime;
+    /** The additional data type for the video frames */
     ImsMediaSubType eDataType;
+    /**The subtype of data stored in the queue. It can be various subtype according to the
+     * characteristics of the given data */
     ImsMediaSubType subtype;
 };
 

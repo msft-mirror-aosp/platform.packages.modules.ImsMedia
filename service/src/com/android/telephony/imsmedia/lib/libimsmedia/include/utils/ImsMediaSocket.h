@@ -94,6 +94,14 @@ public:
     virtual uint32_t ReceiveFrom(uint8_t* pData, uint32_t nBufferSize);
 
     /**
+     * @brief Retrieve optional data from the socket
+     *
+     * @param type The type of the socket option to receive
+     * @param value The value to received, if method returns true, the value is valid
+     */
+    virtual bool RetrieveOptionMsg(uint32_t type, int32_t& value);
+
+    /**
      * @brief Remove the socket from the socket list
      */
     virtual void Close();
@@ -101,12 +109,12 @@ public:
     /**
      * @brief Set the socket option, calls setsockopt
      *
-     * @param nOption The option type
+     * @param nOption The option type defined as kSocketOption
      * @param nOptionValue The value to set
      * @return true Returns when the setsockopt returns valid status
      * @return false Returns when the setsockopt returns -1
      */
-    virtual bool SetSocketOpt(eSocketOpt nOption, uint32_t nOptionValue);
+    virtual bool SetSocketOpt(kSocketOption nOption, int32_t nOptionValue);
     int32_t GetSocketFd();
     ISocketListener* GetListener();
 
@@ -121,15 +129,14 @@ private:
     static ImsMediaCondition mConditionExit;
     int32_t mSocketFd;
     int32_t mRefCount;
-    bool mbReceivingIPFiltering;
-    int32_t mToS;
     ISocketListener* mListener;
-    eIPVersion mLocalIPVersion;
-    eIPVersion mPeerIPVersion;
+    kIpVersion mLocalIPVersion;
+    kIpVersion mPeerIPVersion;
     char mLocalIP[MAX_IP_LEN];
     char mPeerIP[MAX_IP_LEN];
     uint32_t mLocalPort;
     uint32_t mPeerPort;
+    bool mRemoteIpFiltering;
 };
 
 #endif

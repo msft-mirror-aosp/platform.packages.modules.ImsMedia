@@ -84,14 +84,6 @@ void BaseJitterBuffer::Reset()
 
 void BaseJitterBuffer::Delete()
 {
-    DataEntry* pEntry;
     std::lock_guard<std::mutex> guard(mMutex);
-    mDataQueue.Get(&pEntry);
-
-    if (pEntry == NULL)
-    {
-        return;
-    }
-
     mDataQueue.Delete();
 }

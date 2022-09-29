@@ -225,7 +225,8 @@ uint32_t BaseNode::GetDataCount()
 }
 
 bool BaseNode::GetData(ImsMediaSubType* psubtype, uint8_t** ppData, uint32_t* pnDataSize,
-        uint32_t* pnTimestamp, bool* pbMark, uint32_t* pnSeqNum, ImsMediaSubType* peDataType)
+        uint32_t* pnTimestamp, bool* pbMark, uint32_t* pnSeqNum, ImsMediaSubType* peDataType,
+        uint32_t* arrivalTime)
 {
     DataEntry* pEntry;
 
@@ -245,6 +246,8 @@ bool BaseNode::GetData(ImsMediaSubType* psubtype, uint8_t** ppData, uint32_t* pn
             *pnSeqNum = pEntry->nSeqNum;
         if (peDataType)
             *peDataType = pEntry->eDataType;
+        if (arrivalTime)
+            *arrivalTime = pEntry->arrivalTime;
         return true;
     }
     else
@@ -263,6 +266,8 @@ bool BaseNode::GetData(ImsMediaSubType* psubtype, uint8_t** ppData, uint32_t* pn
             *pnSeqNum = 0;
         if (peDataType)
             *peDataType = MEDIASUBTYPE_UNDEFINED;
+        if (arrivalTime)
+            *arrivalTime = 0;
         return false;
     }
 }
@@ -273,7 +278,8 @@ void BaseNode::DeleteData()
 }
 
 void BaseNode::SendDataToRearNode(ImsMediaSubType subtype, uint8_t* pData, uint32_t nDataSize,
-        uint32_t nTimestamp, bool bMark, uint32_t nSeqNum, ImsMediaSubType nDataType)
+        uint32_t nTimestamp, bool bMark, uint32_t nSeqNum, ImsMediaSubType nDataType,
+        uint32_t arrivalTime)
 {
     bool nNeedRunCount = false;
 
@@ -282,7 +288,7 @@ void BaseNode::SendDataToRearNode(ImsMediaSubType subtype, uint8_t* pData, uint3
         if (mRearNode->GetState() == kNodeStateRunning)
         {
             mRearNode->OnDataFromFrontNode(
-                    subtype, pData, nDataSize, nTimestamp, bMark, nSeqNum, nDataType);
+                    subtype, pData, nDataSize, nTimestamp, bMark, nSeqNum, nDataType, arrivalTime);
 
             if (mRearNode->IsRunTime() == false)
             {
@@ -298,7 +304,8 @@ void BaseNode::SendDataToRearNode(ImsMediaSubType subtype, uint8_t* pData, uint3
 }
 
 void BaseNode::OnDataFromFrontNode(ImsMediaSubType subtype, uint8_t* pData, uint32_t nDataSize,
-        uint32_t nTimestamp, bool bMark, uint32_t nSeqNum, ImsMediaSubType nDataType)
+        uint32_t nTimestamp, bool bMark, uint32_t nSeqNum, ImsMediaSubType nDataType,
+        uint32_t arrivalTime)
 {
     DataEntry entry;
     memset(&entry, 0, sizeof(DataEntry));
@@ -309,5 +316,6 @@ void BaseNode::OnDataFromFrontNode(ImsMediaSubType subtype, uint8_t* pData, uint
     entry.nSeqNum = nSeqNum;
     entry.eDataType = nDataType;
     entry.subtype = subtype;
+    entry.arrivalTime = arrivalTime;
     mDataQueue.Add(&entry);
 }

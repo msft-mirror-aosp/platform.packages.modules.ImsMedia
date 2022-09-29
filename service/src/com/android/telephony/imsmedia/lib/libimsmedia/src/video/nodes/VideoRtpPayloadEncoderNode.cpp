@@ -125,11 +125,12 @@ bool VideoRtpPayloadEncoderNode::IsSameConfig(void* config)
 
 void VideoRtpPayloadEncoderNode::OnDataFromFrontNode(ImsMediaSubType subtype, uint8_t* pData,
         uint32_t nDataSize, uint32_t nTimestamp, bool bMark, uint32_t nSeqNum,
-        ImsMediaSubType nDataType)
+        ImsMediaSubType nDataType, uint32_t arrivalTime)
 {
     (void)subtype;
     (void)nSeqNum;
     (void)nDataType;
+    (void)arrivalTime;
 
     switch (mCodecType)
     {

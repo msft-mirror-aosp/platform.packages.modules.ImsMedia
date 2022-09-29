@@ -77,7 +77,7 @@ ImsMediaSocket::ImsMediaSocket()
     mLocalPort = 0;
     mPeerPort = 0;
     mSocketFd = -1;
-    mbReceivingIPFiltering = true;
+    mRemoteIpFiltering = true;
     IMLOGD0("[ImsMediaSocket] enter");
 }
 
@@ -286,7 +286,62 @@ uint32_t ImsMediaSocket::ReceiveFrom(uint8_t* pData, uint32_t nBufferSize)
         IMLOGE0("[ReceiveFrom] Fail");
     }
 
+    /** TODO: add remote ip filtering
+    if (mRemoteIpFiltering)
+    {
+        if (srcAddress.ss_family == AF_INET)
+        {
+            struct sockaddr_in* saV4 = (struct sockaddr_in*)&scrAddress;
+            // ...
+        }
+        else if (srcAddress.ss_family == AF_INET6)
+        {
+            struct sockaddr_in6* saV6 = (struct sockaddr_in6*)&scrAddress;
+            // ...
+
+        }  // and so on
+    }*/
+
     return nLen;
+}
+
+bool ImsMediaSocket::RetrieveOptionMsg(uint32_t type, int32_t& value)
+{
+    if (type == kSocketOptionIpTtl)
+    {
+        uint8_t buffer[DEFAULT_MTU];
+        struct iovec iov[1] = {{buffer, sizeof(buffer)}};
+        struct sockaddr_storage srcAddress;
+        uint8_t ctrlDataBuffer[CMSG_SPACE(1) + CMSG_SPACE(1) + CMSG_SPACE(1)];
+        struct msghdr hdr = {.msg_name = &srcAddress,
+                .msg_namelen = sizeof(srcAddress),
+                .msg_iov = iov,
+                .msg_iovlen = 1,
+                .msg_control = ctrlDataBuffer,
+                .msg_controllen = sizeof(ctrlDataBuffer)};
+
+        if (recvmsg(mSocketFd, &hdr, 0) > 0)
+        {
+            int ttl = -1;
+            struct cmsghdr* cmsg = CMSG_FIRSTHDR(&hdr);
+
+            for (; cmsg; cmsg = CMSG_NXTHDR(&hdr, cmsg))
+            {
+                if (cmsg->cmsg_level == IPPROTO_IP && cmsg->cmsg_type == IP_RECVTTL)
+                {
+                    uint8_t* ttlPtr = (uint8_t*)CMSG_DATA(cmsg);
+                    value = (int32_t)*ttlPtr;
+                    return true;
+                }
+            }
+        }
+        else
+        {
+            IMLOGE1("[RetrieveOptionMsg] fail to read type[%d]", type);
+        }
+    }
+
+    return false;
 }
 
 void ImsMediaSocket::Close()
@@ -306,40 +361,50 @@ void ImsMediaSocket::Close()
     IMLOGD0("[Close] exit");
 }
 
-bool ImsMediaSocket::SetSocketOpt(eSocketOpt nOption, uint32_t nOptionValue)
+bool ImsMediaSocket::SetSocketOpt(kSocketOption nOption, int32_t nOptionValue)
 {
     if (mSocketFd == -1)
     {
-        IMLOGD0("[SetSocketOpt] socket handle is null..");
+        IMLOGD0("[SetSocketOpt] socket handle is invalid");
         return false;
     }
 
     switch (nOption)
     {
-        case SOCKET_OPT_IP_QOS:
-            mToS = nOptionValue;
-
+        case kSocketOptionIpTos:
             if (mLocalIPVersion == IPV4)
             {
-                if (-1 == setsockopt(mSocketFd, IPPROTO_IP, IP_TOS, (void*)&mToS, sizeof(uint32_t)))
+                if (-1 ==
+                        setsockopt(
+                                mSocketFd, IPPROTO_IP, IP_TOS, &nOptionValue, sizeof(nOptionValue)))
                 {
-                    IMLOGE0("[SetSocketOpt] IP_TOS - IPv4");
+                    IMLOGW0("[SetSocketOpt] IP_TOS - IPv4");
                     return false;
                 }
             }
             else
             {
                 if (-1 ==
-                        setsockopt(mSocketFd, IPPROTO_IPV6, IPV6_TCLASS, (void*)&mToS,
-                                sizeof(uint32_t)))
+                        setsockopt(mSocketFd, IPPROTO_IPV6, IPV6_TCLASS, &nOptionValue,
+                                sizeof(nOptionValue)))
                 {
-                    IMLOGE0("[SetSocketOpt] IP_TOS -IPv6");
+                    IMLOGW0("[SetSocketOpt] IP_TOS - IPv6");
                     return false;
                 }
             }
 
-            IMLOGD1("[SetSocketOpt] IP_QOS[%d]", mToS);
+            IMLOGD1("[SetSocketOpt] IP_QOS[%d]", nOptionValue);
             break;
+        case kSocketOptionIpTtl:
+            if (-1 ==
+                    setsockopt(
+                            mSocketFd, IPPROTO_IP, IP_RECVTTL, &nOptionValue, sizeof(nOptionValue)))
+            {
+                IMLOGW0("[SetSocketOpt] IP_RECVTTL");
+                return false;
+            }
+            IMLOGD0("[SetSocketOpt] IP_RECVTTL");
+            return true;
         default:
             IMLOGD1("[SetSocketOpt] Unsupported socket option[%d]", nOption);
             return false;

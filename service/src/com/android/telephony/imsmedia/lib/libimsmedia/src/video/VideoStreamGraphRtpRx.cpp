@@ -51,7 +51,7 @@ ImsMediaResult VideoStreamGraphRtpRx::create(RtpConfig* config)
     pNodeSocketReader->SetMediaType(IMS_MEDIA_VIDEO);
     ((SocketReaderNode*)pNodeSocketReader)->SetLocalFd(mLocalFd);
     ((SocketReaderNode*)pNodeSocketReader)->SetLocalAddress(localAddress);
-    ((SocketReaderNode*)pNodeSocketReader)->SetProtocolType(RTP);
+    ((SocketReaderNode*)pNodeSocketReader)->SetProtocolType(kProtocolRtp);
     pNodeSocketReader->SetConfig(config);
     AddNode(pNodeSocketReader);
 

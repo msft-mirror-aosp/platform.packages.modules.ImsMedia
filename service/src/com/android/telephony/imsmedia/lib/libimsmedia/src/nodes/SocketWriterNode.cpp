@@ -52,15 +52,15 @@ ImsMediaResult SocketWriterNode::Start()
     // set local/peer address here
     mSocket->SetLocalEndpoint(mLocalAddress.ipAddress, mLocalAddress.port);
     mSocket->SetPeerEndpoint(mPeerAddress.ipAddress, mPeerAddress.port);
-    mSocket->SetSocketOpt(SOCKET_OPT_IP_QOS, mDscp);
 
-    if (mSocket->Open(mLocalFd) == false)
+    if (!mSocket->Open(mLocalFd))
     {
         IMLOGE0("[Start] can't open socket");
         mSocketOpened = false;
         return RESULT_PORT_UNAVAILABLE;
     }
 
+    mSocket->SetSocketOpt(kSocketOptionIpTos, mDscp);
     mSocketOpened = true;
     mNodeState = kNodeStateRunning;
     return RESULT_SUCCESS;
@@ -104,11 +104,11 @@ void SocketWriterNode::SetConfig(void* config)
 
     RtpConfig* pConfig = reinterpret_cast<RtpConfig*>(config);
 
-    if (mProtocolType == RTP)
+    if (mProtocolType == kProtocolRtp)
     {
         mPeerAddress = RtpAddress(pConfig->getRemoteAddress().c_str(), pConfig->getRemotePort());
     }
-    else if (mProtocolType == RTCP)
+    else if (mProtocolType == kProtocolRtcp)
     {
         mPeerAddress =
                 RtpAddress(pConfig->getRemoteAddress().c_str(), pConfig->getRemotePort() + 1);
@@ -127,11 +127,11 @@ bool SocketWriterNode::IsSameConfig(void* config)
     RtpConfig* pConfig = reinterpret_cast<RtpConfig*>(config);
     RtpAddress peerAddress;
 
-    if (mProtocolType == RTP)
+    if (mProtocolType == kProtocolRtp)
     {
         peerAddress = RtpAddress(pConfig->getRemoteAddress().c_str(), pConfig->getRemotePort());
     }
-    else if (mProtocolType == RTCP)
+    else if (mProtocolType == kProtocolRtcp)
     {
         peerAddress = RtpAddress(pConfig->getRemoteAddress().c_str(), pConfig->getRemotePort() + 1);
     }
@@ -141,10 +141,11 @@ bool SocketWriterNode::IsSameConfig(void* config)
 
 void SocketWriterNode::OnDataFromFrontNode(ImsMediaSubType subtype, uint8_t* pData,
         uint32_t nDataSize, uint32_t nTimestamp, bool bMark, uint32_t nSeqNum,
-        ImsMediaSubType nDataType)
+        ImsMediaSubType nDataType, uint32_t arrivalTime)
 {
     (void)nDataType;
     (void)bMark;
+    (void)arrivalTime;
 
     if (mDisableSocket == true && subtype != MEDIASUBTYPE_RTCPPACKET_BYE)
     {

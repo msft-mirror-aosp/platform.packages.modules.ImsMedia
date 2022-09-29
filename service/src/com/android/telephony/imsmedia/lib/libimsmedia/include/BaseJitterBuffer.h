@@ -21,15 +21,6 @@
 #include <BaseSessionCallback.h>
 #include <mutex>
 
-#define SEQ_ROUND_QUARD 655  // 1% of FFFF
-#define USHORT_SEQ_ROUND_COMPARE(a, b)                                              \
-    (((a >= b) && ((b >= SEQ_ROUND_QUARD) || ((a <= 0xffff - SEQ_ROUND_QUARD)))) || \
-            ((a <= SEQ_ROUND_QUARD) && (b >= 0xffff - SEQ_ROUND_QUARD)))
-#define TS_ROUND_QUARD 3000
-#define USHORT_TS_ROUND_COMPARE(a, b)                                             \
-    (((a >= b) && ((b >= TS_ROUND_QUARD) || ((a <= 0xffff - TS_ROUND_QUARD)))) || \
-            ((a <= TS_ROUND_QUARD) && (b >= 0xffff - TS_ROUND_QUARD)))
-
 /*!
  *    @class        BaseJitterBuffer
  */
@@ -39,7 +30,15 @@ public:
     BaseJitterBuffer();
     virtual ~BaseJitterBuffer();
     virtual void SetSessionCallback(BaseSessionCallback* callback);
+
+    /**
+     * @brief Set the ssrc of the receiving stream
+     */
     virtual void SetSsrc(uint32_t ssrc);
+
+    /**
+     * @brief Set the codec type
+     */
     virtual void SetCodecType(uint32_t type);
     virtual void SetJitterBufferSize(uint32_t nInit, uint32_t nMin, uint32_t nMax);
     virtual void SetJitterOptions(uint32_t nReduceTH, uint32_t nStepSize, double zValue,
@@ -47,12 +46,39 @@ public:
     virtual uint32_t GetCount();
     virtual void Reset();
     virtual void Delete();
-    virtual void Add(ImsMediaSubType subtype, uint8_t* pbBuffer, uint32_t nBufferSize,
-            uint32_t nTimestamp, bool bMark, uint32_t nSeqNum,
-            ImsMediaSubType nDataType = ImsMediaSubType::MEDIASUBTYPE_UNDEFINED) = 0;
+
+    /**
+     * @brief Add data frame to jitter buffer for dejittering
+     *
+     * @param subtype The subtype of data stored in the queue. It can be various subtype according
+     * to the characteristics of the given data
+     * @param data The data buffer
+     * @param dataSize The size of data
+     * @param timestamp The timestamp of data, it can be milliseconds unit or rtp timestamp unit
+     * @param mark It is true when the data has marker bit set
+     * @param seq The sequence number of data. it is 0 when there is no valid sequence number set
+     * @param dataType The additional data type for the video frames
+     * @param arrivalTime The arrival time of the packet in milliseconds unit
+     */
+    virtual void Add(ImsMediaSubType subtype, uint8_t* data, uint32_t dataSize, uint32_t timestamp,
+            bool mark, uint32_t seq,
+            ImsMediaSubType dataType = ImsMediaSubType::MEDIASUBTYPE_UNDEFINED,
+            uint32_t arrivalTime = 0) = 0;
+
+    /**
+     * @brief Get data frame from the jitter buffer
+     *
+     * @param subtype The subtype of data stored in the queue. It can be various subtype according
+     * to the characteristics of the given data
+     * @param data The data buffer
+     * @param dataSize The size of data
+     * @param timestamp The timestamp of data, it can be milliseconds unit or rtp timestamp unit
+     * @param mark It is true when the data has marker bit set
+     * @param seq The sequence number of data. it is 0 when there is no valid sequence number set
+     * @param pnChecker
+     */
     virtual bool Get(ImsMediaSubType* psubtype, uint8_t** ppData, uint32_t* pnDataSize,
-            uint32_t* pnTimestamp, bool* pbMark, uint32_t* pnSeqNum,
-            uint32_t* pnChecker = NULL) = 0;
+            uint32_t* ptimestamp, bool* pmark, uint32_t* pnSeqNum, uint32_t* pnChecker = NULL) = 0;
 
 protected:
     BaseSessionCallback* mCallback;

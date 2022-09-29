@@ -35,7 +35,8 @@ TextJitterBuffer::~TextJitterBuffer() {}
 void TextJitterBuffer::Reset() {}
 
 void TextJitterBuffer::Add(ImsMediaSubType subtype, uint8_t* buffer, uint32_t size,
-        uint32_t timestamp, bool mark, uint32_t seqNum, ImsMediaSubType dataType)
+        uint32_t timestamp, bool mark, uint32_t seqNum, ImsMediaSubType dataType,
+        uint32_t arrivalTime)
 {
     (void)dataType;
     DataEntry currEntry;
@@ -48,10 +49,11 @@ void TextJitterBuffer::Add(ImsMediaSubType subtype, uint8_t* buffer, uint32_t si
     currEntry.nSeqNum = seqNum;
     currEntry.bHeader = true;
     currEntry.bValid = true;
+    currEntry.arrivalTime = arrivalTime;
 
-    IMLOGD_PACKET5(IM_PACKET_LOG_JITTER,
-            "[Add] Seq[%u], bMark[%u], TimeStamp[%u], Size[%u], LastPlayedSeqNum[%u]", seqNum, mark,
-            timestamp, size, mLastPlayedSeqNum);
+    IMLOGD_PACKET6(IM_PACKET_LOG_JITTER,
+            "[Add] Seq[%u], bMark[%u], timestamp[%u], size[%u], LastPlayedSeq[%u], arrivalTime[%u]",
+            seqNum, mark, timestamp, size, mLastPlayedSeqNum, arrivalTime);
 
     std::lock_guard<std::mutex> guard(mMutex);
 

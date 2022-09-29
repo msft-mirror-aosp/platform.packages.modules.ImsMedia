@@ -242,11 +242,13 @@ public:
      * @param mark It is true when the data has marker bit set
      * @param seq The sequence number of data. it is 0 when there is no valid sequence number set
      * @param dataType The additional data type for the video frames
+     * @param arrivalTime The arrival time of the packet
      * @return true Succeeds to gets the valid data
      * @return false Fails to gets the valid data
      */
     virtual bool GetData(ImsMediaSubType* subtype, uint8_t** data, uint32_t* dataSize,
-            uint32_t* timestamp, bool* mark, uint32_t* seq, ImsMediaSubType* dataType);
+            uint32_t* timestamp, bool* mark, uint32_t* seq, ImsMediaSubType* dataType = NULL,
+            uint32_t* arrivalTime = NULL);
 
     /**
      * @brief Deletes the data stored in the front of the data queue
@@ -265,10 +267,12 @@ public:
      * @param mark It is true when the data has marker bit set
      * @param seq The sequence number of data. it is 0 when there is no valid sequence number set
      * @param dataType The additional data type for the video frames
+     * @param arrivalTime The arrival time of the packet in milliseconds unit
      */
     void SendDataToRearNode(ImsMediaSubType subtype, uint8_t* data, uint32_t dataSize,
             uint32_t timestamp, bool mark, uint32_t seq,
-            ImsMediaSubType nDataType = ImsMediaSubType::MEDIASUBTYPE_UNDEFINED);
+            ImsMediaSubType nDataType = ImsMediaSubType::MEDIASUBTYPE_UNDEFINED,
+            uint32_t arrivalTime = 0);
 
     /**
      * @brief This method is invoked when the front node calls SendDataToRearNode to pass the
@@ -282,10 +286,12 @@ public:
      * @param mark It is true when the data has marker bit set
      * @param seq The sequence number of data. it is 0 when there is no valid sequence number set
      * @param dataType The additional data type for the video frames
+     * @param arrivalTime The arrival time of the packet
      */
     virtual void OnDataFromFrontNode(ImsMediaSubType subtype, uint8_t* pData, uint32_t nDataSize,
-            uint32_t nTimestamp, bool bMark, uint32_t nSeqNum,
-            ImsMediaSubType nDataType = ImsMediaSubType::MEDIASUBTYPE_UNDEFINED);
+            uint32_t timestamp, bool mark, uint32_t nSeqNum,
+            ImsMediaSubType nDataType = ImsMediaSubType::MEDIASUBTYPE_UNDEFINED,
+            uint32_t arrivalTime = 0);
 
 protected:
     std::shared_ptr<StreamSchedulerCallback> mScheduler;

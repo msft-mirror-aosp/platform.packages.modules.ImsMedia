@@ -66,11 +66,13 @@ bool TextRtpPayloadEncoderNode::IsSourceNode()
 }
 
 void TextRtpPayloadEncoderNode::OnDataFromFrontNode(ImsMediaSubType subtype, uint8_t* data,
-        uint32_t size, uint32_t timestamp, bool mark, uint32_t seqNum, ImsMediaSubType dataType)
+        uint32_t size, uint32_t timestamp, bool mark, uint32_t seqNum, ImsMediaSubType dataType,
+        uint32_t arrivalTime)
 {
     (void)subtype;
     (void)seqNum;
     (void)dataType;
+    (void)arrivalTime;
 
     switch (mCodecType)
     {
@@ -132,7 +134,8 @@ void TextRtpPayloadEncoderNode::EncodeT140(
 
     uint32_t codecType = mCodecType;
 
-    IMLOGD6("[EncodeT140] Size[%u], Mark[%d], RedLevel[%d], TS[%u], LastTS[%u], queue size[%u]",
+    IMLOGD_PACKET6(IM_PACKET_LOG_PH,
+            "[EncodeT140] Size[%u], Mark[%d], RedLevel[%d], TS[%u], LastTS[%u], queue size[%u]",
             size, bNewMark, mRedundantLevel, timestamp, mLastTimestampSent,
             mBufferQueue.GetCount());
 
@@ -164,12 +167,12 @@ void TextRtpPayloadEncoderNode::EncodeT140(
             // Remove a very old redundant data
             IMLOGD_PACKET4(IM_PACKET_LOG_PH,
                     "[EncodeT140] timestamp[%u], pEntry->timestamp[%u], nTSInterval[%d], "
-                    "nInputTime[%d]",
-                    timestamp, pEntry->nTimestamp, nTSInterval, pEntry->nInputTime);
+                    "arrivalTime[%d]",
+                    timestamp, pEntry->nTimestamp, nTSInterval, pEntry->arrivalTime);
 
             // Check time interval and the number of remained use
             if (nTSInterval >= PAYLOADENCODER_TEXT_MAX_REDUNDANT_INTERVAL ||
-                    pEntry->nInputTime == 0)
+                    pEntry->arrivalTime == 0)
             {
                 pEntry = NULL;
                 mBufferQueue.Delete();
@@ -229,7 +232,7 @@ void TextRtpPayloadEncoderNode::EncodeT140(
                 nullRED.pbBuffer = NULL;
                 nullRED.nBufferSize = 0;
                 nullRED.nTimestamp = timestamp;
-                nullRED.nInputTime = 1;  // Remained time to be retransmitted
+                nullRED.arrivalTime = 1;  // Remained time to be retransmitted
                 mBufferQueue.InsertAt(0, &nullRED);
                 IMLOGD0("[EncodeT140] add null red");
             }
@@ -258,12 +261,12 @@ void TextRtpPayloadEncoderNode::EncodeT140(
                 mBWHeader.Write(mRedundantPayload, 7);
                 mBWHeader.Write(nTSInterval, 14);
                 mBWHeader.Write(pEntry->nBufferSize, 10);
-                pEntry->nInputTime -= 1;
+                pEntry->arrivalTime -= 1;
 
                 IMLOGD_PACKET6(IM_PACKET_LOG_PH,
                         "[EncodeT140] RED payload [%d/%d] - RemaindTime[%d], RED payload[%d], "
                         "offset[%d], data size[%d]",
-                        i, mBufferQueue.GetCount(), pEntry->nInputTime, mRedundantPayload,
+                        i, mBufferQueue.GetCount(), pEntry->arrivalTime, mRedundantPayload,
                         nTSInterval, pEntry->nBufferSize);
 
                 if (pEntry->nBufferSize > 0 && pEntry->pbBuffer != NULL)
@@ -309,7 +312,7 @@ void TextRtpPayloadEncoderNode::EncodeT140(
         newEntry.pbBuffer = data;
         newEntry.nBufferSize = size;
         newEntry.nTimestamp = timestamp;
-        newEntry.nInputTime = mRedundantLevel - 1;  // Remained time to be retransmitted
+        newEntry.arrivalTime = mRedundantLevel - 1;  // Remained time to be retransmitted
         mBufferQueue.Add(&newEntry);
     }
     else  // TEXT_T140

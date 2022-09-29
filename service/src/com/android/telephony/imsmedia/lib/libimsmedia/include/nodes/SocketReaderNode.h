@@ -52,19 +52,20 @@ public:
     void SetPeerAddress(const RtpAddress address);
 
     /**
-     * @brief Set the protocol type defined as ImsMediaProtocolType
+     * @brief Set the protocol type defined as kProtocolType
      */
-    void SetProtocolType(ImsMediaProtocolType type) { mProtocolType = type; }
+    void SetProtocolType(kProtocolType type) { mProtocolType = type; }
 
 private:
     int mLocalFd;
-    ImsMediaProtocolType mProtocolType;
+    kProtocolType mProtocolType;
     ISocket* mSocket;
     RtpAddress mLocalAddress;
     RtpAddress mPeerAddress;
     bool mSocketOpened;
     std::mutex mMutex;
     uint8_t mBuffer[DEFAULT_MTU];
+    bool mReceiveTtl;
 };
 
 #endif

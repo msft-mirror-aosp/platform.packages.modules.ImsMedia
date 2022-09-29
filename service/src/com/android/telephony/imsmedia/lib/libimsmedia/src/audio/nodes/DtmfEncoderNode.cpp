@@ -103,11 +103,12 @@ bool DtmfEncoderNode::IsSameConfig(void* config)
 
 void DtmfEncoderNode::OnDataFromFrontNode(ImsMediaSubType subtype, uint8_t* pData,
         uint32_t nDataSize, uint32_t volume, bool bMark, uint32_t duration,
-        ImsMediaSubType nDataType)
+        ImsMediaSubType nDataType, uint32_t arrivalTime)
 {
     (void)bMark;
     (void)nDataType;
     (void)volume;
+    (void)arrivalTime;
 
     if (duration != 0 && subtype == MEDIASUBTYPE_DTMF_PAYLOAD)
     {

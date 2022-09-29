@@ -983,6 +983,11 @@ JP_Exit_GenerateSprop:
 void ImsMediaVideoUtil::ConvertBitrateToPower(
         const uint32_t nInputBitrate, uint32_t& nOutExp, uint32_t& nOutMantissa)
 {
+    if (nInputBitrate == 0)
+    {
+        return;
+    }
+
     nOutExp = 0;
     nOutMantissa = (nInputBitrate % 2 == 0) ? (nInputBitrate) : (nInputBitrate + 1);
 

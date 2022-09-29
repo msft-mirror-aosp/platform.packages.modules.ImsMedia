@@ -115,7 +115,7 @@ bool AudioRtpPayloadDecoderNode::IsSameConfig(void* config)
 
 void AudioRtpPayloadDecoderNode::OnDataFromFrontNode(ImsMediaSubType subtype, uint8_t* pData,
         uint32_t nDataSize, uint32_t nTimestamp, bool bMark, uint32_t nSeqNum,
-        ImsMediaSubType nDataType)
+        ImsMediaSubType nDataType, uint32_t arrivalTime)
 {
     if (subtype == MEDIASUBTYPE_REFRESHED)
     {
@@ -127,7 +127,7 @@ void AudioRtpPayloadDecoderNode::OnDataFromFrontNode(ImsMediaSubType subtype, ui
     {
         case kAudioCodecAmr:
         case kAudioCodecAmrWb:
-            DecodePayloadAmr(pData, nDataSize, nTimestamp, bMark, nSeqNum);
+            DecodePayloadAmr(pData, nDataSize, nTimestamp, bMark, nSeqNum, arrivalTime);
             break;
         case kAudioCodecPcmu:
         case kAudioCodecPcma:
@@ -135,18 +135,18 @@ void AudioRtpPayloadDecoderNode::OnDataFromFrontNode(ImsMediaSubType subtype, ui
                     MEDIASUBTYPE_RTPPAYLOAD, pData, nDataSize, nTimestamp, bMark, nSeqNum);
             break;
         case kAudioCodecEvs:
-            DecodePayloadEvs(pData, nDataSize, nTimestamp, bMark, nSeqNum);
+            DecodePayloadEvs(pData, nDataSize, nTimestamp, bMark, nSeqNum, arrivalTime);
             break;
         default:
             IMLOGE1("[OnDataFromFrontNode] invalid codec type[%d]", mCodecType);
             SendDataToRearNode(MEDIASUBTYPE_RTPPAYLOAD, pData, nDataSize, nTimestamp, bMark,
-                    nSeqNum, nDataType);
+                    nSeqNum, nDataType, arrivalTime);
             break;
     }
 }
 
-void AudioRtpPayloadDecoderNode::DecodePayloadAmr(
-        uint8_t* pData, uint32_t nDataSize, uint32_t nTimestamp, bool bMark, uint32_t nSeqNum)
+void AudioRtpPayloadDecoderNode::DecodePayloadAmr(uint8_t* pData, uint32_t nDataSize,
+        uint32_t nTimestamp, bool bMark, uint32_t nSeqNum, uint32_t arrivalTime)
 {
     if (pData == NULL || nDataSize == 0)
     {
@@ -163,9 +163,10 @@ void AudioRtpPayloadDecoderNode::DecodePayloadAmr(
 
     std::lock_guard<std::mutex> guard(mMutexExit);
 
-    IMLOGD_PACKET4(IM_PACKET_LOG_PH,
-            "[DecodePayloadAmr] GetCodectype[%d], octetAligned[%d], nSeqNum[%d], TS[%u]",
-            mCodecType, mOctetAligned, nSeqNum, timestamp);
+    IMLOGD_PACKET5(IM_PACKET_LOG_PH,
+            "[DecodePayloadAmr] GetCodectype[%d], octetAligned[%d], nSeqNum[%d], TS[%u], "
+            "arrivalTime[%d]",
+            mCodecType, mOctetAligned, nSeqNum, timestamp, arrivalTime);
 
     mBitReader.SetBuffer(pData, nDataSize);
     // read cmr
@@ -245,19 +246,24 @@ void AudioRtpPayloadDecoderNode::DecodePayloadAmr(
                 mPayload[1], mPayload[2], mPayload[3], nBufferSize, eRate);
         // send remaining packet number in bundle as bMark value
         SendDataToRearNode(MEDIASUBTYPE_RTPPAYLOAD, mPayload, nBufferSize, timestamp,
-                listFrameType.size(), nSeqNum);
+                listFrameType.size(), nSeqNum, MEDIASUBTYPE_UNDEFINED, arrivalTime);
 
         timestamp += 20;
     }
 }
 
-void AudioRtpPayloadDecoderNode::DecodePayloadEvs(
-        uint8_t* pData, uint32_t nDataSize, uint32_t nTimeStamp, bool bMark, uint32_t nSeqNum)
+void AudioRtpPayloadDecoderNode::DecodePayloadEvs(uint8_t* pData, uint32_t nDataSize,
+        uint32_t nTimeStamp, bool bMark, uint32_t nSeqNum, uint32_t arrivalTime)
 {
     if (pData == NULL || nDataSize == 0)
     {
         return;
     }
+
+    IMLOGD_PACKET5(IM_PACKET_LOG_PH,
+            "[DecodePayloadEvs] GetCodectype[%d], octetAligned[%d], nSeqNum[%d], TS[%u], "
+            "arrivalTime[%d]",
+            mCodecType, mOctetAligned, nSeqNum, nTimeStamp, arrivalTime);
 
     kRtpPyaloadHeaderMode eEVSPHFormat = kRtpPyaloadHeaderModeEvsCompact;
     kRtpPyaloadHeaderMode eEVSReceivedPHFormat = kRtpPyaloadHeaderModeEvsCompact;
@@ -322,8 +328,8 @@ void AudioRtpPayloadDecoderNode::DecodePayloadEvs(
             IMLOGD6("[DecodePayloadEvs] Result =%02X %02X %02X %02X, len=%d,nFrameType=%d",
                     mPayload[0], mPayload[1], mPayload[2], mPayload[3], nDataSize, nFrameType);
 
-            SendDataToRearNode(
-                    MEDIASUBTYPE_RTPPAYLOAD, mPayload, nDataSize, timestamp, bMark, nSeqNum);
+            SendDataToRearNode(MEDIASUBTYPE_RTPPAYLOAD, mPayload, nDataSize, timestamp, bMark,
+                    nSeqNum, MEDIASUBTYPE_UNDEFINED, arrivalTime);
         }
         else if (kEvsCodecMode == kEvsCodecModeAmrIo)
         {
@@ -477,8 +483,8 @@ void AudioRtpPayloadDecoderNode::DecodePayloadEvs(
             IMLOGD6("[DecodePayloadEvs] result = %02X %02X %02X %02X, len=%d, nFrameType=%d",
                     mPayload[0], mPayload[1], mPayload[2], mPayload[3], nDataSize, nFrameType);
 
-            SendDataToRearNode(
-                    MEDIASUBTYPE_RTPPAYLOAD, mPayload, nDataSize, timestamp, bMark, nSeqNum);
+            SendDataToRearNode(MEDIASUBTYPE_RTPPAYLOAD, mPayload, nDataSize, timestamp, bMark,
+                    nSeqNum, MEDIASUBTYPE_UNDEFINED, arrivalTime);
         }
         else
         {
@@ -664,8 +670,7 @@ void AudioRtpPayloadDecoderNode::DecodePayloadEvs(
                     mPayload[0], mPayload[1], mPayload[2], mPayload[3], nDataSize, toc_ft_b);
 
             SendDataToRearNode(MEDIASUBTYPE_RTPPAYLOAD, mPayload, (((nDataBitSize + 7) >> 3)),
-                    timestamp, listFrameType.size(),
-                    nSeqNum);  // send remaining packet number in bundle as bMark value
+                    timestamp, listFrameType.size(), nSeqNum, MEDIASUBTYPE_UNDEFINED, arrivalTime);
 
             timestamp += 20;
         }

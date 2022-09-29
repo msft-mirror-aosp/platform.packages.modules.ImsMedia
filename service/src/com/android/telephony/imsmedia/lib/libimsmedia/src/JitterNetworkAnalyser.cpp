@@ -47,7 +47,7 @@ JitterNetworkAnalyser::JitterNetworkAnalyser()
     mMaxJitterBufferSize = 0;
     mBufferReduceTH = 1000 * 20;
     mBufferStepSize = 2;
-    m_fBufferZValue = 2.5;
+    mBufferZValue = 2.5;
     mImprovement = false;
     Reset();
 }
@@ -57,18 +57,16 @@ JitterNetworkAnalyser::~JitterNetworkAnalyser() {}
 void JitterNetworkAnalyser::Reset()
 {
     uint32_t i;
-    mReadCount = 0;
-    mBaseInputTimestamp = 0;
-    mBaseInputTime = 0;
+    mBasePacketTime = 0;
+    mBaseArrivalTime = 0;
     mJitterIndex = 0;
-    m_NetworkStatus = NETWORK_STATUS_NORMAL;
+    mNetworkStatus = NETWORK_STATUS_NORMAL;
     mGoodStatusEnteringTime = 0;
     mBadStatusChangedTime = 0;
-    mLossPacketCount = 0;
 
     for (i = 0; i < JITTER_LIST_SIZE; i++)
     {
-        m_pnJitter[i] = 0;
+        mJitters[i] = 0;
     }
 }
 
@@ -84,33 +82,32 @@ void JitterNetworkAnalyser::SetJitterOptions(
 {
     mBufferReduceTH = nReduceTH;
     mBufferStepSize = nStepSize;
-    m_fBufferZValue = zValue;
+    mBufferZValue = zValue;
     mImprovement = bImprovement;
 
     IMLOGD4("[SetJitterOptions] ReduceTH[%d], StepSize[%d], ZValue[%.lf], bImprovement[%d]",
-            mBufferReduceTH, mBufferStepSize, m_fBufferZValue, mImprovement);
+            mBufferReduceTH, mBufferStepSize, mBufferZValue, mImprovement);
 }
 
-void JitterNetworkAnalyser::OnInputData(
-        uint32_t nTimestamp, bool bMark, uint32_t nSeq, uint32_t nInputTime)
+int32_t JitterNetworkAnalyser::calculateTransitTimeDifference(
+        uint32_t timestamp, uint32_t arrivalTime)
 {
-    // remove warning
-    (void)bMark;
-    (void)nSeq;
-    JitterCalc(nTimestamp, nInputTime);
-}
+    if (mBasePacketTime == 0)
+    {
+        return 0;
+    }
 
-// jitter calculation code
-bool JitterNetworkAnalyser::JitterCalc(uint32_t nTimestamp, uint32_t nInputTime)
-{
-    uint32_t inputTimestampGap = nTimestamp - mBaseInputTimestamp;
-    ;
-    uint32_t inputTimeGap = nInputTime - mBaseInputTime;
+    uint32_t inputTimestampGap = timestamp - mBasePacketTime;
+    uint32_t inputTimeGap = arrivalTime - mBaseArrivalTime;
     uint32_t jitter = inputTimeGap - inputTimestampGap;
-    m_pnJitter[mJitterIndex++] = jitter;
+    mJitters[mJitterIndex++] = jitter;
+
     if (mJitterIndex >= JITTER_LIST_SIZE)
+    {
         mJitterIndex = 0;
-    return true;
+    }
+
+    return jitter;
 }
 
 double JitterNetworkAnalyser::DevCalc(double* pMean)
@@ -123,19 +120,19 @@ double JitterNetworkAnalyser::DevCalc(double* pMean)
 
     for (i = 0; i < JITTER_LIST_SIZE; i++)
     {
-        sum += m_pnJitter[i];
+        sum += mJitters[i];
     }
 
     mean = sum / JITTER_LIST_SIZE;
 
     for (i = 0; i < JITTER_LIST_SIZE; i++)
     {
-        double jitter = (double)m_pnJitter[i] - mean;
+        double jitter = (double)mJitters[i] - mean;
         powersum += (jitter * jitter);
     }
 
     dDerivation = sqrt(powersum / JITTER_LIST_SIZE);
-    IMLOGD_PACKET1(IM_PACKET_LOG_JITTER, "[DevCalc() Deviation jitter value %4.4f \n", dDerivation);
+    IMLOGD_PACKET1(IM_PACKET_LOG_JITTER, "[DevCalc] jitter deviation value %4.4f \n", dDerivation);
     *pMean = mean;
     return dDerivation;
 }
@@ -147,40 +144,19 @@ uint32_t JitterNetworkAnalyser::GetMaxJitterValue()
 
     for (i = 0; i < JITTER_LIST_SIZE; i++)
     {
-        if (m_pnJitter[i] > nMaxJitterValue)
-            nMaxJitterValue = m_pnJitter[i];
+        if (mJitters[i] > nMaxJitterValue)
+            nMaxJitterValue = mJitters[i];
     }
 
     return (uint32_t)nMaxJitterValue;
 }
 
-void JitterNetworkAnalyser::BasePacketChange(uint32_t nTimestamp, uint32_t nInputTime)
+void JitterNetworkAnalyser::BasePacketChange(uint32_t packetTime, uint32_t arrivalTime)
 {
-    IMLOGD_PACKET2(IM_PACKET_LOG_JITTER, "[BasePacketChange] nTS[%d], nInputTime[%u]", nTimestamp,
-            nInputTime);
-    mBaseInputTimestamp = nTimestamp;
-    mBaseInputTime = nInputTime;
-}
-
-void JitterNetworkAnalyser::OnFrameLoss()
-{
-    mLossPacketCount++;
-}
-
-void JitterNetworkAnalyser::LossPacketRateAnalyser()
-{
-    mReadCount++;
-    if (mReadCount + mLossPacketCount >= ANALYSE_PACKET_LOSS_RATE)
-    {
-        PrintPacketStatus();
-        mReadCount = 0;
-        mLossPacketCount = 0;
-    }
-}
-
-void JitterNetworkAnalyser::PrintPacketStatus()
-{
-    IMLOGD2("[PrintPacketStatus] L[%d], A[%d]", mLossPacketCount, mReadCount);
+    IMLOGD_PACKET2(IM_PACKET_LOG_JITTER, "[BasePacketChange] packetTime[%d], arrivalTime[%u]",
+            packetTime, arrivalTime);
+    mBasePacketTime = packetTime;
+    mBaseArrivalTime = arrivalTime;
 }
 
 uint32_t JitterNetworkAnalyser::GetJitterBufferSize(uint32_t nCurrJitterBufferSize)
@@ -198,7 +174,7 @@ uint32_t JitterNetworkAnalyser::GetJitterBufferSize(uint32_t nCurrJitterBufferSi
         dev = DevCalc(&mean);
 
         // calcJitterSize = mean + STD_DISTRIBUTION_Z_VALUE * dev;
-        calcJitterSize = mean + m_fBufferZValue * dev;
+        calcJitterSize = mean + mBufferZValue * dev;
 
         IMLOGD_PACKET3(IM_PACKET_LOG_JITTER,
                 "[GetJitterBufferSize] calcJitterSize %4.2f, curr[%d], MaxJitterSize %d",
@@ -208,6 +184,7 @@ uint32_t JitterNetworkAnalyser::GetJitterBufferSize(uint32_t nCurrJitterBufferSi
         {
             currStatus = NETWORK_STATUS_BAD;
             weight_value = (calcJitterSize - nCurrJitterBufferSize * PACKET_INTERVAL) / 20 + 1;
+
             if (weight_value >= 3)
             {
                 weight_value += (weight_value + 1) / 2;
@@ -230,6 +207,7 @@ uint32_t JitterNetworkAnalyser::GetJitterBufferSize(uint32_t nCurrJitterBufferSi
             case NETWORK_STATUS_BAD:
             {
                 uint32_t nCurrTime = ImsMediaTimer::GetTimeInMilliSeconds();
+
                 if (mBadStatusChangedTime == 0 || (nCurrTime - mBadStatusChangedTime) >= 1000)
                 {
                     nextJitterBuffer = nCurrJitterBufferSize + weight_value;
@@ -247,7 +225,7 @@ uint32_t JitterNetworkAnalyser::GetJitterBufferSize(uint32_t nCurrJitterBufferSi
             }
             case NETWORK_STATUS_GOOD:
             {
-                if (m_NetworkStatus != NETWORK_STATUS_GOOD)
+                if (mNetworkStatus != NETWORK_STATUS_GOOD)
                 {
                     mGoodStatusEnteringTime = ImsMediaTimer::GetTimeInMilliSeconds();
                 }
@@ -288,7 +266,7 @@ uint32_t JitterNetworkAnalyser::GetJitterBufferSize(uint32_t nCurrJitterBufferSi
         uint32_t max_jitter = GetMaxJitterValue();
         dev = DevCalc(&mean);
         // calcJitterSize = mean + STD_DISTRIBUTION_Z_VALUE * dev;
-        calcJitterSize = mean + m_fBufferZValue * dev;
+        calcJitterSize = mean + mBufferZValue * dev;
         IMLOGD_PACKET3(IM_PACKET_LOG_JITTER,
                 "[GetJitterBufferSize] calcJitterSize %4.2f, curr[%d], MaxJitterSize %d",
                 calcJitterSize, nCurrJitterBufferSize, max_jitter);
@@ -329,7 +307,7 @@ uint32_t JitterNetworkAnalyser::GetJitterBufferSize(uint32_t nCurrJitterBufferSi
             }
             case NETWORK_STATUS_GOOD:
             {
-                if (m_NetworkStatus != NETWORK_STATUS_GOOD)
+                if (mNetworkStatus != NETWORK_STATUS_GOOD)
                 {
                     mGoodStatusEnteringTime = ImsMediaTimer::GetTimeInMilliSeconds();
                 }
@@ -360,6 +338,6 @@ uint32_t JitterNetworkAnalyser::GetJitterBufferSize(uint32_t nCurrJitterBufferSi
     }
 
     IMLOGD2("[JitterNetworkAnalyser] next[%d], curr[%d]", nextJitterBuffer, nCurrJitterBufferSize);
-    m_NetworkStatus = currStatus;
+    mNetworkStatus = currStatus;
     return nextJitterBuffer;
 }

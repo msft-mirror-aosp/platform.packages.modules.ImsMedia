@@ -16,12 +16,14 @@
 
 #include <SocketReaderNode.h>
 #include <ImsMediaTrace.h>
+#include <ImsMediaTimer.h>
 #include <thread>
 
 SocketReaderNode::SocketReaderNode(BaseSessionCallback* callback) :
         BaseNode(callback),
         mLocalFd(0)
 {
+    mReceiveTtl = false;
 }
 
 SocketReaderNode::~SocketReaderNode()
@@ -49,11 +51,18 @@ ImsMediaResult SocketReaderNode::Start()
     mSocket->SetLocalEndpoint(mLocalAddress.ipAddress, mLocalAddress.port);
     mSocket->SetPeerEndpoint(mPeerAddress.ipAddress, mPeerAddress.port);
 
-    if (mSocket->Open(mLocalFd) != true)
+    if (!mSocket->Open(mLocalFd))
     {
         IMLOGE0("[Start] can't open socket");
         mSocketOpened = false;
         return RESULT_PORT_UNAVAILABLE;
+    }
+
+    mReceiveTtl = false;
+
+    if (mSocket->SetSocketOpt(kSocketOptionIpTtl, 1))
+    {
+        mReceiveTtl = true;
     }
 
     mSocket->Listen(this);
@@ -95,13 +104,15 @@ void SocketReaderNode::ProcessData()
     uint32_t seqNum = 0;
     ImsMediaSubType subtype;
     ImsMediaSubType dataType;
+    uint32_t arrivalTime;
 
-    while (GetData(&subtype, &data, &dataSize, &timeStamp, &bMark, &seqNum, &dataType))
+    while (GetData(
+            &subtype, &data, &dataSize, &timeStamp, &bMark, &seqNum, &dataType, &arrivalTime))
     {
-        IMLOGD_PACKET2(
-                IM_PACKET_LOG_SOCKET, "[ProcessData] media[%d], size[%d]", mMediaType, dataSize);
-
-        SendDataToRearNode(MEDIASUBTYPE_UNDEFINED, (uint8_t*)data, dataSize, 0, 0, 0);
+        IMLOGD_PACKET3(IM_PACKET_LOG_SOCKET, "[ProcessData] media[%d], size[%d], arrivalTime[%d]",
+                mMediaType, dataSize, arrivalTime);
+        SendDataToRearNode(MEDIASUBTYPE_UNDEFINED, (uint8_t*)data, dataSize, timeStamp, bMark,
+                seqNum, dataType, arrivalTime);
         DeleteData();
     }
 }
@@ -125,11 +136,11 @@ void SocketReaderNode::SetConfig(void* config)
 
     RtpConfig* pConfig = reinterpret_cast<RtpConfig*>(config);
 
-    if (mProtocolType == RTP)
+    if (mProtocolType == kProtocolRtp)
     {
         mPeerAddress = RtpAddress(pConfig->getRemoteAddress().c_str(), pConfig->getRemotePort());
     }
-    else if (mProtocolType == RTCP)
+    else if (mProtocolType == kProtocolRtcp)
     {
         mPeerAddress =
                 RtpAddress(pConfig->getRemoteAddress().c_str(), pConfig->getRemotePort() + 1);
@@ -146,11 +157,11 @@ bool SocketReaderNode::IsSameConfig(void* config)
     RtpConfig* pConfig = reinterpret_cast<RtpConfig*>(config);
     RtpAddress peerAddress;
 
-    if (mProtocolType == RTP)
+    if (mProtocolType == kProtocolRtp)
     {
         peerAddress = RtpAddress(pConfig->getRemoteAddress().c_str(), pConfig->getRemotePort());
     }
-    else if (mProtocolType == RTCP)
+    else if (mProtocolType == kProtocolRtcp)
     {
         peerAddress = RtpAddress(pConfig->getRemoteAddress().c_str(), pConfig->getRemotePort() + 1);
     }
@@ -160,6 +171,11 @@ bool SocketReaderNode::IsSameConfig(void* config)
 
 void SocketReaderNode::OnReadDataFromSocket()
 {
+    if (mReceiveTtl)
+    {
+        // TODO: Retrieve ttl from the packet header
+    }
+
     int nLen = mSocket->ReceiveFrom(mBuffer, DEFAULT_MTU);
 
     if (nLen > 0)
@@ -168,7 +184,8 @@ void SocketReaderNode::OnReadDataFromSocket()
                 "[OnReadDataFromSocket] media[%d], data size[%d], queue size[%d]", mMediaType, nLen,
                 GetDataCount());
         std::lock_guard<std::mutex> guard(mMutex);
-        OnDataFromFrontNode(MEDIASUBTYPE_UNDEFINED, mBuffer, nLen, 0, 0, 0);
+        OnDataFromFrontNode(MEDIASUBTYPE_UNDEFINED, mBuffer, nLen, 0, 0, 0, MEDIASUBTYPE_UNDEFINED,
+                ImsMediaTimer::GetTimeInMilliSeconds());
     }
 }
 

@@ -90,7 +90,7 @@ uint32_t JitterBufferControlNode::GetDataCount()
 
 void JitterBufferControlNode::OnDataFromFrontNode(ImsMediaSubType subtype, uint8_t* pData,
         uint32_t nDataSize, uint32_t nTimestamp, bool bMark, uint32_t nSeqNum,
-        ImsMediaSubType nDataType)
+        ImsMediaSubType nDataType, uint32_t arrivalTime)
 {
     if (mJitterBuffer)
     {
@@ -100,20 +100,22 @@ void JitterBufferControlNode::OnDataFromFrontNode(ImsMediaSubType subtype, uint8
         }
         else
         {
-            mJitterBuffer->Add(subtype, pData, nDataSize, nTimestamp, bMark, nSeqNum, nDataType);
+            mJitterBuffer->Add(
+                    subtype, pData, nDataSize, nTimestamp, bMark, nSeqNum, nDataType, arrivalTime);
         }
     }
 }
 
 bool JitterBufferControlNode::GetData(ImsMediaSubType* pSubtype, uint8_t** ppData,
         uint32_t* pnDataSize, uint32_t* pnTimestamp, bool* pbMark, uint32_t* pnSeqNum,
-        ImsMediaSubType* pnDataType)
+        ImsMediaSubType* pnDataType, uint32_t* arrivalTime)
 {
-    (void)pnDataType;
+    (void)arrivalTime;
 
     if (mJitterBuffer)
     {
-        return mJitterBuffer->Get(pSubtype, ppData, pnDataSize, pnTimestamp, pbMark, pnSeqNum);
+        return mJitterBuffer->Get(pSubtype, ppData, pnDataSize, pnTimestamp, pbMark, pnSeqNum,
+                reinterpret_cast<uint32_t*>(pnDataType));
     }
 
     return false;

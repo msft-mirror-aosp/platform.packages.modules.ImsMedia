@@ -30,8 +30,8 @@ public:
     virtual ImsMediaResult Start();
     virtual void Stop();
     virtual void OnDataFromFrontNode(ImsMediaSubType subtype, uint8_t* pData, uint32_t nDataSize,
-            uint32_t nTimeStamp, bool bMark, uint32_t nSeqNum,
-            ImsMediaSubType nDataType = MEDIASUBTYPE_UNDEFINED);
+            uint32_t nTimeStamp, bool mark, uint32_t nSeqNum,
+            ImsMediaSubType nDataType = MEDIASUBTYPE_UNDEFINED, uint32_t arrivalTime = 0);
     virtual bool IsRunTime();
     virtual bool IsSourceNode();
     void SetConfig(void* config);

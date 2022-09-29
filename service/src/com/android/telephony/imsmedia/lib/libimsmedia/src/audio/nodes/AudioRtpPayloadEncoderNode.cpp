@@ -80,7 +80,7 @@ bool AudioRtpPayloadEncoderNode::IsSourceNode()
 
 void AudioRtpPayloadEncoderNode::OnDataFromFrontNode(ImsMediaSubType subtype, uint8_t* pData,
         uint32_t nDataSize, uint32_t nTimestamp, bool bMark, uint32_t nSeqNum,
-        ImsMediaSubType nDataType)
+        ImsMediaSubType nDataType, uint32_t arrivalTime)
 {
     (void)subtype;
     switch (mCodecType)
@@ -92,7 +92,7 @@ void AudioRtpPayloadEncoderNode::OnDataFromFrontNode(ImsMediaSubType subtype, ui
         case kAudioCodecPcmu:
         case kAudioCodecPcma:
             SendDataToRearNode(MEDIASUBTYPE_RTPPAYLOAD, pData, nDataSize, nTimestamp, bMark,
-                    nSeqNum, nDataType);
+                    nSeqNum, nDataType, arrivalTime);
             break;
         case kAudioCodecEvs:
             EncodePayloadEvs(pData, nDataSize, nTimestamp);
@@ -100,7 +100,7 @@ void AudioRtpPayloadEncoderNode::OnDataFromFrontNode(ImsMediaSubType subtype, ui
         default:
             IMLOGE1("[OnDataFromFrontNode] invalid codec type[%d]", mCodecType);
             SendDataToRearNode(MEDIASUBTYPE_RTPPAYLOAD, pData, nDataSize, nTimestamp, bMark,
-                    nSeqNum, nDataType);
+                    nSeqNum, nDataType, arrivalTime);
             break;
     }
 }

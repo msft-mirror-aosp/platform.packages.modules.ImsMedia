@@ -70,7 +70,7 @@ public:
     virtual ~MockRtpEncoderNode() {}
     MOCK_METHOD(void, OnDataFromFrontNode,
             (ImsMediaSubType subtype, uint8_t* pData, uint32_t nDataSize, uint32_t nTimestamp,
-                    bool bMark, uint32_t nSeqNum, ImsMediaSubType nDataType),
+                    bool bMark, uint32_t nSeqNum, ImsMediaSubType nDataType, uint32_t arrivalTime),
             (override));
 };
 
@@ -205,18 +205,18 @@ TEST_F(AudioStreamGraphRtpTxTest, TestDtmf)
     EXPECT_EQ(pRtpEncoder->GetState(), kNodeStateRunning);
     EXPECT_EQ(graph->start(), RESULT_SUCCESS);
 
-    EXPECT_CALL(*pRtpEncoder, OnDataFromFrontNode(MEDIASUBTYPE_DTMFSTART, _, 0, 0, 0, 0, _))
+    EXPECT_CALL(*pRtpEncoder, OnDataFromFrontNode(MEDIASUBTYPE_DTMFSTART, _, 0, 0, 0, 0, _, _))
             .Times(1)
             .WillOnce(Return());
     EXPECT_CALL(*pRtpEncoder,
-            OnDataFromFrontNode(MEDIASUBTYPE_DTMF_PAYLOAD, NotNull(), 4, _, true, _, _))
+            OnDataFromFrontNode(MEDIASUBTYPE_DTMF_PAYLOAD, NotNull(), 4, _, true, _, _, _))
             .Times(1)
             .WillOnce(Return());
     EXPECT_CALL(*pRtpEncoder,
-            OnDataFromFrontNode(MEDIASUBTYPE_DTMF_PAYLOAD, NotNull(), 4, _, false, _, _))
+            OnDataFromFrontNode(MEDIASUBTYPE_DTMF_PAYLOAD, NotNull(), 4, _, false, _, _, _))
             .Times(11)
             .WillRepeatedly(Return());
-    EXPECT_CALL(*pRtpEncoder, OnDataFromFrontNode(MEDIASUBTYPE_DTMFEND, _, 0, 0, 0, 0, _))
+    EXPECT_CALL(*pRtpEncoder, OnDataFromFrontNode(MEDIASUBTYPE_DTMFEND, _, 0, 0, 0, 0, _, _))
             .Times(1)
             .WillOnce(Return());
 
