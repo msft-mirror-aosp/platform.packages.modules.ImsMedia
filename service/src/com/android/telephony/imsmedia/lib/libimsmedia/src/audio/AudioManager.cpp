@@ -385,8 +385,9 @@ void AudioManager::RequestHandler::processEvent(
         }
         break;
         case kRequestAudioCmr:
+        case kRequestSendRtcpXrReport:
             AudioManager::getInstance()->SendInternalEvent(
-                    kRequestAudioCmr, static_cast<int>(sessionId), paramA, paramB);
+                    event, static_cast<int>(sessionId), paramA, paramB);
             break;
         default:
             break;
@@ -438,27 +439,57 @@ void AudioManager::ResponseHandler::processEvent(
         }
         break;
         case kAudioFirstMediaPacketInd:
+        {
             parcel.writeInt32(event);
-            AudioManager::getInstance()->sendResponse(
-                    reinterpret_cast<uint64_t>(AudioManager::getInstance()), parcel);
-            break;
+            AudioConfig* config = reinterpret_cast<AudioConfig*>(paramA);
+            if (config != NULL)
+            {
+                config->writeToParcel(&parcel);
+                AudioManager::getInstance()->sendResponse(
+                        reinterpret_cast<uint64_t>(AudioManager::getInstance()), parcel);
+                delete config;
+            }
+        }
+        break;
         case kAudioRtpHeaderExtensionInd:
             // TODO : add implementation
             break;
         case kAudioMediaInactivityInd:
             parcel.writeInt32(event);
             parcel.writeInt32(static_cast<int>(paramA));  // type
-            parcel.writeInt32(static_cast<int>(paramB));  // duration
             AudioManager::getInstance()->sendResponse(
                     reinterpret_cast<uint64_t>(AudioManager::getInstance()), parcel);
             break;
         case kAudioPacketLossInd:
+            parcel.writeInt32(event);
+            parcel.writeInt32(static_cast<int>(paramA));  // loss rate
+            AudioManager::getInstance()->sendResponse(
+                    reinterpret_cast<uint64_t>(AudioManager::getInstance()), parcel);
+            break;
         case kAudioJitterInd:
+            parcel.writeInt32(event);
+            parcel.writeInt32(static_cast<int>(paramA));  // jitter
+            AudioManager::getInstance()->sendResponse(
+                    reinterpret_cast<uint64_t>(AudioManager::getInstance()), parcel);
+            break;
         case kAudioTriggerAnbrQueryInd:
         case kAudioDtmfReceivedInd:
-        case kAudioCallQualityChangedInd:
             /** TODO: add implementation */
             break;
+        case kAudioCallQualityChangedInd:
+        {
+            parcel.writeInt32(event);
+            MediaQuality* quality = reinterpret_cast<MediaQuality*>(paramA);
+            if (quality != NULL)
+            {
+                quality->writeToParcel(&parcel);
+
+                AudioManager::getInstance()->sendResponse(
+                        reinterpret_cast<uint64_t>(AudioManager::getInstance()), parcel);
+                delete quality;
+            }
+        }
+        break;
         case kAudioSessionClosed:
             parcel.writeInt32(event);
             parcel.writeInt32(static_cast<int>(sessionId));

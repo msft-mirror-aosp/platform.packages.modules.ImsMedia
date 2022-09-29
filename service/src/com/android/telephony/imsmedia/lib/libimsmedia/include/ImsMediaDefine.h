@@ -71,7 +71,13 @@ enum kImsMediaInternalRequestType
     kRequestVideoSendPictureLost,
     kRequestVideoSendTmmbr,
     kRequestVideoSendTmmbn,
-    kRequestRoundTripTimeDelayUpdate,
+    kRequestRoundTripTimeDelayUpdate = 310,
+    kCollectPacketInfo,
+    kCollectOptionalInfo,
+    kCollectRxRtpStatus,
+    kCollectJitterBufferSize,
+    kGetRtcpXrReportBlock,
+    kRequestSendRtcpXrReport,
 };
 
 enum kImsMediaErrorNotify
@@ -477,6 +483,77 @@ enum kSocketOption
     kSocketOptionIpTtl = 2,
 };
 
+enum kRtpPacketStatus
+{
+    kRtpStatusNotDefined = 0,
+    kRtpStatusNormal,
+    kRtpStatusLate,
+    kRtpStatusDiscarded,
+    kRtpStatusDuplicated,
+    kRtpStatusLost,
+};
+
+enum kRtpDataType
+{
+    kRtpDataTypeNoData = 0,
+    kRtpDataTypeSid,
+    kRtpDataTypeNormal,
+};
+
+enum kRtpOptionalType
+{
+    kTimeToLive,
+    kRoundTripDelay,
+    kReportPacketLossGap,
+};
+
+struct RtpPacket
+{
+public:
+    RtpPacket() :
+            ssrc(0),
+            seqNum(0),
+            TTL(0),
+            jitter(0),
+            delay(0),
+            rtpDataType(kRtpDataTypeNoData),
+            status(kRtpStatusNotDefined)
+    {
+    }
+    RtpPacket(const RtpPacket& p)
+    {
+        ssrc = p.ssrc;
+        seqNum = p.seqNum;
+        TTL = p.TTL;
+        jitter = p.jitter;
+        rtpDataType = p.rtpDataType;
+        status = p.status;
+    }
+    RtpPacket(const RtpPacket* p)
+    {
+        ssrc = p->ssrc;
+        seqNum = p->seqNum;
+        TTL = p->TTL;
+        jitter = p->jitter;
+        rtpDataType = p->rtpDataType;
+        status = p->status;
+    }
+
+    uint32_t ssrc;
+    uint32_t seqNum;
+    uint32_t TTL;
+    /** transit time difference */
+    int32_t jitter;
+    /** delay from arrival to play */
+    uint32_t delay;
+    kRtpDataType rtpDataType;
+    kRtpPacketStatus status;
+};
+
+/**
+ * @brief It is lost packet data structure to store the start number of packet sequence and the
+ * number of lost packets
+ */
 struct LostPktEntry
 {
 public:

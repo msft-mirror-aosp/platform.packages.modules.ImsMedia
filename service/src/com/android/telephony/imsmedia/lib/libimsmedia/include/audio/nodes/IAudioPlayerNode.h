@@ -22,6 +22,7 @@
 #include <IImsMediaThread.h>
 #include <ImsMediaCondition.h>
 #include <ImsMediaAudioPlayer.h>
+#include <AudioConfig.h>
 #include <mutex>
 
 /**
@@ -42,6 +43,7 @@ public:
     virtual void* run();
 
 private:
+    AudioConfig* mConfig;
     std::unique_ptr<ImsMediaAudioPlayer> mAudioPlayer;
     int32_t mCodecType;
     uint32_t mMode;

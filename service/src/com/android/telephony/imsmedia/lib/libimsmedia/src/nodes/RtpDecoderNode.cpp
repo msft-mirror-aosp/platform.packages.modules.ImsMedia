@@ -16,13 +16,14 @@
 
 #include <RtpDecoderNode.h>
 #include <ImsMediaTrace.h>
+#include <ImsMediaCondition.h>
 #include <AudioConfig.h>
 #include <VideoConfig.h>
 #include <TextConfig.h>
 
 #ifdef DEBUG_JITTER_GEN_SIMULATION_DELAY
 #include <ImsMediaTimer.h>
-#define DEBUG_JITTER_MAX_PACKET_INTERVAL 70  // msec, minimum value is 30
+#define DEBUG_JITTER_MAX_PACKET_INTERVAL 15  // milliseconds
 #endif
 #ifdef DEBUG_JITTER_GEN_SIMULATION_REORDER
 #include <ImsMediaTimer.h>
@@ -32,7 +33,8 @@
 #define DEBUG_JITTER_NORMAL      2
 #endif
 #ifdef DEBUG_JITTER_GEN_SIMULATION_LOSS
-#define DEBUG_JITTER_LOSS_PACKET_INTERVAL 30
+#include <ImsMediaTimer.h>
+#define DEBUG_JITTER_LOSS_PACKET_INTERVAL 20
 #endif
 #ifdef DEBUG_JITTER_GEN_SIMULATION_DUPLICATE
 #define DEBUG_JITTER_DUPLICATE_PACKET_INTERVAL 30
@@ -149,32 +151,24 @@ void RtpDecoderNode::OnDataFromFrontNode(ImsMediaSubType subtype, uint8_t* data,
 {
     IMLOGD_PACKET8(IM_PACKET_LOG_RTP,
             "[OnDataFromFrontNode] media[%d], subtype[%d] Size[%d], TS[%d], Mark[%d], Seq[%d], "
-            "datatype[%d], arrivalTime[%d]",
+            "datatype[%d], arrivalTime[%u]",
             mMediaType, subtype, datasize, timestamp, mark, seq, nDataType, arrivalTime);
 
     mArrivalTime = arrivalTime;
 #ifdef DEBUG_JITTER_GEN_SIMULATION_DELAY
     {
-        uint32_t nCurrTime = ImsMediaTimer::GetTimeInMilliSeconds();
-
-        if ((GetDataCount(mMediaType) <= 1) && mNextTime && nCurrTime < mNextTime)
-        {
-            return;
-        }
-        else
-        {
-            uint32_t max_interval_1 = ImsMediaTimer::GenerateRandom(
-                    (DEBUG_JITTER_MAX_PACKET_INTERVAL - 30) / GetDataCount(mMediaType));
-            uint32_t max_interval_2 = 30 + max_interval_1;
-            mNextTime = nCurrTime + ImsMediaTimer::GenerateRandom(max_interval_2);
-        }
+        ImsMediaCondition condition;
+        uint32_t delay = ImsMediaTimer::GenerateRandom(DEBUG_JITTER_MAX_PACKET_INTERVAL);
+        mArrivalTime += delay;
+        condition.wait_timeout(delay);
     }
 #endif
 
 #if defined(DEBUG_JITTER_GEN_SIMULATION_LOSS) || defined(DEBUG_JITTER_GEN_SIMULATION_DUPLICATE)
     bool flag = false;
 #ifdef DEBUG_JITTER_GEN_SIMULATION_LOSS
-    if ((mPacketCounter % DEBUG_JITTER_LOSS_PACKET_INTERVAL) == 0)
+    uint32_t seed = ImsMediaTimer::GenerateRandom(5);
+    if (mPacketCounter % DEBUG_JITTER_LOSS_PACKET_INTERVAL == 0 || seed % 5 == 0)
     {
         flag = true;
     }

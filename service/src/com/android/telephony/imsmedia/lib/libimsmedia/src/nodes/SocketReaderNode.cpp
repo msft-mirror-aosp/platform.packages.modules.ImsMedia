@@ -109,7 +109,7 @@ void SocketReaderNode::ProcessData()
     while (GetData(
             &subtype, &data, &dataSize, &timeStamp, &bMark, &seqNum, &dataType, &arrivalTime))
     {
-        IMLOGD_PACKET3(IM_PACKET_LOG_SOCKET, "[ProcessData] media[%d], size[%d], arrivalTime[%d]",
+        IMLOGD_PACKET3(IM_PACKET_LOG_SOCKET, "[ProcessData] media[%d], size[%d], arrivalTime[%u]",
                 mMediaType, dataSize, arrivalTime);
         SendDataToRearNode(MEDIASUBTYPE_UNDEFINED, (uint8_t*)data, dataSize, timeStamp, bMark,
                 seqNum, dataType, arrivalTime);

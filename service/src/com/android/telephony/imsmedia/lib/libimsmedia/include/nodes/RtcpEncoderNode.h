@@ -79,6 +79,14 @@ public:
      */
     bool SendTmmbrn(const uint32_t type, TmmbrParams* param);
 
+    /**
+     * @brief Send Rtcp-Xr payload to the RtpStack to add the rtp header to send it to the network
+     *
+     * @param data The payload of the rtcp-xr report blocks
+     * @param size The size of payload
+     */
+    bool SendRtcpXr(uint8_t* data, uint32_t size);
+
 private:
     IRtpSession* mRtpSession;
     RtpAddress mLocalAddress;

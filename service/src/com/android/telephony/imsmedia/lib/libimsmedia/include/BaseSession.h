@@ -27,12 +27,32 @@ class BaseSession : public BaseSessionCallback
 public:
     BaseSession();
     virtual ~BaseSession();
-    void setSessionId(int sessionId);
-    void setLocalEndPoint(int rtpFd, int rtcpFd);
-    int getLocalRtpFd();
-    int getLocalRtcpFd();
-    // BaseSessionCallback
+
+    /** Set the session id */
+    void setSessionId(const int32_t sessionId);
+
+    /** Set the local socket file descriptor for rtp and rtcp */
+    void setLocalEndPoint(const int32_t rtpFd, const int32_t rtcpFd);
+
+    /** Get the local rtp socket file descriptor */
+    int32_t getLocalRtpFd();
+
+    /** Get the local rtcp socket file descriptor */
+    int32_t getLocalRtcpFd();
+
+    /**
+     * @brief Called when the BaseSessionCallback SendEvent invoked.
+     *
+     * @param type The ImsMediaType type defined in ImsMediaDefine.h
+     * @param param1 The parameter to set
+     * @param param2 The parameter to set
+     */
     virtual void onEvent(int32_t type, uint64_t param1, uint64_t param2);
+
+    /**
+     * @brief Sets the media quality threshold parameters of the session to get media quality
+     * notifications.
+     */
     void setMediaQualityThreshold(const MediaQualityThreshold& threshold);
 
 protected:

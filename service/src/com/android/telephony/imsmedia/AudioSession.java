@@ -301,10 +301,10 @@ public final class AudioSession extends IImsAudioSession.Stub implements IMediaS
                     notifyMediaInactivityInd(msg.arg1);
                     break;
                 case EVENT_PACKET_LOSS_IND:
-                    notifyPacketLossInd((int)msg.obj);
+                    notifyPacketLossInd(msg.arg1);
                     break;
                 case EVENT_JITTER_IND:
-                    notifyJitterInd((int)msg.obj);
+                    notifyJitterInd(msg.arg1);
                     break;
                 case EVENT_TRIGGER_ANBR_QUERY_IND:
                     handleTriggerAnbrQuery((AudioConfig) msg.obj);

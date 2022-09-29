@@ -152,3 +152,29 @@ bool AudioStreamGraphRtcp::setMediaQualityThreshold(MediaQualityThreshold* thres
 
     return false;
 }
+
+bool AudioStreamGraphRtcp::OnEvent(int32_t type, uint64_t param1, uint64_t param2)
+{
+    IMLOGD3("[onEvent] type[%d], param1[%d], param2[%d]", type, param1, param2);
+
+    switch (type)
+    {
+        case kRequestSendRtcpXrReport:
+        {
+            BaseNode* node = findNode(kNodeIdRtcpEncoder);
+
+            if (node != NULL)
+            {
+                RtcpEncoderNode* encoder = reinterpret_cast<RtcpEncoderNode*>(node);
+                encoder->SendRtcpXr(
+                        reinterpret_cast<uint8_t*>(param1), static_cast<uint32_t>(param2));
+                return true;
+            }
+        }
+        break;
+        default:
+            break;
+    }
+
+    return false;
+}

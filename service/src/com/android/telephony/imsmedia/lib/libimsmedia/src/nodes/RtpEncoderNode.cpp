@@ -418,6 +418,11 @@ bool RtpEncoderNode::ProcessAudioData(
                 }
             }
 
+            RtpPacket* packet = new RtpPacket();
+            packet->rtpDataType = kRtpDataTypeNormal;
+            mCallback->SendEvent(
+                    kCollectPacketInfo, kStreamRtpTx, reinterpret_cast<uint64_t>(packet));
+
             nTimeDiff_RTPTSUnit = nTimeDiff * mSamplingRate;
             IMLOGD_PACKET3(IM_PACKET_LOG_RTP, "[ProcessAudioData] PayloadTx[%d], Size[%d], TS[%d]",
                     mRtpPayloadTx, nDataSize, nCurrTimestamp);

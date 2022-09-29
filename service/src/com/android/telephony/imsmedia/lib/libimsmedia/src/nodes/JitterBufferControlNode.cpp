@@ -36,6 +36,8 @@ JitterBufferControlNode::JitterBufferControlNode(BaseSessionCallback* callback, 
     {
         mJitterBuffer = new TextJitterBuffer();
     }
+
+    mJitterBuffer->SetSessionCallback(mCallback);
 }
 
 JitterBufferControlNode::~JitterBufferControlNode()

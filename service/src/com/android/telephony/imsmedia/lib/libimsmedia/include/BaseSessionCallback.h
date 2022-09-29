@@ -19,6 +19,20 @@
 
 #include <ImsMediaDefine.h>
 
+struct SessionCallbackParameter
+{
+public:
+    SessionCallbackParameter(uint32_t t = 0, uint32_t p1 = 0, uint32_t p2 = 0) :
+            type(t),
+            param1(p1),
+            param2(p2)
+    {
+    }
+    uint32_t type;
+    uint32_t param1;
+    uint32_t param2;
+};
+
 class BaseSessionCallback
 {
 public:

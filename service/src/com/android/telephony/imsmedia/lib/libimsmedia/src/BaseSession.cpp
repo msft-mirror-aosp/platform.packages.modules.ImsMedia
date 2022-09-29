@@ -54,12 +54,12 @@ void BaseSession::setLocalEndPoint(int rtpFd, int rtcpFd)
     mRtcpFd = rtcpFd;
 }
 
-int BaseSession::getLocalRtpFd()
+int32_t BaseSession::getLocalRtpFd()
 {
     return mRtpFd;
 }
 
-int BaseSession::getLocalRtcpFd()
+int32_t BaseSession::getLocalRtcpFd()
 {
     return mRtcpFd;
 }

@@ -151,7 +151,7 @@ void AudioJitterBuffer::Add(ImsMediaSubType subtype, uint8_t* pbBuffer, uint32_t
         if ((mCanNotGetCount > mMaxJitterBufferSize) && (mCanNotGetCount > mMinJitterBufferSize))
         {
             IMLOGD0("[Add] Refreshed");
-            // CollectJitterStatus(RTP_PACKET_STATUS_ANAL_JITTER_RESET, nSeqNum);
+            CollectRxRtpStatus(nSeqNum, kRtpStatusDiscarded);
             Reset();
         }
     }
@@ -206,9 +206,26 @@ void AudioJitterBuffer::Add(ImsMediaSubType subtype, uint8_t* pbBuffer, uint32_t
         jitter = mJitterAnalyser.calculateTransitTimeDifference(nTimestamp, arrivalTime);
     }
 
+    RtpPacket* packet = new RtpPacket();
+
     if (nBufferSize == 0)
     {
-        // CollectJitterStatus(RTP_PACKET_STATUS_NODATA_PACKET, currEntry.nSeqNum);
+        packet->rtpDataType = kRtpDataTypeNoData;
+    }
+    else
+    {
+        IsSID(currEntry.pbBuffer, currEntry.nBufferSize) ? packet->rtpDataType = kRtpDataTypeSid
+                                                         : packet->rtpDataType = kRtpDataTypeNormal;
+    }
+
+    packet->ssrc = mSsrc;
+    packet->seqNum = nSeqNum;
+    packet->jitter = jitter;
+    packet->delay = ImsMediaTimer::GetTimeInMilliSeconds();
+    mCallback->SendEvent(kCollectPacketInfo, kStreamRtpRx, reinterpret_cast<uint64_t>(packet));
+
+    if (nBufferSize == 0)
+    {
         return;
     }
 
@@ -556,12 +573,12 @@ bool AudioJitterBuffer::Get(ImsMediaSubType* psubtype, uint8_t** ppData, uint32_
 
             if (mDtxOn == true)
             {
-                // CollectJitterStatus(RTP_PACKET_STATUS_OK);
-                // CollectJitterBufferSize(mCurrJitterBufferSize, mMaxJitterBufferSize);
+                CollectRxRtpStatus(pEntry->nSeqNum, kRtpStatusNormal);
+                CollectJitterBufferStatus(mCurrJitterBufferSize * 20, mMaxJitterBufferSize * 20);
             }
             else
             {
-                // CollectJitterStatus(RTP_PACKET_STATUS_LATE);
+                CollectRxRtpStatus(pEntry->nSeqNum, kRtpStatusLate);
             }
 
             mDataQueue.Delete();
@@ -602,8 +619,8 @@ bool AudioJitterBuffer::Get(ImsMediaSubType* psubtype, uint8_t** ppData, uint32_
             mDtxOn = true;
             IMLOGD_PACKET0(IM_PACKET_LOG_JITTER, "[Get] Dtx On");
 
-            // CollectJitterStatus(RTP_PACKET_STATUS_OK);
-            // CollectJitterBufferSize(mCurrJitterBufferSize, mMaxJitterBufferSize);
+            CollectRxRtpStatus(pEntry->nSeqNum, kRtpStatusNormal);
+            CollectJitterBufferStatus(mCurrJitterBufferSize * 20, mMaxJitterBufferSize * 20);
             mDataQueue.Delete();
             bForceToPlay = true;
         }
@@ -647,12 +664,13 @@ bool AudioJitterBuffer::Get(ImsMediaSubType* psubtype, uint8_t** ppData, uint32_
 
                 if (mDtxOn == true)
                 {
-                    // CollectJitterStatus(RTP_PACKET_STATUS_OK);
-                    // CollectJitterBufferSize(mCurrJitterBufferSize, mMaxJitterBufferSize);
+                    CollectRxRtpStatus(pEntry->nSeqNum, kRtpStatusNormal);
+                    CollectJitterBufferStatus(
+                            mCurrJitterBufferSize * 20, mMaxJitterBufferSize * 20);
                 }
                 else
                 {
-                    // CollectJitterStatus(RTP_PACKET_STATUS_DROP);
+                    CollectRxRtpStatus(pEntry->nSeqNum, kRtpStatusDiscarded);
                 }
 
                 mDataQueue.Delete();
@@ -701,7 +719,7 @@ bool AudioJitterBuffer::Get(ImsMediaSubType* psubtype, uint8_t** ppData, uint32_
                 "[Get] duplicate - curTS[%d], seq[%d], Mark[%d], TS[%d], buffer[%d], size[%d]",
                 mCurrPlayingTS, pEntry->nSeqNum, pEntry->bMark, pEntry->nTimestamp,
                 pEntry->nBufferSize, mDataQueue.GetCount());
-        // CollectRxRtpStatus(pEntry->nSeqNum, kRtpStatusDuplicated);
+        CollectRxRtpStatus(pEntry->nSeqNum, kRtpStatusDuplicated);
         mDataQueue.Delete();
         mDeleteCount++;
     }
@@ -746,10 +764,24 @@ bool AudioJitterBuffer::Get(ImsMediaSubType* psubtype, uint8_t** ppData, uint32_
 
         mCurrPlayingTS = pEntry->nTimestamp + 20;
         mCurrPlayingSeq = pEntry->nSeqNum + 1;
+
+        if (mLastPlayedSeqNum > 0)
+        {
+            /** Report the loss gap if the loss gap is over 0 */
+            uint32_t lossGap = GET_SEQ_GAP(pEntry->nSeqNum, mLastPlayedSeqNum) - 1;
+
+            if (lossGap > 0)
+            {
+                SessionCallbackParameter* param = new SessionCallbackParameter(
+                        kReportPacketLossGap, mLastPlayedSeqNum + 1, lossGap);
+                mCallback->SendEvent(kCollectOptionalInfo, reinterpret_cast<uint64_t>(param), 0);
+            }
+        }
+
         mLastPlayedSeqNum = pEntry->nSeqNum;
         mCanNotGetCount = 0;
-        // CollectJitterStatus(RTP_PACKET_STATUS_OK);
-        // CollectJitterBufferSize(mCurrJitterBufferSize, mMaxJitterBufferSize);
+        CollectRxRtpStatus(pEntry->nSeqNum, kRtpStatusNormal);
+        CollectJitterBufferStatus(mCurrJitterBufferSize * 20, mMaxJitterBufferSize * 20);
         return true;
     }
     else
@@ -889,5 +921,25 @@ bool AudioJitterBuffer::IsSID(uint8_t* pbBuffer, uint32_t nBufferSize)
         default:
             IMLOGE1("[IsSID] DTX detect method is not defined for[%u] codec", mCodecType);
             return false;
+    }
+}
+
+void AudioJitterBuffer::CollectRxRtpStatus(int32_t seq, kRtpPacketStatus status)
+{
+    IMLOGD_PACKET2(IM_PACKET_LOG_JITTER, "[CollectRxRtpStatus] seq[%d], status[%d]", seq, status);
+
+    if (mCallback != NULL)
+    {
+        mCallback->SendEvent(kCollectRxRtpStatus, seq, status);
+    }
+}
+void AudioJitterBuffer::CollectJitterBufferStatus(int32_t currSize, int32_t maxSize)
+{
+    IMLOGD_PACKET2(IM_PACKET_LOG_JITTER, "[CollectJitterBufferStatus] currSize[%d], maxSize[%d]",
+            currSize, maxSize);
+
+    if (mCallback != NULL)
+    {
+        mCallback->SendEvent(kCollectJitterBufferSize, currSize, maxSize);
     }
 }

@@ -107,7 +107,7 @@ public:
     bool ProcRtpPacket(uint8_t* pData, uint32_t nDataSize);
     bool ProcRtcpPacket(uint8_t* pData, uint32_t nDataSize);
     void OnTimer();
-    void SendRtcpXr(uint8_t* pPayload, uint32_t nSize, uint32_t nRttdOffset);
+    void SendRtcpXr(uint8_t* pPayload, uint32_t nSize);
     bool SendRtcpFeedback(int32_t type, uint8_t* pFic, uint32_t nFicSize);
     ImsMediaType getMediaType();
     void increaseRefCounter();

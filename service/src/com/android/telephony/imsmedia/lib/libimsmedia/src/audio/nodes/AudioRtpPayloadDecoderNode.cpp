@@ -165,7 +165,7 @@ void AudioRtpPayloadDecoderNode::DecodePayloadAmr(uint8_t* pData, uint32_t nData
 
     IMLOGD_PACKET5(IM_PACKET_LOG_PH,
             "[DecodePayloadAmr] GetCodectype[%d], octetAligned[%d], nSeqNum[%d], TS[%u], "
-            "arrivalTime[%d]",
+            "arrivalTime[%u]",
             mCodecType, mOctetAligned, nSeqNum, timestamp, arrivalTime);
 
     mBitReader.SetBuffer(pData, nDataSize);
@@ -262,7 +262,7 @@ void AudioRtpPayloadDecoderNode::DecodePayloadEvs(uint8_t* pData, uint32_t nData
 
     IMLOGD_PACKET5(IM_PACKET_LOG_PH,
             "[DecodePayloadEvs] GetCodectype[%d], octetAligned[%d], nSeqNum[%d], TS[%u], "
-            "arrivalTime[%d]",
+            "arrivalTime[%u]",
             mCodecType, mOctetAligned, nSeqNum, nTimeStamp, arrivalTime);
 
     kRtpPyaloadHeaderMode eEVSPHFormat = kRtpPyaloadHeaderModeEvsCompact;

@@ -26,7 +26,7 @@ import android.util.Log;
  * Audio listener to process JNI messages from local AP based RTP stack
  */
 public class AudioListener implements JNIImsMediaListener {
-    private static final String LOG_TAG = "AudioListener";
+    private static final String TAG = "AudioListener";
     final private Handler mHandler;
     private ImsMediaController.OpenSessionCallback mCallback;
     private long mNativeObject;
@@ -62,56 +62,53 @@ public class AudioListener implements JNIImsMediaListener {
     @Override
     public void onMessage(final Parcel parcel) {
         final int event = parcel.readInt();
+        Log.d(TAG, "onMessage() event=" + event);
         switch (event) {
             case AudioSession.EVENT_OPEN_SESSION_SUCCESS:
                 final int sessionId = parcel.readInt();
-                Log.d(LOG_TAG, "onMessage=" + event);
                 mCallback.onOpenSessionSuccess(sessionId,
                     new AudioLocalSession(sessionId, mNativeObject));
                 break;
             case AudioSession.EVENT_OPEN_SESSION_FAILURE:
-                Log.d(LOG_TAG, "onMessage=" + event);
                 mCallback.onOpenSessionFailure(parcel.readInt(),
                     parcel.readInt());
-                break;
-            case AudioSession.EVENT_SESSION_CLOSED:
-                Log.d(LOG_TAG, "onMessage=" + event);
-                mCallback.onSessionClosed(parcel.readInt());
                 break;
             case AudioSession.EVENT_MODIFY_SESSION_RESPONSE:
             case AudioSession.EVENT_ADD_CONFIG_RESPONSE:
             case AudioSession.EVENT_CONFIRM_CONFIG_RESPONSE:
+            {
                 final int result = parcel.readInt();
                 final AudioConfig config = AudioConfig.CREATOR.createFromParcel(parcel);
-                Log.d(LOG_TAG, "onMessage=" + event + ", result=" + result);
                 Utils.sendMessage(mHandler, event, result, Utils.UNUSED, config);
+            }
                 break;
             case AudioSession.EVENT_FIRST_MEDIA_PACKET_IND:
-                //TODO : add implementation
+            {
+                final AudioConfig config = AudioConfig.CREATOR.createFromParcel(parcel);
+                Utils.sendMessage(mHandler, event, config);
+            }
                 break;
             case AudioSession.EVENT_RTP_HEADER_EXTENSION_IND:
                 Utils.sendMessage(mHandler, event);
                 break;
             case AudioSession.EVENT_MEDIA_INACTIVITY_IND:
-                Utils.sendMessage(mHandler, event, parcel.readInt(), Utils.UNUSED);
-                break;
             case AudioSession.EVENT_PACKET_LOSS_IND:
             case AudioSession.EVENT_JITTER_IND:
-                //TODO : add implementation
+                Utils.sendMessage(mHandler, event, parcel.readInt(), Utils.UNUSED);
                 break;
             case AudioSession.EVENT_TRIGGER_ANBR_QUERY_IND:
                 final AudioConfig configAnbr = AudioConfig.CREATOR.createFromParcel(parcel);
-                Log.d(LOG_TAG, "onMessage=" + event);
                 Utils.sendMessage(mHandler, event, configAnbr);
                 break;
             case AudioSession.EVENT_DTMF_RECEIVED_IND:
                 final char dtmfDigit = (char) parcel.readByte();
-                Log.d(LOG_TAG, "onMessage=" + event);
                 Utils.sendMessage(mHandler, event, dtmfDigit);
                 break;
             case AudioSession.EVENT_CALL_QUALITY_CHANGE_IND:
-                Log.d(LOG_TAG, "onMessage=" + event);
                 Utils.sendMessage(mHandler, event, CallQuality.CREATOR.createFromParcel(parcel));
+                break;
+            case AudioSession.EVENT_SESSION_CLOSED:
+                mCallback.onSessionClosed(parcel.readInt());
                 break;
             default:
                 break;

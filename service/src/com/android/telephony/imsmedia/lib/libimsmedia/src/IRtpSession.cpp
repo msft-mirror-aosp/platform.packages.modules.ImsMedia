@@ -511,13 +511,13 @@ void IRtpSession::OnTimer()
     mNumRtcpPacketSent = 0;
 }
 
-void IRtpSession::SendRtcpXr(uint8_t* pPayload, uint32_t nSize, uint32_t nRttdOffset)
+void IRtpSession::SendRtcpXr(uint8_t* pPayload, uint32_t nSize)
 {
     IMLOGD1("[SendRtcpXr] nSize[%d]", nSize);
 
     if (mRtpSessionId)
     {
-        IMS_RtpSvc_SendRtcpXrPacket(mRtpSessionId, pPayload, nSize, nRttdOffset);
+        IMS_RtpSvc_SendRtcpXrPacket(mRtpSessionId, pPayload, nSize, 0);
     }
 }
 

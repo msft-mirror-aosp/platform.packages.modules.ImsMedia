@@ -9,6 +9,9 @@ import android.hardware.radio.ims.media.CodecType;
 import android.hardware.radio.ims.media.EvsBandwidth;
 import android.hardware.radio.ims.media.EvsMode;
 import android.media.AudioManager;
+import android.net.ConnectivityManager;
+import android.net.LinkProperties;
+import android.net.Network;
 import android.net.wifi.WifiInfo;
 import android.net.wifi.WifiManager;
 import android.os.Bundle;
@@ -23,6 +26,7 @@ import android.telephony.imsmedia.ImsAudioSession;
 import android.telephony.imsmedia.ImsMediaManager;
 import android.telephony.imsmedia.ImsMediaSession;
 import android.telephony.imsmedia.ImsVideoSession;
+import android.telephony.imsmedia.MediaQualityThreshold;
 import android.telephony.imsmedia.RtcpConfig;
 import android.telephony.imsmedia.RtpConfig;
 import android.telephony.imsmedia.VideoConfig;
@@ -50,12 +54,14 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.SwitchCompat;
 
+import java.io.IOException;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
@@ -95,6 +101,13 @@ public class MainActivity extends AppCompatActivity {
     private static final int VIDEO_BITRATE = 384;
     private static final int CAMERA_ID = 0;
     private static final int CAMERA_ZOOM = 10;
+
+    private static final int RTP_TIMEOUT = 20;
+    private static final int RTCP_TIMEOUT = 20;
+    private static final int PACKET_LOSS_PERIOD = 5000;
+    private static final int PACKET_LOSS_RATE = 1;
+    private static final int JITTER_PERIOD = 5000;
+    private static final int JITTER_THRESHOLD = 5;
 
     private Set<Integer> mSelectedCodecTypes = new HashSet<>();
     private Set<Integer> mSelectedAmrModes = new HashSet<>();
@@ -684,6 +697,13 @@ public class MainActivity extends AppCompatActivity {
             mAudioSession = (ImsAudioSession) session;
             Log.d(TAG, "onOpenSessionSuccess: id=" + mAudioSession.getSessionId());
             mIsOpenSessionSent = true;
+
+            MediaQualityThreshold threshold = createMediaQualityThreshold(RTP_TIMEOUT,
+                    RTCP_TIMEOUT, PACKET_LOSS_PERIOD, PACKET_LOSS_RATE, JITTER_PERIOD,
+                    JITTER_THRESHOLD);
+            mAudioSession.setMediaQualityThreshold(threshold);
+            mAudioSession.modifySession(mAudioConfig);
+
             AudioManager audioManager = getSystemService(AudioManager.class);
             audioManager.setMode(AudioManager.MODE_IN_CALL);
             updateUI(ConnectionStatus.ACTIVE_CALL);
@@ -814,60 +834,131 @@ public class MainActivity extends AppCompatActivity {
     }
 
     /**
-     * Opens two datagram sockets for audio rtp and rtcp, and a third for the
-     * handshake between
+     * Opens two datagram sockets for audio rtp and rtcp, and a third for the handshake between
      * devices if true is passed in the parameter.
      *
      * @param openHandshakePort boolean value to open a port for the handshake.
      */
     private void openPorts(boolean openHandshakePort) {
         Log.d(TAG, "openPorts");
-        Executor socketBindingExecutor = Executors.newSingleThreadExecutor();
-
-        Runnable bindSockets = () -> {
-            try {
-                mAudioRtp = new DatagramSocket();
-                mAudioRtp.setReuseAddress(true);
-                mAudioRtcp = new DatagramSocket(mAudioRtp.getLocalPort() + 1);
-                mAudioRtcp.setReuseAddress(true);
-                mVideoRtp = new DatagramSocket();
-                mVideoRtp.setReuseAddress(true);
-                mVideoRtcp = new DatagramSocket(mVideoRtp.getLocalPort() + 1);
-                mVideoRtcp.setReuseAddress(true);
-
-                if (openHandshakePort) {
-                    mHandshakeReceptionSocket = new HandshakeReceiver(prefs);
-                    mHandshakeReceptionSocket.run();
-                }
-            } catch (SocketException e) {
-                Log.e(TAG, e.toString());
-            }
-        };
-
-        socketBindingExecutor.execute(bindSockets);
+        mAudioRtp = createDatagramSocket(getLocalIpAddress(), 10000);
+        mAudioRtcp = createDatagramSocket(getLocalIpAddress(),
+                mAudioRtp.getLocalPort() + 1);
+        mVideoRtp = createDatagramSocket(getLocalIpAddress(), 20000);
+        mVideoRtcp = createDatagramSocket(getLocalIpAddress(),
+                mVideoRtp.getLocalPort() + 1);
+        if (openHandshakePort) {
+            mHandshakeReceptionSocket = new HandshakeReceiver(prefs);
+            mHandshakeReceptionSocket.run();
+        }
     }
 
     /**
-     * Closes the handshake, rtp, and rtcp ports if they have been opened or
-     * instantiated.
+     * Closes the handshake, rtp, and rtcp ports if they have been opened or instantiated.
      */
     private void closePorts() {
         Log.d(TAG, "closePorts");
         if (mHandshakeReceptionSocket != null) {
             mHandshakeReceptionSocket.close();
         }
-        if (mAudioRtp != null) {
-            mAudioRtp.close();
+        closeDatagramSocket(mAudioRtp);
+        closeDatagramSocket(mAudioRtcp);
+        closeDatagramSocket(mVideoRtp);
+        closeDatagramSocket(mVideoRtcp);
+    }
+
+    private DatagramSocket createDatagramSocket(@NonNull String address, int port) {
+        DatagramSocket socket = null;
+
+        try {
+            socket = new DatagramSocket(null);
+
+            if (socket == null) {
+                Log.e(TAG, "socket not found");
+                return null;
+            }
+
+            socket.setReuseAddress(true);
+            InetAddress inetAddress = createInetAddress(address);
+            if (inetAddress == null) {
+                Log.e(TAG, "inetAddress not found");
+                closeDatagramSocket(socket);
+                return null;
+            }
+
+            InetSocketAddress sockAddr = new InetSocketAddress(inetAddress, port);
+            socket.bind(sockAddr);
+
+            Network network = getNetworkForIpAddress(inetAddress);
+            if (network == null) {
+                Log.e(TAG, "Network not found");
+                closeDatagramSocket(socket);
+                return null;
+            }
+
+            network.bindSocket(socket);
+        } catch (SocketException e) {
+            Log.e(TAG, "SocketException: " + e.toString());
+        } catch (UnknownHostException e) {
+            Log.e(TAG, "UnknownHostException: " + e.toString());
+        } catch (IOException e) {
+            Log.e(TAG, "IOException: " + e.toString());
+            closeDatagramSocket(socket);
+        } catch (IllegalArgumentException e) {
+            Log.e(TAG, "IllegalArgumentException: " + e.toString());
+            closeDatagramSocket(socket);
         }
-        if (mAudioRtcp != null) {
-            mAudioRtcp.close();
+
+        Log.v(TAG, "DatagramSocket created");
+        return socket;
+    }
+
+    public void closeDatagramSocket(DatagramSocket socket) {
+        if (socket != null) {
+            socket.close();
+            Log.v(TAG, "DatagramSocket closed");
         }
-        if (mVideoRtp != null) {
-            mVideoRtp.close();
+    }
+
+    private Network getNetworkForIpAddress(InetAddress addr) {
+        ConnectivityManager cm =
+                getApplication().getSystemService(ConnectivityManager.class);
+
+        if (cm == null) {
+            return null;
         }
-        if (mVideoRtcp != null) {
-            mVideoRtcp.close();
+
+        Network[] networks = cm.getAllNetworks();
+
+        if (networks == null) {
+            return null;
         }
+
+        for (Network network : networks) {
+            LinkProperties lp = cm.getLinkProperties(network);
+
+            if (lp == null) {
+                continue;
+            }
+
+            List<InetAddress> linkAddrs = lp.getAddresses();
+            for (InetAddress linkAddr : linkAddrs) {
+                if (addr.equals(linkAddr)) {
+                    return network;
+                }
+            }
+        }
+        return null;
+    }
+
+    private InetAddress createInetAddress(String address) {
+        try {
+            return InetAddress.getByName(address);
+        } catch (IOException e) {
+            Log.e(TAG, "IOException: " + e.toString());
+        }
+
+        return null;
     }
 
     /**
@@ -949,8 +1040,7 @@ public class MainActivity extends AppCompatActivity {
     };
 
     /**
-     * After the ports are open this runnable is called to wait for in incoming
-     * handshake to pair
+     * After the ports are open this runnable is called to wait for in incoming handshake to pair
      * with the remote device.
      */
     Runnable handleIncomingHandshake = new Runnable() {
@@ -997,15 +1087,11 @@ public class MainActivity extends AppCompatActivity {
     };
 
     /**
-     * This runnable controls the handshake process from the user that is attempting
-     * to connect
-     * to the remote device. First it will create and send a DeviceInfo object that
-     * contains the
-     * local devices info, and wait until it receives the remote DeviceInfo. After
-     * it receives
-     * the remote DeviceInfo it will save it into memory and send a conformation
-     * String back, then
-     * wait until it receives a conformation String.
+     * This runnable controls the handshake process from the user that is attempting to connect to
+     * the remote device. First it will create and send a DeviceInfo object that contains the local
+     * devices info, and wait until it receives the remote DeviceInfo. After it receives the remote
+     * DeviceInfo it will save it into memory and send a conformation String back, then wait until
+     * it receives a conformation String.
      */
     Runnable initiateHandshake = new Runnable() {
         @Override
@@ -1022,14 +1108,13 @@ public class MainActivity extends AppCompatActivity {
                 Log.d(TAG, "Handshake successful, devices connected.");
                 updateUI(ConnectionStatus.CONNECTED);
             } catch (Exception e) {
-                Log.e("initiateHandshake(): ", e.toString());
+                Log.e(TAG, "initiateHandshake(): e=" + e.toString());
             }
         }
     };
 
     /**
-     * Creates and returns a DeviceInfo object with the local port, ip, and audio
-     * codec settings
+     * Creates and returns a DeviceInfo object with the local port, ip, and audio codec settings
      *
      * @return DeviceInfo object containing the local device's information
      */
@@ -1037,7 +1122,8 @@ public class MainActivity extends AppCompatActivity {
         try {
             return new DeviceInfo.Builder()
                     .setInetAddress(InetAddress.getByName(getLocalIpAddress()))
-                    .setHandshakePort(mHandshakeReceptionSocket.getBoundSocket())
+                    .setHandshakePort(mHandshakeReceptionSocket != null
+                            ? mHandshakeReceptionSocket.getBoundSocket() : 0)
                     .setAudioRtpPort(mAudioRtp.getLocalPort())
                     .setVideoRtpPort(mVideoRtp.getLocalPort())
                     .setAudioCodecs(mSelectedCodecTypes)
@@ -1104,7 +1190,8 @@ public class MainActivity extends AppCompatActivity {
                 .setCanonicalName("rtp config")
                 .setTransmitPort(mRemoteDeviceInfo.getAudioRtpPort() + 1)
                 .setIntervalSec(5)
-                .setRtcpXrBlockTypes(0)
+                .setRtcpXrBlockTypes(RtcpConfig.FLAG_RTCPXR_STATISTICS_SUMMARY_REPORT_BLOCK
+                        | RtcpConfig.FLAG_RTCPXR_VOIP_METRICS_REPORT_BLOCK)
                 .build();
     }
 
@@ -1241,6 +1328,19 @@ public class MainActivity extends AppCompatActivity {
         return config;
     }
 
+    private MediaQualityThreshold createMediaQualityThreshold(int rtpInactivityTimerMillis,
+            int rtcpInactivityTimerMillis, int packetLossPeriodMillis, int packetLossThreshold,
+            int jitterPeriodMillis, int jitterThresholdMillis) {
+        return new MediaQualityThreshold.Builder()
+                .setRtpInactivityTimerMillis(rtpInactivityTimerMillis)
+                .setRtcpInactivityTimerMillis(rtcpInactivityTimerMillis)
+                .setPacketLossPeriodMillis(packetLossPeriodMillis)
+                .setPacketLossThreshold(packetLossThreshold)
+                .setJitterPeriodMillis(jitterPeriodMillis)
+                .setJitterThresholdMillis(jitterThresholdMillis)
+                .build();
+    }
+
     /**
      * @param amrMode Integer value of the AmrMode
      * @return AmrParams object with the passed AmrMode value
@@ -1353,8 +1453,7 @@ public class MainActivity extends AppCompatActivity {
     private AudioConfig createAudioConfig(int audioCodec, AmrParams amrParams,
             EvsParams evsParams) {
         AudioConfig mAudioConfig = null;
-        // TODO - evs params must be present to hear audio currently, regardless of
-        // codec
+        // TODO - evs params must be present to hear audio currently, regardless of codec
         EvsParams mEvs = new EvsParams.Builder()
                 .setEvsbandwidth(EvsParams.EVS_BAND_NONE)
                 .setEvsMode(EvsParams.EVS_MODE_0)
@@ -1570,7 +1669,7 @@ public class MainActivity extends AppCompatActivity {
             RtpAudioSessionCallback sessionAudioCallback = new RtpAudioSessionCallback();
             mImsMediaManager.openSession(mAudioRtp, mAudioRtcp,
                     ImsMediaSession.SESSION_TYPE_AUDIO,
-                    mAudioConfig, mExecutor, sessionAudioCallback);
+                    null, mExecutor, sessionAudioCallback);
             Log.d(TAG, "openSession(): audio=" + mRemoteDeviceInfo.getInetAddress() + ":"
                     + mRemoteDeviceInfo.getAudioRtpPort());
 
@@ -1715,11 +1814,11 @@ public class MainActivity extends AppCompatActivity {
     public void loopbackOnClick(View view) {
         SwitchCompat mLoopbackSwitch = findViewById(R.id.loopbackModeSwitch);
         if (mLoopbackSwitch.isChecked()) {
+            mLoopbackModeEnabled = true;
             openPorts(true);
             editor.putString("OTHER_IP_ADDRESS", getLocalIpAddress()).apply();
             mRemoteDeviceInfo = createMyDeviceInfo();
             mLocalDeviceInfo = createMyDeviceInfo();
-            mLoopbackModeEnabled = true;
             updateUI(ConnectionStatus.CONNECTED);
         } else {
             closePorts();

@@ -84,7 +84,7 @@ ImsMediaResult RtcpEncoderNode::Start()
         IMLOGD0("[Start] Rtcp Timer started");
     }
 
-    mRtcpXrCounter = 0;
+    mRtcpXrCounter = 1;
     mNodeState = kNodeStateRunning;
     return RESULT_SUCCESS;
 }
@@ -222,6 +222,13 @@ void RtcpEncoderNode::ProcessTimer()
     }
 
     mRtpSession->OnTimer();
+
+    mRtcpXrCounter++;
+
+    if (mRtcpXrBlockTypes != 0 && mRtcpInterval != 0 && mRtcpXrCounter % mRtcpInterval == 0)
+    {
+        mCallback->SendEvent(kGetRtcpXrReportBlock, mRtcpXrBlockTypes);
+    }
 }
 
 void RtcpEncoderNode::SetLocalAddress(const RtpAddress address)
@@ -350,4 +357,20 @@ bool RtcpEncoderNode::SendTmmbrn(const uint32_t type, TmmbrParams* param)
     }
 
     return false;
+}
+
+bool RtcpEncoderNode::SendRtcpXr(uint8_t* data, uint32_t size)
+{
+    if (data == NULL || mRtpSession == NULL)
+    {
+        return false;
+    }
+
+    IMLOGD1("[SendRtcpXr] size[%d]", size);
+
+    // send buffer to packets
+    mRtpSession->SendRtcpXr(data, size);
+
+    delete data;
+    return true;
 }

@@ -54,6 +54,35 @@ public:
         kCallQualityBad = 4,
     };
 
+    enum
+    {
+        /**
+         * The codec type. This value corresponds to the AUDIO_QUALITY_* constants in
+         * {@link ImsStreamMediaProfile}.
+         */
+        AUDIO_QUALITY_NONE = 0,
+        AUDIO_QUALITY_AMR,
+        AUDIO_QUALITY_AMR_WB,
+        AUDIO_QUALITY_QCELP13K,
+        AUDIO_QUALITY_EVRC,
+        AUDIO_QUALITY_EVRC_B,
+        AUDIO_QUALITY_EVRC_WB,
+        AUDIO_QUALITY_EVRC_NW,
+        AUDIO_QUALITY_GSM_EFR,
+        AUDIO_QUALITY_GSM_FR,
+        AUDIO_QUALITY_GSM_HR,
+        AUDIO_QUALITY_G711U,
+        AUDIO_QUALITY_G723,
+        AUDIO_QUALITY_G711A,
+        AUDIO_QUALITY_G722,
+        AUDIO_QUALITY_G711AB,
+        AUDIO_QUALITY_G729,
+        AUDIO_QUALITY_EVS_NB,
+        AUDIO_QUALITY_EVS_WB,
+        AUDIO_QUALITY_EVS_SWB,
+        AUDIO_QUALITY_EVS_FB,
+    };
+
     MediaQuality& operator=(const MediaQuality& quality);
     bool operator==(const MediaQuality& quality) const;
     bool operator!=(const MediaQuality& quality) const;

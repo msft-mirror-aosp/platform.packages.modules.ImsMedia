@@ -23,6 +23,7 @@
 #include <AudioStreamGraphRtpRx.h>
 #include <AudioStreamGraphRtcp.h>
 #include <RtpConfig.h>
+#include <MediaQualityAnalyzer.h>
 #include <list>
 
 class AudioSession : public BaseSession
@@ -31,16 +32,9 @@ public:
     AudioSession();
     virtual ~AudioSession();
     virtual SessionState getState();
-    virtual ImsMediaResult startGraph(RtpConfig* config);
-
-    /**
-     * @brief Called when the BaseSessionCallback SendEvent invoked.
-     *
-     * @param type The ImsMediaType type defined in ImsMediaDefine.h
-     * @param param1 The parameter to set
-     * @param param2 The parameter to set
-     */
     virtual void onEvent(int32_t type, uint64_t param1, uint64_t param2);
+    virtual void setMediaQualityThreshold(const MediaQualityThreshold& threshold);
+    virtual ImsMediaResult startGraph(RtpConfig* config);
 
     /**
      * @brief Add and start stream graph instance of the session. It has to be called only to
@@ -94,9 +88,16 @@ public:
     void SendInternalEvent(int32_t type, uint64_t param1, uint64_t param2);
 
 private:
+    void onCollectInfo(ImsMediaStreamType streamType, RtpPacket* packet);
+    void onCollectOptionalInfo(int32_t optionType, int32_t seq, int32_t value);
+    void onCollectRxRtpStatus(int32_t seq, kRtpPacketStatus status);
+    void onCollectJitterBufferSize(int32_t currSize, int32_t maxSize);
+    bool onGetRtcpXrReportBlock(uint32_t nReportBlocks, uint8_t* data, uint32_t& size);
+
     std::list<AudioStreamGraphRtpTx*> mListGraphRtpTx;
     std::list<AudioStreamGraphRtpRx*> mListGraphRtpRx;
     std::list<AudioStreamGraphRtcp*> mListGraphRtcp;
+    std::unique_ptr<MediaQualityAnalyzer> mMediaQualityAnalyzer;
 };
 
 #endif

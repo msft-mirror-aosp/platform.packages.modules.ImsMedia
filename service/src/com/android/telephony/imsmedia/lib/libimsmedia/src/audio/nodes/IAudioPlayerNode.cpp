@@ -30,7 +30,13 @@ IAudioPlayerNode::IAudioPlayerNode(BaseSessionCallback* callback) :
     mAudioPlayer = std::move(track);
 }
 
-IAudioPlayerNode::~IAudioPlayerNode() {}
+IAudioPlayerNode::~IAudioPlayerNode()
+{
+    if (mConfig != NULL)
+    {
+        delete mConfig;
+    }
+}
 
 kBaseNodeId IAudioPlayerNode::GetNodeId()
 {
@@ -101,30 +107,38 @@ bool IAudioPlayerNode::IsSourceNode()
 
 void IAudioPlayerNode::SetConfig(void* config)
 {
-    AudioConfig* pConfig = reinterpret_cast<AudioConfig*>(config);
-    if (pConfig != NULL)
+    if (config == NULL)
     {
-        mCodecType = ImsMediaAudioUtil::ConvertCodecType(pConfig->getCodecType());
-        if (mCodecType == kAudioCodecAmr || mCodecType == kAudioCodecAmrWb)
-        {
-            mMode = pConfig->getAmrParams().getAmrMode();
-        }
-        else if (mCodecType == kAudioCodecEvs)
-        {
-            mMode = pConfig->getEvsParams().getEvsMode();
-            mEvsChannelAwOffset = pConfig->getEvsParams().getChannelAwareMode();
-            mEvsBandwidth = (kEvsBandwidth)ImsMediaAudioUtil::FindMaxEvsBandwidthFromRange(
-                    pConfig->getEvsParams().getEvsBandwidth());
-            mEvsPayloadHeaderMode =
-                    (kRtpPyaloadHeaderMode)pConfig->getEvsParams().getUseHeaderFullOnly();
-        }
-
-        mSamplingRate = pConfig->getSamplingRateKHz();
-        SetJitterBufferSize(4, 4, 9);
-        SetJitterOptions(80, 1, (double)25 / 10,
-                false, /** TODO: when enable DTX, set this true on condition*/
-                true);
+        return;
     }
+
+    if (mConfig != NULL)
+    {
+        delete mConfig;
+    }
+
+    mConfig = new AudioConfig(*reinterpret_cast<AudioConfig*>(config));
+    mCodecType = ImsMediaAudioUtil::ConvertCodecType(mConfig->getCodecType());
+
+    if (mCodecType == kAudioCodecAmr || mCodecType == kAudioCodecAmrWb)
+    {
+        mMode = mConfig->getAmrParams().getAmrMode();
+    }
+    else if (mCodecType == kAudioCodecEvs)
+    {
+        mMode = mConfig->getEvsParams().getEvsMode();
+        mEvsChannelAwOffset = mConfig->getEvsParams().getChannelAwareMode();
+        mEvsBandwidth = (kEvsBandwidth)ImsMediaAudioUtil::FindMaxEvsBandwidthFromRange(
+                mConfig->getEvsParams().getEvsBandwidth());
+        mEvsPayloadHeaderMode =
+                (kRtpPyaloadHeaderMode)mConfig->getEvsParams().getUseHeaderFullOnly();
+    }
+
+    mSamplingRate = mConfig->getSamplingRateKHz();
+    SetJitterBufferSize(4, 4, 9);
+    SetJitterOptions(80, 1, (double)25 / 10,
+            false, /** TODO: when enable DTX, set this true on condition*/
+            true);
 }
 
 bool IAudioPlayerNode::IsSameConfig(void* config)
@@ -192,7 +206,8 @@ void* IAudioPlayerNode::run()
                     // send buffering complete message to client
                     if (mFirstFrame == false)
                     {
-                        mCallback->SendEvent(kImsMediaEventFirstPacketReceived);
+                        mCallback->SendEvent(kImsMediaEventFirstPacketReceived,
+                                reinterpret_cast<uint64_t>(new AudioConfig(*mConfig)));
                         mFirstFrame = true;
                     }
                 }

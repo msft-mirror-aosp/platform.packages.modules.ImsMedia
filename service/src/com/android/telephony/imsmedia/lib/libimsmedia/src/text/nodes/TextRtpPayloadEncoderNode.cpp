@@ -167,7 +167,7 @@ void TextRtpPayloadEncoderNode::EncodeT140(
             // Remove a very old redundant data
             IMLOGD_PACKET4(IM_PACKET_LOG_PH,
                     "[EncodeT140] timestamp[%u], pEntry->timestamp[%u], nTSInterval[%d], "
-                    "arrivalTime[%d]",
+                    "arrivalTime[%u]",
                     timestamp, pEntry->nTimestamp, nTSInterval, pEntry->arrivalTime);
 
             // Check time interval and the number of remained use
