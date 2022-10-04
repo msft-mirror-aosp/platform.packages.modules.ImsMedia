@@ -16,8 +16,6 @@
 
 package com.android.telephony.imsmedia;
 
-import static com.google.common.truth.Truth.assertThat;
-
 import static junit.framework.Assert.assertEquals;
 
 import static org.junit.Assert.fail;
@@ -33,7 +31,6 @@ import android.hardware.radio.ims.media.IImsMediaSession;
 import android.hardware.radio.ims.media.MediaProtocolType;
 import android.hardware.radio.ims.media.RtpConfig;
 import android.hardware.radio.ims.media.RtpError;
-import android.hardware.radio.ims.media.RtpSessionState;
 import android.os.ParcelFileDescriptor;
 import android.os.RemoteException;
 import android.telephony.CallQuality;
@@ -150,15 +147,6 @@ public class AudioOffloadTest {
         audioSession.closeSession();
         processAllMessages();
         verify(offloadService, times(1)).closeSession(eq(SESSION_ID));
-    }
-
-    @Test
-    public void testGetSessionState() {
-        assertThat(audioSession.getSessionId()).isEqualTo(SESSION_ID);
-        assertThat(audioSession.getSessionState()).isEqualTo(ImsMediaSession.SESSION_STATE_CLOSED);
-        offloadListener.onSessionChanged(RtpSessionState.OPEN);
-        processAllMessages();
-        assertThat(audioSession.getSessionState()).isEqualTo(ImsMediaSession.SESSION_STATE_OPEN);
     }
 
     @Test

@@ -117,15 +117,6 @@ class AudioListenerProxy implements JNIImsMediaListener {
                     Rlog.e(TAG, "Failed to notify modify session: " + e);
                 }
                 break;
-            case AudioSession.EVENT_SESSION_CHANGED_IND:
-                final int state = parcel.readInt();
-
-                try {
-                    mMediaSessionListener.onSessionChanged(state);
-                } catch(RemoteException e) {
-                    Rlog.e(TAG, "Failed to notify session changed: " + e);
-                }
-                break;
             case AudioSession.EVENT_FIRST_MEDIA_PACKET_IND:
                 final AudioConfig mediaIndCfg = AudioConfig.CREATOR.createFromParcel(parcel);
                 final RtpConfig mediaIndRtpCfg = Utils.convertToRtpConfig(mediaIndCfg);

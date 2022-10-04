@@ -240,13 +240,5 @@ public class ImsMediaManager {
             // Base Implementation
         }
 
-        /**
-         * Called when any change occurs to the RTP session.
-         *
-         * @param state session state
-         */
-        public void onSessionChanged(@ImsMediaSession.SessionState int state) {
-            // Base Implementation
-        }
     }
 }

@@ -56,7 +56,6 @@ public class ImsAudioSessionTest {
 
         imsAudioSession.getBinder();
         imsAudioSession.getSessionId();
-        imsAudioSession.getSessionState();
 
         AudioConfig audioConfig = new AudioConfig.Builder().build();
         imsAudioSession.addConfig(audioConfig);
@@ -75,7 +74,6 @@ public class ImsAudioSessionTest {
         try {
             verify(mMockIImsAudioSession).asBinder();
             verify(mMockIImsAudioSession).getSessionId();
-            verify(mMockIImsAudioSession).getSessionState();
             verify(mMockIImsAudioSession).addConfig(audioConfig);
             verify(mMockIImsAudioSession).deleteConfig(audioConfig);
             verify(mMockIImsAudioSession).modifySession(audioConfig);

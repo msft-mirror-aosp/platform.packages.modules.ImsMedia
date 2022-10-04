@@ -28,7 +28,6 @@ oneway interface IImsTextSessionCallback {
     void onOpenSessionSuccess(IImsTextSession session);
     void onOpenSessionFailure(int error);
     void onSessionClosed();
-    void onSessionChanged(int state);
     void onModifySessionResponse(in TextConfig config, int result);
     void onRttReceived(in String text);
     void notifyMediaInactivity(int packetType);

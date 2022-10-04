@@ -690,11 +690,6 @@ public class MainActivity extends AppCompatActivity {
         }
 
         @Override
-        public void onSessionChanged(@ImsMediaSession.SessionState int state) {
-            Log.d(TAG, "onSessionChanged - state=" + state);
-        }
-
-        @Override
         public void onAddConfigResponse(AudioConfig config, int result) {
             Log.d(TAG, "onAddConfigResponse");
         }

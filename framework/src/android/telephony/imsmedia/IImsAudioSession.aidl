@@ -27,7 +27,6 @@ import android.telephony.ims.RtpHeaderExtension;
  */
 interface IImsAudioSession {
     int getSessionId();
-    int getSessionState();
     oneway void modifySession(in AudioConfig config);
     oneway void addConfig(in AudioConfig config);
     oneway void deleteConfig(in AudioConfig config);

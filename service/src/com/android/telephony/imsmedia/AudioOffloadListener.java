@@ -42,11 +42,6 @@ final class AudioOffloadListener extends IImsMediaSessionListener.Stub {
     }
 
     @Override
-    public void onSessionChanged(int state) {
-        Utils.sendMessage(handler, AudioSession.EVENT_SESSION_CHANGED_IND, state);
-    }
-
-    @Override
     public void onModifySessionResponse(RtpConfig config, int result) {
         Utils.sendMessage(handler,
                 AudioSession.EVENT_MODIFY_SESSION_RESPONSE, result,

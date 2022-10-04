@@ -26,7 +26,6 @@ import android.telephony.imsmedia.MediaQualityThreshold;
  */
 interface IImsTextSession {
     int getSessionId();
-    int getSessionState();
     oneway void modifySession(in TextConfig config);
     oneway void setMediaQualityThreshold(in MediaQualityThreshold threshold);
     oneway void sendRtt(in String text);

@@ -28,7 +28,6 @@ import android.view.Surface;
  */
 interface IImsVideoSession {
     int getSessionId();
-    int getSessionState();
     oneway void modifySession(in VideoConfig config);
     oneway void setPreviewSurface(in Surface surface);
     oneway void setDisplaySurface(in Surface surface);

@@ -61,7 +61,6 @@ public class ImsVideoSessionTest {
 
         imsVideoSession.getBinder();
         imsVideoSession.getSessionId();
-        imsVideoSession.getSessionState();
         imsVideoSession.setPreviewSurface(mMockPreviewSurface);
         imsVideoSession.setDisplaySurface(mMockDisplaySurface);
         imsVideoSession.requestVideoDataUsage();
@@ -78,7 +77,6 @@ public class ImsVideoSessionTest {
         try {
             verify(mMockIImsVideoSession).asBinder();
             verify(mMockIImsVideoSession).getSessionId();
-            verify(mMockIImsVideoSession).getSessionState();
             verify(mMockIImsVideoSession).setPreviewSurface(mMockPreviewSurface);
             verify(mMockIImsVideoSession).setDisplaySurface(mMockDisplaySurface);
             verify(mMockIImsVideoSession).requestVideoDataUsage();

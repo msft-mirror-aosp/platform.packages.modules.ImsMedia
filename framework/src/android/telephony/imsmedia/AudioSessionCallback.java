@@ -93,18 +93,6 @@ public class AudioSessionCallback extends ImsMediaManager.SessionCallback {
         }
 
         @Override
-        public void onSessionChanged(final @ImsMediaSession.SessionState int state) {
-            if (mLocalCallback == null) return;
-
-            final long callingIdentity = Binder.clearCallingIdentity();
-            try {
-                mExecutor.execute(() -> mLocalCallback.onSessionChanged(state));
-            } finally {
-                restoreCallingIdentity(callingIdentity);
-            }
-        }
-
-        @Override
         public void onModifySessionResponse(final AudioConfig config,
                 final @ImsMediaSession.SessionOperationResult int result) {
             if (mLocalCallback == null) return;

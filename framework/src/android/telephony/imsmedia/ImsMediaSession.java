@@ -19,7 +19,6 @@ package android.telephony.imsmedia;
 import android.annotation.IntDef;
 import android.hardware.radio.ims.media.MediaProtocolType;
 import android.hardware.radio.ims.media.RtpError;
-import android.hardware.radio.ims.media.RtpSessionState;
 import android.os.IBinder;
 
 import java.lang.annotation.Retention;
@@ -47,22 +46,6 @@ public interface ImsMediaSession {
     public @interface SessionType {
     }
 
-    /** The RTP session is opened but media flow has not started */
-    int SESSION_STATE_OPEN = RtpSessionState.OPEN;
-    /** The RTP session has active media flow */
-    int SESSION_STATE_ACTIVE = RtpSessionState.ACTIVE;
-    /** The RTP session is suspended */
-    int SESSION_STATE_SUSPENDED = RtpSessionState.SUSPENDED;
-    /** The RTP session is closed */
-    int SESSION_STATE_CLOSED = RtpSessionState.CLOSED;
-
-    /** @hide */
-    @IntDef(value = {
-            SESSION_STATE_OPEN,
-            SESSION_STATE_ACTIVE,
-            SESSION_STATE_SUSPENDED,
-            SESSION_STATE_CLOSED,
-    })
     @Retention(RetentionPolicy.SOURCE)
     public @interface SessionState {
     }
@@ -117,9 +100,6 @@ public interface ImsMediaSession {
 
     /** Returns the unique session identifier */
     public int getSessionId();
-
-    /** Returns the session state */
-    public @SessionState int getSessionState();
 
     /**
      * Modifies the configuration of the RTP session after the session is opened. It can be used to

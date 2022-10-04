@@ -16,8 +16,6 @@
 
 package com.android.telephony.imsmedia;
 
-import static com.google.common.truth.Truth.assertThat;
-
 import static org.junit.Assert.fail;
 import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.times;
@@ -138,16 +136,6 @@ public class VideoSessionTest {
         mVideoSession.closeSession();
         processAllMessages();
         verify(mVideoService, times(1)).closeSession(eq(SESSION_ID));
-    }
-
-    @Test
-    public void testGetSessionState() {
-        assertThat(mVideoSession.getSessionId()).isEqualTo(SESSION_ID);
-        assertThat(mVideoSession.getSessionState()).isEqualTo(ImsMediaSession.SESSION_STATE_CLOSED);
-        Utils.sendMessage(mHandler, VideoSession.EVENT_SESSION_CHANGED_IND,
-                ImsMediaSession.SESSION_STATE_OPEN);
-        processAllMessages();
-        assertThat(mVideoSession.getSessionState()).isEqualTo(ImsMediaSession.SESSION_STATE_OPEN);
     }
 
     @Test

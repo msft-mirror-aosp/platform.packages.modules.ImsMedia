@@ -54,17 +54,6 @@ public class ImsAudioSession implements ImsMediaSession {
         return -1;
     }
 
-    /** @inheritDoc */
-    public @SessionState int getSessionState() {
-        try {
-            return miSession.getSessionState();
-        } catch (RemoteException e) {
-            Log.e(TAG, "Failed to get session state: " + e);
-        }
-
-        return ImsMediaSession.SESSION_STATE_CLOSED;
-    }
-
     /**
      * @inheritDoc
      */

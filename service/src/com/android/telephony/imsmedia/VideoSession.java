@@ -26,7 +26,6 @@ import android.telephony.Rlog;
 import android.telephony.ims.RtpHeaderExtension;
 import android.telephony.imsmedia.IImsVideoSession;
 import android.telephony.imsmedia.IImsVideoSessionCallback;
-import android.telephony.imsmedia.ImsMediaSession;
 import android.telephony.imsmedia.MediaQualityThreshold;
 import android.telephony.imsmedia.VideoConfig;
 import android.view.Surface;
@@ -57,17 +56,15 @@ public final class VideoSession extends IImsVideoSession.Stub implements IMediaS
     public static final int EVENT_OPEN_SESSION_SUCCESS = 201;
     public static final int EVENT_OPEN_SESSION_FAILURE = 202;
     public static final int EVENT_MODIFY_SESSION_RESPONSE = 203;
-    public static final int EVENT_SESSION_CHANGED_IND = 204;
-    public static final int EVENT_FIRST_MEDIA_PACKET_IND = 205;
-    public static final int EVENT_PEER_DIMENSION_CHANGED = 206;
-    public static final int EVENT_RTP_HEADER_EXTENSION_IND = 207;
-    public static final int EVENT_MEDIA_INACTIVITY_IND = 208;
-    public static final int EVENT_PACKET_LOSS_IND = 209;
-    public static final int EVENT_VIDEO_DATA_USAGE_IND = 210;
-    public static final int EVENT_SESSION_CLOSED = 211;
+    public static final int EVENT_FIRST_MEDIA_PACKET_IND = 204;
+    public static final int EVENT_PEER_DIMENSION_CHANGED = 205;
+    public static final int EVENT_RTP_HEADER_EXTENSION_IND = 206;
+    public static final int EVENT_MEDIA_INACTIVITY_IND = 207;
+    public static final int EVENT_PACKET_LOSS_IND = 208;
+    public static final int EVENT_VIDEO_DATA_USAGE_IND = 209;
+    public static final int EVENT_SESSION_CLOSED = 210;
 
     private int mSessionId;
-    private int mSessionState;
     private IImsVideoSessionCallback mCallback;
     private IImsMediaSession mHalSession;
     private VideoSessionHandler mHandler;
@@ -77,7 +74,6 @@ public final class VideoSession extends IImsVideoSession.Stub implements IMediaS
 
     VideoSession(final int sessionId, final IImsVideoSessionCallback callback) {
         mSessionId = sessionId;
-        mSessionState = ImsMediaSession.SESSION_STATE_CLOSED;
         mCallback = callback;
         mHandler = new VideoSessionHandler(Looper.getMainLooper());
         Rlog.d(TAG, "Initialize local video service");
@@ -93,7 +89,6 @@ public final class VideoSession extends IImsVideoSession.Stub implements IMediaS
             final @Nullable VideoService videoService,
             final @Nullable VideoLocalSession localSession) {
         mSessionId = sessionId;
-        mSessionState = ImsMediaSession.SESSION_STATE_CLOSED;
         mCallback = callback;
         mHandler = new VideoSessionHandler(Looper.getMainLooper());
         mVideoService = videoService;
@@ -124,11 +119,6 @@ public final class VideoSession extends IImsVideoSession.Stub implements IMediaS
     @Override
     public int getSessionId() {
         return mSessionId;
-    }
-
-    @Override
-    public int getSessionState() {
-        return mSessionState;
     }
 
     @Override
@@ -233,9 +223,6 @@ public final class VideoSession extends IImsVideoSession.Stub implements IMediaS
                 case EVENT_MODIFY_SESSION_RESPONSE:
                     handleModifySessionRespose((VideoConfig) msg.obj, msg.arg1);
                     break;
-                case EVENT_SESSION_CHANGED_IND:
-                    handleSessionChangedInd((int) msg.obj);
-                    break;
                 case EVENT_FIRST_MEDIA_PACKET_IND:
                     handleFirstMediaPacketInd((VideoConfig) msg.obj);
                     break;
@@ -324,15 +311,6 @@ public final class VideoSession extends IImsVideoSession.Stub implements IMediaS
             mCallback.onModifySessionResponse(config, error);
         } catch (RemoteException e) {
             Rlog.e(TAG, "Failed to notify modifySessionResponse: " + e);
-        }
-    }
-
-    private void handleSessionChangedInd(int state) {
-        try {
-            mSessionState = state;
-            mCallback.onSessionChanged(state);
-        } catch (RemoteException e) {
-            Rlog.e(TAG, "Failed to notify onSessionChanged: " + e);
         }
     }
 

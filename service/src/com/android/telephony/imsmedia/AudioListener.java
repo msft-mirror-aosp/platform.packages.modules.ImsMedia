@@ -86,7 +86,6 @@ public class AudioListener implements JNIImsMediaListener {
                 Rlog.d(LOG_TAG, "onMessage=" + event + ", result=" + result);
                 Utils.sendMessage(mHandler, event, result, Utils.UNUSED, config);
                 break;
-            case AudioSession.EVENT_SESSION_CHANGED_IND:
             case AudioSession.EVENT_FIRST_MEDIA_PACKET_IND:
                 //TODO : add implementation
                 break;

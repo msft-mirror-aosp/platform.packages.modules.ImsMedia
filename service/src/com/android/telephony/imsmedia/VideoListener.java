@@ -84,9 +84,6 @@ public class VideoListener implements JNIImsMediaListener {
                 Utils.sendMessage(mHandler, event, result, Utils.UNUSED, config);
             }
                 break;
-            case VideoSession.EVENT_SESSION_CHANGED_IND:
-                //TODO: add implementation
-                break;
             case VideoSession.EVENT_FIRST_MEDIA_PACKET_IND:
             {
                 final VideoConfig config = VideoConfig.CREATOR.createFromParcel(parcel);

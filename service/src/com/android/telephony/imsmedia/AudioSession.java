@@ -28,7 +28,6 @@ import android.telephony.ims.RtpHeaderExtension;
 import android.telephony.imsmedia.AudioConfig;
 import android.telephony.imsmedia.IImsAudioSession;
 import android.telephony.imsmedia.IImsAudioSessionCallback;
-import android.telephony.imsmedia.ImsMediaSession;
 import android.telephony.imsmedia.MediaQualityThreshold;
 
 import androidx.annotation.NonNull;
@@ -64,21 +63,19 @@ public final class AudioSession extends IImsAudioSession.Stub implements IMediaS
     public static final int EVENT_MODIFY_SESSION_RESPONSE = 203;
     public static final int EVENT_ADD_CONFIG_RESPONSE = 204;
     public static final int EVENT_CONFIRM_CONFIG_RESPONSE = 205;
-    public static final int EVENT_SESSION_CHANGED_IND = 206;
-    public static final int EVENT_FIRST_MEDIA_PACKET_IND = 207;
-    public static final int EVENT_RTP_HEADER_EXTENSION_IND = 208;
-    public static final int EVENT_MEDIA_INACTIVITY_IND = 209;
-    public static final int EVENT_PACKET_LOSS_IND = 210;
-    public static final int EVENT_JITTER_IND = 211;
-    public static final int EVENT_TRIGGER_ANBR_QUERY_IND = 212;
-    public static final int EVENT_DTMF_RECEIVED_IND = 213;
-    public static final int EVENT_CALL_QUALITY_CHANGE_IND = 214;
-    public static final int EVENT_SESSION_CLOSED = 215;
+    public static final int EVENT_FIRST_MEDIA_PACKET_IND = 206;
+    public static final int EVENT_RTP_HEADER_EXTENSION_IND = 207;
+    public static final int EVENT_MEDIA_INACTIVITY_IND = 208;
+    public static final int EVENT_PACKET_LOSS_IND = 209;
+    public static final int EVENT_JITTER_IND = 210;
+    public static final int EVENT_TRIGGER_ANBR_QUERY_IND = 211;
+    public static final int EVENT_DTMF_RECEIVED_IND = 212;
+    public static final int EVENT_CALL_QUALITY_CHANGE_IND = 213;
+    public static final int EVENT_SESSION_CLOSED = 214;
 
     private static final int DTMF_DEFAULT_DURATION = 140;
 
     private int mSessionId;
-    private int mSessionState;
     private AudioOffloadService mOffloadService;
     private AudioOffloadListener mOffloadListener;
     private IImsAudioSessionCallback mCallback;
@@ -91,7 +88,6 @@ public final class AudioSession extends IImsAudioSession.Stub implements IMediaS
 
     AudioSession(final int sessionId, final IImsAudioSessionCallback callback) {
         mSessionId = sessionId;
-        mSessionState = ImsMediaSession.SESSION_STATE_CLOSED;
         mCallback = callback;
         mHandler = new AudioSessionHandler(Looper.getMainLooper());
         if (isAudioOffload()) {
@@ -114,7 +110,6 @@ public final class AudioSession extends IImsAudioSession.Stub implements IMediaS
             final @Nullable AudioLocalSession localSession,
             final @Nullable AudioOffloadService offloadService) {
         mSessionId = sessionId;
-        mSessionState = ImsMediaSession.SESSION_STATE_CLOSED;
         mCallback = callback;
         mHandler = new AudioSessionHandler(Looper.getMainLooper());
         mAudioService = audioService;
@@ -156,11 +151,6 @@ public final class AudioSession extends IImsAudioSession.Stub implements IMediaS
     @Override
     public int getSessionId() {
         return mSessionId;
-    }
-
-    @Override
-    public int getSessionState() {
-        return mSessionState;
     }
 
     @Override
@@ -300,9 +290,6 @@ public final class AudioSession extends IImsAudioSession.Stub implements IMediaS
                     break;
                 case EVENT_CONFIRM_CONFIG_RESPONSE:
                     handleConfirmConfigResponse((AudioConfig)msg.obj, msg.arg1);
-                    break;
-                case EVENT_SESSION_CHANGED_IND:
-                    handleSessionChangedInd((int)msg.obj);
                     break;
                 case EVENT_FIRST_MEDIA_PACKET_IND:
                     handleFirstMediaPacketInd((AudioConfig)msg.obj);
@@ -506,15 +493,6 @@ public final class AudioSession extends IImsAudioSession.Stub implements IMediaS
             mCallback.onConfirmConfigResponse(config, error);
         }  catch (RemoteException e) {
             Rlog.e(TAG, "Failed to notify onConfirmConfigResponse: " + e);
-        }
-    }
-
-    private void handleSessionChangedInd(int state) {
-        try {
-            mSessionState = state;
-            mCallback.onSessionChanged(state);
-        }  catch (RemoteException e) {
-            Rlog.e(TAG, "Failed to notify onSessionChanged: " + e);
         }
     }
 

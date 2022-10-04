@@ -25,7 +25,6 @@ import android.support.annotation.VisibleForTesting;
 import android.telephony.Rlog;
 import android.telephony.imsmedia.IImsTextSession;
 import android.telephony.imsmedia.IImsTextSessionCallback;
-import android.telephony.imsmedia.ImsMediaSession;
 import android.telephony.imsmedia.MediaQualityThreshold;
 import android.telephony.imsmedia.TextConfig;
 
@@ -49,13 +48,11 @@ public final class TextSession extends IImsTextSession.Stub implements IMediaSes
     public static final int EVENT_OPEN_SESSION_SUCCESS = 201;
     public static final int EVENT_OPEN_SESSION_FAILURE = 202;
     public static final int EVENT_MODIFY_SESSION_RESPONSE = 203;
-    public static final int EVENT_SESSION_CHANGED_IND = 204;
-    public static final int EVENT_MEDIA_INACTIVITY_IND = 205;
-    public static final int EVENT_RTT_RECEIVED = 206;
-    public static final int EVENT_SESSION_CLOSED = 207;
+    public static final int EVENT_MEDIA_INACTIVITY_IND = 204;
+    public static final int EVENT_RTT_RECEIVED = 205;
+    public static final int EVENT_SESSION_CLOSED = 206;
 
     private int mSessionId;
-    private int mSessionState;
     private IImsTextSessionCallback mCallback;
     private IImsMediaSession mHalSession;
     private TextSessionHandler mHandler;
@@ -65,7 +62,6 @@ public final class TextSession extends IImsTextSession.Stub implements IMediaSes
 
     TextSession(final int sessionId, final IImsTextSessionCallback callback) {
         mSessionId = sessionId;
-        mSessionState = ImsMediaSession.SESSION_STATE_CLOSED;
         mCallback = callback;
         mHandler = new TextSessionHandler(Looper.getMainLooper());
         Rlog.d(TAG, "Initialize local text service");
@@ -81,7 +77,6 @@ public final class TextSession extends IImsTextSession.Stub implements IMediaSes
             final @Nullable TextService textService,
             final @Nullable TextLocalSession localSession) {
         mSessionId = sessionId;
-        mSessionState = ImsMediaSession.SESSION_STATE_CLOSED;
         mCallback = callback;
         mHandler = new TextSessionHandler(Looper.getMainLooper());
         mTextService = textService;
@@ -112,11 +107,6 @@ public final class TextSession extends IImsTextSession.Stub implements IMediaSes
     @Override
     public int getSessionId() {
         return mSessionId;
-    }
-
-    @Override
-    public int getSessionState() {
-        return mSessionState;
     }
 
     @Override
@@ -194,9 +184,6 @@ public final class TextSession extends IImsTextSession.Stub implements IMediaSes
                 case EVENT_MODIFY_SESSION_RESPONSE:
                     handleModifySessionRespose((TextConfig) msg.obj, msg.arg1);
                     break;
-                case EVENT_SESSION_CHANGED_IND:
-                    handleSessionChangedInd((int) msg.obj);
-                    break;
                 case EVENT_MEDIA_INACTIVITY_IND:
                     handleNotifyMediaInactivityInd(msg.arg1);
                     break;
@@ -261,15 +248,6 @@ public final class TextSession extends IImsTextSession.Stub implements IMediaSes
             mCallback.onModifySessionResponse(config, error);
         } catch (RemoteException e) {
             Rlog.e(TAG, "Failed to notify modifySessionResponse: " + e);
-        }
-    }
-
-    private void handleSessionChangedInd(int state) {
-        try {
-            mSessionState = state;
-            mCallback.onSessionChanged(state);
-        } catch (RemoteException e) {
-            Rlog.e(TAG, "Failed to notify onSessionChanged: " + e);
         }
     }
 

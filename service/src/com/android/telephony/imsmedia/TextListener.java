@@ -83,9 +83,6 @@ public class TextListener implements JNIImsMediaListener {
                 Rlog.d(LOG_TAG, "onMessage=" + event + ", result=" + result);
                 Utils.sendMessage(mHandler, event, result, Utils.UNUSED, config);
                 break;
-            case TextSession.EVENT_SESSION_CHANGED_IND:
-                //TODO : add implementation
-                break;
             case TextSession.EVENT_MEDIA_INACTIVITY_IND:
                 Utils.sendMessage(mHandler, event, parcel.readInt(), Utils.UNUSED);
                 break;

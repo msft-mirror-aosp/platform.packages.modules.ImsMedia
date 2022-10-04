@@ -30,7 +30,6 @@ oneway interface IImsVideoSessionCallback {
     void onOpenSessionSuccess(IImsVideoSession session);
     void onOpenSessionFailure(int error);
     void onSessionClosed();
-    void onSessionChanged(int state);
     void onModifySessionResponse(in VideoConfig config, int result);
     void onFirstMediaPacketReceived(in VideoConfig config);
     void onPeerDimensionChanged(in int width, in int height);
