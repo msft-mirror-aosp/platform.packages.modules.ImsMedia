@@ -87,45 +87,6 @@ public class IImsMediaSessionImpl extends IImsMediaSession.Stub {
     }
 
     @Override
-    public void addConfig(RtpConfig config) {
-      Rlog.d(TAG, "addConfig: " + config);
-        Parcel parcel = Parcel.obtain();
-        parcel.writeInt(AudioSession.CMD_ADD_CONFIG);
-
-        if (config != null) {
-            AudioConfig audioConfig = Utils.convertToAudioConfig(config);
-            audioConfig.writeToParcel(parcel, 0);
-        }
-        connector.sendRequest(mSessionId, parcel);
-    }
-
-    @Override
-    public void deleteConfig(RtpConfig config) {
-        Rlog.d(TAG, "deleteConfig: " + config);
-        Parcel parcel = Parcel.obtain();
-        parcel.writeInt(AudioSession.CMD_DELETE_CONFIG);
-
-        if (config != null) {
-            AudioConfig audioConfig = Utils.convertToAudioConfig(config);
-            audioConfig.writeToParcel(parcel, 0);
-        }
-        connector.sendRequest(mSessionId, parcel);
-    }
-
-    @Override
-    public void confirmConfig(RtpConfig config) {
-        Rlog.d(TAG, "confirmConfig: " + config);
-        Parcel parcel = Parcel.obtain();
-        parcel.writeInt(AudioSession.CMD_CONFIRM_CONFIG);
-
-        if (config != null) {
-            AudioConfig audioConfig = Utils.convertToAudioConfig(config);
-            audioConfig.writeToParcel(parcel, 0);
-        }
-        connector.sendRequest(mSessionId, parcel);
-    }
-
-    @Override
     public void sendDtmf(char dtmfDigit, int duration) {
         Rlog.d(TAG, "sendDtmf: digit= " + dtmfDigit + ", duration=" + duration);
         Parcel parcel = Parcel.obtain();

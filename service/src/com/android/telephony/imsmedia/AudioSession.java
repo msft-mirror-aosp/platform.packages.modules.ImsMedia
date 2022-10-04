@@ -367,7 +367,7 @@ public final class AudioSession extends IImsAudioSession.Stub implements IMediaS
     private void handleAddConfig(AudioConfig config) {
         if (isAudioOffload()) {
             try {
-                mHalSession.addConfig(Utils.convertToRtpConfig(config));
+                mHalSession.modifySession(Utils.convertToRtpConfig(config));
             } catch (RemoteException e) {
                 Rlog.e(TAG, "addConfig : " + e);
             }
@@ -377,25 +377,13 @@ public final class AudioSession extends IImsAudioSession.Stub implements IMediaS
     }
 
     private void handleDeleteConfig(AudioConfig config) {
-        if (isAudioOffload()) {
-            try {
-                mHalSession.deleteConfig(Utils.convertToRtpConfig(config));
-            } catch (RemoteException e) {
-                Rlog.e(TAG, "deleteConfig : " + e);
-            }
-        } else {
+        if (!isAudioOffload()) {
             mLocalSession.deleteConfig(config);
         }
     }
 
     private void handleConfirmConfig(AudioConfig config) {
-        if (isAudioOffload()) {
-            try {
-                mHalSession.confirmConfig(Utils.convertToRtpConfig(config));
-            } catch (RemoteException e) {
-                Rlog.e(TAG, "confirmConfig : " + e);
-            }
-        } else {
+        if (!isAudioOffload()) {
             mLocalSession.confirmConfig(config);
         }
     }

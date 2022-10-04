@@ -54,19 +54,6 @@ final class AudioOffloadListener extends IImsMediaSessionListener.Stub {
     }
 
     @Override
-    public void onAddConfigResponse(RtpConfig config, int result) {
-        Utils.sendMessage(handler, AudioSession.EVENT_ADD_CONFIG_RESPONSE,
-                result, Utils.UNUSED, Utils.convertToAudioConfig(config));
-    }
-
-    @Override
-    public void onConfirmConfigResponse(RtpConfig config, int result) {
-        Utils.sendMessage(handler,
-                AudioSession.EVENT_CONFIRM_CONFIG_RESPONSE, result,
-                Utils.UNUSED, Utils.convertToAudioConfig(config));
-    }
-
-    @Override
     public void onFirstMediaPacketReceived(RtpConfig config) {
         Utils.sendMessage(handler, AudioSession.EVENT_FIRST_MEDIA_PACKET_IND,
                 Utils.convertToAudioConfig(config));

@@ -212,7 +212,7 @@ public class AudioOffloadTest {
         processAllMessages();
         try {
             ArgumentCaptor<RtpConfig> argumentCaptor = ArgumentCaptor.forClass(RtpConfig.class);
-            verify(imsMediaSession, times(1)).addConfig(argumentCaptor.capture());
+            verify(imsMediaSession, times(1)).modifySession(argumentCaptor.capture());
             // Get the HAL RtpConfig
             outputRtpConfig = argumentCaptor.getValue();
             // Covert it back to AudioConfig
@@ -224,83 +224,21 @@ public class AudioOffloadTest {
         }
 
         // Add Config Response - SUCCESS
-        offloadListener.onAddConfigResponse(outputRtpConfig, RtpError.NONE);
+        offloadListener.onModifySessionResponse(outputRtpConfig, RtpError.NONE);
         processAllMessages();
         try {
-            verify(callback, times(1)).onAddConfigResponse(eq(inputAudioConfig), eq(SUCCESS));
+            verify(callback, times(1)).onModifySessionResponse(eq(inputAudioConfig), eq(SUCCESS));
         } catch (RemoteException e) {
             fail("Failed to notify addConfigResponse: " + e);
         }
 
         // Add Config Response - FAILURE
-        offloadListener.onAddConfigResponse(outputRtpConfig, RtpError.NO_MEMORY);
+        offloadListener.onModifySessionResponse(outputRtpConfig, RtpError.NO_MEMORY);
         processAllMessages();
         try {
-            verify(callback, times(1)).onAddConfigResponse(eq(inputAudioConfig), eq(NO_MEMORY));
+            verify(callback, times(1)).onModifySessionResponse(eq(inputAudioConfig), eq(NO_MEMORY));
         } catch (RemoteException e) {
             fail("Failed to notify addConfigResponse: " + e);
-        }
-    }
-
-    @Test
-    public void testDeleteConfig() {
-        final AudioConfig inputAudioConfig = AudioConfigTest.createAudioConfig();
-        // Delete Config Request
-        audioSession.deleteConfig(inputAudioConfig);
-        processAllMessages();
-        try {
-            ArgumentCaptor<RtpConfig> argumentCaptor = ArgumentCaptor.forClass(RtpConfig.class);
-            verify(imsMediaSession, times(1)).deleteConfig(argumentCaptor.capture());
-            // Get the HAL RtpConfig
-            final RtpConfig outputRtpConfig = argumentCaptor.getValue();
-            // Covert it back to AudioConfig
-            final AudioConfig outputAudioConfig = Utils.convertToAudioConfig(outputRtpConfig);
-            // Ensure both are same
-            assertEquals(inputAudioConfig, outputAudioConfig);
-        } catch (RemoteException e) {
-            fail("Failed to invoke deleteConfig: " + e);
-        }
-
-    }
-
-    @Test
-    public void testConfirmConfig() {
-        AudioConfig inputAudioConfig = AudioConfigTest.createAudioConfig();
-        RtpConfig outputRtpConfig = null;
-
-        // Confirm Config Request
-        audioSession.confirmConfig(inputAudioConfig);
-        processAllMessages();
-        try {
-            ArgumentCaptor<RtpConfig> argumentCaptor = ArgumentCaptor.forClass(RtpConfig.class);
-            verify(imsMediaSession, times(1)).confirmConfig(argumentCaptor.capture());
-            // Get the HAL RtpConfig
-            outputRtpConfig = argumentCaptor.getValue();
-            // Covert it back to AudioConfig
-            final AudioConfig outputAudioConfig = Utils.convertToAudioConfig(outputRtpConfig);
-            // Ensure both are same
-            assertEquals(inputAudioConfig, outputAudioConfig);
-        } catch (RemoteException e) {
-            fail("Failed to invoke confirmConfig: " + e);
-        }
-
-        // Confirm Config Response - SUCCESS
-        offloadListener.onConfirmConfigResponse(outputRtpConfig, RtpError.NONE);
-        processAllMessages();
-        try {
-            verify(callback, times(1)).onConfirmConfigResponse(eq(inputAudioConfig), eq(SUCCESS));
-        } catch (RemoteException e) {
-            fail("Failed to notify confirmConfigResponse: " + e);
-        }
-
-        // Confirm Config Response - FAILURE
-        offloadListener.onConfirmConfigResponse(outputRtpConfig, RtpError.NO_RESOURCES);
-        processAllMessages();
-        try {
-            verify(callback, times(1)).onConfirmConfigResponse(
-                    eq(inputAudioConfig), eq(NO_RESOURCES));
-        } catch (RemoteException e) {
-            fail("Failed to notify confirmConfigResponse: " + e);
         }
     }
 

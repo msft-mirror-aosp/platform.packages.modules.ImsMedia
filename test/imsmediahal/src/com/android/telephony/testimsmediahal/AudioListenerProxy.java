@@ -117,28 +117,6 @@ class AudioListenerProxy implements JNIImsMediaListener {
                     Rlog.e(TAG, "Failed to notify modify session: " + e);
                 }
                 break;
-            case AudioSession.EVENT_ADD_CONFIG_RESPONSE:
-                final int result2 = parcel.readInt();
-                final AudioConfig config1 = AudioConfig.CREATOR.createFromParcel(parcel);
-                final RtpConfig rtpConfig1 = Utils.convertToRtpConfig(config1);
-
-                try {
-                    mMediaSessionListener.onAddConfigResponse(rtpConfig1, result2);
-                } catch(RemoteException e) {
-                    Rlog.e(TAG, "Failed to notify add config: " + e);
-                }
-                break;
-            case AudioSession.EVENT_CONFIRM_CONFIG_RESPONSE:
-                final int result3 = parcel.readInt();
-                final AudioConfig config2 = AudioConfig.CREATOR.createFromParcel(parcel);
-                final RtpConfig rtpConfig2 = Utils.convertToRtpConfig(config2);
-
-                try {
-                    mMediaSessionListener.onConfirmConfigResponse(rtpConfig2, result3);
-                } catch(RemoteException e) {
-                    Rlog.e(TAG, "Failed to notify confirm config: " + e);
-                }
-                break;
             case AudioSession.EVENT_SESSION_CHANGED_IND:
                 final int state = parcel.readInt();
 
