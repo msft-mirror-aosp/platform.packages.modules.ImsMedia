@@ -57,7 +57,7 @@ public:
     void SetRtpHeaderExtension(tRtpHeaderExtensionInfo& tExtension);
 
 private:
-    void ProcessAudioData(
+    bool ProcessAudioData(
             ImsMediaSubType subtype, uint8_t* pData, uint32_t nDataSize, uint32_t timestamp);
     void ProcessVideoData(ImsMediaSubType subtype, uint8_t* pData, uint32_t nDataSize,
             uint32_t timestamp, bool mark);

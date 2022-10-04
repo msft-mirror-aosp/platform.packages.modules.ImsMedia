@@ -138,7 +138,10 @@ void RtpEncoderNode::ProcessData()
     {
         if (mMediaType == IMS_MEDIA_AUDIO)
         {
-            ProcessAudioData(subtype, pData, nDataSize, nTimestamp);
+            if (!ProcessAudioData(subtype, pData, nDataSize, nTimestamp))
+            {
+                return;
+            }
         }
         else if (mMediaType == IMS_MEDIA_VIDEO)
         {
@@ -165,7 +168,7 @@ bool RtpEncoderNode::IsSourceNode()
 
 void RtpEncoderNode::SetConfig(void* config)
 {
-    IMLOGD1("[SetConfig] type[%d]", mMediaType);
+    IMLOGD1("[SetConfig] media[%d]", mMediaType);
 
     if (config == NULL)
     {
@@ -327,7 +330,7 @@ void RtpEncoderNode::SetRtpHeaderExtension(tRtpHeaderExtensionInfo& tExtension)
     mRtpExtension = tExtension;
 }
 
-void RtpEncoderNode::ProcessAudioData(
+bool RtpEncoderNode::ProcessAudioData(
         ImsMediaSubType subtype, uint8_t* pData, uint32_t nDataSize, uint32_t nTimestamp)
 {
     uint32_t nCurrTimestamp;
@@ -360,7 +363,9 @@ void RtpEncoderNode::ProcessAudioData(
                 nTimeDiff = ((nCurrTimestamp - mPrevTimestamp) + 10) / 20 * 20;
 
                 if (nTimeDiff == 0)
+                {
                     nTimeDiff = 20;
+                }
 
                 mPrevTimestamp += nTimeDiff;
             }
@@ -379,7 +384,7 @@ void RtpEncoderNode::ProcessAudioData(
             }
         }
     }
-    else
+    else  // MEDIASUBTYPE_RTPPAYLOAD
     {
         if (mDTMFMode == false)
         {
@@ -392,7 +397,7 @@ void RtpEncoderNode::ProcessAudioData(
             }
             else
             {
-                nTimeDiff = ((nCurrTimestamp - mPrevTimestamp) + 10) / 20 * 20;
+                nTimeDiff = ((nCurrTimestamp - mPrevTimestamp) + 5) / 20 * 20;
 
                 if (nTimeDiff > 20)
                 {
@@ -400,9 +405,9 @@ void RtpEncoderNode::ProcessAudioData(
                 }
                 else if (nTimeDiff == 0)
                 {
-                    IMLOGW2("[ProcessAudioData] skip this turn orev[%u] curr[%u]", mPrevTimestamp,
+                    IMLOGW2("[ProcessAudioData] skip, prev[%u] curr[%u]", mPrevTimestamp,
                             nCurrTimestamp);
-                    return;
+                    return false;
                 }
                 else
                 {
@@ -422,6 +427,8 @@ void RtpEncoderNode::ProcessAudioData(
             }
         }
     }
+
+    return true;
 }
 
 void RtpEncoderNode::ProcessVideoData(ImsMediaSubType subtype, uint8_t* pData, uint32_t nDataSize,
