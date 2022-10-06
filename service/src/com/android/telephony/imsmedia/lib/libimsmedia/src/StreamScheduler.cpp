@@ -22,7 +22,7 @@
 
 using namespace std::chrono;
 
-#define RUN_WAIT_TIMEOUT 3
+#define RUN_WAIT_TIMEOUT 6
 
 StreamScheduler::StreamScheduler() {}
 
