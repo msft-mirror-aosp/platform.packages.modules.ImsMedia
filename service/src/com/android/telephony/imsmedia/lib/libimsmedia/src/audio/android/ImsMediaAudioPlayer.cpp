@@ -461,12 +461,14 @@ void ImsMediaAudioPlayer::audioErrorCallback(
         AAudioStream* stream, void* userData, aaudio_result_t error)
 {
     if (stream == NULL || userData == NULL)
+    {
         return;
+    }
 
     aaudio_stream_state_t streamState = AAudioStream_getState(stream);
     IMLOGW2("[errorCallback] error[%s], state[%d]", AAudio_convertResultToText(error), streamState);
 
-    if (streamState == AAUDIO_STREAM_STATE_DISCONNECTED)
+    if (error == AAUDIO_ERROR_DISCONNECTED)
     {
         // Handle stream restart on a separate thread
         std::thread streamRestartThread(&ImsMediaAudioPlayer::restartAudioStream,

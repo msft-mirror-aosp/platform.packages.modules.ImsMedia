@@ -185,7 +185,8 @@ void* IAudioPlayerNode::run()
         {
             if (nDataSize != 0)
             {
-                IMLOGD2("[run] write buffer size[%d], TS[%u]", nDataSize, nTimestamp);
+                IMLOGD_PACKET2(IM_PACKET_LOG_AUDIO, "[run] write buffer size[%d], TS[%u]",
+                        nDataSize, nTimestamp);
                 if (mAudioPlayer->onDataFrame(pData, nDataSize))
                 {
                     // send buffering complete message to client
