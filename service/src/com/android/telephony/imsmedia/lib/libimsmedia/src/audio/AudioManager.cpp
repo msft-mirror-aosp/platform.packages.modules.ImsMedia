@@ -433,13 +433,6 @@ void AudioManager::ResponseHandler::processEvent(
             }
         }
         break;
-        case kAudioSessionChangedInd:
-            parcel.writeInt32(event);
-            parcel.writeInt32(static_cast<int>(sessionId));
-            parcel.writeInt32(paramA);  // state
-            AudioManager::getInstance()->sendResponse(
-                    reinterpret_cast<uint64_t>(AudioManager::getInstance()), parcel);
-            break;
         case kAudioFirstMediaPacketInd:
             parcel.writeInt32(event);
             AudioManager::getInstance()->sendResponse(

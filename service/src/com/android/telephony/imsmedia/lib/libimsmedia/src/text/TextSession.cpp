@@ -218,9 +218,6 @@ void TextSession::onEvent(int32_t type, uint64_t param1, uint64_t param2)
             if (mState != getState())
             {
                 mState = getState();
-                IMLOGD1("[onEvent] session state changed - state[%d]", mState);
-                ImsMediaEventHandler::SendEvent(
-                        "TEXT_RESPONSE_EVENT", kTextSessionChangedInd, mSessionId, mState);
             }
             break;
         case kImsMediaEventMediaInactivity:

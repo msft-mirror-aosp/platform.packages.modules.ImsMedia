@@ -394,13 +394,6 @@ void VideoManager::ResponseHandler::processEvent(
             }
         }
         break;
-        case kVideoSessionChangedInd:
-            parcel.writeInt32(event);
-            parcel.writeInt32(static_cast<int>(sessionId));
-            parcel.writeInt32(static_cast<int>(paramA));  // state
-            VideoManager::getInstance()->sendResponse(
-                    reinterpret_cast<uint64_t>(VideoManager::getInstance()), parcel);
-            break;
         case kVideoFirstMediaPacketInd:
             parcel.writeInt32(event);
             VideoManager::getInstance()->sendResponse(

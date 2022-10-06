@@ -559,9 +559,6 @@ void AudioSession::onEvent(int32_t type, uint64_t param1, uint64_t param2)
             if (mState != getState())
             {
                 mState = getState();
-                IMLOGD1("[onEvent] session state changed - state[%d]", mState);
-                ImsMediaEventHandler::SendEvent(
-                        "AUDIO_RESPONSE_EVENT", kAudioSessionChangedInd, mSessionId, mState);
             }
             break;
         case kImsMediaEventNotifyError:
