@@ -32,6 +32,7 @@ EvsParams::EvsParams()
     this->evsMode = 0;
     this->channelAwareMode = 0;
     this->useHeaderFullOnly = false;
+    this->codecModeRequest = 0;
 }
 
 EvsParams::EvsParams(EvsParams& params)
@@ -40,6 +41,7 @@ EvsParams::EvsParams(EvsParams& params)
     this->evsMode = params.evsMode;
     this->channelAwareMode = params.channelAwareMode;
     this->useHeaderFullOnly = params.useHeaderFullOnly;
+    this->codecModeRequest = params.codecModeRequest;
 }
 
 EvsParams::~EvsParams() {}
@@ -50,6 +52,7 @@ EvsParams& EvsParams::operator=(const EvsParams& param)
     this->evsMode = param.evsMode;
     this->channelAwareMode = param.channelAwareMode;
     this->useHeaderFullOnly = param.useHeaderFullOnly;
+    this->codecModeRequest = param.codecModeRequest;
     return *this;
 }
 
@@ -57,14 +60,16 @@ bool EvsParams::operator==(const EvsParams& param) const
 {
     return (this->evsBandwidth == param.evsBandwidth && this->evsMode == param.evsMode &&
             this->channelAwareMode == param.channelAwareMode &&
-            this->useHeaderFullOnly == param.useHeaderFullOnly);
+            this->useHeaderFullOnly == param.useHeaderFullOnly &&
+            this->codecModeRequest == param.codecModeRequest);
 }
 
 bool EvsParams::operator!=(const EvsParams& param) const
 {
     return (this->evsBandwidth != param.evsBandwidth || this->evsMode != param.evsMode ||
             this->channelAwareMode != param.channelAwareMode ||
-            this->useHeaderFullOnly != param.useHeaderFullOnly);
+            this->useHeaderFullOnly != param.useHeaderFullOnly ||
+            this->codecModeRequest != param.codecModeRequest);
 }
 
 status_t EvsParams::writeToParcel(Parcel* out) const
@@ -96,6 +101,12 @@ status_t EvsParams::writeToParcel(Parcel* out) const
     int32_t value = 0;
     useHeaderFullOnly ? value = 1 : value = 0;
     err = out->writeInt32(value);
+    if (err != NO_ERROR)
+    {
+        return err;
+    }
+
+    err = out->writeByte(codecModeRequest);
     if (err != NO_ERROR)
     {
         return err;
@@ -139,12 +150,18 @@ status_t EvsParams::readFromParcel(const Parcel* in)
 
     value == 0 ? useHeaderFullOnly = false : useHeaderFullOnly = true;
 
+    err = in->readByte(&codecModeRequest);
+    if (err != NO_ERROR)
+    {
+        return err;
+    }
+
     return NO_ERROR;
 }
 
-void EvsParams::setEvsBandwidth(const int32_t bandwidth)
+void EvsParams::setEvsBandwidth(const int32_t EvsBandwidth)
 {
-    evsBandwidth = bandwidth;
+    evsBandwidth = EvsBandwidth;
 }
 
 int32_t EvsParams::getEvsBandwidth()
@@ -152,9 +169,9 @@ int32_t EvsParams::getEvsBandwidth()
     return evsBandwidth;
 }
 
-void EvsParams::setEvsMode(const int32_t mode)
+void EvsParams::setEvsMode(const int32_t EvsMode)
 {
-    evsMode = mode;
+    evsMode = EvsMode;
 }
 
 int32_t EvsParams::getEvsMode()
@@ -162,9 +179,9 @@ int32_t EvsParams::getEvsMode()
     return evsMode;
 }
 
-void EvsParams::setChannelAwareMode(int8_t mode)
+void EvsParams::setChannelAwareMode(int8_t channelAwMode)
 {
-    channelAwareMode = mode;
+    channelAwareMode = channelAwMode;
 }
 
 int8_t EvsParams::getChannelAwareMode()
@@ -180,6 +197,16 @@ void EvsParams::setUseHeaderFullOnly(const bool enable)
 bool EvsParams::getUseHeaderFullOnly()
 {
     return useHeaderFullOnly;
+}
+
+void EvsParams::setCodecModeRequest(int8_t cmr)
+{
+    codecModeRequest = cmr;
+}
+
+int8_t EvsParams::getCodecModeRequest()
+{
+    return codecModeRequest;
 }
 
 }  // namespace imsmedia

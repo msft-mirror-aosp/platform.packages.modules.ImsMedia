@@ -59,7 +59,6 @@ public final class AudioConfig extends RtpConfig {
 
     private byte pTimeMillis;
     private int maxPtimeMillis;
-    private byte codecModeRequest;
     private boolean dtxEnabled;
     private @CodecType int codecType;
     private byte mDtmfTxPayloadTypeNumber;
@@ -75,7 +74,6 @@ public final class AudioConfig extends RtpConfig {
         super(RtpConfig.TYPE_AUDIO, in);
         pTimeMillis = in.readByte();
         maxPtimeMillis = in.readInt();
-        codecModeRequest = in.readByte();
         dtxEnabled = in.readBoolean();
         codecType = in.readInt();
         mDtmfTxPayloadTypeNumber = in.readByte();
@@ -90,7 +88,6 @@ public final class AudioConfig extends RtpConfig {
         super(RtpConfig.TYPE_AUDIO, builder);
         this.pTimeMillis = builder.pTimeMillis;
         this.maxPtimeMillis = builder.maxPtimeMillis;
-        this.codecModeRequest = builder.codecModeRequest;
         this.dtxEnabled = builder.dtxEnabled;
         this.codecType = builder.codecType;
         this.mDtmfTxPayloadTypeNumber = builder.mDtmfTxPayloadTypeNumber;
@@ -118,16 +115,6 @@ public final class AudioConfig extends RtpConfig {
     /** @hide **/
     public void setMaxPtimeMillis(int maxPtimeMillis) {
         this.maxPtimeMillis = maxPtimeMillis;
-    }
-
-    /** @hide **/
-    public byte getCodecModeRequest() {
-        return codecModeRequest;
-    }
-
-    /** @hide **/
-    public void setCodecModeRequest(byte codecModeRequest) {
-        this.codecModeRequest = codecModeRequest;
     }
 
     /** @hide **/
@@ -195,7 +182,6 @@ public final class AudioConfig extends RtpConfig {
     public String toString() {
         return super.toString() + " AudioConfig: {pTimeMillis=" + pTimeMillis
                 + ", maxPtimeMillis=" + maxPtimeMillis
-                + ", codecModeRequest=" + codecModeRequest
                 + ", dtxEnabled=" + dtxEnabled
                 + ", codecType=" + codecType
                 + ", mDtmfTxPayloadTypeNumber=" + mDtmfTxPayloadTypeNumber
@@ -209,7 +195,7 @@ public final class AudioConfig extends RtpConfig {
     @Override
     public int hashCode() {
         return Objects.hash(super.hashCode(), pTimeMillis, maxPtimeMillis,
-                codecModeRequest, dtxEnabled, codecType, mDtmfTxPayloadTypeNumber,
+                dtxEnabled, codecType, mDtmfTxPayloadTypeNumber,
                 mDtmfRxPayloadTypeNumber, dtmfSamplingRateKHz, amrParams, evsParams);
     }
 
@@ -231,7 +217,6 @@ public final class AudioConfig extends RtpConfig {
 
         return (pTimeMillis == s.pTimeMillis
                 && maxPtimeMillis == s.maxPtimeMillis
-                && codecModeRequest == s.codecModeRequest
                 && dtxEnabled == s.dtxEnabled
                 && codecType == s.codecType
                 && mDtmfTxPayloadTypeNumber == s.mDtmfTxPayloadTypeNumber
@@ -255,7 +240,6 @@ public final class AudioConfig extends RtpConfig {
         super.writeToParcel(dest, RtpConfig.TYPE_AUDIO);
         dest.writeByte(pTimeMillis);
         dest.writeInt(maxPtimeMillis);
-        dest.writeByte(codecModeRequest);
         dest.writeBoolean(dtxEnabled);
         dest.writeInt(codecType);
         dest.writeByte(mDtmfTxPayloadTypeNumber);
@@ -284,7 +268,6 @@ public final class AudioConfig extends RtpConfig {
     public static final class Builder extends RtpConfig.AbstractBuilder<Builder> {
         private byte pTimeMillis;
         private int maxPtimeMillis;
-        private byte codecModeRequest;
         private boolean dtxEnabled;
         private @CodecType int codecType;
         private byte mDtmfTxPayloadTypeNumber;
@@ -327,19 +310,6 @@ public final class AudioConfig extends RtpConfig {
          */
         public Builder setMaxPtimeMillis(final int maxPtimeMillis) {
             this.maxPtimeMillis = maxPtimeMillis;
-            return this;
-        }
-
-        /**
-         * Set the codec mode request (CMR) is used to request the speech codec encoder
-         * of the other party to set the frame type index of speech mode via RTP header,
-         * See RFC 4867 section 4.3.1. Allowed values are -1, 0 and 1
-         *
-         * @param codecModeRequest codec mode request
-         * @return The same instance of the builder
-         */
-        public Builder setCodecModeRequest(final byte codecModeRequest) {
-            this.codecModeRequest = codecModeRequest;
             return this;
         }
 

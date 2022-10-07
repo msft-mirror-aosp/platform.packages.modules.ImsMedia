@@ -88,6 +88,7 @@ protected:
         evs.setEvsMode(kEvsMode);
         evs.setChannelAwareMode(kChannelAwareMode);
         evs.setUseHeaderFullOnly(kUseHeaderFullOnly);
+        evs.setCodecModeRequest(kcodecModeRequest);
 
         threshold.setRtcpInactivityTimerMillis(10000);
 
@@ -101,7 +102,6 @@ protected:
         config.setSamplingRateKHz(kSamplingRate);
         config.setPtimeMillis(kPTimeMillis);
         config.setMaxPtimeMillis(kMaxPtimeMillis);
-        config.setCodecModeRequest(kcodecModeRequest);
         config.setDtxEnabled(kDtxEnabled);
         config.setCodecType(kCodecType);
         config.setTxDtmfPayloadTypeNumber(kDtmfPayloadTypeNumber);

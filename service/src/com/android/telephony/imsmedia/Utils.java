@@ -49,6 +49,7 @@ public final class Utils {
     private static final boolean UNUSED_BOOL = false;
     private static final int UNUSED_INT = 0;
 
+
     /** Class to encapsulate open session parameters */
     static final class OpenSessionParams {
         private final ParcelFileDescriptor rtpFd;
@@ -146,6 +147,7 @@ public final class Utils {
         evsParams.channelAwareMode = audioConfig.getEvsParams().getChannelAwareMode();
         evsParams.useHeaderFullOnly =
                 audioConfig.getEvsParams().getUseHeaderFullOnly();
+        evsParams.codecModeRequest = audioConfig.getEvsParams().getCodecModeRequest();
 
         return evsParams;
     }
@@ -157,7 +159,6 @@ public final class Utils {
         codecParams.rxPayloadTypeNumber = audioConfig.getRxPayloadTypeNumber();
         codecParams.txPayloadTypeNumber = audioConfig.getTxPayloadTypeNumber();
         codecParams.samplingRateKHz = audioConfig.getSamplingRateKHz();
-        codecParams.codecModeRequest = audioConfig.getCodecModeRequest();
         codecParams.dtxEnabled = audioConfig.getDtxEnabled();
 
         if (audioConfig.getCodecType() == AudioConfig.CODEC_AMR
@@ -249,6 +250,7 @@ public final class Utils {
                 .setEvsMode(UNUSED_INT)
                 .setChannelAwareMode((byte) UNUSED_INT)
                 .setHeaderFullOnly(UNUSED_BOOL)
+                .setCodecModeRequest((byte) UNUSED_INT)
                 .build();
         } else {
             final android.hardware.radio.ims.media.EvsParams evs =
@@ -258,6 +260,7 @@ public final class Utils {
                 .setEvsMode(evs.evsMode)
                 .setChannelAwareMode(evs.channelAwareMode)
                 .setHeaderFullOnly(evs.useHeaderFullOnly)
+                .setCodecModeRequest(evs.codecModeRequest)
                 .build();
         }
 
@@ -345,7 +348,6 @@ public final class Utils {
                     audioConfig.setRxPayloadTypeNumber(codecParams.rxPayloadTypeNumber);
                     audioConfig.setTxPayloadTypeNumber(codecParams.txPayloadTypeNumber);
                     audioConfig.setSamplingRateKHz(codecParams.samplingRateKHz);
-                    audioConfig.setCodecModeRequest(codecParams.codecModeRequest);
                     audioConfig.setDtxEnabled(codecParams.dtxEnabled);
                 }
             }

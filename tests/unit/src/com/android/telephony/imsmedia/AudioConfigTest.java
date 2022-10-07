@@ -58,7 +58,6 @@ public class AudioConfigTest {
     private static final byte SAMPLING_RATE = 98;
     private static final byte PTIME = 99;
     private static final int MAX_PTIME = 240;
-    private static final byte CMR = 100;
     private static final boolean DTX_ENABLED = true;
     private static final byte DTMF_PAYLOAD = 126;
     private static final byte DTMF_SAMPLING_RATE = 127;
@@ -91,7 +90,6 @@ public class AudioConfigTest {
                 RtpConfig.MEDIA_DIRECTION_SEND_RECEIVE);
         assertThat(config.getPtimeMillis()).isEqualTo(PTIME);
         assertThat(config.getMaxPtimeMillis()).isEqualTo(MAX_PTIME);
-        assertThat(config.getCodecModeRequest()).isEqualTo(CMR);
         assertThat(config.getDtxEnabled()).isEqualTo(DTX_ENABLED);
         assertThat(config.getCodecType()).isEqualTo(AudioConfig.CODEC_EVS);
         assertThat(config.getTxDtmfPayloadTypeNumber()).isEqualTo(DTMF_PAYLOAD);
@@ -146,7 +144,6 @@ public class AudioConfigTest {
                 .setSamplingRateKHz(SAMPLING_RATE)
                 .setPtimeMillis(PTIME)
                 .setMaxPtimeMillis(MAX_PTIME)
-                .setCodecModeRequest(CMR)
                 .setDtxEnabled(DTX_ENABLED)
                 .setCodecType(AudioConfig.CODEC_EVS)
                 .setTxDtmfPayloadTypeNumber(DTMF_PAYLOAD)
@@ -172,7 +169,6 @@ public class AudioConfigTest {
                 .setSamplingRateKHz(SAMPLING_RATE)
                 .setPtimeMillis(PTIME)
                 .setMaxPtimeMillis(MAX_PTIME)
-                .setCodecModeRequest(CMR)
                 .setDtxEnabled(DTX_ENABLED)
                 .setCodecType(AudioConfig.CODEC_EVS)
                 .setTxDtmfPayloadTypeNumber(DTMF_PAYLOAD)

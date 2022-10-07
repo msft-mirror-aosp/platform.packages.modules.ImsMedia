@@ -80,6 +80,7 @@ protected:
         evs.setEvsMode(kEvsMode);
         evs.setChannelAwareMode(kChannelAwareMode);
         evs.setUseHeaderFullOnly(kUseHeaderFullOnly);
+        evs.setCodecModeRequest(kcodecModeRequest);
 
         config1.setMediaDirection(kMediaDirection);
         config1.setRemoteAddress(kRemoteAddress);
@@ -91,7 +92,6 @@ protected:
         config1.setSamplingRateKHz(kSamplingRate);
         config1.setPtimeMillis(kPTimeMillis);
         config1.setMaxPtimeMillis(kMaxPtimeMillis);
-        config1.setCodecModeRequest(kcodecModeRequest);
         config1.setDtxEnabled(kDtxEnabled);
         config1.setCodecType(kCodecType);
         config1.setTxDtmfPayloadTypeNumber(kDtmfPayloadTypeNumber);
@@ -108,7 +108,6 @@ TEST_F(AudioConfigTest, TestGetterSetter)
 {
     EXPECT_EQ(config1.getPtimeMillis(), kPTimeMillis);
     EXPECT_EQ(config1.getMaxPtimeMillis(), kMaxPtimeMillis);
-    EXPECT_EQ(config1.getCodecModeRequest(), kcodecModeRequest);
     EXPECT_EQ(config1.getDtxEnabled(), kDtxEnabled);
     EXPECT_EQ(config1.getCodecType(), kCodecType);
     EXPECT_EQ(config1.getTxDtmfPayloadTypeNumber(), kDtmfPayloadTypeNumber);
@@ -147,7 +146,6 @@ TEST_F(AudioConfigTest, TestEqual)
     config2.setSamplingRateKHz(kSamplingRate);
     config2.setPtimeMillis(kPTimeMillis);
     config2.setMaxPtimeMillis(kMaxPtimeMillis);
-    config2.setCodecModeRequest(kcodecModeRequest);
     config2.setDtxEnabled(kDtxEnabled);
     config2.setCodecType(kCodecType);
     config2.setTxDtmfPayloadTypeNumber(kDtmfPayloadTypeNumber);
@@ -170,7 +168,6 @@ TEST_F(AudioConfigTest, TestNotEqual)
     config2.setSamplingRateKHz(kSamplingRate);
     config2.setPtimeMillis(kPTimeMillis);
     config2.setMaxPtimeMillis(kMaxPtimeMillis);
-    config2.setCodecModeRequest(kcodecModeRequest);
     config2.setDtxEnabled(kDtxEnabled);
     config2.setCodecType(kCodecType);
     config2.setTxDtmfPayloadTypeNumber(kDtmfPayloadTypeNumber);
@@ -189,7 +186,6 @@ TEST_F(AudioConfigTest, TestNotEqual)
     config3.setSamplingRateKHz(kSamplingRate);
     config3.setPtimeMillis(kPTimeMillis);
     config3.setMaxPtimeMillis(kMaxPtimeMillis);
-    config3.setCodecModeRequest(kcodecModeRequest);
     config3.setDtxEnabled(false);
     config3.setCodecType(kCodecType);
     config3.setTxDtmfPayloadTypeNumber(kDtmfPayloadTypeNumber);

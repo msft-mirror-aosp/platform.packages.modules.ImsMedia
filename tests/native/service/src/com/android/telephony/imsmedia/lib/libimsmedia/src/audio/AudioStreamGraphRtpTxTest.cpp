@@ -43,7 +43,6 @@ const int32_t kRtcpXrBlockTypes = RtcpConfig::FLAG_RTCPXR_STATISTICS_SUMMARY_REP
 // AudioConfig
 const int8_t kPTimeMillis = 20;
 const int32_t kMaxPtimeMillis = 100;
-const int8_t kcodecModeRequest = 15;
 const bool kDtxEnabled = true;
 const int32_t kCodecType = AudioConfig::CODEC_AMR_WB;
 const int8_t kDtmfTxPayloadTypeNumber = 100;
@@ -60,6 +59,7 @@ const int32_t kEvsBandwidth = EvsParams::EVS_BAND_NONE;
 const int32_t kEvsMode = 8;
 const int8_t kChannelAwareMode = 3;
 const bool kUseHeaderFullOnly = false;
+const int8_t kcodecModeRequest = 15;
 
 using ::testing::_;
 using ::testing::NotNull;
@@ -104,6 +104,7 @@ protected:
         evs.setEvsMode(kEvsMode);
         evs.setChannelAwareMode(kChannelAwareMode);
         evs.setUseHeaderFullOnly(kUseHeaderFullOnly);
+        evs.setCodecModeRequest(kcodecModeRequest);
 
         config.setMediaDirection(kMediaDirection);
         config.setRemoteAddress(kRemoteAddress);
@@ -115,7 +116,6 @@ protected:
         config.setSamplingRateKHz(kSamplingRate);
         config.setPtimeMillis(kPTimeMillis);
         config.setMaxPtimeMillis(kMaxPtimeMillis);
-        config.setCodecModeRequest(kcodecModeRequest);
         config.setDtxEnabled(kDtxEnabled);
         config.setCodecType(kCodecType);
         config.setTxDtmfPayloadTypeNumber(kDtmfTxPayloadTypeNumber);

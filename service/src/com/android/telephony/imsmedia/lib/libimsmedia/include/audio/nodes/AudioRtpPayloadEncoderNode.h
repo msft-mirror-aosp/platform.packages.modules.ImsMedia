@@ -64,7 +64,7 @@ private:
     kEvsBandwidth mEvsBandwidth;
     kEvsCodecMode mEvsCodecMode;
     int32_t mEvsOffset;
-    bool mSendCMR;
+    int8_t mSendCMR;
     int32_t mEvsBitRate;
     kEvsBitrate mEvsMode;
     int32_t mCoreEvsMode;

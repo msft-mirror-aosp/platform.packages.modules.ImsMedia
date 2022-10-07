@@ -1134,7 +1134,6 @@ public class MainActivity extends AppCompatActivity {
                     .setSamplingRateKHz((byte) 8)
                     .setPtimeMillis((byte) P_TIME_MILLIS)
                     .setMaxPtimeMillis((byte) MAX_P_TIME_MILLIS)
-                    .setCodecModeRequest((byte) CODEC_MODE_REQUEST)
                     .setDtxEnabled(true)
                     .setTxDtmfPayloadTypeNumber((byte) DTMF_PAYLOAD_TYPE_NUMBER)
                     .setRxDtmfPayloadTypeNumber((byte) DTMF_PAYLOAD_TYPE_NUMBER)
@@ -1156,7 +1155,6 @@ public class MainActivity extends AppCompatActivity {
                     .setSamplingRateKHz((byte) SAMPLING_RATE_KHZ)
                     .setPtimeMillis((byte) P_TIME_MILLIS)
                     .setMaxPtimeMillis((byte) MAX_P_TIME_MILLIS)
-                    .setCodecModeRequest((byte) CODEC_MODE_REQUEST)
                     .setDtxEnabled(true)
                     .setTxDtmfPayloadTypeNumber((byte) DTMF_PAYLOAD_TYPE_NUMBER)
                     .setRxDtmfPayloadTypeNumber((byte) DTMF_PAYLOAD_TYPE_NUMBER)
@@ -1178,7 +1176,6 @@ public class MainActivity extends AppCompatActivity {
                     .setSamplingRateKHz((byte) SAMPLING_RATE_KHZ)
                     .setPtimeMillis((byte) P_TIME_MILLIS)
                     .setMaxPtimeMillis((byte) MAX_P_TIME_MILLIS)
-                    .setCodecModeRequest((byte) CODEC_MODE_REQUEST)
                     .setDtxEnabled(true)
                     .setTxDtmfPayloadTypeNumber((byte) DTMF_PAYLOAD_TYPE_NUMBER)
                     .setRxDtmfPayloadTypeNumber((byte) DTMF_PAYLOAD_TYPE_NUMBER)
@@ -1200,7 +1197,6 @@ public class MainActivity extends AppCompatActivity {
                     .setSamplingRateKHz((byte) SAMPLING_RATE_KHZ)
                     .setPtimeMillis((byte) P_TIME_MILLIS)
                     .setMaxPtimeMillis((byte) MAX_P_TIME_MILLIS)
-                    .setCodecModeRequest((byte) CODEC_MODE_REQUEST)
                     .setDtxEnabled(true)
                     .setTxDtmfPayloadTypeNumber((byte) DTMF_PAYLOAD_TYPE_NUMBER)
                     .setRxDtmfPayloadTypeNumber((byte) DTMF_PAYLOAD_TYPE_NUMBER)
@@ -1268,6 +1264,7 @@ public class MainActivity extends AppCompatActivity {
                 .setEvsMode(evsMode)
                 .setChannelAwareMode((byte) 3)
                 .setHeaderFullOnly(true)
+                .setCodecModeRequest((byte) 15)
                 .build();
     }
 
@@ -1363,6 +1360,7 @@ public class MainActivity extends AppCompatActivity {
                 .setEvsMode(EvsParams.EVS_MODE_0)
                 .setChannelAwareMode((byte) 3)
                 .setHeaderFullOnly(true)
+                .setCodecModeRequest((byte) 15)
                 .build();
 
         switch (audioCodec) {
@@ -1673,6 +1671,7 @@ public class MainActivity extends AppCompatActivity {
                 .setEvsMode(EvsParams.EVS_MODE_0)
                 .setChannelAwareMode((byte) 3)
                 .setHeaderFullOnly(true)
+                .setCodecModeRequest((byte) 15)
                 .build();
 
                 amrParams = createAmrParams(mBottomSheetAudioCodecSettings.getAmrMode(), true, 0);

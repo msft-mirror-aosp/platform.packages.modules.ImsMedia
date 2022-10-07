@@ -131,6 +131,7 @@ public final class EvsParams implements Parcelable {
     private final @EvsMode int evsMode;
     private final byte channelAwareMode;
     private final boolean mUseHeaderFullOnly;
+    private final byte mCodecModeRequest;
 
     /** @hide **/
     public EvsParams(Parcel in) {
@@ -138,14 +139,17 @@ public final class EvsParams implements Parcelable {
         evsMode = in.readInt();
         channelAwareMode = in.readByte();
         mUseHeaderFullOnly = in.readBoolean();
+        mCodecModeRequest = in.readByte();
     }
 
     private EvsParams(final @EvsBandwidth int evsBandwidth, final @EvsMode int evsMode,
-            final byte channelAwareMode, final boolean mUseHeaderFullOnly) {
+            final byte channelAwareMode, final boolean mUseHeaderFullOnly,
+            final byte codecModeRequest) {
         this.evsBandwidth = evsBandwidth;
         this.evsMode = evsMode;
         this.channelAwareMode = channelAwareMode;
         this.mUseHeaderFullOnly = mUseHeaderFullOnly;
+        this.mCodecModeRequest = codecModeRequest;
     }
 
     /** @hide **/
@@ -168,6 +172,11 @@ public final class EvsParams implements Parcelable {
         return mUseHeaderFullOnly;
     }
 
+    /** @hide **/
+    public byte getCodecModeRequest() {
+        return mCodecModeRequest;
+    }
+
     @NonNull
     @Override
     public String toString() {
@@ -175,12 +184,14 @@ public final class EvsParams implements Parcelable {
                 + ", evsMode=" + evsMode
                 + ", channelAwareMode=" + channelAwareMode
                 + ", mUseHeaderFullOnly=" + mUseHeaderFullOnly
+                + ", mCodecModeRequest=" + mCodecModeRequest
                 + " }";
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(evsBandwidth, evsMode, channelAwareMode, mUseHeaderFullOnly);
+        return Objects.hash(evsBandwidth, evsMode, channelAwareMode, mUseHeaderFullOnly,
+            mCodecModeRequest);
     }
 
     @Override
@@ -198,7 +209,8 @@ public final class EvsParams implements Parcelable {
         return (evsBandwidth == s.evsBandwidth
                 && evsMode == s.evsMode
                 && channelAwareMode == s.channelAwareMode
-                && mUseHeaderFullOnly == s.mUseHeaderFullOnly);
+                && mUseHeaderFullOnly == s.mUseHeaderFullOnly
+                && mCodecModeRequest == s.mCodecModeRequest);
     }
 
     /**
@@ -216,6 +228,7 @@ public final class EvsParams implements Parcelable {
         dest.writeInt(evsMode);
         dest.writeByte(channelAwareMode);
         dest.writeBoolean(mUseHeaderFullOnly);
+        dest.writeByte(mCodecModeRequest);
     }
 
     public static final @NonNull Parcelable.Creator<EvsParams>
@@ -239,6 +252,7 @@ public final class EvsParams implements Parcelable {
         private @EvsMode int evsMode;
         private byte channelAwareMode;
         private boolean mUseHeaderFullOnly;
+        private byte mCodecModeRequest;
 
         /**
          * Default constructor for Builder.
@@ -303,14 +317,27 @@ public final class EvsParams implements Parcelable {
         }
 
         /**
+         * cmr: Codec mode request is used to request the speech codec encoder of the
+         * other party to set the frame type index of speech mode via RTP header, See
+         * 3GPP TS 26.445 section A.3. Allowed values are -1, 0 and 1.
+         *
+         * @param codecModeRequest codec mode request
+         * @return The same instance of the builder
+         */
+        public Builder setCodecModeRequest(final byte codecModeRequest) {
+            this.mCodecModeRequest = codecModeRequest;
+            return this;
+        }
+
+        /**
          * Build the EvsParams.
          *
          * @return the EvsParams object.
          */
         public @NonNull EvsParams build() {
             // TODO validation
-            return new EvsParams(evsBandwidth, evsMode, channelAwareMode, mUseHeaderFullOnly);
+            return new EvsParams(evsBandwidth, evsMode, channelAwareMode, mUseHeaderFullOnly,
+                mCodecModeRequest);
         }
     }
 }
-

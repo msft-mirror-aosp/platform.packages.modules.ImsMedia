@@ -23,6 +23,7 @@ const int32_t kEvsBandwidth = EvsParams::EVS_BAND_NONE;
 const int32_t kEvsMode = 8;
 const int8_t kChannelAwareMode = 3;
 const bool kUseHeaderFullOnly = false;
+const bool kcodecModeRequest = 15;
 
 TEST(EvsParamsTest, TestGetterSetter)
 {
@@ -31,9 +32,11 @@ TEST(EvsParamsTest, TestGetterSetter)
     param->setEvsMode(kEvsMode);
     param->setChannelAwareMode(kChannelAwareMode);
     param->setUseHeaderFullOnly(kUseHeaderFullOnly);
+    param->setCodecModeRequest(kcodecModeRequest);
     EXPECT_EQ(param->getEvsMode(), kEvsMode);
     EXPECT_EQ(param->getChannelAwareMode(), kChannelAwareMode);
     EXPECT_EQ(param->getUseHeaderFullOnly(), kUseHeaderFullOnly);
+    EXPECT_EQ(param->getCodecModeRequest(), kcodecModeRequest);
     delete param;
 }
 
@@ -44,6 +47,7 @@ TEST(EvsParamsTest, TestParcel)
     param->setEvsMode(kEvsMode);
     param->setChannelAwareMode(kChannelAwareMode);
     param->setUseHeaderFullOnly(kUseHeaderFullOnly);
+    param->setCodecModeRequest(kcodecModeRequest);
 
     android::Parcel parcel;
     param->writeToParcel(&parcel);
@@ -64,6 +68,7 @@ TEST(EvsParamsTest, TestAssign)
     param.setEvsMode(kEvsMode);
     param.setChannelAwareMode(kChannelAwareMode);
     param.setUseHeaderFullOnly(kUseHeaderFullOnly);
+    param.setCodecModeRequest(kcodecModeRequest);
 
     EvsParams param2;
     param2 = param;
@@ -77,12 +82,14 @@ TEST(EvsParamsTest, TestEqual)
     param->setEvsMode(kEvsMode);
     param->setChannelAwareMode(kChannelAwareMode);
     param->setUseHeaderFullOnly(kUseHeaderFullOnly);
+    param->setCodecModeRequest(kcodecModeRequest);
 
     EvsParams* param2 = new EvsParams();
     param2->setEvsBandwidth(kEvsBandwidth);
     param2->setEvsMode(kEvsMode);
     param2->setChannelAwareMode(kChannelAwareMode);
     param2->setUseHeaderFullOnly(kUseHeaderFullOnly);
+    param2->setCodecModeRequest(kcodecModeRequest);
 
     EXPECT_EQ(*param, *param2);
     delete param;
@@ -96,22 +103,35 @@ TEST(EvsParamsTest, TestNotEqual)
     param->setEvsMode(kEvsMode);
     param->setChannelAwareMode(kChannelAwareMode);
     param->setUseHeaderFullOnly(kUseHeaderFullOnly);
+    param->setCodecModeRequest(kcodecModeRequest);
 
     EvsParams* param2 = new EvsParams();
     param2->setEvsBandwidth(kEvsBandwidth);
     param2->setEvsMode(5);
     param2->setChannelAwareMode(kChannelAwareMode);
     param2->setUseHeaderFullOnly(kUseHeaderFullOnly);
+    param2->setCodecModeRequest(kcodecModeRequest);
 
     EvsParams* param3 = new EvsParams();
     param3->setEvsBandwidth(kEvsBandwidth);
     param3->setEvsMode(kEvsMode);
     param3->setChannelAwareMode(kChannelAwareMode);
     param3->setUseHeaderFullOnly(true);
+    param3->setCodecModeRequest(kcodecModeRequest);
+
+    EvsParams* param4 = new EvsParams();
+    param4->setEvsBandwidth(kEvsBandwidth);
+    param4->setEvsMode(kEvsMode);
+    param4->setChannelAwareMode(kChannelAwareMode);
+    param4->setUseHeaderFullOnly(kUseHeaderFullOnly);
+    param4->setCodecModeRequest(14);
 
     EXPECT_NE(*param, *param2);
     EXPECT_NE(*param, *param3);
+    EXPECT_NE(*param, *param4);
+
     delete param;
     delete param2;
     delete param3;
+    delete param4;
 }

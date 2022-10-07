@@ -102,14 +102,16 @@ public:
     bool operator!=(const EvsParams& param) const;
     virtual status_t writeToParcel(Parcel* parcel) const;
     virtual status_t readFromParcel(const Parcel* in);
-    void setEvsBandwidth(const int32_t bandwidth);
+    void setEvsBandwidth(const int32_t EvsBandwidth);
     int32_t getEvsBandwidth();
-    void setEvsMode(const int32_t mode);
+    void setEvsMode(const int32_t EvsMode);
     int32_t getEvsMode();
-    void setChannelAwareMode(int8_t mode);
+    void setChannelAwareMode(int8_t channelAwMode);
     int8_t getChannelAwareMode();
     void setUseHeaderFullOnly(const bool enable);
     bool getUseHeaderFullOnly();
+    void setCodecModeRequest(int8_t cmr);
+    int8_t getCodecModeRequest();
 
 private:
     /** bw: EVS codec bandwidth range */
@@ -132,6 +134,12 @@ private:
      * support both header full format and compact format.
      */
     bool useHeaderFullOnly;
+    /**
+     * cmr: Codec mode request is used to request the speech codec encoder of the
+     * other party to set the frame type index of speech mode via RTP header, See
+     * 3GPP TS 26.445 section A.3. Allowed values are -1, 0 and 1.
+     */
+    int8_t codecModeRequest;
 };
 
 }  // namespace imsmedia

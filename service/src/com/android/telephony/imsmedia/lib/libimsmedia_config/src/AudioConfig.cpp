@@ -33,7 +33,6 @@ AudioConfig::AudioConfig() :
 {
     pTimeMillis = 0;
     maxPtimeMillis = 0;
-    codecModeRequest = 0;
     dtxEnabled = false;
     codecType = 0;
     mDtmfTxPayloadTypeNumber = 0;
@@ -48,7 +47,6 @@ AudioConfig::AudioConfig(AudioConfig* config) :
     {
         pTimeMillis = config->pTimeMillis;
         maxPtimeMillis = config->maxPtimeMillis;
-        codecModeRequest = config->codecModeRequest;
         dtxEnabled = config->dtxEnabled;
         codecType = config->codecType;
         mDtmfTxPayloadTypeNumber = config->mDtmfTxPayloadTypeNumber;
@@ -64,7 +62,6 @@ AudioConfig::AudioConfig(AudioConfig& config) :
 {
     pTimeMillis = config.pTimeMillis;
     maxPtimeMillis = config.maxPtimeMillis;
-    codecModeRequest = config.codecModeRequest;
     dtxEnabled = config.dtxEnabled;
     codecType = config.codecType;
     mDtmfTxPayloadTypeNumber = config.mDtmfTxPayloadTypeNumber;
@@ -81,7 +78,6 @@ AudioConfig& AudioConfig::operator=(const AudioConfig& config)
     RtpConfig::operator=(config);
     pTimeMillis = config.pTimeMillis;
     maxPtimeMillis = config.maxPtimeMillis;
-    codecModeRequest = config.codecModeRequest;
     dtxEnabled = config.dtxEnabled;
     codecType = config.codecType;
     mDtmfTxPayloadTypeNumber = config.mDtmfTxPayloadTypeNumber;
@@ -96,7 +92,6 @@ bool AudioConfig::operator==(const AudioConfig& config) const
 {
     return (RtpConfig::operator==(config) && this->pTimeMillis == config.pTimeMillis &&
             this->maxPtimeMillis == config.maxPtimeMillis &&
-            this->codecModeRequest == config.codecModeRequest &&
             this->dtxEnabled == config.dtxEnabled && this->codecType == config.codecType &&
             this->mDtmfTxPayloadTypeNumber == config.mDtmfTxPayloadTypeNumber &&
             this->mDtmfRxPayloadTypeNumber == config.mDtmfRxPayloadTypeNumber &&
@@ -108,7 +103,6 @@ bool AudioConfig::operator!=(const AudioConfig& config) const
 {
     return (RtpConfig::operator!=(config) || this->pTimeMillis != config.pTimeMillis ||
             this->maxPtimeMillis != config.maxPtimeMillis ||
-            this->codecModeRequest != config.codecModeRequest ||
             this->dtxEnabled != config.dtxEnabled || this->codecType != config.codecType ||
             this->mDtmfTxPayloadTypeNumber != config.mDtmfTxPayloadTypeNumber ||
             this->mDtmfRxPayloadTypeNumber != config.mDtmfRxPayloadTypeNumber ||
@@ -137,12 +131,6 @@ status_t AudioConfig::writeToParcel(Parcel* out) const
     }
 
     err = out->writeInt32(maxPtimeMillis);
-    if (err != NO_ERROR)
-    {
-        return err;
-    }
-
-    err = out->writeByte(codecModeRequest);
     if (err != NO_ERROR)
     {
         return err;
@@ -237,12 +225,6 @@ status_t AudioConfig::readFromParcel(const Parcel* in)
         return err;
     }
 
-    err = in->readByte(&codecModeRequest);
-    if (err != NO_ERROR)
-    {
-        return err;
-    }
-
     int32_t value = 0;
     err = in->readInt32(&value);
     if (err != NO_ERROR)
@@ -322,16 +304,6 @@ void AudioConfig::setMaxPtimeMillis(const int32_t maxPtime)
 int32_t AudioConfig::getMaxPtimeMillis()
 {
     return maxPtimeMillis;
-}
-
-void AudioConfig::setCodecModeRequest(const int8_t cmr)
-{
-    codecModeRequest = cmr;
-}
-
-int8_t AudioConfig::getCodecModeRequest()
-{
-    return codecModeRequest;
 }
 
 void AudioConfig::setDtxEnabled(const bool enable)

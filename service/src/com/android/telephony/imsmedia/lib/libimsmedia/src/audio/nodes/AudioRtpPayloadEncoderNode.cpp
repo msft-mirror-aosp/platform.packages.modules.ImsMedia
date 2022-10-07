@@ -122,7 +122,7 @@ void AudioRtpPayloadEncoderNode::SetConfig(void* config)
                     (kRtpPyaloadHeaderMode)pConfig->getEvsParams().getUseHeaderFullOnly();
             mCoreEvsMode = pConfig->getEvsParams().getEvsMode();
             mEvsOffset = pConfig->getEvsParams().getChannelAwareMode();
-            mSendCMR = pConfig->getCodecModeRequest();
+            mSendCMR = pConfig->getEvsParams().getCodecModeRequest();
         }
 
         mPtime = pConfig->getPtimeMillis();
