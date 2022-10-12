@@ -177,6 +177,8 @@ void VideoManager::sendMessage(const int sessionId, const android::Parcel& parce
             if (err != NO_ERROR)
             {
                 IMLOGE1("sendMessage() - error readFromParcel[%d]", err);
+                delete config;
+                config = NULL;
             }
 
             EventParamOpenSession* param = new EventParamOpenSession(rtpFd, rtcpFd, config);
@@ -190,7 +192,7 @@ void VideoManager::sendMessage(const int sessionId, const android::Parcel& parce
         case kVideoModifySession:
         {
             VideoConfig* config = new VideoConfig();
-            config->readFromParcel(&parcel);
+            err = config->readFromParcel(&parcel);
 
             if (err != NO_ERROR)
             {
