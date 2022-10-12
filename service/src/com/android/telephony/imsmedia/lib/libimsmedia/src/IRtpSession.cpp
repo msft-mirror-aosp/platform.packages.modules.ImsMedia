@@ -360,7 +360,7 @@ bool IRtpSession::ProcRtcpPacket(uint8_t* pData, uint32_t nDataSize)
     IMLOGD_PACKET1(IM_PACKET_LOG_RTCP, "[ProcRtcpPacket] size[%d]", nDataSize);
     mNumRtcpProcPacket++;
     IMS_RtpSvc_ProcRtcpPacket(this, mRtpSessionId, pData, nDataSize, mPeerAddress.ipAddress,
-            mPeerAddress.port, &mLocalRtpSsrc);
+            (mPeerAddress.port + 1), &mLocalRtpSsrc);
     return true;
 }
 

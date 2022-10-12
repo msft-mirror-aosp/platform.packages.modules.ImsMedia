@@ -1339,7 +1339,8 @@ RtpReceiverInfo* RtpSession::checkSsrcCollisionOnRcv(IN RtpBuffer* pobjRtpAddr,
 
             if (usTmpPort != usPort)
             {
-                RTP_TRACE_WARNING("checkSsrcCollisionOnRcv - Port", RTP_ZERO, RTP_ZERO);
+                RTP_TRACE_WARNING("checkSsrcCollisionOnRcv - Port prevPort[%d], receivedPort[%d]",
+                        usTmpPort, usPort);
                 eResult = RTP_REMOTE_SSRC_COLLISION;
                 return pobjRcvInfo;
             }
@@ -1425,6 +1426,8 @@ eRTP_STATUS_CODE RtpSession::processCsrcList(
 
             // add entry into receiver list.
             m_pobjRtpRcvrInfoList->push_back(pobjRcvInfo);
+            RTP_TRACE_MESSAGE("processCsrcList - added ssrc[%x] from port[%d] to receiver list",
+                    pobjRcvInfo->getSsrc(), pobjRcvInfo->getPort());
         }
         ++listIterator;
     }
@@ -1557,6 +1560,8 @@ eRTP_STATUS_CODE RtpSession::processRcvdRtpPkt(IN RtpBuffer* pobjRtpAddr, IN Rtp
         pobjRcvInfo->setprevNtpTimestamp(&m_stCurNtpTimestamp);
 
         m_pobjRtpRcvrInfoList->push_back(pobjRcvInfo);
+        RTP_TRACE_MESSAGE("processRcvdRtpPkt - added ssrc[%x] from port[%d] to receiver list",
+                pobjRcvInfo->getSsrc(), pobjRcvInfo->getPort());
 
         // first RTP packet received
         m_bFirstRtpRecvd = eRTP_TRUE;
@@ -1784,6 +1789,8 @@ RtpReceiverInfo* RtpSession::processRtcpPkt(
         // ssrc
         pobjRcvInfo->setSsrc(uiRcvdSsrc);
         m_pobjRtpRcvrInfoList->push_back(pobjRcvInfo);
+        RTP_TRACE_MESSAGE("processRtcpPkt - added ssrc[%x] from port[%d] to receiver list",
+                pobjRcvInfo->getSsrc(), pobjRcvInfo->getPort());
     }
     else if (eRcvdResult != RTP_INVALID_PARAMS)
     {
