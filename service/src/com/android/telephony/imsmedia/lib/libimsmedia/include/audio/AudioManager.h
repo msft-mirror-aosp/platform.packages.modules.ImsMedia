@@ -18,6 +18,7 @@
 #define AUDIO_MANAGER_INCLUDED
 
 #include <ImsMediaDefine.h>
+#include <ImsMediaEventHandler.h>
 #include <BaseManager.h>
 #include <AudioSession.h>
 #include <AudioConfig.h>

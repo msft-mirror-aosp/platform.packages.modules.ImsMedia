@@ -203,6 +203,7 @@ void AudioManager::sendMessage(const int sessionId, const android::Parcel& parce
             {
                 IMLOGE1("sendMessage() - error readFromParcel[%d]", err);
             }
+
             EventParamOpenSession* param = new EventParamOpenSession(rtpFd, rtcpFd, config);
             ImsMediaEventHandler::SendEvent(
                     "AUDIO_REQUEST_EVENT", nMsg, sessionId, reinterpret_cast<uint64_t>(param));
@@ -315,9 +316,12 @@ void AudioManager::RequestHandler::processEvent(
         }
         break;
         case kAudioCloseSession:
-            AudioManager::getInstance()->closeSession(static_cast<int>(sessionId));
-            ImsMediaEventHandler::SendEvent(
-                    "AUDIO_RESPONSE_EVENT", kAudioSessionClosed, sessionId, 0, 0);
+            if (AudioManager::getInstance()->closeSession(static_cast<int>(sessionId)) ==
+                    RESULT_SUCCESS)
+            {
+                ImsMediaEventHandler::SendEvent(
+                        "AUDIO_RESPONSE_EVENT", kAudioSessionClosed, sessionId, 0, 0);
+            }
             break;
         case kAudioModifySession:
         {

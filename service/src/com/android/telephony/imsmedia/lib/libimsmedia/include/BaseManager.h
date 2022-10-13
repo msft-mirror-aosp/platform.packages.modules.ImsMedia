@@ -17,9 +17,6 @@
 #ifndef BASE_MANAGER_H
 #define BASE_MANAGER_H
 
-#include <BaseManagerListener.h>
-#include <ImsMediaEventHandler.h>
-#include <BaseSession.h>
 #include <binder/Parcel.h>
 #include <functional>
 
@@ -28,8 +25,8 @@ typedef int (*CBManager)(long nativeObj, const android::Parcel& parcel);
 class BaseManager
 {
 public:
-    BaseManager() { mCallback = NULL; }
-    virtual ~BaseManager() {}
+    BaseManager();
+    virtual ~BaseManager();
 
     /**
      * @brief Send message to session to operate
@@ -44,10 +41,7 @@ public:
      *
      * @param pfnCallback
      */
-    virtual void setCallback(CBManager pfnCallback)
-    {
-        mCallback = std::bind(pfnCallback, std::placeholders::_1, std::placeholders::_2);
-    }
+    virtual void setCallback(CBManager pfnCallback);
 
     /**
      * @brief Send response message to assigend callback method
@@ -57,19 +51,11 @@ public:
      * @return int Returns -1 when it is fail invoke callback function. Returns 1 when it is
      * success.
      */
-    virtual int sendResponse(long obj, const android::Parcel& parcel)
-    {
-        if (mCallback != NULL)
-        {
-            return mCallback(obj, parcel);
-        }
-
-        return -1;
-    }
+    virtual int sendResponse(long obj, const android::Parcel& parcel);
 
 protected:
     virtual int getState(int sessionId) = 0;
-    std::function<int(long, const android::Parcel&)> mCallback;
+    static std::function<int(long, const android::Parcel&)> mCallback;
 };
 
 #endif

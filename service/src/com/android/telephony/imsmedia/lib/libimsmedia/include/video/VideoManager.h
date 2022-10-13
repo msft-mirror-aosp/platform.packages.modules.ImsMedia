@@ -18,6 +18,7 @@
 #define VIDEO_MANAGER_INCLUDED
 
 #include <ImsMediaDefine.h>
+#include <ImsMediaEventHandler.h>
 #include <BaseManager.h>
 #include <VideoSession.h>
 #include <VideoConfig.h>
