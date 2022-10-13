@@ -408,8 +408,8 @@ bool RtpEncoderNode::ProcessAudioData(
                 }
                 else if (nTimeDiff == 0)
                 {
-                    IMLOGW2("[ProcessAudioData] skip, prev[%u] curr[%u]", mPrevTimestamp,
-                            nCurrTimestamp);
+                    IMLOGD_PACKET2(IM_PACKET_LOG_RTP, "[ProcessAudioData] skip, prev[%u] curr[%u]",
+                            mPrevTimestamp, nCurrTimestamp);
                     return false;
                 }
                 else
