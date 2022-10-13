@@ -23,8 +23,8 @@ import android.hardware.radio.ims.media.RtpConfig;
 import android.hardware.radio.ims.media.RtpHeaderExtension;
 import android.os.Parcel;
 import android.os.RemoteException;
-import android.telephony.Rlog;
 import android.telephony.imsmedia.AudioConfig;
+import android.util.Log;
 
 import com.android.telephony.imsmedia.AudioSession;
 import com.android.telephony.imsmedia.JNIImsMediaListener;
@@ -74,7 +74,7 @@ class AudioListenerProxy implements JNIImsMediaListener {
     @Override
     public void onMessage(Parcel parcel) {
         final int event = parcel.readInt();
-        Rlog.d(TAG, "onMessage=" + event);
+        Log.d(TAG, "onMessage=" + event);
         switch (event) {
             case AudioSession.EVENT_OPEN_SESSION_SUCCESS:
                 final int sessionId = parcel.readInt();
@@ -85,7 +85,7 @@ class AudioListenerProxy implements JNIImsMediaListener {
                     mListener.onOpenSessionSuccess(sessionId,
                     mMediaSession);
                 } catch(RemoteException e) {
-                    Rlog.e(TAG, "Failed to notify openSuccess: " + e);
+                    Log.e(TAG, "Failed to notify openSuccess: " + e);
                 }
                 break;
             case AudioSession.EVENT_OPEN_SESSION_FAILURE:
@@ -95,7 +95,7 @@ class AudioListenerProxy implements JNIImsMediaListener {
                     mListener.onOpenSessionFailure(sessionId1,
                     result);
                 } catch(RemoteException e) {
-                    Rlog.e(TAG, "Failed to notify openFailure: " + e);
+                    Log.e(TAG, "Failed to notify openFailure: " + e);
                 }
                 break;
             case AudioSession.EVENT_SESSION_CLOSED:
@@ -103,7 +103,7 @@ class AudioListenerProxy implements JNIImsMediaListener {
                 try {
                     mListener.onSessionClosed(sessionId2);
                 } catch (RemoteException e) {
-                    Rlog.e(TAG, "Failed to notify SessionClosed: " + e);
+                    Log.e(TAG, "Failed to notify SessionClosed: " + e);
                 }
                 break;
             case AudioSession.EVENT_MODIFY_SESSION_RESPONSE:
@@ -114,7 +114,7 @@ class AudioListenerProxy implements JNIImsMediaListener {
                 try {
                     mMediaSessionListener.onModifySessionResponse(rtpConfig, result1);
                 } catch(RemoteException e) {
-                    Rlog.e(TAG, "Failed to notify modify session: " + e);
+                    Log.e(TAG, "Failed to notify modify session: " + e);
                 }
                 break;
             case AudioSession.EVENT_FIRST_MEDIA_PACKET_IND:
@@ -124,7 +124,7 @@ class AudioListenerProxy implements JNIImsMediaListener {
                 try {
                     mMediaSessionListener.onFirstMediaPacketReceived(mediaIndRtpCfg);
                 } catch(RemoteException e) {
-                    Rlog.e(TAG, "Failed to notify first media packet received: " + e);
+                    Log.e(TAG, "Failed to notify first media packet received: " + e);
                 }
                 break;
             case AudioSession.EVENT_RTP_HEADER_EXTENSION_IND:
@@ -134,7 +134,7 @@ class AudioListenerProxy implements JNIImsMediaListener {
                 try {
                     mMediaSessionListener.onHeaderExtensionReceived(rtpHeaderExt);
                 } catch(RemoteException e) {
-                    Rlog.e(TAG, "Failed to notify rtp header extension: " + e);
+                    Log.e(TAG, "Failed to notify rtp header extension: " + e);
                 }
                 break;
             case AudioSession.EVENT_MEDIA_INACTIVITY_IND:
@@ -143,7 +143,7 @@ class AudioListenerProxy implements JNIImsMediaListener {
                 try {
                     mMediaSessionListener.notifyMediaInactivity(pktType);
                 } catch(RemoteException e) {
-                    Rlog.e(TAG, "Failed to notify media inactivity: " + e);
+                    Log.e(TAG, "Failed to notify media inactivity: " + e);
                 }
                 break;
             case AudioSession.EVENT_PACKET_LOSS_IND:
@@ -152,7 +152,7 @@ class AudioListenerProxy implements JNIImsMediaListener {
                 try {
                     mMediaSessionListener.notifyPacketLoss(pktLossInd);
                 } catch(RemoteException e) {
-                    Rlog.e(TAG, "Failed to notify packet loss: " + e);
+                    Log.e(TAG, "Failed to notify packet loss: " + e);
                 }
                 break;
             case AudioSession.EVENT_JITTER_IND:
@@ -161,7 +161,7 @@ class AudioListenerProxy implements JNIImsMediaListener {
                 try {
                     mMediaSessionListener.notifyJitter(jitter);
                 } catch(RemoteException e) {
-                    Rlog.e(TAG, "Failed to notify jitter indication: " + e);
+                    Log.e(TAG, "Failed to notify jitter indication: " + e);
                 }
                 break;
             case AudioSession.EVENT_TRIGGER_ANBR_QUERY_IND:
@@ -171,7 +171,7 @@ class AudioListenerProxy implements JNIImsMediaListener {
                 try {
                     mMediaSessionListener.triggerAnbrQuery(anbrNotiRtpCfg);
                 } catch (RemoteException e) {
-                    Rlog.e(TAG, "Failed to trigger ANBR query: " + e);
+                    Log.e(TAG, "Failed to trigger ANBR query: " + e);
                 }
                 break;
             case AudioSession.EVENT_DTMF_RECEIVED_IND:
@@ -180,11 +180,11 @@ class AudioListenerProxy implements JNIImsMediaListener {
                 try {
                     mMediaSessionListener.onDtmfReceived(dtmfDigit);
                 } catch (RemoteException e) {
-                    Rlog.e(TAG, "Failed to DTMF received: " + e);
+                    Log.e(TAG, "Failed to DTMF received: " + e);
                 }
                 break;
             default:
-                Rlog.d(TAG, "unidentified event.");
+                Log.d(TAG, "unidentified event.");
                 break;
             }
         }

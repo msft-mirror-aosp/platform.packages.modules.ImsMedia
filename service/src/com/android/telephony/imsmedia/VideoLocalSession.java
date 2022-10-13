@@ -17,10 +17,10 @@
 package com.android.telephony.imsmedia;
 
 import android.os.Parcel;
-import android.telephony.Rlog;
 import android.telephony.ims.RtpHeaderExtension;
 import android.telephony.imsmedia.MediaQualityThreshold;
 import android.telephony.imsmedia.VideoConfig;
+import android.util.Log;
 import android.view.Surface;
 
 import java.util.List;
@@ -45,7 +45,7 @@ public class VideoLocalSession {
 
     /** Returns the unique session identifier */
     public int getSessionId() {
-        Rlog.d(TAG, "getSessionId");
+        Log.d(TAG, "getSessionId");
         return mSessionId;
     }
 
@@ -74,7 +74,7 @@ public class VideoLocalSession {
      * @param config provides remote end point info and codec details
      */
     public void modifySession(final VideoConfig config) {
-        Rlog.d(TAG, "modifySession: " + config);
+        Log.d(TAG, "modifySession: " + config);
         Parcel parcel = Parcel.obtain();
         parcel.writeInt(VideoSession.CMD_MODIFY_SESSION);
         if (config != null) {
@@ -115,7 +115,7 @@ public class VideoLocalSession {
      *        parameters
      */
     public void setMediaQualityThreshold(final MediaQualityThreshold threshold) {
-        Rlog.d(TAG, "setMediaQualityThreshold: " + threshold);
+        Log.d(TAG, "setMediaQualityThreshold: " + threshold);
         Parcel parcel = Parcel.obtain();
         parcel.writeInt(VideoSession.CMD_SET_MEDIA_QUALITY_THRESHOLD);
         if (threshold != null) {
@@ -130,7 +130,7 @@ public class VideoLocalSession {
      * @param extensions List of RTP header extensions to be transmitted
      */
     public void sendHeaderExtension(final List<RtpHeaderExtension> extensions) {
-        Rlog.d(TAG, "sendHeaderExtension");
+        Log.d(TAG, "sendHeaderExtension");
         // TODO: add implementation
     }
 
@@ -139,7 +139,7 @@ public class VideoLocalSession {
      * video streaming session.
      */
     public void requestVideoDataUsage() {
-        Rlog.d(TAG, "requestVideoDataUsage");
+        Log.d(TAG, "requestVideoDataUsage");
         Parcel parcel = Parcel.obtain();
         parcel.writeInt(VideoSession.CMD_REQUEST_VIDEO_DATA_USAGE);
         sendRequest(mSessionId, parcel);

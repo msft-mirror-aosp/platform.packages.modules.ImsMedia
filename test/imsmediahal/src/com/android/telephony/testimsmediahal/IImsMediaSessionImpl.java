@@ -22,18 +22,18 @@ import android.hardware.radio.ims.media.MediaQualityThreshold;
 import android.hardware.radio.ims.media.RtpConfig;
 import android.hardware.radio.ims.media.RtpHeaderExtension;
 import android.os.Parcel;
-import android.telephony.Rlog;
 import android.telephony.imsmedia.AudioConfig;
+import android.util.Log;
 
 import com.android.telephony.imsmedia.AudioSession;
 import com.android.telephony.imsmedia.Utils;
 
 import java.util.List;
 
-
 /**
  * MediaSession implementation class for adding modifying media session.
- * Class is creating JNI connection with {@link libimsmedia} via {@link libimsmediahaljni}.
+ * Class is creating JNI connection with {@link libimsmedia} via
+ * {@link libimsmediahaljni}.
  */
 
 public class IImsMediaSessionImpl extends IImsMediaSession.Stub {
@@ -51,7 +51,7 @@ public class IImsMediaSessionImpl extends IImsMediaSession.Stub {
      */
 
     public IImsMediaSessionImpl(int sessionId) {
-        Rlog.d(TAG, "Instantiated");
+        Log.d(TAG, "Instantiated");
         mSessionId = sessionId;
         mNativeListener = AudioListenerProxy.getInstance();
         connector = JNIConnector.getInstance();
@@ -70,12 +70,12 @@ public class IImsMediaSessionImpl extends IImsMediaSession.Stub {
     @Override
     public void setListener(IImsMediaSessionListener mediaSessionListener) {
 
-      mNativeListener.setMediaSessionListener(mediaSessionListener);
+        mNativeListener.setMediaSessionListener(mediaSessionListener);
     }
 
     @Override
-    public void modifySession(RtpConfig config){
-        Rlog.d(TAG, "modifyConfig: " + config);
+    public void modifySession(RtpConfig config) {
+        Log.d(TAG, "modifyConfig: " + config);
         Parcel parcel = Parcel.obtain();
         parcel.writeInt(AudioSession.CMD_MODIFY_SESSION);
 
@@ -88,17 +88,17 @@ public class IImsMediaSessionImpl extends IImsMediaSession.Stub {
 
     @Override
     public void sendDtmf(char dtmfDigit, int duration) {
-        Rlog.d(TAG, "sendDtmf: digit= " + dtmfDigit + ", duration=" + duration);
+        Log.d(TAG, "sendDtmf: digit= " + dtmfDigit + ", duration=" + duration);
         Parcel parcel = Parcel.obtain();
         parcel.writeInt(AudioSession.CMD_SEND_DTMF);
-        parcel.writeByte((byte)dtmfDigit);
+        parcel.writeByte((byte) dtmfDigit);
         parcel.writeInt(duration);
         connector.sendRequest(mSessionId, parcel);
     }
 
     @Override
     public void startDtmf(char dtmfDigit) {
-        Rlog.d(TAG, "startDtmf: digit= " + dtmfDigit);
+        Log.d(TAG, "startDtmf: digit= " + dtmfDigit);
         Parcel parcel = Parcel.obtain();
         parcel.writeInt(AudioSession.CMD_START_DTMF);
         parcel.writeByte((byte) dtmfDigit);
@@ -107,18 +107,18 @@ public class IImsMediaSessionImpl extends IImsMediaSession.Stub {
 
     @Override
     public void stopDtmf() {
-        Rlog.d(TAG, "stopDtmf");
+        Log.d(TAG, "stopDtmf");
         Parcel parcel = Parcel.obtain();
         parcel.writeInt(AudioSession.CMD_STOP_DTMF);
         connector.sendRequest(mSessionId, parcel);
     }
+
     @Override
     public void sendHeaderExtension(List<RtpHeaderExtension> data) {
-        Rlog.d(TAG, "sendHeaderExtension: " + data);
+        Log.d(TAG, "sendHeaderExtension: " + data);
         Parcel parcel = Parcel.obtain();
         parcel.writeInt(AudioSession.CMD_SEND_RTP_HDR_EXTN);
-        if(data != null)
-        {
+        if (data != null) {
             parcel.writeList(data);
         }
         connector.sendRequest(mSessionId, parcel);
@@ -126,7 +126,7 @@ public class IImsMediaSessionImpl extends IImsMediaSession.Stub {
 
     @Override
     public void setMediaQualityThreshold(MediaQualityThreshold threshold) {
-        Rlog.d(TAG, "setMediaQualityThreshold: " + threshold);
+        Log.d(TAG, "setMediaQualityThreshold: " + threshold);
         Parcel parcel = Parcel.obtain();
         parcel.writeInt(AudioSession.CMD_SET_MEDIA_QUALITY_THRESHOLD);
         if (threshold != null) {

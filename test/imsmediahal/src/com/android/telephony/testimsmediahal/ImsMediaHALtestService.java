@@ -16,13 +16,11 @@
 
 package com.android.telephony.testimsmediahal;
 
-import android.hardware.radio.ims.media.IImsMedia;
-import android.telephony.Rlog;
-
 import android.app.Service;
 import android.content.Intent;
+import android.hardware.radio.ims.media.IImsMedia;
 import android.os.IBinder;
-
+import android.util.Log;
 
 /**
  * Creating ImeMedia service for implementation of ImsMedia HAL APIs.
@@ -30,34 +28,30 @@ import android.os.IBinder;
  */
 
 public class ImsMediaHALtestService extends Service {
+    private static final String SERVICE_TAG = "ImsMediaHALtestService";
+    private static IImsMedia.Stub sIImsMediaBinder;
 
-  private static final String SERVICE_TAG = "ImsMediaHALtestService";
+    public static IImsMedia.Stub getInstance() {
+        if (sIImsMediaBinder == null) {
+            sIImsMediaBinder = new IImsMediaImpl();
+        }
+        return sIImsMediaBinder;
+    }
 
-  private static IImsMedia.Stub mIImsMediaBinder;
+    @Override
+    public void onCreate() {
+        Log.d(SERVICE_TAG, "onCreate");
 
-  public static IImsMedia.Stub getInstance() {
-      if (mIImsMediaBinder == null) {
-          mIImsMediaBinder = new IImsMediaImpl();
-      }
-      return mIImsMediaBinder;
-  }
+    }
 
-  @Override
-  public void onCreate() {
-    Rlog.d(SERVICE_TAG, "onCreate");
+    @Override
+    public IBinder onBind(Intent intent) {
+        Log.d(SERVICE_TAG, Thread.currentThread().getName() + " onBind");
+        return getInstance();
+    }
 
-  }
-
-  @Override
-  public IBinder onBind(Intent intent) {
-
-    Rlog.d(SERVICE_TAG, Thread.currentThread().getName() + " onBind");
-    return getInstance();
-  }
-
-  @Override
-  public void onDestroy() {
-    Rlog.d(SERVICE_TAG, "onDestroy");
-  }
+    @Override
+    public void onDestroy() {
+        Log.d(SERVICE_TAG, "onDestroy");
+    }
 }
-

@@ -22,7 +22,6 @@ import android.os.IBinder;
 import android.os.Parcel;
 import android.os.ParcelFileDescriptor;
 import android.support.annotation.GuardedBy;
-import android.telephony.Rlog;
 import android.telephony.imsmedia.IImsAudioSession;
 import android.telephony.imsmedia.IImsAudioSessionCallback;
 import android.telephony.imsmedia.IImsMedia;
@@ -60,7 +59,7 @@ public class ImsMediaController extends Service {
             final int sessionId = mSessionId.getAndIncrement();
 
             IMediaSession session;
-            Rlog.d(TAG, "openSession: sessionId = " + sessionId
+            Log.d(TAG, "openSession: sessionId = " + sessionId
                     + ", type=" + sessionType + "," + rtpConfig);
             synchronized (mSessions) {
                 switch (sessionType) {
@@ -92,7 +91,7 @@ public class ImsMediaController extends Service {
 
         @Override
         public void closeSession(IBinder session) {
-            Rlog.d(TAG, "closeSession: " + session);
+            Log.d(TAG, "closeSession: " + session);
             synchronized (mSessions) {
                 if (session instanceof AudioSession) {
                     final AudioSession audioSession =
@@ -142,13 +141,13 @@ public class ImsMediaController extends Service {
 
     @Override
     public IBinder onBind(Intent intent) {
-        Rlog.d(TAG, Thread.currentThread().getName() + " onBind");
+        Log.d(TAG, Thread.currentThread().getName() + " onBind");
         return mImsMediaBinder;
     }
 
     @Override
     public boolean onUnbind(Intent intent) {
-        Rlog.d(TAG, Thread.currentThread().getName() + " onUnbind");
+        Log.d(TAG, Thread.currentThread().getName() + " onUnbind");
         try {
             synchronized (mSessions) {
                 while (mSessions.size() > 0) {
@@ -157,19 +156,19 @@ public class ImsMediaController extends Service {
                 mSessions.clear();
             }
         } catch (Exception e) {
-            Rlog.d(TAG, "onUnbind: e=" + e);
+            Log.d(TAG, "onUnbind: e=" + e);
         }
         return true;
     }
 
     @Override
     public void onCreate() {
-        Rlog.d(TAG, "onCreate");
+        Log.d(TAG, "onCreate");
     }
 
     @Override
     public void onDestroy() {
-        Rlog.d(TAG, "onDestroy");
+        Log.d(TAG, "onDestroy");
     }
 
     private IMediaSession getSession(int sessionId) {
@@ -195,7 +194,7 @@ public class ImsMediaController extends Service {
          */
         public void onSessionClosed(int sessionId) {
             getSession(sessionId).onSessionClosed();
-            Rlog.d(TAG, "onSessionClosed: sessionId = " + sessionId);
+            Log.d(TAG, "onSessionClosed: sessionId = " + sessionId);
             mSessions.remove(sessionId);
         }
     }

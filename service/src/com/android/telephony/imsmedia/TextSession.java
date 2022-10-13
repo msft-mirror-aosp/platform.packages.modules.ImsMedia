@@ -22,11 +22,11 @@ import android.os.Looper;
 import android.os.Message;
 import android.os.RemoteException;
 import android.support.annotation.VisibleForTesting;
-import android.telephony.Rlog;
 import android.telephony.imsmedia.IImsTextSession;
 import android.telephony.imsmedia.IImsTextSessionCallback;
 import android.telephony.imsmedia.MediaQualityThreshold;
 import android.telephony.imsmedia.TextConfig;
+import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -64,7 +64,7 @@ public final class TextSession extends IImsTextSession.Stub implements IMediaSes
         mSessionId = sessionId;
         mCallback = callback;
         mHandler = new TextSessionHandler(Looper.getMainLooper());
-        Rlog.d(TAG, "Initialize local text service");
+        Log.d(TAG, "Initialize local text service");
         mTextService = new TextService();
         mTextListener = new TextListener(mHandler);
         mTextService.setListener(mTextListener);
@@ -111,37 +111,37 @@ public final class TextSession extends IImsTextSession.Stub implements IMediaSes
 
     @Override
     public void modifySession(TextConfig config) {
-        Rlog.d(TAG, "modifySession: " + config);
+        Log.d(TAG, "modifySession: " + config);
         Utils.sendMessage(mHandler, CMD_MODIFY_SESSION, config);
     }
 
     @Override
     public void setMediaQualityThreshold(MediaQualityThreshold threshold) {
-        Rlog.d(TAG, "setMediaQualityThreshold: " + threshold);
+        Log.d(TAG, "setMediaQualityThreshold: " + threshold);
         Utils.sendMessage(mHandler, CMD_SET_MEDIA_QUALITY_THRESHOLD, threshold);
     }
 
     @Override
     public void sendRtt(String text) {
-        Rlog.d(TAG, "sendRtt: ");
+        Log.d(TAG, "sendRtt: ");
         Utils.sendMessage(mHandler, CMD_SEND_RTT, text);
     }
 
     @Override
     public void onOpenSessionSuccess(Object session) {
-        Rlog.d(TAG, "onOpenSessionSuccess");
+        Log.d(TAG, "onOpenSessionSuccess");
         Utils.sendMessage(mHandler, EVENT_OPEN_SESSION_SUCCESS, session);
     }
 
     @Override
     public void onOpenSessionFailure(int error) {
-        Rlog.d(TAG, "onOpenSessionFailure: error=" + error);
+        Log.d(TAG, "onOpenSessionFailure: error=" + error);
         Utils.sendMessage(mHandler, EVENT_OPEN_SESSION_FAILURE, error);
     }
 
     @Override
     public void onSessionClosed() {
-        Rlog.d(TAG, "onSessionClosed");
+        Log.d(TAG, "onSessionClosed");
         Utils.sendMessage(mHandler, EVENT_SESSION_CLOSED);
     }
 
@@ -155,7 +155,7 @@ public final class TextSession extends IImsTextSession.Stub implements IMediaSes
 
         @Override
         public void handleMessage(Message msg) {
-            Rlog.d(TAG, "handleMessage: " + msg.what);
+            Log.d(TAG, "handleMessage: " + msg.what);
             switch (msg.what) {
                 case CMD_OPEN_SESSION:
                     handleOpenSession((OpenSessionParams) msg.obj);
@@ -197,12 +197,12 @@ public final class TextSession extends IImsTextSession.Stub implements IMediaSes
 
     private void handleOpenSession(OpenSessionParams sessionParams) {
         mTextListener.setMediaCallback(sessionParams.getCallback());
-        Rlog.d(TAG, "handleOpenSession");
+        Log.d(TAG, "handleOpenSession");
         mTextService.openSession(mSessionId, sessionParams);
     }
 
     private void handleCloseSession() {
-        Rlog.d(TAG, "handleCloseSession");
+        Log.d(TAG, "handleCloseSession");
         mTextService.closeSession(mSessionId);
     }
 
@@ -223,7 +223,7 @@ public final class TextSession extends IImsTextSession.Stub implements IMediaSes
         try {
             mCallback.onOpenSessionSuccess(this);
         } catch (RemoteException e) {
-            Rlog.e(TAG, "Failed to notify openSuccess: " + e);
+            Log.e(TAG, "Failed to notify openSuccess: " + e);
         }
     }
 
@@ -231,7 +231,7 @@ public final class TextSession extends IImsTextSession.Stub implements IMediaSes
         try {
             mCallback.onOpenSessionFailure(error);
         } catch (RemoteException e) {
-            Rlog.e(TAG, "Failed to notify openFailure: " + e);
+            Log.e(TAG, "Failed to notify openFailure: " + e);
         }
     }
 
@@ -239,7 +239,7 @@ public final class TextSession extends IImsTextSession.Stub implements IMediaSes
         try {
             mCallback.onSessionClosed();
         }  catch (RemoteException e) {
-            Rlog.e(TAG, "Failed to notify SessionClosed: " + e);
+            Log.e(TAG, "Failed to notify SessionClosed: " + e);
         }
     }
 
@@ -247,7 +247,7 @@ public final class TextSession extends IImsTextSession.Stub implements IMediaSes
         try {
             mCallback.onModifySessionResponse(config, error);
         } catch (RemoteException e) {
-            Rlog.e(TAG, "Failed to notify modifySessionResponse: " + e);
+            Log.e(TAG, "Failed to notify modifySessionResponse: " + e);
         }
     }
 
@@ -255,7 +255,7 @@ public final class TextSession extends IImsTextSession.Stub implements IMediaSes
         try {
             mCallback.notifyMediaInactivity(packetType);
         } catch (RemoteException e) {
-            Rlog.e(TAG, "Failed to notify media timeout: " + e);
+            Log.e(TAG, "Failed to notify media timeout: " + e);
         }
     }
 
@@ -263,7 +263,7 @@ public final class TextSession extends IImsTextSession.Stub implements IMediaSes
         try {
             mCallback.onRttReceived(text);
         } catch (RemoteException e) {
-            Rlog.e(TAG, "Failed to notify rtt received: " + e);
+            Log.e(TAG, "Failed to notify rtt received: " + e);
         }
     }
 }

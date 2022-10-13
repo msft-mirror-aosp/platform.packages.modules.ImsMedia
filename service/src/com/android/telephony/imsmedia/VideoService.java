@@ -17,8 +17,8 @@
 package com.android.telephony.imsmedia;
 
 import android.os.Parcel;
-import android.telephony.Rlog;
 import android.telephony.imsmedia.ImsMediaSession;
+import android.util.Log;
 
 import com.android.telephony.imsmedia.Utils.OpenSessionParams;
 
@@ -79,7 +79,7 @@ public class VideoService {
         if (sessionParams == null) {
             return;
         }
-        Rlog.d(LOG_TAG, "openSession: sessionId = " + sessionId
+        Log.d(LOG_TAG, "openSession: sessionId = " + sessionId
                     + "," + sessionParams.getRtpConfig());
         Parcel parcel = Parcel.obtain();
         parcel.writeInt(VideoSession.CMD_OPEN_SESSION);
@@ -101,7 +101,7 @@ public class VideoService {
      * @param sessionId RTP session to be closed.
      */
     public void closeSession(final int sessionId) {
-        Rlog.d(LOG_TAG, "closeSession");
+        Log.d(LOG_TAG, "closeSession");
         Parcel parcel = Parcel.obtain();
         parcel.writeInt(VideoSession.CMD_CLOSE_SESSION);
         sendRequest(sessionId, parcel);
