@@ -16,3 +16,34 @@
 
 #include <BaseManager.h>
 #include <ImsMediaTrace.h>
+
+std::function<int(long, const android::Parcel&)> BaseManager::mCallback;
+
+BaseManager::BaseManager()
+{
+    mCallback = NULL;
+}
+
+BaseManager::~BaseManager() {}
+
+void BaseManager::setCallback(CBManager pfnCallback)
+{
+    if (mCallback == NULL)
+    {
+        IMLOGD0("[setCallback]");
+        mCallback = std::bind(pfnCallback, std::placeholders::_1, std::placeholders::_2);
+    }
+}
+
+int BaseManager::sendResponse(long obj, const android::Parcel& parcel)
+{
+    IMLOGD0("[sendResponse]");
+
+    if (mCallback != NULL)
+    {
+        IMLOGD0("[sendResponse] 1");
+        return mCallback(obj, parcel);
+    }
+
+    return -1;
+}

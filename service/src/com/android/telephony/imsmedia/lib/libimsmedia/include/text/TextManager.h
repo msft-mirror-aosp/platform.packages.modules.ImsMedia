@@ -18,6 +18,7 @@
 #define TEXT_MANAGER_INCLUDED
 
 #include <ImsMediaDefine.h>
+#include <ImsMediaEventHandler.h>
 #include <BaseManager.h>
 #include <TextSession.h>
 #include <TextConfig.h>
