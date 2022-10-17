@@ -17,8 +17,8 @@
 package com.android.telephony.imsmedia;
 
 import android.os.Parcel;
-import android.telephony.Rlog;
 import android.telephony.imsmedia.ImsMediaSession;
+import android.util.Log;
 
 import com.android.telephony.imsmedia.Utils.OpenSessionParams;
 
@@ -77,7 +77,7 @@ public class AudioService {
      */
     public void openSession(final int sessionId, final OpenSessionParams sessionParams) {
         if (sessionParams == null) return;
-        Rlog.d(LOG_TAG, "openSession: sessionId = " + sessionId
+        Log.d(LOG_TAG, "openSession: sessionId = " + sessionId
                     + "," + sessionParams.getRtpConfig());
         Parcel parcel = Parcel.obtain();
         parcel.writeInt(AudioSession.CMD_OPEN_SESSION);
@@ -99,7 +99,7 @@ public class AudioService {
      * @param session RTP session to be closed.
      */
     public void closeSession(final int sessionId) {
-        Rlog.d(LOG_TAG, "closeSession");
+        Log.d(LOG_TAG, "closeSession");
         Parcel parcel = Parcel.obtain();
         parcel.writeInt(AudioSession.CMD_CLOSE_SESSION);
         sendRequest(sessionId, parcel);

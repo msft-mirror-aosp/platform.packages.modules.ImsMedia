@@ -22,12 +22,12 @@ import android.os.Looper;
 import android.os.Message;
 import android.os.RemoteException;
 import android.support.annotation.VisibleForTesting;
-import android.telephony.Rlog;
 import android.telephony.ims.RtpHeaderExtension;
 import android.telephony.imsmedia.IImsVideoSession;
 import android.telephony.imsmedia.IImsVideoSessionCallback;
 import android.telephony.imsmedia.MediaQualityThreshold;
 import android.telephony.imsmedia.VideoConfig;
+import android.util.Log;
 import android.view.Surface;
 
 import androidx.annotation.NonNull;
@@ -76,7 +76,7 @@ public final class VideoSession extends IImsVideoSession.Stub implements IMediaS
         mSessionId = sessionId;
         mCallback = callback;
         mHandler = new VideoSessionHandler(Looper.getMainLooper());
-        Rlog.d(TAG, "Initialize local video service");
+        Log.d(TAG, "Initialize local video service");
         mVideoService = new VideoService();
         mVideoListener = new VideoListener(mHandler);
         mVideoService.setListener(mVideoListener);
@@ -123,55 +123,55 @@ public final class VideoSession extends IImsVideoSession.Stub implements IMediaS
 
     @Override
     public void modifySession(VideoConfig config) {
-        Rlog.d(TAG, "modifySession: " + config);
+        Log.d(TAG, "modifySession: " + config);
         Utils.sendMessage(mHandler, CMD_MODIFY_SESSION, config);
     }
 
     @Override
     public void setPreviewSurface(Surface surface) {
-        Rlog.d(TAG, "setPreviewSurface: " + surface);
+        Log.d(TAG, "setPreviewSurface: " + surface);
         Utils.sendMessage(mHandler, CMD_SET_PREVIEW_SURFACE, surface);
     }
 
     @Override
     public void setDisplaySurface(Surface surface) {
-        Rlog.d(TAG, "setDisplaySurface: " + surface);
+        Log.d(TAG, "setDisplaySurface: " + surface);
         Utils.sendMessage(mHandler, CMD_SET_DISPLAY_SURFACE, surface);
     }
 
     @Override
     public void sendHeaderExtension(List<RtpHeaderExtension> extensions) {
-        Rlog.d(TAG, "sendHeaderExtension");
+        Log.d(TAG, "sendHeaderExtension");
         Utils.sendMessage(mHandler, CMD_SEND_RTP_HDR_EXTN, extensions);
     }
 
     @Override
     public void setMediaQualityThreshold(MediaQualityThreshold threshold) {
-        Rlog.d(TAG, "setMediaQualityThreshold: " + threshold);
+        Log.d(TAG, "setMediaQualityThreshold: " + threshold);
         Utils.sendMessage(mHandler, CMD_SET_MEDIA_QUALITY_THRESHOLD, threshold);
     }
 
     @Override
     public void requestVideoDataUsage() {
-        Rlog.d(TAG, "requestVideoDataUsage: ");
+        Log.d(TAG, "requestVideoDataUsage: ");
         Utils.sendMessage(mHandler, CMD_REQUEST_VIDEO_DATA_USAGE);
     }
 
     @Override
     public void onOpenSessionSuccess(Object session) {
-        Rlog.d(TAG, "onOpenSessionSuccess");
+        Log.d(TAG, "onOpenSessionSuccess");
         Utils.sendMessage(mHandler, EVENT_OPEN_SESSION_SUCCESS, session);
     }
 
     @Override
     public void onOpenSessionFailure(int error) {
-        Rlog.d(TAG, "onOpenSessionFailure: error=" + error);
+        Log.d(TAG, "onOpenSessionFailure: error=" + error);
         Utils.sendMessage(mHandler, EVENT_OPEN_SESSION_FAILURE, error);
     }
 
     @Override
     public void onSessionClosed() {
-        Rlog.d(TAG, "onSessionClosed");
+        Log.d(TAG, "onSessionClosed");
         Utils.sendMessage(mHandler, EVENT_SESSION_CLOSED);
     }
 
@@ -185,7 +185,7 @@ public final class VideoSession extends IImsVideoSession.Stub implements IMediaS
 
         @Override
         public void handleMessage(Message msg) {
-            Rlog.d(TAG, "handleMessage: " + msg.what);
+            Log.d(TAG, "handleMessage: " + msg.what);
             switch(msg.what) {
                 case CMD_OPEN_SESSION:
                     handleOpenSession((OpenSessionParams) msg.obj);
@@ -248,12 +248,12 @@ public final class VideoSession extends IImsVideoSession.Stub implements IMediaS
 
     private void handleOpenSession(OpenSessionParams sessionParams) {
         mVideoListener.setMediaCallback(sessionParams.getCallback());
-        Rlog.d(TAG, "handleOpenSession");
+        Log.d(TAG, "handleOpenSession");
         mVideoService.openSession(mSessionId, sessionParams);
     }
 
     private void handleCloseSession() {
-        Rlog.d(TAG, "handleCloseSession");
+        Log.d(TAG, "handleCloseSession");
         mVideoService.closeSession(mSessionId);
     }
 
@@ -286,7 +286,7 @@ public final class VideoSession extends IImsVideoSession.Stub implements IMediaS
         try {
             mCallback.onOpenSessionSuccess(this);
         } catch (RemoteException e) {
-            Rlog.e(TAG, "Failed to notify openSuccess: " + e);
+            Log.e(TAG, "Failed to notify openSuccess: " + e);
         }
     }
 
@@ -294,7 +294,7 @@ public final class VideoSession extends IImsVideoSession.Stub implements IMediaS
         try {
             mCallback.onOpenSessionFailure(error);
         } catch (RemoteException e) {
-            Rlog.e(TAG, "Failed to notify openFailure: " + e);
+            Log.e(TAG, "Failed to notify openFailure: " + e);
         }
     }
 
@@ -302,7 +302,7 @@ public final class VideoSession extends IImsVideoSession.Stub implements IMediaS
         try {
             mCallback.onSessionClosed();
         }  catch (RemoteException e) {
-            Rlog.e(TAG, "Failed to notify SessionClosed: " + e);
+            Log.e(TAG, "Failed to notify SessionClosed: " + e);
         }
     }
 
@@ -310,7 +310,7 @@ public final class VideoSession extends IImsVideoSession.Stub implements IMediaS
         try {
             mCallback.onModifySessionResponse(config, error);
         } catch (RemoteException e) {
-            Rlog.e(TAG, "Failed to notify modifySessionResponse: " + e);
+            Log.e(TAG, "Failed to notify modifySessionResponse: " + e);
         }
     }
 
@@ -318,7 +318,7 @@ public final class VideoSession extends IImsVideoSession.Stub implements IMediaS
         try {
             mCallback.onFirstMediaPacketReceived(config);
         } catch (RemoteException e) {
-            Rlog.e(TAG, "Failed to notify first media packet received indication: " + e);
+            Log.e(TAG, "Failed to notify first media packet received indication: " + e);
         }
     }
 
@@ -326,7 +326,7 @@ public final class VideoSession extends IImsVideoSession.Stub implements IMediaS
         try {
             mCallback.onPeerDimensionChanged(width, height);
         } catch (RemoteException e) {
-            Rlog.e(TAG, "Failed to notify dimension changed: " + e);
+            Log.e(TAG, "Failed to notify dimension changed: " + e);
         }
     }
 
@@ -334,7 +334,7 @@ public final class VideoSession extends IImsVideoSession.Stub implements IMediaS
         try {
             mCallback.onHeaderExtensionReceived(extensions);
         } catch (RemoteException e) {
-            Rlog.e(TAG, "Failed to notify RTP header extension: " + e);
+            Log.e(TAG, "Failed to notify RTP header extension: " + e);
         }
     }
 
@@ -342,7 +342,7 @@ public final class VideoSession extends IImsVideoSession.Stub implements IMediaS
         try {
             mCallback.notifyMediaInactivity(packetType);
         } catch (RemoteException e) {
-            Rlog.e(TAG, "Failed to notify media timeout: " + e);
+            Log.e(TAG, "Failed to notify media timeout: " + e);
         }
     }
 
@@ -350,7 +350,7 @@ public final class VideoSession extends IImsVideoSession.Stub implements IMediaS
         try {
             mCallback.notifyPacketLoss(percentage);
         } catch (RemoteException e) {
-            Rlog.e(TAG, "Failed to notify packet loss: " + e);
+            Log.e(TAG, "Failed to notify packet loss: " + e);
         }
     }
 
@@ -358,7 +358,7 @@ public final class VideoSession extends IImsVideoSession.Stub implements IMediaS
         try {
             mCallback.notifyVideoDataUsage(bytes);
         } catch (RemoteException e) {
-            Rlog.e(TAG, "Failed to notify video data usage: " + e);
+            Log.e(TAG, "Failed to notify video data usage: " + e);
         }
     }
 }

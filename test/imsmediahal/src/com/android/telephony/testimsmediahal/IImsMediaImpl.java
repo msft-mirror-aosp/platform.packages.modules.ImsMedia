@@ -21,8 +21,9 @@ import android.hardware.radio.ims.media.IImsMediaListener;
 import android.hardware.radio.ims.media.LocalEndPoint;
 import android.hardware.radio.ims.media.RtpConfig;
 import android.os.Parcel;
-import android.telephony.Rlog;
 import android.telephony.imsmedia.AudioConfig;
+import android.util.Log;
+
 import com.android.telephony.imsmedia.AudioSession;
 import com.android.telephony.imsmedia.Utils;
 
@@ -40,10 +41,10 @@ public class IImsMediaImpl extends IImsMedia.Stub {
     private static JNIConnector connector;
 
     public IImsMediaImpl() {
-      Rlog.d(TAG, "Instantiated");
-      mMediaResponse = AudioListenerProxy.getInstance();
-      connector = JNIConnector.getInstance();
-      connector.ConnectJNI();
+        Log.d(TAG, "Instantiated");
+        mMediaResponse = AudioListenerProxy.getInstance();
+        connector = JNIConnector.getInstance();
+        connector.ConnectJNI();
     }
 
     @Override
@@ -58,31 +59,28 @@ public class IImsMediaImpl extends IImsMedia.Stub {
 
     @Override
     public void setListener(IImsMediaListener mediaListener) {
-      Rlog.d(TAG, "setListener");
-      mMediaResponse.setImsMediaListener(mediaListener);
+        Log.d(TAG, "setListener");
+        mMediaResponse.setImsMediaListener(mediaListener);
     }
 
     /**
      * Opening Media session.
      *
-     * @param sessionId unique identifier of session.
+     * @param sessionId     unique identifier of session.
      * @param localEndPoint used to get rtp/rtcp socket file descriptors.
-     * @param config HAl RtpConfig used configure session related params.
+     * @param config        HAl RtpConfig used configure session related params.
      */
-
 
     @Override
     public void openSession(int sessionId, LocalEndPoint localEndPoint, RtpConfig config) {
-        Rlog.d(TAG, "openSession");
+        Log.d(TAG, "openSession");
         mMediaResponse.setSessionId(sessionId);
         Parcel parcel = Parcel.obtain();
 
         parcel.writeInt(AudioSession.CMD_OPEN_SESSION);
 
-        final int socketFdRtp = (localEndPoint.rtpFd != null) ?
-            localEndPoint.rtpFd.getFd() : -1;
-        final int socketFdRtcp = (localEndPoint.rtcpFd != null) ?
-            localEndPoint.rtcpFd.getFd() : -1;
+        final int socketFdRtp = (localEndPoint.rtpFd != null) ? localEndPoint.rtpFd.getFd() : -1;
+        final int socketFdRtcp = (localEndPoint.rtcpFd != null) ? localEndPoint.rtcpFd.getFd() : -1;
 
         parcel.writeInt(socketFdRtp);
         parcel.writeInt(socketFdRtcp);
@@ -101,9 +99,8 @@ public class IImsMediaImpl extends IImsMedia.Stub {
      */
 
     @Override
-    public void closeSession(int sessionId)
-    {
-        Rlog.d(TAG, "close session");
+    public void closeSession(int sessionId) {
+        Log.d(TAG, "closeSession");
         Parcel parcel = Parcel.obtain();
         parcel.writeInt(AudioSession.CMD_CLOSE_SESSION);
         connector.sendRequest(sessionId, parcel);

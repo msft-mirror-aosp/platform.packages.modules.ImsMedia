@@ -19,8 +19,8 @@ package com.android.telephony.imsmedia;
 import android.os.Handler;
 import android.os.Parcel;
 import android.telephony.CallQuality;
-import android.telephony.Rlog;
 import android.telephony.imsmedia.AudioConfig;
+import android.util.Log;
 
 /**
  * Audio listener to process JNI messages from local AP based RTP stack
@@ -65,17 +65,17 @@ public class AudioListener implements JNIImsMediaListener {
         switch (event) {
             case AudioSession.EVENT_OPEN_SESSION_SUCCESS:
                 final int sessionId = parcel.readInt();
-                Rlog.d(LOG_TAG, "onMessage=" + event);
+                Log.d(LOG_TAG, "onMessage=" + event);
                 mCallback.onOpenSessionSuccess(sessionId,
                     new AudioLocalSession(sessionId, mNativeObject));
                 break;
             case AudioSession.EVENT_OPEN_SESSION_FAILURE:
-                Rlog.d(LOG_TAG, "onMessage=" + event);
+                Log.d(LOG_TAG, "onMessage=" + event);
                 mCallback.onOpenSessionFailure(parcel.readInt(),
                     parcel.readInt());
                 break;
             case AudioSession.EVENT_SESSION_CLOSED:
-                Rlog.d(LOG_TAG, "onMessage=" + event);
+                Log.d(LOG_TAG, "onMessage=" + event);
                 mCallback.onSessionClosed(parcel.readInt());
                 break;
             case AudioSession.EVENT_MODIFY_SESSION_RESPONSE:
@@ -83,7 +83,7 @@ public class AudioListener implements JNIImsMediaListener {
             case AudioSession.EVENT_CONFIRM_CONFIG_RESPONSE:
                 final int result = parcel.readInt();
                 final AudioConfig config = AudioConfig.CREATOR.createFromParcel(parcel);
-                Rlog.d(LOG_TAG, "onMessage=" + event + ", result=" + result);
+                Log.d(LOG_TAG, "onMessage=" + event + ", result=" + result);
                 Utils.sendMessage(mHandler, event, result, Utils.UNUSED, config);
                 break;
             case AudioSession.EVENT_FIRST_MEDIA_PACKET_IND:
@@ -101,16 +101,16 @@ public class AudioListener implements JNIImsMediaListener {
                 break;
             case AudioSession.EVENT_TRIGGER_ANBR_QUERY_IND:
                 final AudioConfig configAnbr = AudioConfig.CREATOR.createFromParcel(parcel);
-                Rlog.d(LOG_TAG, "onMessage=" + event);
+                Log.d(LOG_TAG, "onMessage=" + event);
                 Utils.sendMessage(mHandler, event, configAnbr);
                 break;
             case AudioSession.EVENT_DTMF_RECEIVED_IND:
                 final char dtmfDigit = (char) parcel.readByte();
-                Rlog.d(LOG_TAG, "onMessage=" + event);
+                Log.d(LOG_TAG, "onMessage=" + event);
                 Utils.sendMessage(mHandler, event, dtmfDigit);
                 break;
             case AudioSession.EVENT_CALL_QUALITY_CHANGE_IND:
-                Rlog.d(LOG_TAG, "onMessage=" + event);
+                Log.d(LOG_TAG, "onMessage=" + event);
                 Utils.sendMessage(mHandler, event, CallQuality.CREATOR.createFromParcel(parcel));
                 break;
             default:

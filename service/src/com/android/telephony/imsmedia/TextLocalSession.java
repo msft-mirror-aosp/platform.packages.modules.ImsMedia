@@ -17,9 +17,9 @@
 package com.android.telephony.imsmedia;
 
 import android.os.Parcel;
-import android.telephony.Rlog;
 import android.telephony.imsmedia.MediaQualityThreshold;
 import android.telephony.imsmedia.TextConfig;
+import android.util.Log;
 
 /**
  * Text session implementation for internal AP based RTP stack. This handles all API calls from
@@ -43,7 +43,7 @@ public class TextLocalSession {
 
     /** Returns the unique session identifier */
     public int getSessionId() {
-        Rlog.d(TAG, "getSessionId");
+        Log.d(TAG, "getSessionId");
         return mSessionId;
     }
 
@@ -74,7 +74,7 @@ public class TextLocalSession {
      * @param config provides remote end point info and codec details
      */
     public void modifySession(final TextConfig config) {
-        Rlog.d(TAG, "modifySession: " + config);
+        Log.d(TAG, "modifySession: " + config);
         Parcel parcel = Parcel.obtain();
         parcel.writeInt(TextSession.CMD_MODIFY_SESSION);
         if (config != null) {
@@ -90,7 +90,7 @@ public class TextLocalSession {
      * @param threshold media quality thresholds for various quality parameters
      */
     public void setMediaQualityThreshold(final MediaQualityThreshold threshold) {
-        Rlog.d(TAG, "setMediaQualityThreshold: " + threshold);
+        Log.d(TAG, "setMediaQualityThreshold: " + threshold);
         Parcel parcel = Parcel.obtain();
         parcel.writeInt(TextSession.CMD_SET_MEDIA_QUALITY_THRESHOLD);
         if (threshold != null) {
@@ -105,7 +105,7 @@ public class TextLocalSession {
      * @param text The text string
      */
     public void sendRtt(String text) {
-        Rlog.d(TAG, "sendRtt");
+        Log.d(TAG, "sendRtt");
         Parcel parcel = Parcel.obtain();
         parcel.writeInt(TextSession.CMD_SEND_RTT);
         parcel.writeString(text);

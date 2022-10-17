@@ -21,14 +21,14 @@ import android.content.Context;
 import android.content.Intent;
 import android.hardware.radio.ims.media.IImsMedia;
 import android.os.ServiceManager;
-import android.telephony.Rlog;
+import android.util.Log;
 
 public final class MediaBroadcastReceiver extends BroadcastReceiver {
     private static final String TAG = "ImsMediaTestHAL";
     @Override
     public void onReceive(Context context, Intent intent) {
         if (Intent.ACTION_BOOT_COMPLETED.equals(intent.getAction())) {
-            Rlog.d(TAG, "Registering ImsMediaHALtestService");
+            Log.d(TAG, "Registering ImsMediaHALtestService");
             ServiceManager.addService(IImsMedia.DESCRIPTOR + "/default",
                     ImsMediaHALtestService.getInstance());
         }

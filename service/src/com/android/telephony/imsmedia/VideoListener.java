@@ -18,8 +18,8 @@ package com.android.telephony.imsmedia;
 
 import android.os.Handler;
 import android.os.Parcel;
-import android.telephony.Rlog;
 import android.telephony.imsmedia.VideoConfig;
+import android.util.Log;
 
 /**
  * Video listener to process JNI messages from local AP based RTP stack
@@ -64,23 +64,23 @@ public class VideoListener implements JNIImsMediaListener {
         switch (event) {
             case VideoSession.EVENT_OPEN_SESSION_SUCCESS:
                 final int sessionId = parcel.readInt();
-                Rlog.d(LOG_TAG, "onMessage=" + event);
+                Log.d(LOG_TAG, "onMessage=" + event);
                 mCallback.onOpenSessionSuccess(sessionId,
                         new VideoLocalSession(sessionId, mNativeObject));
                 break;
             case VideoSession.EVENT_OPEN_SESSION_FAILURE:
-                Rlog.d(LOG_TAG, "onMessage=" + event);
+                Log.d(LOG_TAG, "onMessage=" + event);
                 mCallback.onOpenSessionFailure(parcel.readInt(), parcel.readInt());
                 break;
             case VideoSession.EVENT_SESSION_CLOSED:
-                Rlog.d(LOG_TAG, "onMessage=" + event);
+                Log.d(LOG_TAG, "onMessage=" + event);
                 mCallback.onSessionClosed(parcel.readInt());
                 break;
             case VideoSession.EVENT_MODIFY_SESSION_RESPONSE:
             {
                 final int result = parcel.readInt();
                 final VideoConfig config = VideoConfig.CREATOR.createFromParcel(parcel);
-                Rlog.d(LOG_TAG, "onMessage=" + event + ", result=" + result);
+                Log.d(LOG_TAG, "onMessage=" + event + ", result=" + result);
                 Utils.sendMessage(mHandler, event, result, Utils.UNUSED, config);
             }
                 break;

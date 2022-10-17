@@ -18,8 +18,8 @@ package com.android.telephony.imsmedia;
 
 import android.os.Handler;
 import android.os.Parcel;
-import android.telephony.Rlog;
 import android.telephony.imsmedia.TextConfig;
+import android.util.Log;
 
 /**
  * Text listener to process JNI messages from local AP based RTP stack
@@ -64,23 +64,23 @@ public class TextListener implements JNIImsMediaListener {
         switch (event) {
             case TextSession.EVENT_OPEN_SESSION_SUCCESS:
                 final int sessionId = parcel.readInt();
-                Rlog.d(LOG_TAG, "onMessage=" + event);
+                Log.d(LOG_TAG, "onMessage=" + event);
                 mCallback.onOpenSessionSuccess(sessionId,
                         new TextLocalSession(sessionId, mNativeObject));
                 break;
             case TextSession.EVENT_OPEN_SESSION_FAILURE:
-                Rlog.d(LOG_TAG, "onMessage=" + event);
+                Log.d(LOG_TAG, "onMessage=" + event);
                 mCallback.onOpenSessionFailure(parcel.readInt(),
                         parcel.readInt());
                 break;
             case TextSession.EVENT_SESSION_CLOSED:
-                Rlog.d(LOG_TAG, "onMessage=" + event);
+                Log.d(LOG_TAG, "onMessage=" + event);
                 mCallback.onSessionClosed(parcel.readInt());
                 break;
             case TextSession.EVENT_MODIFY_SESSION_RESPONSE:
                 final int result = parcel.readInt();
                 final TextConfig config = TextConfig.CREATOR.createFromParcel(parcel);
-                Rlog.d(LOG_TAG, "onMessage=" + event + ", result=" + result);
+                Log.d(LOG_TAG, "onMessage=" + event + ", result=" + result);
                 Utils.sendMessage(mHandler, event, result, Utils.UNUSED, config);
                 break;
             case TextSession.EVENT_MEDIA_INACTIVITY_IND:
@@ -88,7 +88,7 @@ public class TextListener implements JNIImsMediaListener {
                 break;
             case TextSession.EVENT_RTT_RECEIVED:
                 final String text = parcel.readString();
-                Rlog.d(LOG_TAG, "onMessage=" + event);
+                Log.d(LOG_TAG, "onMessage=" + event);
                 Utils.sendMessage(mHandler, event, text);
                 break;
             default:

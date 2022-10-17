@@ -23,8 +23,8 @@ import android.hardware.radio.ims.media.LocalEndPoint;
 import android.hardware.radio.ims.media.RtpConfig;
 import android.os.RemoteException;
 import android.os.ServiceManager;
-import android.telephony.Rlog;
 import android.telephony.imsmedia.AudioConfig;
+import android.util.Log;
 
 import com.android.telephony.imsmedia.Utils.OpenSessionParams;
 
@@ -55,14 +55,14 @@ public class AudioOffloadService {
 
     // Initializes the HAL
     private synchronized void initMediaHal() {
-        Rlog.d(LOG_TAG, "initMediaHal");
+        Log.d(LOG_TAG, "initMediaHal");
 
         try {
             mImsMedia = IImsMedia.Stub.asInterface(ServiceManager.waitForDeclaredService(
                     IImsMedia.DESCRIPTOR + "/default"));
             mImsMedia.setListener(listener);
         } catch (Exception e) {
-            Rlog.e(LOG_TAG, "initMediaHal: Exception: " + e);
+            Log.e(LOG_TAG, "initMediaHal: Exception: " + e);
             return;
         }
     }
@@ -98,7 +98,7 @@ public class AudioOffloadService {
         try {
             getIImsMedia().openSession(sessionId, lep, rtpConfig);
         } catch (RemoteException e) {
-            Rlog.e(LOG_TAG, "openSession: " + e);
+            Log.e(LOG_TAG, "openSession: " + e);
         }
     }
 
@@ -106,7 +106,7 @@ public class AudioOffloadService {
         try {
             getIImsMedia().closeSession(sessionId);
         } catch (RemoteException e) {
-            Rlog.e(LOG_TAG, "closeSession: " + e);
+            Log.e(LOG_TAG, "closeSession: " + e);
         }
     }
 

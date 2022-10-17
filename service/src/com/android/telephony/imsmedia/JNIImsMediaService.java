@@ -18,7 +18,7 @@ package com.android.telephony.imsmedia;
 
 import android.content.res.AssetManager;
 import android.os.Parcel;
-import android.telephony.Rlog;
+import android.util.Log;
 import android.view.Surface;
 
 import java.util.Hashtable;
@@ -105,7 +105,7 @@ public class JNIImsMediaService {
      * @param listener A listener to set for getting messages
      */
     public static void setListener(final long nativeObj, final JNIImsMediaListener listener) {
-        Rlog.d(TAG,"setListener");
+        Log.d(TAG, "setListener");
         if (nativeObj == 0 || listener == null) {
             return;
         }
@@ -122,7 +122,7 @@ public class JNIImsMediaService {
      * @return A JNIImsMediaListener listener
      */
     public static JNIImsMediaListener getListener(final long nativeObj) {
-        Rlog.d(TAG,"getListener");
+        Log.d(TAG, "getListener");
         if (nativeObj == 0) {
             return null;
         }
@@ -143,11 +143,11 @@ public class JNIImsMediaService {
      * @return 1 if it is success to send data, -1 when it fails
      */
     public static int sendData2Java(final long nativeObj, final byte[] baData) {
-        Rlog.d(TAG,"sendData2Java");
+        Log.d(TAG, "sendData2Java");
         JNIImsMediaListener listener = getListener(nativeObj);
 
         if (listener == null) {
-            Rlog.e(TAG, "No listener :: nativeObject=" + nativeObj);
+            Log.e(TAG, "No listener :: nativeObject=" + nativeObj);
             return -1;
         }
 
@@ -165,11 +165,11 @@ public class JNIImsMediaService {
     /** local shared libimsmediajni library */
     static {
         try {
-            Rlog.d(TAG, "libimsmedia :: loading");
+            Log.d(TAG, "libimsmedia :: loading");
             System.loadLibrary("imsmedia");
-            Rlog.d(TAG, "libimsmedia :: load completed");
+            Log.d(TAG, "libimsmedia :: load completed");
         } catch (UnsatisfiedLinkError e) {
-            Rlog.e(TAG, "Loading fail : libimsmedia.so");
+            Log.e(TAG, "Loading fail : libimsmedia.so");
         }
     }
 }
