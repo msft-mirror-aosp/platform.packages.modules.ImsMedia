@@ -152,6 +152,7 @@ public class ImsMediaController extends Service {
             synchronized (mSessions) {
                 while (mSessions.size() > 0) {
                     mImsMediaBinder.closeSession((IBinder) mSessions.valueAt(0));
+                    mSessions.removeAt(0);
                 }
                 mSessions.clear();
             }
