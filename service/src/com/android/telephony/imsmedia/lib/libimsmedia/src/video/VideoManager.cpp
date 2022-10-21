@@ -301,9 +301,12 @@ void VideoManager::RequestHandler::processEvent(
         }
         break;
         case kVideoCloseSession:
-            VideoManager::getInstance()->closeSession(static_cast<int>(sessionId));
-            ImsMediaEventHandler::SendEvent(
-                    "VIDEO_RESPONSE_EVENT", kVideoSessionClosed, sessionId, 0, 0);
+            if (VideoManager::getInstance()->closeSession(static_cast<int>(sessionId)) ==
+                    RESULT_SUCCESS)
+            {
+                ImsMediaEventHandler::SendEvent(
+                        "VIDEO_RESPONSE_EVENT", kVideoSessionClosed, sessionId, 0, 0);
+            }
             break;
         case kVideoSetPreviewSurface:
             VideoManager::getInstance()->setPreviewSurfaceToSession(

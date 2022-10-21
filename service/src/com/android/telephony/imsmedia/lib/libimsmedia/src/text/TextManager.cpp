@@ -254,9 +254,12 @@ void TextManager::RequestHandler::processEvent(
         }
         break;
         case kTextCloseSession:
-            TextManager::getInstance()->closeSession(static_cast<int>(sessionId));
-            ImsMediaEventHandler::SendEvent(
-                    "TEXT_RESPONSE_EVENT", kTextSessionClosed, sessionId, 0, 0);
+            if (TextManager::getInstance()->closeSession(static_cast<int>(sessionId)) ==
+                    RESULT_SUCCESS)
+            {
+                ImsMediaEventHandler::SendEvent(
+                        "TEXT_RESPONSE_EVENT", kTextSessionClosed, sessionId, 0, 0);
+            }
             break;
         case kTextModifySession:
         {

@@ -25,7 +25,7 @@ import android.util.Log;
  * Video listener to process JNI messages from local AP based RTP stack
  */
 public class VideoListener implements JNIImsMediaListener {
-    private static final String LOG_TAG = "VideoListener";
+    private static final String TAG = "VideoListener";
     private final Handler mHandler;
     private ImsMediaController.OpenSessionCallback mCallback;
     private long mNativeObject;
@@ -61,26 +61,20 @@ public class VideoListener implements JNIImsMediaListener {
     @Override
     public void onMessage(final Parcel parcel) {
         final int event = parcel.readInt();
+        Log.d(TAG, "onMessage() event=" + event);
         switch (event) {
             case VideoSession.EVENT_OPEN_SESSION_SUCCESS:
                 final int sessionId = parcel.readInt();
-                Log.d(LOG_TAG, "onMessage=" + event);
                 mCallback.onOpenSessionSuccess(sessionId,
                         new VideoLocalSession(sessionId, mNativeObject));
                 break;
             case VideoSession.EVENT_OPEN_SESSION_FAILURE:
-                Log.d(LOG_TAG, "onMessage=" + event);
                 mCallback.onOpenSessionFailure(parcel.readInt(), parcel.readInt());
-                break;
-            case VideoSession.EVENT_SESSION_CLOSED:
-                Log.d(LOG_TAG, "onMessage=" + event);
-                mCallback.onSessionClosed(parcel.readInt());
                 break;
             case VideoSession.EVENT_MODIFY_SESSION_RESPONSE:
             {
                 final int result = parcel.readInt();
                 final VideoConfig config = VideoConfig.CREATOR.createFromParcel(parcel);
-                Log.d(LOG_TAG, "onMessage=" + event + ", result=" + result);
                 Utils.sendMessage(mHandler, event, result, Utils.UNUSED, config);
             }
                 break;
@@ -104,6 +98,9 @@ public class VideoListener implements JNIImsMediaListener {
                 break;
             case VideoSession.EVENT_VIDEO_DATA_USAGE_IND:
                 Utils.sendMessage(mHandler, event, parcel.readLong());
+                break;
+            case VideoSession.EVENT_SESSION_CLOSED:
+                mCallback.onSessionClosed(parcel.readInt());
                 break;
             default:
                 break;

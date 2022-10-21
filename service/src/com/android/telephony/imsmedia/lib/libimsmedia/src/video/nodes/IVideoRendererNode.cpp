@@ -162,7 +162,6 @@ bool IVideoRendererNode::IsSameConfig(void* config)
 void IVideoRendererNode::ProcessData()
 {
     std::lock_guard<std::mutex> guard(mMutex);
-    uint8_t* pBuffer = NULL;
     uint8_t* pData = NULL;
     uint32_t nDataSize = 0;
     uint32_t nTimeStamp = 0;
@@ -174,8 +173,6 @@ void IVideoRendererNode::ProcessData()
     uint32_t nInitialSeqNum = 0;
     uint32_t nBufferOffset = 0;
     ImsMediaSubType dataType;
-
-    pBuffer = (uint8_t*)malloc(MAX_RTP_PAYLOAD_BUFFER_SIZE);
 
     while (GetData(&subtype, &pData, &nDataSize, &nTimeStamp, &bMark, &nSeqNum, &dataType))
     {
@@ -198,7 +195,7 @@ void IVideoRendererNode::ProcessData()
             return;
         }
 
-        memcpy(pBuffer + nBitstreamSize, pData, nDataSize);
+        memcpy(mBuffer + nBitstreamSize, pData, nDataSize);
         nBitstreamSize += nDataSize;
 
         if (nInitialSeqNum == 0)
@@ -214,10 +211,15 @@ void IVideoRendererNode::ProcessData()
         }
     }
 
+    if (nBitstreamSize == 0)
+    {
+        return;
+    }
+
     // remove AUD nal unit
     uint32_t nDatabufferSize = nBitstreamSize;
-    uint8_t* pDataBuff = pBuffer;
-    RemoveAUDNalUnit(pBuffer, nBitstreamSize, &pDataBuff, &nDatabufferSize);
+    uint8_t* pDataBuff = mBuffer;
+    RemoveAUDNalUnit(mBuffer, nBitstreamSize, &pDataBuff, &nDatabufferSize);
 
     // check Config String for updating config frame
     nBufferOffset = 0;
@@ -256,9 +258,11 @@ void IVideoRendererNode::ProcessData()
             }
         }
 
-        free(pBuffer);
         return;
     }
+
+    IMLOGD_PACKET2(IM_PACKET_LOG_VIDEO, "[ProcessData] nBitstreamSize[%d] nDatabufferSize[%d]",
+            nBitstreamSize, nDatabufferSize);
 
     bool isIntraFrame = IsIntraFrame(pDataBuff, nDatabufferSize);
 
@@ -283,12 +287,6 @@ void IVideoRendererNode::ProcessData()
 
             IMLOGD1("[ProcessData] wait intra frame[%d]", mWaitIntraFrame);
         }
-    }
-
-    if (nDatabufferSize == 0)  // no input data
-    {
-        free(pBuffer);
-        return;
     }
 
     if (mFirstFrame == false)
@@ -343,8 +341,7 @@ void IVideoRendererNode::ProcessData()
         QueueConfigFrame(timestamp);
     }
 
-    mVideoRenderer->OnDataFrame(pBuffer, nDatabufferSize, timestamp, false);
-    free(pBuffer);
+    mVideoRenderer->OnDataFrame(pDataBuff, nDatabufferSize, timestamp, false);
 }
 
 void IVideoRendererNode::UpdateSurface(ANativeWindow* window)

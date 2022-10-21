@@ -37,11 +37,8 @@ void BaseManager::setCallback(CBManager pfnCallback)
 
 int BaseManager::sendResponse(long obj, const android::Parcel& parcel)
 {
-    IMLOGD0("[sendResponse]");
-
     if (mCallback != NULL)
     {
-        IMLOGD0("[sendResponse] 1");
         return mCallback(obj, parcel);
     }
 

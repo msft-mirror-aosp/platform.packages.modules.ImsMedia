@@ -102,6 +102,7 @@ private:
     int32_t mCvoValue;
     uint8_t mConfigBuffer[MAX_CONFIG_INDEX][MAX_CONFIG_LEN];
     uint32_t mConfigLen[MAX_CONFIG_INDEX];
+    uint8_t mBuffer[MAX_RTP_PAYLOAD_BUFFER_SIZE];
     uint32_t mDeviceOrientation;
     bool mFirstFrame;
     ImsMediaSubType mSubtype;

@@ -25,7 +25,7 @@ import android.util.Log;
  * Text listener to process JNI messages from local AP based RTP stack
  */
 public class TextListener implements JNIImsMediaListener {
-    private static final String LOG_TAG = "TextListener";
+    private static final String TAG = "TextListener";
     private final Handler mHandler;
     private ImsMediaController.OpenSessionCallback mCallback;
     private long mNativeObject;
@@ -61,26 +61,20 @@ public class TextListener implements JNIImsMediaListener {
     @Override
     public void onMessage(final Parcel parcel) {
         final int event = parcel.readInt();
+        Log.d(TAG, "onMessage=" + event);
         switch (event) {
             case TextSession.EVENT_OPEN_SESSION_SUCCESS:
                 final int sessionId = parcel.readInt();
-                Log.d(LOG_TAG, "onMessage=" + event);
                 mCallback.onOpenSessionSuccess(sessionId,
                         new TextLocalSession(sessionId, mNativeObject));
                 break;
             case TextSession.EVENT_OPEN_SESSION_FAILURE:
-                Log.d(LOG_TAG, "onMessage=" + event);
                 mCallback.onOpenSessionFailure(parcel.readInt(),
                         parcel.readInt());
-                break;
-            case TextSession.EVENT_SESSION_CLOSED:
-                Log.d(LOG_TAG, "onMessage=" + event);
-                mCallback.onSessionClosed(parcel.readInt());
                 break;
             case TextSession.EVENT_MODIFY_SESSION_RESPONSE:
                 final int result = parcel.readInt();
                 final TextConfig config = TextConfig.CREATOR.createFromParcel(parcel);
-                Log.d(LOG_TAG, "onMessage=" + event + ", result=" + result);
                 Utils.sendMessage(mHandler, event, result, Utils.UNUSED, config);
                 break;
             case TextSession.EVENT_MEDIA_INACTIVITY_IND:
@@ -88,8 +82,10 @@ public class TextListener implements JNIImsMediaListener {
                 break;
             case TextSession.EVENT_RTT_RECEIVED:
                 final String text = parcel.readString();
-                Log.d(LOG_TAG, "onMessage=" + event);
                 Utils.sendMessage(mHandler, event, text);
+                break;
+            case TextSession.EVENT_SESSION_CLOSED:
+                mCallback.onSessionClosed(parcel.readInt());
                 break;
             default:
                 break;
