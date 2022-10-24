@@ -98,6 +98,10 @@ TEST_F(TextConfigTest, TestAssign)
 {
     TextConfig testConfig = config1;
     EXPECT_EQ(config1, testConfig);
+
+    TextConfig* testConfig2 = new TextConfig(config1);
+    EXPECT_EQ(config1, *testConfig2);
+    delete testConfig2;
 }
 
 TEST_F(TextConfigTest, TestEqual)

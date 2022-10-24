@@ -39,6 +39,7 @@ class MediaQuality : public Parcelable
 {
 public:
     MediaQuality();
+    MediaQuality(const MediaQuality& quality);
     virtual ~MediaQuality();
     enum
     {

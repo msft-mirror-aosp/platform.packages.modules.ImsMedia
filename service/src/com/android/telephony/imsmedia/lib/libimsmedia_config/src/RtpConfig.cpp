@@ -52,7 +52,7 @@ RtpConfig::RtpConfig(RtpConfig* config)
     type = config->type;
     direction = config->direction;
     accessNetwork = config->accessNetwork;
-    remoteAddress = config->remoteAddress;
+    remoteAddress = String8(config->remoteAddress.string());
     remotePort = config->remotePort;
     rtcpConfig = config->rtcpConfig;
     dscp = config->dscp;
@@ -61,12 +61,12 @@ RtpConfig::RtpConfig(RtpConfig* config)
     samplingRateKHz = config->samplingRateKHz;
 }
 
-RtpConfig::RtpConfig(RtpConfig& config)
+RtpConfig::RtpConfig(const RtpConfig& config)
 {
     type = config.type;
     direction = config.direction;
     accessNetwork = config.accessNetwork;
-    remoteAddress = config.remoteAddress;
+    remoteAddress = String8(config.remoteAddress.string());
     remotePort = config.remotePort;
     rtcpConfig = config.rtcpConfig;
     dscp = config.dscp;
@@ -80,7 +80,7 @@ RtpConfig& RtpConfig::operator=(const RtpConfig& config)
     type = config.type;
     direction = config.direction;
     accessNetwork = config.accessNetwork;
-    remoteAddress = config.remoteAddress;
+    remoteAddress = String8(config.remoteAddress.string());
     remotePort = config.remotePort;
     rtcpConfig = config.rtcpConfig;
     dscp = config.dscp;

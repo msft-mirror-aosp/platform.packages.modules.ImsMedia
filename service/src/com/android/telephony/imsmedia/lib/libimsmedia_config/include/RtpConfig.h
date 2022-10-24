@@ -88,7 +88,7 @@ public:
 protected:
     RtpConfig(int32_t type);
     RtpConfig(RtpConfig* config);
-    RtpConfig(RtpConfig& config);
+    RtpConfig(const RtpConfig& config);
 
     /* definition of uninitialized port number*/
     const static int32_t UNINITIALIZED_PORT = -1;

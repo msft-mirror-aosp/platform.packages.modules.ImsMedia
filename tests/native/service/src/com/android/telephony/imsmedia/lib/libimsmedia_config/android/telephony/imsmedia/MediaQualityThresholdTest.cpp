@@ -26,113 +26,82 @@ const int32_t kRtpPacketLossRate = 5;
 const int32_t kJitterDurationMillis = 5000;
 const int32_t kRtpJitterMillis = 300;
 
-TEST(MediaQualityThresholdTest, TestGetterSetter)
+class MediaQualityThresholdTest : public ::testing::Test
 {
-    MediaQualityThreshold* threshold = new MediaQualityThreshold();
-    threshold->setRtpInactivityTimerMillis(kRtpInactivityTimerMillis);
-    threshold->setRtcpInactivityTimerMillis(kRtcpInactivityTimerMillis);
-    threshold->setRtpPacketLossDurationMillis(kRtpPacketLossDurationMillis);
-    threshold->setRtpPacketLossRate(kRtpPacketLossRate);
-    threshold->setJitterDurationMillis(kJitterDurationMillis);
-    threshold->setRtpJitterMillis(kRtpJitterMillis);
-    EXPECT_EQ(threshold->getRtpInactivityTimerMillis(), kRtpInactivityTimerMillis);
-    EXPECT_EQ(threshold->getRtcpInactivityTimerMillis(), kRtcpInactivityTimerMillis);
-    EXPECT_EQ(threshold->getRtpPacketLossDurationMillis(), kRtpPacketLossDurationMillis);
-    EXPECT_EQ(threshold->getRtpPacketLossRate(), kRtpPacketLossRate);
-    EXPECT_EQ(threshold->getJitterDurationMillis(), kJitterDurationMillis);
-    EXPECT_EQ(threshold->getRtpJitterMillis(), kRtpJitterMillis);
-    delete threshold;
+public:
+    MediaQualityThreshold threshold1;
+    MediaQualityThreshold threshold2;
+    MediaQualityThreshold threshold3;
+
+protected:
+    virtual void SetUp() override
+    {
+        threshold1.setRtpInactivityTimerMillis(kRtpInactivityTimerMillis);
+        threshold1.setRtcpInactivityTimerMillis(kRtcpInactivityTimerMillis);
+        threshold1.setRtpPacketLossDurationMillis(kRtpPacketLossDurationMillis);
+        threshold1.setRtpPacketLossRate(kRtpPacketLossRate);
+        threshold1.setJitterDurationMillis(kJitterDurationMillis);
+        threshold1.setRtpJitterMillis(kRtpJitterMillis);
+    }
+
+    virtual void TearDown() override {}
+};
+
+TEST_F(MediaQualityThresholdTest, TestGetterSetter)
+{
+    EXPECT_EQ(threshold1.getRtpInactivityTimerMillis(), kRtpInactivityTimerMillis);
+    EXPECT_EQ(threshold1.getRtcpInactivityTimerMillis(), kRtcpInactivityTimerMillis);
+    EXPECT_EQ(threshold1.getRtpPacketLossDurationMillis(), kRtpPacketLossDurationMillis);
+    EXPECT_EQ(threshold1.getRtpPacketLossRate(), kRtpPacketLossRate);
+    EXPECT_EQ(threshold1.getJitterDurationMillis(), kJitterDurationMillis);
+    EXPECT_EQ(threshold1.getRtpJitterMillis(), kRtpJitterMillis);
 }
 
-TEST(MediaQualityThresholdTest, TestParcel)
+TEST_F(MediaQualityThresholdTest, TestParcel)
 {
-    MediaQualityThreshold* threshold = new MediaQualityThreshold();
-    threshold->setRtpInactivityTimerMillis(kRtpInactivityTimerMillis);
-    threshold->setRtcpInactivityTimerMillis(kRtcpInactivityTimerMillis);
-    threshold->setRtpPacketLossDurationMillis(kRtpPacketLossDurationMillis);
-    threshold->setRtpPacketLossRate(kRtpPacketLossRate);
-    threshold->setJitterDurationMillis(kJitterDurationMillis);
-    threshold->setRtpJitterMillis(kRtpJitterMillis);
-
     android::Parcel parcel;
-    threshold->writeToParcel(&parcel);
+    threshold1.writeToParcel(&parcel);
     parcel.setDataPosition(0);
 
-    MediaQualityThreshold* threshold2 = new MediaQualityThreshold();
-    threshold2->readFromParcel(&parcel);
-    EXPECT_EQ(*threshold2, *threshold);
-
-    delete threshold;
-    delete threshold2;
+    MediaQualityThreshold testThreshold;
+    testThreshold.readFromParcel(&parcel);
+    EXPECT_EQ(testThreshold, threshold1);
 }
 
-TEST(MediaQualityThresholdTest, TestAssign)
+TEST_F(MediaQualityThresholdTest, TestAssign)
 {
-    MediaQualityThreshold threshold;
-    threshold.setRtpInactivityTimerMillis(kRtpInactivityTimerMillis);
-    threshold.setRtcpInactivityTimerMillis(kRtcpInactivityTimerMillis);
-    threshold.setRtpPacketLossDurationMillis(kRtpPacketLossDurationMillis);
-    threshold.setRtpPacketLossRate(kRtpPacketLossRate);
-    threshold.setJitterDurationMillis(kJitterDurationMillis);
-    threshold.setRtpJitterMillis(kRtpJitterMillis);
-
-    MediaQualityThreshold threshold2;
-    threshold2 = threshold;
-    EXPECT_EQ(threshold, threshold2);
+    MediaQualityThreshold threshold2 = threshold1;
+    EXPECT_EQ(threshold1, threshold2);
 }
 
-TEST(MediaQualityThresholdTest, TestEqual)
+TEST_F(MediaQualityThresholdTest, TestEqual)
 {
-    MediaQualityThreshold* threshold = new MediaQualityThreshold();
-    threshold->setRtpInactivityTimerMillis(kRtpInactivityTimerMillis);
-    threshold->setRtcpInactivityTimerMillis(kRtcpInactivityTimerMillis);
-    threshold->setRtpPacketLossDurationMillis(kRtpPacketLossDurationMillis);
-    threshold->setRtpPacketLossRate(kRtpPacketLossRate);
-    threshold->setJitterDurationMillis(kJitterDurationMillis);
-    threshold->setRtpJitterMillis(kRtpJitterMillis);
+    threshold2.setRtpInactivityTimerMillis(kRtpInactivityTimerMillis);
+    threshold2.setRtcpInactivityTimerMillis(kRtcpInactivityTimerMillis);
+    threshold2.setRtpPacketLossDurationMillis(kRtpPacketLossDurationMillis);
+    threshold2.setRtpPacketLossRate(kRtpPacketLossRate);
+    threshold2.setJitterDurationMillis(kJitterDurationMillis);
+    threshold2.setRtpJitterMillis(kRtpJitterMillis);
 
-    MediaQualityThreshold* threshold2 = new MediaQualityThreshold();
-    threshold2->setRtpInactivityTimerMillis(kRtpInactivityTimerMillis);
-    threshold2->setRtcpInactivityTimerMillis(kRtcpInactivityTimerMillis);
-    threshold2->setRtpPacketLossDurationMillis(kRtpPacketLossDurationMillis);
-    threshold2->setRtpPacketLossRate(kRtpPacketLossRate);
-    threshold2->setJitterDurationMillis(kJitterDurationMillis);
-    threshold2->setRtpJitterMillis(kRtpJitterMillis);
-
-    EXPECT_EQ(*threshold, *threshold2);
-    delete threshold;
-    delete threshold2;
+    EXPECT_EQ(threshold1, threshold2);
 }
 
-TEST(MediaQualityThresholdTest, TestNotEqual)
+TEST_F(MediaQualityThresholdTest, TestNotEqual)
 {
-    MediaQualityThreshold* threshold = new MediaQualityThreshold();
-    threshold->setRtpInactivityTimerMillis(kRtpInactivityTimerMillis);
-    threshold->setRtcpInactivityTimerMillis(kRtcpInactivityTimerMillis);
-    threshold->setRtpPacketLossDurationMillis(kRtpPacketLossDurationMillis);
-    threshold->setRtpPacketLossRate(kRtpPacketLossRate);
-    threshold->setJitterDurationMillis(kJitterDurationMillis);
-    threshold->setRtpJitterMillis(kRtpJitterMillis);
+    threshold2.setRtpInactivityTimerMillis(5000);
+    threshold2.setRtcpInactivityTimerMillis(kRtcpInactivityTimerMillis);
+    threshold2.setRtpPacketLossDurationMillis(kRtpPacketLossDurationMillis);
+    threshold2.setRtpPacketLossRate(kRtpPacketLossRate);
+    threshold2.setJitterDurationMillis(kJitterDurationMillis);
+    threshold2.setRtpJitterMillis(kRtpJitterMillis);
 
-    MediaQualityThreshold* threshold2 = new MediaQualityThreshold();
-    threshold->setRtpInactivityTimerMillis(5000);
-    threshold->setRtcpInactivityTimerMillis(kRtcpInactivityTimerMillis);
-    threshold->setRtpPacketLossDurationMillis(kRtpPacketLossDurationMillis);
-    threshold->setRtpPacketLossRate(kRtpPacketLossRate);
-    threshold->setJitterDurationMillis(kJitterDurationMillis);
-    threshold->setRtpJitterMillis(kRtpJitterMillis);
+    threshold3.setRtpInactivityTimerMillis(kRtpInactivityTimerMillis);
+    threshold3.setRtcpInactivityTimerMillis(kRtcpInactivityTimerMillis);
+    threshold3.setRtpPacketLossDurationMillis(kRtpPacketLossDurationMillis);
+    threshold3.setRtpPacketLossRate(1);
+    threshold3.setJitterDurationMillis(kJitterDurationMillis);
+    threshold3.setRtpJitterMillis(kRtpJitterMillis);
 
-    MediaQualityThreshold* threshold3 = new MediaQualityThreshold();
-    threshold->setRtpInactivityTimerMillis(kRtpInactivityTimerMillis);
-    threshold->setRtcpInactivityTimerMillis(kRtcpInactivityTimerMillis);
-    threshold->setRtpPacketLossDurationMillis(kRtpPacketLossDurationMillis);
-    threshold->setRtpPacketLossRate(1);
-    threshold->setJitterDurationMillis(kJitterDurationMillis);
-    threshold->setRtpJitterMillis(kRtpJitterMillis);
-
-    EXPECT_NE(*threshold, *threshold2);
-    EXPECT_NE(*threshold, *threshold3);
-    delete threshold;
-    delete threshold2;
-    delete threshold3;
+    EXPECT_NE(threshold1, threshold2);
+    EXPECT_NE(threshold1, threshold3);
 }

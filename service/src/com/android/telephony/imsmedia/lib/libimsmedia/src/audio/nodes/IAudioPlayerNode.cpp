@@ -28,6 +28,7 @@ IAudioPlayerNode::IAudioPlayerNode(BaseSessionCallback* callback) :
 {
     std::unique_ptr<ImsMediaAudioPlayer> track(new ImsMediaAudioPlayer());
     mAudioPlayer = std::move(track);
+    mConfig = NULL;
 }
 
 IAudioPlayerNode::~IAudioPlayerNode()
@@ -115,9 +116,10 @@ void IAudioPlayerNode::SetConfig(void* config)
     if (mConfig != NULL)
     {
         delete mConfig;
+        mConfig = NULL;
     }
 
-    mConfig = new AudioConfig(*reinterpret_cast<AudioConfig*>(config));
+    mConfig = new AudioConfig(*static_cast<AudioConfig*>(config));
     mCodecType = ImsMediaAudioUtil::ConvertCodecType(mConfig->getCodecType());
 
     if (mCodecType == kAudioCodecAmr || mCodecType == kAudioCodecAmrWb)

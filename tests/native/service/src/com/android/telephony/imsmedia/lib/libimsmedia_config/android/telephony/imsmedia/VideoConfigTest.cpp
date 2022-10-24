@@ -147,6 +147,10 @@ TEST_F(VideoConfigTest, TestAssign)
 {
     VideoConfig testConfig = config1;
     EXPECT_EQ(config1, testConfig);
+
+    VideoConfig* testConfig2 = new VideoConfig(config1);
+    EXPECT_EQ(config1, *testConfig2);
+    delete testConfig2;
 }
 
 TEST_F(VideoConfigTest, TestEqual)

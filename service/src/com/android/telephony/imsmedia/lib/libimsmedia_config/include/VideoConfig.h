@@ -175,7 +175,7 @@ public:
 
     VideoConfig();
     VideoConfig(VideoConfig* config);
-    VideoConfig(VideoConfig& config);
+    VideoConfig(const VideoConfig& config);
     virtual ~VideoConfig();
     VideoConfig& operator=(const VideoConfig& config);
     bool operator==(const VideoConfig& config) const;

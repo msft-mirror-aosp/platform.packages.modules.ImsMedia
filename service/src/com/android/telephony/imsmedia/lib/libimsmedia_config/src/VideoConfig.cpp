@@ -73,7 +73,7 @@ VideoConfig::VideoConfig(VideoConfig* config) :
     rtcpFbTypes = config->rtcpFbTypes;
 }
 
-VideoConfig::VideoConfig(VideoConfig& config) :
+VideoConfig::VideoConfig(const VideoConfig& config) :
         RtpConfig(config)
 {
     videoMode = config.videoMode;

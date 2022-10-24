@@ -57,7 +57,7 @@ public:
 
     AudioConfig();
     AudioConfig(AudioConfig* config);
-    AudioConfig(AudioConfig& config);
+    AudioConfig(const AudioConfig& config);
     virtual ~AudioConfig();
     AudioConfig& operator=(const AudioConfig& config);
     bool operator==(const AudioConfig& config) const;

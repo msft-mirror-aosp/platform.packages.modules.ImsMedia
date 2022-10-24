@@ -89,7 +89,7 @@ public:
     const int32_t kRtcpXrBlockTypes = FLAG_RTCPXR_NONE;
 
     RtcpConfig();
-    RtcpConfig(RtcpConfig& config);
+    RtcpConfig(const RtcpConfig& config);
     virtual ~RtcpConfig();
     RtcpConfig& operator=(const RtcpConfig& config);
     bool operator==(const RtcpConfig& config) const;

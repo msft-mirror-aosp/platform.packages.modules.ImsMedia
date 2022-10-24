@@ -57,7 +57,7 @@ AudioConfig::AudioConfig(AudioConfig* config) :
     }
 }
 
-AudioConfig::AudioConfig(AudioConfig& config) :
+AudioConfig::AudioConfig(const AudioConfig& config) :
         RtpConfig(config)
 {
     pTimeMillis = config.pTimeMillis;

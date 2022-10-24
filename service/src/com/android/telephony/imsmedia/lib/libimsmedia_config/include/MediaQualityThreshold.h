@@ -36,7 +36,7 @@ class MediaQualityThreshold : public Parcelable
 {
 public:
     MediaQualityThreshold();
-    MediaQualityThreshold(Parcel& in);
+    MediaQualityThreshold(const MediaQualityThreshold& threshold);
     virtual ~MediaQualityThreshold();
     MediaQualityThreshold& operator=(const MediaQualityThreshold& threshold);
     bool operator==(const MediaQualityThreshold& threshold) const;

@@ -35,14 +35,14 @@ MediaQualityThreshold::MediaQualityThreshold()
     mRtpJitterMillis = 0;
 }
 
-MediaQualityThreshold::MediaQualityThreshold(Parcel& in)
+MediaQualityThreshold::MediaQualityThreshold(const MediaQualityThreshold& threshold)
 {
-    mRtpInactivityTimerMillis = in.readInt32();
-    mRtcpInactivityTimerMillis = in.readInt32();
-    mRtpPacketLossDurationMillis = in.readInt32();
-    mRtpPacketLossRate = in.readInt32();
-    mJitterDurationMillis = in.readInt32();
-    mRtpJitterMillis = in.readInt32();
+    mRtpInactivityTimerMillis = threshold.mRtpInactivityTimerMillis;
+    mRtcpInactivityTimerMillis = threshold.mRtcpInactivityTimerMillis;
+    mRtpPacketLossDurationMillis = threshold.mRtpPacketLossDurationMillis;
+    mRtpPacketLossRate = threshold.mRtpPacketLossRate;
+    mJitterDurationMillis = threshold.mJitterDurationMillis;
+    mRtpJitterMillis = threshold.mRtpJitterMillis;
 }
 
 MediaQualityThreshold::~MediaQualityThreshold() {}

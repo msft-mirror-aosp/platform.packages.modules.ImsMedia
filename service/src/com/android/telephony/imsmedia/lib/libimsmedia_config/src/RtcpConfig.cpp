@@ -18,9 +18,9 @@ RtcpConfig::RtcpConfig() :
 {
 }
 
-RtcpConfig::RtcpConfig(RtcpConfig& config)
+RtcpConfig::RtcpConfig(const RtcpConfig& config)
 {
-    this->canonicalName = config.canonicalName;
+    this->canonicalName = String8(config.canonicalName.string());
     this->transmitPort = config.transmitPort;
     this->intervalSec = config.intervalSec;
     this->rtcpXrBlockTypes = config.rtcpXrBlockTypes;
@@ -30,7 +30,7 @@ RtcpConfig::~RtcpConfig() {}
 
 RtcpConfig& RtcpConfig::operator=(const RtcpConfig& config)
 {
-    this->canonicalName = config.canonicalName;
+    this->canonicalName = String8(config.canonicalName.string());
     this->transmitPort = config.transmitPort;
     this->intervalSec = config.intervalSec;
     this->rtcpXrBlockTypes = config.rtcpXrBlockTypes;
