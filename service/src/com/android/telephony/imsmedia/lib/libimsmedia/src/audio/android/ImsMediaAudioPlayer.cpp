@@ -181,7 +181,7 @@ bool ImsMediaAudioPlayer::Start()
         return false;
     }
 
-    IMLOGD1("[Start] start stream state[%s]", AAudio_convertStreamStateToText(nextState));
+    IMLOGI1("[Start] start stream state[%s]", AAudio_convertStreamStateToText(nextState));
 
     if (mCodecType == kAudioCodecAmr || mCodecType == kAudioCodecAmrWb)
     {
@@ -229,7 +229,7 @@ void ImsMediaAudioPlayer::Stop()
         IMLOGE1("[Stop] Error stop stream[%s]", AAudio_convertResultToText(result));
     }
 
-    IMLOGD1("[Stop] Stop stream state[%s]", AAudio_convertStreamStateToText(nextState));
+    IMLOGI1("[Stop] Stop stream state[%s]", AAudio_convertStreamStateToText(nextState));
 
     if (mAudioStream != NULL)
     {
@@ -354,7 +354,7 @@ bool ImsMediaAudioPlayer::decodeEvs(uint8_t* buffer, uint32_t size)
     int decodeSize = 0;
 
     // TODO: Integration with libEVS is required to decode buffer data.
-    buffer;
+    (void)buffer;
 
     if (!mIsEvsInitialized)
     {
@@ -453,7 +453,7 @@ void ImsMediaAudioPlayer::restartAudioStream()
         return;
     }
 
-    IMLOGD1("[restartAudioStream] start stream state[%s]",
+    IMLOGI1("[restartAudioStream] start stream state[%s]",
             AAudio_convertStreamStateToText(nextState));
 }
 

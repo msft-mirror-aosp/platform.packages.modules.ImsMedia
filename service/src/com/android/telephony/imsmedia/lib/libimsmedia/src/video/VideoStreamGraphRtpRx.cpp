@@ -33,7 +33,7 @@ VideoStreamGraphRtpRx::~VideoStreamGraphRtpRx() {}
 
 ImsMediaResult VideoStreamGraphRtpRx::create(RtpConfig* config)
 {
-    IMLOGD1("[createGraph] state[%d]", mGraphState);
+    IMLOGI1("[create] state[%d]", mGraphState);
 
     if (config == NULL)
     {
@@ -79,7 +79,7 @@ ImsMediaResult VideoStreamGraphRtpRx::create(RtpConfig* config)
 
 ImsMediaResult VideoStreamGraphRtpRx::update(RtpConfig* config)
 {
-    IMLOGD1("[update] state[%d]", mGraphState);
+    IMLOGI1("[update] state[%d]", mGraphState);
 
     if (config == NULL)
     {
@@ -111,7 +111,7 @@ ImsMediaResult VideoStreamGraphRtpRx::update(RtpConfig* config)
             mConfig->getMediaDirection() == RtpConfig::MEDIA_DIRECTION_SEND_ONLY ||
             mConfig->getMediaDirection() == RtpConfig::MEDIA_DIRECTION_INACTIVE)
     {
-        IMLOGD0("[update] pause RX");
+        IMLOGI0("[update] pause RX");
         return stop();
     }
 
@@ -157,7 +157,7 @@ ImsMediaResult VideoStreamGraphRtpRx::update(RtpConfig* config)
             (pConfig->getMediaDirection() == RtpConfig::MEDIA_DIRECTION_RECEIVE_ONLY ||
                     pConfig->getMediaDirection() == RtpConfig::MEDIA_DIRECTION_SEND_RECEIVE))
     {
-        IMLOGD0("[update] resume RX");
+        IMLOGI0("[update] resume RX");
         return start();
     }
 
@@ -166,7 +166,7 @@ ImsMediaResult VideoStreamGraphRtpRx::update(RtpConfig* config)
 
 ImsMediaResult VideoStreamGraphRtpRx::start()
 {
-    IMLOGD1("[start] state[%d]", mGraphState);
+    IMLOGI1("[start] state[%d]", mGraphState);
 
     if (mConfig == NULL)
     {
@@ -179,13 +179,13 @@ ImsMediaResult VideoStreamGraphRtpRx::start()
             pConfig->getMediaDirection() == RtpConfig::MEDIA_DIRECTION_SEND_ONLY ||
             mConfig->getMediaDirection() == RtpConfig::MEDIA_DIRECTION_INACTIVE)
     {
-        IMLOGD1("[start] direction[%d] no need to start", pConfig->getMediaDirection());
+        IMLOGI1("[start] direction[%d] no need to start", pConfig->getMediaDirection());
         return RESULT_SUCCESS;
     }
 
     if (mSurface == NULL)
     {
-        IMLOGD2("[start] direction[%d], mode[%d], surface is not ready, wait",
+        IMLOGI2("[start] direction[%d], mode[%d], surface is not ready, wait",
                 pConfig->getMediaDirection(), pConfig->getVideoMode());
         setState(StreamState::kStreamStateWaitSurface);
         return RESULT_SUCCESS;
@@ -257,7 +257,7 @@ void VideoStreamGraphRtpRx::setSurface(ANativeWindow* surface)
 
 bool VideoStreamGraphRtpRx::OnEvent(int32_t type, uint64_t param1, uint64_t param2)
 {
-    IMLOGD3("[OnEvent] type[%d], param1[%d], param2[%d]", type, param1, param2);
+    IMLOGI3("[OnEvent] type[%d], param1[%d], param2[%d]", type, param1, param2);
 
     switch (type)
     {

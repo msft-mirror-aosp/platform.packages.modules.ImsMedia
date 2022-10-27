@@ -52,11 +52,7 @@ int VideoManager::getState(int sessionId)
 ImsMediaResult VideoManager::openSession(
         const int sessionId, const int rtpFd, const int rtcpFd, VideoConfig* config)
 {
-    IMLOGD1("[openSession] sessionId[%d]", sessionId);
-
-    // set debug log
-    ImsMediaTrace::IMSetDebugLog(
-            ImsMediaTrace::IMGetDebugLog() | IM_PACKET_LOG_VIDEO | IM_PACKET_LOG_RTPSTACK);
+    IMLOGI1("[openSession] sessionId[%d]", sessionId);
 
     if (rtpFd == -1 || rtcpFd == -1)
     {
@@ -73,7 +69,7 @@ ImsMediaResult VideoManager::openSession(
 
         if (ret != RESULT_SUCCESS)
         {
-            IMLOGD1("[openSession] startGraph failed[%d]", ret);
+            IMLOGI1("[openSession] startGraph failed[%d]", ret);
         }
     }
     else
@@ -86,7 +82,7 @@ ImsMediaResult VideoManager::openSession(
 
 ImsMediaResult VideoManager::closeSession(const int sessionId)
 {
-    IMLOGD1("closeSession() - sessionId[%d]", sessionId);
+    IMLOGI1("[closeSession] sessionId[%d]", sessionId);
 
     if (mSessions.count(sessionId))
     {
@@ -100,7 +96,7 @@ ImsMediaResult VideoManager::closeSession(const int sessionId)
 ImsMediaResult VideoManager::setPreviewSurfaceToSession(const int sessionId, ANativeWindow* surface)
 {
     auto session = mSessions.find(sessionId);
-    IMLOGD1("setPreviewSurfaceToSession() - sessionId[%d]", sessionId);
+    IMLOGI1("[setPreviewSurfaceToSession] sessionId[%d]", sessionId);
 
     if (session != mSessions.end())
     {
@@ -108,7 +104,7 @@ ImsMediaResult VideoManager::setPreviewSurfaceToSession(const int sessionId, ANa
     }
     else
     {
-        IMLOGE1("setPreviewSurfaceToSession() - no session id[%d]", sessionId);
+        IMLOGE1("[setPreviewSurfaceToSession] no session id[%d]", sessionId);
         return RESULT_INVALID_PARAM;
     }
 }
@@ -116,7 +112,7 @@ ImsMediaResult VideoManager::setPreviewSurfaceToSession(const int sessionId, ANa
 ImsMediaResult VideoManager::setDisplaySurfaceToSession(const int sessionId, ANativeWindow* surface)
 {
     auto session = mSessions.find(sessionId);
-    IMLOGD1("setDisplaySurfaceToSession() - sessionId[%d]", sessionId);
+    IMLOGI1("[setDisplaySurfaceToSession] sessionId[%d]", sessionId);
 
     if (session != mSessions.end())
     {
@@ -124,7 +120,7 @@ ImsMediaResult VideoManager::setDisplaySurfaceToSession(const int sessionId, ANa
     }
     else
     {
-        IMLOGE1("setDisplaySurfaceToSession() - no session id[%d]", sessionId);
+        IMLOGE1("[setDisplaySurfaceToSession] no session id[%d]", sessionId);
         return RESULT_INVALID_PARAM;
     }
 }
@@ -132,7 +128,7 @@ ImsMediaResult VideoManager::setDisplaySurfaceToSession(const int sessionId, ANa
 ImsMediaResult VideoManager::modifySession(const int sessionId, VideoConfig* config)
 {
     auto session = mSessions.find(sessionId);
-    IMLOGD1("modifySession() - sessionId[%d]", sessionId);
+    IMLOGI1("[modifySession] sessionId[%d]", sessionId);
 
     if (session != mSessions.end())
     {
@@ -140,7 +136,7 @@ ImsMediaResult VideoManager::modifySession(const int sessionId, VideoConfig* con
     }
     else
     {
-        IMLOGE1("modifySession() - no session id[%d]", sessionId);
+        IMLOGE1("[modifySession] no session id[%d]", sessionId);
         return RESULT_INVALID_PARAM;
     }
 }
@@ -148,7 +144,7 @@ ImsMediaResult VideoManager::modifySession(const int sessionId, VideoConfig* con
 void VideoManager::setMediaQualityThreshold(const int sessionId, MediaQualityThreshold* threshold)
 {
     auto session = mSessions.find(sessionId);
-    IMLOGD1("setMediaQualityThreshold() - sessionId[%d]", sessionId);
+    IMLOGI1("[setMediaQualityThreshold] sessionId[%d]", sessionId);
 
     if (session != mSessions.end())
     {
@@ -156,7 +152,7 @@ void VideoManager::setMediaQualityThreshold(const int sessionId, MediaQualityThr
     }
     else
     {
-        IMLOGE1("setMediaQualityThreshold() - no session id[%d]", sessionId);
+        IMLOGE1("[setMediaQualityThreshold] no session id[%d]", sessionId);
     }
 }
 
@@ -176,7 +172,7 @@ void VideoManager::sendMessage(const int sessionId, const android::Parcel& parce
 
             if (err != NO_ERROR)
             {
-                IMLOGE1("sendMessage() - error readFromParcel[%d]", err);
+                IMLOGE1("[sendMessage] error readFromParcel[%d]", err);
                 delete config;
                 config = NULL;
             }
@@ -196,7 +192,7 @@ void VideoManager::sendMessage(const int sessionId, const android::Parcel& parce
 
             if (err != NO_ERROR)
             {
-                IMLOGE1("sendMessage() - error readFromParcel[%d]", err);
+                IMLOGE1("[sendMessage] error readFromParcel[%d]", err);
             }
 
             ImsMediaEventHandler::SendEvent(
@@ -221,14 +217,14 @@ void VideoManager::sendMessage(const int sessionId, const android::Parcel& parce
 
 void VideoManager::setPreviewSurface(const int sessionId, ANativeWindow* surface)
 {
-    IMLOGD1("[setPreviewSurface] sessionId[%d]", sessionId);
+    IMLOGI1("[setPreviewSurface] sessionId[%d]", sessionId);
     ImsMediaEventHandler::SendEvent("VIDEO_REQUEST_EVENT", kVideoSetPreviewSurface, sessionId,
             reinterpret_cast<uint64_t>(surface));
 }
 
 void VideoManager::setDisplaySurface(const int sessionId, ANativeWindow* surface)
 {
-    IMLOGD1("[setDisplaySurface] sessionId[%d]", sessionId);
+    IMLOGI1("[setDisplaySurface] sessionId[%d]", sessionId);
     ImsMediaEventHandler::SendEvent("VIDEO_REQUEST_EVENT", kVideoSetDisplaySurface, sessionId,
             reinterpret_cast<uint64_t>(surface));
 }
@@ -237,7 +233,7 @@ void VideoManager::SendInternalEvent(
         uint32_t event, uint64_t sessionId, uint64_t paramA, uint64_t paramB)
 {
     auto session = mSessions.find(sessionId);
-    IMLOGD1("SendInternalEvent() - sessionId[%d]", sessionId);
+    IMLOGI1("[SendInternalEvent] sessionId[%d]", sessionId);
 
     if (session != mSessions.end())
     {
@@ -245,7 +241,7 @@ void VideoManager::SendInternalEvent(
     }
     else
     {
-        IMLOGE1("SendInternalEvent() - no session id[%d]", sessionId);
+        IMLOGE1("[SendInternalEvent] no session id[%d]", sessionId);
     }
 }
 
@@ -259,7 +255,7 @@ VideoManager::RequestHandler::~RequestHandler() {}
 void VideoManager::RequestHandler::processEvent(
         uint32_t event, uint64_t sessionId, uint64_t paramA, uint64_t paramB)
 {
-    IMLOGD4("[processEvent] event[%d], sessionId[%d], paramA[%d], paramB[%d]", event, sessionId,
+    IMLOGI4("[processEvent] event[%d], sessionId[%d], paramA[%d], paramB[%d]", event, sessionId,
             paramA, paramB);
     ImsMediaResult result = RESULT_SUCCESS;
 
@@ -365,7 +361,7 @@ VideoManager::ResponseHandler::~ResponseHandler() {}
 void VideoManager::ResponseHandler::processEvent(
         uint32_t event, uint64_t sessionId, uint64_t paramA, uint64_t paramB)
 {
-    IMLOGD4("[processEvent] event[%d], sessionId[%d], paramA[%d], paramB[%d]", event, sessionId,
+    IMLOGI4("[processEvent] event[%d], sessionId[%d], paramA[%d], paramB[%d]", event, sessionId,
             paramA, paramB);
     android::Parcel parcel;
     switch (event)

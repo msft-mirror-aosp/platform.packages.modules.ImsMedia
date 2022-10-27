@@ -67,42 +67,61 @@ static uint IM_remove_log = 1;
     } while (0)
 #endif
 
-static bool IMlogd_enabled = true;
-static uint IMlogd_packet_enabled_types = 0;
+static uint gLogMode = kLogEnableInfo;
+static uint gDebugLogMode = 0;
 
 void ImsMediaTrace::IMLOGD_PACKET_ARG(IM_PACKET_LOG_TYPE type, const char* format, ...)
 {
-    if (IMlogd_packet_enabled_types & type)
+    if (gDebugLogMode & type && gLogMode <= kLogEnableDebug)
     {
         __IMLOG__(ANDROID_LOG_DEBUG, IM_DEBUG_TAG);
     }
 }
 
-void ImsMediaTrace::IMSetDebugLog(uint type)
+void ImsMediaTrace::IMSetLogMode(uint mode)
 {
-    IMlogd_packet_enabled_types = type;
+    gLogMode = mode;
+}
+
+void ImsMediaTrace::IMSetDebugLogMode(uint type)
+{
+    gDebugLogMode = type;
 }
 
 uint ImsMediaTrace::IMGetDebugLog()
 {
-    return IMlogd_packet_enabled_types;
-}
-
-void ImsMediaTrace::IMLOGE_ARG(const char* format, ...)
-{
-    __IMLOG__(ANDROID_LOG_ERROR, IM_TAG);
-}
-
-void ImsMediaTrace::IMLOGW_ARG(const char* format, ...)
-{
-    __IMLOG__(ANDROID_LOG_WARN, IM_TAG);
+    return gDebugLogMode;
 }
 
 void ImsMediaTrace::IMLOGD_ARG(const char* format, ...)
 {
-    if (IMlogd_enabled)
+    if (gLogMode <= kLogEnableDebug)
     {
         __IMLOG__(ANDROID_LOG_DEBUG, IM_TAG);
+    }
+}
+
+void ImsMediaTrace::IMLOGI_ARG(const char* format, ...)
+{
+    if (gLogMode <= kLogEnableInfo)
+    {
+        __IMLOG__(ANDROID_LOG_INFO, IM_TAG);
+    }
+}
+
+void ImsMediaTrace::IMLOGW_ARG(const char* format, ...)
+{
+    if (gLogMode <= kLogEnableWarning)
+    {
+        __IMLOG__(ANDROID_LOG_WARN, IM_TAG);
+    }
+}
+
+void ImsMediaTrace::IMLOGE_ARG(const char* format, ...)
+{
+    if (gLogMode <= kLogEnableError)
+    {
+        __IMLOG__(ANDROID_LOG_ERROR, IM_TAG);
     }
 }
 

@@ -177,14 +177,14 @@ void RtcpDecoderNode::OnRtcpInd(tRtpSvc_IndicationFromStack type, void* data)
                     RequestIdrFrame();
                     break;
                 default:
-                    IMLOGD2("[OnRtcpInd] unhandled payload[%d], fmt[%d]", payload->wPayloadType,
+                    IMLOGI2("[OnRtcpInd] unhandled payload[%d], fmt[%d]", payload->wPayloadType,
                             payload->wFmt);
                     break;
             }
         }
         break;
         default:
-            IMLOGD1("[OnRtcpInd] unhandled type[%d]", type);
+            IMLOGI1("[OnRtcpInd] unhandled type[%d]", type);
             break;
     }
 }

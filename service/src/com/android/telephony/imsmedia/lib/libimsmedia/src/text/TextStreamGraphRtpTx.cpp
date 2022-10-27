@@ -32,7 +32,7 @@ TextStreamGraphRtpTx::~TextStreamGraphRtpTx() {}
 
 ImsMediaResult TextStreamGraphRtpTx::create(RtpConfig* config)
 {
-    IMLOGD1("[createGraph] state[%d]", mGraphState);
+    IMLOGI1("[create] state[%d]", mGraphState);
 
     if (config == NULL)
     {
@@ -87,7 +87,7 @@ ImsMediaResult TextStreamGraphRtpTx::create(RtpConfig* config)
 
 ImsMediaResult TextStreamGraphRtpTx::update(RtpConfig* config)
 {
-    IMLOGD1("[update] state[%d]", mGraphState);
+    IMLOGI1("[update] state[%d]", mGraphState);
 
     if (config == NULL)
     {
@@ -116,7 +116,7 @@ ImsMediaResult TextStreamGraphRtpTx::update(RtpConfig* config)
             mConfig->getMediaDirection() == RtpConfig::MEDIA_DIRECTION_RECEIVE_ONLY ||
             mConfig->getMediaDirection() == RtpConfig::MEDIA_DIRECTION_INACTIVE)
     {
-        IMLOGD0("[update] pause TX");
+        IMLOGI0("[update] pause TX");
         return stop();
     }
 
@@ -163,7 +163,7 @@ ImsMediaResult TextStreamGraphRtpTx::update(RtpConfig* config)
             (pConfig->getMediaDirection() == RtpConfig::MEDIA_DIRECTION_SEND_ONLY ||
                     pConfig->getMediaDirection() == RtpConfig::MEDIA_DIRECTION_SEND_RECEIVE))
     {
-        IMLOGD0("[update] resume TX");
+        IMLOGI0("[update] resume TX");
         return start();
     }
 
@@ -172,7 +172,7 @@ ImsMediaResult TextStreamGraphRtpTx::update(RtpConfig* config)
 
 ImsMediaResult TextStreamGraphRtpTx::start()
 {
-    IMLOGD1("[start] state[%d]", mGraphState);
+    IMLOGI1("[start] state[%d]", mGraphState);
 
     if (mConfig == NULL)
     {
@@ -185,7 +185,7 @@ ImsMediaResult TextStreamGraphRtpTx::start()
             pConfig->getMediaDirection() == RtpConfig::MEDIA_DIRECTION_RECEIVE_ONLY ||
             pConfig->getMediaDirection() == RtpConfig::MEDIA_DIRECTION_INACTIVE)
     {
-        IMLOGD1("[start] direction[%d] no need to start", pConfig->getMediaDirection());
+        IMLOGI1("[start] direction[%d] no need to start", pConfig->getMediaDirection());
         return RESULT_SUCCESS;
     }
 

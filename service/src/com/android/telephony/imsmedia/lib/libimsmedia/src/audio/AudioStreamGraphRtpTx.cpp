@@ -34,7 +34,7 @@ AudioStreamGraphRtpTx::~AudioStreamGraphRtpTx() {}
 
 ImsMediaResult AudioStreamGraphRtpTx::create(RtpConfig* config)
 {
-    IMLOGD1("[create], state[%d]", mGraphState);
+    IMLOGI1("[create] state[%d]", mGraphState);
 
     if (config == NULL)
     {
@@ -85,7 +85,7 @@ ImsMediaResult AudioStreamGraphRtpTx::create(RtpConfig* config)
 
 ImsMediaResult AudioStreamGraphRtpTx::update(RtpConfig* config)
 {
-    IMLOGD1("[update], state[%d]", mGraphState);
+    IMLOGI1("[update] state[%d]", mGraphState);
 
     if (config == NULL)
     {
@@ -111,7 +111,7 @@ ImsMediaResult AudioStreamGraphRtpTx::update(RtpConfig* config)
             mConfig->getMediaDirection() == RtpConfig::MEDIA_DIRECTION_RECEIVE_ONLY ||
             mConfig->getMediaDirection() == RtpConfig::MEDIA_DIRECTION_INACTIVE)
     {
-        IMLOGD0("[update] pause TX");
+        IMLOGI0("[update] pause TX");
         return stop();
     }
 
@@ -148,7 +148,7 @@ ImsMediaResult AudioStreamGraphRtpTx::update(RtpConfig* config)
             (pConfig->getMediaDirection() == RtpConfig::MEDIA_DIRECTION_SEND_ONLY ||
                     pConfig->getMediaDirection() == RtpConfig::MEDIA_DIRECTION_SEND_RECEIVE))
     {
-        IMLOGD0("[update] resume TX");
+        IMLOGI0("[update] resume TX");
         return start();
     }
 

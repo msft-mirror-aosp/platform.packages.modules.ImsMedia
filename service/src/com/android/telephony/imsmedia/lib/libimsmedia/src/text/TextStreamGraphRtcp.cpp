@@ -32,7 +32,7 @@ TextStreamGraphRtcp::~TextStreamGraphRtcp() {}
 
 ImsMediaResult TextStreamGraphRtcp::create(RtpConfig* config)
 {
-    IMLOGD1("[createGraph] state[%d]", mGraphState);
+    IMLOGI1("[create] state[%d]", mGraphState);
 
     if (config == NULL)
     {
@@ -81,7 +81,7 @@ ImsMediaResult TextStreamGraphRtcp::create(RtpConfig* config)
 
 ImsMediaResult TextStreamGraphRtcp::update(RtpConfig* config)
 {
-    IMLOGD1("[update] state[%d]", mGraphState);
+    IMLOGI1("[update] state[%d]", mGraphState);
 
     if (config == NULL)
     {
@@ -105,7 +105,7 @@ ImsMediaResult TextStreamGraphRtcp::update(RtpConfig* config)
 
     if (mConfig->getRtcpConfig().getIntervalSec() == 0)
     {
-        IMLOGD0("[update] pause RTCP");
+        IMLOGI0("[update] pause RTCP");
         return stop();
     }
 
@@ -132,7 +132,7 @@ ImsMediaResult TextStreamGraphRtcp::update(RtpConfig* config)
 
     if (mGraphState == kStreamStateCreated && mConfig->getRtcpConfig().getIntervalSec() != 0)
     {
-        IMLOGD0("[update] resume RTCP");
+        IMLOGI0("[update] resume RTCP");
         return start();
     }
 

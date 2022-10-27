@@ -32,7 +32,7 @@ AudioStreamGraphRtcp::~AudioStreamGraphRtcp() {}
 
 ImsMediaResult AudioStreamGraphRtcp::create(RtpConfig* config)
 {
-    IMLOGD1("[createGraph], state[%d]", mGraphState);
+    IMLOGD1("[create] state[%d]", mGraphState);
 
     if (config == NULL)
     {
@@ -79,7 +79,7 @@ ImsMediaResult AudioStreamGraphRtcp::create(RtpConfig* config)
 
 ImsMediaResult AudioStreamGraphRtcp::update(RtpConfig* config)
 {
-    IMLOGD1("[update], state[%d]", mGraphState);
+    IMLOGD1("[update] state[%d]", mGraphState);
 
     if (config == NULL)
     {
@@ -129,7 +129,7 @@ ImsMediaResult AudioStreamGraphRtcp::update(RtpConfig* config)
     if (mGraphState == kStreamStateCreated &&
             mConfig->getMediaDirection() != RtpConfig::MEDIA_DIRECTION_NO_FLOW)
     {
-        IMLOGD0("[update] resume RTCP");
+        IMLOGI0("[update] resume RTCP");
         return start();
     }
 
@@ -155,7 +155,7 @@ bool AudioStreamGraphRtcp::setMediaQualityThreshold(MediaQualityThreshold* thres
 
 bool AudioStreamGraphRtcp::OnEvent(int32_t type, uint64_t param1, uint64_t param2)
 {
-    IMLOGD3("[onEvent] type[%d], param1[%d], param2[%d]", type, param1, param2);
+    IMLOGI3("[onEvent] type[%d], param1[%d], param2[%d]", type, param1, param2);
 
     switch (type)
     {

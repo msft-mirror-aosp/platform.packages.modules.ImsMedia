@@ -51,10 +51,7 @@ int AudioManager::getState(int sessionId)
 
 ImsMediaResult AudioManager::openSession(int sessionId, int rtpFd, int rtcpFd, AudioConfig* config)
 {
-    IMLOGD1("[openSession] sessionId[%d]", sessionId);
-
-    // set debug log
-    ImsMediaTrace::IMSetDebugLog(ImsMediaTrace::IMGetDebugLog() | IM_PACKET_LOG_RTPSTACK);
+    IMLOGI1("[openSession] sessionId[%d]", sessionId);
 
     if (rtpFd == -1 || rtcpFd == -1)
     {
@@ -71,7 +68,7 @@ ImsMediaResult AudioManager::openSession(int sessionId, int rtpFd, int rtcpFd, A
 
         if (ret != RESULT_SUCCESS)
         {
-            IMLOGD1("[openSession] startGraph failed[%d]", ret);
+            IMLOGI1("[openSession] startGraph failed[%d]", ret);
         }
     }
     else
@@ -84,7 +81,7 @@ ImsMediaResult AudioManager::openSession(int sessionId, int rtpFd, int rtcpFd, A
 
 ImsMediaResult AudioManager::closeSession(int sessionId)
 {
-    IMLOGD1("closeSession() - sessionId[%d]", sessionId);
+    IMLOGI1("[closeSession] sessionId[%d]", sessionId);
     if (mSessions.count(sessionId))
     {
         mSessions.erase(sessionId);
@@ -96,14 +93,14 @@ ImsMediaResult AudioManager::closeSession(int sessionId)
 ImsMediaResult AudioManager::modifySession(int sessionId, AudioConfig* config)
 {
     auto session = mSessions.find(sessionId);
-    IMLOGD1("modifySession() - sessionId[%d]", sessionId);
+    IMLOGI1("[modifySession] sessionId[%d]", sessionId);
     if (session != mSessions.end())
     {
         return (session->second)->startGraph(config);
     }
     else
     {
-        IMLOGE1("modifySession() - no session id[%d]", sessionId);
+        IMLOGE1("[modifySession] no session id[%d]", sessionId);
         return RESULT_INVALID_PARAM;
     }
 }
@@ -111,14 +108,14 @@ ImsMediaResult AudioManager::modifySession(int sessionId, AudioConfig* config)
 ImsMediaResult AudioManager::addConfig(int sessionId, AudioConfig* config)
 {
     auto session = mSessions.find(sessionId);
-    IMLOGD1("addConfig() - sessionId[%d]", sessionId);
+    IMLOGI1("[addConfig] sessionId[%d]", sessionId);
     if (session != mSessions.end())
     {
         return (session->second)->addGraph(config);
     }
     else
     {
-        IMLOGE1("addConfig() - no session id[%d]", sessionId);
+        IMLOGE1("[addConfig] no session id[%d]", sessionId);
         return RESULT_INVALID_PARAM;
     }
 }
@@ -126,14 +123,14 @@ ImsMediaResult AudioManager::addConfig(int sessionId, AudioConfig* config)
 ImsMediaResult AudioManager::deleteConfig(int sessionId, AudioConfig* config)
 {
     auto session = mSessions.find(sessionId);
-    IMLOGD1("deleteConfig() - sessionId[%d]", sessionId);
+    IMLOGI1("[deleteConfig] sessionId[%d]", sessionId);
     if (session != mSessions.end())
     {
         return (session->second)->deleteGraph(config);
     }
     else
     {
-        IMLOGE1("deleteConfig() - no session id[%d]", sessionId);
+        IMLOGE1("[deleteConfig] no session id[%d]", sessionId);
         return RESULT_INVALID_PARAM;
     }
 }
@@ -141,14 +138,14 @@ ImsMediaResult AudioManager::deleteConfig(int sessionId, AudioConfig* config)
 ImsMediaResult AudioManager::confirmConfig(int sessionId, AudioConfig* config)
 {
     auto session = mSessions.find(sessionId);
-    IMLOGD1("confirmConfig() - sessionId[%d]", sessionId);
+    IMLOGI1("[confirmConfig] sessionId[%d]", sessionId);
     if (session != mSessions.end())
     {
         return (session->second)->confirmGraph(config);
     }
     else
     {
-        IMLOGE1("confirmConfig() - no session id[%d]", sessionId);
+        IMLOGE1("[confirmConfig] no session id[%d]", sessionId);
         return RESULT_INVALID_PARAM;
     }
 }
@@ -156,14 +153,14 @@ ImsMediaResult AudioManager::confirmConfig(int sessionId, AudioConfig* config)
 void AudioManager::sendDtmf(int sessionId, char dtmfDigit, int duration)
 {
     auto session = mSessions.find(sessionId);
-    IMLOGD1("sendDtmf() - sessionId[%d]", sessionId);
+    IMLOGI1("[sendDtmf] sessionId[%d]", sessionId);
     if (session != mSessions.end())
     {
         (session->second)->sendDtmf(dtmfDigit, duration);
     }
     else
     {
-        IMLOGE1("sendDtmf() - no session id[%d]", sessionId);
+        IMLOGE1("[sendDtmf] no session id[%d]", sessionId);
     }
 }
 
@@ -175,14 +172,14 @@ void AudioManager::sendDtmf(int sessionId, char dtmfDigit, int duration)
 void AudioManager::setMediaQualityThreshold(int sessionId, MediaQualityThreshold* threshold)
 {
     auto session = mSessions.find(sessionId);
-    IMLOGD1("setMediaQualityThreshold() - sessionId[%d]", sessionId);
+    IMLOGI1("[setMediaQualityThreshold] sessionId[%d]", sessionId);
     if (session != mSessions.end())
     {
         (session->second)->setMediaQualityThreshold(*threshold);
     }
     else
     {
-        IMLOGE1("setMediaQualityThreshold() - no session id[%d]", sessionId);
+        IMLOGE1("[setMediaQualityThreshold] no session id[%d]", sessionId);
     }
 }
 
@@ -201,7 +198,7 @@ void AudioManager::sendMessage(const int sessionId, const android::Parcel& parce
 
             if (err != NO_ERROR && err != -ENODATA)
             {
-                IMLOGE1("sendMessage() - error readFromParcel[%d]", err);
+                IMLOGE1("[sendMessage] error readFromParcel[%d]", err);
             }
 
             EventParamOpenSession* param = new EventParamOpenSession(rtpFd, rtcpFd, config);
@@ -221,7 +218,7 @@ void AudioManager::sendMessage(const int sessionId, const android::Parcel& parce
             config->readFromParcel(&parcel);
             if (err != NO_ERROR)
             {
-                IMLOGE1("sendMessage() - error readFromParcel[%d]", err);
+                IMLOGE1("[sendMessage] error readFromParcel[%d]", err);
             }
             ImsMediaEventHandler::SendEvent(
                     "AUDIO_REQUEST_EVENT", nMsg, sessionId, reinterpret_cast<uint64_t>(config));
@@ -254,7 +251,7 @@ void AudioManager::SendInternalEvent(
         uint32_t event, uint64_t sessionId, uint64_t paramA, uint64_t paramB)
 {
     auto session = mSessions.find(sessionId);
-    IMLOGD1("[SendInternalEvent] sessionId[%d]", sessionId);
+    IMLOGI1("[SendInternalEvent] sessionId[%d]", sessionId);
 
     if (session != mSessions.end())
     {
@@ -276,7 +273,7 @@ AudioManager::RequestHandler::~RequestHandler() {}
 void AudioManager::RequestHandler::processEvent(
         uint32_t event, uint64_t sessionId, uint64_t paramA, uint64_t paramB)
 {
-    IMLOGD4("[processEvent] event[%d], sessionId[%d], paramA[%d], paramB[%d]", event, sessionId,
+    IMLOGI4("[processEvent] event[%d], sessionId[%d], paramA[%d], paramB[%d]", event, sessionId,
             paramA, paramB);
     ImsMediaResult result = RESULT_SUCCESS;
     switch (event)
@@ -404,7 +401,7 @@ AudioManager::ResponseHandler::~ResponseHandler() {}
 void AudioManager::ResponseHandler::processEvent(
         uint32_t event, uint64_t sessionId, uint64_t paramA, uint64_t paramB)
 {
-    IMLOGD4("[processEvent] event[%d], sessionId[%d], paramA[%d], paramB[%d]", event, sessionId,
+    IMLOGI4("[processEvent] event[%d], sessionId[%d], paramA[%d], paramB[%d]", event, sessionId,
             paramA, paramB);
     android::Parcel parcel;
     switch (event)

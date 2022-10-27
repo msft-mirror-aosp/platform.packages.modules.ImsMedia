@@ -52,7 +52,6 @@ private:
     std::list<uint8_t*> mListTextSource;
     uint8_t mTextToSend[MAX_RTT_LEN];
     std::mutex mMutex;
-    int8_t mBuffer;
 };
 
 #endif

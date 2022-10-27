@@ -22,9 +22,9 @@
 #include <android_os_Parcel.h>
 #include <nativehelper/JNIHelp.h>
 #include <MediaManagerFactory.h>
-#include <AudioManager.h>
 #include <VideoManager.h>
 #include <ImsMediaVideoUtil.h>
+#include <ImsMediaTrace.h>
 #include <android/native_window_jni.h>
 #include <android/asset_manager_jni.h>
 
@@ -147,6 +147,7 @@ static void JNIImsMediaService_sendMessage(
     {
         manager->sendMessage(sessionId, parcel);
     }
+
     env->ReleaseByteArrayElements(baData, pBuff, 0);
 }
 
@@ -154,18 +155,22 @@ static void JNIImsMediaService_setPreviewSurface(
         JNIEnv* env, jobject, jlong nativeObj, jint sessionId, jobject surface)
 {
     VideoManager* manager = reinterpret_cast<VideoManager*>(nativeObj);
-    if (manager == NULL)
-        return;
-    manager->setPreviewSurface(sessionId, ANativeWindow_fromSurface(env, surface));
+
+    if (manager != NULL)
+    {
+        manager->setPreviewSurface(sessionId, ANativeWindow_fromSurface(env, surface));
+    }
 }
 
 static void JNIImsMediaService_setDisplaySurface(
         JNIEnv* env, jobject, jlong nativeObj, jint sessionId, jobject surface)
 {
     VideoManager* manager = reinterpret_cast<VideoManager*>(nativeObj);
-    if (manager == NULL)
-        return;
-    manager->setDisplaySurface(sessionId, ANativeWindow_fromSurface(env, surface));
+
+    if (manager != NULL)
+    {
+        manager->setDisplaySurface(sessionId, ANativeWindow_fromSurface(env, surface));
+    }
 }
 
 static jstring JNIImsMediaUtil_generateSPROP(JNIEnv* env, jobject, jbyteArray baData)
@@ -199,6 +204,12 @@ static void SetAssetManager(JNIEnv* env, jobject, jobject jobjAssetManager)
     ALOGD("[SetAssetManager] Asset manager has been set in JNI");
 }
 
+static void JNIImsMediaService_setLogMode(JNIEnv*, jobject, jint logMode, jint debugLogMode)
+{
+    ImsMediaTrace::IMSetLogMode(logMode);
+    ImsMediaTrace::IMSetDebugLogMode(debugLogMode);
+}
+
 static JNINativeMethod gMethods[] = {
         {"getInterface", "(I)J", (void*)JNIImsMediaService_getInterface},
         {"sendMessage", "(JI[B)V", (void*)JNIImsMediaService_sendMessage},
@@ -208,6 +219,7 @@ static JNINativeMethod gMethods[] = {
                 (void*)JNIImsMediaService_setDisplaySurface},
         {"generateSprop", "([B)Ljava/lang/String;", (void*)JNIImsMediaUtil_generateSPROP},
         {"setAssetManager", "(Landroid/content/res/AssetManager;)V", (void*)SetAssetManager},
+        {"setLogMode", "(II)V", (void*)JNIImsMediaService_setLogMode},
 };
 
 jint ImsMediaServiceJni_OnLoad(JNIEnv* env)

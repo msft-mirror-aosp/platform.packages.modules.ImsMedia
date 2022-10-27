@@ -49,7 +49,7 @@ void BaseSession::setSessionId(int sessionId)
 
 void BaseSession::setLocalEndPoint(int rtpFd, int rtcpFd)
 {
-    IMLOGD2("setLocalEndPoint() - rtpFd[%d], rtcpFd[%d]", rtpFd, rtcpFd);
+    IMLOGI2("[setLocalEndPoint] rtpFd[%d], rtcpFd[%d]", rtpFd, rtcpFd);
     mRtpFd = rtpFd;
     mRtcpFd = rtcpFd;
 }
@@ -66,11 +66,11 @@ int32_t BaseSession::getLocalRtcpFd()
 
 void BaseSession::onEvent(int32_t type, uint64_t param1, uint64_t param2)
 {
-    IMLOGD3("[onEvent] type[%d], param1[%d], param2[%d]", type, param1, param2);
+    IMLOGI3("[onEvent] type[%d], param1[%d], param2[%d]", type, param1, param2);
 }
 
 void BaseSession::setMediaQualityThreshold(const MediaQualityThreshold& threshold)
 {
-    IMLOGD0("[setMediaQualityThreshold]");
+    IMLOGI0("[setMediaQualityThreshold]");
     mThreshold = threshold;
 }

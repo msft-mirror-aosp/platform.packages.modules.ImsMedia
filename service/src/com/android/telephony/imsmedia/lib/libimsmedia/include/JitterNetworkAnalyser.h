@@ -55,7 +55,6 @@ private:
 
     uint32_t mMinJitterBufferSize;
     uint32_t mMaxJitterBufferSize;
-    uint32_t mLossPacketCount;
     uint32_t mBasePacketTime;
     uint32_t mBaseArrivalTime;
     uint32_t mJitters[JITTER_LIST_SIZE];

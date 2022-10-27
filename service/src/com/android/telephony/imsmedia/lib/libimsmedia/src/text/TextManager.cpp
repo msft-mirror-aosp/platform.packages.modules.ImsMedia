@@ -52,10 +52,7 @@ int TextManager::getState(int sessionId)
 ImsMediaResult TextManager::openSession(
         const int sessionId, const int rtpFd, const int rtcpFd, TextConfig* config)
 {
-    IMLOGD1("[openSession] sessionId[%d]", sessionId);
-
-    // set debug log
-    ImsMediaTrace::IMSetDebugLog(ImsMediaTrace::IMGetDebugLog() | IM_PACKET_LOG_TEXT);
+    IMLOGI1("[openSession] sessionId[%d]", sessionId);
 
     if (rtpFd == -1 || rtcpFd == -1)
     {
@@ -72,7 +69,7 @@ ImsMediaResult TextManager::openSession(
 
         if (ret != RESULT_SUCCESS)
         {
-            IMLOGD1("[openSession] startGraph failed[%d]", ret);
+            IMLOGI1("[openSession] startGraph failed[%d]", ret);
         }
     }
     else
@@ -85,7 +82,7 @@ ImsMediaResult TextManager::openSession(
 
 ImsMediaResult TextManager::closeSession(const int sessionId)
 {
-    IMLOGD1("closeSession() - sessionId[%d]", sessionId);
+    IMLOGI1("[closeSession] sessionId[%d]", sessionId);
 
     if (mSessions.count(sessionId))
     {
@@ -99,7 +96,7 @@ ImsMediaResult TextManager::closeSession(const int sessionId)
 ImsMediaResult TextManager::modifySession(const int sessionId, TextConfig* config)
 {
     auto session = mSessions.find(sessionId);
-    IMLOGD1("modifySession() - sessionId[%d]", sessionId);
+    IMLOGI1("[modifySession] sessionId[%d]", sessionId);
 
     if (session != mSessions.end())
     {
@@ -107,7 +104,7 @@ ImsMediaResult TextManager::modifySession(const int sessionId, TextConfig* confi
     }
     else
     {
-        IMLOGE1("modifySession() - no session id[%d]", sessionId);
+        IMLOGE1("[modifySession] no session id[%d]", sessionId);
         return RESULT_INVALID_PARAM;
     }
 }
@@ -115,7 +112,7 @@ ImsMediaResult TextManager::modifySession(const int sessionId, TextConfig* confi
 void TextManager::setMediaQualityThreshold(const int sessionId, MediaQualityThreshold* threshold)
 {
     auto session = mSessions.find(sessionId);
-    IMLOGD1("setMediaQualityThreshold() - sessionId[%d]", sessionId);
+    IMLOGI1("[setMediaQualityThreshold] sessionId[%d]", sessionId);
 
     if (session != mSessions.end())
     {
@@ -123,14 +120,14 @@ void TextManager::setMediaQualityThreshold(const int sessionId, MediaQualityThre
     }
     else
     {
-        IMLOGE1("setMediaQualityThreshold() - no session id[%d]", sessionId);
+        IMLOGE1("[setMediaQualityThreshold] no session id[%d]", sessionId);
     }
 }
 
 ImsMediaResult TextManager::sendRtt(const int sessionId, const android::String8* text)
 {
     auto session = mSessions.find(sessionId);
-    IMLOGD1("sendRtt() - sessionId[%d]", sessionId);
+    IMLOGI1("[sendRtt] sessionId[%d]", sessionId);
 
     if (session != mSessions.end())
     {
@@ -156,7 +153,7 @@ void TextManager::sendMessage(const int sessionId, const android::Parcel& parcel
 
             if (err != NO_ERROR && err != -ENODATA)
             {
-                IMLOGE1("sendMessage() - error readFromParcel[%d]", err);
+                IMLOGE1("[sendMessage] error readFromParcel[%d]", err);
             }
 
             EventParamOpenSession* param = new EventParamOpenSession(rtpFd, rtcpFd, config);
@@ -174,7 +171,7 @@ void TextManager::sendMessage(const int sessionId, const android::Parcel& parcel
 
             if (err != NO_ERROR)
             {
-                IMLOGE1("sendMessage() - error readFromParcel[%d]", err);
+                IMLOGE1("[sendMessage] error readFromParcel[%d]", err);
             }
 
             ImsMediaEventHandler::SendEvent(
@@ -213,7 +210,7 @@ TextManager::RequestHandler::~RequestHandler() {}
 void TextManager::RequestHandler::processEvent(
         uint32_t event, uint64_t sessionId, uint64_t paramA, uint64_t paramB)
 {
-    IMLOGD4("[processEvent] event[%d], sessionId[%d], paramA[%d], paramB[%d]", event, sessionId,
+    IMLOGI4("[processEvent] event[%d], sessionId[%d], paramA[%d], paramB[%d]", event, sessionId,
             paramA, paramB);
     ImsMediaResult result = RESULT_SUCCESS;
 
@@ -307,7 +304,7 @@ TextManager::ResponseHandler::~ResponseHandler() {}
 void TextManager::ResponseHandler::processEvent(
         uint32_t event, uint64_t sessionId, uint64_t paramA, uint64_t paramB)
 {
-    IMLOGD4("[processEvent] event[%d], sessionId[%d], paramA[%d], paramB[%d]", event, sessionId,
+    IMLOGI4("[processEvent] event[%d], sessionId[%d], paramA[%d], paramB[%d]", event, sessionId,
             paramA, paramB);
     android::Parcel parcel;
     switch (event)

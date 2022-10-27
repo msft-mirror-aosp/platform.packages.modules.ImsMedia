@@ -488,7 +488,7 @@ void AudioRtpPayloadDecoderNode::DecodePayloadEvs(uint8_t* pData, uint32_t nData
         }
         else
         {
-            IMLOGD0("[DecodePayloadEvs] Invalid codec mode");
+            IMLOGI0("[DecodePayloadEvs] Invalid codec mode");
             return;
         }
     }
@@ -515,7 +515,7 @@ void AudioRtpPayloadDecoderNode::DecodePayloadEvs(uint8_t* pData, uint32_t nData
                 // process cmr
                 if (nChecnCMR != 127 && nChecnCMR != mPrevCMR)  // 127 is 111 1111
                 {
-                    IMLOGD0("[DecodePayloadEvs] Process CMR");
+                    IMLOGI0("[DecodePayloadEvs] Process CMR");
                     // Process CMR
                     ProcessCMRForEVS(kRtpPyaloadHeaderModeEvsHeaderFull, cmr_t, cmr_d);
 
@@ -575,7 +575,7 @@ void AudioRtpPayloadDecoderNode::DecodePayloadEvs(uint8_t* pData, uint32_t nData
                                 nCodeDefine = (uint32_t)kEvsCmrCodeDefineChaOffsetH7;
                                 break;
                             default:
-                                IMLOGD3("[DecodePayloadEvs] No selected chmode offset[%d], "
+                                IMLOGI3("[DecodePayloadEvs] No selected chmode offset[%d], "
                                         "originBW[%d], originBR[%d]",
                                         EvsChAOffset, nOriginBW, nOriginBR);
                                 nCodeType = (uint32_t)kEvsCmrCodeTypeNoReq;
@@ -602,7 +602,7 @@ void AudioRtpPayloadDecoderNode::DecodePayloadEvs(uint8_t* pData, uint32_t nData
                                 nCodeType = (uint32_t)kEvsCmrCodeTypeFb;
                                 break;
                             default:
-                                IMLOGD2("[DecodePayloadEvs] No CodeType - primary mode, "
+                                IMLOGI2("[DecodePayloadEvs] No CodeType - primary mode, "
                                         "originBW[%d], "
                                         "originBR[%d]",
                                         nOriginBW, nOriginBR);
@@ -730,13 +730,13 @@ bool AudioRtpPayloadDecoderNode::ProcessCMRForEVS(
     }
     else
     {
-        IMLOGD0("[ProcessCMRForEVS] Invalid EVS codec mode");
+        IMLOGI0("[ProcessCMRForEVS] Invalid EVS codec mode");
         return false;
     }
 
     if (eNewEVSCMRCodeDefine == kEvsCmrCodeDefineNoReq)
     {
-        IMLOGD0("[ProcessCMRForEVS] Invalid CMR Value");
+        IMLOGI0("[ProcessCMRForEVS] Invalid CMR Value");
         return true;
     }
 

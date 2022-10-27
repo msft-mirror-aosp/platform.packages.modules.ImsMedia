@@ -86,6 +86,14 @@ public class JNIImsMediaService {
     public static native void setAssetManager(AssetManager assetManager);
 
     /**
+     * Set the libimsmedia library logging level and mode for debug
+     *
+     * @param logMode The log mode
+     * @param debugLogMode The debug log mode
+     */
+    public static native void setLogMode(int logMode, int debugLogMode);
+
+    /**
      * Gets intance of JNIImsMediaService for jni interface
      *
      * @return instance of JNIImsMediaService

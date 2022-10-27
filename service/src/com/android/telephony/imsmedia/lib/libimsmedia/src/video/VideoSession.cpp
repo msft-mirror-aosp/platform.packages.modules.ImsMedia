@@ -91,7 +91,7 @@ SessionState VideoSession::getState()
 
 ImsMediaResult VideoSession::startGraph(RtpConfig* config)
 {
-    IMLOGD0("[startGraph]");
+    IMLOGI0("[startGraph]");
 
     if (config == NULL)
     {
@@ -229,7 +229,7 @@ ImsMediaResult VideoSession::startGraph(RtpConfig* config)
 
 void VideoSession::onEvent(int32_t type, uint64_t param1, uint64_t param2)
 {
-    IMLOGD3("[onEvent] type[%d], param1[%d], param2[%d]", type, param1, param2);
+    IMLOGI3("[onEvent] type[%d], param1[%d], param2[%d]", type, param1, param2);
 
     switch (type)
     {
@@ -318,7 +318,7 @@ ImsMediaResult VideoSession::setDisplaySurface(ANativeWindow* surface)
 
 void VideoSession::SendInternalEvent(int32_t type, uint64_t param1, uint64_t param2)
 {
-    IMLOGD3("[SendInternalEvent] type[%d], param1[%d], param2[%d]", type, param1, param2);
+    IMLOGI3("[SendInternalEvent] type[%d], param1[%d], param2[%d]", type, param1, param2);
 
     switch (type)
     {

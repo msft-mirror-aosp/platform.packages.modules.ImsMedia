@@ -208,7 +208,7 @@ bool ImsMediaAudioSource::Start()
         return false;
     }
 
-    IMLOGD1("[Start] start stream state[%s]", AAudio_convertStreamStateToText(nextState));
+    IMLOGI1("[Start] start stream state[%s]", AAudio_convertStreamStateToText(nextState));
 
     if (mCodecType == kAudioCodecAmr || mCodecType == kAudioCodecAmrWb)
     {
@@ -263,7 +263,7 @@ void ImsMediaAudioSource::Stop()
         IMLOGE1("[Stop] Error stop stream[%s]", AAudio_convertResultToText(result));
     }
 
-    IMLOGD1("[Stop] Stop stream state[%s]", AAudio_convertStreamStateToText(nextState));
+    IMLOGI1("[Stop] Stop stream state[%s]", AAudio_convertStreamStateToText(nextState));
 
     if (mAudioStream != NULL)
     {
@@ -287,7 +287,7 @@ void ImsMediaAudioSource::Stop()
 
 void ImsMediaAudioSource::ProcessCmr(const uint32_t cmr)
 {
-    IMLOGD1("[ProcessCmr] cmr[%d]", cmr);
+    IMLOGI1("[ProcessCmr] cmr[%d]", cmr);
 
     if (IsThreadStopped())
     {
@@ -474,7 +474,7 @@ void ImsMediaAudioSource::restartAudioStream()
         return;
     }
 
-    IMLOGD1("[restartAudioStream] start stream state[%s]",
+    IMLOGI1("[restartAudioStream] start stream state[%s]",
             AAudio_convertStreamStateToText(nextState));
 }
 

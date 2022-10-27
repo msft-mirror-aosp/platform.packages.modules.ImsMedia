@@ -108,7 +108,7 @@ SessionState AudioSession::getState()
 
 ImsMediaResult AudioSession::startGraph(RtpConfig* config)
 {
-    IMLOGD0("[startGraph]");
+    IMLOGI0("[startGraph]");
 
     if (config == NULL)
     {
@@ -238,7 +238,7 @@ ImsMediaResult AudioSession::startGraph(RtpConfig* config)
     }
 
     // TODO : check that the timing is correct
-    IMLOGD1("[startGraph] state[%d]", getState());
+    IMLOGI1("[startGraph] state[%d]", getState());
 
     if (mMediaQualityAnalyzer != NULL &&
             !mMediaQualityAnalyzer->isSameConfig(reinterpret_cast<AudioConfig*>(config)))
@@ -486,7 +486,7 @@ ImsMediaResult AudioSession::confirmGraph(RtpConfig* config)
 
 ImsMediaResult AudioSession::deleteGraph(RtpConfig* config)
 {
-    IMLOGD0("[deleteGraph]");
+    IMLOGI0("[deleteGraph]");
     bool bFound = false;
 
     for (std::list<AudioStreamGraphRtpTx*>::iterator iter = mListGraphRtpTx.begin();
@@ -670,7 +670,7 @@ void AudioSession::onEvent(int32_t type, uint64_t param1, uint64_t param2)
 
 void AudioSession::setMediaQualityThreshold(const MediaQualityThreshold& threshold)
 {
-    IMLOGD0("[setMediaQualityThreshold]");
+    IMLOGI0("[setMediaQualityThreshold]");
     mThreshold = threshold;
 
     if (mMediaQualityAnalyzer != NULL)

@@ -33,6 +33,17 @@
         android:enabled="true"
         android:exported="true" >
     </service>
+    <!-- configuration hidden menu -->
+    <activity
+        android:name=".config.ConfigPreference"
+        android:resizeableActivity="true"
+        android:process="com.android.telephony.imsmedia"
+        android:exported="true">
+        <intent-filter>
+            <action android:name="com.android.telephony.imsmedia.PREFERENCE" />
+            <category android:name="android.intent.category.DEFAULT" />
+        </intent-filter>
+    </activity>
 
   </application>
 

@@ -32,7 +32,7 @@ VideoStreamGraphRtcp::~VideoStreamGraphRtcp() {}
 
 ImsMediaResult VideoStreamGraphRtcp::create(RtpConfig* config)
 {
-    IMLOGD1("[createGraph] state[%d]", mGraphState);
+    IMLOGI1("[create] state[%d]", mGraphState);
 
     if (config == NULL)
     {
@@ -81,7 +81,7 @@ ImsMediaResult VideoStreamGraphRtcp::create(RtpConfig* config)
 
 ImsMediaResult VideoStreamGraphRtcp::update(RtpConfig* config)
 {
-    IMLOGD1("[update] state[%d]", mGraphState);
+    IMLOGI1("[update] state[%d]", mGraphState);
 
     if (config == NULL)
     {
@@ -125,7 +125,7 @@ ImsMediaResult VideoStreamGraphRtcp::update(RtpConfig* config)
 
     if (mGraphState == kStreamStateCreated && mConfig->getRtcpConfig().getIntervalSec() != 0)
     {
-        IMLOGD0("[update] resume RTCP");
+        IMLOGI0("[update] resume RTCP");
         return start();
     }
 
@@ -157,7 +157,7 @@ bool VideoStreamGraphRtcp::setMediaQualityThreshold(MediaQualityThreshold* thres
 
 bool VideoStreamGraphRtcp::OnEvent(int32_t type, uint64_t param1, uint64_t param2)
 {
-    IMLOGD3("[OnEvent] type[%d], param1[%d], param2[%d]", type, param1, param2);
+    IMLOGI3("[OnEvent] type[%d], param1[%d], param2[%d]", type, param1, param2);
 
     bool ret = false;
 

@@ -45,7 +45,6 @@ private:
     int32_t mCodecType;
     uint8_t mPayload[MAX_RTT_LEN];
     ImsMediaBitReader mBitReader;
-    uint32_t mMaxPayloadSize;
 };
 
 #endif

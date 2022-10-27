@@ -34,7 +34,7 @@ VideoStreamGraphRtpTx::~VideoStreamGraphRtpTx() {}
 
 ImsMediaResult VideoStreamGraphRtpTx::create(RtpConfig* config)
 {
-    IMLOGD1("[createGraph] state[%d]", mGraphState);
+    IMLOGI1("[create] state[%d]", mGraphState);
 
     if (config == NULL)
     {
@@ -95,7 +95,7 @@ ImsMediaResult VideoStreamGraphRtpTx::create(RtpConfig* config)
 
 ImsMediaResult VideoStreamGraphRtpTx::update(RtpConfig* config)
 {
-    IMLOGD2("[update] current mode[%d], state[%d]", mVideoMode, mGraphState);
+    IMLOGI2("[update] current mode[%d], state[%d]", mVideoMode, mGraphState);
 
     if (config == NULL)
     {
@@ -155,7 +155,7 @@ ImsMediaResult VideoStreamGraphRtpTx::update(RtpConfig* config)
             mConfig->getMediaDirection() == RtpConfig::MEDIA_DIRECTION_RECEIVE_ONLY ||
             mConfig->getMediaDirection() == RtpConfig::MEDIA_DIRECTION_INACTIVE)
     {
-        IMLOGD0("[update] pause TX");
+        IMLOGI0("[update] pause TX");
         return stop();
     }
 
@@ -201,7 +201,7 @@ ImsMediaResult VideoStreamGraphRtpTx::update(RtpConfig* config)
             (pConfig->getMediaDirection() == RtpConfig::MEDIA_DIRECTION_SEND_ONLY ||
                     pConfig->getMediaDirection() == RtpConfig::MEDIA_DIRECTION_SEND_RECEIVE))
     {
-        IMLOGD0("[update] resume TX");
+        IMLOGI0("[update] resume TX");
         return start();
     }
 
@@ -210,7 +210,7 @@ ImsMediaResult VideoStreamGraphRtpTx::update(RtpConfig* config)
 
 ImsMediaResult VideoStreamGraphRtpTx::start()
 {
-    IMLOGD2("[start] current mode[%d], state[%d]", mVideoMode, mGraphState);
+    IMLOGI2("[start] current mode[%d], state[%d]", mVideoMode, mGraphState);
 
     if (mConfig == NULL)
     {
@@ -224,13 +224,13 @@ ImsMediaResult VideoStreamGraphRtpTx::start()
                     pConfig->getMediaDirection() == RtpConfig::MEDIA_DIRECTION_RECEIVE_ONLY ||
                     pConfig->getMediaDirection() == RtpConfig::MEDIA_DIRECTION_INACTIVE))
     {
-        IMLOGD1("[start] direction[%d] no need to start", pConfig->getMediaDirection());
+        IMLOGI1("[start] direction[%d] no need to start", pConfig->getMediaDirection());
         return RESULT_SUCCESS;
     }
 
     if (pConfig->getVideoMode() != VideoConfig::VIDEO_MODE_PAUSE_IMAGE && mSurface == NULL)
     {
-        IMLOGD2("[start] direction[%d], mode[%d], surface is not ready, wait",
+        IMLOGI2("[start] direction[%d], mode[%d], surface is not ready, wait",
                 pConfig->getMediaDirection(), pConfig->getVideoMode());
         setState(StreamState::kStreamStateWaitSurface);
         return RESULT_SUCCESS;
@@ -287,7 +287,7 @@ ImsMediaResult VideoStreamGraphRtpTx::createPreviewMode(RtpConfig* config)
         mConfig = NULL;
     }
 
-    IMLOGD0("[createPreviewMode]");
+    IMLOGI0("[createPreviewMode]");
     mConfig = new VideoConfig(reinterpret_cast<VideoConfig*>(config));
     BaseNode* pNodeSource = new IVideoSourceNode(mCallback);
     pNodeSource->SetMediaType(IMS_MEDIA_VIDEO);
@@ -301,7 +301,7 @@ ImsMediaResult VideoStreamGraphRtpTx::createPreviewMode(RtpConfig* config)
 
 bool VideoStreamGraphRtpTx::OnEvent(int32_t type, uint64_t param1, uint64_t param2)
 {
-    IMLOGD3("[OnEvent] type[%d], param1[%d], param2[%d]", type, param1, param2);
+    IMLOGI3("[OnEvent] type[%d], param1[%d], param2[%d]", type, param1, param2);
 
     switch (type)
     {

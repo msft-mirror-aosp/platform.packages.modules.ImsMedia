@@ -466,7 +466,7 @@ void RtpDecoderNode::OnMediaDataInd(unsigned char* data, uint32_t datasize, uint
         }
         else
         {
-            IMLOGD2("[OnMediaDataInd] MediaType[%d] INVALID payload[%d] is received", mMediaType,
+            IMLOGI2("[OnMediaDataInd] MediaType[%d] INVALID payload[%d] is received", mMediaType,
                     payloadType);
         }
     }

@@ -89,7 +89,7 @@ SessionState TextSession::getState()
 
 ImsMediaResult TextSession::startGraph(RtpConfig* config)
 {
-    IMLOGD0("[startGraph]");
+    IMLOGI0("[startGraph]");
 
     if (config == NULL)
     {
@@ -208,7 +208,7 @@ ImsMediaResult TextSession::sendRtt(const android::String8* text)
 
 void TextSession::onEvent(int32_t type, uint64_t param1, uint64_t param2)
 {
-    IMLOGD3("[onEvent] type[%d], param1[%d], param2[%d]", type, param1, param2);
+    IMLOGI3("[onEvent] type[%d], param1[%d], param2[%d]", type, param1, param2);
     switch (type)
     {
         case kImsMediaEventNotifyError:
