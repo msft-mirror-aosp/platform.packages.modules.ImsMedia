@@ -168,8 +168,8 @@ eRtp_Bool RtpPacket::decodePacket(IN RtpBuffer* pobjRtpPktBuf)
         uXHdrLen += RTP_WORD_SIZE - (uXHdrLen % RTP_WORD_SIZE);  // word align
         if ((uXHdrLen <= 0) || ((uiRtpBufPos + uXHdrLen) > uiRtpUtlBufLen))
         {
-            RTP_TRACE_MESSAGE("[XHdr]Invalid Header Extension.Xbit-1 but XHdr len <= 0 OR xhdr len "
-                              "> rtp buffer len",
+            RTP_TRACE_ERROR("[XHdr]Invalid Header Extension.Xbit-1 but XHdr len <= 0 OR xhdr len "
+                            "> rtp buffer len",
                     0, 0);
             return eRTP_FAILURE;
         }

@@ -37,7 +37,7 @@ IRtpSession* IRtpSession::GetInstance(
 
     if (mListRtpSession.size() == 0)
     {
-        IMLOGD0("[GetInstance] Initialize Rtp Stack");
+        IMLOGI0("[GetInstance] Initialize Rtp Stack");
         IMS_RtpSvc_Initialize();
     }
 
@@ -66,7 +66,7 @@ void IRtpSession::ReleaseInstance(IRtpSession* session)
 
     if (mListRtpSession.size() == 0)
     {
-        IMLOGD0("[ReleaseInstance] Deinitialize Rtp Stack");
+        IMLOGI0("[ReleaseInstance] Deinitialize Rtp Stack");
         IMS_RtpSvc_Deinitialize();
     }
 }
@@ -262,7 +262,7 @@ void IRtpSession::StopRtp()
     if (mRtpStarted == 0)
     {
         IMS_RtpSvc_SessionDisableRTP(mRtpSessionId);
-        IMLOGD0("[StopRtp] IMS_RtpSvc_SessionDisableRTP");
+        IMLOGI0("[StopRtp] IMS_RtpSvc_SessionDisableRTP");
     }
 }
 
@@ -292,7 +292,7 @@ void IRtpSession::StopRtcp()
 
     if (mRtcpStarted == 0)
     {
-        IMLOGD0("[StopRtcp] IMS_RtpSvc_SessionDisableRtcp");
+        IMLOGI0("[StopRtcp] IMS_RtpSvc_SessionDisableRtcp");
         IMS_RtpSvc_SessionDisableRTCP(mRtpSessionId);
         mEnableRtcpTx = false;
     }
@@ -484,7 +484,7 @@ void IRtpSession::OnPeerRtcpComponents(void* nMsg)
 
 void IRtpSession::OnTimer()
 {
-    IMLOGD8("[OnTimer] media[%d], RXRtp[%03d/%03d], RXRtcp[%02d/%02d], TXRtp[%03d/%03d],"
+    IMLOGI8("[OnTimer] media[%d], RXRtp[%03d/%03d], RXRtcp[%02d/%02d], TXRtp[%03d/%03d],"
             " TXRtcp[%02d]",
             mMediaType, mNumRtpProcPacket, mNumRtpPacket, mNumRtcpProcPacket,
             mNumSRPacket + mNumRRPacket, mNumRtpDataToSend, mNumRtpPacketSent, mNumRtcpPacketSent);
