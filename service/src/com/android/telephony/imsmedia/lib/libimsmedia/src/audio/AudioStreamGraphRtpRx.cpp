@@ -1,0 +1,164 @@
+/**
+ * Copyright (C) 2022 The Android Open Source Project
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+#include <AudioStreamGraphRtpRx.h>
+#include <IAudioPlayerNode.h>
+#include <AudioRtpPayloadDecoderNode.h>
+#include <RtpDecoderNode.h>
+#include <SocketReaderNode.h>
+#include <ImsMediaTrace.h>
+#include <ImsMediaNetworkUtil.h>
+#include <AudioConfig.h>
+
+AudioStreamGraphRtpRx::AudioStreamGraphRtpRx(BaseSessionCallback* callback, int localFd) :
+        AudioStreamGraph(callback, localFd)
+{
+}
+
+AudioStreamGraphRtpRx::~AudioStreamGraphRtpRx() {}
+
+ImsMediaResult AudioStreamGraphRtpRx::create(RtpConfig* config)
+{
+    IMLOGD1("[create], state[%d]", mGraphState);
+
+    if (config == NULL)
+    {
+        return RESULT_INVALID_PARAM;
+    }
+
+    mConfig = new AudioConfig(reinterpret_cast<AudioConfig*>(config));
+    BaseNode* pNodeSocketReader = new SocketReaderNode(mCallback);
+    pNodeSocketReader->SetMediaType(IMS_MEDIA_AUDIO);
+
+    char localIp[MAX_IP_LEN];
+    uint32_t localPort = 0;
+    ImsMediaNetworkUtil::getLocalIpPortFromSocket(mLocalFd, localIp, MAX_IP_LEN, localPort);
+    RtpAddress localAddress(localIp, localPort);
+    ((SocketReaderNode*)pNodeSocketReader)->SetLocalFd(mLocalFd);
+    ((SocketReaderNode*)pNodeSocketReader)->SetLocalAddress(localAddress);
+    ((SocketReaderNode*)pNodeSocketReader)->SetProtocolType(kProtocolRtp);
+    pNodeSocketReader->SetConfig(config);
+    AddNode(pNodeSocketReader);
+
+    BaseNode* pNodeRtpDecoder = new RtpDecoderNode(mCallback);
+    pNodeRtpDecoder->SetMediaType(IMS_MEDIA_AUDIO);
+    pNodeRtpDecoder->SetConfig(mConfig);
+    ((RtpDecoderNode*)pNodeRtpDecoder)->SetLocalAddress(localAddress);
+    AddNode(pNodeRtpDecoder);
+    pNodeSocketReader->ConnectRearNode(pNodeRtpDecoder);
+
+    BaseNode* pNodeRtpPayloadDecoder = new AudioRtpPayloadDecoderNode(mCallback);
+    pNodeRtpPayloadDecoder->SetMediaType(IMS_MEDIA_AUDIO);
+    pNodeRtpPayloadDecoder->SetConfig(mConfig);
+    AddNode(pNodeRtpPayloadDecoder);
+    pNodeRtpDecoder->ConnectRearNode(pNodeRtpPayloadDecoder);
+
+    BaseNode* pNodeRenderer = new IAudioPlayerNode(mCallback);
+    pNodeRenderer->SetMediaType(IMS_MEDIA_AUDIO);
+    pNodeRenderer->SetConfig(mConfig);
+    AddNode(pNodeRenderer);
+    pNodeRtpPayloadDecoder->ConnectRearNode(pNodeRenderer);
+    setState(StreamState::kStreamStateCreated);
+    return RESULT_SUCCESS;
+}
+
+ImsMediaResult AudioStreamGraphRtpRx::update(RtpConfig* config)
+{
+    IMLOGD1("[update], state[%d]", mGraphState);
+
+    if (config == NULL)
+    {
+        return RESULT_INVALID_PARAM;
+    }
+
+    AudioConfig* pConfig = reinterpret_cast<AudioConfig*>(config);
+
+    if (*mConfig == *pConfig)
+    {
+        IMLOGD0("[update] no update");
+        return RESULT_SUCCESS;
+    }
+
+    if (mConfig != NULL)
+    {
+        delete mConfig;
+    }
+
+    mConfig = new AudioConfig(pConfig);
+
+    if (mConfig->getMediaDirection() == RtpConfig::MEDIA_DIRECTION_NO_FLOW ||
+            mConfig->getMediaDirection() == RtpConfig::MEDIA_DIRECTION_SEND_ONLY ||
+            mConfig->getMediaDirection() == RtpConfig::MEDIA_DIRECTION_INACTIVE)
+    {
+        IMLOGD0("[update] pause RX");
+        return stop();
+    }
+    ImsMediaResult ret = RESULT_NOT_READY;
+
+    if (mGraphState == kStreamStateRunning)
+    {
+        mScheduler->Stop();
+        for (auto& node : mListNodeStarted)
+        {
+            IMLOGD1("[update] update node[%s]", node->GetNodeName());
+            ret = node->UpdateConfig(mConfig);
+            if (ret != RESULT_SUCCESS)
+            {
+                IMLOGE2("[update] error in update node[%s], ret[%d]", node->GetNodeName(), ret);
+            }
+        }
+        mScheduler->Start();
+    }
+    else if (mGraphState == kStreamStateCreated)
+    {
+        for (auto& node : mListNodeToStart)
+        {
+            IMLOGD1("[update] update node[%s]", node->GetNodeName());
+            ret = node->UpdateConfig(mConfig);
+            if (ret != RESULT_SUCCESS)
+            {
+                IMLOGE2("[update] error in update node[%s], ret[%d]", node->GetNodeName(), ret);
+            }
+        }
+    }
+
+    if (mGraphState == kStreamStateCreated &&
+            (pConfig->getMediaDirection() == RtpConfig::MEDIA_DIRECTION_RECEIVE_ONLY ||
+                    pConfig->getMediaDirection() == RtpConfig::MEDIA_DIRECTION_SEND_RECEIVE))
+    {
+        IMLOGD0("[update] resume RX");
+        return start();
+    }
+
+    return ret;
+}
+
+bool AudioStreamGraphRtpRx::setMediaQualityThreshold(MediaQualityThreshold* threshold)
+{
+    if (threshold != NULL)
+    {
+        BaseNode* node = findNode(kNodeIdRtpDecoder);
+
+        if (node != NULL)
+        {
+            RtpDecoderNode* decoder = reinterpret_cast<RtpDecoderNode*>(node);
+            decoder->SetInactivityTimerSec(threshold->getRtpInactivityTimerMillis() / 1000);
+            return true;
+        }
+    }
+
+    return false;
+}
