@@ -236,7 +236,7 @@ public final class VideoSession extends IImsVideoSession.Stub implements IMediaS
                     handleNotifyMediaInactivityInd(msg.arg1);
                     break;
                 case EVENT_PACKET_LOSS_IND:
-                    handleNotifyPacketLossInd((int) msg.obj);
+                    handleNotifyPacketLossInd(msg.arg1);
                     break;
                 case EVENT_VIDEO_DATA_USAGE_IND:
                     handleNotifyVideoDataUsage((long) msg.obj);

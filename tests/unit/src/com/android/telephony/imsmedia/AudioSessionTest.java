@@ -285,7 +285,7 @@ public class AudioSessionTest {
     @Test
     public void testPacketLossInd() {
         // Receive Packet Loss
-        Utils.sendMessage(handler, AudioSession.EVENT_PACKET_LOSS_IND, PACKET_LOSS);
+        Utils.sendMessage(handler, AudioSession.EVENT_PACKET_LOSS_IND, PACKET_LOSS, UNUSED);
         processAllMessages();
         try {
             verify(callback, times(1)).notifyPacketLoss(eq(PACKET_LOSS));
@@ -297,7 +297,7 @@ public class AudioSessionTest {
     @Test
     public void testJitterInd() {
         // Receive Jitter Indication
-        Utils.sendMessage(handler, AudioSession.EVENT_JITTER_IND, JITTER);
+        Utils.sendMessage(handler, AudioSession.EVENT_JITTER_IND, JITTER, UNUSED);
         processAllMessages();
         try {
             verify(callback, times(1)).notifyJitter(eq(JITTER));

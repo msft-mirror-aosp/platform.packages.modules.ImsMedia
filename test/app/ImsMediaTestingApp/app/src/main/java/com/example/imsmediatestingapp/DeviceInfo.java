@@ -60,8 +60,8 @@ public class DeviceInfo implements Serializable {
     @NonNull
     public String toString() {
         return String.format(Locale.US,
-                "IP Address: %s\nHandshake Port: %d\nAudioRTP Port: %d\nAudioRTP Port: %d\nRTCP "
-                        + "Port: %d\nSelected Audio Codecs: %s\nSelected AMR Modes: %s\nSelected "
+                "IP Address: %s\nHandshake Port: %d\nAudioRTP Port: %d\nVideoRTP Port: %d\n"
+                        + "Selected Audio Codecs: %s\nSelected AMR Modes: %s\nSelected "
                         + "EVS Bandwidths: %s\nSelected EVS Modes: %s\nSelected Video Codec: %d"
                         + "VideoWidth: %s\n VideoHeight: %s\n Cvo: %d\n rtcpFbTypes: %s\n",
                 mInetAddress.getHostName(), getHandshakePort(),

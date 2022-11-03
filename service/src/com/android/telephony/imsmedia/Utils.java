@@ -46,9 +46,6 @@ import java.net.InetSocketAddress;
 public final class Utils {
 
     static final int UNUSED = -1;
-    private static final boolean UNUSED_BOOL = false;
-    private static final int UNUSED_INT = 0;
-
 
     /** Class to encapsulate open session parameters */
     static final class OpenSessionParams {
@@ -245,13 +242,7 @@ public final class Utils {
                 || rtpConfig.sessionParams.codecParams.codecSpecificParams == null
                 || rtpConfig.sessionParams.codecParams.codecSpecificParams.getTag()
                     != CodecSpecificParams.evs) {
-            evsParams = new EvsParams.Builder()
-                .setEvsbandwidth(UNUSED_INT)
-                .setEvsMode(UNUSED_INT)
-                .setChannelAwareMode((byte) UNUSED_INT)
-                .setHeaderFullOnly(UNUSED_BOOL)
-                .setCodecModeRequest((byte) UNUSED_INT)
-                .build();
+            evsParams = null;
         } else {
             final android.hardware.radio.ims.media.EvsParams evs =
                     rtpConfig.sessionParams.codecParams.codecSpecificParams.getEvs();
@@ -277,11 +268,7 @@ public final class Utils {
                 || rtpConfig.sessionParams.codecParams.codecSpecificParams == null
                 || rtpConfig.sessionParams.codecParams.codecSpecificParams.getTag()
                     != CodecSpecificParams.amr) {
-            amrParams = new AmrParams.Builder()
-                .setAmrMode(UNUSED_INT)
-                .setOctetAligned(UNUSED_BOOL)
-                .setMaxRedundancyMillis(UNUSED_INT)
-                .build();
+            amrParams = null;
         } else {
             final android.hardware.radio.ims.media.AmrParams amr =
                     rtpConfig.sessionParams.codecParams.codecSpecificParams.getAmr();

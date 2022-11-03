@@ -415,6 +415,7 @@ public class AudioOffloadTest {
         }
     }
 
+    @Test
     public void testCallQualityChangedInd() {
         final android.hardware.radio.ims.media.CallQuality inputCallQuality =
                 CallQualityTest.createHalCallQuality();

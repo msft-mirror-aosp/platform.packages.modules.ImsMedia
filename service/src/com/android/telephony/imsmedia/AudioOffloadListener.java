@@ -69,12 +69,13 @@ final class AudioOffloadListener extends IImsMediaSessionListener.Stub {
 
     @Override
     public void notifyPacketLoss(int packetLossPercentage) {
-        Utils.sendMessage(handler, AudioSession.EVENT_PACKET_LOSS_IND, packetLossPercentage);
+        Utils.sendMessage(handler, AudioSession.EVENT_PACKET_LOSS_IND,
+                packetLossPercentage, Utils.UNUSED);
     }
 
     @Override
     public void notifyJitter(int jitter) {
-        Utils.sendMessage(handler, AudioSession.EVENT_JITTER_IND, jitter);
+        Utils.sendMessage(handler, AudioSession.EVENT_JITTER_IND, jitter, Utils.UNUSED);
     }
 
     @Override

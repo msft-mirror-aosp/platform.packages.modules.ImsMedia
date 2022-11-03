@@ -154,6 +154,13 @@ int32_t AmrParams::getMaxRedundancyMillis()
     return maxRedundancyMillis;
 }
 
+void AmrParams::setDefaultAmrParams()
+{
+    amrMode = kAmrMode;
+    octetAligned = kOctetAligned;
+    maxRedundancyMillis = kMaxRedundancyMillis;
+}
+
 }  // namespace imsmedia
 
 }  // namespace telephony

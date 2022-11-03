@@ -209,6 +209,15 @@ int8_t EvsParams::getCodecModeRequest()
     return codecModeRequest;
 }
 
+void EvsParams::setDefaultEvsParams()
+{
+    evsBandwidth = kBandwidth;
+    evsMode = kEvsMode;
+    channelAwareMode = kChannelAwareMode;
+    useHeaderFullOnly = kUseHeaderFullOnly;
+    codecModeRequest = kcodecModeRequest;
+}
+
 }  // namespace imsmedia
 
 }  // namespace telephony

@@ -91,10 +91,8 @@ public class VideoListener implements JNIImsMediaListener {
                 //TODO: add implementation
                 break;
             case VideoSession.EVENT_MEDIA_INACTIVITY_IND:
-                Utils.sendMessage(mHandler, event, parcel.readInt(), Utils.UNUSED);
-                break;
             case VideoSession.EVENT_PACKET_LOSS_IND:
-                Utils.sendMessage(mHandler, event, parcel.readInt());
+                Utils.sendMessage(mHandler, event, parcel.readInt(), Utils.UNUSED);
                 break;
             case VideoSession.EVENT_VIDEO_DATA_USAGE_IND:
                 Utils.sendMessage(mHandler, event, parcel.readLong());

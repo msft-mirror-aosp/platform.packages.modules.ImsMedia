@@ -173,7 +173,9 @@ public class ImsMediaController extends Service {
     }
 
     private IMediaSession getSession(int sessionId) {
-        return mSessions.get(sessionId);
+        synchronized (mSessions) {
+            return mSessions.get(sessionId);
+        }
     }
 
     public class OpenSessionCallback {
@@ -194,9 +196,11 @@ public class ImsMediaController extends Service {
          * @param sessionId identifier of the session
          */
         public void onSessionClosed(int sessionId) {
-            getSession(sessionId).onSessionClosed();
-            Log.d(TAG, "onSessionClosed: sessionId = " + sessionId);
-            mSessions.remove(sessionId);
+            synchronized (mSessions) {
+                getSession(sessionId).onSessionClosed();
+                Log.d(TAG, "onSessionClosed: sessionId = " + sessionId);
+                mSessions.remove(sessionId);
+            }
         }
     }
 }

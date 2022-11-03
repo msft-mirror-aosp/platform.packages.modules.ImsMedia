@@ -75,6 +75,7 @@ public:
     bool getOctetAligned();
     void setMaxRedundancyMillis(const int32_t value);
     int32_t getMaxRedundancyMillis();
+    void setDefaultAmrParams();
 
 private:
     /** mode-set: AMR codec mode to represent the bit rate */
@@ -93,6 +94,11 @@ private:
      * redundancy is present. See RFC 4867
      */
     int32_t maxRedundancyMillis;
+
+    // Default AmrParams
+    const int32_t kAmrMode = 0;
+    const bool kOctetAligned = false;
+    const int32_t kMaxRedundancyMillis = 0;
 };
 
 }  // namespace imsmedia

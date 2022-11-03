@@ -260,25 +260,40 @@ status_t AudioConfig::readFromParcel(const Parcel* in)
 
     String16 className;
     err = in->readString16(&className);
-    if (err != NO_ERROR)
-    {
-        return err;
-    }
 
-    err = amrParams.readFromParcel(in);
-    if ((codecType == CODEC_AMR || codecType == CODEC_AMR_WB) && err != NO_ERROR)
+    if (err == NO_ERROR)
+    {
+        // read AmrParams
+        err = amrParams.readFromParcel(in);
+        if ((codecType == CODEC_AMR || codecType == CODEC_AMR_WB) && err != NO_ERROR)
+        {
+            return err;
+        }
+    }
+    else if (err == UNEXPECTED_NULL)
+    {
+        amrParams.setDefaultAmrParams();
+    }
+    else
     {
         return err;
     }
 
     err = in->readString16(&className);
-    if (err != NO_ERROR)
+    if (err == NO_ERROR)
     {
-        return err;
+        // read EvsParams
+        err = evsParams.readFromParcel(in);
+        if (codecType == CODEC_EVS && err != NO_ERROR)
+        {
+            return err;
+        }
     }
-
-    err = evsParams.readFromParcel(in);
-    if (codecType == CODEC_EVS && err != NO_ERROR)
+    else if (err == UNEXPECTED_NULL)
+    {
+        evsParams.setDefaultEvsParams();
+    }
+    else
     {
         return err;
     }

@@ -290,7 +290,7 @@ public class VideoSessionTest {
     @Test
     public void testPacketLossInd() {
         // Receive Packet Loss
-        Utils.sendMessage(mHandler, VideoSession.EVENT_PACKET_LOSS_IND, PACKET_LOSS);
+        Utils.sendMessage(mHandler, VideoSession.EVENT_PACKET_LOSS_IND, PACKET_LOSS, UNUSED);
         processAllMessages();
         try {
             verify(mCallback, times(1)).notifyPacketLoss(eq(PACKET_LOSS));
