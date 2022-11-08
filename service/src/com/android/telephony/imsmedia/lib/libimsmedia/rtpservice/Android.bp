@@ -1,0 +1,18 @@
+
+cc_library_static {
+    name: "librtpservice",
+    defaults: [
+    ],
+    cflags: [
+        "-DRTP_TRACE_ENABLE",
+        "-DRTP_DEBUG_ENABLE",
+    ],
+    srcs: [
+        "RtpImpl.cpp",
+        "RtpService.cpp",
+    ],
+    header_libs: [
+        "librtp_headers",
+        "libimsmedia_utils_header",
+    ],
+}
