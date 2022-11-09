@@ -1,9 +1,10 @@
 {
     // For presubmit test group.
+    // TODO : b/258455118
     "presubmit": [
-        {
-            "name": "ImsMediaNativeTests"
-        },
+//        {
+//            "name": "ImsMediaNativeTests"
+//        },
         {
             "name": "ImsMediaJavaUnitTests"
         }
@@ -11,9 +12,9 @@
 
     // For postsubmit test group.
     "postsubmit": [
-        {
-            "name": "ImsMediaNativeTests"
-        },
+//        {
+//            "name": "ImsMediaNativeTests"
+//        },
         {
             "name": "ImsMediaJavaUnitTests"
         }
