@@ -1,0 +1,26 @@
+cc_library_headers {
+    name: "libimsmedia_config_headers",
+    export_include_dirs: [
+        "include",
+    ],
+}
+
+cc_defaults {
+    name: "libimsmedia_config_defaults",
+    header_libs: [
+        "libimsmedia_config_headers",
+    ],
+    srcs: [
+        "**/*.cpp",
+    ],
+}
+
+cc_library {
+    name: "libimsmedia_config",
+    defaults: ["libimsmedia_config_defaults"],
+    shared_libs: [
+        "libbinder",
+        "libutils",
+        "liblog",
+    ],
+}
