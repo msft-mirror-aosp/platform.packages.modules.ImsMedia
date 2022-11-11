@@ -78,20 +78,20 @@ public:
      *
      * @param pData The data array
      * @param nDataSize The length of data
-     * @return uint32_t The length of data which is sent successfully, return -1 when it is failed
+     * @return int32_t The length of data which is sent successfully, return -1 when it is failed
      * to send
      */
-    virtual uint32_t SendTo(uint8_t* pData, uint32_t nDataSize);
+    virtual int32_t SendTo(uint8_t* pData, uint32_t nDataSize);
 
     /**
      * @brief Receive data to the give buffer
      *
      * @param pData The data buffer to copy
      * @param nBufferSize The size of buffer
-     * @return uint32_t The length of data which is received successfully, return -1 when it is
+     * @return int32_t The length of data which is received successfully, return -1 when it is
      * failed to received or has invalid arguments
      */
-    virtual uint32_t ReceiveFrom(uint8_t* pData, uint32_t nBufferSize);
+    virtual int32_t ReceiveFrom(uint8_t* pData, uint32_t nBufferSize);
 
     /**
      * @brief Retrieve optional data from the socket
