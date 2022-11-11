@@ -1,0 +1,32 @@
+{
+    // For presubmit test group.
+    // TODO : b/258455118
+    "presubmit": [
+//        {
+//            "name": "ImsMediaNativeTests"
+//        },
+        {
+            "name": "ImsMediaJavaUnitTests"
+        }
+    ],
+
+    // For postsubmit test group.
+    "postsubmit": [
+//        {
+//            "name": "ImsMediaNativeTests"
+//        },
+        {
+            "name": "ImsMediaJavaUnitTests"
+        }
+    ],
+
+    // For ImsMedia test group.
+    "ImsMedia-alltests": [
+        {
+            "name": "ImsMediaNativeTests"
+        },
+        {
+            "name": "ImsMediaJavaUnitTests"
+        }
+    ]
+}
