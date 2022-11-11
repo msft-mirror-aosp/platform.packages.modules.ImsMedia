@@ -271,8 +271,10 @@ GLOBAL eRtp_Bool IMS_RtpSvc_Deinitialize()
 GLOBAL eRtp_Bool IMS_RtpSvc_CreateSession(IN RtpDt_Char* szLocalIP, IN RtpDt_UInt32 port,
         IN RtpDt_Void* pAppData, OUT RtpDt_UInt32* puSsrc, OUT RTPSESSIONID* hRtpSession)
 {
-    if (g_pobjRtpStack == RTP_NULL)
+    if (g_pobjRtpStack == RTP_NULL || szLocalIP == RTP_NULL)
+    {
         return eRTP_FALSE;
+    }
 
     RtpSession* pobjRtpSession = g_pobjRtpStack->createRtpSession();
     if (pobjRtpSession == RTP_NULL)
@@ -300,12 +302,8 @@ GLOBAL eRtp_Bool IMS_RtpSvc_CreateSession(IN RtpDt_Char* szLocalIP, IN RtpDt_UIn
     }
     pobjRtpImpl->setAppdata(pAppData);
 
-    RtcpConfigInfo* pobjRtcpConfigInfo = RTP_NULL;
-    if (szLocalIP)
-    {
-        pobjRtcpConfigInfo = new RtcpConfigInfo;
-        addSdesItem(pobjRtcpConfigInfo, (RtpDt_UChar*)szLocalIP, strlen(szLocalIP) + 1);
-    }
+    RtcpConfigInfo* pobjRtcpConfigInfo = new RtcpConfigInfo();
+    addSdesItem(pobjRtcpConfigInfo, (RtpDt_UChar*)szLocalIP, strlen(szLocalIP) + 1);
 
     eRTP_STATUS_CODE eInitSta = pobjRtpSession->initSession(pobjRtpImpl, pobjRtcpConfigInfo);
     if (eInitSta != RTP_SUCCESS)
