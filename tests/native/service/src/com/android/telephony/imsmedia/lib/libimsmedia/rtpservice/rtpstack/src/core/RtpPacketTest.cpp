@@ -38,8 +38,8 @@ TEST(RtpPacketTest, TestGetSets)
     RtpBuffer* rtpPayloadBuffer = new RtpBuffer(uiLength, pRtpPayLoad);
     rtpPacket.setRtpPayload(rtpPayloadBuffer);
     RtpBuffer* pobjRtpBuffer = rtpPacket.getRtpPayload();
+    ASSERT_TRUE(pobjRtpBuffer != NULL);
 
-    EXPECT_TRUE(pobjRtpBuffer != NULL);
     EXPECT_EQ(memcmp(pRtpPayLoad, pobjRtpBuffer->getBuffer(), uiLength), 0);
     EXPECT_EQ(pobjRtpBuffer->getLength(), uiLength);
 
@@ -50,7 +50,7 @@ TEST(RtpPacketTest, TestGetSets)
     rtpPacket.setExtHeader(rtpExtBuffer);
     RtpBuffer* pobjRtpExtHdr = rtpPacket.getExtHeader();
 
-    EXPECT_TRUE(pobjRtpBuffer != NULL);
+    ASSERT_TRUE(pobjRtpBuffer != NULL);
     EXPECT_EQ(memcmp(pRtpExtHdr, pobjRtpExtHdr->getBuffer(), uiExtLength), 0);
     EXPECT_EQ(pobjRtpExtHdr->getLength(), uiExtLength);
 }
@@ -90,6 +90,7 @@ TEST(RtpPacketTest, TestDecodePacket)
 
     // check Header extension
     RtpBuffer* pobjRtpExtHdr = rtpPacket.getExtHeader();
+    ASSERT_TRUE(pobjRtpExtHdr != NULL);
     uint8_t pRtpExtHdr[] = {0x41, 0x78, 0x42};
 
     EXPECT_TRUE(pobjRtpExtHdr != NULL);
@@ -102,7 +103,7 @@ TEST(RtpPacketTest, TestDecodePacket)
             0x3c, 0x58, 0xba, 0x80};
     const RtpDt_UInt32 uiLength = sizeof(pRtpPayLoad) / sizeof(pRtpPayLoad[0]);
 
-    EXPECT_TRUE(pobjRtpBuffer != NULL);
+    ASSERT_TRUE(pobjRtpBuffer != NULL);
     EXPECT_EQ(memcmp(pRtpPayLoad, pobjRtpBuffer->getBuffer(), uiLength), 0);
     EXPECT_EQ(pobjRtpBuffer->getLength(), uiLength);
 }
@@ -218,7 +219,7 @@ TEST(RtpPacketTest, TestDecodePacketWithPadding)
             0x3c, 0x58, 0xba, 0x80};
     const RtpDt_UInt32 uiLength = sizeof(pRtpPayLoad) / sizeof(pRtpPayLoad[0]);
 
-    EXPECT_TRUE(pobjRtpBuffer != NULL);
+    ASSERT_TRUE(pobjRtpBuffer != NULL);
     EXPECT_EQ(memcmp(pRtpPayLoad, pobjRtpBuffer->getBuffer(), uiLength), 0);
     EXPECT_EQ(pobjRtpBuffer->getLength(), uiLength);
 }
@@ -227,6 +228,7 @@ TEST(RtpPacketTest, TestFormPacketwithoutExtension)
 {
     RtpPacket rtpPacket;
     RtpHeader* pobjRtpHdr = rtpPacket.getRtpHeader();
+    ASSERT_TRUE(pobjRtpHdr != NULL);
 
     // set Rtp Headers
     pobjRtpHdr->setVersion(RTP_TWO);
@@ -268,6 +270,7 @@ TEST(RtpPacketTest, TestFormPacketwithExtension)
 {
     RtpPacket rtpPacket;
     RtpHeader* pobjRtpHdr = rtpPacket.getRtpHeader();
+    ASSERT_TRUE(pobjRtpHdr != NULL);
 
     /*
      * Real-Time Transport Protocol
