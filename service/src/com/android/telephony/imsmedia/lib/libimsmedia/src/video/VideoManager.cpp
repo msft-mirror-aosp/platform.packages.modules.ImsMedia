@@ -61,16 +61,16 @@ ImsMediaResult VideoManager::openSession(
 
     if (!mSessions.count(sessionId))
     {
-        VideoSession* session = new VideoSession();
+        std::unique_ptr<VideoSession> session(new VideoSession());
         session->setSessionId(sessionId);
         session->setLocalEndPoint(rtpFd, rtcpFd);
-        mSessions.insert(std::make_pair(sessionId, std::move(session)));
-        ImsMediaResult ret = session->startGraph(config);
 
-        if (ret != RESULT_SUCCESS)
+        if (session->startGraph(config) != RESULT_SUCCESS)
         {
-            IMLOGI1("[openSession] startGraph failed[%d]", ret);
+            IMLOGI0("[openSession] startGraph failed");
         }
+
+        mSessions.insert(std::make_pair(sessionId, std::move(session)));
     }
     else
     {

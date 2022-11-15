@@ -84,13 +84,11 @@ void AudioJitterBuffer::SetJitterBufferSize(uint32_t nInit, uint32_t nMin, uint3
     if (nMin > 0)
     {
         mMinJitterBufferSize = nMin;
-        mMinJitterBufferSize = mMinJitterBufferSize;
     }
 
     if (nMax > 0)
     {
         mMaxJitterBufferSize = nMax;
-        mMaxJitterBufferSize = mMaxJitterBufferSize;
     }
 
     if (nInit > 0)
