@@ -37,8 +37,6 @@ static jclass gClass_JNIImsMediaService = NULL;
 static jmethodID gMethod_sendData2Java = NULL;
 AAssetManager* gpAssetManager = NULL;
 
-jint ImsMediaServiceJni_OnLoad(JNIEnv* env);
-
 JavaVM* GetJavaVM()
 {
     return gJVM;
@@ -58,30 +56,6 @@ JNIEnv* GetJNIEnv()
         return NULL;
     }
     return env;
-}
-
-jint JNI_OnLoad(JavaVM* vm, void* reserved)
-{
-    (void)reserved;
-    ALOGD("JNI_OnLoad::JNI_OnLoad");
-    gJVM = vm;
-    JNIEnv* env = NULL;
-
-    if (vm->GetEnv((void**)&env, IMS_MEDIA_JNI_VERSION) != JNI_OK)
-    {
-        ALOGE("JNI_OnLoad::GetEnv failed");
-        return (-1);
-    }
-
-    assert(env != NULL);
-
-    if (ImsMediaServiceJni_OnLoad(env) < 0)
-    {
-        ALOGE("JNI_OnLoad::ImsMediaServiceJni_OnLoad failed");
-        return (-1);
-    }
-
-    return IMS_MEDIA_JNI_VERSION;
 }
 
 static int SendData2Java(long nNativeObject, const android::Parcel& objParcel)
@@ -222,8 +196,10 @@ static JNINativeMethod gMethods[] = {
         {"setLogMode", "(II)V", (void*)JNIImsMediaService_setLogMode},
 };
 
-jint ImsMediaServiceJni_OnLoad(JNIEnv* env)
+jint ImsMediaServiceJni_OnLoad(JavaVM* vm, JNIEnv* env)
 {
+    gJVM = vm;
+
     jclass _jclassImsMediaService = env->FindClass(gClassPath);
 
     if (_jclassImsMediaService == NULL)
