@@ -41,10 +41,11 @@ public:
      *        create new StreamGraph should be added with different RtpConfig as a argument.
      *
      * @param config The parameters to operate nodes in the StreamGraph.
+     * @param enableRtcp {@code true} when the rtcp needs to be enabled to the rest of the graphs
      * @return ImsMediaResult result of create or start graph. If the result has no error, it
      *         returns RESULT_SUCCESS. check #ImsMediaDefine.h.
      */
-    ImsMediaResult addGraph(RtpConfig* config);
+    ImsMediaResult addGraph(RtpConfig* config, bool enableRtcp);
 
     /**
      * @brief Determine to remain only one StreamGraph instance and remove other StreamGraph.
@@ -86,6 +87,13 @@ public:
      * @param param2 The additional parameter to set
      */
     void SendInternalEvent(int32_t type, uint64_t param1, uint64_t param2);
+
+    /**
+     * @brief Check whether the graph has the same remote address or not
+     *
+     * @param config The RtpConfig to check the remote address
+     */
+    bool IsGraphAlreadyExist(RtpConfig* config);
 
 private:
     void onCollectInfo(ImsMediaStreamType streamType, RtpPacket* packet);

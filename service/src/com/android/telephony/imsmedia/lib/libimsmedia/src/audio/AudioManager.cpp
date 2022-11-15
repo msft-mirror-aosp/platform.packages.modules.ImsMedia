@@ -96,7 +96,14 @@ ImsMediaResult AudioManager::modifySession(int sessionId, AudioConfig* config)
     IMLOGI1("[modifySession] sessionId[%d]", sessionId);
     if (session != mSessions.end())
     {
-        return (session->second)->startGraph(config);
+        if ((session->second)->IsGraphAlreadyExist(config))
+        {
+            return (session->second)->startGraph(config);
+        }
+        else
+        {
+            return (session->second)->addGraph(config, false);
+        }
     }
     else
     {
@@ -109,9 +116,10 @@ ImsMediaResult AudioManager::addConfig(int sessionId, AudioConfig* config)
 {
     auto session = mSessions.find(sessionId);
     IMLOGI1("[addConfig] sessionId[%d]", sessionId);
+
     if (session != mSessions.end())
     {
-        return (session->second)->addGraph(config);
+        return (session->second)->addGraph(config, true);
     }
     else
     {
