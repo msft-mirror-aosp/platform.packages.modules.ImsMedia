@@ -32,13 +32,6 @@ public:
     virtual bool Get(ImsMediaSubType* subtype, uint8_t** data, uint32_t* dataSize,
             uint32_t* timestamp, bool* mark, uint32_t* seqNum, uint32_t* checker = NULL);
     virtual void Delete();
-
-private:
-    uint32_t mSavedFrameNum;
-    uint32_t mMarkedFrameNum;
-    uint32_t mLastPlayedTime;
-    uint32_t mLastTimestamp;
-    uint32_t mCurrPlayingTimestamp;
 };
 
 #endif

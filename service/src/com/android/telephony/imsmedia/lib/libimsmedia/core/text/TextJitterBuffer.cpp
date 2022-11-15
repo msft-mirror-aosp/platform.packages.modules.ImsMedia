@@ -20,22 +20,36 @@
 TextJitterBuffer::TextJitterBuffer() :
         BaseJitterBuffer()
 {
-    mSavedFrameNum = 0;
-    mMarkedFrameNum = 0;
-    mLastPlayedTime = 0;
-    mLastTimestamp = 0;
-    mCurrPlayingTimestamp = 0;
 }
 
 TextJitterBuffer::~TextJitterBuffer() {}
 
-void TextJitterBuffer::Reset() {}
+void TextJitterBuffer::Reset()
+{
+    mFirstFrameReceived = false;
+    mLastPlayedSeqNum = 0;
+    mLastPlayedTimestamp = 0;
+}
 
 void TextJitterBuffer::Add(ImsMediaSubType subtype, uint8_t* buffer, uint32_t size,
         uint32_t timestamp, bool mark, uint32_t seqNum, ImsMediaSubType dataType,
         uint32_t arrivalTime)
 {
     (void)dataType;
+
+    IMLOGD_PACKET6(IM_PACKET_LOG_JITTER,
+            "[Add] seq[%u], mark[%u], TS[%u], size[%u], lastPlayedSeq[%u], arrivalTime[%u]", seqNum,
+            mark, timestamp, size, mLastPlayedSeqNum, arrivalTime);
+
+    std::lock_guard<std::mutex> guard(mMutex);
+
+    if (mFirstFrameReceived && USHORT_SEQ_ROUND_COMPARE(mLastPlayedSeqNum, seqNum))
+    {
+        IMLOGD_PACKET2(IM_PACKET_LOG_JITTER, "[Add] receive old frame, seq[%u], LastPlayedSeq[%u]",
+                seqNum, mLastPlayedSeqNum);
+        return;
+    }
+
     DataEntry currEntry;
     memset(&currEntry, 0, sizeof(DataEntry));
     currEntry.subtype = subtype;
@@ -48,29 +62,18 @@ void TextJitterBuffer::Add(ImsMediaSubType subtype, uint8_t* buffer, uint32_t si
     currEntry.bValid = true;
     currEntry.arrivalTime = arrivalTime;
 
-    IMLOGD_PACKET6(IM_PACKET_LOG_JITTER,
-            "[Add] Seq[%u], bMark[%u], timestamp[%u], size[%u], LastPlayedSeq[%u], arrivalTime[%u]",
-            seqNum, mark, timestamp, size, mLastPlayedSeqNum, arrivalTime);
-
-    std::lock_guard<std::mutex> guard(mMutex);
-
-    if (!USHORT_SEQ_ROUND_COMPARE(seqNum, mLastPlayedSeqNum) || (seqNum == mLastPlayedSeqNum))
-    {
-        IMLOGD_PACKET2(IM_PACKET_LOG_JITTER,
-                "[Add] Receive Old or already played data. Seq[%u], LastPlayedSeqNum[%u]", seqNum,
-                mLastPlayedSeqNum);
-
-        return;
-    }
-
     if (mDataQueue.GetCount() == 0)  // jitter buffer is empty
     {
         mDataQueue.Add(&currEntry);
+
+        if (!mFirstFrameReceived)
+        {
+            mFirstFrameReceived = true;
+        }
     }
     else
     {
-        DataEntry* pEntry;
-
+        DataEntry* pEntry = NULL;
         mDataQueue.GetLast(&pEntry);
 
         if (pEntry == NULL)
@@ -78,36 +81,34 @@ void TextJitterBuffer::Add(ImsMediaSubType subtype, uint8_t* buffer, uint32_t si
             return;
         }
 
-        if (USHORT_SEQ_ROUND_COMPARE(seqNum, pEntry->nSeqNum))  // current data is the latest data
+        if (USHORT_SEQ_ROUND_COMPARE(pEntry->nSeqNum, seqNum))  // a >= b
         {
-            IMLOGD_PACKET1(
-                    IM_PACKET_LOG_JITTER, "[Add] current data is the latest data. Seq[%u]", seqNum);
-            mDataQueue.Add(&currEntry);
-        }
-        else  // find the position of current data and insert current data to the correct position
-        {
-            uint32_t i;
+            uint32_t i = 0;
             mDataQueue.SetReadPosFirst();
 
-            for (i = 0; mDataQueue.GetNext(&pEntry); i++)
+            while (mDataQueue.GetNext(&pEntry))
             {
                 if (seqNum == pEntry->nSeqNum)
                 {
-                    IMLOGD_PACKET1(
-                            IM_PACKET_LOG_JITTER, "[Add] Redundancy received. SeqNum[%u]", seqNum);
+                    IMLOGD_PACKET1(IM_PACKET_LOG_JITTER, "[Add] Redundant seq[%u]", seqNum);
                     break;
                 }
                 else if (!USHORT_SEQ_ROUND_COMPARE(seqNum, pEntry->nSeqNum))
                 {
-                    IMLOGD_PACKET2(IM_PACKET_LOG_JITTER, "[Add] InsertAt[%u]. Seq[%u]", i, seqNum);
+                    IMLOGD_PACKET2(IM_PACKET_LOG_JITTER, "[Add] InsertAt[%u] seq[%u]", i, seqNum);
                     mDataQueue.InsertAt(i, &currEntry);
                     break;
                 }
+                i++;
             }
         }
+        else  // a < b
+        {
+            IMLOGD_PACKET1(
+                    IM_PACKET_LOG_JITTER, "[Add] current data is the latest seq[%u]", seqNum);
+            mDataQueue.Add(&currEntry);
+        }
     }
-
-    mNewInputData = true;
 }
 
 bool TextJitterBuffer::Get(ImsMediaSubType* subtype, uint8_t** data, uint32_t* dataSize,
@@ -132,11 +133,9 @@ bool TextJitterBuffer::Get(ImsMediaSubType* subtype, uint8_t** data, uint32_t* d
         if (seqNum)
             *seqNum = pEntry->nSeqNum;
 
-        IMLOGD_PACKET6(IM_PACKET_LOG_JITTER,
-                "[Get] OK - m_nCurrPlayingTS[%u], Seq[%u], bMark[%u], TimeStamp[%u], Size[%u], "
-                "queueCount[%u]",
-                mCurrPlayingTimestamp, pEntry->nSeqNum, pEntry->bMark, pEntry->nTimestamp,
-                pEntry->nBufferSize, mDataQueue.GetCount());
+        IMLOGD_PACKET5(IM_PACKET_LOG_JITTER,
+                "[Get] OK - seq[%u], mark[%u], TS[%u], size[%u], queue[%u]", pEntry->nSeqNum,
+                pEntry->bMark, pEntry->nTimestamp, pEntry->nBufferSize, mDataQueue.GetCount());
 
         return true;
     }
