@@ -200,7 +200,7 @@ bool AudioStreamGraphRtpTx::sendDtmf(char digit, int duration)
         IMLOGD2("[sendDtmf] %c, duration[%d]", digit, duration);
         ImsMediaSubType subtype = MEDIASUBTYPE_DTMF_PAYLOAD;
 
-        // todo: continuous DTMF operation
+        // TODO(249734476): add implementation of continuous DTMF operation
         if (duration == 0)
         {
             subtype = MEDIASUBTYPE_DTMFSTART;

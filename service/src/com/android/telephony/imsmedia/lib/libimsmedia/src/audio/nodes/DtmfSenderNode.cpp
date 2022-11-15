@@ -117,12 +117,6 @@ void DtmfSenderNode::ProcessData()
             mNextTime += mPtime;
         }
     }
-    else if (subtype == MEDIASUBTYPE_DTMFEND)
-    {
-        SendDataToRearNode(subtype, pData, nDataSize, nTimeStamp, bMark, 0);
-        DeleteData();
-        mNextTime += mPtime;
-    }
     else
     {
         SendDataToRearNode(subtype, pData, nDataSize, nTimeStamp, bMark, 0);

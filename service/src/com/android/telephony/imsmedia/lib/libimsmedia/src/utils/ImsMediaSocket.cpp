@@ -204,9 +204,9 @@ void ImsMediaSocket::Listen(ISocketListener* listener)
     }
 }
 
-uint32_t ImsMediaSocket::SendTo(uint8_t* pData, uint32_t nDataSize)
+int32_t ImsMediaSocket::SendTo(uint8_t* pData, uint32_t nDataSize)
 {
-    uint32_t nLen;
+    int32_t len;
     IMLOGD_PACKET2(IM_PACKET_LOG_SOCKET, "[SendTo] fd[%d],[%d] bytes", mSocketFd, nDataSize);
 
     if (nDataSize == 0)
@@ -250,32 +250,31 @@ uint32_t ImsMediaSocket::SendTo(uint8_t* pData, uint32_t nDataSize)
         pstSockAddr = (struct sockaddr*)&stAddr6;
     }
 
-    nLen = sendto(mSocketFd, (const char*)pData, (size_t)nDataSize, 0, pstSockAddr, nSockAddrLen);
+    len = sendto(mSocketFd, (const char*)pData, (size_t)nDataSize, 0, pstSockAddr, nSockAddrLen);
 
-    if (nLen < 0)
+    if (len < 0)
     {
-        IMLOGE4("[ImsMediaSocket:SendTo] FAILED nLen(%d), nDataSize(%d) failed (%d, %s)", nLen,
+        IMLOGE4("[ImsMediaSocket:SendTo] FAILED len(%d), nDataSize(%d) failed (%d, %s)", len,
                 nDataSize, errno, strerror(errno));
     }
 
-    return nLen;
+    return len;
 }
 
-uint32_t ImsMediaSocket::ReceiveFrom(uint8_t* pData, uint32_t nBufferSize)
+int32_t ImsMediaSocket::ReceiveFrom(uint8_t* pData, uint32_t nBufferSize)
 {
-    uint32_t nLen;
+    int32_t len;
     struct sockaddr* pstSockAddr = NULL;
     socklen_t nSockAddrLen = 0;
     sockaddr_storage ss;
     pstSockAddr = reinterpret_cast<sockaddr*>(&ss);
-    nLen = recvfrom(mSocketFd, pData, nBufferSize, 0, pstSockAddr, &nSockAddrLen);
+    len = recvfrom(mSocketFd, pData, nBufferSize, 0, pstSockAddr, &nSockAddrLen);
 
-    if (nLen > 0)
+    if (len > 0)
     {
         static char pSourceIP[MAX_IP_LEN];
         memset(pSourceIP, 0, sizeof(pSourceIP));
-        // TODO : add filtering operation with peer ip address and port
-        IMLOGD_PACKET2(IM_PACKET_LOG_SOCKET, "[ReceiveFrom] fd[%d], len[%d]", mSocketFd, nLen);
+        IMLOGD_PACKET2(IM_PACKET_LOG_SOCKET, "[ReceiveFrom] fd[%d], len[%d]", mSocketFd, len);
     }
     else if (EWOULDBLOCK == errno)
     {
@@ -286,23 +285,7 @@ uint32_t ImsMediaSocket::ReceiveFrom(uint8_t* pData, uint32_t nBufferSize)
         IMLOGE0("[ReceiveFrom] Fail");
     }
 
-    /** TODO: add remote ip filtering
-    if (mRemoteIpFiltering)
-    {
-        if (srcAddress.ss_family == AF_INET)
-        {
-            struct sockaddr_in* saV4 = (struct sockaddr_in*)&scrAddress;
-            // ...
-        }
-        else if (srcAddress.ss_family == AF_INET6)
-        {
-            struct sockaddr_in6* saV6 = (struct sockaddr_in6*)&scrAddress;
-            // ...
-
-        }  // and so on
-    }*/
-
-    return nLen;
+    return len;
 }
 
 bool ImsMediaSocket::RetrieveOptionMsg(uint32_t type, int32_t& value)
