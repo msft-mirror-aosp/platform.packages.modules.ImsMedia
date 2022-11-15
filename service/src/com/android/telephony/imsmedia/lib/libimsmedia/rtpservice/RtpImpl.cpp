@@ -20,7 +20,10 @@
 #include <RtpTrace.h>
 #include <string.h>
 
-RtpImpl::RtpImpl() {}
+RtpImpl::RtpImpl()
+{
+    m_pvAppdata = RTP_NULL;
+}
 
 RtpImpl::~RtpImpl() {}
 
@@ -128,11 +131,6 @@ RtpDt_Void* RtpImpl::RtpStartTimer(IN RtpDt_UInt32 uiDuration, IN eRtp_Bool bRep
 
     RTP_TRACE_MESSAGE("RtpStartTimer pvTimerId[%x], Duration= [%d]", pvTimerId, uiDuration);
     return pvTimerId;
-    (void)uiDuration;
-    (void)bRepeat;
-    (void)pfnTimerCb;
-    (void)pvData;
-    return RTP_NULL;
 }
 
 eRtp_Bool RtpImpl::RtpStopTimer(IN RtpDt_Void* pTimerId, OUT RtpDt_Void** ppUserData)

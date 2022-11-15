@@ -82,16 +82,13 @@ TEST_F(RtcpPacketTest, DecodeCompoundSrSdesPacket)
     EXPECT_EQ(res, RTP_SUCCESS);
 
     std::list<RtcpSrPacket*> SrList = rtcpPacket.getSrPacketList();
-    EXPECT_TRUE(SrList.size() != 0);
+    ASSERT_TRUE(SrList.size() != 0);
+
     RtcpSrPacket* rtcpSrPacket = SrList.front();
-    EXPECT_TRUE(rtcpSrPacket != NULL);
-    if (rtcpSrPacket == NULL)
-        return;
+    ASSERT_TRUE(rtcpSrPacket != NULL);
 
     RtcpHeader* pRtcpHeader = rtcpSrPacket->getRtcpHdrInfo();
-    EXPECT_TRUE(pRtcpHeader != NULL);
-    if (pRtcpHeader == NULL)
-        return;
+    ASSERT_TRUE(pRtcpHeader != NULL);
 
     EXPECT_EQ(pRtcpHeader->getVersion(), RTP_VERSION_NUM);
     EXPECT_EQ(pRtcpHeader->getPadding(), eRTP_FALSE);
@@ -101,9 +98,7 @@ TEST_F(RtcpPacketTest, DecodeCompoundSrSdesPacket)
     EXPECT_EQ(pRtcpHeader->getSsrc(), 0xb1c8cb02);
 
     tRTP_NTP_TIME* ntpTime = rtcpSrPacket->getNtpTime();
-    EXPECT_TRUE(ntpTime != NULL);
-    if (ntpTime == NULL)
-        return;
+    ASSERT_TRUE(ntpTime != NULL);
 
     EXPECT_EQ(ntpTime->m_uiNtpHigh32Bits, 0xe65fa531);
     EXPECT_EQ(ntpTime->m_uiNtpLow32Bits, 0x539124c2);
@@ -112,32 +107,24 @@ TEST_F(RtcpPacketTest, DecodeCompoundSrSdesPacket)
     EXPECT_EQ(rtcpSrPacket->getSendOctetCount(), 0x0000c853);
 
     RtcpSdesPacket* pRtcpSdesPacket = rtcpPacket.getSdesPacket();
-    EXPECT_TRUE(pRtcpSdesPacket != NULL);
-    if (pRtcpSdesPacket == NULL)
-        return;
+    ASSERT_TRUE(pRtcpSdesPacket != NULL);
 
     std::list<RtcpChunk*> pSdesChunks = pRtcpSdesPacket->getSdesChunkList();
     EXPECT_EQ(pSdesChunks.size(), 1);
     RtcpChunk* chunk = pSdesChunks.front();
-    EXPECT_TRUE(chunk != NULL);
-    if (chunk == NULL)
-        return;
+    ASSERT_TRUE(chunk != NULL);
 
     std::list<tRTCP_SDES_ITEM*> sdesItemList = chunk->getSdesItemList();
     EXPECT_EQ(sdesItemList.size(), 1);
     tRTCP_SDES_ITEM* sdesItem = sdesItemList.front();
-    EXPECT_TRUE(sdesItem != NULL);
-    if (sdesItem == NULL)
-        return;
+    ASSERT_TRUE(sdesItem != NULL);
 
     EXPECT_EQ(sdesItem->ucType, 1);
     EXPECT_EQ(sdesItem->ucLength, 31);
     EXPECT_EQ(strncmp((char*)sdesItem->pValue, (char*)"2600:100e:1008:af4f::1ebe:6851", 31), 0);
 
     pRtcpHeader = pRtcpSdesPacket->getRtcpHdrInfo();
-    EXPECT_TRUE(pRtcpHeader != NULL);
-    if (pRtcpHeader == NULL)
-        return;
+    ASSERT_TRUE(pRtcpHeader != NULL);
 
     EXPECT_EQ(pRtcpHeader->getVersion(), RTP_VERSION_NUM);
     EXPECT_EQ(pRtcpHeader->getPadding(), eRTP_FALSE);
@@ -215,16 +202,13 @@ TEST_F(RtcpPacketTest, DecodeCompoundSrRrPacket)
 
     // Check SR packet.
     std::list<RtcpSrPacket*> SrList = rtcpPacket.getSrPacketList();
-    EXPECT_TRUE(SrList.size() != 0);
+    ASSERT_TRUE(SrList.size() != 0);
+
     RtcpSrPacket* rtcpSrPacket = SrList.front();
-    EXPECT_TRUE(rtcpSrPacket != NULL);
-    if (rtcpSrPacket == NULL)
-        return;
+    ASSERT_TRUE(rtcpSrPacket != NULL);
 
     RtcpHeader* pRtcpHeader = rtcpSrPacket->getRtcpHdrInfo();
-    EXPECT_TRUE(pRtcpHeader != NULL);
-    if (pRtcpHeader == NULL)
-        return;
+    ASSERT_TRUE(pRtcpHeader != NULL);
 
     EXPECT_EQ(pRtcpHeader->getVersion(), RTP_VERSION_NUM);
     EXPECT_EQ(pRtcpHeader->getPadding(), eRTP_FALSE);
@@ -234,9 +218,7 @@ TEST_F(RtcpPacketTest, DecodeCompoundSrRrPacket)
     EXPECT_EQ(pRtcpHeader->getSsrc(), 0xd2bd4e3e);
 
     tRTP_NTP_TIME* ntpTime = rtcpSrPacket->getNtpTime();
-    EXPECT_TRUE(ntpTime != NULL);
-    if (ntpTime == NULL)
-        return;
+    ASSERT_TRUE(ntpTime != NULL);
 
     EXPECT_EQ(ntpTime->m_uiNtpHigh32Bits, 3314714324);
     EXPECT_EQ(ntpTime->m_uiNtpLow32Bits, 3874060501);
@@ -245,19 +227,13 @@ TEST_F(RtcpPacketTest, DecodeCompoundSrRrPacket)
     EXPECT_EQ(rtcpSrPacket->getSendOctetCount(), 320);
 
     RtcpRrPacket* pRRInfo = rtcpSrPacket->getRrPktInfo();
-    EXPECT_TRUE(pRRInfo != NULL);
-    if (pRRInfo == NULL)
-        return;
+    ASSERT_TRUE(pRRInfo != NULL);
 
     std::list<RtcpReportBlock*> reports = pRRInfo->getReportBlockList();
-    EXPECT_TRUE(reports.size() != 0);
-    if (reports.size() == 0)
-        return;
+    ASSERT_TRUE(reports.size() != 0);
 
     RtcpReportBlock* report = reports.front();
-    EXPECT_TRUE(report != NULL);
-    if (report == NULL)
-        return;
+    ASSERT_TRUE(report != NULL);
 
     EXPECT_EQ(report->getSsrc(), 0xd2bd4e3e);
     EXPECT_EQ((int)report->getFracLost(), 0x10);
@@ -269,19 +245,13 @@ TEST_F(RtcpPacketTest, DecodeCompoundSrRrPacket)
 
     // Check RR packet.
     std::list<RtcpRrPacket*> RrList = rtcpPacket.getRrPacketList();
-    EXPECT_TRUE(RrList.size() != 0);
-    if (RrList.size() == 0)
-        return;
+    ASSERT_TRUE(RrList.size() != 0);
 
     RtcpRrPacket* pRrPkt = RrList.front();
-    EXPECT_TRUE(pRrPkt != NULL);
-    if (pRrPkt == NULL)
-        return;
+    ASSERT_TRUE(pRrPkt != NULL);
 
     pRtcpHeader = pRrPkt->getRtcpHdrInfo();
-    EXPECT_TRUE(pRtcpHeader != NULL);
-    if (pRtcpHeader == NULL)
-        return;
+    ASSERT_TRUE(pRtcpHeader != NULL);
 
     EXPECT_EQ(pRtcpHeader->getVersion(), RTP_VERSION_NUM);
     EXPECT_EQ(pRtcpHeader->getPadding(), eRTP_FALSE);
@@ -291,14 +261,10 @@ TEST_F(RtcpPacketTest, DecodeCompoundSrRrPacket)
     EXPECT_EQ(pRtcpHeader->getSsrc(), 0xd2bd4e3e);
 
     reports = pRrPkt->getReportBlockList();
-    EXPECT_TRUE(reports.size() != 0);
-    if (reports.size() == 0)
-        return;
+    ASSERT_TRUE(reports.size() != 0);
 
     report = reports.front();
-    EXPECT_TRUE(report != NULL);
-    if (report == NULL)
-        return;
+    ASSERT_TRUE(report != NULL);
 
     EXPECT_EQ(report->getSsrc(), 0);
     EXPECT_EQ((int)report->getFracLost(), 0);
@@ -393,16 +359,13 @@ TEST_F(RtcpPacketTest, DecodeCompoundSrRrSdesPacket)
 
     // Check SR packet.
     std::list<RtcpSrPacket*> SrList = rtcpPacket.getSrPacketList();
-    EXPECT_TRUE(SrList.size() != 0);
+    ASSERT_TRUE(SrList.size() != 0);
+
     RtcpSrPacket* rtcpSrPacket = SrList.front();
-    EXPECT_TRUE(rtcpSrPacket != NULL);
-    if (rtcpSrPacket == NULL)
-        return;
+    ASSERT_TRUE(rtcpSrPacket != NULL);
 
     RtcpHeader* pRtcpHeader = rtcpSrPacket->getRtcpHdrInfo();
-    EXPECT_TRUE(pRtcpHeader != NULL);
-    if (pRtcpHeader == NULL)
-        return;
+    ASSERT_TRUE(pRtcpHeader != NULL);
 
     EXPECT_EQ(pRtcpHeader->getVersion(), RTP_VERSION_NUM);
     EXPECT_EQ(pRtcpHeader->getPadding(), eRTP_FALSE);
@@ -412,9 +375,7 @@ TEST_F(RtcpPacketTest, DecodeCompoundSrRrSdesPacket)
     EXPECT_EQ(pRtcpHeader->getSsrc(), 0xd2bd4e3e);
 
     tRTP_NTP_TIME* ntpTime = rtcpSrPacket->getNtpTime();
-    EXPECT_TRUE(ntpTime != NULL);
-    if (ntpTime == NULL)
-        return;
+    ASSERT_TRUE(ntpTime != NULL);
 
     EXPECT_EQ(ntpTime->m_uiNtpHigh32Bits, 3314714324);
     EXPECT_EQ(ntpTime->m_uiNtpLow32Bits, 4131758539);
@@ -423,19 +384,13 @@ TEST_F(RtcpPacketTest, DecodeCompoundSrRrSdesPacket)
     EXPECT_EQ(rtcpSrPacket->getSendOctetCount(), 640);
 
     RtcpRrPacket* pRRInfo = rtcpSrPacket->getRrPktInfo();
-    EXPECT_TRUE(pRRInfo != NULL);
-    if (pRRInfo == NULL)
-        return;
+    ASSERT_TRUE(pRRInfo != NULL);
 
     std::list<RtcpReportBlock*> reports = pRRInfo->getReportBlockList();
-    EXPECT_TRUE(reports.size() != 0);
-    if (reports.size() == 0)
-        return;
+    ASSERT_TRUE(reports.size() != 0);
 
     RtcpReportBlock* report = reports.front();
-    EXPECT_TRUE(report != NULL);
-    if (report == NULL)
-        return;
+    ASSERT_TRUE(report != NULL);
 
     EXPECT_EQ(report->getSsrc(), 0xd2bd4e3e);
     EXPECT_EQ((int)report->getFracLost(), 0);
@@ -447,19 +402,13 @@ TEST_F(RtcpPacketTest, DecodeCompoundSrRrSdesPacket)
 
     // Check RR packet.
     std::list<RtcpRrPacket*> RrList = rtcpPacket.getRrPacketList();
-    EXPECT_TRUE(RrList.size() != 0);
-    if (RrList.size() == 0)
-        return;
+    ASSERT_TRUE(RrList.size() != 0);
 
     RtcpRrPacket* pRrPkt = RrList.front();
-    EXPECT_TRUE(pRrPkt != NULL);
-    if (pRrPkt == NULL)
-        return;
+    ASSERT_TRUE(pRrPkt != NULL);
 
     pRtcpHeader = pRrPkt->getRtcpHdrInfo();
-    EXPECT_TRUE(pRtcpHeader != NULL);
-    if (pRtcpHeader == NULL)
-        return;
+    ASSERT_TRUE(pRtcpHeader != NULL);
 
     EXPECT_EQ(pRtcpHeader->getVersion(), RTP_VERSION_NUM);
     EXPECT_EQ(pRtcpHeader->getPadding(), eRTP_FALSE);
@@ -469,14 +418,10 @@ TEST_F(RtcpPacketTest, DecodeCompoundSrRrSdesPacket)
     EXPECT_EQ(pRtcpHeader->getSsrc(), 0xd2bd4e3e);
 
     reports = pRrPkt->getReportBlockList();
-    EXPECT_TRUE(reports.size() != 0);
-    if (reports.size() == 0)
-        return;
+    ASSERT_TRUE(reports.size() != 0);
 
     report = reports.front();
-    EXPECT_TRUE(report != NULL);
-    if (report == NULL)
-        return;
+    ASSERT_TRUE(report != NULL);
 
     EXPECT_EQ(report->getSsrc(), 0x58f33dea);
     EXPECT_EQ((int)report->getFracLost(), 0);
@@ -488,32 +433,24 @@ TEST_F(RtcpPacketTest, DecodeCompoundSrRrSdesPacket)
 
     // Check SDES
     RtcpSdesPacket* pRtcpSdesPacket = rtcpPacket.getSdesPacket();
-    EXPECT_TRUE(pRtcpSdesPacket != NULL);
-    if (pRtcpSdesPacket == NULL)
-        return;
+    ASSERT_TRUE(pRtcpSdesPacket != NULL);
 
     std::list<RtcpChunk*> pSdesChunks = pRtcpSdesPacket->getSdesChunkList();
     EXPECT_EQ(pSdesChunks.size(), 1);
     RtcpChunk* chunk = pSdesChunks.front();
-    EXPECT_TRUE(chunk != NULL);
-    if (chunk == NULL)
-        return;
+    ASSERT_TRUE(chunk != NULL);
 
     std::list<tRTCP_SDES_ITEM*> sdesItemList = chunk->getSdesItemList();
     EXPECT_EQ(sdesItemList.size(), 1);
     tRTCP_SDES_ITEM* sdesItem = sdesItemList.front();
-    EXPECT_TRUE(sdesItem != NULL);
-    if (sdesItem == NULL)
-        return;
+    ASSERT_TRUE(sdesItem != NULL);
 
     EXPECT_EQ(sdesItem->ucType, 1);
     EXPECT_EQ(sdesItem->ucLength, 20);
     EXPECT_EQ(strncmp((char*)sdesItem->pValue, (char*)"unknown@200.57.7.204", 20), 0);
 
     pRtcpHeader = pRtcpSdesPacket->getRtcpHdrInfo();
-    EXPECT_TRUE(pRtcpHeader != NULL);
-    if (pRtcpHeader == NULL)
-        return;
+    ASSERT_TRUE(pRtcpHeader != NULL);
 
     EXPECT_EQ(pRtcpHeader->getVersion(), RTP_VERSION_NUM);
     EXPECT_EQ(pRtcpHeader->getPadding(), eRTP_FALSE);
@@ -554,14 +491,10 @@ TEST_F(RtcpPacketTest, TestDecodeByePacket)
     EXPECT_EQ(res, RTP_SUCCESS);
 
     RtcpByePacket* pByePacket = rtcpPacket.getByePacket();
-    EXPECT_TRUE(pByePacket != 0);
-    if (pByePacket == NULL)
-        return;
+    ASSERT_TRUE(pByePacket != NULL);
 
     RtcpHeader* pRtcpHeader = pByePacket->getRtcpHdrInfo();
-    EXPECT_TRUE(pRtcpHeader != NULL);
-    if (pRtcpHeader == NULL)
-        return;
+    ASSERT_TRUE(pRtcpHeader != NULL);
 
     EXPECT_EQ(pRtcpHeader->getVersion(), RTP_VERSION_NUM);
     EXPECT_EQ(pRtcpHeader->getPadding(), eRTP_TRUE);
@@ -577,9 +510,7 @@ TEST_F(RtcpPacketTest, TestDecodeByePacket)
     EXPECT_EQ(*ssrcList.front(), (RtpDt_UInt32)0xb1c8cb04);
 
     RtpBuffer* reason = pByePacket->getReason();
-    EXPECT_TRUE(reason != NULL);
-    if (reason == NULL)
-        return;
+    ASSERT_TRUE(reason != NULL);
 
     EXPECT_EQ(reason->getLength(), 8);
     EXPECT_EQ(strcmp((char*)reason->getBuffer(), (char*)"teardown"), 0);
@@ -614,14 +545,10 @@ TEST_F(RtcpPacketTest, TestDecodeAppPacket)
     EXPECT_EQ(res, RTP_SUCCESS);
 
     RtcpAppPacket* pAppPacket = rtcpPacket.getAppPacket();
-    EXPECT_TRUE(pAppPacket != 0);
-    if (pAppPacket == NULL)
-        return;
+    ASSERT_TRUE(pAppPacket != NULL);
 
     RtcpHeader* pRtcpHeader = pAppPacket->getRtcpHdrInfo();
-    EXPECT_TRUE(pRtcpHeader != NULL);
-    if (pRtcpHeader == NULL)
-        return;
+    ASSERT_TRUE(pRtcpHeader != NULL);
 
     EXPECT_EQ(pRtcpHeader->getVersion(), RTP_VERSION_NUM);
     EXPECT_EQ(pRtcpHeader->getPadding(), eRTP_FALSE);
@@ -632,6 +559,7 @@ TEST_F(RtcpPacketTest, TestDecodeAppPacket)
     RtpDt_UInt32 appPktName = pAppPacket->getName();
     EXPECT_EQ(memcmp(&appPktName, (char*)"TEST", 4), 0);
     RtpBuffer* pAppData = pAppPacket->getAppData();
+    ASSERT_TRUE(pAppData != NULL);
     EXPECT_EQ(memcmp(pAppData->getBuffer(), (char*)"This is a test application data.", 32), 0);
     EXPECT_EQ(pAppData->getLength(), 32);
 }
@@ -675,14 +603,10 @@ TEST_F(RtcpPacketTest, TestDecodeFBPacket)
     std::list<RtcpFbPacket*> fbpktList = rtcpPacket.getFbPacketList();
     EXPECT_EQ(fbpktList.size(), 2);
     RtcpFbPacket* fbpkt = fbpktList.front();
-    EXPECT_TRUE(fbpkt != NULL);
-    if (fbpkt == NULL)
-        return;
+    ASSERT_TRUE(fbpkt != NULL);
 
     RtcpHeader* pRtcpHeader = fbpkt->getRtcpHdrInfo();
-    EXPECT_TRUE(pRtcpHeader != NULL);
-    if (pRtcpHeader == NULL)
-        return;
+    ASSERT_TRUE(pRtcpHeader != NULL);
 
     EXPECT_EQ(pRtcpHeader->getVersion(), RTP_VERSION_NUM);
     EXPECT_EQ(pRtcpHeader->getPadding(), eRTP_FALSE);
@@ -694,14 +618,10 @@ TEST_F(RtcpPacketTest, TestDecodeFBPacket)
 
     fbpktList.pop_front();
     fbpkt = fbpktList.front();
-    EXPECT_TRUE(fbpkt != NULL);
-    if (fbpkt == NULL)
-        return;
+    ASSERT_TRUE(fbpkt != NULL);
 
     pRtcpHeader = fbpkt->getRtcpHdrInfo();
-    EXPECT_TRUE(pRtcpHeader != NULL);
-    if (pRtcpHeader == NULL)
-        return;
+    ASSERT_TRUE(pRtcpHeader != NULL);
 
     EXPECT_EQ(pRtcpHeader->getVersion(), RTP_VERSION_NUM);
     EXPECT_EQ(pRtcpHeader->getPadding(), eRTP_FALSE);

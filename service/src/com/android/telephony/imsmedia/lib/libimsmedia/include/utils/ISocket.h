@@ -70,8 +70,8 @@ public:
     virtual char* GetPeerIPAddress() = 0;
     virtual bool Open(int localFd = 0) = 0;
     virtual void Listen(ISocketListener* listener) = 0;
-    virtual uint32_t SendTo(uint8_t* pData, uint32_t nDataSize) = 0;
-    virtual uint32_t ReceiveFrom(uint8_t* pData, uint32_t nBufferSize) = 0;
+    virtual int32_t SendTo(uint8_t* pData, uint32_t nDataSize) = 0;
+    virtual int32_t ReceiveFrom(uint8_t* pData, uint32_t nBufferSize) = 0;
     virtual bool RetrieveOptionMsg(uint32_t type, int32_t& value) = 0;
     virtual void Close() = 0;
     virtual bool SetSocketOpt(kSocketOption nOption, int32_t nOptionValue) = 0;

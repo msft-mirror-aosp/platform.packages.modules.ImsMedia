@@ -51,7 +51,7 @@ TEST_F(RtcpRrPacketTest, TestGetSetMethods)
     RtcpHeader objRtcpHeader;
     objRtcpRrPacket.setRtcpHdrInfo(objRtcpHeader);
     RtcpHeader* pRet = objRtcpRrPacket.getRtcpHdrInfo();
-    EXPECT_TRUE(pRet != NULL);
+    ASSERT_TRUE(pRet != NULL);
     EXPECT_EQ(memcmp(pRet, &objRtcpHeader, sizeof(RtcpHeader)), 0);
 
     uint8_t hdrExtBuf[] = {0xe6, 0x5f, 0xa5, 0x31, 0x53, 0x91, 0x24, 0xc2, 0x00, 0x04, 0x01};
@@ -59,7 +59,7 @@ TEST_F(RtcpRrPacketTest, TestGetSetMethods)
     RtpBuffer rtpbuffer(11, hdrExtBuf);
     objRtcpRrPacket.setExtHdrInfo(&rtpbuffer);
     RtpBuffer* pExtBuf = objRtcpRrPacket.getExtHdrInfo();
-    EXPECT_TRUE(pExtBuf != NULL);
+    ASSERT_TRUE(pExtBuf != NULL);
     EXPECT_EQ(memcmp(rtpbuffer.getBuffer(), pExtBuf->getBuffer(), 11), 0);
     EXPECT_EQ(pExtBuf->getLength(), 11);
 
@@ -75,14 +75,10 @@ TEST_F(RtcpRrPacketTest, TestDecodeRrPacket)
     EXPECT_EQ(res, RTP_SUCCESS);
 
     std::list<RtcpReportBlock*> reports = objRtcpRrPacket.getReportBlockList();
-    EXPECT_TRUE(reports.size() != 0);
-    if (reports.size() == 0)
-        return;
+    ASSERT_TRUE(reports.size() != 0);
 
     RtcpReportBlock* report = reports.front();
-    EXPECT_TRUE(report != NULL);
-    if (report == NULL)
-        return;
+    ASSERT_TRUE(report != NULL);
 
     EXPECT_EQ(report->getSsrc(), 0x01020304);
     EXPECT_EQ((int)report->getFracLost(), 0x10);
