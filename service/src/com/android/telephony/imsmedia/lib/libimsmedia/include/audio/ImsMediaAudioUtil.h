@@ -159,11 +159,12 @@ public:
     static uint32_t GetBitrateEVS(int mode);
     static kRtpPyaloadHeaderMode ConvertEVSPayloadMode(
             uint32_t nDataSize, kEvsCodecMode* pEVSCodecMode, uint32_t* pEVSCompactId);
-    static kEvsBandwidth FindMaxEVSBandwidth(uint32_t nEVSBandwidthSet);
-    static kEvsBitrate FindMaxEVSBitrate(uint32_t nEVSBitrateSet, kEvsCodecMode kEvsCodecMode);
-    static kEvsCodecMode CheckEVSCodecMode(uint32_t nAudioFrameLength);
-    static int32_t ConvertEVSModeToBitRate(int32_t EvsModeToBitRate);
-    static kEvsBandwidth FindMaxEvsBandwidthFromRange(int32_t EvsBandwidthRange);
+    static kEvsBandwidth FindMaxEVSBandwidth(const uint32_t nEVSBandwidthSet);
+    static kEvsBitrate FindMaxEVSBitrate(
+            const uint32_t nEVSBitrateSet, const kEvsCodecMode kEvsCodecMode);
+    static kEvsCodecMode CheckEVSCodecMode(const uint32_t nAudioFrameLength);
+    static int32_t ConvertEVSModeToBitRate(const int32_t mode);
+    static kEvsBandwidth FindMaxEvsBandwidthFromRange(const int32_t EvsBandwidthRange);
 };
 
 #endif  // AUDIO_AMRFMT_H_INCLUDED

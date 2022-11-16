@@ -27,18 +27,20 @@ static uint IM_remove_log = 1;
 #endif
 
 #define TRACEMAXSTRING 1024
+#define IM_TAG         "libimsmedia"
+#define IM_DEBUG_TAG   "libimsmedia_d"
 
 #ifdef IM_FILE_LOG
-#define __IMLOG__(IMLOGTYPE)                               \
+#define __IMLOG__(IMLOGTYPE, TAG)                          \
     do                                                     \
     {                                                      \
         va_list args;                                      \
         char szBuffer[TRACEMAXSTRING];                     \
-        FILE* fp_IM_log = NULL;                            \
         va_start(args, format);                            \
         vsnprintf(szBuffer, TRACEMAXSTRING, format, args); \
         va_end(args);                                      \
-        android_printLog(IMLOGTYPE, "IM", "%s", szBuffer); \
+        android_printLog(IMLOGTYPE, TAG, "%s", szBuffer);  \
+        FILE* fp_IM_log = NULL;                            \
         if (IM_remove_log)                                 \
         {                                                  \
             remove(IM_LOG_FILE);                           \
@@ -51,10 +53,7 @@ static uint IM_remove_log = 1;
             fclose(fp_IM_log);                             \
         }                                                  \
     } while (0)
-
 #else
-#define IM_TAG       "libimsmedia"
-#define IM_DEBUG_TAG "libimsmedia_d"
 #define __IMLOG__(IMLOGTYPE, TAG)                          \
     do                                                     \
     {                                                      \

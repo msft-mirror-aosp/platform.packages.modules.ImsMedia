@@ -20,6 +20,9 @@
 #include <ImsMediaTrace.h>
 #include <string.h>
 
+#define MAX_AMR_MODE 8
+#define MAX_EVS_MODE 20
+
 static const uint32_t gaAMRWBLen[32] = {
         17,  // 6.6
         23,  // 8.85
@@ -182,11 +185,11 @@ void ImsMediaAudioUtil::ConvertEvsBandwidthToStr(kEvsBandwidth bandwidth, char* 
 
 int32_t ImsMediaAudioUtil::ConvertEvsCodecMode(int32_t evsMode)
 {
-    if (evsMode > 8 && evsMode <= 20)
+    if (evsMode > MAX_AMR_MODE && evsMode <= MAX_EVS_MODE)
     {
         return kEvsCodecModePrimary;
     }
-    else if (evsMode >= 0 && evsMode <= 8)
+    else if (evsMode >= 0 && evsMode <= MAX_AMR_MODE)
     {
         return kEvsCodecModeAmrIo;
     }
@@ -222,7 +225,7 @@ uint32_t ImsMediaAudioUtil::ConvertLenToAmrMode(uint32_t nLen)
         return 15;
     }
 
-    for (i = 0; i <= 8; i++)
+    for (i = 0; i <= MAX_AMR_MODE; i++)
     {
         if (gaAMRLen[i] == nLen)
             return i;
@@ -360,7 +363,7 @@ uint32_t ImsMediaAudioUtil::GetMaximumAmrMode(int32_t bitmask)
 {
     uint32_t maxMode = 0;
 
-    for (uint32_t i = 0; i <= 8; i++)
+    for (int32_t i = 0; i <= MAX_AMR_MODE; i++)
     {
         if (bitmask & (1 << i))
         {
@@ -375,17 +378,18 @@ uint32_t ImsMediaAudioUtil::GetMaximumEvsMode(int32_t bitmask)
 {
     uint32_t maxMode = 0;
 
-    for (uint32_t i = 0; i <= 20; i++)
+    for (int32_t i = 0; i <= MAX_EVS_MODE; i++)
     {
         if (bitmask & (1 << i))
         {
             maxMode = i;
         }
     }
+
     return maxMode;
 }
 
-int32_t ImsMediaAudioUtil::ConvertEVSModeToBitRate(int32_t mode)
+int32_t ImsMediaAudioUtil::ConvertEVSModeToBitRate(const int32_t mode)
 {
     switch ((kImsAudioEvsMode)mode)
     {
@@ -437,25 +441,24 @@ int32_t ImsMediaAudioUtil::ConvertEVSModeToBitRate(int32_t mode)
 }
 
 kEvsBitrate ImsMediaAudioUtil::FindMaxEVSBitrate(
-        uint32_t nEVSBitrateSet, kEvsCodecMode kEvsCodecMode)
+        const uint32_t nEVSBitrateSet, const kEvsCodecMode kEvsCodecMode)
 {
     // find EVS bitrate.
     uint32_t nEVSBitrate = 0;
-    uint32_t EVSBitrateInfo = nEVSBitrateSet;
-    IMLOGD2("[FindMaxEVSBitrate] EVSBitrateInfo[0x%x], kEvsCodecMode[%d]", EVSBitrateInfo,
+    IMLOGD2("[FindMaxEVSBitrate] nEVSBitrateSet[0x%x], kEvsCodecMode[%d]", nEVSBitrateSet,
             kEvsCodecMode);
 
     // exception handling code, if EVSBitrateSet value is 0, EVS Bitrate set a Maxbitrate
-    if (EVSBitrateInfo == 0)
+    if (nEVSBitrateSet == 0)
     {
         if (kEvsCodecMode ==
                 kEvsCodecModeAmrIo)  // AMR WB IO mode : max nEVSBitrate 8 : 23.85 kbit/s
         {                            // (kEvsAmrIoModeBitrate02385 = 8)
-            nEVSBitrate = 8;
+            nEVSBitrate = MAX_AMR_MODE;
         }
         else  // Primary mode : max nEVSBitrate 8 : 128 kbit/s (kEvsPrimaryModeBitrate12800 = 20)
         {
-            nEVSBitrate = 20;
+            nEVSBitrate = MAX_EVS_MODE;
         }
 
         IMLOGD1("[FindMaxEVSBitrate] EVSBitrateSet value is 0...nEVSBitrate set a MaxBitRate[%d]",
@@ -463,23 +466,23 @@ kEvsBitrate ImsMediaAudioUtil::FindMaxEVSBitrate(
         return ((kEvsBitrate)nEVSBitrate);
     }
 
-    for (uint32_t i = 15; i >= 0; i--)
+    // TODO(259193183): change to use constant value
+    for (int32_t i = 0; i <= 15; i++)
     {
-        if ((EVSBitrateInfo & (1 << i)) != 0)
+        if ((nEVSBitrateSet & (1 << i)) != 0)
         {
             nEVSBitrate = i;
-            break;
         }
     }
+
     IMLOGD1("[FindMaxEVSBitrate] EvsBitrate[%d]", nEVSBitrate);
 
     // check default mode, [ default mode  ( 16 bit ) ][ mode set (16 bit )  ]
-    for (int32_t i = 31; i >= 16; i--)
+    for (int32_t i = 16; i <= 31; i++)
     {
-        if (((EVSBitrateInfo & (1 << i)) != 0) && ((EVSBitrateInfo & (1 << (i - 16))) != 0))
+        if (((nEVSBitrateSet & (1 << i)) != 0) && ((nEVSBitrateSet & (1 << (i - 16))) != 0))
         {
             nEVSBitrate = i - 16;
-            break;
         }
     }
 
@@ -492,7 +495,7 @@ kEvsBitrate ImsMediaAudioUtil::FindMaxEVSBitrate(
     return (kEvsBitrate)nEVSBitrate;
 }
 
-kEvsCodecMode ImsMediaAudioUtil::CheckEVSCodecMode(uint32_t nAudioFrameLength)
+kEvsCodecMode ImsMediaAudioUtil::CheckEVSCodecMode(const uint32_t nAudioFrameLength)
 {
     switch (nAudioFrameLength)
     {
@@ -563,15 +566,14 @@ kRtpPyaloadHeaderMode ImsMediaAudioUtil::ConvertEVSPayloadMode(
     return kRtpPyaloadHeaderModeEvsHeaderFull;
 }
 
-kEvsBandwidth ImsMediaAudioUtil::FindMaxEVSBandwidth(uint32_t nEVSBandwidthSet)
+kEvsBandwidth ImsMediaAudioUtil::FindMaxEVSBandwidth(const uint32_t nEVSBandwidthSet)
 {
     // find EVS bandwidth.
     uint32_t nEVSBandwidth = 0;
-    uint32_t EVSBandwidthInfo = nEVSBandwidthSet;
-    IMLOGD1("[FindMaxEVSBandwidth] EVSBandwidthInfo[0x%x]", EVSBandwidthInfo);
+    IMLOGD1("[FindMaxEVSBandwidth] nEVSBandwidthSet[0x%x]", nEVSBandwidthSet);
 
     // exception handling code, if nEVSBandwidthSet value is 0, EVS Bandwidth set a Maxbandwidth
-    if (EVSBandwidthInfo == 0)
+    if (nEVSBandwidthSet == 0)
     {
         nEVSBandwidth = 3;  // kEvsBandwidthFB = 3
         IMLOGD1("[FindMaxEVSBandwidth] nEVSBandwidth value is 0... nEVSBandwidth set a "
@@ -580,23 +582,22 @@ kEvsBandwidth ImsMediaAudioUtil::FindMaxEVSBandwidth(uint32_t nEVSBandwidthSet)
         return (kEvsBandwidth)nEVSBandwidth;
     }
 
-    for (uint32_t i = 15; i >= 0; i--)
+    for (int32_t i = 0; i <= 15; i++)
     {
-        if ((EVSBandwidthInfo & (1 << i)) != 0)
+        if ((nEVSBandwidthSet & (1 << i)) != 0)
         {
             nEVSBandwidth = i;
-            break;
         }
     }
+
     IMLOGD1("[FindMaxEVSBandwidth] nEVSBandwidth[%d]", nEVSBandwidth);
 
     // check default mode, [ default mode  ( 16 bit ) ][ mode set (16 bit )  ]
-    for (uint32_t i = 31; i >= 16; i--)
+    for (int32_t i = 16; i <= 31; i++)
     {
-        if (((EVSBandwidthInfo & (1 << i)) != 0) && ((EVSBandwidthInfo & (1 << (i - 16))) != 0))
+        if (((nEVSBandwidthSet & (1 << i)) != 0) && ((nEVSBandwidthSet & (1 << (i - 16))) != 0))
         {
             nEVSBandwidth = i - 16;
-            break;
         }
     }
 
@@ -604,7 +605,7 @@ kEvsBandwidth ImsMediaAudioUtil::FindMaxEVSBandwidth(uint32_t nEVSBandwidthSet)
     return (kEvsBandwidth)nEVSBandwidth;
 }
 
-kEvsBandwidth ImsMediaAudioUtil::FindMaxEvsBandwidthFromRange(int32_t EvsBandwidthRange)
+kEvsBandwidth ImsMediaAudioUtil::FindMaxEvsBandwidthFromRange(const int32_t EvsBandwidthRange)
 {
     if (EvsBandwidthRange & kEvsBandwidthFB)
     {
