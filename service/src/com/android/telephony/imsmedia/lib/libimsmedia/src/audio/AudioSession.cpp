@@ -251,8 +251,10 @@ ImsMediaResult AudioSession::startGraph(RtpConfig* config)
     return ret;
 }
 
-ImsMediaResult AudioSession::addGraph(RtpConfig* config)
+ImsMediaResult AudioSession::addGraph(RtpConfig* config, bool enableRtcp)
 {
+    IMLOGD1("[addGraph], enable rtcp[%d]", enableRtcp);
+
     if (config == NULL || std::strcmp(config->getRemoteAddress().c_str(), "") == 0)
     {
         return RESULT_INVALID_PARAM;
@@ -287,7 +289,7 @@ ImsMediaResult AudioSession::addGraph(RtpConfig* config)
     {
         if (graph != NULL && graph->getState() != kStreamStateRunning)
         {
-            graph->start();
+            enableRtcp ? graph->start() : graph->stop();
         }
     }
 
@@ -696,6 +698,22 @@ void AudioSession::sendDtmf(char digit, int duration)
             graph->sendDtmf(digit, duration);
         }
     }
+}
+
+bool AudioSession::IsGraphAlreadyExist(RtpConfig* config)
+{
+    if (mListGraphRtpTx.size() != 0)
+    {
+        for (auto& graph : mListGraphRtpTx)
+        {
+            if (graph != NULL && graph->isSameGraph(config))
+            {
+                return true;
+            }
+        }
+    }
+
+    return false;
 }
 
 void AudioSession::SendInternalEvent(int32_t type, uint64_t param1, uint64_t param2)

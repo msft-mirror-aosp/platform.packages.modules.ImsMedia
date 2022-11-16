@@ -64,11 +64,9 @@ public:
         (void)param2;
         EXPECT_EQ(type, kNodeIdTextRenderer);
         android::String8* text = reinterpret_cast<android::String8*>(param1);
+        ASSERT_TRUE(text != nullptr);
         EXPECT_EQ(*text, kTestText);
-        if (text != nullptr)
-        {
-            delete text;
-        }
+        delete text;
     }
 
     virtual void onEvent(int32_t type, uint64_t param1, uint64_t param2)

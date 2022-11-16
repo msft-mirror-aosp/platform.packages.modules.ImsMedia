@@ -1236,14 +1236,14 @@ eRTP_STATUS_CODE RtpSession::setPayload(
     {
         if (m_pobjPayloadInfo == RTP_NULL)
         {
-            RTP_TRACE_MESSAGE("setPayload, m_pobjPayloadInfo is NULL.", RTP_ZERO, RTP_ZERO);
+            RTP_TRACE_ERROR("setPayload, m_pobjPayloadInfo is NULL.", RTP_ZERO, RTP_ZERO);
             return RTP_INVALID_PARAMS;
         }
         m_pobjPayloadInfo->setRtpPayloadInfo(pstPayloadInfo);
     }
     else
     {
-        RTP_TRACE_MESSAGE("setPayload, pstPayloadInfo is NULL.", RTP_ZERO, RTP_ZERO);
+        RTP_TRACE_ERROR("setPayload, pstPayloadInfo is NULL.", RTP_ZERO, RTP_ZERO);
 
         return RTP_INVALID_PARAMS;
     }

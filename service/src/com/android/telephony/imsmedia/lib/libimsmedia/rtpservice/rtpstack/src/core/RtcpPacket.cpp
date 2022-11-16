@@ -342,7 +342,7 @@ eRTP_STATUS_CODE RtcpPacket::decodeRtcpPacket(IN RtpBuffer* pobjRtcpPktBuf,
     if ((bSrPkt == eRTP_FALSE) && (bRrPkt == eRTP_FALSE) && (bFbPkt == eRTP_FALSE) &&
             (bOtherPkt == eRTP_FALSE))
     {
-        RTP_TRACE_MESSAGE("[DecodeRtcpPacket], no rtcp sr,rr,fb packets", 0, 0);
+        RTP_TRACE_ERROR("[DecodeRtcpPacket], no rtcp sr,rr,fb packets", 0, 0);
         return RTP_DECODE_ERROR;
     }
 

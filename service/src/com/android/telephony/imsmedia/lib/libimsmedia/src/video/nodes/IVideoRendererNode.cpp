@@ -885,29 +885,14 @@ void IVideoRendererNode::NotifyPeerDimensionChanged()
     }
     else  // portrait
     {
-        if (mDeviceOrientation == 0 || mDeviceOrientation == 180)
+        // peer rotation
+        if (mSubtype == MEDIASUBTYPE_ROT0 || mSubtype == MEDIASUBTYPE_ROT180)
         {
-            // peer rotation
-            if (mSubtype == MEDIASUBTYPE_ROT0 || mSubtype == MEDIASUBTYPE_ROT180)
-            {
-                mCallback->SendEvent(kImsMediaEventResolutionChanged, mWidth, mHeight);
-            }
-            else
-            {
-                mCallback->SendEvent(kImsMediaEventResolutionChanged, mHeight, mWidth);
-            }
+            mCallback->SendEvent(kImsMediaEventResolutionChanged, mWidth, mHeight);
         }
         else
         {
-            // peer rotation
-            if (mSubtype == MEDIASUBTYPE_ROT0 || mSubtype == MEDIASUBTYPE_ROT180)
-            {
-                mCallback->SendEvent(kImsMediaEventResolutionChanged, mWidth, mHeight);
-            }
-            else
-            {
-                mCallback->SendEvent(kImsMediaEventResolutionChanged, mHeight, mWidth);
-            }
+            mCallback->SendEvent(kImsMediaEventResolutionChanged, mHeight, mWidth);
         }
     }
 }

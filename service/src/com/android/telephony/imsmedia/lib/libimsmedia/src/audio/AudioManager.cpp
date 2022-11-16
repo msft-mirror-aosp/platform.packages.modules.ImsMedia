@@ -60,16 +60,16 @@ ImsMediaResult AudioManager::openSession(int sessionId, int rtpFd, int rtcpFd, A
 
     if (!mSessions.count(sessionId))
     {
-        AudioSession* session = new AudioSession();
+        std::unique_ptr<AudioSession> session(new AudioSession());
         session->setSessionId(sessionId);
         session->setLocalEndPoint(rtpFd, rtcpFd);
-        mSessions.insert(std::make_pair(sessionId, std::move(session)));
-        ImsMediaResult ret = session->startGraph(config);
 
-        if (ret != RESULT_SUCCESS)
+        if (session->startGraph(config) != RESULT_SUCCESS)
         {
-            IMLOGI1("[openSession] startGraph failed[%d]", ret);
+            IMLOGI0("[openSession] startGraph failed");
         }
+
+        mSessions.insert(std::make_pair(sessionId, std::move(session)));
     }
     else
     {
@@ -96,7 +96,14 @@ ImsMediaResult AudioManager::modifySession(int sessionId, AudioConfig* config)
     IMLOGI1("[modifySession] sessionId[%d]", sessionId);
     if (session != mSessions.end())
     {
-        return (session->second)->startGraph(config);
+        if ((session->second)->IsGraphAlreadyExist(config))
+        {
+            return (session->second)->startGraph(config);
+        }
+        else
+        {
+            return (session->second)->addGraph(config, false);
+        }
     }
     else
     {
@@ -109,9 +116,10 @@ ImsMediaResult AudioManager::addConfig(int sessionId, AudioConfig* config)
 {
     auto session = mSessions.find(sessionId);
     IMLOGI1("[addConfig] sessionId[%d]", sessionId);
+
     if (session != mSessions.end())
     {
-        return (session->second)->addGraph(config);
+        return (session->second)->addGraph(config, true);
     }
     else
     {
