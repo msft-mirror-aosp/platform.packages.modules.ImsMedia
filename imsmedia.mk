@@ -2,4 +2,3 @@
 PRODUCT_PACKAGES += \
     ImsMediaService \
     libimsmedia \
-    libimsmedia_config \

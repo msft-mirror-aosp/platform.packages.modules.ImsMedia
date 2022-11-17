@@ -12,30 +12,16 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-cc_library_shared {
-    name: "libimsmedia",
-    defaults: [
-    ],
+filegroup {
+    name: "libimsmedia_jni_srcs",
     srcs: [
-        "libimsmedia.cpp",
+        "**/*.cpp",
     ],
-    static_libs: [
-        "libimsmedia_config",
-        "libimsmedia_core",
-        "libimsmedia_protocol",
-    ],
-    shared_libs: [
-        "framework-permission-aidl-cpp",
-        "libaaudio",
-        "libandroid",
-        "libandroid_runtime",
-        "libbinder",
-        "libcamera2ndk",
-        "libcutils",
-        "libjnigraphics",
-        "liblog",
-        "libmediandk",
-        "libnativewindow",
-        "libutils",
+}
+
+cc_library_headers {
+    name: "libimsmedia_jni_headers",
+    export_include_dirs: [
+        "include",
     ],
 }

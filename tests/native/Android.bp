@@ -1,11 +1,21 @@
-package {
-    default_applicable_licenses: ["Android-Apache-2.0"],
-}
+// Copyright (C) 2022 The Android Open Source Project
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
 
 cc_defaults {
     name: "imsmedia_tests_defaults",
     defaults: [
-        "librtp_defaults",
+        "libimsmedia_protocol_defaults",
         "libimsmedia_shared_defaults",
         "libimsmedia_audio_defaults",
         "libimsmedia_video_defaults",
@@ -18,17 +28,19 @@ cc_defaults {
         "libgmock",
         "libgtest_main",
         "liblog",
+        "libimsmedia_core",
+        "libimsmedia_config",
+        "libimsmedia_protocol",
     ],
     shared_libs: [
-        "libimsmedia",
-        "libimsmedia_config",
         "libbinder",
         "libutils",
         "libmediandk",
         "libaaudio",
+        "libjnigraphics",
     ],
     header_libs: [
-        "libimsmedia_header",
+        "libimsmedia_headers",
         "libimsmedia_config_headers",
     ],
     include_dirs: [
