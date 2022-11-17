@@ -83,7 +83,7 @@ TEST(RtpPacketTest, TestDecodePacket)
             0x02, 0xbe, 0xde, 0x00, 0x01, 0x41, 0x78, 0x42, 0x00, 0x67, 0x42, 0xc0, 0x0c, 0xda,
             0x0f, 0x0a, 0x69, 0xa8, 0x10, 0x10, 0x10, 0x3c, 0x58, 0xba, 0x80};
 
-    RtpBuffer rtpBuffer(sizeof(pobjRtpPktBuf) / sizeof(pobjRtpPktBuf[0]), pobjRtpPktBuf);
+    RtpBuffer rtpBuffer(sizeof(pobjRtpPktBuf), pobjRtpPktBuf);
     eRtp_Bool eResult = rtpPacket.decodePacket(&rtpBuffer);
 
     EXPECT_EQ(eResult, eRTP_SUCCESS);
@@ -91,21 +91,20 @@ TEST(RtpPacketTest, TestDecodePacket)
     // check Header extension
     RtpBuffer* pobjRtpExtHdr = rtpPacket.getExtHeader();
     ASSERT_TRUE(pobjRtpExtHdr != NULL);
-    uint8_t pRtpExtHdr[] = {0x41, 0x78, 0x42};
 
-    EXPECT_TRUE(pobjRtpExtHdr != NULL);
-    EXPECT_EQ(memcmp(pRtpExtHdr, pobjRtpExtHdr->getBuffer(), 4), 0);
-    EXPECT_EQ(pobjRtpExtHdr->getLength(), 4);
+    uint8_t pRtpExtHdr[] = {0x41, 0x78, 0x42, 0x00};
+
+    EXPECT_EQ(memcmp(pRtpExtHdr, pobjRtpExtHdr->getBuffer(), sizeof(pRtpExtHdr)), 0);
+    EXPECT_EQ(pobjRtpExtHdr->getLength(), sizeof(pRtpExtHdr));
 
     // check Payload
     RtpBuffer* pobjRtpBuffer = rtpPacket.getRtpPayload();
     uint8_t pRtpPayLoad[] = {0x67, 0x42, 0xc0, 0x0c, 0xda, 0x0f, 0x0a, 0x69, 0xa8, 0x10, 0x10, 0x10,
             0x3c, 0x58, 0xba, 0x80};
-    const RtpDt_UInt32 uiLength = sizeof(pRtpPayLoad) / sizeof(pRtpPayLoad[0]);
 
     ASSERT_TRUE(pobjRtpBuffer != NULL);
-    EXPECT_EQ(memcmp(pRtpPayLoad, pobjRtpBuffer->getBuffer(), uiLength), 0);
-    EXPECT_EQ(pobjRtpBuffer->getLength(), uiLength);
+    EXPECT_EQ(memcmp(pRtpPayLoad, pobjRtpBuffer->getBuffer(), sizeof(pRtpPayLoad)), 0);
+    EXPECT_EQ(pobjRtpBuffer->getLength(), sizeof(pRtpPayLoad));
 }
 
 TEST(RtpPacketTest, TestDecodePacketWithWrongRtpVersion)
