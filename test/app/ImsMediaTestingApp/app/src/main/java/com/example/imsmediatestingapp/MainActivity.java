@@ -25,10 +25,13 @@ import android.telephony.imsmedia.IImsMediaCallback;
 import android.telephony.imsmedia.ImsAudioSession;
 import android.telephony.imsmedia.ImsMediaManager;
 import android.telephony.imsmedia.ImsMediaSession;
+import android.telephony.imsmedia.ImsTextSession;
 import android.telephony.imsmedia.ImsVideoSession;
 import android.telephony.imsmedia.MediaQualityThreshold;
 import android.telephony.imsmedia.RtcpConfig;
 import android.telephony.imsmedia.RtpConfig;
+import android.telephony.imsmedia.TextConfig;
+import android.telephony.imsmedia.TextSessionCallback;
 import android.telephony.imsmedia.VideoConfig;
 import android.telephony.imsmedia.VideoSessionCallback;
 import android.text.format.Formatter;
@@ -39,6 +42,8 @@ import android.view.MenuItem;
 import android.view.Surface;
 import android.view.TextureView;
 import android.view.View;
+import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
@@ -60,6 +65,7 @@ import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.SocketException;
 import java.net.UnknownHostException;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -84,6 +90,9 @@ public class MainActivity extends AppCompatActivity {
     private static final int AUDIO_TX_PAYLOAD_TYPE_NUMBER = 96;
     private static final int VIDEO_RX_PAYLOAD_TYPE_NUMBER = 106;
     private static final int VIDEO_TX_PAYLOAD_TYPE_NUMBER = 106;
+    private static final int TEXT_REDUNDANT_PAYLOAD_TYPE_NUMBER = 111;
+    private static final int TEXT_RX_PAYLOAD_TYPE_NUMBER = 112;
+    private static final int TEXT_TX_PAYLOAD_TYPE_NUMBER = 112;
     private static final int SAMPLING_RATE_KHZ = 16;
     private static final int P_TIME_MILLIS = 20;
     private static final int MAX_P_TIME_MILLIS = 240;
@@ -149,16 +158,20 @@ public class MainActivity extends AppCompatActivity {
     private boolean mIsMediaManagerReady = false;
     private boolean mIsOpenSessionSent = false;
     private boolean mIsVideoSessionOpened = false;
+    private boolean mIsTextSessionOpened = false;
     private boolean mIsPreviewSurfaceSet = false;
     private boolean mIsDisplaySurfaceSet = false;
     private boolean mVideoEnabled = false;
+    private boolean mTextEnabled = false;
     private final StringBuilder mDtmfInput = new StringBuilder();
 
     private ConnectionStatus mConnectionStatus;
     private ImsAudioSession mAudioSession;
     private ImsVideoSession mVideoSession;
+    private ImsTextSession mTextSession;
     private AudioConfig mAudioConfig;
     private VideoConfig mVideoConfig;
+    private TextConfig mTextConfig;
     private ImsMediaManager mImsMediaManager;
     private Executor mExecutor;
     private Thread mWaitForHandshakeThread;
@@ -167,6 +180,8 @@ public class MainActivity extends AppCompatActivity {
     private DatagramSocket mAudioRtcp;
     private DatagramSocket mVideoRtp;
     private DatagramSocket mVideoRtcp;
+    private DatagramSocket mTextRtp;
+    private DatagramSocket mTextRtcp;
     private DeviceInfo mRemoteDeviceInfo;
     private DeviceInfo mLocalDeviceInfo;
     private BottomSheetDialer mBottomSheetDialog;
@@ -185,6 +200,8 @@ public class MainActivity extends AppCompatActivity {
     private LinearLayout mActiveCallToolBar;
     private TextureView mTexturePreview;
     private TextureView mTextureDisplay;
+    private Surface mPreviewSurface;
+    private Surface mDisplaySurface;
 
     /**
      * Enum of the CodecType from android.hardware.radio.ims.media.CodecType with
@@ -580,7 +597,6 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        createTextureView();
         prefs = getSharedPreferences(PREF_NAME, MODE_PRIVATE);
         prefsHandler = new SharedPrefsHandler(prefs);
         editor = prefs.edit();
@@ -597,10 +613,10 @@ public class MainActivity extends AppCompatActivity {
 
         mBottomSheetAudioCodecSettings = new BottomSheetAudioCodecSettings(this);
         mBottomSheetAudioCodecSettings.setContentView(R.layout.audio_codec_change);
-
         updateCodecSelectionFromPrefs();
 
         updateUI(ConnectionStatus.OFFLINE);
+        updateAdditionalMedia();
     }
 
     @Override
@@ -614,6 +630,7 @@ public class MainActivity extends AppCompatActivity {
         Log.d(TAG, "onResume");
         super.onResume();
         styleMainActivity();
+        updateAdditionalMedia();
     }
 
     @Override
@@ -630,6 +647,12 @@ public class MainActivity extends AppCompatActivity {
         }
         if (mVideoRtcp != null) {
             mVideoRtcp.close();
+        }
+        if (mTextRtp != null) {
+            mTextRtp.close();
+        }
+        if (mTextRtcp != null) {
+            mTextRtcp.close();
         }
     }
 
@@ -751,23 +774,91 @@ public class MainActivity extends AppCompatActivity {
             mVideoSession = (ImsVideoSession) session;
             Log.d(TAG, "onOpenSessionSuccess: id=" + mVideoSession.getSessionId());
             mIsVideoSessionOpened = true;
-            mIsPreviewSurfaceSet = false;
-            mIsDisplaySurfaceSet = false;
-
-            Thread updateSurface = new Thread(new Runnable() {
-                public void run() {
-                    runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            createTextureView();
-                        }
-                    });
+            runOnUiThread(() -> {
+                if (mIsPreviewSurfaceSet) {
+                    mVideoSession.setPreviewSurface(mPreviewSurface);
+                }
+                if (mIsDisplaySurfaceSet) {
+                    mVideoSession.setDisplaySurface(mDisplaySurface);
                 }
             });
-            updateSurface.start();
-            updateUI(ConnectionStatus.ACTIVE_CALL);
         }
     }
+
+    private class RtpTextSessionCallback extends TextSessionCallback {
+        @Override
+        public void onOpenSessionFailure(int error) {
+            Log.e(TAG, "onOpenSessionFailure - error=" + error);
+        }
+
+        @Override
+        public void onOpenSessionSuccess(ImsMediaSession session) {
+            mTextSession = (ImsTextSession) session;
+            Log.d(TAG, "onOpenSessionSuccess: id=" + mTextSession.getSessionId());
+            mIsTextSessionOpened = true;
+        }
+
+        @Override
+        public void onRttReceived(final String text) {
+            Log.d(TAG, "onRttReceived: text=" + text);
+            if (mIsTextSessionOpened) {
+                runOnUiThread(() -> {
+                    TextView view = findViewById(R.id.receivedText);
+                    view.setText(text);
+                });
+            }
+        }
+    }
+
+    private void updateAdditionalMedia() {
+        Log.d(TAG, "updateAdditionalMedia()");
+        ArrayList<String> listAdditionalMedia = new ArrayList<>();
+        ArrayAdapter<String> spinnerAdaptor = new ArrayAdapter<>(this,
+                android.R.layout.simple_spinner_item, listAdditionalMedia);
+
+        listAdditionalMedia.add(getString(R.string.media_none));
+        listAdditionalMedia.add(getString(R.string.media_video));
+        listAdditionalMedia.add(getString(R.string.media_text));
+        spinnerAdaptor.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+
+        Spinner spinnerAdditionalMedia = findViewById(R.id.spinnerAdditionalMedia);
+        spinnerAdditionalMedia.setAdapter(spinnerAdaptor);
+        spinnerAdditionalMedia.setOnItemSelectedListener(mAdditionalMediaListener);
+        if (mVideoEnabled) {
+            spinnerAdditionalMedia.setSelection(1);
+        } else if (mTextEnabled) {
+            spinnerAdditionalMedia.setSelection(2);
+        } else {
+            spinnerAdditionalMedia.setSelection(0);
+        }
+    }
+
+    private AdapterView.OnItemSelectedListener mAdditionalMediaListener =
+            new AdapterView.OnItemSelectedListener() {
+                @Override
+                public void onItemSelected(AdapterView<?> adapterView, View view,
+                        int i, long l) {
+                    String str = adapterView.getItemAtPosition(i).toString();
+                    Log.d(TAG, "onItemSelected() str=" + str);
+                    if (str.equals(getString(R.string.media_video))) {
+                        mVideoEnabled = true;
+                        mTextEnabled = false;
+                    } else if (str.equals(getString(R.string.media_text))) {
+                        mTextEnabled = true;
+                        mVideoEnabled = false;
+                    } else {
+                        mVideoEnabled = false;
+                        mTextEnabled = false;
+                    }
+                    updateVideoUi(mVideoEnabled);
+                    updateTextUi(mTextEnabled);
+                }
+
+                @Override
+                public void onNothingSelected(AdapterView<?> adapterView) {
+
+                }
+            };
 
     private WifiInfo retrieveNetworkConfig() {
         WifiManager wifiManager = (WifiManager) getApplication()
@@ -847,6 +938,9 @@ public class MainActivity extends AppCompatActivity {
         mVideoRtp = createDatagramSocket(getLocalIpAddress(), 20000);
         mVideoRtcp = createDatagramSocket(getLocalIpAddress(),
                 mVideoRtp.getLocalPort() + 1);
+        mTextRtp = createDatagramSocket(getLocalIpAddress(), 30000);
+        mTextRtcp = createDatagramSocket(getLocalIpAddress(),
+                mTextRtp.getLocalPort() + 1);
         if (openHandshakePort) {
             mHandshakeReceptionSocket = new HandshakeReceiver(prefs);
             mHandshakeReceptionSocket.run();
@@ -865,6 +959,8 @@ public class MainActivity extends AppCompatActivity {
         closeDatagramSocket(mAudioRtcp);
         closeDatagramSocket(mVideoRtp);
         closeDatagramSocket(mVideoRtcp);
+        closeDatagramSocket(mTextRtp);
+        closeDatagramSocket(mTextRtcp);
     }
 
     private DatagramSocket createDatagramSocket(@NonNull String address, int port) {
@@ -969,12 +1065,9 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public void onSurfaceTextureAvailable(SurfaceTexture surface, int width, int height) {
             Log.d(TAG, "onSurfaceTextureAvailable - preview, width=" + width + ",height=" + height);
-
-            if (mIsVideoSessionOpened) {
-                surface.setDefaultBufferSize(RESOLUTION_WIDTH, RESOLUTION_HEIGHT);
-                Surface preview = new Surface(surface);
-                mVideoSession.setPreviewSurface(preview);
-            }
+            surface.setDefaultBufferSize(RESOLUTION_WIDTH, RESOLUTION_HEIGHT);
+            mPreviewSurface = new Surface(surface);
+            mIsPreviewSurfaceSet = true;
         }
 
         @Override
@@ -990,13 +1083,9 @@ public class MainActivity extends AppCompatActivity {
 
         @Override
         public void onSurfaceTextureUpdated(SurfaceTexture surface) {
-            Log.d(TAG, "onSurfaceTextureUpdated");
-            if (mIsVideoSessionOpened && !mIsPreviewSurfaceSet) {
-                surface.setDefaultBufferSize(RESOLUTION_WIDTH, RESOLUTION_HEIGHT);
-                Surface preview = new Surface(surface);
-                mVideoSession.setPreviewSurface(preview);
-                mIsPreviewSurfaceSet = true;
-            }
+            surface.setDefaultBufferSize(RESOLUTION_WIDTH, RESOLUTION_HEIGHT);
+            mPreviewSurface = new Surface(surface);
+            mIsPreviewSurfaceSet = true;
         }
     };
 
@@ -1008,12 +1097,9 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public void onSurfaceTextureAvailable(SurfaceTexture surface, int width, int height) {
             Log.d(TAG, "onSurfaceTextureAvailable - display, width=" + width + ",height=" + height);
-
-            if (mIsVideoSessionOpened) {
-                surface.setDefaultBufferSize(RESOLUTION_WIDTH, RESOLUTION_HEIGHT);
-                Surface display = new Surface(surface);
-                mVideoSession.setDisplaySurface(display);
-            }
+            surface.setDefaultBufferSize(RESOLUTION_WIDTH, RESOLUTION_HEIGHT);
+            mDisplaySurface = new Surface(surface);
+            mIsDisplaySurfaceSet = true;
         }
 
         @Override
@@ -1029,13 +1115,9 @@ public class MainActivity extends AppCompatActivity {
 
         @Override
         public void onSurfaceTextureUpdated(SurfaceTexture surface) {
-            Log.d(TAG, "onSurfaceTextureUpdated");
-            if (mIsVideoSessionOpened && !mIsDisplaySurfaceSet) {
-                surface.setDefaultBufferSize(RESOLUTION_WIDTH, RESOLUTION_HEIGHT);
-                Surface display = new Surface(surface);
-                mVideoSession.setDisplaySurface(display);
-                mIsDisplaySurfaceSet = true;
-            }
+            surface.setDefaultBufferSize(RESOLUTION_WIDTH, RESOLUTION_HEIGHT);
+            mDisplaySurface = new Surface(surface);
+            mIsDisplaySurfaceSet = true;
         }
     };
 
@@ -1126,6 +1208,7 @@ public class MainActivity extends AppCompatActivity {
                             ? mHandshakeReceptionSocket.getBoundSocket() : 0)
                     .setAudioRtpPort(mAudioRtp.getLocalPort())
                     .setVideoRtpPort(mVideoRtp.getLocalPort())
+                    .setTextRtpPort(mTextRtp.getLocalPort())
                     .setAudioCodecs(mSelectedCodecTypes)
                     .setAmrModes(mSelectedAmrModes)
                     .setEvsBandwidths(mSelectedEvsBandwidths)
@@ -1180,18 +1263,47 @@ public class MainActivity extends AppCompatActivity {
     }
 
     /**
-     * Builds and returns an RtcpConfig for the remote device that is connected to
-     * the local device.
+     * Creates and returns an InetSocketAddress from the remote device that is connected to the
+     * local device.
+     *
+     * @return the InetSocketAddress of the remote device
+     */
+    private InetSocketAddress getRemoteTextSocketAddress() {
+        int remotePort = mRemoteDeviceInfo.getTextRtpPort();
+        InetAddress remoteInetAddress = mRemoteDeviceInfo.getInetAddress();
+        return new InetSocketAddress(remoteInetAddress, remotePort);
+    }
+
+    /**
+     * Builds and returns an RtcpConfig for the remote device that is connected to the local device.
      *
      * @return the RtcpConfig for the remote device
      */
-    private RtcpConfig getRemoteRtcpConfig() {
+    private RtcpConfig getRemoteAudioRtcpConfig() {
         return new RtcpConfig.Builder()
-                .setCanonicalName("rtp config")
+                .setCanonicalName("audio rtcp config")
                 .setTransmitPort(mRemoteDeviceInfo.getAudioRtpPort() + 1)
                 .setIntervalSec(5)
                 .setRtcpXrBlockTypes(RtcpConfig.FLAG_RTCPXR_STATISTICS_SUMMARY_REPORT_BLOCK
                         | RtcpConfig.FLAG_RTCPXR_VOIP_METRICS_REPORT_BLOCK)
+                .build();
+    }
+
+    private RtcpConfig getRemoteVideoRtcpConfig() {
+        return new RtcpConfig.Builder()
+                .setCanonicalName("video rtcp config")
+                .setTransmitPort(mRemoteDeviceInfo.getVideoRtpPort() + 1)
+                .setIntervalSec(5)
+                .setRtcpXrBlockTypes(0)
+                .build();
+    }
+
+    private RtcpConfig getRemoteTextRtcpConfig() {
+        return new RtcpConfig.Builder()
+                .setCanonicalName("text rtcp config")
+                .setTransmitPort(mRemoteDeviceInfo.getTextRtpPort() + 1)
+                .setIntervalSec(5)
+                .setRtcpXrBlockTypes(0)
                 .build();
     }
 
@@ -1328,6 +1440,26 @@ public class MainActivity extends AppCompatActivity {
         return config;
     }
 
+    private TextConfig createTextConfig(InetSocketAddress remoteRtpAddress,
+            RtcpConfig rtcpConfig, int codecType) {
+        TextConfig config = new TextConfig.Builder()
+                .setMediaDirection(RtpConfig.MEDIA_DIRECTION_SEND_RECEIVE)
+                .setAccessNetwork(AccessNetworkType.EUTRAN)
+                .setRemoteRtpAddress(remoteRtpAddress)
+                .setRtcpConfig(rtcpConfig)
+                .setDscp((byte) DSCP)
+                .setRxPayloadTypeNumber((byte) TEXT_RX_PAYLOAD_TYPE_NUMBER)
+                .setTxPayloadTypeNumber((byte) TEXT_TX_PAYLOAD_TYPE_NUMBER)
+                .setSamplingRateKHz((byte) 10)
+                .setCodecType(codecType)
+                .setBitrate(1000)
+                .setRedundantPayload((byte) TEXT_REDUNDANT_PAYLOAD_TYPE_NUMBER)
+                .setRedundantLevel((byte) 3)
+                .setKeepRedundantLevel(true)
+                .build();
+        return config;
+    }
+
     private MediaQualityThreshold createMediaQualityThreshold(int rtpInactivityTimerMillis,
             int rtcpInactivityTimerMillis, int packetLossPeriodMillis, int packetLossThreshold,
             int jitterPeriodMillis, int jitterThresholdMillis) {
@@ -1442,8 +1574,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     /**
-     * Creates an AudioConfig object depending on the passed parameters and returns
-     * it.
+     * Creates an AudioConfig object depending on the passed parameters and returns it.
      *
      * @param audioCodec Integer value of the CodecType
      * @param amrParams  AmrParams object to be set in the AudioConfig
@@ -1466,18 +1597,18 @@ public class MainActivity extends AppCompatActivity {
             case CodecType.AMR:
             case CodecType.AMR_WB:
                 mAudioConfig = createAudioConfig(getRemoteAudioSocketAddress(),
-                        getRemoteRtcpConfig(), audioCodec, amrParams, mEvs);
+                        getRemoteAudioRtcpConfig(), audioCodec, amrParams, mEvs);
                 break;
 
             case CodecType.EVS:
                 mAudioConfig = createAudioConfig(getRemoteAudioSocketAddress(),
-                              getRemoteRtcpConfig(), audioCodec, amrParams, evsParams);
+                        getRemoteAudioRtcpConfig(), audioCodec, amrParams, evsParams);
                 break;
 
             case CodecType.PCMA:
             case CodecType.PCMU:
                 mAudioConfig = createAudioConfig(getRemoteAudioSocketAddress(),
-                        getRemoteRtcpConfig(), audioCodec, null, null);
+                        getRemoteAudioRtcpConfig(), audioCodec, null, null);
                 break;
 
         }
@@ -1486,27 +1617,45 @@ public class MainActivity extends AppCompatActivity {
     }
 
     /**
-     * Creates an VideoConfig object depending on the passed parameters and returns
-     * it.
+     * Creates a VideoConfig object depending on the passed parameters and returns it.
      *
-     * @param videoCodec Integer value of the CodecType
-     * @return an VideoConfig with the passed parameters and default values.
+     * @return a VideoConfig with the passed parameters and default values.
      */
     private VideoConfig createVideoConfig(int codecType, int videoMode, int framerate, int bitrate,
             int profile, int level, int cameraId, int cameraZoom, int deviceOrientation, int cvo,
             int rtcpFbTypes) {
-        VideoConfig mVideoConfig = null;
+        VideoConfig videoConfig = null;
 
         switch (codecType) {
             case VideoConfig.VIDEO_CODEC_AVC:
             case VideoConfig.VIDEO_CODEC_HEVC:
-                mVideoConfig = createVideoConfig(getRemoteVideoSocketAddress(),
-                        getRemoteRtcpConfig(), codecType, videoMode, framerate, bitrate, profile,
-                        level, cameraId, cameraZoom, deviceOrientation, cvo, rtcpFbTypes);
+                videoConfig = createVideoConfig(getRemoteVideoSocketAddress(),
+                        getRemoteVideoRtcpConfig(), codecType, videoMode, framerate, bitrate,
+                        profile, level, cameraId, cameraZoom, deviceOrientation, cvo, rtcpFbTypes);
                 break;
         }
 
-        return mVideoConfig;
+        return videoConfig;
+    }
+
+    /**
+     * Creates a TextConfig object depending on the passed parameters and returns it.
+     *
+     * @param codecType Integer value of the text codec type
+     * @return a TextConfig with the passed parameters and default values.
+     */
+    private TextConfig createTextConfig(int codecType) {
+        TextConfig textConfig = null;
+
+        switch (codecType) {
+            case TextConfig.TEXT_T140:
+            case TextConfig.TEXT_T140_RED:
+                textConfig = createTextConfig(getRemoteTextSocketAddress(),
+                        getRemoteTextRtcpConfig(), codecType);
+                break;
+        }
+
+        return textConfig;
     }
 
     /**
@@ -1561,18 +1710,6 @@ public class MainActivity extends AppCompatActivity {
     }
 
     /**
-     * Set a video mode on/off
-     *
-     * @param view the view from the button click
-     */
-    public void setVideoEnableOnClick(View view) {
-        SwitchCompat videoEnable = findViewById(R.id.videoEnableSwitch);
-        if (videoEnable != null) {
-            mVideoEnabled = videoEnable.isChecked();
-        }
-    }
-
-    /**
      * Calls closeSession() on ImsMediaManager and resets the flag on
      * mIsOpenSessionSent
      *
@@ -1587,6 +1724,14 @@ public class MainActivity extends AppCompatActivity {
         if (mIsVideoSessionOpened) {
             mImsMediaManager.closeSession(mVideoSession);
             mIsVideoSessionOpened = false;
+            TextureView texturePreview = findViewById(R.id.texturePreview);
+            TextureView textureDisplay = findViewById(R.id.textureDisplay);
+            texturePreview.setVisibility(View.GONE);
+            textureDisplay.setVisibility(View.GONE);
+        }
+        if (mIsTextSessionOpened) {
+            mImsMediaManager.closeSession(mTextSession);
+            mIsTextSessionOpened = false;
         }
     }
 
@@ -1659,13 +1804,6 @@ public class MainActivity extends AppCompatActivity {
                 rtcpfbTypes |= types;
             }
 
-            mVideoConfig = createVideoConfig(mSelectedVideoCodec, mSelectedVideoMode,
-                    mSelectedFramerate, mSelectedBitrate, mSelectedCodecProfile,
-                    mSelectedCodecLevel, mSelectedCameraId, mSelectedCameraZoom,
-                    mSelectedDeviceOrientationDegree,
-                    mSelectedCvoValue, rtcpfbTypes);
-            Log.d(TAG, "VideoConfig: " + mVideoConfig.toString());
-
             RtpAudioSessionCallback sessionAudioCallback = new RtpAudioSessionCallback();
             mImsMediaManager.openSession(mAudioRtp, mAudioRtcp,
                     ImsMediaSession.SESSION_TYPE_AUDIO,
@@ -1674,12 +1812,31 @@ public class MainActivity extends AppCompatActivity {
                     + mRemoteDeviceInfo.getAudioRtpPort());
 
             if (mVideoEnabled) {
+                mVideoConfig = createVideoConfig(mSelectedVideoCodec, mSelectedVideoMode,
+                        mSelectedFramerate, mSelectedBitrate, mSelectedCodecProfile,
+                        mSelectedCodecLevel, mSelectedCameraId, mSelectedCameraZoom,
+                        mSelectedDeviceOrientationDegree,
+                        mSelectedCvoValue, rtcpfbTypes);
+                Log.d(TAG, "VideoConfig: " + mVideoConfig.toString());
+
                 RtpVideoSessionCallback sessionVideoCallback = new RtpVideoSessionCallback();
                 mImsMediaManager.openSession(mVideoRtp, mVideoRtcp,
                         ImsMediaSession.SESSION_TYPE_VIDEO,
                         mVideoConfig, mExecutor, sessionVideoCallback);
                 Log.d(TAG, "openSession(): video=" + mRemoteDeviceInfo.getInetAddress() + ":"
                         + mRemoteDeviceInfo.getVideoRtpPort());
+            }
+
+            if (mTextEnabled) {
+                mTextConfig = createTextConfig(TextConfig.TEXT_T140_RED);
+                Log.d(TAG, "TextConfig: " + mTextConfig.toString());
+
+                RtpTextSessionCallback sessionTextCallback = new RtpTextSessionCallback();
+                mImsMediaManager.openSession(mTextRtp, mTextRtcp,
+                        ImsMediaSession.SESSION_TYPE_RTT,
+                        mTextConfig, mExecutor, sessionTextCallback);
+                Log.d(TAG, "openSession(): text=" + mRemoteDeviceInfo.getInetAddress() + ":"
+                        + mRemoteDeviceInfo.getTextRtpPort());
             }
         }
     }
@@ -1774,8 +1931,8 @@ public class MainActivity extends AppCompatActivity {
                 .build();
 
                 amrParams = createAmrParams(mBottomSheetAudioCodecSettings.getAmrMode(), true, 0);
-                config = createAudioConfig(getRemoteAudioSocketAddress(), getRemoteRtcpConfig(),
-                    audioCodec, amrParams, evsParams);
+                config = createAudioConfig(getRemoteAudioSocketAddress(),
+                        getRemoteAudioRtcpConfig(), audioCodec, amrParams, evsParams);
                 Log.d(TAG, String.format("AudioConfig switched to Codec: %s\t Params: %s",
                         mBottomSheetAudioCodecSettings.getAudioCodec(),
                         config.getAmrParams().toString()));
@@ -1785,8 +1942,8 @@ public class MainActivity extends AppCompatActivity {
                 evsParams = createEvsParams(mBottomSheetAudioCodecSettings.getEvsBand(),
                     mBottomSheetAudioCodecSettings.getEvsMode());
                 amrParams = createAmrParams(0, false, 0);
-                config = createAudioConfig(getRemoteAudioSocketAddress(), getRemoteRtcpConfig(),
-                    audioCodec, amrParams, evsParams);
+                config = createAudioConfig(getRemoteAudioSocketAddress(),
+                        getRemoteAudioRtcpConfig(), audioCodec, amrParams, evsParams);
                 Log.d(TAG, String.format("AudioConfig switched to Codec: %s\t Params: %s",
                         mBottomSheetAudioCodecSettings.getAudioCodec(),
                         config.getEvsParams().toString()));
@@ -1794,8 +1951,8 @@ public class MainActivity extends AppCompatActivity {
 
             case CodecType.PCMA:
             case CodecType.PCMU:
-                config = createAudioConfig(getRemoteAudioSocketAddress(), getRemoteRtcpConfig(),
-                        audioCodec, null, null);
+                config = createAudioConfig(getRemoteAudioSocketAddress(),
+                        getRemoteAudioRtcpConfig(), audioCodec, null, null);
                 Log.d(TAG, String.format("AudioConfig switched to Codec: %s",
                         mBottomSheetAudioCodecSettings.getAudioCodec()));
                 break;
@@ -1820,10 +1977,25 @@ public class MainActivity extends AppCompatActivity {
             mRemoteDeviceInfo = createMyDeviceInfo();
             mLocalDeviceInfo = createMyDeviceInfo();
             updateUI(ConnectionStatus.CONNECTED);
+            updateAdditionalMedia();
         } else {
             closePorts();
             mLoopbackModeEnabled = false;
             updateUI(ConnectionStatus.OFFLINE);
+            updateVideoUi(false);
+            updateTextUi(false);
+        }
+    }
+
+    /**
+     * Send text message to the text session
+     *
+     * @param view the view from, the button click
+     */
+    public void sendRttOnClick(View view) {
+        if (mIsTextSessionOpened) {
+            EditText edit = findViewById(R.id.textEditTextSending);
+            mTextSession.sendRtt(edit.getText().toString());
         }
     }
 
@@ -2353,6 +2525,57 @@ public class MainActivity extends AppCompatActivity {
         mLoopbackSwitch.setEnabled(false);
         mLoopbackSwitch.setClickable(false);
         mLoopbackSwitch.setAlpha(DISABLED_ALPHA);
+    }
+
+    private void updateVideoUi(boolean enable) {
+        createTextureView();
+        TextView previewLabel = findViewById(R.id.previewLabel);
+        TextView displayLabel = findViewById(R.id.displayLabel);
+        FrameLayout previewFrame = findViewById(R.id.previewFrame);
+        FrameLayout displayFrames = findViewById(R.id.displayFrames);
+
+        if (enable) {
+            previewLabel.setVisibility(View.VISIBLE);
+            displayLabel.setVisibility(View.VISIBLE);
+            previewFrame.setVisibility(View.VISIBLE);
+            mTexturePreview.setVisibility(View.VISIBLE);
+            displayFrames.setVisibility(View.VISIBLE);
+            mTextureDisplay.setVisibility(View.VISIBLE);
+        } else {
+            previewLabel.setVisibility(View.GONE);
+            displayLabel.setVisibility(View.GONE);
+            previewFrame.setVisibility(View.GONE);
+            mTexturePreview.setVisibility(View.GONE);
+            displayFrames.setVisibility(View.GONE);
+            mTextureDisplay.setVisibility(View.GONE);
+        }
+
+        ViewGroup viewGroup = findViewById(R.id.rootLayout);
+        viewGroup.invalidate();
+    }
+
+    private void updateTextUi(boolean enable) {
+        TextView sendingTextTitle = findViewById(R.id.sendingTextTitle);
+        EditText textEditTextSending = findViewById(R.id.textEditTextSending);
+        TextView receivedTextTitle = findViewById(R.id.receivedTextTitle);
+        TextView receivedText = findViewById(R.id.receivedText);
+        TextView buttonTextSend = findViewById(R.id.buttonTextSend);
+
+        if (enable) {
+            sendingTextTitle.setVisibility(View.VISIBLE);
+            textEditTextSending.setVisibility(View.VISIBLE);
+            receivedTextTitle.setVisibility(View.VISIBLE);
+            receivedText.setVisibility(View.VISIBLE);
+            buttonTextSend.setVisibility(View.VISIBLE);
+        } else {
+            sendingTextTitle.setVisibility(View.GONE);
+            textEditTextSending.setVisibility(View.GONE);
+            receivedTextTitle.setVisibility(View.GONE);
+            receivedText.setVisibility(View.GONE);
+            buttonTextSend.setVisibility(View.GONE);
+        }
+        ViewGroup viewGroup = findViewById(R.id.rootLayout);
+        viewGroup.invalidate();
     }
 
     private IImsMediaCallback.Stub mMediaUtilCallback = new IImsMediaCallback.Stub() {

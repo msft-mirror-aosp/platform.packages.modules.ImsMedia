@@ -32,6 +32,7 @@ public class DeviceInfo implements Serializable {
     private final int mHandshakePort;
     private final int mAudioRtpPort;
     private final int mVideoRtpPort;
+    private final int mTextRtpPort;
     private final int mVideoResolutionWidth;
     private final int mVideoResolutionHeight;
     private final int mVideoCvoValue;
@@ -40,7 +41,7 @@ public class DeviceInfo implements Serializable {
     private DeviceInfo(InetAddress inetSocketAddress,
             Set<Integer> audioCodecs, Set<Integer> amrModes, Set<Integer> evsBandwidths,
             Set<Integer> evsModes, int videoCodec, int handshakePort, int audioRtpPort,
-            int videoRtpPort, int videoResolutionWidth, int videoResolutionHeight,
+            int videoRtpPort, int textRtpPort, int videoResolutionWidth, int videoResolutionHeight,
             int videoCvoValue, Set<Integer> rtcpFbTypes) {
         this.mInetAddress = inetSocketAddress;
         this.mAudioCodecs = audioCodecs;
@@ -51,6 +52,7 @@ public class DeviceInfo implements Serializable {
         this.mHandshakePort = handshakePort;
         this.mAudioRtpPort = audioRtpPort;
         this.mVideoRtpPort = videoRtpPort;
+        this.mTextRtpPort = textRtpPort;
         this.mVideoResolutionWidth = videoResolutionWidth;
         this.mVideoResolutionHeight = videoResolutionHeight;
         this.mVideoCvoValue = videoCvoValue;
@@ -82,6 +84,10 @@ public class DeviceInfo implements Serializable {
 
     public int getVideoRtpPort() {
         return mVideoRtpPort;
+    }
+
+    public int getTextRtpPort() {
+        return mTextRtpPort;
     }
 
     public Set<Integer> getAudioCodecs() {
@@ -178,6 +184,7 @@ public class DeviceInfo implements Serializable {
         private int mHandshakePort;
         private int mAudioRtpPort;
         private int mVideoRtpPort;
+        private int mTextRtpPort;
         private int mVideoResolutionWidth;
         private int mVideoResolutionHeight;
         private int mVideoCvoValue;
@@ -246,6 +253,12 @@ public class DeviceInfo implements Serializable {
             return this;
         }
 
+        @NonNull
+        public DeviceInfo.Builder setTextRtpPort(int textRtpPort) {
+            this.mTextRtpPort = textRtpPort;
+            return this;
+        }
+
         public DeviceInfo.Builder setVideoResolutionWidth(int width) {
             this.mVideoResolutionWidth = width;
             return this;
@@ -271,7 +284,7 @@ public class DeviceInfo implements Serializable {
         @NonNull
         public DeviceInfo build() {
             return new DeviceInfo(mInetAddress, mAudioCodecs, mAmrModes, mEvsBandwidths, mEvsModes,
-                    mVideoCodec, mHandshakePort, mAudioRtpPort, mVideoRtpPort,
+                    mVideoCodec, mHandshakePort, mAudioRtpPort, mVideoRtpPort, mTextRtpPort,
                     mVideoResolutionWidth, mVideoResolutionHeight, mVideoCvoValue, mRtcpFbTypes);
         }
     }

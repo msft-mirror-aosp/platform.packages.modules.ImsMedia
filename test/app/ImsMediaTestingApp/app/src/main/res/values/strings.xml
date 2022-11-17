@@ -71,7 +71,15 @@
   <string name="connected">CONNECTED</string>
   <string name="loop_back_mode_switch_text">LOOP BACK</string>
   <string name="speaker_mode_switch_text">SPEAKER</string>
-  <string name="video_enable_switch_text">VIDEO</string>
+
+  <!-- Additional Media items text -->
+  <string name="media_none">NONE</string>
+  <string name="media_video">VIDEO</string>
+  <string name="media_text">TEXT</string>
+
+  <!-- text labels text -->
+  <string name="text_sending">Sending</string>
+  <string name="text_received">Received</string>
 
   <!-- Dialer buttons text -->
   <string name="dialer_button_1_text">1</string>
