@@ -21,14 +21,13 @@
 #include <ImsMediaTrace.h>
 #include <ImsMediaAudioUtil.h>
 #include <RtcpXrEncoder.h>
-
 #include <AudioConfig.h>
-
 #include <stdlib.h>
 
 #define DEFAULT_PARAM                -1
 #define DEFAULT_INACTIVITY_TIME      5
 #define CALL_QUALITY_MONITORING_TIME 5
+#define MAX_NUM_PACKET_STORED        500
 
 MediaQualityAnalyzer::MediaQualityAnalyzer()
 {
@@ -151,9 +150,22 @@ void MediaQualityAnalyzer::stopTimer()
 
 void MediaQualityAnalyzer::collectInfo(const int32_t streamType, RtpPacket* packet)
 {
+    if (packet == NULL)
+    {
+        return;
+    }
+
     if (streamType == kStreamRtpTx)
     {
         mListTxPacket.push_back(packet);
+
+        if (mListTxPacket.size() >= MAX_NUM_PACKET_STORED)
+        {
+            RtpPacket* pPacket = mListTxPacket.front();
+            mListTxPacket.pop_front();
+            delete pPacket;
+        }
+
         mMediaQuality->setNumRtpPacketsTransmitted(
                 mMediaQuality->getNumRtpPacketsTransmitted() + 1);
         IMLOGD_PACKET1(IM_PACKET_LOG_RTP, "[collectInfo] tx list size[%d]", mListTxPacket.size());
@@ -211,6 +223,13 @@ void MediaQualityAnalyzer::collectInfo(const int32_t streamType, RtpPacket* pack
         mNumRxPacket++;
         mListRxPacket.push_back(packet);
 
+        if (mListRxPacket.size() >= MAX_NUM_PACKET_STORED)
+        {
+            RtpPacket* pPacket = mListRxPacket.front();
+            mListRxPacket.pop_front();
+            delete pPacket;
+        }
+
         IMLOGD_PACKET3(IM_PACKET_LOG_RTP, "[collectInfo] seq[%d], jitter[%d], rx list size[%d]",
                 packet->seqNum, packet->jitter, mListRxPacket.size());
     }
@@ -242,7 +261,7 @@ void MediaQualityAnalyzer::collectOptionalInfo(
         LostPktEntry* entry = new LostPktEntry(seq, value);
         mListLostPacket.push_back(entry);
 
-        for (uint32_t i = 0; i < value; i++)
+        for (int32_t i = 0; i < value; i++)
         {
             // for rtcp xr
             mRtcpXrEncoder->stackRxRtpStatus(kRtpStatusLost, 0);

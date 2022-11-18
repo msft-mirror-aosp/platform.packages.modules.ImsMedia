@@ -221,7 +221,7 @@ tLossReport* RtcpXrEncoder::createLossAnalysisReport(std::list<RtpPacket*>* pack
     {
         if (packet->seqNum >= beginSeq && packet->seqNum <= endSeq)
         {
-            for (uint32_t i = 0; i < packet->param1; i++)
+            for (int32_t i = 0; i < packet->param1; i++)
             {
                 if (packet->seqNum + i > endSeq)
                 {

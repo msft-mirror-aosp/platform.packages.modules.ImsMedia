@@ -832,7 +832,7 @@ void IVideoRendererNode::QueueConfigFrame(uint32_t timestamp)
         nNumOfConfigString = 3;
     }
 
-    for (uint32_t i = 0; i < nNumOfConfigString; i++)
+    for (int32_t i = 0; i < nNumOfConfigString; i++)
     {
         uint8_t* pConfigData = NULL;
         uint32_t nConfigLen = mConfigLen[i];

@@ -148,7 +148,7 @@ TEST_F(MediaQualityAnalyzerTest, TestCallQualityLevelChanged)
     EXPECT_CALL(callback, onEvent(kAudioCallQualityChangedInd, _, _)).Times(2);
     analyzer->startTimer(1000);
 
-    for (uint32_t i = 0; i < 10; i++)
+    for (int32_t i = 0; i < 10; i++)
     {
         RtpPacket* packet = new RtpPacket();
 
@@ -177,7 +177,7 @@ TEST_F(MediaQualityAnalyzerTest, TestJitterInd)
     analyzer->setJitterThreshold(1, 10);
     analyzer->startTimer(1000);
 
-    for (uint32_t i = 0; i < 20; i++)
+    for (int32_t i = 0; i < 20; i++)
     {
         RtpPacket* packet = new RtpPacket();
         packet->seqNum = i;
@@ -197,7 +197,7 @@ TEST_F(MediaQualityAnalyzerTest, TestPacketLossInd)
     analyzer->setPacketLossThreshold(1, 1);
     analyzer->startTimer(1000);
 
-    for (uint32_t i = 0; i < 10; i++)
+    for (int32_t i = 0; i < 10; i++)
     {
         RtpPacket* packet = new RtpPacket();
 

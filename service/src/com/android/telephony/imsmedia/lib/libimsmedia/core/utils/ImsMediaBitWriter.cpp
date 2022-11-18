@@ -103,7 +103,7 @@ void ImsMediaBitWriter::WriteByteBuffer(uint32_t value)
 {
     uint32_t nRemainBitSize = 32;
 
-    for (uint32_t i = 0; i < 4; i++)
+    for (int32_t i = 0; i < 4; i++)
     {
         nRemainBitSize -= 8;
         uint8_t v = (value >> nRemainBitSize) & 0x00ff;
