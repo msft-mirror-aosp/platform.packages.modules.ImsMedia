@@ -36,6 +36,12 @@ public:
     virtual void SetConfig(void* config);
     virtual bool IsSameConfig(void* config);
     virtual void ProcessData();
+
+    /**
+     * @brief Send real time text message
+     *
+     * @param text Text string to send
+     */
     void SendRtt(const android::String8* text);
 
 private:
