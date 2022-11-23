@@ -637,8 +637,8 @@ void OnSessionClosed(void* context, ACameraCaptureSession* session)
 void OnSessionReady(void* context, ACameraCaptureSession* session)
 {
     IMLOGW1("[OnSessionReady] session[%p] ready", session);
-    reinterpret_cast<ImsMediaCamera*>(context)->OnSessionState(session,
-            CaptureSessionState::kStateReady);
+    reinterpret_cast<ImsMediaCamera*>(context)->OnSessionState(
+            session, CaptureSessionState::kStateReady);
 }
 
 void OnSessionActive(void* context, ACameraCaptureSession* session)
@@ -883,7 +883,7 @@ bool ImsMediaCamera::MatchCaptureSizeRequest(ANativeWindow* window)
     ACameraMetadata_const_entry entry;
     ACameraMetadata_getConstEntry(metadata, ACAMERA_SCALER_AVAILABLE_STREAM_CONFIGURATIONS, &entry);
 
-    for (uint32_t i = 0; i < entry.count; i += 4)
+    for (int32_t i = 0; i < entry.count; i += 4)
     {
         int32_t input = entry.data.i32[i + 3];
         int32_t format = entry.data.i32[i + 0];

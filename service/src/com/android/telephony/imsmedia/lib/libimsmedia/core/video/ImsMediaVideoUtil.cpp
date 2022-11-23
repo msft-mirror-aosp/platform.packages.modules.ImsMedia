@@ -95,7 +95,7 @@ bool ImsMediaVideoUtil::ModifyAvcSpropParameterSet(
 
     memset(pSPSConfig, 0x00, MAX_CONFIG_LEN);
 
-    for (uint32_t i = 0; i < MAX_CONFIG_LEN; i++)
+    for (int32_t i = 0; i < MAX_CONFIG_LEN; i++)
     {
         uint8_t Comma = ',';
         uint8_t cmpConfig = *(inSpropparam + i);
@@ -179,7 +179,7 @@ ImsMediaResult ImsMediaVideoUtil::ParseAvcSpropParam(const char* szSpropparam, t
 
     memset(pSPSConfig, 0x00, MAX_CONFIG_LEN);
 
-    for (uint32_t i = 0; i < MAX_CONFIG_LEN; i++)
+    for (int32_t i = 0; i < MAX_CONFIG_LEN; i++)
     {
         uint8_t Comma = ',';
         char cmpConfig = *(szSpropparam + i);
@@ -269,7 +269,7 @@ ImsMediaResult ImsMediaVideoUtil::ParseAvcSpropParam(const char* szSpropparam, t
         bitreader.ReadByUEMode();  // Read offset_for_top_to_bottom_field
         uint32_t num_ref_frames_in_pic_order_cnt_cycle =
                 bitreader.ReadByUEMode();  // Read num_ref_frames_in_pic_order_cnt_cycle
-        for (uint32_t i = 0; i < num_ref_frames_in_pic_order_cnt_cycle; i++)
+        for (int32_t i = 0; i < num_ref_frames_in_pic_order_cnt_cycle; i++)
         {
             bitreader.ReadByUEMode();  // Read offset_for_ref_frame[i];
         }
@@ -378,7 +378,7 @@ ImsMediaResult ImsMediaVideoUtil::ParseHevcSpropParam(const char* szSpropparam, 
 
     uint32_t nOffset = 0;
 
-    for (uint32_t i = 0; i < nSPSConfigSize - 6; i++)
+    for (int32_t i = 0; i < nSPSConfigSize - 6; i++)
     {
         // NAL unit header offset
         if (pszSpropparam[i] == 0x00 && pszSpropparam[i + 1] == 0x00 &&
@@ -422,7 +422,7 @@ ImsMediaResult ImsMediaVideoUtil::ParseHevcSpropParam(const char* szSpropparam, 
     uint8_t sub_layer_profile_present_flag[sps_max_sub_layers_minus1];
     uint8_t sub_layer_level_present_flag[sps_max_sub_layers_minus1];
 
-    for (uint32_t i = 0; i < sps_max_sub_layers_minus1; i++)
+    for (int32_t i = 0; i < sps_max_sub_layers_minus1; i++)
     {
         sub_layer_profile_present_flag[i] = objBitReader.Read(1);
         sub_layer_level_present_flag[i] = objBitReader.Read(1);
@@ -430,13 +430,13 @@ ImsMediaResult ImsMediaVideoUtil::ParseHevcSpropParam(const char* szSpropparam, 
 
     if (sps_max_sub_layers_minus1 > 0)
     {
-        for (uint32_t j = sps_max_sub_layers_minus1; j < 8; j++)
+        for (int32_t j = sps_max_sub_layers_minus1; j < 8; j++)
         {
             objBitReader.Read(2);
         }
     }
 
-    for (uint32_t i = 0; i < sps_max_sub_layers_minus1; i++)
+    for (int32_t i = 0; i < sps_max_sub_layers_minus1; i++)
     {
         if (sub_layer_profile_present_flag[i])
         {
@@ -595,7 +595,7 @@ bool ImsMediaVideoUtil::ParseAvcSps(uint8_t* pbBuffer, uint32_t nBufferSize, tCo
         bitreader.ReadByUEMode();  // Read offset_for_top_to_bottom_field
         uint32_t num_ref_frames_in_pic_order_cnt_cycle = bitreader.ReadByUEMode();
 
-        for (uint32_t i = 0; i < num_ref_frames_in_pic_order_cnt_cycle; i++)
+        for (int32_t i = 0; i < num_ref_frames_in_pic_order_cnt_cycle; i++)
         {
             bitreader.ReadByUEMode();  // Read offset_for_ref_frame[i];
         }
@@ -665,7 +665,7 @@ bool ImsMediaVideoUtil::ParseHevcSps(uint8_t* pbBuffer, uint32_t nBufferSize, tC
 
     uint32_t nOffset = 0;
 
-    for (uint32_t i = 0; i < nBufferSize - 6; i++)
+    for (int32_t i = 0; i < nBufferSize - 6; i++)
     {
         // NAL unit header offset
         if (pbBuffer[i] == 0x00 && pbBuffer[i + 1] == 0x00 && pbBuffer[i + 2] == 0x00 &&
@@ -698,7 +698,7 @@ bool ImsMediaVideoUtil::ParseHevcSps(uint8_t* pbBuffer, uint32_t nBufferSize, tC
     uint8_t sub_layer_profile_present_flag[sps_max_sub_layers_minus1];
     uint8_t sub_layer_level_present_flag[sps_max_sub_layers_minus1];
 
-    for (uint32_t i = 0; i < sps_max_sub_layers_minus1; i++)
+    for (int32_t i = 0; i < sps_max_sub_layers_minus1; i++)
     {
         sub_layer_profile_present_flag[i] = objBitReader.Read(1);
         sub_layer_level_present_flag[i] = objBitReader.Read(1);
@@ -706,13 +706,13 @@ bool ImsMediaVideoUtil::ParseHevcSps(uint8_t* pbBuffer, uint32_t nBufferSize, tC
 
     if (sps_max_sub_layers_minus1 > 0)
     {
-        for (uint32_t j = sps_max_sub_layers_minus1; j < 8; j++)
+        for (int32_t j = sps_max_sub_layers_minus1; j < 8; j++)
         {
             objBitReader.Read(2);
         }
     }
 
-    for (uint32_t i = 0; i < sps_max_sub_layers_minus1; i++)
+    for (int32_t i = 0; i < sps_max_sub_layers_minus1; i++)
     {
         if (sub_layer_profile_present_flag[i])
         {
