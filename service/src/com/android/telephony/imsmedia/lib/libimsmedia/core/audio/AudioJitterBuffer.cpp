@@ -256,11 +256,10 @@ void AudioJitterBuffer::Add(ImsMediaSubType subtype, uint8_t* pbBuffer, uint32_t
         else
         {
             // find the position of current data and insert current data to the correct position
-            uint32_t i;
             bool bIsLateArrival = false;
             mDataQueue.SetReadPosFirst();
 
-            for (i = 0; mDataQueue.GetNext(&pEntry); i++)
+            for (int32_t i = 0; mDataQueue.GetNext(&pEntry); i++)
             {
                 // late arrival packet
                 if (!USHORT_SEQ_ROUND_COMPARE(nSeqNum, pEntry->nSeqNum))
@@ -598,8 +597,8 @@ bool AudioJitterBuffer::Get(ImsMediaSubType* psubtype, uint8_t** ppData, uint32_
             break;
         }
 
-        IMLOGD4("[Get]  D [ %d / %u / %u / %d ]", pEntry->nSeqNum, pEntry->nTimestamp,
-                mCurrPlayingTS, mDataQueue.GetCount());
+        IMLOGD_PACKET4(IM_PACKET_LOG_JITTER, "[Get]  D [ %d / %u / %u / %d ]", pEntry->nSeqNum,
+                pEntry->nTimestamp, mCurrPlayingTS, mDataQueue.GetCount());
     }
 
     // decrease jitter buffer
@@ -766,12 +765,13 @@ bool AudioJitterBuffer::Get(ImsMediaSubType* psubtype, uint8_t** ppData, uint32_
         if (mLastPlayedSeqNum > 0)
         {
             /** Report the loss gap if the loss gap is over 0 */
-            uint32_t lossGap = GET_SEQ_GAP(pEntry->nSeqNum, mLastPlayedSeqNum) - 1;
+            uint16_t lostGap = GET_SEQ_GAP(pEntry->nSeqNum, mLastPlayedSeqNum);
 
-            if (lossGap > 0)
+            if (lostGap > 1)
             {
-                SessionCallbackParameter* param = new SessionCallbackParameter(
-                        kReportPacketLossGap, mLastPlayedSeqNum + 1, lossGap);
+                uint16_t lostSeq = mLastPlayedSeqNum + 1;
+                SessionCallbackParameter* param =
+                        new SessionCallbackParameter(kReportPacketLossGap, lostSeq, lostGap - 1);
                 mCallback->SendEvent(kCollectOptionalInfo, reinterpret_cast<uint64_t>(param), 0);
             }
         }
@@ -836,14 +836,20 @@ bool AudioJitterBuffer::CheckPartialRedundancyFrame(ImsMediaSubType* psubtype, u
         uint32_t* pnDataSize, uint32_t* pnTimestamp, bool* pbMark, uint32_t* pnSeqNum,
         uint32_t* pnChecker)
 {
-    DataEntry* pEntry;
+    if (mDataQueue.GetCount() == 0)
+    {
+        return false;
+    }
+
+    DataEntry* pEntry = NULL;
     uint32_t nFindPartialRedundancyFrameSeq = mCurrPlayingSeq + mRedundancyOffSet;
     bool nFindPartialFrame = false;
 
-    // 1. find redundancy Frame from DataQueue using CAM offset(mRedundancyOffSet)
-    for (uint32_t i = 0; i < mDataQueue.GetCount(); i++)
+    // Find redundancy frame from the DataQueue using CAM offset(mRedundancyOffSet)
+    for (int32_t i = 0; i < mDataQueue.GetCount(); i++)
     {
         mDataQueue.GetAt(i, &pEntry);
+
         if ((pEntry != NULL) && (pEntry->nSeqNum == nFindPartialRedundancyFrameSeq))
         {
             if (psubtype)
@@ -863,7 +869,12 @@ bool AudioJitterBuffer::CheckPartialRedundancyFrame(ImsMediaSubType* psubtype, u
         }
     }
 
-    // 2. check bitrate using dataSize (13.2kbps : data size -> 33 byte)
+    if (pEntry == NULL)
+    {
+        return false;
+    }
+
+    // Check bitrate using dataSize (13.2kbps : data size -> 33 byte)
     if ((nFindPartialFrame != true) || (pEntry->nBufferSize != 33))
     {
         IMLOGD1("[CheckPartialRedundancyFrame] not found or not adjust CAM -- PartialFrame[%d]",
@@ -871,19 +882,20 @@ bool AudioJitterBuffer::CheckPartialRedundancyFrame(ImsMediaSubType* psubtype, u
         return false;
     }
 
-    // 3. check PartialRedundancyFrame using provided QCT code.
-    // need to porting QCT code.
     int16_t nPartialFrameOffset = 0;
     int16_t nPartialFlag = 0;
 
-    // 4. if PartialRedundancyFrame is useable, send ppData and set nChecker variable to
-    // 1, after that, return true. if not, return false.
+    // If PartialRedundancyFrame is useable, send ppData and set nChecker variable to 1, after that,
+    // return true. if not, return false.
     if ((nPartialFlag == 1) && (mRedundancyOffSet == (uint32_t)nPartialFrameOffset))
     {
         IMLOGD2("[CheckPartialRedundancyFrame] adjust CAM -- redundancyOffSet[%d], adjust seq[%d]",
                 mRedundancyOffSet, pEntry->nSeqNum);
         if (pnChecker)
+        {
             *pnChecker = 1;
+        }
+
         return true;
     }
     else

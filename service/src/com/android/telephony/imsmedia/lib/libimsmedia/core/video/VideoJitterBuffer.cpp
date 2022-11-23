@@ -796,7 +796,7 @@ void VideoJitterBuffer::CheckPacketLoss(uint16_t seqNum, uint16_t nLastRecvPkt)
     bool bPLIPkt = false;
     bool bSentPLI = false;
 
-    for (uint32_t index = 0; index < nLossGap; index++)
+    for (int32_t index = 0; index < nLossGap; index++)
     {
         if (UpdateLostPacketList(PID + index, &countSecondNack, &nPLIPkt, &bPLIPkt))
         {

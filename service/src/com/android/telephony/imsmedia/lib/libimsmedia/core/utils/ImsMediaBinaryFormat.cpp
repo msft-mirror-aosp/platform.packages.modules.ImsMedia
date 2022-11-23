@@ -141,7 +141,7 @@ static bool BinaryToBase64(char* pszDst, uint32_t nDstBuffSize, uint8_t* pbSrc, 
     if ((nDstBuffSize - 1) < ((nSrcSize + 2) / 3 * 4))
         return false;
 
-    for (uint32_t nPos = 0; nPos < nSrcSize; ++nPos)
+    for (int32_t nPos = 0; nPos < nSrcSize; ++nPos)
     {
         c6bit = (pbSrc[nPos] >> 2) & 0x3F;
         (*pEncBuffer) = BASE64_ENCODING_TABLE[(uint8_t)c6bit];
@@ -202,7 +202,7 @@ static bool Base64ToBinary(uint8_t* pbDst, uint32_t* pnDstSize, uint32_t nDstBuf
     if (nDstBuffSize < ((nSrcLen >> 2) * 3 + (nSrcLen & 0x3)))
         return false;
 
-    for (uint32_t nPos = 0; nPos < nSrcLen; ++nPos)
+    for (int32_t nPos = 0; nPos < nSrcLen; ++nPos)
     {
         if (pszSrc[nPos] == LF)
             nPos += 1;
