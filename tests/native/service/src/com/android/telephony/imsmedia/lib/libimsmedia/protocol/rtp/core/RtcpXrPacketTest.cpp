@@ -36,12 +36,14 @@ TEST(RtcpXrPacketTest, TestGetSetMethods)
     EXPECT_EQ(objRtcpXrPacket.getRttdOffset(), 0xAAAA);
 
     uint8_t testReport[] = {0xe6, 0x5f, 0xa5, 0x31, 0x53, 0x91, 0x24, 0xc2, 0x00, 0x04, 0x01};
-    RtpBuffer* pTestReportBuf = new RtpBuffer(11, testReport);
+
+    RtpBuffer* pTestReportBuf = new RtpBuffer(sizeof(testReport), testReport);
     objRtcpXrPacket.setReportBlk(pTestReportBuf);
     RtpBuffer* pRetReportBuf = objRtcpXrPacket.getReportBlk();
     ASSERT_TRUE(pRetReportBuf != NULL);
-    EXPECT_EQ(memcmp(pTestReportBuf->getBuffer(), pRetReportBuf->getBuffer(), 11), 0);
-    EXPECT_EQ(pRetReportBuf->getLength(), 11);
+    EXPECT_EQ(
+            memcmp(pTestReportBuf->getBuffer(), pRetReportBuf->getBuffer(), sizeof(testReport)), 0);
+    EXPECT_EQ(pRetReportBuf->getLength(), sizeof(testReport));
 }
 
 TEST(RtcpXrPacketTest, TestDecodeXrPacket)
@@ -70,7 +72,7 @@ TEST(RtcpXrPacketTest, TestFormXrPacket)
     objRtcpXrPacket.setRtcpHdrInfo(header);
 
     uint8_t testReport[] = {0xe6, 0x5f, 0xa5, 0x31};
-    RtpBuffer* pTestReportBuf = new RtpBuffer(4, testReport);
+    RtpBuffer* pTestReportBuf = new RtpBuffer(sizeof(testReport), testReport);
     objRtcpXrPacket.setReportBlk(pTestReportBuf);
 
     eRTP_STATUS_CODE res = objRtcpXrPacket.formRtcpXrPacket(&objRtcpPktBuf);
@@ -80,5 +82,6 @@ TEST(RtcpXrPacketTest, TestFormXrPacket)
     ASSERT_TRUE(buf != NULL);
     RtpDt_UChar expectedBuf[] = {
             0X81, 0XCF, 0X00, 0X02, 0X01, 0X02, 0X03, 0X04, 0XE6, 0X5F, 0XA5, 0X31};
-    EXPECT_EQ(memcmp(buf, expectedBuf, 12), 0);
+
+    EXPECT_EQ(memcmp(buf, expectedBuf, sizeof(expectedBuf)), 0);
 }
