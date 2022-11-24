@@ -136,12 +136,30 @@ public:
      */
     bool getRtcpXrReportBlock(const uint32_t nReportBlocks, uint8_t* data, uint32_t& size);
 
+    /**
+     * @brief Get the MediaQuality member instance
+     */
+    MediaQuality getMediaQuality();
+
+    /**
+     * @brief Get number of rx packets in the list
+     */
+    uint32_t getRxPacketSize();
+
+    /**
+     * @brief Get number of tx packets in the list
+     */
+    uint32_t getTxPacketSize();
+
+    /**
+     * @brief Get number of lost packets in the list
+     */
+    uint32_t getLostPacketSize();
+
 private:
     void reset();
-    void createCallQualityReport();
-    void clearRxPacketList(const int32_t seq = -1);
-    void clearTxPacketList(const int32_t seq = -1);
-    void clearLostPacketList(const int32_t seq = -1);
+    void clearPacketList(std::list<RtpPacket*>& list, const int32_t seq);
+    void clearLostPacketList(const int32_t seq);
     uint32_t getCallQuality(double lossRate);
     int32_t convertAudioCodecType(const int32_t codec, const int32_t bandwidth);
 
