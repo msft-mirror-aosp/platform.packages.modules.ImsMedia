@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-#include <RtpTrace.h>
 #include <RtcpFbPacket.h>
 #include <gtest/gtest.h>
 
@@ -34,11 +33,12 @@ TEST(RtcpFbPacketTest, TestGetSetMethods)
     objRtcpFbPacket.setMediaSsrc(0xAAAAAAAA);
     EXPECT_EQ(objRtcpFbPacket.getMediaSsrc(), 0xAAAAAAAA);
 
-    uint8_t testFCI[] = {0xe6, 0x5f, 0xa5, 0x31};
-    objRtcpFbPacket.setFCI(new RtpBuffer(4, testFCI));
+    uint8_t testFci[] = {0xe6, 0x5f, 0xa5, 0x31};
+    objRtcpFbPacket.setFCI(new RtpBuffer(sizeof(testFci), testFci));
     RtpBuffer* pRtpBuf = objRtcpFbPacket.getFCI();
+
     ASSERT_TRUE(pRtpBuf != NULL);
-    EXPECT_EQ(memcmp(pRtpBuf->getBuffer(), testFCI, 4), 0);
+    EXPECT_EQ(memcmp(pRtpBuf->getBuffer(), testFci, sizeof(testFci)), 0);
 
     objRtcpFbPacket.setPayloadType(RTCP_RTPFB);
     EXPECT_EQ(objRtcpFbPacket.getPayloadType(), RTCP_RTPFB);
@@ -53,12 +53,15 @@ TEST(RtcpFbPacketTest, TestDecodeFbPacket)
     uint8_t bufPacket[] = {0xb1, 0xc8, 0xcb, 0x03, 0x54, 0x4d, 0x4d, 0x42, 0x52, 0x2a, 0x2a, 0x2a};
 
     RtcpFbPacket objRtcpFbPacket;
-    eRTP_STATUS_CODE res = objRtcpFbPacket.decodeRtcpFbPacket((RtpDt_UChar*)bufPacket, 12);
+    eRTP_STATUS_CODE res =
+            objRtcpFbPacket.decodeRtcpFbPacket((RtpDt_UChar*)bufPacket, sizeof(bufPacket));
     EXPECT_EQ(res, RTP_SUCCESS);
     EXPECT_EQ(objRtcpFbPacket.getMediaSsrc(), 0xb1c8cb03);
     RtpBuffer* pRtpBuf = objRtcpFbPacket.getFCI();
     ASSERT_TRUE(pRtpBuf != NULL);
-    EXPECT_EQ(memcmp(pRtpBuf->getBuffer(), (bufPacket + 4), 8), 0);
+    EXPECT_EQ(memcmp(pRtpBuf->getBuffer(), (bufPacket + RTP_WORD_SIZE),
+                      (sizeof(bufPacket) - RTP_WORD_SIZE)),
+            0);
 }
 
 TEST(RtcpFbPacketTest, TestEncodeRtcpRTPFB)
@@ -77,8 +80,8 @@ TEST(RtcpFbPacketTest, TestEncodeRtcpRTPFB)
     objRtcpFbPacket.setMediaSsrc(0xAAAAAAAA);
     objRtcpFbPacket.setPayloadType(RTCP_RTPFB);
 
-    uint8_t testFCI[] = {0xe6, 0x5f, 0xa5, 0x31};
-    objRtcpFbPacket.setFCI(new RtpBuffer(4, testFCI));
+    uint8_t testFci[] = {0xe6, 0x5f, 0xa5, 0x31};
+    objRtcpFbPacket.setFCI(new RtpBuffer(sizeof(testFci), testFci));
 
     eRTP_STATUS_CODE res = objRtcpFbPacket.formRtcpFbPacket(&objRtcpPktBuf);
     EXPECT_EQ(res, RTP_SUCCESS);
@@ -86,5 +89,6 @@ TEST(RtcpFbPacketTest, TestEncodeRtcpRTPFB)
     RtpDt_UChar* buf = objRtcpPktBuf.getBuffer();
     RtpDt_UChar expectedBuf[] = {0x81, 0xcd, 0x00, 0x03, 0x01, 0x02, 0x03, 0x04, 0xaa, 0xaa, 0xaa,
             0xaa, 0xe6, 0x5f, 0xa5, 0x31};
-    EXPECT_EQ(memcmp(buf, expectedBuf, 16), 0);
+
+    EXPECT_EQ(memcmp(buf, expectedBuf, sizeof(expectedBuf)), 0);
 }

@@ -152,7 +152,8 @@ TEST_F(RtcpHeaderTest, TestFormRtcpHeader)
     rtpBuffer.setLength(0);
     rtcpHeader.formRtcpHeader(&rtpBuffer);
 
-    RtpDt_UChar bExpectedRTCPBuff[] = {0xA5, 0xc8, 0x00, 0x06, 0xFF, 0xFF, 0xFF, 0xFF};
-    EXPECT_EQ(rtpBuffer.getLength(), 8);
-    EXPECT_EQ(memcmp(rtpBuffer.getBuffer(), bExpectedRTCPBuff, 8), 0);
+    RtpDt_UChar bExpectedRtcpBuff[] = {0xA5, 0xc8, 0x00, 0x06, 0xFF, 0xFF, 0xFF, 0xFF};
+
+    EXPECT_EQ(rtpBuffer.getLength(), sizeof(bExpectedRtcpBuff));
+    EXPECT_EQ(memcmp(rtpBuffer.getBuffer(), bExpectedRtcpBuff, sizeof(bExpectedRtcpBuff)), 0);
 }
