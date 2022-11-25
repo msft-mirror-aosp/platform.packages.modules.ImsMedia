@@ -51,7 +51,6 @@ import java.util.ArrayList;
 @RunWith(JUnit4.class)
 public class VideoSessionTest {
     private static final int SESSION_ID = 1;
-    private static final int DTMF_DURATION = 120;
     private static final int UNUSED = -1;
     private static final int SUCCESS = ImsMediaSession.RESULT_SUCCESS;
     private static final int NO_RESOURCES = ImsMediaSession.RESULT_NO_RESOURCES;
@@ -86,7 +85,7 @@ public class VideoSessionTest {
         try {
             mLooper = new TestableLooper(mHandler.getLooper());
         } catch (Exception e) {
-            fail("Unable to create TestableLooper");
+            throw new AssertionError("Unable to create TestableLooper", e);
         }
     }
 
