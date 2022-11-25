@@ -47,7 +47,7 @@ IVideoRendererNode::IVideoRendererNode(BaseSessionCallback* callback) :
     mHeight = 0;
     mSamplingRate = 0;
     mCvoValue = 0;
-    memset(mConfigBuffer, 0, MAX_CONFIG_INDEX * MAX_CONFIG_LEN * sizeof(uint32_t));
+    memset(mConfigBuffer, 0, MAX_CONFIG_INDEX * MAX_CONFIG_LEN * sizeof(uint8_t));
     memset(mConfigLen, 0, MAX_CONFIG_INDEX * sizeof(uint32_t));
     mDeviceOrientation = 0;
     mFirstFrame = false;

@@ -25,10 +25,7 @@ AudioRtpPayloadDecoderNode::AudioRtpPayloadDecoderNode(BaseSessionCallback* call
     mPrevCMR = 15;
 }
 
-AudioRtpPayloadDecoderNode::~AudioRtpPayloadDecoderNode()
-{
-    std::lock_guard<std::mutex> guard(mMutexExit);
-}
+AudioRtpPayloadDecoderNode::~AudioRtpPayloadDecoderNode() {}
 
 kBaseNodeId AudioRtpPayloadDecoderNode::GetNodeId()
 {
@@ -42,8 +39,8 @@ ImsMediaResult AudioRtpPayloadDecoderNode::Start()
     mEvsCodecMode = (kEvsCodecMode)ImsMediaAudioUtil::ConvertEvsCodecMode(mEvsMode);
     mEvsModetoBitRate = ImsMediaAudioUtil::ConvertEVSModeToBitRate(mEvsMode);
 
-    std::lock_guard<std::mutex> guard(mMutexExit);
     mPrevCMR = 15;
+    mListFrameType.clear();
     mNodeState = kNodeStateRunning;
     return RESULT_SUCCESS;
 }
@@ -51,7 +48,6 @@ ImsMediaResult AudioRtpPayloadDecoderNode::Start()
 void AudioRtpPayloadDecoderNode::Stop()
 {
     IMLOGD0("[Stop]");
-    std::lock_guard<std::mutex> guard(mMutexExit);
     mNodeState = kNodeStateStopped;
 }
 
@@ -155,13 +151,10 @@ void AudioRtpPayloadDecoderNode::DecodePayloadAmr(uint8_t* pData, uint32_t nData
 
     (void)bMark;
     uint32_t timestamp = nTimestamp;
-    static std::list<uint32_t> listFrameType;  // defined as static variable for memory management
     uint32_t eRate;
     uint32_t f;
     uint32_t cmr;
     uint32_t QbitPos;  // Q_Speech_Sid_Bad
-
-    std::lock_guard<std::mutex> guard(mMutexExit);
 
     IMLOGD_PACKET5(IM_PACKET_LOG_PH,
             "[DecodePayloadAmr] GetCodectype[%d], octetAligned[%d], nSeqNum[%d], TS[%u], "
@@ -206,7 +199,7 @@ void AudioRtpPayloadDecoderNode::DecodePayloadAmr(uint8_t* pData, uint32_t nData
         QbitPos = mBitReader.Read(1);  // q(2)
         IMLOGD_PACKET3(
                 IM_PACKET_LOG_PH, "[DecodePayloadAmr] cmr[%d], f[%d], ft[%d]", cmr, f, eRate);
-        listFrameType.push_back(eRate);
+        mListFrameType.push_back(eRate);
         if (mOctetAligned == true)
         {
             mBitReader.Read(2);  // padding
@@ -218,10 +211,10 @@ void AudioRtpPayloadDecoderNode::DecodePayloadAmr(uint8_t* pData, uint32_t nData
             QbitPos);  // Q_Speech_SID
 
     // read speech frames
-    while (listFrameType.size() > 0)
+    while (mListFrameType.size() > 0)
     {
         uint32_t nDataBitSize;
-        uint32_t mode = listFrameType.front();
+        uint32_t mode = mListFrameType.front();
         if (mCodecType == kAudioCodecAmr)
         {
             nDataBitSize = ImsMediaAudioUtil::ConvertAmrModeToBitLen(mode);
@@ -231,7 +224,7 @@ void AudioRtpPayloadDecoderNode::DecodePayloadAmr(uint8_t* pData, uint32_t nData
             nDataBitSize = ImsMediaAudioUtil::ConvertAmrWbModeToBitLen(mode);
         }
 
-        listFrameType.pop_front();
+        mListFrameType.pop_front();
         mBitWriter.SetBuffer(mPayload, MAX_AUDIO_PAYLOAD_SIZE);
         // set payload header
         mBitWriter.Write(f, 1);
@@ -246,7 +239,7 @@ void AudioRtpPayloadDecoderNode::DecodePayloadAmr(uint8_t* pData, uint32_t nData
                 mPayload[1], mPayload[2], mPayload[3], nBufferSize, eRate);
         // send remaining packet number in bundle as bMark value
         SendDataToRearNode(MEDIASUBTYPE_RTPPAYLOAD, mPayload, nBufferSize, timestamp,
-                listFrameType.size(), nSeqNum, MEDIASUBTYPE_UNDEFINED, arrivalTime);
+                mListFrameType.size(), nSeqNum, MEDIASUBTYPE_UNDEFINED, arrivalTime);
 
         timestamp += 20;
     }
@@ -283,13 +276,10 @@ void AudioRtpPayloadDecoderNode::DecodePayloadEvs(uint8_t* pData, uint32_t nData
     uint32_t cmr_d = 0;  // 4bits, Codec Mode Request
 
     // ToC byte
-    static std::list<uint32_t> listFrameType;  // defined as static variable for memory management
-    uint32_t toc_f = 0;                        // 1bit, follow another speech frame
-    uint32_t toc_ft_m = 0;                     // 1bit, EVS mode
-    uint32_t toc_ft_q = 0;                     // 1bit, AMR-WB Q bit
-    uint32_t toc_ft_b = 0;                     // 4bits, EVS bit rate
-
-    std::lock_guard<std::mutex> guard(mMutexExit);
+    uint32_t toc_f = 0;     // 1bit, follow another speech frame
+    uint32_t toc_ft_m = 0;  // 1bit, EVS mode
+    uint32_t toc_ft_q = 0;  // 1bit, AMR-WB Q bit
+    uint32_t toc_ft_b = 0;  // 4bits, EVS bit rate
 
     eEVSPHFormat = mEvsPayloadHeaderMode;
     mBitReader.SetBuffer(pData, nDataSize);
@@ -627,17 +617,16 @@ void AudioRtpPayloadDecoderNode::DecodePayloadEvs(uint8_t* pData, uint32_t nData
                 toc_ft_q = mBitReader.Read(1);
                 toc_ft_b = mBitReader.Read(4);
 
-                listFrameType.push_back(toc_ft_b);
+                mListFrameType.push_back(toc_ft_b);
             }
         } while (toc_f == 1);
 
         //
         // read speech frames
         //
-        while (listFrameType.size() > 0)
+        while (mListFrameType.size() > 0)
         {
-            // uint32_t mode = listFrameType.front();
-            listFrameType.pop_front();
+            mListFrameType.pop_front();
 
             if (toc_ft_m == 0)  // EVS Primary mode
             {
@@ -670,7 +659,7 @@ void AudioRtpPayloadDecoderNode::DecodePayloadEvs(uint8_t* pData, uint32_t nData
                     mPayload[0], mPayload[1], mPayload[2], mPayload[3], nDataSize, toc_ft_b);
 
             SendDataToRearNode(MEDIASUBTYPE_RTPPAYLOAD, mPayload, (((nDataBitSize + 7) >> 3)),
-                    timestamp, listFrameType.size(), nSeqNum, MEDIASUBTYPE_UNDEFINED, arrivalTime);
+                    timestamp, mListFrameType.size(), nSeqNum, MEDIASUBTYPE_UNDEFINED, arrivalTime);
 
             timestamp += 20;
         }

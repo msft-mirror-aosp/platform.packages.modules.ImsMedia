@@ -261,7 +261,7 @@ bool RtcpEncoderNode::SendNack(NackParams* param)
            +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+*/
 
         // create a Nack payload
-        static uint8_t pNackBuff[4];
+        uint8_t pNackBuff[4];
         mBitWriter.SetBuffer(pNackBuff, 32);
         mBitWriter.Write(param->PID, 16);  // PID
         mBitWriter.Write(param->BLP, 16);  // BLP
@@ -337,7 +337,7 @@ bool RtcpEncoderNode::SendTmmbrn(const uint32_t type, TmmbrParams* param)
        +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
     */
 
-    static uint8_t buffer[8];
+    uint8_t buffer[8];
     mBitWriter.SetBuffer(buffer, 64);
     mBitWriter.Write((param->ssrc & 0xFFFF0000) >> 16, 16);
     mBitWriter.Write(param->ssrc & 0x0000FFFF, 16);

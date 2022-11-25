@@ -20,19 +20,14 @@
 #include <ImsMediaVideoUtil.h>
 #include <ImsMediaTimer.h>
 
-#define DEFAULT_MAX_SAVE_FRAME_NUM                  5
-#define DEFAULT_IDR_FRAME_CHECK_INTRERVAL           3
-#define DEFAULT_VIDEO_JITTER_MAX_DELAY              300
-#define DEFAULT_VIDEO_JITTER_IDR_WAIT_DELAY         200
-#define CODECFILTER_AUDIO_FMC_MAX_SEQUENCE          0xffff
-#define CODECFILTER_AUDIO_PACKETRECEIVE_COUNTER_MAX 50
-#define CODECFILTER_AUDIO_PACKETINSERT_COUNTER_MAX  5
-#define CODECFILTER_AUDIO_SKIP_READCOUNTER          100
-#define RTCPNACK_SEQ_INCREASE(seq)                  (seq == 0xffff ? 0 : seq + 1)
-#define RTCPNACK_SEQ_ROUND_COMPARE(a, b)            ((a > b) && (a > 0xfff0) && (b < 0x000f))
-#define DEFAULT_PACKET_LOSS_MONITORING_TIME         5     // sec
-#define PACKET_LOSS_RATIO                           2     // percentage
-#define BITRATE_ADAPTIVE_RATIO                      0.1f  // ratio
+#define DEFAULT_MAX_SAVE_FRAME_NUM          5
+#define DEFAULT_IDR_FRAME_CHECK_INTRERVAL   3
+#define DEFAULT_VIDEO_JITTER_IDR_WAIT_DELAY 200
+#define RTCPNACK_SEQ_INCREASE(seq)          (seq == 0xffff ? 0 : seq + 1)
+#define RTCPNACK_SEQ_ROUND_COMPARE(a, b)    ((a > b) && (a > 0xfff0) && (b < 0x000f))
+#define DEFAULT_PACKET_LOSS_MONITORING_TIME 5     // sec
+#define PACKET_LOSS_RATIO                   2     // percentage
+#define BITRATE_ADAPTIVE_RATIO              0.1f  // ratio
 
 VideoJitterBuffer::VideoJitterBuffer() :
         BaseJitterBuffer()

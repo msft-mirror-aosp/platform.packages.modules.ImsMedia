@@ -30,8 +30,9 @@
 #include <ImsMediaAudioPlayer.h>
 #include <utils/Errors.h>
 
-#define AAUDIO_TIMEOUT_NANO   100 * 1000000L
-#define DEFAULT_SAMPLING_RATE 8000
+#define AAUDIO_STATE_TIMEOUT_NANO 100 * 1000000L
+#define DEFAULT_SAMPLING_RATE     8000
+#define CODEC_TIMEOUT_NANO        100000
 
 using namespace android;
 
@@ -166,7 +167,7 @@ bool ImsMediaAudioPlayer::Start()
     }
 
     result = AAudioStream_waitForStateChange(
-            mAudioStream, inputState, &nextState, AAUDIO_TIMEOUT_NANO);
+            mAudioStream, inputState, &nextState, AAUDIO_STATE_TIMEOUT_NANO);
 
     if (result != AAUDIO_OK)
     {
@@ -228,7 +229,7 @@ void ImsMediaAudioPlayer::Stop()
     }
 
     result = AAudioStream_waitForStateChange(
-            mAudioStream, inputState, &nextState, AAUDIO_TIMEOUT_NANO);
+            mAudioStream, inputState, &nextState, AAUDIO_STATE_TIMEOUT_NANO);
 
     if (result != AAUDIO_OK)
     {
@@ -277,8 +278,7 @@ bool ImsMediaAudioPlayer::onDataFrame(uint8_t* buffer, uint32_t size)
 
 bool ImsMediaAudioPlayer::decodeAmr(uint8_t* buffer, uint32_t size)
 {
-    static int kTimeout = 100000;  // be responsive on signal
-    auto index = AMediaCodec_dequeueInputBuffer(mCodec, kTimeout);
+    auto index = AMediaCodec_dequeueInputBuffer(mCodec, CODEC_TIMEOUT_NANO);
 
     if (index >= 0)
     {
@@ -304,7 +304,7 @@ bool ImsMediaAudioPlayer::decodeAmr(uint8_t* buffer, uint32_t size)
     }
 
     AMediaCodecBufferInfo info;
-    index = AMediaCodec_dequeueOutputBuffer(mCodec, &info, kTimeout);
+    index = AMediaCodec_dequeueOutputBuffer(mCodec, &info, CODEC_TIMEOUT_NANO);
 
     if (index >= 0)
     {
@@ -451,7 +451,7 @@ void ImsMediaAudioPlayer::restartAudioStream()
     }
 
     result = AAudioStream_waitForStateChange(
-            mAudioStream, inputState, &nextState, 3 * AAUDIO_TIMEOUT_NANO);
+            mAudioStream, inputState, &nextState, 3 * AAUDIO_STATE_TIMEOUT_NANO);
 
     if (result != AAUDIO_OK)
     {

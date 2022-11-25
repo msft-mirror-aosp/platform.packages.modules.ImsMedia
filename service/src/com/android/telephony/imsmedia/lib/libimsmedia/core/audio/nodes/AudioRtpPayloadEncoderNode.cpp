@@ -41,7 +41,6 @@ kBaseNodeId AudioRtpPayloadEncoderNode::GetNodeId()
 ImsMediaResult AudioRtpPayloadEncoderNode::Start()
 {
     IMLOGD2("[Start] codecType[%d], mode[%d]", mCodecType, mOctetAligned);
-    std::lock_guard<std::mutex> guard(mMutexExit);
     mMaxNumOfFrame = mPtime / 20;
     mEvsMode = (kEvsBitrate)ImsMediaAudioUtil::GetMaximumEvsMode(mCoreEvsMode);
     mEvsCodecMode = (kEvsCodecMode)ImsMediaAudioUtil::ConvertEvsCodecMode(mEvsMode);
@@ -64,7 +63,6 @@ ImsMediaResult AudioRtpPayloadEncoderNode::Start()
 void AudioRtpPayloadEncoderNode::Stop()
 {
     IMLOGD0("[Stop]");
-    std::lock_guard<std::mutex> guard(mMutexExit);
     mNodeState = kNodeStateStopped;
 }
 
@@ -163,7 +161,6 @@ void AudioRtpPayloadEncoderNode::EncodePayloadAmr(
     uint32_t nCmr = 15;
     uint32_t f, ft, q, nDataBitSize;
     uint32_t nTotalSize;
-    std::lock_guard<std::mutex> guard(mMutexExit);
 
 #ifndef LEGACY_AUDIO_ENABLED  // for ap audio test
     pData++;
@@ -327,9 +324,10 @@ void AudioRtpPayloadEncoderNode::EncodePayloadEvs(
     uint32_t nDataBitSize = 0;  // bit unit
     uint32_t nTotalSize = 0;    // byte unit
 
-    std::lock_guard<std::mutex> guard(mMutexExit);
     if (nDataSize == 0)
-        return;  // don't send 'NO DATA' packet
+    {
+        return;
+    }
 
     eEVSPayloadFormat = mEvsPayloadHeaderMode;
     // compact or header-full format, default is compact formats

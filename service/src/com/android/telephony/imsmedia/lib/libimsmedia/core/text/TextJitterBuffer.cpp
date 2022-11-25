@@ -17,9 +17,6 @@
 #include <TextJitterBuffer.h>
 #include <ImsMediaTrace.h>
 
-/** Maximum Jitter Buffer size to save in frame unit */
-#define TEXT_JITTER_MAX_SAVEPACKET_NUM 3
-
 TextJitterBuffer::TextJitterBuffer() :
         BaseJitterBuffer()
 {
