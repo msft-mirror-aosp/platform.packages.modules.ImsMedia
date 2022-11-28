@@ -42,6 +42,7 @@ android_library {
 
 android_app {
     name: "ImsMediaService",
+    system_ext_specific: true,
     manifest: "AndroidManifest.xml",
     static_libs: [
         "imsmedia-core",

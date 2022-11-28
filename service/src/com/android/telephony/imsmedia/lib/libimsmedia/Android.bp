@@ -18,8 +18,7 @@ package {
 
 cc_library_shared {
     name: "libimsmedia",
-    defaults: [
-    ],
+    system_ext_specific: true,
     srcs: [
         "libimsmedia.cpp",
     ],
