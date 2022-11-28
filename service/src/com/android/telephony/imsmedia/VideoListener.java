@@ -31,6 +31,7 @@ public class VideoListener implements JNIImsMediaListener {
     private long mNativeObject;
 
     VideoListener(final Handler handler) {
+        Log.d(TAG, "VideoListener() -" + VideoListener.this);
         mHandler = handler;
     }
 
@@ -61,7 +62,7 @@ public class VideoListener implements JNIImsMediaListener {
     @Override
     public void onMessage(final Parcel parcel) {
         final int event = parcel.readInt();
-        Log.d(TAG, "onMessage() event=" + event);
+        Log.d(TAG, "onMessage() -" + VideoListener.this + ", event=" + event);
         switch (event) {
             case VideoSession.EVENT_OPEN_SESSION_SUCCESS:
                 final int sessionId = parcel.readInt();

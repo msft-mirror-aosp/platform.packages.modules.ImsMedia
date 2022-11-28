@@ -32,6 +32,7 @@ public class AudioListener implements JNIImsMediaListener {
     private long mNativeObject;
 
     AudioListener(final Handler handler) {
+        Log.d(TAG, "AudioListener() -" + AudioListener.this);
         mHandler = handler;
     }
 
@@ -62,7 +63,7 @@ public class AudioListener implements JNIImsMediaListener {
     @Override
     public void onMessage(final Parcel parcel) {
         final int event = parcel.readInt();
-        Log.d(TAG, "onMessage() event=" + event);
+        Log.d(TAG, "onMessage() -" + AudioListener.this + ", event=" + event);
         switch (event) {
             case AudioSession.EVENT_OPEN_SESSION_SUCCESS:
                 final int sessionId = parcel.readInt();

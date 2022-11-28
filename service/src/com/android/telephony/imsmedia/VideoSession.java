@@ -185,7 +185,7 @@ public final class VideoSession extends IImsVideoSession.Stub implements IMediaS
 
         @Override
         public void handleMessage(Message msg) {
-            Log.d(TAG, "handleMessage: " + msg.what);
+            Log.d(TAG, "handleMessage() -" + VideoSessionHandler.this + ", " + msg.what);
             switch(msg.what) {
                 case CMD_OPEN_SESSION:
                     handleOpenSession((OpenSessionParams) msg.obj);
