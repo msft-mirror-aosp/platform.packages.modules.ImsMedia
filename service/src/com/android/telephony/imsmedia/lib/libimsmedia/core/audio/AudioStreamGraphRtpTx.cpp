@@ -193,7 +193,11 @@ bool AudioStreamGraphRtpTx::createDtmfGraph(RtpConfig* config, BaseNode* rtpEnco
 bool AudioStreamGraphRtpTx::sendDtmf(char digit, int duration)
 {
     IMLOGD1("[sendDtmf], state[%d]", mGraphState);
-    BaseNode* pDTMFNode = mListDtmfNodes.front();
+    BaseNode* pDTMFNode = NULL;
+    if (!mListDtmfNodes.empty())
+    {
+        pDTMFNode = mListDtmfNodes.front();
+    }
 
     if (pDTMFNode != NULL && pDTMFNode->GetNodeId() == kNodeIdDtmfEncoder)
     {
