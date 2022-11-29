@@ -46,8 +46,6 @@ import java.net.SocketException;
 @RunWith(JUnit4.class)
 public class TextSessionTest {
     private static final int SESSION_ID = 1;
-    private static final int DTMF_DURATION = 120;
-    private static final int UNUSED = -1;
     private static final int SUCCESS = ImsMediaSession.RESULT_SUCCESS;
     private static final int NO_RESOURCES = ImsMediaSession.RESULT_NO_RESOURCES;
     private static final int RTP = ImsMediaSession.PACKET_TYPE_RTP;
@@ -73,7 +71,7 @@ public class TextSessionTest {
         try {
             mLooper = new TestableLooper(mHandler.getLooper());
         } catch (Exception e) {
-            fail("Unable to create TestableLooper");
+            throw new AssertionError("Unable to create TestableLooper", e);
         }
     }
 

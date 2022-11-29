@@ -16,6 +16,7 @@
 
 package com.android.telephony.imsmedia;
 
+import static org.junit.Assert.fail;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.verify;
 
@@ -82,7 +83,7 @@ public class ImsAudioSessionTest {
             verify(mMockIImsAudioSession).sendDtmf('1', 10);
             verify(mMockIImsAudioSession).sendHeaderExtension(extensions);
         } catch (Exception e) {
-            e.printStackTrace();
+            fail(e.getMessage());
         }
     }
 }
