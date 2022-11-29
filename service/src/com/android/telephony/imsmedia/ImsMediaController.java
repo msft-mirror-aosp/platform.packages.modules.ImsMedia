@@ -154,6 +154,7 @@ public class ImsMediaController extends Service {
                     mImsMediaBinder.closeSession((IBinder) mSessions.valueAt(0));
                     mSessions.removeAt(0);
                 }
+                JNIImsMediaService.clearListener();
                 mSessions.clear();
             }
         } catch (Exception e) {

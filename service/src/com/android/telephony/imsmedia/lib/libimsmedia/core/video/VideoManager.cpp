@@ -377,8 +377,7 @@ void VideoManager::ResponseHandler::processEvent(
                 parcel.writeInt32(static_cast<int>(paramA));
             }
 
-            VideoManager::getInstance()->sendResponse(
-                    reinterpret_cast<uint64_t>(VideoManager::getInstance()), parcel);
+            VideoManager::getInstance()->sendResponse(sessionId, parcel);
             break;
         case kVideoModifySessionResponse:  // fall through
         {
@@ -389,23 +388,20 @@ void VideoManager::ResponseHandler::processEvent(
             if (config != NULL)
             {
                 config->writeToParcel(&parcel);
-                VideoManager::getInstance()->sendResponse(
-                        reinterpret_cast<uint64_t>(VideoManager::getInstance()), parcel);
+                VideoManager::getInstance()->sendResponse(sessionId, parcel);
                 delete config;
             }
         }
         break;
         case kVideoFirstMediaPacketInd:
             parcel.writeInt32(event);
-            VideoManager::getInstance()->sendResponse(
-                    reinterpret_cast<uint64_t>(VideoManager::getInstance()), parcel);
+            VideoManager::getInstance()->sendResponse(sessionId, parcel);
             break;
         case kVideoPeerDimensionChanged:
             parcel.writeInt32(event);
             parcel.writeInt32(static_cast<int>(paramA));
             parcel.writeInt32(static_cast<int>(paramB));
-            VideoManager::getInstance()->sendResponse(
-                    reinterpret_cast<uint64_t>(VideoManager::getInstance()), parcel);
+            VideoManager::getInstance()->sendResponse(sessionId, parcel);
             break;
         case kVideoRtpHeaderExtensionInd:
             // TODO : add implementation
@@ -414,26 +410,22 @@ void VideoManager::ResponseHandler::processEvent(
             parcel.writeInt32(event);
             parcel.writeInt32(static_cast<int>(paramA));  // type
             parcel.writeInt32(static_cast<int>(paramB));  // duration
-            VideoManager::getInstance()->sendResponse(
-                    reinterpret_cast<uint64_t>(VideoManager::getInstance()), parcel);
+            VideoManager::getInstance()->sendResponse(sessionId, parcel);
             break;
         case kVideoPacketLossInd:
             parcel.writeInt32(event);
             parcel.writeInt32(static_cast<int>(paramA));
-            VideoManager::getInstance()->sendResponse(
-                    reinterpret_cast<uint64_t>(VideoManager::getInstance()), parcel);
+            VideoManager::getInstance()->sendResponse(sessionId, parcel);
             break;
         case kVideoDataUsageInd:
             parcel.writeInt32(event);
             parcel.writeInt64(static_cast<int>(paramA));
-            VideoManager::getInstance()->sendResponse(
-                    reinterpret_cast<uint64_t>(VideoManager::getInstance()), parcel);
+            VideoManager::getInstance()->sendResponse(sessionId, parcel);
             break;
         case kVideoSessionClosed:
             parcel.writeInt32(event);
             parcel.writeInt32(static_cast<int>(sessionId));
-            VideoManager::getInstance()->sendResponse(
-                    reinterpret_cast<uint64_t>(VideoManager::getInstance()), parcel);
+            VideoManager::getInstance()->sendResponse(sessionId, parcel);
             break;
         default:
             break;

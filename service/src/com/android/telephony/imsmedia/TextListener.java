@@ -31,6 +31,7 @@ public class TextListener implements JNIImsMediaListener {
     private long mNativeObject;
 
     TextListener(final Handler handler) {
+        Log.d(TAG, "TextListener() -" + TextListener.this);
         mHandler = handler;
     }
 
@@ -61,7 +62,7 @@ public class TextListener implements JNIImsMediaListener {
     @Override
     public void onMessage(final Parcel parcel) {
         final int event = parcel.readInt();
-        Log.d(TAG, "onMessage=" + event);
+        Log.d(TAG, "onMessage() -" + TextListener.this + ", event=" + event);
         switch (event) {
             case TextSession.EVENT_OPEN_SESSION_SUCCESS:
                 final int sessionId = parcel.readInt();

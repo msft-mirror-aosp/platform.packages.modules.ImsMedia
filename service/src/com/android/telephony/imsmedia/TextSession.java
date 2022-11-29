@@ -155,7 +155,7 @@ public final class TextSession extends IImsTextSession.Stub implements IMediaSes
 
         @Override
         public void handleMessage(Message msg) {
-            Log.d(TAG, "handleMessage: " + msg.what);
+            Log.d(TAG, "handleMessage() -" + TextSessionHandler.this + ", " + msg.what);
             switch (msg.what) {
                 case CMD_OPEN_SESSION:
                     handleOpenSession((OpenSessionParams) msg.obj);

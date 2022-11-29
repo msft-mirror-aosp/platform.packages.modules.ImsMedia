@@ -43,7 +43,6 @@ public class TextService {
     /** Sets JNI listener to get JNI callback from libimsmediajni library */
     public void setListener(final TextListener listener) {
         mListener = listener;
-        JNIImsMediaService.setListener(mNativeObject, mListener);
     }
 
     /**
@@ -75,9 +74,10 @@ public class TextService {
      *                      packets and RtpConfig to create session.
      */
     public void openSession(final int sessionId, final OpenSessionParams sessionParams) {
-        if (sessionParams == null) {
+        if (mNativeObject == 0 || sessionParams == null) {
             return;
         }
+        JNIImsMediaService.setListener(sessionId, mListener);
         Log.d(LOG_TAG, "openSession: sessionId = " + sessionId
                     + "," + sessionParams.getRtpConfig());
         Parcel parcel = Parcel.obtain();

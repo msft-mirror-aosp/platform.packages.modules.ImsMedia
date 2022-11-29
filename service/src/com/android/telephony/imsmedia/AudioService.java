@@ -43,7 +43,6 @@ public class AudioService {
     /** Sets JNI listener to get JNI callback from libimsmediajni library*/
     public void setListener(final AudioListener listener) {
         mListener = listener;
-        JNIImsMediaService.setListener(mNativeObject, mListener);
     }
 
     /**
@@ -76,9 +75,12 @@ public class AudioService {
      * RTP packets and RtpConfig to create session.
      */
     public void openSession(final int sessionId, final OpenSessionParams sessionParams) {
-        if (sessionParams == null) return;
+        if (mNativeObject == 0 || sessionParams == null) {
+            return;
+        }
+        JNIImsMediaService.setListener(sessionId, mListener);
         Log.d(LOG_TAG, "openSession: sessionId = " + sessionId
-                    + "," + sessionParams.getRtpConfig());
+                + "," + sessionParams.getRtpConfig());
         Parcel parcel = Parcel.obtain();
         parcel.writeInt(AudioSession.CMD_OPEN_SESSION);
         final int socketFdRtp = sessionParams.getRtpFd().detachFd();
