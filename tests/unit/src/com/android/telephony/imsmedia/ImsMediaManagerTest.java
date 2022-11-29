@@ -17,6 +17,7 @@
 package android.telephony.imsmedia;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.anyInt;
 import static org.mockito.Mockito.doAnswer;
@@ -46,6 +47,7 @@ import java.util.concurrent.Executors;
 
 public class ImsMediaManagerTest {
     private Executor mExecutor;
+    private final Object mLock = new Object();
 
     @Mock
     Context mMockContext;
@@ -124,18 +126,18 @@ public class ImsMediaManagerTest {
         ImsMediaManager imsMediaManager =
                 new ImsMediaManager(mMockContext, mExecutor, mMockConnectedCallback);
 
-        synchronized (mMockConnectedCallback) {
+        synchronized (mLock) {
             try {
                 //Wait for connection callback
-                mMockConnectedCallback.wait(1000);
+                Thread.sleep(1000);
 
                 //Unbind from service
                 imsMediaManager.release();
 
                 //Wait for disconnect callback
-                mMockConnectedCallback.wait(1000);
+                Thread.sleep(1000);
             } catch (Exception e) {
-                e.printStackTrace();
+                fail(e.getMessage());
             }
         }
 
@@ -148,10 +150,10 @@ public class ImsMediaManagerTest {
         ImsMediaManager imsMediaManager =
                 new ImsMediaManager(mMockContext, mExecutor, mMockConnectedCallback);
 
-        synchronized (mMockConnectedCallback) {
+        synchronized (mLock) {
             try {
                 //Wait for connection callback
-                mMockConnectedCallback.wait(1000);
+                Thread.sleep(1000);
 
                 imsMediaManager.openSession(mMockRtpSocket, mMockRtcpSocket,
                         ImsMediaSession.SESSION_TYPE_AUDIO, mMockRtpConfig, mExecutor,
@@ -163,10 +165,10 @@ public class ImsMediaManagerTest {
                 imsMediaManager.release();
 
                 //Wait for disconnect callback
-                mMockConnectedCallback.wait(1000);
+                Thread.sleep(1000);
 
             } catch (Exception e) {
-                e.printStackTrace();
+                fail(e.getMessage());
             }
         }
 
@@ -175,7 +177,7 @@ public class ImsMediaManagerTest {
             verify(mMockImsMedia, times(2)).transact(anyInt(), any(Parcel.class), any(), anyInt());
             verify(mMockConnectedCallback).onDisconnected();
         } catch (Exception e) {
-            e.printStackTrace();
+            fail(e.getMessage());
         }
     }
 

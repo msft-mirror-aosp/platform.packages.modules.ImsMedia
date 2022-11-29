@@ -82,7 +82,7 @@ public class AudioSessionTest {
         try {
             looper = new TestableLooper(handler.getLooper());
         } catch (Exception e) {
-            fail("Unable to create TestableLooper");
+            throw new AssertionError("Unable to create TestableLooper", e);
         }
     }
 

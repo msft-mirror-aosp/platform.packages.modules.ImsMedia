@@ -63,9 +63,7 @@ import java.util.stream.Collectors;
 @RunWith(JUnit4.class)
 public class AudioOffloadTest {
     private static final int SESSION_ID = 1;
-    private static final int DTMF_VOL = 50;
     private static final int DTMF_DURATION = 120;
-    private static final int UNUSED = -1;
     private static final int NO_RESOURCES = ImsMediaSession.RESULT_NO_RESOURCES;
     private static final int NO_MEMORY = ImsMediaSession.RESULT_NO_MEMORY;
     private static final int SUCCESS = ImsMediaSession.RESULT_SUCCESS;
@@ -100,7 +98,7 @@ public class AudioOffloadTest {
         try {
             looper = new TestableLooper(handler.getLooper());
         } catch (Exception e) {
-            fail("Unable to create TestableLooper");
+            throw new AssertionError("Unable to create TestableLooper", e);
         }
     }
 
