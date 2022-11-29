@@ -16,31 +16,30 @@ package {
     default_applicable_licenses: ["Android-Apache-2.0"],
 }
 
-cc_library_shared {
-    name: "libimsmedia",
+cc_library_headers {
+    name: "libimsmedia_android_audio_headers",
+    export_include_dirs: [
+        "include",
+    ],
+}
+
+cc_library_static {
+    name: "libimsmedia_audio",
     defaults: [
+        "libimsmedia_audio_defaults",
+        "libimsmedia_shared_defaults",
+    ],
+    header_libs: [
+        "libimsmedia_core_interface_headers",
     ],
     srcs: [
-        "libimsmedia.cpp",
+        "*.cpp",
     ],
-    static_libs: [
-        "libimsmedia_config",
-        "libimsmedia_core",
-        "libimsmedia_protocol",
-        "libimsmedia_audio",
+    local_include_dirs: [
+        "include",
     ],
     shared_libs: [
-        "framework-permission-aidl-cpp",
         "libaaudio",
-        "libandroid",
-        "libandroid_runtime",
-        "libbinder",
-        "libcamera2ndk",
-        "libcutils",
-        "libjnigraphics",
-        "liblog",
         "libmediandk",
-        "libnativewindow",
-        "libutils",
     ],
 }
