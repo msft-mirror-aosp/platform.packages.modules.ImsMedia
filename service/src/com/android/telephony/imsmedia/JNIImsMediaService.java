@@ -21,6 +21,8 @@ import android.os.Parcel;
 import android.util.Log;
 import android.view.Surface;
 
+import androidx.annotation.VisibleForTesting;
+
 import java.util.Hashtable;
 
 /** JNI interface class to send message to libimsmediajni */
@@ -30,8 +32,8 @@ public class JNIImsMediaService {
     private final Object mLock = new Object();
 
     /** for media service based on type ex. audio, video, rtt */
-    private static Hashtable<Long, JNIImsMediaListener> sListeners
-        = new Hashtable<Long, JNIImsMediaListener>();
+    private static Hashtable<Integer, JNIImsMediaListener> sListeners =
+            new Hashtable<Integer, JNIImsMediaListener>();
 
     /**
      * Gets instance object of BaseManager with the corresponding media type
@@ -45,29 +47,29 @@ public class JNIImsMediaService {
      * Send message to libimsmediajni to libimsmedia library to operate with corresponding
      * arguments
      *
-     * @param nativeObj An unique object identifier of BaseManager to operate
+     * @param nativeObject An unique object identifier of BaseManager to operate
      * @param sessionId An unique session identifier
      * @param baData A parameter to operate session
      */
-    public static native void sendMessage(long nativeObj, int sessionId, byte[] baData);
+    public static native void sendMessage(long nativeObject, int sessionId, byte[] baData);
 
     /**
      * Set preview surface to libimsmediajni and it delivers libimsmedia
      *
-     * @param nativeObj An unique object identifier of BaseManager to operate
+     * @param nativeObject An unique object identifier of BaseManager to operate
      * @param sessionId An unique session identifier
      * @param surface A preview surface
      */
-    public static native void setPreviewSurface(long nativeObj, int sessionId, Surface surface);
+    public static native void setPreviewSurface(long nativeObject, int sessionId, Surface surface);
 
     /**
      * Set display surface to libimsmediajni and it delivers libimsmedia
      *
-     * @param nativeObj An unique object identifier of BaseManager to operate
+     * @param nativeObject An unique object identifier of BaseManager to operate
      * @param sessionId An unique session identifier
      * @param surface A display surface
      */
-    public static native void setDisplaySurface(long nativeObj, int sessionId, Surface surface);
+    public static native void setDisplaySurface(long nativeObject, int sessionId, Surface surface);
 
     /**
      * Generates SPROP list for the given set of video configurations.
@@ -108,57 +110,67 @@ public class JNIImsMediaService {
     /**
      * Sets listener to get callback from libimsmediajni
      *
-     * @param nativeObj An unique object identifier of BaseManager to use as a key to
-     * acquire a paired listener
+     * @param sessionId An unique object identifier the session to use as a key to acquire a paired
+     * listener
      * @param listener A listener to set for getting messages
      */
-    public static void setListener(final long nativeObj, final JNIImsMediaListener listener) {
-        Log.d(TAG, "setListener");
-        if (nativeObj == 0 || listener == null) {
+    public static void setListener(final int sessionId, final JNIImsMediaListener listener) {
+        Log.d(TAG, "setListener() - sessionId=" + sessionId);
+        if (listener == null) {
+            Log.e(TAG, "setListener() - null listener");
             return;
         }
-        Long key = Long.valueOf(nativeObj);
         synchronized (sListeners) {
-            sListeners.put(key, listener);
+            sListeners.put(sessionId, listener);
         }
     }
 
     /**
      * Gets a listener with the key to match
      *
-     * @param nativeObj An unique key identifier to get the paired listener
+     * @param sessionId An unique key identifier to get the paired listener
      * @return A JNIImsMediaListener listener
      */
-    public static JNIImsMediaListener getListener(final long nativeObj) {
-        Log.d(TAG, "getListener");
-        if (nativeObj == 0) {
-            return null;
-        }
-        Long key = Long.valueOf(nativeObj);
+    public static JNIImsMediaListener getListener(final int sessionId) {
         JNIImsMediaListener listener = null;
         synchronized (sListeners) {
-            listener = sListeners.get(key);
+            listener = sListeners.get(sessionId);
         }
 
         return listener;
     }
 
     /**
+     *  Clears listener container
+     */
+    public static void clearListener() {
+        synchronized (sListeners) {
+            sListeners.clear();
+        }
+    }
+
+    @VisibleForTesting
+    public static int getListenerSize() {
+        return sListeners.size();
+    }
+
+    /**
      * Sends callback parcel message from libimsmediajni to java
      *
-     * @param nativeObj An unique key idenfier to find corresponding listener object to send message
+     * @param sessionId An unique key idenfier to find corresponding listener object to send message
      * @param baData byte array form of data to send
      * @return 1 if it is success to send data, -1 when it fails
      */
-    public static int sendData2Java(final long nativeObj, final byte[] baData) {
-        Log.d(TAG, "sendData2Java");
-        JNIImsMediaListener listener = getListener(nativeObj);
-
+    public static int sendData2Java(final int sessionId, final byte[] baData) {
+        Log.d(TAG, "sendData2Java() - sessionId=" + sessionId);
+        JNIImsMediaListener listener = getListener(sessionId);
         if (listener == null) {
-            Log.e(TAG, "No listener :: nativeObject=" + nativeObj);
+            Log.e(TAG, "No listener :: sessionId=" + sessionId);
             return -1;
         }
-
+        if (baData == null) {
+            return -1;
+        }
         // retrieve parcel object from pool
         Parcel parcel = Parcel.obtain();
         parcel.unmarshall(baData, 0, baData.length);

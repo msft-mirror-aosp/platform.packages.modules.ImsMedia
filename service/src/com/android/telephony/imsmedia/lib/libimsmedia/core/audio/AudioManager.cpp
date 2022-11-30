@@ -423,8 +423,7 @@ void AudioManager::ResponseHandler::processEvent(
                 // fail reason
                 parcel.writeInt32(static_cast<int>(paramA));
             }
-            AudioManager::getInstance()->sendResponse(
-                    reinterpret_cast<uint64_t>(AudioManager::getInstance()), parcel);
+            AudioManager::getInstance()->sendResponse(sessionId, parcel);
             break;
         case kAudioModifySessionResponse:  // fall through
         case kAudioAddConfigResponse:      // fall through
@@ -436,9 +435,7 @@ void AudioManager::ResponseHandler::processEvent(
             if (config != NULL)
             {
                 config->writeToParcel(&parcel);
-
-                AudioManager::getInstance()->sendResponse(
-                        reinterpret_cast<uint64_t>(AudioManager::getInstance()), parcel);
+                AudioManager::getInstance()->sendResponse(sessionId, parcel);
                 delete config;
             }
         }
@@ -450,8 +447,7 @@ void AudioManager::ResponseHandler::processEvent(
             if (config != NULL)
             {
                 config->writeToParcel(&parcel);
-                AudioManager::getInstance()->sendResponse(
-                        reinterpret_cast<uint64_t>(AudioManager::getInstance()), parcel);
+                AudioManager::getInstance()->sendResponse(sessionId, parcel);
                 delete config;
             }
         }
@@ -462,20 +458,17 @@ void AudioManager::ResponseHandler::processEvent(
         case kAudioMediaInactivityInd:
             parcel.writeInt32(event);
             parcel.writeInt32(static_cast<int>(paramA));  // type
-            AudioManager::getInstance()->sendResponse(
-                    reinterpret_cast<uint64_t>(AudioManager::getInstance()), parcel);
+            AudioManager::getInstance()->sendResponse(sessionId, parcel);
             break;
         case kAudioPacketLossInd:
             parcel.writeInt32(event);
             parcel.writeInt32(static_cast<int>(paramA));  // loss rate
-            AudioManager::getInstance()->sendResponse(
-                    reinterpret_cast<uint64_t>(AudioManager::getInstance()), parcel);
+            AudioManager::getInstance()->sendResponse(sessionId, parcel);
             break;
         case kAudioJitterInd:
             parcel.writeInt32(event);
             parcel.writeInt32(static_cast<int>(paramA));  // jitter
-            AudioManager::getInstance()->sendResponse(
-                    reinterpret_cast<uint64_t>(AudioManager::getInstance()), parcel);
+            AudioManager::getInstance()->sendResponse(sessionId, parcel);
             break;
         case kAudioTriggerAnbrQueryInd:
         case kAudioDtmfReceivedInd:
@@ -488,9 +481,7 @@ void AudioManager::ResponseHandler::processEvent(
             if (quality != NULL)
             {
                 quality->writeToParcel(&parcel);
-
-                AudioManager::getInstance()->sendResponse(
-                        reinterpret_cast<uint64_t>(AudioManager::getInstance()), parcel);
+                AudioManager::getInstance()->sendResponse(sessionId, parcel);
                 delete quality;
             }
         }
@@ -498,8 +489,7 @@ void AudioManager::ResponseHandler::processEvent(
         case kAudioSessionClosed:
             parcel.writeInt32(event);
             parcel.writeInt32(static_cast<int>(sessionId));
-            AudioManager::getInstance()->sendResponse(
-                    reinterpret_cast<uint64_t>(AudioManager::getInstance()), parcel);
+            AudioManager::getInstance()->sendResponse(sessionId, parcel);
             break;
         default:
             break;

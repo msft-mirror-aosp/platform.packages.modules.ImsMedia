@@ -34,6 +34,7 @@ public:
 
 private:
     ImsMediaResult createPreviewMode(RtpConfig* config);
+    ImsMediaResult updateNodes(RtpConfig* config);
     ANativeWindow* mSurface;
     int32_t mVideoMode;
 };

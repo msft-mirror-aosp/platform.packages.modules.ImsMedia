@@ -320,8 +320,7 @@ void TextManager::ResponseHandler::processEvent(
                 parcel.writeInt32(static_cast<int>(paramA));
             }
 
-            TextManager::getInstance()->sendResponse(
-                    reinterpret_cast<uint64_t>(TextManager::getInstance()), parcel);
+            TextManager::getInstance()->sendResponse(sessionId, parcel);
             break;
         case kTextModifySessionResponse:  // fall through
         {
@@ -332,8 +331,7 @@ void TextManager::ResponseHandler::processEvent(
             if (config != NULL)
             {
                 config->writeToParcel(&parcel);
-                TextManager::getInstance()->sendResponse(
-                        reinterpret_cast<uint64_t>(TextManager::getInstance()), parcel);
+                TextManager::getInstance()->sendResponse(sessionId, parcel);
                 delete config;
             }
         }
@@ -342,8 +340,7 @@ void TextManager::ResponseHandler::processEvent(
             parcel.writeInt32(event);
             parcel.writeInt32(static_cast<int>(paramA));  // type
             parcel.writeInt32(static_cast<int>(paramB));  // duration
-            TextManager::getInstance()->sendResponse(
-                    reinterpret_cast<uint64_t>(TextManager::getInstance()), parcel);
+            TextManager::getInstance()->sendResponse(sessionId, parcel);
             break;
         case kTextRttReceived:
         {
@@ -354,8 +351,7 @@ void TextManager::ResponseHandler::processEvent(
             {
                 String16 rttText(*text);
                 parcel.writeString16(rttText);
-                TextManager::getInstance()->sendResponse(
-                        reinterpret_cast<uint64_t>(TextManager::getInstance()), parcel);
+                TextManager::getInstance()->sendResponse(sessionId, parcel);
                 delete text;
             }
         }
@@ -363,8 +359,7 @@ void TextManager::ResponseHandler::processEvent(
         case kTextSessionClosed:
             parcel.writeInt32(event);
             parcel.writeInt32(static_cast<int>(sessionId));
-            TextManager::getInstance()->sendResponse(
-                    reinterpret_cast<uint64_t>(TextManager::getInstance()), parcel);
+            TextManager::getInstance()->sendResponse(sessionId, parcel);
             break;
         default:
             break;

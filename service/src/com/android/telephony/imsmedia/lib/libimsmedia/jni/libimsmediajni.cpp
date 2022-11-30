@@ -58,10 +58,9 @@ JNIEnv* GetJNIEnv()
     return env;
 }
 
-static int SendData2Java(long nNativeObject, const android::Parcel& objParcel)
+static int SendData2Java(int sessionId, const android::Parcel& objParcel)
 {
     JNIEnv* env;
-    jlong jNativeObject = nNativeObject;
 
     if ((gClass_JNIImsMediaService == NULL) || (gMethod_sendData2Java == NULL))
     {
@@ -85,7 +84,7 @@ static int SendData2Java(long nNativeObject, const android::Parcel& objParcel)
         memcpy(pBuffer, objParcel.data(), objParcel.dataSize());
         env->ReleaseByteArrayElements(baData, pBuffer, 0);
         env->CallStaticIntMethod(
-                gClass_JNIImsMediaService, gMethod_sendData2Java, jNativeObject, baData);
+                gClass_JNIImsMediaService, gMethod_sendData2Java, sessionId, baData);
     }
 
     env->DeleteLocalRef(baData);
@@ -223,7 +222,7 @@ jint ImsMediaServiceJni_OnLoad(JavaVM* vm, JNIEnv* env)
     }
 
     gMethod_sendData2Java =
-            env->GetStaticMethodID(gClass_JNIImsMediaService, "sendData2Java", "(J[B)I");
+            env->GetStaticMethodID(gClass_JNIImsMediaService, "sendData2Java", "(I[B)I");
 
     if (gMethod_sendData2Java == NULL)
     {

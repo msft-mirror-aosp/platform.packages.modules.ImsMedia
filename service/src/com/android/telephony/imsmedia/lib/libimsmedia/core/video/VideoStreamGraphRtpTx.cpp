@@ -88,7 +88,7 @@ ImsMediaResult VideoStreamGraphRtpTx::create(RtpConfig* config)
     AddNode(pNodeSocketWriter);
     pNodeRtpEncoder->ConnectRearNode(pNodeSocketWriter);
 
-    setState(StreamState::kStreamStateCreated);
+    setState(kStreamStateCreated);
     mVideoMode = pConfig->getVideoMode();
     return RESULT_SUCCESS;
 }
@@ -112,7 +112,7 @@ ImsMediaResult VideoStreamGraphRtpTx::update(RtpConfig* config)
 
     if (mGraphState == kStreamStateWaitSurface)
     {
-        setState(StreamState::kStreamStateCreated);
+        setState(kStreamStateCreated);
     }
 
     if (mConfig != NULL)
@@ -121,17 +121,17 @@ ImsMediaResult VideoStreamGraphRtpTx::update(RtpConfig* config)
         mConfig = NULL;
     }
 
-    ImsMediaResult ret = RESULT_NOT_READY;
+    ImsMediaResult result = RESULT_NOT_READY;
 
     if (pConfig->getVideoMode() != mVideoMode &&
             (mVideoMode == VideoConfig::VIDEO_MODE_PREVIEW ||
                     pConfig->getVideoMode() == VideoConfig::VIDEO_MODE_PREVIEW))
     {
-        ret = stop();
+        result = stop();
 
-        if (ret != RESULT_SUCCESS)
+        if (result != RESULT_SUCCESS)
         {
-            return ret;
+            return result;
         }
 
         /** delete nodes */
@@ -139,11 +139,11 @@ ImsMediaResult VideoStreamGraphRtpTx::update(RtpConfig* config)
         mSurface = NULL;
 
         /** create nodes */
-        ret = create(pConfig);
+        result = create(pConfig);
 
-        if (ret != RESULT_SUCCESS)
+        if (result != RESULT_SUCCESS)
         {
-            return ret;
+            return result;
         }
 
         return start();
@@ -159,42 +159,26 @@ ImsMediaResult VideoStreamGraphRtpTx::update(RtpConfig* config)
         return stop();
     }
 
-    ret = RESULT_NOT_READY;
-
-    if (mGraphState == kStreamStateRunning)
+    if (pConfig->getVideoMode() != VideoConfig::VIDEO_MODE_PAUSE_IMAGE && mSurface == NULL)
     {
-        mScheduler->Stop();
+        IMLOGI2("[update] direction[%d], mode[%d], surface is not ready, wait",
+                pConfig->getMediaDirection(), pConfig->getVideoMode());
 
-        for (auto& node : mListNodeStarted)
+        if (mGraphState == kStreamStateRunning)
         {
-            if (node != NULL)
-            {
-                IMLOGD1("[update] update node[%s]", node->GetNodeName());
-                ret = node->UpdateConfig(mConfig);
-
-                if (ret != RESULT_SUCCESS)
-                {
-                    IMLOGE2("[update] error in update node[%s], ret[%d]", node->GetNodeName(), ret);
-                }
-            }
+            stop();
         }
 
-        mScheduler->Start();
+        updateNodes(mConfig);
+        setState(kStreamStateWaitSurface);
+        return RESULT_SUCCESS;
     }
-    else if (mGraphState == kStreamStateCreated)
+
+    result = updateNodes(mConfig);
+
+    if (result != RESULT_SUCCESS)
     {
-        for (auto& node : mListNodeToStart)
-        {
-            if (node != NULL)
-            {
-                IMLOGD1("[update] update node[%s]", node->GetNodeName());
-                ret = node->UpdateConfig(mConfig);
-                if (ret != RESULT_SUCCESS)
-                {
-                    IMLOGE2("[update] error in update node[%s], ret[%d]", node->GetNodeName(), ret);
-                }
-            }
-        }
+        return result;
     }
 
     if (mGraphState == kStreamStateCreated &&
@@ -205,7 +189,7 @@ ImsMediaResult VideoStreamGraphRtpTx::update(RtpConfig* config)
         return start();
     }
 
-    return ret;
+    return result;
 }
 
 ImsMediaResult VideoStreamGraphRtpTx::start()
@@ -232,7 +216,7 @@ ImsMediaResult VideoStreamGraphRtpTx::start()
     {
         IMLOGI2("[start] direction[%d], mode[%d], surface is not ready, wait",
                 pConfig->getMediaDirection(), pConfig->getVideoMode());
-        setState(StreamState::kStreamStateWaitSurface);
+        setState(kStreamStateWaitSurface);
         return RESULT_SUCCESS;
     }
 
@@ -240,19 +224,19 @@ ImsMediaResult VideoStreamGraphRtpTx::start()
 
     if (result != RESULT_SUCCESS)
     {
-        setState(StreamState::kStreamStateCreated);
+        setState(kStreamStateCreated);
         mCallback->SendEvent(kImsMediaEventNotifyError, result, kStreamModeRtpTx);
         return result;
     }
 
-    setState(StreamState::kStreamStateRunning);
+    setState(kStreamStateRunning);
     mVideoMode = mConfig->getVideoMode();
     return RESULT_SUCCESS;
 }
 
 void VideoStreamGraphRtpTx::setSurface(ANativeWindow* surface)
 {
-    IMLOGD0("[setSurface]");
+    IMLOGI1("[setSurface] state[%d]", mGraphState);
 
     if (surface != NULL)
     {
@@ -265,10 +249,14 @@ void VideoStreamGraphRtpTx::setSurface(ANativeWindow* surface)
             IVideoSourceNode* source = reinterpret_cast<IVideoSourceNode*>(node);
             source->UpdateSurface(surface);
 
-            if (getState() == StreamState::kStreamStateWaitSurface)
+            if (getState() == kStreamStateWaitSurface)
             {
-                setState(StreamState::kStreamStateCreated);
-                start();
+                setState(kStreamStateCreated);
+
+                if (start() != RESULT_SUCCESS)
+                {
+                    IMLOGE0("[setSurface] start fail");
+                }
             }
         }
     }
@@ -294,9 +282,59 @@ ImsMediaResult VideoStreamGraphRtpTx::createPreviewMode(RtpConfig* config)
     pNodeSource->SetConfig(mConfig);
     AddNode(pNodeSource);
 
-    setState(StreamState::kStreamStateCreated);
+    setState(kStreamStateCreated);
     mVideoMode = VideoConfig::VIDEO_MODE_PREVIEW;
     return RESULT_SUCCESS;
+}
+
+ImsMediaResult VideoStreamGraphRtpTx::updateNodes(RtpConfig* config)
+{
+    IMLOGD1("[updateNodes] state[%d]", mGraphState);
+
+    ImsMediaResult result = RESULT_NOT_READY;
+
+    if (mGraphState == kStreamStateRunning)
+    {
+        mScheduler->Stop();
+
+        for (auto& node : mListNodeStarted)
+        {
+            if (node != NULL)
+            {
+                IMLOGD1("[updateNodes] update node[%s]", node->GetNodeName());
+                result = node->UpdateConfig(config);
+
+                if (result != RESULT_SUCCESS)
+                {
+                    IMLOGE2("[updateNodes] error in update node[%s], result[%d]",
+                            node->GetNodeName(), result);
+                    return result;
+                }
+            }
+        }
+
+        mScheduler->Start();
+    }
+    else if (mGraphState == kStreamStateCreated)
+    {
+        for (auto& node : mListNodeToStart)
+        {
+            if (node != NULL)
+            {
+                IMLOGD1("[updateNodes] update node[%s]", node->GetNodeName());
+                result = node->UpdateConfig(config);
+
+                if (result != RESULT_SUCCESS)
+                {
+                    IMLOGE2("[updateNodes] error in update node[%s], result[%d]",
+                            node->GetNodeName(), result);
+                    return result;
+                }
+            }
+        }
+    }
+
+    return result;
 }
 
 bool VideoStreamGraphRtpTx::OnEvent(int32_t type, uint64_t param1, uint64_t param2)

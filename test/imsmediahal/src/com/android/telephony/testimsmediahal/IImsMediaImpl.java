@@ -44,7 +44,6 @@ public class IImsMediaImpl extends IImsMedia.Stub {
         Log.d(TAG, "Instantiated");
         mMediaResponse = AudioListenerProxy.getInstance();
         connector = JNIConnector.getInstance();
-        connector.ConnectJNI();
     }
 
     @Override
@@ -74,6 +73,7 @@ public class IImsMediaImpl extends IImsMedia.Stub {
     @Override
     public void openSession(int sessionId, LocalEndPoint localEndPoint, RtpConfig config) {
         Log.d(TAG, "openSession");
+        connector.connectJni(sessionId);
         mMediaResponse.setSessionId(sessionId);
         Parcel parcel = Parcel.obtain();
 

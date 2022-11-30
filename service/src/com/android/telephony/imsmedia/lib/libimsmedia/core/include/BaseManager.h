@@ -20,7 +20,7 @@
 #include <binder/Parcel.h>
 #include <functional>
 
-typedef int (*CBManager)(long nativeObj, const android::Parcel& parcel);
+typedef int (*CBManager)(int sessionId, const android::Parcel& parcel);
 
 class BaseManager
 {
@@ -46,16 +46,16 @@ public:
     /**
      * @brief Send response message to assigend callback method
      *
-     * @param obj The object of the manager instance.
+     * @param sessionId The unique identification of the session
      * @param parcel The parcel object contains event message and parameter
      * @return int Returns -1 when it is fail invoke callback function. Returns 1 when it is
      * success.
      */
-    virtual int sendResponse(long obj, const android::Parcel& parcel);
+    virtual int sendResponse(int sessionId, const android::Parcel& parcel);
 
 protected:
     virtual int getState(int sessionId) = 0;
-    static std::function<int(long, const android::Parcel&)> mCallback;
+    std::function<int(int, const android::Parcel&)> mCallback;
 };
 
 #endif
