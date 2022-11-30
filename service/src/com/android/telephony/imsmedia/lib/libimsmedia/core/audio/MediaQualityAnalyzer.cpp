@@ -28,6 +28,7 @@
 #define DEFAULT_INACTIVITY_TIME      5
 #define CALL_QUALITY_MONITORING_TIME 5
 #define MAX_NUM_PACKET_STORED        500
+#define DELETE_ALL                   65536
 
 MediaQualityAnalyzer::MediaQualityAnalyzer()
 {
@@ -435,9 +436,30 @@ bool MediaQualityAnalyzer::getRtcpXrReportBlock(
     }
 
     mBeginSeq = mEndSeq + 1;
-    clearRxPacketList(mEndSeq);
-    clearTxPacketList(mEndSeq);
+    clearPacketList(mListRxPacket, mEndSeq);
+    clearPacketList(mListTxPacket, mEndSeq);
+    clearLostPacketList(mEndSeq);
     return true;
+}
+
+MediaQuality MediaQualityAnalyzer::getMediaQuality()
+{
+    return *mMediaQuality;
+}
+
+uint32_t MediaQualityAnalyzer::getRxPacketSize()
+{
+    return mListRxPacket.size();
+}
+
+uint32_t MediaQualityAnalyzer::getTxPacketSize()
+{
+    return mListTxPacket.size();
+}
+
+uint32_t MediaQualityAnalyzer::getLostPacketSize()
+{
+    return mListLostPacket.size();
 }
 
 void MediaQualityAnalyzer::reset()
@@ -459,59 +481,31 @@ void MediaQualityAnalyzer::reset()
     mMaxBufferSize = 0;
     mCallQualityNumRxPacket = 0;
     mCallQualityNumLostPacket = 0;
-    clearRxPacketList();
-    clearTxPacketList();
-    clearLostPacketList();
+    clearPacketList(mListRxPacket, DELETE_ALL);
+    clearPacketList(mListTxPacket, DELETE_ALL);
+    clearLostPacketList(DELETE_ALL);
     mTimerCount = 0;
     mNumRxPacket = 0;
     mNumLostPacket = 0;
     mJitterRxPacket = 0.0;
 }
 
-void MediaQualityAnalyzer::createCallQualityReport() {}
-
-void MediaQualityAnalyzer::clearRxPacketList(const int32_t seq)
+void MediaQualityAnalyzer::clearPacketList(std::list<RtpPacket*>& list, const int32_t seq)
 {
     RtpPacket* packet = NULL;
     std::list<RtpPacket*>::iterator iter;
 
-    for (iter = mListRxPacket.begin(); iter != mListRxPacket.end(); iter++)
+    for (iter = list.begin(); iter != list.end();)
     {
         packet = *iter;
-
-        if (seq >= 0)
+        // do not remove the packet seq is larger than target seq
+        if (packet->seqNum > seq)
         {
-            // do not remove the packet seq is larger than target seq
-            if (packet->seqNum > seq)
-            {
-                continue;
-            }
+            iter++;
+            continue;
         }
 
-        iter = mListRxPacket.erase(iter);
-        delete packet;
-    }
-}
-
-void MediaQualityAnalyzer::clearTxPacketList(const int32_t seq)
-{
-    RtpPacket* packet = NULL;
-    std::list<RtpPacket*>::iterator iter;
-
-    for (iter = mListTxPacket.begin(); iter != mListTxPacket.end(); iter++)
-    {
-        packet = *iter;
-
-        if (seq >= 0)
-        {
-            // do not remove the packet seq is larger than target seq
-            if (packet->seqNum > seq)
-            {
-                continue;
-            }
-        }
-
-        iter = mListTxPacket.erase(iter);
+        iter = list.erase(iter);
         delete packet;
     }
 }
@@ -521,17 +515,14 @@ void MediaQualityAnalyzer::clearLostPacketList(const int32_t seq)
     LostPktEntry* packet = NULL;
     std::list<LostPktEntry*>::iterator iter;
 
-    for (iter = mListLostPacket.begin(); iter != mListLostPacket.end(); iter++)
+    for (iter = mListLostPacket.begin(); iter != mListLostPacket.end();)
     {
         packet = *iter;
-
-        if (seq >= 0)
+        // do not remove the lost packet entry seq is larger than target seq
+        if (packet->seqNum > seq)
         {
-            // do not remove the lost packet entry seq is larger than target seq
-            if (packet->seqNum > seq || packet->seqNum + packet->param1 - 1 > seq)
-            {
-                continue;
-            }
+            iter++;
+            continue;
         }
 
         iter = mListLostPacket.erase(iter);
