@@ -207,23 +207,23 @@ public:
      *
      * @param eType the types can be Audio/Video/Text. Check the type definition.
      */
-    void SetMediaType(ImsMediaType eType);
+    virtual void SetMediaType(ImsMediaType eType);
 
     /**
      * @brief Gets the media type
      *
      * @return ImsMediaType the types of the node
      */
-    ImsMediaType GetMediaType();
+    virtual ImsMediaType GetMediaType();
 
     /**
      * @brief Gets the state of the node
      *
      * @return kBaseNodeState The returning node states is running or stopped.
      */
-    kBaseNodeState GetState();
+    virtual kBaseNodeState GetState();
 
-    void SetState(kBaseNodeState state);
+    virtual void SetState(kBaseNodeState state);
     /**
      * @brief Gets the number of data stored in this node
      *
@@ -269,7 +269,7 @@ public:
      * @param dataType The additional data type for the video frames
      * @param arrivalTime The arrival time of the packet in milliseconds unit
      */
-    void SendDataToRearNode(ImsMediaSubType subtype, uint8_t* data, uint32_t dataSize,
+    virtual void SendDataToRearNode(ImsMediaSubType subtype, uint8_t* data, uint32_t dataSize,
             uint32_t timestamp, bool mark, uint32_t seq,
             ImsMediaSubType nDataType = ImsMediaSubType::MEDIASUBTYPE_UNDEFINED,
             uint32_t arrivalTime = 0);
