@@ -1,6 +1,7 @@
 package com.example.imsmediatestingapp;
 
 import android.util.Log;
+
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
@@ -37,7 +38,7 @@ public class HandshakeSender implements Runnable {
             Log.d(TAG, "Packet has been set to " + remoteAddress.getHostName() + ":" + remotePort);
             close();
         } catch (IOException e) {
-            e.printStackTrace();
+            Log.e(TAG, "IOException: " + e.toString());
         }
     }
 

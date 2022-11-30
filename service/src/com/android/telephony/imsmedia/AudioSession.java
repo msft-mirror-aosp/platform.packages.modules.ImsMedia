@@ -238,7 +238,7 @@ public final class AudioSession extends IImsAudioSession.Stub implements IMediaS
 
         @Override
         public void handleMessage (Message msg) {
-            Log.d(TAG, "handleMessage: " + msg.what);
+            Log.d(TAG, "handleMessage() -" + AudioSessionHandler.this + ", " + msg.what);
             switch(msg.what) {
                 case CMD_OPEN_SESSION:
                     handleOpenSession((OpenSessionParams)msg.obj);
@@ -334,7 +334,6 @@ public final class AudioSession extends IImsAudioSession.Stub implements IMediaS
         if (isAudioOffload()) {
             mOffloadService.closeSession(mSessionId);
         } else {
-            Log.d(TAG, "handleCloseSession else");
             mAudioService.closeSession(mSessionId);
         }
     }

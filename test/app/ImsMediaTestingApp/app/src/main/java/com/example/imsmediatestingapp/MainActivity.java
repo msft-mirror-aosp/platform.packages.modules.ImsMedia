@@ -96,7 +96,6 @@ public class MainActivity extends AppCompatActivity {
     private static final int SAMPLING_RATE_KHZ = 16;
     private static final int P_TIME_MILLIS = 20;
     private static final int MAX_P_TIME_MILLIS = 240;
-    private static final int CODEC_MODE_REQUEST = 15;
     private static final int DTMF_PAYLOAD_TYPE_NUMBER = 100;
     private static final int DTMF_SAMPLING_RATE_KHZ = 16;
     private static final int DTMF_DURATION = 140;
@@ -131,7 +130,6 @@ public class MainActivity extends AppCompatActivity {
     private int mSelectedCameraId = CAMERA_ID;
     private int mSelectedCameraZoom = CAMERA_ZOOM;
     private int mSelectedDeviceOrientationDegree = 0;
-    private int mRtcpFbTypes = VideoConfig.RTP_FB_NONE;
     private int mSelectedCvoValue = -1;
     private Set<Integer> mSelectedRtcpFbTypes = new HashSet<>();
 
@@ -1221,7 +1219,7 @@ public class MainActivity extends AppCompatActivity {
                     .build();
 
         } catch (UnknownHostException e) {
-            e.printStackTrace();
+            Log.e(TAG, "UnknownHostException: " + e.toString());
         }
         return null;
     }

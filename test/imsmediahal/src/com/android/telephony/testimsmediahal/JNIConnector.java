@@ -18,6 +18,7 @@ package com.android.telephony.testimsmediahal;
 
 import android.os.Parcel;
 import android.telephony.imsmedia.ImsMediaSession;
+
 import com.android.telephony.imsmedia.JNIImsMediaService;
 
 /**
@@ -40,7 +41,7 @@ public class JNIConnector{
     }
 
     public static JNIConnector getInstance() {
-        if(mInstance == null)
+        if (mInstance == null)
         {
             mInstance = new JNIConnector();
         }
@@ -55,24 +56,23 @@ public class JNIConnector{
      * @param Parcel contains event identifier and session related info.
      */
 
-    public void sendRequest(int sessionid, Parcel parcel) {
+    public void sendRequest(int sessionId, Parcel parcel) {
         if (mNativeObject != 0) {
             byte[] data = parcel.marshall();
             parcel.recycle();
             parcel = null;
             //send to native
-            mJNIServiceInstance.sendMessage(mNativeObject, sessionid, data);
+            mJNIServiceInstance.sendMessage(mNativeObject, sessionId, data);
         }
     }
 
     /**
-     *  Doing connection with {@link libimsmedia} via {@link libimsmediahaljni}
+     * Doing connection with {@link libimsmedia} via {@link libimsmediahaljni}
+     * @param sessionId The unique identification for session listener
      */
-
-    public void ConnectJNI() {
+    public void connectJni(final int sessionId) {
         mNativeListener = AudioListenerProxy.getInstance();
         mNativeObject = mJNIServiceInstance.getInterface(ImsMediaSession.SESSION_TYPE_AUDIO);
-        mJNIServiceInstance.setListener(mNativeObject, mNativeListener);
+        mJNIServiceInstance.setListener(sessionId, mNativeListener);
     }
-
 }

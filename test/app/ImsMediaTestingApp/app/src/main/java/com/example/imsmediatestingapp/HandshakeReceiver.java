@@ -19,7 +19,7 @@ public class HandshakeReceiver implements Runnable {
     private static final int MAX_UDP_DATAGRAM_LEN = 65527;
     private final String HANDSHAKE_PORT_PREF = "HANDSHAKE_PORT_OPEN";
     private final String CONFIRMATION_MESSAGE = "CONNECTED";
-    private final String LOG_PREFIX = "DatagramReceiver";
+    private static final String LOG_PREFIX = HandshakeReceiver.class.getName();
     private boolean running = true;
     private boolean isConfirmationReceived = false;
     private boolean isHandshakeReceived = false;
@@ -78,6 +78,7 @@ public class HandshakeReceiver implements Runnable {
      * @param <T>  either a String or DeviceInfo
      * @return string value of hte conformation string, or the DeviceInfo
      */
+    @SuppressWarnings("TypeParameterUnusedInFormals")
     private <T> T deserializePacket(byte[] data) {
         DeviceInfo deviceInfo = null;
         String confirmationMessage = null;
@@ -95,8 +96,8 @@ public class HandshakeReceiver implements Runnable {
             }
 
         } catch (IOException | ClassNotFoundException e) {
-            e.printStackTrace();
-            Log.d("", new String(data));
+            Log.e(LOG_PREFIX, "Exception: " + e.toString());
+            Log.d(LOG_PREFIX, new String(data));
             return (T) new String(data);
         }
         return null;
@@ -120,7 +121,8 @@ public class HandshakeReceiver implements Runnable {
      */
     private boolean verifyHandshakePacket(DeviceInfo deviceInfo) {
         if (deviceInfo.getHandshakePort() == -1 || deviceInfo.getAudioRtpPort() == -1) {
-            Log.d("", "One or more of the ports sent in the handshake have not been opened.");
+            Log.d(LOG_PREFIX,
+                    "One or more of the ports sent in the handshake have not been opened.");
             return false;
         }
 
