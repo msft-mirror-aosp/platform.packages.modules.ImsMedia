@@ -38,6 +38,10 @@ MediaQualityAnalyzer::MediaQualityAnalyzer()
     mCallback = NULL;
     std::unique_ptr<RtcpXrEncoder> analyzer(new RtcpXrEncoder());
     mRtcpXrEncoder = std::move(analyzer);
+    mJitterThreshold = 0;
+    mJitterDuration = 0;
+    mPacketLossThreshold = 0;
+    mPacketLossDuration = 0;
     reset();
 }
 
@@ -286,6 +290,11 @@ void MediaQualityAnalyzer::collectRxRtpStatus(const int32_t seq, kRtpPacketStatu
 {
     bool found = false;
 
+    if (mListRxPacket.empty())
+    {
+        return;
+    }
+
     for (std::list<RtpPacket*>::reverse_iterator rit = mListRxPacket.rbegin();
             rit != mListRxPacket.rend(); ++rit)
     {
@@ -301,6 +310,12 @@ void MediaQualityAnalyzer::collectRxRtpStatus(const int32_t seq, kRtpPacketStatu
             found = true;
             break;
         }
+    }
+
+    if (!found)
+    {
+        IMLOGW1("[collectRxRtpStatus] no rtp packet found seq[%d]", seq);
+        return;
     }
 
     switch (status)
@@ -334,11 +349,6 @@ void MediaQualityAnalyzer::collectRxRtpStatus(const int32_t seq, kRtpPacketStatu
         {
             mEndSeq = seq;
         }
-    }
-
-    if (!found)
-    {
-        IMLOGW1("[collectRxRtpStatus] no rtp packet found seq[%d]", seq);
     }
 }
 
@@ -392,9 +402,15 @@ void MediaQualityAnalyzer::processTimer()
     }
 
     // check packet loss
-    if (mPacketLossDuration != 0 && mTimerCount % mPacketLossDuration == 0)
+    if (mPacketLossDuration != 0 && (mTimerCount % mPacketLossDuration) == 0)
     {
-        double lossRate = (double)mNumLostPacket / (mNumRxPacket + mNumLostPacket) * 100;
+        double lossRate = 0;
+
+        if (mNumLostPacket > 0)
+        {
+            lossRate = (double)mNumLostPacket / (mNumRxPacket + mNumLostPacket) * 100;
+        }
+
         IMLOGD1("[processTimer] lossRate[%lf]", lossRate);
 
         if (lossRate >= mPacketLossThreshold && mCallback != NULL)

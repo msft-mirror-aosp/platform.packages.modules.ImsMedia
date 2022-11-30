@@ -17,6 +17,7 @@
 #include <gtest/gtest.h>
 #include <ImsMediaNetworkUtil.h>
 #include <media/NdkImageReader.h>
+#include <MockBaseSessionCallback.h>
 #include <VideoConfig.h>
 #include <VideoStreamGraphRtpTx.h>
 
@@ -66,6 +67,7 @@ public:
     AImageReader* previewReader;
     ANativeWindow* previewSurface;
     int socketRtpFd;
+    MockBaseSessionCallback mCallback;
 
     VideoStreamGraphRtpTxTest() {}
     virtual ~VideoStreamGraphRtpTxTest() {}
@@ -108,7 +110,7 @@ protected:
         socketRtpFd = ImsMediaNetworkUtil::openSocket(testIp, testPort, AF_INET);
         EXPECT_NE(socketRtpFd, -1);
 
-        graph = new VideoStreamGraphRtpTx(NULL, socketRtpFd);
+        graph = new VideoStreamGraphRtpTx(&mCallback, socketRtpFd);
 
         EXPECT_EQ(AImageReader_new(kResolutionWidth, kResolutionHeight, AIMAGE_FORMAT_YUV_420_888,
                           1, &previewReader),

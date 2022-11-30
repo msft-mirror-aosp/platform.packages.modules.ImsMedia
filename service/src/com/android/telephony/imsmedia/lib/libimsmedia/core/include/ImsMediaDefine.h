@@ -545,7 +545,7 @@ public:
     /** transit time difference */
     int32_t jitter;
     /** delay from arrival to play */
-    uint32_t delay;
+    int32_t delay;
     kRtpDataType rtpDataType;
     kRtpPacketStatus status;
 };

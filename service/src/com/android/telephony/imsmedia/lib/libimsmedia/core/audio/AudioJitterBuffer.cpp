@@ -492,8 +492,9 @@ bool AudioJitterBuffer::Get(ImsMediaSubType* psubtype, uint8_t** ppData, uint32_
                 CollectRxRtpStatus(pEntry->nSeqNum, kRtpStatusLate);
             }
 
+            IMLOGD_PACKET2(IM_PACKET_LOG_JITTER, "[Get] delete TS[%d], PlayingTS[%d]",
+                    pEntry->nTimestamp, mCurrPlayingTS);
             mDataQueue.Delete();
-            IMLOGD_PACKET0(IM_PACKET_LOG_JITTER, "[Get] delete nTimestamp < mCurrPlayingTS)");
         }
         else
         {
@@ -503,16 +504,12 @@ bool AudioJitterBuffer::Get(ImsMediaSubType* psubtype, uint8_t** ppData, uint32_
             // timestamp compensation logic
             if ((timediff > 0) && (timediff < 20))
             {
-                IMLOGD2("[Get] Re sync2 - PacketTS[%d], PlayTS[%d]", pEntry->nTimestamp,
-                        mCurrPlayingTS);
+                IMLOGD2("[Get] resync - TS[%d], PlayingTS[%d]", pEntry->nTimestamp, mCurrPlayingTS);
                 bForceToPlay = true;
             }
 
             break;
         }
-
-        IMLOGD_PACKET4(IM_PACKET_LOG_JITTER, "[Get]  D [ %d / %u / %u / %d ]", pEntry->nSeqNum,
-                pEntry->nTimestamp, mCurrPlayingTS, mDataQueue.GetCount());
     }
 
     // decrease jitter buffer

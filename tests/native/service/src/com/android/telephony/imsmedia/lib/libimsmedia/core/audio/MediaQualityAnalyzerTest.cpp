@@ -278,12 +278,14 @@ TEST_F(MediaQualityAnalyzerTest, TestJitterInd)
 
     const int32_t numPackets = 20;
     const int32_t jitter = 20;
+    const uint32_t ssrc = 10000;
 
     for (int32_t i = 0; i < numPackets; i++)
     {
         RtpPacket* packet = new RtpPacket();
         packet->seqNum = i;
         packet->jitter = jitter;
+        packet->ssrc = ssrc;
         mAnalyzer->collectInfo(kStreamRtpRx, packet);
     }
 
@@ -304,6 +306,35 @@ TEST_F(MediaQualityAnalyzerTest, TestJitterInd)
     EXPECT_EQ(quality2, quality);
     EXPECT_EQ(quality2.getNumRtpPacketsReceived(), numPackets);
     EXPECT_EQ(quality2.getAverageRelativeJitter(), jitter);
+}
+
+TEST_F(MediaQualityAnalyzerTest, TestSsrcChange)
+{
+    mAnalyzer->startTimer(1000);
+
+    const int32_t numPackets = 20;
+    const int32_t jitter = 20;
+    const uint32_t ssrc1 = 10000;
+    const uint32_t ssrc2 = 20000;
+
+    for (int32_t i = 0; i < numPackets; i++)
+    {
+        RtpPacket* packet = new RtpPacket();
+        packet->seqNum = i;
+        packet->jitter = jitter;
+        packet->ssrc = ssrc1;
+
+        if (i >= 5)
+        {
+            packet->ssrc = ssrc2;
+        }
+
+        mAnalyzer->collectInfo(kStreamRtpRx, packet);
+    }
+
+    EXPECT_EQ(mAnalyzer->getTxPacketSize(), 0);
+    EXPECT_EQ(mAnalyzer->getRxPacketSize(), numPackets - 5);
+    EXPECT_EQ(mAnalyzer->getLostPacketSize(), 0);
 }
 
 TEST_F(MediaQualityAnalyzerTest, TestPacketLossInd)
