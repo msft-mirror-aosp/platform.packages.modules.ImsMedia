@@ -187,8 +187,9 @@ void TextSourceNode::ProcessData()
 
 void TextSourceNode::SendRtt(const android::String8* text)
 {
-    if (text == NULL || text->length() <= 0)
+    if (text == NULL || text->length() == 0)
     {
+        IMLOGE0("[SendRtt] invalid data");
         return;
     }
 
@@ -201,7 +202,7 @@ void TextSourceNode::SendRtt(const android::String8* text)
 
     while (nSize > 0)
     {
-        // split by unicode unit with UTF-8
+        // split with UTF-8
         if (pData[0] >= 0xC2 && pData[0] <= 0xDF && nSize >= 2)
         {
             nChunkSize = 2;
@@ -219,7 +220,7 @@ void TextSourceNode::SendRtt(const android::String8* text)
             nChunkSize = 1;
         }
 
-        uint8_t* buffer = (uint8_t*)malloc(nChunkSize + 1);  // add null
+        uint8_t* buffer = (uint8_t*)calloc(nChunkSize, sizeof(uint8_t));
 
         if (buffer == NULL)
         {
@@ -227,7 +228,6 @@ void TextSourceNode::SendRtt(const android::String8* text)
             return;
         }
 
-        memset(buffer, 0, sizeof(nChunkSize + 1));
         memcpy(buffer, pData, nChunkSize);
         mListTextSource.push_back(buffer);
         mListTextSourceSize.push_back(nChunkSize);
@@ -238,14 +238,21 @@ void TextSourceNode::SendRtt(const android::String8* text)
 
 void TextSourceNode::SendBOM()
 {
-    uint8_t* buffer = (uint8_t*)malloc(4);
-    memset(buffer, 0, 4);
-    // send BOM - RFC4103 the BOM character shall be transmitted as 0xEFBBBF
+    const uint32_t sizeofBom = 3;
+    uint8_t* buffer = (uint8_t*)calloc(sizeofBom, sizeof(uint8_t));
+
+    if (buffer == NULL)
+    {
+        IMLOGE0("[SendBOM] allocated data is null");
+        return;
+    }
+
+    // send BOM - The BOM character shall be 0xEFBBBF for UTF-8
     buffer[0] = 0xef;
     buffer[1] = 0xbb;
     buffer[2] = 0xbf;
 
     IMLOGD0("[ProcessData] send BOM");
     mListTextSource.push_front(buffer);
-    mListTextSourceSize.push_front(3);
+    mListTextSourceSize.push_front(sizeofBom);
 }

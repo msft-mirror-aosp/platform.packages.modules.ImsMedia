@@ -14,8 +14,12 @@
  * limitations under the License.
  */
 
+#ifndef MOCK_BASE_SESSION_CALLBACK_H
+#define MOCK_BASE_SESSION_CALLBACK_H
+
 #include <BaseSessionCallback.h>
 #include <ImsMediaDefine.h>
+#include <gmock/gmock.h>
 
 class MockBaseSessionCallback : public BaseSessionCallback
 {
@@ -45,3 +49,5 @@ public:
 private:
     BaseSessionCallback* mFake;
 };
+
+#endif
