@@ -21,7 +21,6 @@
 #include <BaseNode.h>
 #include <ImsMediaBitReader.h>
 #include <ImsMediaBitWriter.h>
-#include <mutex>
 
 /**
  * @brief this class is to decode the AMR/AMR-WB/EVS encoded rtp payload header and
@@ -57,10 +56,10 @@ private:
     int32_t mCodecType;
     bool mOctetAligned;
     uint8_t mPayload[MAX_AUDIO_PAYLOAD_SIZE];
+    std::list<uint32_t> mListFrameType;
     ImsMediaBitReader mBitReader;
     ImsMediaBitWriter mBitWriter;
     uint32_t mPrevCMR;
-    std::mutex mMutexExit;
     kEvsBandwidth mEvsBandwidth;
     kEvsCodecMode mEvsCodecMode;
     kRtpPyaloadHeaderMode mEvsPayloadHeaderMode;

@@ -20,8 +20,8 @@
 #include <ImsMediaVideoUtil.h>
 #include <thread>
 
-static int kTimeout = 100000;  // be responsive on signal
-static int kThreadInterval = 10;
+#define CODEC_TIMEOUT_NANO 100000
+#define INTERVAL_MILLIS    10
 
 ImsMediaVideoRenderer::ImsMediaVideoRenderer()
 {
@@ -209,7 +209,7 @@ void ImsMediaVideoRenderer::processBuffers()
             continue;
         }
 
-        auto index = AMediaCodec_dequeueInputBuffer(mCodec, kTimeout);
+        auto index = AMediaCodec_dequeueInputBuffer(mCodec, CODEC_TIMEOUT_NANO);
         if (index >= 0)
         {
             size_t bufferSize = 0;
@@ -246,7 +246,7 @@ void ImsMediaVideoRenderer::processBuffers()
         }
 
         AMediaCodecBufferInfo info;
-        index = AMediaCodec_dequeueOutputBuffer(mCodec, &info, kTimeout);
+        index = AMediaCodec_dequeueOutputBuffer(mCodec, &info, CODEC_TIMEOUT_NANO);
 
         if (index >= 0)
         {
@@ -278,7 +278,7 @@ void ImsMediaVideoRenderer::processBuffers()
             IMLOGD1("[processBuffers] unexpected index[%d]", index);
         }
 
-        nextTime += kThreadInterval;
+        nextTime += INTERVAL_MILLIS;
         uint32_t nCurrTime = ImsMediaTimer::GetTimeInMilliSeconds();
 
         if (nextTime > nCurrTime)

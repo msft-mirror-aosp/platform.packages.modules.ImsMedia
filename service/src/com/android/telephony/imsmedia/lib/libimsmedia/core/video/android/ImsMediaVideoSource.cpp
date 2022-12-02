@@ -22,6 +22,8 @@
 #include <list>
 #include <time.h>
 
+#define CODEC_TIMEOUT_NANO 100000
+
 ImsMediaVideoSource::ImsMediaVideoSource()
 {
     mCamera = NULL;
@@ -377,7 +379,7 @@ void ImsMediaVideoSource::onCameraFrame(AImage* pImage)
         return;
     }
 
-    auto index = AMediaCodec_dequeueInputBuffer(mCodec, 100000);
+    auto index = AMediaCodec_dequeueInputBuffer(mCodec, CODEC_TIMEOUT_NANO);
 
     if (index >= 0)
     {
@@ -478,7 +480,7 @@ void ImsMediaVideoSource::requestIdrFrame()
 
 void ImsMediaVideoSource::EncodePauseImage()
 {
-    auto index = AMediaCodec_dequeueInputBuffer(mCodec, 100000);
+    auto index = AMediaCodec_dequeueInputBuffer(mCodec, CODEC_TIMEOUT_NANO);
     if (index >= 0)
     {
         size_t buffCapacity = 0;
@@ -501,7 +503,6 @@ void ImsMediaVideoSource::EncodePauseImage()
 
 void ImsMediaVideoSource::processOutputBuffer()
 {
-    static int kTimeout = 100000;  // be responsive on signal
     uint32_t nextTime = ImsMediaTimer::GetTimeInMilliSeconds();
     uint32_t timeInterval = 66;
     uint32_t timeDiff = 0;
@@ -532,7 +533,7 @@ void ImsMediaVideoSource::processOutputBuffer()
         }
 
         AMediaCodecBufferInfo info;
-        auto index = AMediaCodec_dequeueOutputBuffer(mCodec, &info, kTimeout);
+        auto index = AMediaCodec_dequeueOutputBuffer(mCodec, &info, CODEC_TIMEOUT_NANO);
 
         if (index >= 0)
         {

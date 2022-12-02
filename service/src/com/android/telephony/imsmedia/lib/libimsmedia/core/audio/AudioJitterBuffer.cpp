@@ -19,26 +19,10 @@
 #include <ImsMediaTimer.h>
 #include <ImsMediaTrace.h>
 
-#if 1
-#define AUDIO_JITTER_BUFFER_SIZE       5
-#define AUDIO_G711_JITTER_BUFFER_SIZE  6
 #define AUDIO_JITTER_BUFFER_MIN_SIZE   3
 #define AUDIO_JITTER_BUFFER_MAX_SIZE   9
 #define AUDIO_JITTER_BUFFER_START_SIZE 4
-#else
-#define AUDIO_JITTER_BUFFER_SIZE      3
-#define AUDIO_G711_JITTER_BUFFER_SIZE 4
-#endif
-#if defined(FEATURE_IMS_MEDIA_ATT) || defined(FEATURE_IMS_MEDIA_CMCC)
-#define JITTERBUFFER_UPDATE_DURATION 9
-#else
-#define JITTERBUFFER_UPDATE_DURATION 0
-#endif
-#define CODECFILTER_AUDIO_FMC_MAX_SEQUENCE          0xffff
-#define CODECFILTER_AUDIO_PACKETRECEIVE_COUNTER_MAX 50
-#define CODECFILTER_AUDIO_PACKETINSERT_COUNTER_MAX  5
-#define CODECFILTER_AUDIO_SKIP_READCOUNTER          100
-#define GET_SEQ_GAP(a, b)                           ((uint16_t)a - (uint16_t)b)
+#define GET_SEQ_GAP(a, b)              ((uint16_t)a - (uint16_t)b)
 
 AudioJitterBuffer::AudioJitterBuffer()
 {
@@ -271,76 +255,6 @@ void AudioJitterBuffer::Add(ImsMediaSubType subtype, uint8_t* pbBuffer, uint32_t
             }
         }
     }
-
-    // Count Duplicated SeqNum packets not to delete bundled packets (for maxptime 240 support)
-    /*
-    uint32_t nMaxBundledCount = 0;
-    uint32_t nTempBundledSeqNum = 0;
-    uint32_t nTempBundledCount = 0;
-    DataEntry* pEntry;
-    mDataQueue.SetReadPosFirst();
-
-    while (mDataQueue.GetNext(&pEntry) && pEntry != NULL)
-    {
-        if (nTempBundledSeqNum != pEntry->nSeqNum)
-        {
-            nTempBundledSeqNum = pEntry->nSeqNum;
-            nTempBundledCount = 1;
-        }
-        else
-        {
-            nTempBundledCount++;
-        }
-
-        if (nMaxBundledCount < nTempBundledCount)
-        {
-            nMaxBundledCount = nTempBundledCount;  // count maximum
-        }
-    }
-
-    IMLOGD_PACKET1(IM_PACKET_LOG_JITTER, "[Add] bundled seq count[%d]", nMaxBundledCount);
-
-    if (mBufferImprovement == false)
-    {
-        while (mDataQueue.GetCount() >
-                mMaxJitterBufferSize + mMinJitterBufferSize + nMaxBundledCount - 1)
-        {
-            IMLOGD_PACKET1(IM_PACKET_LOG_JITTER, "[Add] delete seq[%d]", pEntry->nSeqNum);
-            CollectRxRtpStatus(pEntry->nSeqNum, kRtpStatusLate);
-            mDataQueue.Delete();
-            mDeleteCount++;
-        }
-    }
-    else
-    {
-        if (mIsReceivedFirst == false)
-        {
-            while (mDataQueue.GetCount() > mCurrJitterBufferSize + nMaxBundledCount)
-            {
-                IMLOGD_PACKET7(IM_PACKET_LOG_JITTER,
-                        "[Add] early received - seq[%d], bMark[%d], TS[%d], size[%d] "
-                        "subtype[%d] queueSize[%d] arrivalTime[%u]",
-                        nSeqNum, bMark, nTimestamp, nBufferSize, subtype, mDataQueue.GetCount() + 1,
-                        currEntry.arrivalTime);
-
-                IMLOGD_PACKET1(IM_PACKET_LOG_JITTER, "[Add] delete seq[%d]", nSeqNum);
-                CollectRxRtpStatus(nSeqNum, kRtpStatusDiscarded);
-                mDataQueue.Delete();
-                mDeleteCount++;
-            }
-        }
-        else
-        {
-            while (mDataQueue.GetCount() >
-                    mMaxJitterBufferSize + mMinJitterBufferSize + nMaxBundledCount - 1)
-            {
-                IMLOGD_PACKET1(IM_PACKET_LOG_JITTER, "[Add] delete seq[%d]", pEntry->nSeqNum);
-                CollectRxRtpStatus(pEntry->nSeqNum, kRtpStatusLate);
-                mDataQueue.Delete();
-                mDeleteCount++;
-            }
-        }
-    }*/
 }
 
 bool AudioJitterBuffer::Get(ImsMediaSubType* psubtype, uint8_t** ppData, uint32_t* pnDataSize,
