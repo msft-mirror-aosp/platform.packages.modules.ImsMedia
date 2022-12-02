@@ -60,7 +60,6 @@ private:
     uint32_t mTotalPayloadSize;
     ImsMediaBitWriter mBWHeader;
     ImsMediaBitWriter mBWPayload;
-    std::mutex mMutexExit;
     kEvsBandwidth mEvsBandwidth;
     kEvsCodecMode mEvsCodecMode;
     int32_t mEvsOffset;

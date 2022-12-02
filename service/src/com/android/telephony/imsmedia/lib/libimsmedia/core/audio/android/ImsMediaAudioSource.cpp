@@ -27,9 +27,10 @@
 #include <utils/Errors.h>
 #include <thread>
 
-#define AAUDIO_TIMEOUT_NANO   100 * 1000000L
-#define NUM_FRAMES_PER_SEC    50
-#define DEFAULT_SAMPLING_RATE 8000
+#define AAUDIO_STATE_TIMEOUT_NANO 100 * 1000000L
+#define NUM_FRAMES_PER_SEC        50
+#define DEFAULT_SAMPLING_RATE     8000
+#define CODEC_TIMEOUT_NANO        100000
 
 using namespace android;
 
@@ -191,7 +192,7 @@ bool ImsMediaAudioSource::Start()
     aaudio_stream_state_t inputState = AAUDIO_STREAM_STATE_STARTING;
     aaudio_stream_state_t nextState = AAUDIO_STREAM_STATE_UNINITIALIZED;
     audioResult = AAudioStream_waitForStateChange(
-            mAudioStream, inputState, &nextState, 10 * AAUDIO_TIMEOUT_NANO);
+            mAudioStream, inputState, &nextState, 10 * AAUDIO_STATE_TIMEOUT_NANO);
 
     if (audioResult != AAUDIO_OK)
     {
@@ -262,7 +263,7 @@ void ImsMediaAudioSource::Stop()
     }
 
     result = AAudioStream_waitForStateChange(
-            mAudioStream, inputState, &nextState, AAUDIO_TIMEOUT_NANO);
+            mAudioStream, inputState, &nextState, AAUDIO_STATE_TIMEOUT_NANO);
 
     if (result != AAUDIO_OK)
     {
@@ -472,7 +473,7 @@ void ImsMediaAudioSource::restartAudioStream()
     }
 
     result = AAudioStream_waitForStateChange(
-            mAudioStream, inputState, &nextState, 10 * AAUDIO_TIMEOUT_NANO);
+            mAudioStream, inputState, &nextState, 10 * AAUDIO_STATE_TIMEOUT_NANO);
 
     if (result != AAUDIO_OK)
     {
@@ -518,7 +519,6 @@ void ImsMediaAudioSource::queueInputBuffer(int16_t* buffer, uint32_t size)
 void ImsMediaAudioSource::processOutputBuffer()
 {
     IMLOGD0("[processOutputBuffer] enter");
-    static int kTimeout = 100000;  // be responsive on signal
     uint32_t nNextTime = ImsMediaTimer::GetTimeInMilliSeconds();
 
     for (;;)
@@ -530,7 +530,7 @@ void ImsMediaAudioSource::processOutputBuffer()
         }
 
         AMediaCodecBufferInfo info;
-        auto index = AMediaCodec_dequeueOutputBuffer(mCodec, &info, kTimeout);
+        auto index = AMediaCodec_dequeueOutputBuffer(mCodec, &info, CODEC_TIMEOUT_NANO);
 
         if (index >= 0)
         {

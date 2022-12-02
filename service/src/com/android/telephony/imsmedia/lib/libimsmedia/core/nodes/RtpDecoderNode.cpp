@@ -21,19 +21,20 @@
 #include <VideoConfig.h>
 #include <TextConfig.h>
 
-#ifdef DEBUG_JITTER_GEN_SIMULATION_DELAY
+#if defined(DEBUG_JITTER_GEN_SIMULATION_DELAY) || defined(DEBUG_JITTER_GEN_SIMULATION_REORDER) || \
+        defined(DEBUG_JITTER_GEN_SIMULATION_LOSS)
 #include <ImsMediaTimer.h>
+#endif
+#ifdef DEBUG_JITTER_GEN_SIMULATION_DELAY
 #define DEBUG_JITTER_MAX_PACKET_INTERVAL 15  // milliseconds
 #endif
 #ifdef DEBUG_JITTER_GEN_SIMULATION_REORDER
-#include <ImsMediaTimer.h>
 #include <ImsMediaDataQueue.h>
 #define DEBUG_JITTER_REORDER_MAX 4
 #define DEBUG_JITTER_REORDER_MIN 4
 #define DEBUG_JITTER_NORMAL      2
 #endif
 #ifdef DEBUG_JITTER_GEN_SIMULATION_LOSS
-#include <ImsMediaTimer.h>
 #define DEBUG_JITTER_LOSS_PACKET_INTERVAL 20
 #endif
 #ifdef DEBUG_JITTER_GEN_SIMULATION_DUPLICATE
@@ -55,6 +56,7 @@ RtpDecoderNode::RtpDecoderNode(BaseSessionCallback* callback) :
     mCvoValue = CVO_DEFINE_NONE;
     mRedundantPayload = 0;
     mArrivalTime = 0;
+    mSubtype = MEDIASUBTYPE_UNDEFINED;
 #if defined(DEBUG_JITTER_GEN_SIMULATION_LOSS) || defined(DEBUG_JITTER_GEN_SIMULATION_DUPLICATE)
     mPacketCounter = 1;
 #endif
@@ -124,6 +126,7 @@ ImsMediaResult RtpDecoderNode::Start()
     mRtpSession->StartRtp();
     mReceivingSSRC = 0;
     mNoRtpTime = 0;
+    mSubtype = MEDIASUBTYPE_UNDEFINED;
     mNodeState = kNodeStateRunning;
 #if defined(DEBUG_JITTER_GEN_SIMULATION_LOSS) || defined(DEBUG_JITTER_GEN_SIMULATION_DUPLICATE)
     mPacketCounter = 1;
@@ -379,8 +382,6 @@ void RtpDecoderNode::OnMediaDataInd(unsigned char* data, uint32_t datasize, uint
         bool mark, uint16_t seq, uint32_t payloadType, uint32_t ssrc, bool extension,
         uint16_t nExtensionData)
 {
-    static ImsMediaSubType subtype = MEDIASUBTYPE_RTPPAYLOAD;
-
     IMLOGD_PACKET8(IM_PACKET_LOG_RTP,
             "[OnMediaDataInd] media[%d] size[%d], TS[%d], mark[%d], seq[%d], payloadType[%d] "
             "sampling[%d], ext[%d]",
@@ -401,50 +402,46 @@ void RtpDecoderNode::OnMediaDataInd(unsigned char* data, uint32_t datasize, uint
     }
 
     /** TODO : add checking receiving dtmf by the payload type number */
-
-    if (extension == true)
+    if (extension && mMediaType == IMS_MEDIA_VIDEO && mCvoValue != CVO_DEFINE_NONE)
     {
-        if (mMediaType == IMS_MEDIA_VIDEO && mCvoValue != CVO_DEFINE_NONE)
+        uint16_t nExtensionID;
+        uint16_t nCamID;
+        uint16_t nRotation;
+        nExtensionID = nExtensionData;
+        nExtensionID = nExtensionID >> 12;
+
+        nCamID = nExtensionData;  // 0: Front-facing camera, 1: Back-facing camera
+        nCamID = nCamID << 12;
+        nCamID = nCamID >> 15;
+
+        nRotation = nExtensionData;
+        nRotation = nRotation << 13;
+        nRotation = nRotation >> 13;
+
+        switch (nRotation)
         {
-            uint16_t nExtensionID;
-            uint16_t nCamID;
-            uint16_t nRotation;
-            nExtensionID = nExtensionData;
-            nExtensionID = nExtensionID >> 12;
-
-            nCamID = nExtensionData;  // 0: Front-facing camera, 1: Back-facing camera
-            nCamID = nCamID << 12;
-            nCamID = nCamID >> 15;
-
-            nRotation = nExtensionData;
-            nRotation = nRotation << 13;
-            nRotation = nRotation >> 13;
-
-            switch (nRotation)
-            {
-                case 0:  // No rotation (Rotated 0CW/CCW = To rotate 0CW/CCW)
-                case 4:  // + Horizontal Flip, but it's treated as same as above
-                    subtype = MEDIASUBTYPE_ROT0;
-                    break;
-                case 1:  // Rotated 270CW(90CCW) = To rotate 90CW(270CCW)
-                case 5:  // + Horizontal Flip, but it's treated as same as above
-                    subtype = MEDIASUBTYPE_ROT90;
-                    break;
-                case 2:  // Rotated 180CW = To rotate 180CW
-                case 6:  // + Horizontal Flip, but it's treated as same as above
-                    subtype = MEDIASUBTYPE_ROT180;
-                    break;
-                case 3:  // Rotated 90CW(270CCW) = To rotate 270CW(90CCW)
-                case 7:  // + Horizontal Flip, but it's treated as same as above
-                    subtype = MEDIASUBTYPE_ROT270;
-                    break;
-                default:
-                    break;
-            }
-
-            IMLOGD4("[OnMediaDataInd] extensionId[%d], camId[%d], rot[%d], subtype[%d]",
-                    nExtensionID, nCamID, nRotation, subtype);
+            case 0:  // No rotation (Rotated 0CW/CCW = To rotate 0CW/CCW)
+            case 4:  // + Horizontal Flip, but it's treated as same as above
+                mSubtype = MEDIASUBTYPE_ROT0;
+                break;
+            case 1:  // Rotated 270CW(90CCW) = To rotate 90CW(270CCW)
+            case 5:  // + Horizontal Flip, but it's treated as same as above
+                mSubtype = MEDIASUBTYPE_ROT90;
+                break;
+            case 2:  // Rotated 180CW = To rotate 180CW
+            case 6:  // + Horizontal Flip, but it's treated as same as above
+                mSubtype = MEDIASUBTYPE_ROT180;
+                break;
+            case 3:  // Rotated 90CW(270CCW) = To rotate 270CW(90CCW)
+            case 7:  // + Horizontal Flip, but it's treated as same as above
+                mSubtype = MEDIASUBTYPE_ROT270;
+                break;
+            default:
+                break;
         }
+
+        IMLOGD4("[OnMediaDataInd] extensionId[%d], camId[%d], rot[%d], subtype[%d]", nExtensionID,
+                nCamID, nRotation, mSubtype);
     }
 
     if (mMediaType == IMS_MEDIA_TEXT)
@@ -453,16 +450,16 @@ void RtpDecoderNode::OnMediaDataInd(unsigned char* data, uint32_t datasize, uint
         {
             if (mRedundantPayload == 0)
             {
-                subtype = MEDIASUBTYPE_BITSTREAM_T140;
+                mSubtype = MEDIASUBTYPE_BITSTREAM_T140;
             }
             else
             {
-                subtype = MEDIASUBTYPE_BITSTREAM_T140_RED;
+                mSubtype = MEDIASUBTYPE_BITSTREAM_T140_RED;
             }
         }
         else if (payloadType == mRedundantPayload)
         {
-            subtype = MEDIASUBTYPE_BITSTREAM_T140;
+            mSubtype = MEDIASUBTYPE_BITSTREAM_T140;
         }
         else
         {
@@ -472,7 +469,7 @@ void RtpDecoderNode::OnMediaDataInd(unsigned char* data, uint32_t datasize, uint
     }
 
     SendDataToRearNode(
-            subtype, data, datasize, timestamp, mark, seq, MEDIASUBTYPE_UNDEFINED, mArrivalTime);
+            mSubtype, data, datasize, timestamp, mark, seq, MEDIASUBTYPE_UNDEFINED, mArrivalTime);
 }
 
 void RtpDecoderNode::OnNumReceivedPacket(uint32_t nNumRtpPacket)

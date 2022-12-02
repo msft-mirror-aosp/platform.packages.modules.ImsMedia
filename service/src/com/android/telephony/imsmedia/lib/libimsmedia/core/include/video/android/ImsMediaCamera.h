@@ -76,7 +76,6 @@ public:
     bool Supported(void) const { return (min != max); }
 };
 
-struct ACameraMetadata_const_entry;
 struct CaptureRequestInfo
 {
 public:

@@ -83,6 +83,7 @@ private:
     uint32_t mNoRtpTime;
     int32_t mRedundantPayload;
     uint32_t mArrivalTime;
+    ImsMediaSubType mSubtype;
 #if (defined(DEBUG_JITTER_GEN_SIMULATION_LOSS) || defined(DEBUG_JITTER_GEN_SIMULATION_DUPLICATE))
     uint32_t mPacketCounter;
 #endif
