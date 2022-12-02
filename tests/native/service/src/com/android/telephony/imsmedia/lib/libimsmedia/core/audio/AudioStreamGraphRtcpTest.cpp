@@ -143,6 +143,19 @@ TEST_F(AudioStreamGraphRtcpTest, TestGraphSetMediaThresholdFail)
     EXPECT_EQ(graph->setMediaQualityThreshold(&threshold), false);
 }
 
+TEST_F(AudioStreamGraphRtcpTest, TestGraphSetMediaThresholdSuccess)
+{
+    EXPECT_EQ(graph->create(&config), RESULT_SUCCESS);
+    EXPECT_EQ(graph->setMediaQualityThreshold(&threshold), true);
+    EXPECT_EQ(graph->start(), RESULT_SUCCESS);
+    EXPECT_EQ(graph->getState(), kStreamStateRunning);
+
+    // live update
+    EXPECT_EQ(graph->setMediaQualityThreshold(&threshold), true);
+    EXPECT_EQ(graph->stop(), RESULT_SUCCESS);
+    EXPECT_EQ(graph->getState(), kStreamStateCreated);
+}
+
 TEST_F(AudioStreamGraphRtcpTest, TestRtcpStreamAndUpdate)
 {
     EXPECT_EQ(graph->create(&config), RESULT_SUCCESS);
