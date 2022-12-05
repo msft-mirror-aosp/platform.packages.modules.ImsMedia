@@ -103,7 +103,7 @@ void VideoJitterBuffer::InitLostPktList()
 {
     IMLOGD0("[InitLostPktList]");
 
-    while (mLostPktList.size())
+    while (!mLostPktList.empty())
     {
         LostPktEntry* entry = mLostPktList.front();
 

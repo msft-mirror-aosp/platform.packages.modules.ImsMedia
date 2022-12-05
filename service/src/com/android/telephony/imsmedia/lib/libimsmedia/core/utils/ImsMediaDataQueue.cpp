@@ -62,10 +62,20 @@ void ImsMediaDataQueue::InsertAt(uint32_t index, DataEntry* pEntry)
 
     ((DataEntry*)pbData)->pbBuffer = pbData + sizeof(DataEntry);
 
-    std::list<uint8_t*>::iterator iter = m_List.begin();
-    advance(iter, index);
-    m_List.insert(iter, pbData);
-    // m_List.InsertAt(index, pbData);
+    if (m_List.empty() || index == 0)
+    {
+        m_List.push_front(pbData);
+    }
+    else if (index >= GetCount())
+    {
+        m_List.push_back(pbData);
+    }
+    else
+    {
+        std::list<uint8_t*>::iterator iter = m_List.begin();
+        advance(iter, index);
+        m_List.insert(iter, pbData);
+    }
 }
 
 void ImsMediaDataQueue::Delete()
@@ -87,19 +97,19 @@ void ImsMediaDataQueue::Clear()
 
 bool ImsMediaDataQueue::Get(DataEntry** ppEntry)
 {
-    // get first data in the queue
-    uint8_t* pbData = m_List.front();
+    if (!m_List.empty())
+    {
+        // get first data in the queue
+        uint8_t* pbData = m_List.front();
 
-    if (pbData != NULL)
-    {
-        *ppEntry = (DataEntry*)pbData;
-        return true;
+        if (pbData != NULL)
+        {
+            *ppEntry = (DataEntry*)pbData;
+            return true;
+        }
     }
-    else
-    {
-        *ppEntry = NULL;
-        return false;
-    }
+    *ppEntry = NULL;
+    return false;
 }
 
 bool ImsMediaDataQueue::GetLast(DataEntry** ppEntry)

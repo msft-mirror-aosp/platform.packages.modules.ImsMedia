@@ -205,7 +205,12 @@ ImsMediaResult TextStreamGraphRtpTx::start()
 bool TextStreamGraphRtpTx::sendRtt(const android::String8* text)
 {
     IMLOGD1("[sendRtt], state[%d]", mGraphState);
-    TextSourceNode* node = reinterpret_cast<TextSourceNode*>(mListNodeStarted.front());
+    TextSourceNode* node = NULL;
+
+    if (!mListNodeStarted.empty())
+    {
+        node = reinterpret_cast<TextSourceNode*>(mListNodeStarted.front());
+    }
 
     if (node != NULL)
     {
