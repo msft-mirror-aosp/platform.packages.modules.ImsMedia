@@ -89,6 +89,12 @@ ImsMediaResult RtpDecoderNode::Start()
 {
     IMLOGD1("[Start] type[%d]", mMediaType);
 
+    if (mRtpPayloadTx == 0 || mRtpPayloadRx == 0)
+    {
+        IMLOGE0("[Start] invalid payload number");
+        return RESULT_INVALID_PARAM;
+    }
+
     if (mRtpSession == NULL)
     {
         mRtpSession = IRtpSession::GetInstance(mMediaType, mLocalAddress, mPeerAddress);
@@ -387,6 +393,13 @@ void RtpDecoderNode::OnMediaDataInd(unsigned char* data, uint32_t datasize, uint
             "sampling[%d], ext[%d]",
             mMediaType, datasize, timestamp, mark, seq, payloadType, mSamplingRate, extension);
 
+    if (mMediaType == IMS_MEDIA_AUDIO && mRtpPayloadRx != payloadType &&
+            mRtpPayloadTx != payloadType)
+    {
+        IMLOGE1("[OnMediaDataInd] media[%d] invalid frame", mMediaType);
+        return;
+    }
+
     // no need to change to timestamp to milliseconds unit in audio or text packet
     if (mMediaType != IMS_MEDIA_VIDEO && mSamplingRate != 0)
     {
@@ -463,7 +476,7 @@ void RtpDecoderNode::OnMediaDataInd(unsigned char* data, uint32_t datasize, uint
         }
         else
         {
-            IMLOGI2("[OnMediaDataInd] MediaType[%d] INVALID payload[%d] is received", mMediaType,
+            IMLOGI2("[OnMediaDataInd] media[%d] INVALID payload[%d] is received", mMediaType,
                     payloadType);
         }
     }
