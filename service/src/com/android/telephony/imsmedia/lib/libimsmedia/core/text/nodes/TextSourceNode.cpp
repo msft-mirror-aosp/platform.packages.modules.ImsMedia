@@ -135,7 +135,8 @@ void TextSourceNode::ProcessData()
     uint32_t nSendingDataSize = 0;
     memset(mTextToSend, 0, MAX_RTT_LEN);
 
-    for (uint32_t i = 0; i < nLoopCount; i++)
+    for (uint32_t i = 0;
+            (i < nLoopCount && !mListTextSource.empty() && !mListTextSourceSize.empty()); i++)
     {
         // get first node data
         uint8_t* pData = mListTextSource.front();

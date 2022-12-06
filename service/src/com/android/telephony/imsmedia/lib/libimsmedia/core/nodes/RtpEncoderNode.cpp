@@ -63,6 +63,12 @@ ImsMediaResult RtpEncoderNode::Start()
 {
     IMLOGD1("[Start] type[%d]", mMediaType);
 
+    if (mRtpPayloadTx == 0 || mRtpPayloadRx == 0)
+    {
+        IMLOGE0("[Start] invalid payload number");
+        return RESULT_INVALID_PARAM;
+    }
+
     if (mRtpSession == NULL)
     {
         mRtpSession = IRtpSession::GetInstance(mMediaType, mLocalAddress, mPeerAddress);

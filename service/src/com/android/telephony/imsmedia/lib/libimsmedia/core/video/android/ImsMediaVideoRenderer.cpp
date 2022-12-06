@@ -39,7 +39,7 @@ ImsMediaVideoRenderer::ImsMediaVideoRenderer()
 
 ImsMediaVideoRenderer::~ImsMediaVideoRenderer()
 {
-    while (mFrameDatas.size())
+    while (!mFrameDatas.empty())
     {
         FrameData* frame = mFrameDatas.front();
         delete frame;

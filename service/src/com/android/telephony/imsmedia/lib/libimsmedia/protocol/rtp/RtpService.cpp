@@ -126,6 +126,10 @@ eRtp_Bool populateRcvdReportFromStk(
 eRtp_Bool populateRcvdRrInfoFromStk(
         IN std::list<RtcpRrPacket*>& pobjRrList, OUT tNotifyReceiveRtcpRrInd* pstRrInfo)
 {
+    if (pobjRrList.empty())
+    {
+        return eRTP_FALSE;
+    }
     // application supports one RR
     RtcpRrPacket* pobjRrPkt = pobjRrList.front();
     if (pobjRrPkt == RTP_NULL)
@@ -141,6 +145,10 @@ eRtp_Bool populateRcvdRrInfoFromStk(
 eRtp_Bool populateRcvdSrInfoFromStk(
         IN std::list<RtcpSrPacket*>& pobjSrList, OUT tNotifyReceiveRtcpSrInd* pstSrInfo)
 {
+    if (pobjSrList.empty())
+    {
+        return eRTP_FALSE;
+    }
     // get SR packet data
     RtcpSrPacket* pobjSrPkt = pobjSrList.front();
     if (pobjSrPkt == RTP_NULL)
