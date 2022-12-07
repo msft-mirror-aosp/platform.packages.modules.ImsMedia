@@ -143,8 +143,6 @@ protected:
         while (mNodes.size() > 0)
         {
             BaseNode* node = mNodes.front();
-            node->DisconnectFrontNode(node->GetFrontNode());
-            node->DisconnectRearNode(node->GetRearNode());
             delete node;
             mNodes.pop_front();
         }

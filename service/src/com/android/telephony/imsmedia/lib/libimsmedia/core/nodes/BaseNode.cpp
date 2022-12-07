@@ -48,13 +48,23 @@ BaseNode::BaseNode(BaseSessionCallback* callback)
     mScheduler = NULL;
     mCallback = callback;
     mNodeState = kNodeStateStopped;
-    mFrontNode = NULL;
-    mRearNode = NULL;
     mMediaType = IMS_MEDIA_AUDIO;
+    mListFrontNodes.clear();
+    mListRearNodes.clear();
 }
 
 BaseNode::~BaseNode()
 {
+    while (!mListFrontNodes.empty())
+    {
+        DisconnectFrontNode(mListFrontNodes.back());
+    }
+
+    while (!mListRearNodes.empty())
+    {
+        DisconnectRearNode(mListRearNodes.back());
+    }
+
     ClearDataQueue();
     mNodeState = kNodeStateStopped;
 }
@@ -73,53 +83,13 @@ void BaseNode::ConnectRearNode(BaseNode* pRearNode)
 {
     if (pRearNode == NULL)
     {
-        IMLOGE0("Error - pRearNode is NULL");
         return;
     }
 
-    IMLOGD3("type[%d] connect nodes [%s] -> [%s]", mMediaType, GetNodeName(),
+    IMLOGD3("[ConnectRearNode] type[%d] connect [%s] to [%s]", mMediaType, GetNodeName(),
             pRearNode->GetNodeName());
-    mRearNode = pRearNode;
-    pRearNode->mFrontNode = this;
-}
-
-void BaseNode::DisconnectRearNode(BaseNode* pRearNode)
-{
-    if (pRearNode == NULL)
-    {
-        mRearNode = NULL;
-        return;
-    }
-
-    IMLOGD3("DisConnnectRearNode] type[%d] disconnect nodes[%s] from[%s]", mMediaType,
-            GetNodeName(), pRearNode->GetNodeName());
-
-    mRearNode = NULL;
-    pRearNode->mFrontNode = NULL;
-}
-
-void BaseNode::DisconnectFrontNode(BaseNode* pFrontNode)
-{
-    if (pFrontNode == NULL)
-    {
-        mFrontNode = NULL;
-        return;
-    }
-
-    IMLOGD3("DisconnectFrontNode] type[%d] disconnect nodes[%s] from[%s]", mMediaType,
-            pFrontNode->GetNodeName(), GetNodeName());
-    mFrontNode = NULL;
-    pFrontNode->mRearNode = NULL;
-}
-
-BaseNode* BaseNode::GetFrontNode()
-{
-    return mFrontNode;
-}
-
-BaseNode* BaseNode::GetRearNode()
-{
-    return mRearNode;
+    mListRearNodes.push_back(pRearNode);
+    pRearNode->mListFrontNodes.push_back(this);
 }
 
 void BaseNode::ClearDataQueue()
@@ -283,14 +253,14 @@ void BaseNode::SendDataToRearNode(ImsMediaSubType subtype, uint8_t* pData, uint3
 {
     bool nNeedRunCount = false;
 
-    if (mRearNode)
+    for (auto& node : mListRearNodes)
     {
-        if (mRearNode->GetState() == kNodeStateRunning)
+        if (node != NULL && node->GetState() == kNodeStateRunning)
         {
-            mRearNode->OnDataFromFrontNode(
+            node->OnDataFromFrontNode(
                     subtype, pData, nDataSize, nTimestamp, bMark, nSeqNum, nDataType, arrivalTime);
 
-            if (mRearNode->IsRunTime() == false)
+            if (node->IsRunTime() == false)
             {
                 nNeedRunCount = true;
             }
@@ -318,4 +288,34 @@ void BaseNode::OnDataFromFrontNode(ImsMediaSubType subtype, uint8_t* pData, uint
     entry.subtype = subtype;
     entry.arrivalTime = arrivalTime;
     mDataQueue.Add(&entry);
+}
+
+void BaseNode::DisconnectRearNode(BaseNode* pRearNode)
+{
+    if (pRearNode == NULL)
+    {
+        mListRearNodes.pop_back();
+        return;
+    }
+
+    IMLOGD3("[DisconnectRearNode] type[%d] disconnect [%s] from [%s]", mMediaType, GetNodeName(),
+            pRearNode->GetNodeName());
+
+    mListRearNodes.remove(pRearNode);
+    pRearNode->mListFrontNodes.remove(this);
+}
+
+void BaseNode::DisconnectFrontNode(BaseNode* pFrontNode)
+{
+    if (pFrontNode == NULL)
+    {
+        mListFrontNodes.pop_back();
+        return;
+    }
+
+    IMLOGD3("[DisconnectFrontNode] type[%d] disconnect [%s] from [%s]", mMediaType,
+            pFrontNode->GetNodeName(), GetNodeName());
+
+    mListFrontNodes.remove(pFrontNode);
+    pFrontNode->mListRearNodes.remove(this);
 }
