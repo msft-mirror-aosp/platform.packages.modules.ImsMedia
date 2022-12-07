@@ -684,7 +684,6 @@ RtpDt_Void RtpSession::rtcpTimerExpiry(IN RtpDt_Void* pvTimerId)
             m_objTimerInfo.setTp(uiTempTc);*/
 
             RTP_TRACE_MESSAGE("rtcpTimerExpiry [Tn : %u] [Tc : %u]", uiTempTn, uiTempTc);
-            RtpDt_Void* pvSTRes = RTP_NULL;
             eRtp_Bool bTSres = eRTP_FALSE;
 
             bTSres = m_pobjAppInterface->RtpStopTimer(m_pTimerId, &pvData);
@@ -695,7 +694,7 @@ RtpDt_Void RtpSession::rtcpTimerExpiry(IN RtpDt_Void* pvTimerId)
             }
             if (m_bEnableRTCP == eRTP_TRUE)
             {
-                pvSTRes = m_pobjAppInterface->RtpStartTimer(
+                RtpDt_Void* pvSTRes = m_pobjAppInterface->RtpStartTimer(
                         uiTimerVal, eRTP_FALSE, m_pfnTimerCb, (RtpDt_Void*)this);
                 if (pvSTRes == RTP_NULL)
                 {
@@ -1960,13 +1959,12 @@ eRTP_STATUS_CODE RtpSession::processRcvdRtcpPkt(IN RtpBuffer* pobjRtcpAddr, IN R
     RtpDt_UInt32 uiRcvdPktSize = pobjRTCPBuf->getLength();
     m_objTimerInfo.updateAvgRtcpSize(uiRcvdPktSize);
 
-    RtcpSrPacket* pobjSrPkt = RTP_NULL;
     std::list<RtcpSrPacket*>& pobjSrList = pobjRtcpPkt->getSrPacketList();
 
     if (pobjSrList.size() > RTP_ZERO)
     {
         // get key material element from list.
-        pobjSrPkt = pobjSrList.front();
+        RtcpSrPacket* pobjSrPkt = pobjSrList.front();
 
         RtcpRrPacket* pobjRRPkt = pobjSrPkt->getRrPktInfo();
         RtcpHeader* pobjRtcpHdr = pobjRRPkt->getRtcpHdrInfo();

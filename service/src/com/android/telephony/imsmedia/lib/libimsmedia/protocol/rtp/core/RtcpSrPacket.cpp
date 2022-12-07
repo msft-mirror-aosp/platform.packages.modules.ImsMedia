@@ -331,7 +331,6 @@ block  +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 
     // encode m_uiSendOctCount
     *(RtpDt_UInt32*)pucBuffer = RtpOsUtil::Ntohl(m_uiSendOctCount);
-    pucBuffer = pucBuffer + RTP_WORD_SIZE;
     uiCurPos = uiCurPos + RTP_WORD_SIZE;
 
     // encode report blocks
@@ -347,10 +346,9 @@ block  +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 
     // get length of the SR packet
     RtpDt_UInt32 uiSrPktLen = pobjRtcpPktBuf->getLength();
-    pobjRtcpHdr->setLength(uiSrPktLen);
+#ifdef ENABLE_PADDING
     pucBuffer = pobjRtcpPktBuf->getBuffer();
     pucBuffer = pucBuffer + uiSrPktLen;
-#ifdef ENABLE_PADDING
     RtpDt_UInt32 uiPadLen = uiSrPktLen % RTP_WORD_SIZE;
     if (uiPadLen != RTP_ZERO)
     {

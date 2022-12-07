@@ -131,21 +131,18 @@ eRTP_STATUS_CODE RtcpRrPacket::formRrPacket(OUT RtpBuffer* pobjRtcpPktBuf, IN eR
         pobjRepBlk->formReportBlock(pobjRtcpPktBuf);
     }  // for
 
-    RtpDt_UChar* pucBuffer = RTP_NULL;
-
     RtpDt_UInt32 uiCurPos = pobjRtcpPktBuf->getLength();
-    pucBuffer = pobjRtcpPktBuf->getBuffer();
 #ifdef ENABLE_RTCPEXT
     if (m_pobjExt != RTP_NULL)
     {
         RtpDt_UChar* pucExtHdr = m_pobjExt->getBuffer();
         RtpDt_UInt32 uiExtHdrLen = m_pobjExt->getLength();
+        RtpDt_UChar* pucBuffer = pobjRtcpPktBuf->getBuffer();
         memcpy(pucBuffer + uiCurPos, pucExtHdr, uiExtHdrLen);
         uiCurPos = uiCurPos + uiExtHdrLen;
         pobjRtcpPktBuf->setLength(uiCurPos);
     }  // extension header
 #endif
-    pucBuffer = pucBuffer + uiCurPos;
     if (bHdrInfo == RTP_TRUE)
     {
         RtpDt_UInt32 uiRrPktLen = uiCurPos - uiRtPktPos;
@@ -157,6 +154,8 @@ eRTP_STATUS_CODE RtcpRrPacket::formRrPacket(OUT RtpBuffer* pobjRtcpPktBuf, IN eR
             uiPadLen = RTP_WORD_SIZE - uiPadLen;
             uiRrPktLen = uiRrPktLen + uiPadLen;
             uiCurPos = uiCurPos + uiPadLen;
+            RtpDt_UChar* pucBuffer = pobjRtcpPktBuf->getBuffer();
+            pucBuffer = pucBuffer + uiCurPos;
             memset(pucBuffer, RTP_ZERO, uiPadLen);
 
             pucBuffer = pucBuffer + uiPadLen;
