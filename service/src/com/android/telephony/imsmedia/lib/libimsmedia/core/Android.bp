@@ -115,6 +115,7 @@ cc_defaults {
 cc_library_static {
     name: "libimsmedia_core",
     defaults: [
+        "libimsmedia_defaults",
         "libimsmedia_protocol_defaults",
         "libimsmedia_shared_defaults",
         "libimsmedia_audio_defaults",
