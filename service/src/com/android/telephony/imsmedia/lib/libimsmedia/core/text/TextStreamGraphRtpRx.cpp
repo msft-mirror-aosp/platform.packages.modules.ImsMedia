@@ -48,16 +48,16 @@ ImsMediaResult TextStreamGraphRtpRx::create(RtpConfig* config)
 
     BaseNode* pNodeSocketReader = new SocketReaderNode(mCallback);
     pNodeSocketReader->SetMediaType(IMS_MEDIA_TEXT);
-    ((SocketReaderNode*)pNodeSocketReader)->SetLocalFd(mLocalFd);
-    ((SocketReaderNode*)pNodeSocketReader)->SetLocalAddress(localAddress);
-    ((SocketReaderNode*)pNodeSocketReader)->SetProtocolType(kProtocolRtp);
+    (static_cast<SocketReaderNode*>(pNodeSocketReader))->SetLocalFd(mLocalFd);
+    (static_cast<SocketReaderNode*>(pNodeSocketReader))->SetLocalAddress(localAddress);
+    (static_cast<SocketReaderNode*>(pNodeSocketReader))->SetProtocolType(kProtocolRtp);
     pNodeSocketReader->SetConfig(config);
     AddNode(pNodeSocketReader);
 
     BaseNode* pNodeRtpDecoder = new RtpDecoderNode(mCallback);
     pNodeRtpDecoder->SetMediaType(IMS_MEDIA_TEXT);
     pNodeRtpDecoder->SetConfig(mConfig);
-    ((RtpDecoderNode*)pNodeRtpDecoder)->SetLocalAddress(localAddress);
+    (static_cast<RtpDecoderNode*>(pNodeRtpDecoder))->SetLocalAddress(localAddress);
     AddNode(pNodeRtpDecoder);
     pNodeSocketReader->ConnectRearNode(pNodeRtpDecoder);
 

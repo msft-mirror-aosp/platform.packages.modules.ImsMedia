@@ -61,15 +61,15 @@ ImsMediaResult AudioStreamGraphRtpTx::create(RtpConfig* config)
     ImsMediaNetworkUtil::getLocalIpPortFromSocket(mLocalFd, localIp, MAX_IP_LEN, localPort);
     RtpAddress localAddress(localIp, localPort);
     pNodeRtpEncoder->SetConfig(mConfig);
-    ((RtpEncoderNode*)pNodeRtpEncoder)->SetLocalAddress(localAddress);
+    (static_cast<RtpEncoderNode*>(pNodeRtpEncoder))->SetLocalAddress(localAddress);
     AddNode(pNodeRtpEncoder);
     pNodeRtpPayloadEncoder->ConnectRearNode(pNodeRtpEncoder);
 
     BaseNode* pNodeSocketWriter = new SocketWriterNode(mCallback);
     pNodeSocketWriter->SetMediaType(IMS_MEDIA_AUDIO);
-    ((SocketWriterNode*)pNodeSocketWriter)->SetLocalFd(mLocalFd);
-    ((SocketWriterNode*)pNodeSocketWriter)->SetLocalAddress(localAddress);
-    ((SocketWriterNode*)pNodeSocketWriter)->SetProtocolType(kProtocolRtp);
+    (static_cast<SocketWriterNode*>(pNodeSocketWriter))->SetLocalFd(mLocalFd);
+    (static_cast<SocketWriterNode*>(pNodeSocketWriter))->SetLocalAddress(localAddress);
+    (static_cast<SocketWriterNode*>(pNodeSocketWriter))->SetProtocolType(kProtocolRtp);
     pNodeSocketWriter->SetConfig(config);
     AddNode(pNodeSocketWriter);
     pNodeRtpEncoder->ConnectRearNode(pNodeSocketWriter);

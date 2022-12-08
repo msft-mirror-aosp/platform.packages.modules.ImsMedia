@@ -113,7 +113,7 @@ static void JNIImsMediaService_sendMessage(
     android::Parcel parcel;
     jbyte* pBuff = env->GetByteArrayElements(baData, NULL);
     int nBuffSize = env->GetArrayLength(baData);
-    parcel.setData((const uint8_t*)pBuff, nBuffSize);
+    parcel.setData(reinterpret_cast<const uint8_t*>(pBuff), nBuffSize);
     parcel.setDataPosition(0);
 
     if (manager)
@@ -151,7 +151,7 @@ static jstring JNIImsMediaUtil_generateSPROP(JNIEnv* env, jobject, jbyteArray ba
     android::Parcel parcel;
     jbyte* pBuff = env->GetByteArrayElements(baData, NULL);
     int nBuffSize = env->GetArrayLength(baData);
-    parcel.setData((const uint8_t*)pBuff, nBuffSize);
+    parcel.setData(reinterpret_cast<const uint8_t*>(pBuff), nBuffSize);
     parcel.setDataPosition(0);
 
     VideoConfig videoConfig;

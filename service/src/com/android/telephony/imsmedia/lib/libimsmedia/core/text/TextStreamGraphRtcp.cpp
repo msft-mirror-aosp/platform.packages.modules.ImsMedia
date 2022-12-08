@@ -47,30 +47,32 @@ ImsMediaResult TextStreamGraphRtcp::create(RtpConfig* config)
     uint32_t localPort = 0;
     ImsMediaNetworkUtil::getLocalIpPortFromSocket(mLocalFd, localIp, MAX_IP_LEN, localPort);
     RtpAddress localAddress(localIp, localPort - 1);
-    ((RtcpEncoderNode*)pNodeRtcpEncoder)->SetLocalAddress(localAddress);
+    (static_cast<RtcpEncoderNode*>(pNodeRtcpEncoder))->SetLocalAddress(localAddress);
     pNodeRtcpEncoder->SetConfig(config);
     AddNode(pNodeRtcpEncoder);
 
     BaseNode* pNodeSocketWriter = new SocketWriterNode(mCallback);
     pNodeSocketWriter->SetMediaType(IMS_MEDIA_TEXT);
-    ((SocketWriterNode*)pNodeSocketWriter)->SetLocalFd(mLocalFd);
-    ((SocketWriterNode*)pNodeSocketWriter)->SetLocalAddress(RtpAddress(localIp, localPort));
-    ((SocketWriterNode*)pNodeSocketWriter)->SetProtocolType(kProtocolRtcp);
+    (static_cast<SocketWriterNode*>(pNodeSocketWriter))->SetLocalFd(mLocalFd);
+    (static_cast<SocketWriterNode*>(pNodeSocketWriter))
+            ->SetLocalAddress(RtpAddress(localIp, localPort));
+    (static_cast<SocketWriterNode*>(pNodeSocketWriter))->SetProtocolType(kProtocolRtcp);
     pNodeSocketWriter->SetConfig(config);
     AddNode(pNodeSocketWriter);
     pNodeRtcpEncoder->ConnectRearNode(pNodeSocketWriter);
 
     BaseNode* pNodeSocketReader = new SocketReaderNode(mCallback);
     pNodeSocketReader->SetMediaType(IMS_MEDIA_TEXT);
-    ((SocketReaderNode*)pNodeSocketReader)->SetLocalFd(mLocalFd);
-    ((SocketReaderNode*)pNodeSocketReader)->SetLocalAddress(RtpAddress(localIp, localPort));
-    ((SocketReaderNode*)pNodeSocketReader)->SetProtocolType(kProtocolRtcp);
+    (static_cast<SocketReaderNode*>(pNodeSocketReader))->SetLocalFd(mLocalFd);
+    (static_cast<SocketReaderNode*>(pNodeSocketReader))
+            ->SetLocalAddress(RtpAddress(localIp, localPort));
+    (static_cast<SocketReaderNode*>(pNodeSocketReader))->SetProtocolType(kProtocolRtcp);
     pNodeSocketReader->SetConfig(config);
     AddNode(pNodeSocketReader);
 
     BaseNode* pNodeRtcpDecoder = new RtcpDecoderNode(mCallback);
     pNodeRtcpDecoder->SetMediaType(IMS_MEDIA_TEXT);
-    ((RtcpDecoderNode*)pNodeRtcpDecoder)->SetLocalAddress(localAddress);
+    (static_cast<RtcpDecoderNode*>(pNodeRtcpDecoder))->SetLocalAddress(localAddress);
     pNodeRtcpDecoder->SetConfig(config);
     AddNode(pNodeRtcpDecoder);
     pNodeSocketReader->ConnectRearNode(pNodeRtcpDecoder);
