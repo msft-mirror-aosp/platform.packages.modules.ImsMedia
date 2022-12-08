@@ -204,18 +204,20 @@ enum kEvsCodecMode
     kEvsCodecModeMax = 0x7FFFFFFF
 };
 
+/* CMR Code in TS 26.445 */
 enum kEvsCmrCodeType
 {
-    kEvsCmrCodeTypeNb = 0,      // 000
-    kEvsCmrCodeTypeAmrIO = 1,   // 001
-    kEvsCmrCodeTypeWb = 2,      // 010
-    kEvsCmrCodeTypeSwb = 3,     // 011
-    kEvsCmrCodeTypeFb = 4,      // 100
-    kEvsCmrCodeTypeWbCha = 5,   // 101
-    kEvsCmrCodeTypeSwbCha = 6,  // 110
-    kEvsCmrCodeTypeNoReq = 7,   // 111
+    kEvsCmrCodeTypeNb = 0,      // 000: Narrow band
+    kEvsCmrCodeTypeAmrIO = 1,   // 001: AMR IO mode
+    kEvsCmrCodeTypeWb = 2,      // 010: Wide band
+    kEvsCmrCodeTypeSwb = 3,     // 011: Super wide band
+    kEvsCmrCodeTypeFb = 4,      // 100: Full band
+    kEvsCmrCodeTypeWbCha = 5,   // 101: Wide band(13.2 Channel aware mode)
+    kEvsCmrCodeTypeSwbCha = 6,  // 110: Super wide band (13.2 Channel aware mode)
+    kEvsCmrCodeTypeNoReq = 7,   // 111: Reserved
 };
 
+/* CMR Definition in TS 26.445 */
 enum kEvsCmrCodeDefine
 {
     kEvsCmrCodeDefine59 = 0,      // 0000
@@ -232,7 +234,7 @@ enum kEvsCmrCodeDefine
     kEvsCmrCodeDefine1280 = 11,   // 1011
     kEvsCmrCodeDefineNoReq = 15,  // 1111
 
-    // Ch-A
+    // Channel aware mode
     kEvsCmrCodeDefineChaOffset2 = 0,   // 0000
     kEvsCmrCodeDefineChaOffset3 = 1,   // 0001
     kEvsCmrCodeDefineChaOffset5 = 2,   // 0010

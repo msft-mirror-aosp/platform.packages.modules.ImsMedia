@@ -49,8 +49,8 @@ private:
             uint32_t nSeqNum, uint32_t arrivalTime);
     void DecodePayloadEvs(uint8_t* pData, uint32_t nDataSize, uint32_t nTimeStamp, bool bMark,
             uint32_t nSeqNum, uint32_t arrivalTime);
-    bool ProcessCMRForEVS(
-            kRtpPyaloadHeaderMode eEVSPayloadHeaderMode, uint32_t cmr_t, uint32_t cmr_d);
+    bool ProcessCMRForEVS(kRtpPyaloadHeaderMode eEVSPayloadHeaderMode, kEvsCmrCodeType cmr_t,
+            kEvsCmrCodeDefine cmr_d);
 
 private:
     int32_t mCodecType;
@@ -60,10 +60,9 @@ private:
     ImsMediaBitReader mBitReader;
     ImsMediaBitWriter mBitWriter;
     uint32_t mPrevCMR;
-    kEvsBandwidth mEvsBandwidth;
+    int32_t mEvsBandwidth;
     kEvsCodecMode mEvsCodecMode;
     kRtpPyaloadHeaderMode mEvsPayloadHeaderMode;
-    int32_t mEvsModetoBitRate;
     kEvsBitrate mEvsMode;
     int32_t mCoreEvsMode;
     int32_t mEvsOffset;

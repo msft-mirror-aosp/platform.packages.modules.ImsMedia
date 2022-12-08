@@ -159,9 +159,6 @@ public:
     static uint32_t GetBitrateEVS(int mode);
     static kRtpPyaloadHeaderMode ConvertEVSPayloadMode(
             uint32_t nDataSize, kEvsCodecMode* pEVSCodecMode, uint32_t* pEVSCompactId);
-    static kEvsBandwidth FindMaxEVSBandwidth(const uint32_t nEVSBandwidthSet);
-    static kEvsBitrate FindMaxEVSBitrate(
-            const uint32_t nEVSBitrateSet, const kEvsCodecMode kEvsCodecMode);
     static kEvsCodecMode CheckEVSCodecMode(const uint32_t nAudioFrameLength);
     static int32_t ConvertEVSModeToBitRate(const int32_t mode);
     static kEvsBandwidth FindMaxEvsBandwidthFromRange(const int32_t EvsBandwidthRange);
