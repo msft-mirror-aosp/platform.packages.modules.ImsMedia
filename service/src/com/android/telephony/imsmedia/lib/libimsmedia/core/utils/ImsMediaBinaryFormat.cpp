@@ -133,9 +133,9 @@ static bool Base16ToBinary(uint8_t* pbDst, uint32_t* pnDstSize, uint32_t nDstBuf
     return true;
 }
 
-static bool BinaryToBase64(char* pszDst, uint32_t nDstBuffSize, uint8_t* pbSrc, uint32_t nSrcSize)
+static bool BinaryToBase64(
+        char* pszDst, uint32_t nDstBuffSize, const uint8_t* pbSrc, uint32_t nSrcSize)
 {
-    uint8_t c6bit;
     char* pEncBuffer = pszDst;
 
     if ((nDstBuffSize - 1) < ((nSrcSize + 2) / 3 * 4))
@@ -143,7 +143,7 @@ static bool BinaryToBase64(char* pszDst, uint32_t nDstBuffSize, uint8_t* pbSrc, 
 
     for (int32_t nPos = 0; nPos < nSrcSize; ++nPos)
     {
-        c6bit = (pbSrc[nPos] >> 2) & 0x3F;
+        uint8_t c6bit = (pbSrc[nPos] >> 2) & 0x3F;
         (*pEncBuffer) = BASE64_ENCODING_TABLE[(uint8_t)c6bit];
         pEncBuffer++;
 
@@ -192,8 +192,6 @@ static bool BinaryToBase64(char* pszDst, uint32_t nDstBuffSize, uint8_t* pbSrc, 
 
 static bool Base64ToBinary(uint8_t* pbDst, uint32_t* pnDstSize, uint32_t nDstBuffSize, char* pszSrc)
 {
-    char c8bit;
-    char c8bit1;
     uint8_t* pDecBuffer = pbDst;
     uint32_t nSrcLen;
 
@@ -209,7 +207,7 @@ static bool Base64ToBinary(uint8_t* pbDst, uint32_t* pnDstSize, uint32_t nDstBuf
         if (pszSrc[nPos] == CR)
             nPos += 2;
 
-        c8bit = (char)BASE64_DECODING_TABLE[(uint8_t)pszSrc[nPos]];
+        uint8_t c8bit = BASE64_DECODING_TABLE[(uint8_t)pszSrc[nPos]];
         ++nPos;
 
         if (pszSrc[nPos] == LF)
@@ -217,7 +215,7 @@ static bool Base64ToBinary(uint8_t* pbDst, uint32_t* pnDstSize, uint32_t nDstBuf
         if (pszSrc[nPos] == CR)
             nPos += 2;
 
-        c8bit1 = (char)BASE64_DECODING_TABLE[(uint8_t)pszSrc[nPos]];
+        uint8_t c8bit1 = BASE64_DECODING_TABLE[(uint8_t)pszSrc[nPos]];
         c8bit = (c8bit << 2) | ((c8bit1 >> 4) & 0x03);
         (*pDecBuffer) = c8bit;
         pDecBuffer++;
@@ -234,7 +232,7 @@ static bool Base64ToBinary(uint8_t* pbDst, uint32_t* pnDstSize, uint32_t nDstBuf
             if (c8bit == BASE64_PAD)
                 break;
 
-            c8bit = (char)BASE64_DECODING_TABLE[(uint8_t)pszSrc[nPos]];
+            c8bit = BASE64_DECODING_TABLE[(uint8_t)pszSrc[nPos]];
             c8bit1 = ((c8bit1 << 4) & 0xF0) | ((c8bit >> 2) & 0x0F);
             (*pDecBuffer) = c8bit1;
             pDecBuffer++;
@@ -252,7 +250,7 @@ static bool Base64ToBinary(uint8_t* pbDst, uint32_t* pnDstSize, uint32_t nDstBuf
             if (c8bit1 == BASE64_PAD)
                 break;
 
-            c8bit1 = (char)BASE64_DECODING_TABLE[(uint8_t)pszSrc[nPos]];
+            c8bit1 = BASE64_DECODING_TABLE[(uint8_t)pszSrc[nPos]];
             c8bit = ((c8bit << 6) & 0xC0) | c8bit1;
             (*pDecBuffer) = c8bit;
             pDecBuffer++;
