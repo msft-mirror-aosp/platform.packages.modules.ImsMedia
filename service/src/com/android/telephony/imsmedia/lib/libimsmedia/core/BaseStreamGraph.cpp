@@ -133,8 +133,6 @@ void BaseStreamGraph::RemoveNode(BaseNode* pNode)
         mScheduler->DeRegisterNode(pNode);
     }
 
-    pNode->DisconnectFrontNode(pNode->GetFrontNode());
-    pNode->DisconnectRearNode(pNode->GetRearNode());
     delete pNode;
 }
 

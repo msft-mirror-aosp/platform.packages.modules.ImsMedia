@@ -366,6 +366,7 @@ bool ImsMediaCamera::CreateSession(ANativeWindow* preview, ANativeWindow* record
     if (status != ACAMERA_OK)
     {
         IMLOGE1("[CreateSession] create capture session, error[%s]", GetErrorStr(status));
+        mCaptureSession = NULL;
         return false;
     }
 

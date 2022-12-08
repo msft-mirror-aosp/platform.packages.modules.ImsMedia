@@ -675,6 +675,22 @@ void AudioSession::setMediaQualityThreshold(const MediaQualityThreshold& thresho
     IMLOGI0("[setMediaQualityThreshold]");
     mThreshold = threshold;
 
+    for (auto& graph : mListGraphRtpRx)
+    {
+        if (graph != NULL && graph->getState() == kStreamStateRunning)
+        {
+            graph->setMediaQualityThreshold(&mThreshold);
+        }
+    }
+
+    for (auto& graph : mListGraphRtcp)
+    {
+        if (graph != NULL && graph->getState() == kStreamStateRunning)
+        {
+            graph->setMediaQualityThreshold(&mThreshold);
+        }
+    }
+
     if (mMediaQualityAnalyzer != NULL)
     {
         mMediaQualityAnalyzer->setJitterThreshold(

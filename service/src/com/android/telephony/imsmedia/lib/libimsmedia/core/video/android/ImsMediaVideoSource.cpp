@@ -279,6 +279,8 @@ bool ImsMediaVideoSource::Start()
             mCodec = NULL;
             AMediaFormat_delete(mFormat);
             mFormat = NULL;
+            mCamera->DeleteSession();
+            mCamera->DeInitialize();
             return false;
         }
 

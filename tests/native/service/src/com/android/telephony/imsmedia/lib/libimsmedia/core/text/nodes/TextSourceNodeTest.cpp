@@ -56,6 +56,8 @@ const char* kBom = {"\xEF\xBB\xBF\0"};
 class FakeBaseNode : public BaseNode
 {
 public:
+    FakeBaseNode() { mEmptyFlag = false; }
+    virtual ~FakeBaseNode() {}
     virtual ImsMediaResult Start() { return RESULT_SUCCESS; }
     virtual void Stop() {}
     virtual bool IsRunTime() { return true; }
@@ -153,8 +155,6 @@ protected:
         {
             BaseNode* node = mNodes.front();
             node->Stop();
-            node->DisconnectFrontNode(node->GetFrontNode());
-            node->DisconnectRearNode(node->GetRearNode());
             delete node;
             mNodes.pop_front();
         }
