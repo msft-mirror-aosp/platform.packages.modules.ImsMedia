@@ -69,7 +69,6 @@ RtpBuffer* RtpPacket::getRtpPayload()
 
 eRtp_Bool RtpPacket::formPacket(IN RtpBuffer* pobjRtpPktBuf)
 {
-    const RtpDt_UChar* pRtpUtlBuf = RTP_NULL;
     RtpDt_UInt32 uiRtpUtlBufLen = RTP_ZERO;
     RtpDt_UChar* pcRtpBuf = pobjRtpPktBuf->getBuffer();
 
@@ -87,7 +86,7 @@ eRtp_Bool RtpPacket::formPacket(IN RtpBuffer* pobjRtpPktBuf)
     // extension header
     if (m_pobjExt != RTP_NULL)
     {
-        pRtpUtlBuf = m_pobjExt->getBuffer();
+        const RtpDt_UChar* pRtpUtlBuf = m_pobjExt->getBuffer();
         uiRtpUtlBufLen = m_pobjExt->getLength();
         memcpy(pcRtpBuf, pRtpUtlBuf, uiRtpUtlBufLen);
         pcRtpBuf += uiRtpUtlBufLen;
@@ -97,13 +96,13 @@ eRtp_Bool RtpPacket::formPacket(IN RtpBuffer* pobjRtpPktBuf)
     // rtp packet
     if (m_pobjRtpPayload != RTP_NULL)
     {
-        pRtpUtlBuf = m_pobjRtpPayload->getBuffer();
+        const RtpDt_UChar* pRtpUtlBuf = m_pobjRtpPayload->getBuffer();
         uiRtpUtlBufLen = m_pobjRtpPayload->getLength();
         memcpy(pcRtpBuf, pRtpUtlBuf, uiRtpUtlBufLen);
-        pcRtpBuf += uiRtpUtlBufLen;
         uiRtpBufPos += uiRtpUtlBufLen;
 #ifdef ENABLE_PADDING
         // calculate pad Len
+        pcRtpBuf += uiRtpUtlBufLen;
         RtpDt_UInt32 uiPadLen = uiRtpUtlBufLen % RTP_WORD_SIZE;
         if (uiPadLen != RTP_ZERO)
         {
@@ -117,7 +116,6 @@ eRtp_Bool RtpPacket::formPacket(IN RtpBuffer* pobjRtpPktBuf)
             memset(pcRtpBuf, RTP_ZERO, m_ucPadLen);
             // pad length
             *((RtpDt_UChar*)(pcRtpBuf + ucTmpPadLen)) = m_ucPadLen;
-            pcRtpBuf += m_ucPadLen;
             uiRtpBufPos += m_ucPadLen;
         }
 #endif

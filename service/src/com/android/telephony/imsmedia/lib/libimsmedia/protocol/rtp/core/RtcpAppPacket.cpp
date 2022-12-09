@@ -105,7 +105,6 @@ eRTP_STATUS_CODE RtcpAppPacket::formAppPacket(OUT RtpBuffer* pobjRtcpPktBuf)
     if (m_pAppData != RTP_NULL)
     {
         memcpy(pucBuffer, m_pAppData->getBuffer(), m_pAppData->getLength());
-        pucBuffer = pucBuffer + m_pAppData->getLength();
         uiCurPos = uiCurPos + m_pAppData->getLength();
     }
     // start padding
@@ -119,6 +118,7 @@ eRTP_STATUS_CODE RtcpAppPacket::formAppPacket(OUT RtpBuffer* pobjRtcpPktBuf)
             uiPadLen = RTP_WORD_SIZE - uiPadLen;
             uiAppPktLen = uiAppPktLen + uiPadLen;
             uiCurPos = uiCurPos + uiPadLen;
+            pucBuffer = pucBuffer + m_pAppData->getLength();
             memset(pucBuffer, RTP_ZERO, uiPadLen);
 
             pucBuffer = pucBuffer + uiPadLen;
