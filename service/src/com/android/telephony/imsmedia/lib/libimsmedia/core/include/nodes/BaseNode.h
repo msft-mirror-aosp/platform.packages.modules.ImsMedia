@@ -95,34 +95,6 @@ public:
     void ConnectRearNode(BaseNode* pRearNode);
 
     /**
-     * @brief Disconnects the front node from this node.
-     *
-     * @param pFrontNode The instance of node to disconnect
-     */
-    void DisconnectFrontNode(BaseNode* pFrontNode);
-
-    /**
-     * @brief Disconnects the rear node from this node.
-     *
-     * @param pRearNode The instance of node to disconnect.
-     */
-    void DisconnectRearNode(BaseNode* pRearNode);
-
-    /**
-     * @brief Gets the front node instacne
-     *
-     * @return BaseNode* The front node instance. It is null when there is no front node connected.
-     */
-    BaseNode* GetFrontNode();
-
-    /**
-     * @brief Gets the rear node instacne
-     *
-     * @return BaseNode* The rear node instance. It is null when there is no rear node connected.
-     */
-    BaseNode* GetRearNode();
-
-    /**
      * @brief Empty the data queue
      *
      */
@@ -294,12 +266,26 @@ public:
             uint32_t arrivalTime = 0);
 
 protected:
+    /**
+     * @brief Disconnects the front node from this node.
+     *
+     * @param pFrontNode The instance of node to disconnect
+     */
+    void DisconnectFrontNode(BaseNode* pFrontNode);
+
+    /**
+     * @brief Disconnects the rear node from this node.
+     *
+     * @param pRearNode The instance of node to disconnect.
+     */
+    void DisconnectRearNode(BaseNode* pRearNode);
+
     std::shared_ptr<StreamSchedulerCallback> mScheduler;
     BaseSessionCallback* mCallback;
     kBaseNodeState mNodeState;
     ImsMediaDataQueue mDataQueue;
-    BaseNode* mFrontNode;
-    BaseNode* mRearNode;
+    std::list<BaseNode*> mListFrontNodes;
+    std::list<BaseNode*> mListRearNodes;
     ImsMediaType mMediaType;
 };
 
