@@ -62,7 +62,7 @@ private:
     /**
      * It contains CSRC list.
      */
-    std::list<RtpDt_UInt32*> m_uiCsrcList;
+    std::list<RtpDt_UInt32> m_uiCsrcList;
 
     /**
      * m_ucMarker contains marker bit.
@@ -93,7 +93,7 @@ private:
     /**
      * add element to m_uiCsrcList
      */
-    eRtp_Bool addElementToCsrcList(IN RtpDt_UInt32 uiCsrc);
+    RtpDt_Void addElementToCsrcList(IN RtpDt_UInt32 uiCsrc);
 
 public:
     // Constructor
@@ -145,7 +145,7 @@ public:
     /**
      * get method for m_uiCsrcList
      */
-    std::list<RtpDt_UInt32*>& getCsrcList();
+    std::list<RtpDt_UInt32>& getCsrcList();
 
     /**
      * set method for m_ucMarker
