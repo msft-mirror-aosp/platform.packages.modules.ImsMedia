@@ -150,7 +150,6 @@ eRtp_Bool RtcpHeader::formRtcpHeader(OUT RtpBuffer* pobjRtcpPktBuf)
 
     // ssrc
     *(RtpDt_UInt32*)pcRtcpHdrBuf = RtpOsUtil::Ntohl(m_uiSsrc);
-    pcRtcpHdrBuf = pcRtcpHdrBuf + RTP_WORD_SIZE;
 
     uiBufPos = uiBufPos + RTP_WORD_SIZE;
     pobjRtcpPktBuf->setLength(uiBufPos);
@@ -187,7 +186,6 @@ eRtp_Bool RtcpHeader::formPartialRtcpHeader(OUT RtpBuffer* pobjRtcpPktBuf)
     uiByte4Data = uiByte4Data | m_usLength;
 
     *(RtpDt_UInt32*)pcRtcpHdrBuf = RtpOsUtil::Ntohl(uiByte4Data);
-    pcRtcpHdrBuf = pcRtcpHdrBuf + RTP_WORD_SIZE;
 
     uiBufPos = uiBufPos + RTP_WORD_SIZE;
     pobjRtcpPktBuf->setLength(uiBufPos);

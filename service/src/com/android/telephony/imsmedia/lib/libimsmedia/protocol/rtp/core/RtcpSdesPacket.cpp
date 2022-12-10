@@ -96,7 +96,6 @@ eRTP_STATUS_CODE RtcpSdesPacket::formSdesPacket(OUT RtpBuffer* pobjRtcpPktBuf)
     pobjRtcpPktBuf->setLength(uiCurPos);
 
     // m_objSdesChunkList
-    RtpDt_UChar* pucBuffer = RTP_NULL;
     for (auto& pobjRtcpChunk : m_objSdesChunkList)
     {
         eRTP_STATUS_CODE eChunkStatus = RTP_FAILURE;
@@ -111,11 +110,10 @@ eRTP_STATUS_CODE RtcpSdesPacket::formSdesPacket(OUT RtpBuffer* pobjRtcpPktBuf)
         RtpDt_UInt32 uiSdesPktLen = RTP_ZERO;
 
         uiCurPos = pobjRtcpPktBuf->getLength();
-        pucBuffer = pobjRtcpPktBuf->getBuffer();
-        pucBuffer = pucBuffer + uiCurPos;
-
         uiSdesPktLen = uiCurPos - uiSdesPktPos;
 #ifdef ENABLE_PADDING
+        RtpDt_UChar* pucBuffer = pobjRtcpPktBuf->getBuffer();
+        pucBuffer = pucBuffer + uiCurPos;
         RtpDt_UInt32 uiPadLen = uiSdesPktLen % RTP_WORD_SIZE;
 
         if (uiPadLen > RTP_ZERO)

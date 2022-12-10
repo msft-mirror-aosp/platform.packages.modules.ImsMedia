@@ -141,7 +141,6 @@ eRTP_STATUS_CODE RtcpByePacket::formByePacket(OUT RtpBuffer* pobjRtcpPktBuf)
         uiCurPos = uiCurPos + RTP_ONE;
 
         memcpy(pucBuffer, m_pReason->getBuffer(), m_pReason->getLength());
-        pucBuffer = pucBuffer + m_pReason->getLength();
         uiCurPos = uiCurPos + m_pReason->getLength();
     }
 
@@ -157,6 +156,7 @@ eRTP_STATUS_CODE RtcpByePacket::formByePacket(OUT RtpBuffer* pobjRtcpPktBuf)
             uiPadLen = RTP_WORD_SIZE - uiPadLen;
             uiByePktLen = uiByePktLen + uiPadLen;
             uiCurPos = uiCurPos + uiPadLen;
+            pucBuffer = pucBuffer + m_pReason->getLength();
             memset(pucBuffer, RTP_ZERO, uiPadLen);
 
             pucBuffer = pucBuffer + uiPadLen;

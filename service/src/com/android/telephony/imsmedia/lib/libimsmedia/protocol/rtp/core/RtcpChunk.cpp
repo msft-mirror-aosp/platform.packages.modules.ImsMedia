@@ -56,12 +56,11 @@ eRTP_STATUS_CODE RtcpChunk::decodeRtcpChunk(IN RtpDt_UChar* pucChunkBuf,
 {
     // SDES items
     RtpDt_UInt32 uiSdesItemCnt = pobjRtcpCfgInfo->getSdesItemCount();
-    tRTCP_SDES_ITEM* pstSdesItem = RTP_NULL;
     eRtp_Bool bCName = eRTP_FALSE;
 
     while (uiSdesItemCnt > RTP_ZERO)
     {
-        pstSdesItem = new tRTCP_SDES_ITEM();
+        tRTCP_SDES_ITEM* pstSdesItem = new tRTCP_SDES_ITEM();
         if (pstSdesItem == RTP_NULL)
         {
             RTP_TRACE_ERROR("[Memory Error] new returned NULL.", RTP_ZERO, RTP_ZERO);

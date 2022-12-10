@@ -172,7 +172,6 @@ eRtp_Bool RtcpReportBlock::formReportBlock(OUT RtpBuffer* pobjRtcpPktBuf)
 
     // m_uiDelayLastSR
     *(RtpDt_UInt32*)pucBuffer = RtpOsUtil::Ntohl(m_uiDelayLastSR);
-    pucBuffer = pucBuffer + RTP_WORD_SIZE;
     uiCurPos = uiCurPos + RTP_WORD_SIZE;
 
     pobjRtcpPktBuf->setLength(uiCurPos);
