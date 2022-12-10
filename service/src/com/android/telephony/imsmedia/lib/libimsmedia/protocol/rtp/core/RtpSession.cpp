@@ -1039,11 +1039,17 @@ eRTP_STATUS_CODE RtpSession::constructSdesPkt(IN_OUT RtcpPacket* pobjRtcpPkt)
         delete pobjSdesPkt;
         return RTP_MEMORY_FAIL;
     }
-    RtcpHeader* pRtcpHdr = pobjSdesPkt->getRtcpHdrInfo();
-    std::list<RtcpChunk*>& pobjSdesList = pobjSdesPkt->getSdesChunkList();
 
+    RtcpHeader* pRtcpHdr = pobjSdesPkt->getRtcpHdrInfo();
     if (pRtcpHdr == RTP_NULL)
+    {
+        RTP_TRACE_ERROR("Failed to retrieve Rtcp Header Info", RTP_ZERO, RTP_ZERO);
+        delete pobjSdesPkt;
+        delete pobjChunk;
         return RTP_FAILURE;
+    }
+
+    std::list<RtcpChunk*>& pobjSdesList = pobjSdesPkt->getSdesChunkList();
 
     pobjRtcpPkt->setSdesPacketData(pobjSdesPkt);
 

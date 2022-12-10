@@ -30,7 +30,6 @@ cc_library_headers {
     export_include_dirs: [
         "include/audio",
         "include/audio/nodes",
-        "include/audio/android",
     ],
 }
 
@@ -126,12 +125,16 @@ cc_library_static {
         "**/*.cpp",
         ":libimsmedia_jni_srcs"
     ],
+    exclude_srcs: [
+        "audio/android/*.cpp",
+    ],
     local_include_dirs: [
         "include",
     ],
     header_libs: [
         "libimsmedia_jni_headers",
         "libimsmedia_protocol_interface_headers",
+        "libimsmedia_android_audio_headers",
     ],
     static_libs: [
         "libimsmedia_config",
