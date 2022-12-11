@@ -26,14 +26,13 @@ RtcpRrPacket::RtcpRrPacket() :
 
 RtcpRrPacket::~RtcpRrPacket()
 {
-    // m_objReportBlkList
-    for (auto& pobjReptBlk : m_objReportBlkList)
+    // delete all RtcpReportBlock objects
+    for (const auto& pobjReptBlk : m_objReportBlkList)
     {
         delete pobjReptBlk;
     }
     m_objReportBlkList.clear();
 
-    // m_pobjExt
     if (m_pobjExt != RTP_NULL)
     {
         delete m_pobjExt;
