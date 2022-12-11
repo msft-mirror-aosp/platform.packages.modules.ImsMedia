@@ -48,7 +48,7 @@ TEST(RtcpReportBlockTest, TestDecodeReportBlock)
     uint8_t bufReportBlock[] = {0x01, 0x02, 0x03, 0x04, 0x10, 0x00, 0x00, 0x20, 0x00, 0x00, 0x00,
             0x00, 0x00, 0x00, 0x00, 0x00, 0x86, 0xd4, 0xe6, 0xe9, 0x00, 0x00, 0x00, 0x01};
     RtcpReportBlock objRtcpReportBlock;
-    objRtcpReportBlock.decodeReportBlock((RtpDt_UChar*)bufReportBlock);
+    objRtcpReportBlock.decodeReportBlock(reinterpret_cast<RtpDt_UChar*>(bufReportBlock));
 
     EXPECT_EQ(objRtcpReportBlock.getSsrc(), 0x01020304);
     EXPECT_EQ((int)objRtcpReportBlock.getFracLost(), 0x10);

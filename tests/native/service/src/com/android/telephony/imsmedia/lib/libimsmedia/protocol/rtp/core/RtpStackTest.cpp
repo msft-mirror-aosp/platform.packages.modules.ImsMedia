@@ -39,12 +39,14 @@ TEST_F(RtpStackTest, TestConstructor)
 
     RtpStackProfile* pobjStackProfile3 = new RtpStackProfile();
     RtpStack rtpStack3(pobjStackProfile3);
-    EXPECT_TRUE((void*)rtpStack3.getStackProfile() == (void*)pobjStackProfile3);
+    EXPECT_TRUE(reinterpret_cast<void*>(rtpStack3.getStackProfile()) ==
+            reinterpret_cast<void*>(pobjStackProfile3));
 }
 
 TEST_F(RtpStackTest, TestGetSets)
 {
-    EXPECT_TRUE((void*)rtpStack.getStackProfile() == (void*)pobjStackProfile);
+    EXPECT_TRUE(reinterpret_cast<void*>(rtpStack.getStackProfile()) ==
+            reinterpret_cast<void*>(pobjStackProfile));
     EXPECT_EQ(rtpStack.getStackProfile()->getTermNumber(), pobjStackProfile->getTermNumber());
 }
 
@@ -55,7 +57,8 @@ TEST_F(RtpStackTest, TestCreateCheckDeleteRtpSession)
     // set ipaddress
     RtpDt_UChar szLocalIP[] = "2600:380:44da:2f25:0:16:649e:b401";
     RtpBuffer pobjTransAddr(
-            (RtpDt_UInt32)(strlen((const RtpDt_Char*)szLocalIP) + 1), (RtpDt_UChar*)szLocalIP);
+            (RtpDt_UInt32)(strlen(reinterpret_cast<const RtpDt_Char*>(szLocalIP)) + 1),
+            reinterpret_cast<RtpDt_UChar*>(szLocalIP));
     pobjRtpSession->setRtpTransAddr(&pobjTransAddr);
 
     EXPECT_EQ(rtpStack.isValidRtpSession(pobjRtpSession), eRTP_SUCCESS);

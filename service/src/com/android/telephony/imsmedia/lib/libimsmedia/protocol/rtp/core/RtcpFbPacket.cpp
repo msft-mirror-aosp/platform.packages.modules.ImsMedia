@@ -86,7 +86,7 @@ eRTP_STATUS_CODE RtcpFbPacket::decodeRtcpFbPacket(
         IN RtpDt_UChar* pucRtcpFbBuf, IN RtpDt_UInt16 usRtcpFbLen)
 {
     // get media/peer SSRC
-    RtpDt_UInt32 uiMediaSsrc = RtpOsUtil::Ntohl(*((RtpDt_UInt32*)pucRtcpFbBuf));
+    RtpDt_UInt32 uiMediaSsrc = RtpOsUtil::Ntohl(*(reinterpret_cast<RtpDt_UInt32*>(pucRtcpFbBuf)));
     setMediaSsrc(uiMediaSsrc);
     pucRtcpFbBuf += RTP_WORD_SIZE;
     usRtcpFbLen -= RTP_WORD_SIZE;
@@ -94,7 +94,7 @@ eRTP_STATUS_CODE RtcpFbPacket::decodeRtcpFbPacket(
     // get the FCI buffer
     if (usRtcpFbLen > 0)
     {
-        RtpBuffer* pFCI = new RtpBuffer(usRtcpFbLen, (RtpDt_UChar*)pucRtcpFbBuf);
+        RtpBuffer* pFCI = new RtpBuffer(usRtcpFbLen, reinterpret_cast<RtpDt_UChar*>(pucRtcpFbBuf));
         if (pFCI == RTP_NULL)
         {
             RTP_TRACE_ERROR("[Memory Error] new returned NULL.", RTP_ZERO, RTP_ZERO);
@@ -123,7 +123,7 @@ eRTP_STATUS_CODE RtcpFbPacket::formRtcpFbPacket(OUT RtpBuffer* pobjRtcpPktBuf)
 
     // set the media/peer SSRC
     RtpDt_UInt32 uiMediaSsrc = getMediaSsrc();
-    *(RtpDt_UInt32*)pucBuffer = RtpOsUtil::Ntohl(uiMediaSsrc);
+    *(reinterpret_cast<RtpDt_UInt32*>(pucBuffer)) = RtpOsUtil::Ntohl(uiMediaSsrc);
     pucBuffer = pucBuffer + RTP_WORD_SIZE;
     uiCurPos = uiCurPos + RTP_WORD_SIZE;
 
@@ -146,7 +146,7 @@ eRTP_STATUS_CODE RtcpFbPacket::formRtcpFbPacket(OUT RtpBuffer* pobjRtcpPktBuf)
 
         pucBuffer = pucBuffer + uiPadLen;
         pucBuffer = pucBuffer - RTP_ONE;
-        *(RtpDt_UChar*)pucBuffer = (RtpDt_UChar)uiPadLen;
+        *(reinterpret_cast<RtpDt_UChar*>(pucBuffer)) = (RtpDt_UChar)uiPadLen;
 
         // set pad bit in header
         m_objRtcpHdr.setPadding();

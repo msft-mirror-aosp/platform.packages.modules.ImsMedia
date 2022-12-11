@@ -43,7 +43,8 @@ TEST(RtpOsUtilTest, TestNtohl)
     uint8_t uiNetlong[] = {0x80, 0x01, 0xAA, 0xCC};
     uint8_t uiHostlong[] = {0xCC, 0xAA, 0x01, 0x80};
 
-    EXPECT_EQ(RtpOsUtil::Ntohl(*(RtpDt_UInt32*)uiNetlong), *(RtpDt_UInt32*)uiHostlong);
+    EXPECT_EQ(RtpOsUtil::Ntohl(*(reinterpret_cast<RtpDt_UInt32*>(uiNetlong))),
+            *(reinterpret_cast<RtpDt_UInt32*>(uiHostlong)));
 }
 
 TEST(RtpOsUtilTest, TestRRand)
