@@ -160,10 +160,10 @@ TEST(RtpHeaderTest, TestDecodeRtpHeaderWithCsrc)
     EXPECT_EQ(rtpHeader.getCsrcList().size(), RTP_TWO);
 
     // csrc list
-    std::list<RtpDt_UInt32*> uiCsrcList = rtpHeader.getCsrcList();
-    EXPECT_EQ(*(uiCsrcList.front()), 1525054722);
+    std::list<RtpDt_UInt32> uiCsrcList = rtpHeader.getCsrcList();
+    EXPECT_EQ(uiCsrcList.front(), 1525054722);
     uiCsrcList.pop_front();
-    EXPECT_EQ(*(uiCsrcList.front()), 3460575112);
+    EXPECT_EQ(uiCsrcList.front(), 3460575112);
     uiCsrcList.clear();
 }
 
