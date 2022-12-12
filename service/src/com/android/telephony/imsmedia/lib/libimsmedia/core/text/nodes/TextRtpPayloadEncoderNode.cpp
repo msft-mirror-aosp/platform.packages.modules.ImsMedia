@@ -120,7 +120,6 @@ void TextRtpPayloadEncoderNode::EncodeT140(
 {
     (void)mark;
 
-    uint32_t nTSInterval = 0;
     bool bNewMark = false;
 
     /** The RFC 4103 defines idle period as 300 ms or more of inactivity, and also requires
@@ -162,7 +161,7 @@ void TextRtpPayloadEncoderNode::EncodeT140(
             /** [RFC 4103] 10.1. Registration of MIME Media Type text/t140 Required parameters:
              * rate: The RTP timestamp clock rate, which is equal to the sampling rate.  The only
              * valid value is 1000*/
-            nTSInterval = timestamp - pEntry->nTimestamp;
+            uint32_t nTSInterval = timestamp - pEntry->nTimestamp;
 
             // Remove a very old redundant data
             IMLOGD_PACKET4(IM_PACKET_LOG_PH,
@@ -256,7 +255,7 @@ void TextRtpPayloadEncoderNode::EncodeT140(
         {
             if (mBufferQueue.GetAt(i, &pEntry) && pEntry != NULL)
             {
-                nTSInterval = timestamp - pEntry->nTimestamp;
+                uint32_t nTSInterval = timestamp - pEntry->nTimestamp;
                 mBWHeader.Write(1, 1);
                 mBWHeader.Write(mRedundantPayload, 7);
                 mBWHeader.Write(nTSInterval, 14);
