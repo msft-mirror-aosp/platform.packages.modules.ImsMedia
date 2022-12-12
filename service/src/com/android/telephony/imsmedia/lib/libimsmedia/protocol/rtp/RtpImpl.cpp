@@ -58,7 +58,7 @@ eRtp_Bool RtpImpl::rtpMemberLeaveInd(IN eRTP_LEAVE_REASON eLeaveReason, IN RtpDt
 eRtp_Bool RtpImpl::rtcpPacketSendInd(IN RtpBuffer* pobjRtcpBuf, IN RtpSession* pobjRtpSession)
 {
     RTP_TRACE_MESSAGE("rtcpPacketSendInd", 0, 0);
-    RtpServiceListener* pobjIRtpSession = (RtpServiceListener*)getAppdata();
+    RtpServiceListener* pobjIRtpSession = reinterpret_cast<RtpServiceListener*>(getAppdata());
     if (pobjIRtpSession == RTP_NULL || pobjRtcpBuf == RTP_NULL || pobjRtpSession == RTP_NULL)
     {
         RTP_TRACE_ERROR("RTCP send failed. No listeners are set", 0, 0);
@@ -126,8 +126,8 @@ eRtp_Bool RtpImpl::rtcpTimerHdlErrorInd(IN eRTP_STATUS_CODE eStatus)
 RtpDt_Void* RtpImpl::RtpStartTimer(IN RtpDt_UInt32 uiDuration, IN eRtp_Bool bRepeat,
         IN RTPCB_TIMERHANDLER pfnTimerCb, IN RtpDt_Void* pvData)
 {
-    RtpDt_Void* pvTimerId = (RtpDt_Void*)ImsMediaTimer::TimerStart(
-            (RtpDt_UInt32)uiDuration, (bool)bRepeat, (fn_TimerCb)pfnTimerCb, pvData);
+    RtpDt_Void* pvTimerId = reinterpret_cast<RtpDt_Void*>(ImsMediaTimer::TimerStart(
+            (RtpDt_UInt32)uiDuration, (bool)bRepeat, (fn_TimerCb)pfnTimerCb, pvData));
 
     RTP_TRACE_MESSAGE("RtpStartTimer pvTimerId[%x], Duration= [%d]", pvTimerId, uiDuration);
     return pvTimerId;

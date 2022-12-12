@@ -102,10 +102,10 @@ RtpDt_UInt32 RtcpReportBlock::getDelayLastSR()
 eRtp_Bool RtcpReportBlock::decodeReportBlock(IN RtpDt_UChar* pcRepBlkBuf)
 {
     // SSRC
-    m_uiSsrc = RtpOsUtil::Ntohl(*((RtpDt_UInt32*)pcRepBlkBuf));
+    m_uiSsrc = RtpOsUtil::Ntohl(*(reinterpret_cast<RtpDt_UInt32*>(pcRepBlkBuf)));
     pcRepBlkBuf = pcRepBlkBuf + RTP_WORD_SIZE;
 
-    RtpDt_UInt32 uiTemp4Data = RtpOsUtil::Ntohl(*((RtpDt_UInt32*)pcRepBlkBuf));
+    RtpDt_UInt32 uiTemp4Data = RtpOsUtil::Ntohl(*(reinterpret_cast<RtpDt_UInt32*>(pcRepBlkBuf)));
     pcRepBlkBuf = pcRepBlkBuf + RTP_WORD_SIZE;
 
     // cumulative number of packets lost (3 bytes)
@@ -115,19 +115,19 @@ eRtp_Bool RtcpReportBlock::decodeReportBlock(IN RtpDt_UChar* pcRepBlkBuf)
     m_ucFracLost = (RtpDt_UChar)(uiTemp4Data & 0x000000FF);
 
     // extended highest sequence number received
-    m_uiExtHighSeqRcv = RtpOsUtil::Ntohl(*((RtpDt_UInt32*)pcRepBlkBuf));
+    m_uiExtHighSeqRcv = RtpOsUtil::Ntohl(*(reinterpret_cast<RtpDt_UInt32*>(pcRepBlkBuf)));
     pcRepBlkBuf = pcRepBlkBuf + RTP_WORD_SIZE;
 
     // interarrival jitter
-    m_uiJitter = RtpOsUtil::Ntohl(*((RtpDt_UInt32*)pcRepBlkBuf));
+    m_uiJitter = RtpOsUtil::Ntohl(*(reinterpret_cast<RtpDt_UInt32*>(pcRepBlkBuf)));
     pcRepBlkBuf = pcRepBlkBuf + RTP_WORD_SIZE;
 
     // last SR
-    m_uiLastSR = RtpOsUtil::Ntohl(*((RtpDt_UInt32*)pcRepBlkBuf));
+    m_uiLastSR = RtpOsUtil::Ntohl(*(reinterpret_cast<RtpDt_UInt32*>(pcRepBlkBuf)));
     pcRepBlkBuf = pcRepBlkBuf + RTP_WORD_SIZE;
 
     // delay since last SR
-    m_uiDelayLastSR = RtpOsUtil::Ntohl(*((RtpDt_UInt32*)pcRepBlkBuf));
+    m_uiDelayLastSR = RtpOsUtil::Ntohl(*(reinterpret_cast<RtpDt_UInt32*>(pcRepBlkBuf)));
     pcRepBlkBuf = pcRepBlkBuf + RTP_WORD_SIZE;
 
     return eRTP_SUCCESS;
@@ -140,7 +140,7 @@ eRtp_Bool RtcpReportBlock::formReportBlock(OUT RtpBuffer* pobjRtcpPktBuf)
     pucBuffer = pucBuffer + uiCurPos;
 
     // m_uiSsrc
-    *(RtpDt_UInt32*)pucBuffer = RtpOsUtil::Ntohl(m_uiSsrc);
+    *(reinterpret_cast<RtpDt_UInt32*>(pucBuffer)) = RtpOsUtil::Ntohl(m_uiSsrc);
     pucBuffer = pucBuffer + RTP_WORD_SIZE;
     uiCurPos = uiCurPos + RTP_WORD_SIZE;
 
@@ -151,27 +151,27 @@ eRtp_Bool RtcpReportBlock::formReportBlock(OUT RtpBuffer* pobjRtcpPktBuf)
     //  consider only 24-bits of uiCumNumPktLost
     uiTempData = uiTempData | (m_uiCumNumPktLost & 0X00FFFFFF);
 
-    *(RtpDt_UInt32*)pucBuffer = RtpOsUtil::Ntohl(uiTempData);
+    *(reinterpret_cast<RtpDt_UInt32*>(pucBuffer)) = RtpOsUtil::Ntohl(uiTempData);
     pucBuffer = pucBuffer + RTP_WORD_SIZE;
     uiCurPos = uiCurPos + RTP_WORD_SIZE;
 
     // m_uiExtHighSeqRcv
-    *(RtpDt_UInt32*)pucBuffer = RtpOsUtil::Ntohl(m_uiExtHighSeqRcv);
+    *(reinterpret_cast<RtpDt_UInt32*>(pucBuffer)) = RtpOsUtil::Ntohl(m_uiExtHighSeqRcv);
     pucBuffer = pucBuffer + RTP_WORD_SIZE;
     uiCurPos = uiCurPos + RTP_WORD_SIZE;
 
     // m_uiJitter
-    *(RtpDt_UInt32*)pucBuffer = RtpOsUtil::Ntohl(m_uiJitter);
+    *(reinterpret_cast<RtpDt_UInt32*>(pucBuffer)) = RtpOsUtil::Ntohl(m_uiJitter);
     pucBuffer = pucBuffer + RTP_WORD_SIZE;
     uiCurPos = uiCurPos + RTP_WORD_SIZE;
 
     // m_uiLastSR
-    *(RtpDt_UInt32*)pucBuffer = RtpOsUtil::Ntohl(m_uiLastSR);
+    *(reinterpret_cast<RtpDt_UInt32*>(pucBuffer)) = RtpOsUtil::Ntohl(m_uiLastSR);
     pucBuffer = pucBuffer + RTP_WORD_SIZE;
     uiCurPos = uiCurPos + RTP_WORD_SIZE;
 
     // m_uiDelayLastSR
-    *(RtpDt_UInt32*)pucBuffer = RtpOsUtil::Ntohl(m_uiDelayLastSR);
+    *(reinterpret_cast<RtpDt_UInt32*>(pucBuffer)) = RtpOsUtil::Ntohl(m_uiDelayLastSR);
     uiCurPos = uiCurPos + RTP_WORD_SIZE;
 
     pobjRtcpPktBuf->setLength(uiCurPos);

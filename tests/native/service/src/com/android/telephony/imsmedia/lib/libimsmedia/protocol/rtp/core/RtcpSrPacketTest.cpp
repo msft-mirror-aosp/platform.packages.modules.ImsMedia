@@ -61,7 +61,8 @@ TEST_F(RtcpSrPacketTest, TestDecodeSrPacketWithZeroReports)
     RtcpSrPacket objRtcpSrPacket;
     uint8_t bufSrSdesPacket[] = {0xe6, 0x5f, 0xa5, 0x31, 0x53, 0x91, 0x24, 0xc2, 0x00, 0x04, 0x01,
             0x85, 0x00, 0x00, 0x00, 0x41, 0x00, 0x00, 0xc8, 0x53, 0x81, 0xca, 0x00, 0x0a};
-    eRTP_STATUS_CODE res = objRtcpSrPacket.decodeSrPacket((RtpDt_UChar*)bufSrSdesPacket, 24, 0);
+    eRTP_STATUS_CODE res =
+            objRtcpSrPacket.decodeSrPacket(reinterpret_cast<RtpDt_UChar*>(bufSrSdesPacket), 24, 0);
     EXPECT_EQ(res, RTP_SUCCESS);
 
     tRTP_NTP_TIME* ntpTime = objRtcpSrPacket.getNtpTime();
@@ -105,7 +106,8 @@ TEST_F(RtcpSrPacketTest, TestDecodeSrPacketWithOneReport)
             0x00, 0x86, 0xd4, 0xe6, 0xe9, 0x00, 0x00, 0x00, 0x01};
 
     RtcpSrPacket objRtcpSrPacket;
-    eRTP_STATUS_CODE res = objRtcpSrPacket.decodeSrPacket((RtpDt_UChar*)bufSrSdesPacket, 76, 0);
+    eRTP_STATUS_CODE res =
+            objRtcpSrPacket.decodeSrPacket(reinterpret_cast<RtpDt_UChar*>(bufSrSdesPacket), 76, 0);
     EXPECT_EQ(res, RTP_SUCCESS);
 
     tRTP_NTP_TIME* ntpTime = objRtcpSrPacket.getNtpTime();
@@ -140,7 +142,8 @@ TEST_F(RtcpSrPacketTest, TestDecodeSrPacketWithShorterInputBuffer)
     RtcpSrPacket objRtcpSrPacket;
     uint8_t bufSrSdesPacket[] = {0xe6, 0x5f, 0xa5, 0x31, 0x53, 0x91, 0x24, 0xc2, 0x00, 0x04, 0x01,
             0x85, 0x00, 0x00, 0x00, 0x41};
-    eRTP_STATUS_CODE res = objRtcpSrPacket.decodeSrPacket((RtpDt_UChar*)bufSrSdesPacket, 16, 0);
+    eRTP_STATUS_CODE res =
+            objRtcpSrPacket.decodeSrPacket(reinterpret_cast<RtpDt_UChar*>(bufSrSdesPacket), 16, 0);
     EXPECT_EQ(res, RTP_FAILURE);
 }
 
