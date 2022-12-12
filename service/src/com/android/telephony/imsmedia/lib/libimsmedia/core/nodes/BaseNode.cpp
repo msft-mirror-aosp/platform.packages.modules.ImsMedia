@@ -74,7 +74,7 @@ void BaseNode::SetSessionCallback(BaseSessionCallback* callback)
     mCallback = callback;
 }
 
-void BaseNode::SetSchedulerCallback(std::shared_ptr<StreamSchedulerCallback> callback)
+void BaseNode::SetSchedulerCallback(std::shared_ptr<StreamSchedulerCallback>& callback)
 {
     mScheduler = callback;
 }

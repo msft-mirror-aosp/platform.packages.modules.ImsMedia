@@ -158,27 +158,28 @@ int32_t ImsMediaAudioUtil::ConvertCodecType(int32_t type)
     }
 }
 
-void ImsMediaAudioUtil::ConvertEvsBandwidthToStr(kEvsBandwidth bandwidth, char* nBandwidth)
+void ImsMediaAudioUtil::ConvertEvsBandwidthToStr(
+        kEvsBandwidth bandwidth, char* nBandwidth, uint32_t nLen)
 {
     switch (bandwidth)
     {
         case kEvsBandwidthNone:
-            strcpy(nBandwidth, "NONE");
+            strlcpy(nBandwidth, "NONE", nLen);
             break;
         case kEvsBandwidthNB:
-            strcpy(nBandwidth, "NB");
+            strlcpy(nBandwidth, "NB", nLen);
             break;
         case kEvsBandwidthWB:
-            strcpy(nBandwidth, "WB");
+            strlcpy(nBandwidth, "WB", nLen);
             break;
         case kEvsBandwidthSWB:
-            strcpy(nBandwidth, "SWB");
+            strlcpy(nBandwidth, "SWB", nLen);
             break;
         case kEvsBandwidthFB:
-            strcpy(nBandwidth, "FB");
+            strlcpy(nBandwidth, "FB", nLen);
             break;
         default:
-            strcpy(nBandwidth, "SWB");
+            strlcpy(nBandwidth, "SWB", nLen);
             break;
     }
 }

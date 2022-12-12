@@ -275,12 +275,12 @@ void RtpEncoderNode::OnRtpPacket(unsigned char* data, uint32_t nSize)
     SendDataToRearNode(MEDIASUBTYPE_RTPPACKET, data, nSize, 0, 0, 0);
 }
 
-void RtpEncoderNode::SetLocalAddress(const RtpAddress address)
+void RtpEncoderNode::SetLocalAddress(const RtpAddress& address)
 {
     mLocalAddress = address;
 }
 
-void RtpEncoderNode::SetPeerAddress(const RtpAddress address)
+void RtpEncoderNode::SetPeerAddress(const RtpAddress& address)
 {
     mPeerAddress = address;
 }
