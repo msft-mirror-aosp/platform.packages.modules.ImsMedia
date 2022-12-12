@@ -748,8 +748,8 @@ bool ImsMediaCamera::GetSensorOrientation(const int cameraId, int32_t* facing, i
 
     camera_status_t status;
     ACameraMetadata* metadataObj;
-    std::string targetCameraId;
     uint32_t idx = 0;
+
     for (std::map<std::string, CameraId>::iterator it = gCameraIds.begin(); it != gCameraIds.end();
             ++it)
     {
@@ -846,23 +846,20 @@ public:
         return (*this);
     }
 
-    bool IsSameRatio(DisplayDimension& other) { return (w_ * other.h_ == h_ * other.w_); }
-    bool operator>(DisplayDimension& other) { return (w_ >= other.w_ & h_ >= other.h_); }
-    bool operator==(DisplayDimension& other)
+    bool IsSameRatio(const DisplayDimension& other) { return (w_ * other.h_ == h_ * other.w_); }
+    bool operator>(const DisplayDimension& other) { return (w_ >= other.w_ && h_ >= other.h_); }
+    bool operator==(const DisplayDimension& other)
     {
         return (w_ == other.w_ && h_ == other.h_ && portrait_ == other.portrait_);
     }
-    DisplayDimension operator-(DisplayDimension& other)
+    DisplayDimension operator-(const DisplayDimension& other)
     {
         DisplayDimension delta(w_ - other.w_, h_ - other.h_);
         return delta;
     }
     void Flip(void) { portrait_ = !portrait_; }
-    bool IsPortrait(void) { return portrait_; }
     int32_t width(void) { return w_; }
     int32_t height(void) { return h_; }
-    int32_t org_width(void) { return (portrait_ ? h_ : w_); }
-    int32_t org_height(void) { return (portrait_ ? w_ : h_); }
 
 private:
     int32_t w_, h_;
@@ -874,6 +871,7 @@ bool ImsMediaCamera::MatchCaptureSizeRequest(ANativeWindow* window)
     DisplayDimension disp(ANativeWindow_getWidth(window), ANativeWindow_getHeight(window));
     IMLOGD3("[MatchCaptureSizeRequest] request width[%d], height[%d], camOrientation[%d]",
             disp.width(), disp.height(), mCameraOrientation);
+
     if (mCameraOrientation == 90 || mCameraOrientation == 270)
     {
         disp.Flip();
