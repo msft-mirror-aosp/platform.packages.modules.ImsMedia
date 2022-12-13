@@ -34,21 +34,21 @@ RtcpPacket::RtcpPacket() :
 RtcpPacket::~RtcpPacket()
 {
     // delete all RtcpSrPacket objects.
-    for (auto& pobjSrPkt : m_objSrPktList)
+    for (const auto& pobjSrPkt : m_objSrPktList)
     {
         delete pobjSrPkt;
     }
     m_objSrPktList.clear();
 
     // delete all RtcpRrPacket objects
-    for (auto& pobjRrPkt : m_objRrPktList)
+    for (const auto& pobjRrPkt : m_objRrPktList)
     {
         delete pobjRrPkt;
     }
     m_objRrPktList.clear();
 
     // delete all RtcpFbPacket objects
-    for (auto& pobjFbPkt : m_objFbPktList)
+    for (const auto& pobjFbPkt : m_objFbPktList)
     {
         delete pobjFbPkt;
     }

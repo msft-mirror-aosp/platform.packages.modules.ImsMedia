@@ -72,7 +72,7 @@ GLOBAL eRtp_Bool IMS_RtpSvc_Deinitialize();
  *
  * @param hRtpSession handle of the newly created session.
  */
-GLOBAL eRtp_Bool IMS_RtpSvc_CreateSession(IN RtpDt_Char* szLocalIP, IN RtpDt_UInt32 uiPort,
+GLOBAL eRtp_Bool IMS_RtpSvc_CreateSession(IN RtpDt_Char* szLocalIP, IN RtpDt_UInt32 port,
         IN RtpDt_Void* pAppData, OUT RtpDt_UInt32* puSsrc, OUT RTPSESSIONID* hRtpSession);
 
 /**
@@ -113,7 +113,7 @@ GLOBAL eRtp_Bool IMS_RtpSvc_DeleteSession(IN RTPSESSIONID hRtpSession);
  * This API is should be called by the application to RTP encode and send the media
  * buffer to peer device.
  *
- * @param pobjIRtpSession media session Listener which will be used for sending the packet to
+ * @param pobjRtpServiceListener media session Listener which will be used for sending the packet to
  * network nodes after RTP encoding.
  *
  * @param hRtpSession A session handled associated with the media stream.
@@ -126,7 +126,7 @@ GLOBAL eRtp_Bool IMS_RtpSvc_DeleteSession(IN RTPSESSIONID hRtpSession);
  * payload-type number, Flag to use Previous RTP time-stamp (Ex: used in case of DTMF),
  * time difference since last media packet/buffer.
  */
-GLOBAL eRtp_Bool IMS_RtpSvc_SendRtpPacket(IN RtpServiceListener* pobjIRtpSession,
+GLOBAL eRtp_Bool IMS_RtpSvc_SendRtpPacket(IN RtpServiceListener* pobjRtpServiceListener,
         IN RTPSESSIONID hRtpSession, IN RtpDt_Char* pBuffer, IN RtpDt_UInt16 wBufferLength,
         IN tRtpSvc_SendRtpPacketParm* pstRtpParam);
 
@@ -134,7 +134,7 @@ GLOBAL eRtp_Bool IMS_RtpSvc_SendRtpPacket(IN RtpServiceListener* pobjIRtpSession
  * This API processes the received RTP packet. Processed information is sent using
  * callback OnPeerInd.
  *
- * @param pobjIRtpSession media session Listener used to call callback function and
+ * @param pobjRtpServiceListener media session Listener used to call callback function and
  * pass extracted information back to the caller
  *
  * @param hRtpSession A session handled associated with the media stream.
@@ -149,7 +149,7 @@ GLOBAL eRtp_Bool IMS_RtpSvc_SendRtpPacket(IN RtpServiceListener* pobjIRtpSession
  *
  * @param uiPeerSsrc SSRC of the Sender.
  */
-GLOBAL eRtp_Bool IMS_RtpSvc_ProcRtpPacket(IN RtpServiceListener* pobjIRtpSession,
+GLOBAL eRtp_Bool IMS_RtpSvc_ProcRtpPacket(IN RtpServiceListener* pobjRtpServiceListener,
         IN RTPSESSIONID hRtpSession, IN RtpDt_UChar* pMsg, IN RtpDt_UInt16 uiMsgLength,
         IN RtpDt_Char* pPeerIp, IN RtpDt_UInt16 uiPeerPort, OUT RtpDt_UInt32& uiPeerSsrc);
 
@@ -201,8 +201,8 @@ GLOBAL eRtp_Bool IMS_RtpSvc_SendRtcpByePacket(IN RTPSESSIONID hRtpSession);
  * @param uiMediaSsrc      SSRC of media source
  */
 GLOBAL eRtp_Bool IMS_RtpSvc_SendRtcpRtpFbPacket(IN RTPSESSIONID hRtpSession,
-        IN RtpDt_UInt32 uiFbType, IN RtpDt_Char* buff, IN RtpDt_UInt32 len,
-        IN RtpDt_UInt32 mediaSsrc);
+        IN RtpDt_UInt32 uiFbType, IN RtpDt_Char* pcBuff, IN RtpDt_UInt32 uiLen,
+        IN RtpDt_UInt32 uiMediaSsrc);
 
 /**
  * Method for sending RTCP Fb message.
@@ -214,13 +214,13 @@ GLOBAL eRtp_Bool IMS_RtpSvc_SendRtcpRtpFbPacket(IN RTPSESSIONID hRtpSession,
  * @param uiMediaSsrc      SSRC of media source
  */
 GLOBAL eRtp_Bool IMS_RtpSvc_SendRtcpPayloadFbPacket(IN RTPSESSIONID hRtpSession,
-        IN RtpDt_UInt32 uiFbType, IN RtpDt_Char* buff, IN RtpDt_UInt32 len,
-        IN RtpDt_UInt32 mediaSsrc);
+        IN RtpDt_UInt32 uiFbType, IN RtpDt_Char* pcBuff, IN RtpDt_UInt32 uiLen,
+        IN RtpDt_UInt32 uiMediaSsrc);
 
 /**
  * Method for processing incoming RTCP packets.
  *
- * @param pobjIRtpSession   Media session Listener for sending processed info via callbacks
+ * @param pobjRtpServiceListener   Media session Listener for sending processed info via callbacks
  * @param hRtpSession       RTP session handle
  * @param pMsg              Received RTCP packet buffer
  * @param uiMsgLength       RTCP buffer length in bytes
@@ -228,7 +228,7 @@ GLOBAL eRtp_Bool IMS_RtpSvc_SendRtcpPayloadFbPacket(IN RTPSESSIONID hRtpSession,
  * @param uiRtcpPort        RTCP Port number
  * @param uiPeerSsrc        SSRC of the Source
  */
-GLOBAL eRtp_Bool IMS_RtpSvc_ProcRtcpPacket(IN RtpServiceListener* pobjIRtpSession,
+GLOBAL eRtp_Bool IMS_RtpSvc_ProcRtcpPacket(IN RtpServiceListener* pobjRtpServiceListener,
         IN RTPSESSIONID hRtpSession, IN RtpDt_UChar* pMsg, IN RtpDt_UInt16 uiMsgLength,
         IN RtpDt_Char* pcIpAddr, IN RtpDt_UInt32 uiRtcpPort, OUT RtpDt_UInt32* uiPeerSsrc);
 /**

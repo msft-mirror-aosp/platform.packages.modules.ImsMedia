@@ -24,7 +24,8 @@ RtcpSdesPacket::RtcpSdesPacket() :
 
 RtcpSdesPacket::~RtcpSdesPacket()
 {
-    for (auto& pobjSdesChunk : m_objSdesChunkList)
+    // delete all RtcpChunk objects
+    for (const auto& pobjSdesChunk : m_objSdesChunkList)
     {
         delete pobjSdesChunk;
     }

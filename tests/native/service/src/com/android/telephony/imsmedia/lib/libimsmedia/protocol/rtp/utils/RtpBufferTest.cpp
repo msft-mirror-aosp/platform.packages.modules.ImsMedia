@@ -56,11 +56,12 @@ TEST_F(RtpBufferTest, SetLengthTest)
 
 TEST_F(RtpBufferTest, SetBufferInfoTest)
 {
-    RtpDt_UChar* pBuf = new RtpDt_UChar[8];
-    memcpy(pBuf, (RtpDt_UChar[]){0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08}, sizeof pBuf);
-    testBuf->setBufferInfo(sizeof pBuf, pBuf);
-    EXPECT_EQ(8, testBuf->getLength());
-    EXPECT_EQ(0, memcmp(testBuf->getBuffer(), pBuf, 8));
+    RtpDt_UChar* pBuf = new RtpDt_UChar[7];
+    uint8_t expectedBuf[] = {0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07};
+    memcpy(pBuf, expectedBuf, sizeof(expectedBuf));
+    testBuf->setBufferInfo(sizeof(expectedBuf), pBuf);
+    EXPECT_EQ(7, testBuf->getLength());
+    EXPECT_EQ(0, memcmp(testBuf->getBuffer(), pBuf, 7));
 }
 
 }  // namespace android
