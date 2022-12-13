@@ -26,6 +26,7 @@ cc_library_headers {
 cc_defaults {
     name: "imsmedia_tests_defaults",
     defaults: [
+        "libimsmedia_defaults",
         "libimsmedia_protocol_defaults",
         "libimsmedia_shared_defaults",
         "libimsmedia_audio_defaults",

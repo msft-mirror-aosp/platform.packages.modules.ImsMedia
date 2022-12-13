@@ -355,20 +355,18 @@ bool ImsMediaAudioPlayer::decodeAmr(uint8_t* buffer, uint32_t size)
 // TODO: Integration with libEVS is required.
 bool ImsMediaAudioPlayer::decodeEvs(uint8_t* buffer, uint32_t size)
 {
-    int32_t nFrameType;
     uint16_t output[PCM_BUFFER_SIZE];
     int decodeSize = 0;
 
     // TODO: Integration with libEVS is required to decode buffer data.
     (void)buffer;
+    (void)size;
 
     if (!mIsEvsInitialized)
     {
         IMLOGD0("[decodeEvs] Decoder has been initialised");
         mIsEvsInitialized = true;
     }
-
-    nFrameType = (uint32_t)ImsMediaAudioUtil::ConvertLenToEVSAudioMode(size);
 
     if (!mFirstFrame)
     {

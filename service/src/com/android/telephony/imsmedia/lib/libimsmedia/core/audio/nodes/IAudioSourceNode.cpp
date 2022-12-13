@@ -176,8 +176,6 @@ void IAudioSourceNode::ProcessCmr(uint32_t cmr)
         return;
     }
 
-    uint32_t mode = 0;
-
     if (cmr == 15)  // change mode to original one
     {
         if (mCodecType == kAudioCodecAmr || mCodecType == kAudioCodecAmrWb)
