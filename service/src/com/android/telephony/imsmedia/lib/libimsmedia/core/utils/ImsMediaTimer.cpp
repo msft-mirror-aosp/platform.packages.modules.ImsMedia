@@ -26,6 +26,7 @@
 #include <utils/Atomic.h>
 #include <mutex>
 #include <list>
+#include <algorithm>
 
 struct TimerInstance
 {
@@ -54,21 +55,17 @@ static void DeleteTimerFromList(TimerInstance* pInstance)
     gTimerList.remove(pInstance);
 }
 
-static bool IsValidTimer(TimerInstance* pInstance)
+static bool IsValidTimer(const TimerInstance* pInstance)
 {
     std::lock_guard<std::mutex> guard(gMutexList);
-    bool found = false;
 
-    for (auto& node : gTimerList)
+    if (gTimerList.empty())
     {
-        if (node != NULL && node == pInstance)
-        {
-            found = true;
-            break;
-        }
+        return false;
     }
 
-    return found;
+    auto result = std::find(gTimerList.begin(), gTimerList.end(), pInstance);
+    return (result != gTimerList.end());
 }
 
 static int32_t ImsMediaTimer_GetMilliSecDiff(
@@ -84,7 +81,7 @@ static int32_t ImsMediaTimer_GetMilliSecDiff(
 
 static void* ImsMediaTimer_run(void* arg)
 {
-    TimerInstance* pInstance = (TimerInstance*)arg;
+    TimerInstance* pInstance = reinterpret_cast<TimerInstance*>(arg);
     uint32_t nSleepTime;
 
     if (pInstance == NULL)
@@ -176,9 +173,7 @@ hTimerHandler ImsMediaTimer::TimerStart(
         uint32_t nDuration, bool bRepeat, fn_TimerCb pTimerCb, void* pUserData)
 {
     struct timeval tp;
-    TimerInstance* pInstance;
-
-    pInstance = (TimerInstance*)malloc(sizeof(TimerInstance));
+    TimerInstance* pInstance = reinterpret_cast<TimerInstance*>(malloc(sizeof(TimerInstance)));
 
     if (pInstance == NULL)
     {
@@ -214,7 +209,7 @@ hTimerHandler ImsMediaTimer::TimerStart(
 
 bool ImsMediaTimer::TimerStop(hTimerHandler hTimer, void** ppUserData)
 {
-    TimerInstance* pInstance = (TimerInstance*)hTimer;
+    TimerInstance* pInstance = reinterpret_cast<TimerInstance*>(hTimer);
 
     if (pInstance == NULL)
     {
@@ -275,38 +270,20 @@ uint32_t ImsMediaTimer::GetRtpTsFromNtpTs(IMNtpTime* initNtpTimestamp, uint32_t 
 
 uint32_t ImsMediaTimer::GetTimeInMilliSeconds(void)
 {
-#if 1
     struct timeval tp;
     gettimeofday(&tp, NULL);
     return (tp.tv_sec * 1000) + (tp.tv_usec / 1000);
-#else
-    struct timeb stTimeBuffer;
-    ftime(&stTimeBuffer);
-    return stTimeBuffer.time * 1000 + stTimeBuffer.millitm;
-#endif
 }
 
 uint64_t ImsMediaTimer::GetTimeInMicroSeconds(void)
 {
-#if 1
     struct timeval tp;
     gettimeofday(&tp, NULL);
     return (tp.tv_sec * 1000000) + (tp.tv_usec);
-#else
-    struct timeb stTimeBuffer;
-    ftime(&stTimeBuffer);
-    return stTimeBuffer.time * 1000 + stTimeBuffer.millitm;
-#endif
 }
 
 uint32_t ImsMediaTimer::GenerateRandom(uint32_t nRange)
 {
-#if 0
-    if (0 == nRange)
-        return GetTimeInMilliSeconds();
-    else
-        return GetTimeInMilliSeconds() % nRange;
-#else
     uint32_t rand;
     struct timeval tp;
 
@@ -319,7 +296,6 @@ uint32_t ImsMediaTimer::GenerateRandom(uint32_t nRange)
     }
 
     return (rand * 7) % nRange;
-#endif
 }
 
 int32_t ImsMediaTimer::Atomic_Inc(int32_t* v)

@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+#include <algorithm>
 #include <RtpSession.h>
 #include <RtpTrace.h>
 #include <RtpError.h>
@@ -1372,17 +1373,16 @@ RtpReceiverInfo* RtpSession::checkSsrcCollisionOnRcv(IN RtpBuffer* pobjRtpAddr,
 }  // checkSsrcCollisionOnRcv
 
 eRtp_Bool RtpSession::findEntryInCsrcList(
-        IN std::list<RtpDt_UInt32*>& pobjCsrcList, IN RtpDt_UInt32 uiSsrc)
+        IN std::list<RtpDt_UInt32>& pobjCsrcList, IN RtpDt_UInt32 uiSsrc)
 {
-    for (auto& puiTempSsrc : pobjCsrcList)
+    if (pobjCsrcList.empty())
     {
-        if (*puiTempSsrc == uiSsrc)
-        {
-            return eRTP_TRUE;
-        }
+        return eRTP_FALSE;
     }
 
-    return eRTP_FALSE;
+    auto result = std::find(pobjCsrcList.begin(), pobjCsrcList.end(), uiSsrc);
+    return (result != pobjCsrcList.end()) ? eRTP_TRUE : eRTP_FALSE;
+
 }  // findEntryInCsrcList
 
 eRtp_Bool RtpSession::findEntryInRcvrList(IN RtpDt_UInt32 uiSsrc)
@@ -1403,15 +1403,13 @@ eRTP_STATUS_CODE RtpSession::processCsrcList(
 {
     eRtp_Bool bRcvrStatus = eRTP_FALSE;
     RtpDt_UInt16 usPos = RTP_ZERO;
-    std::list<RtpDt_UInt32*>& pobjCsrcList = pobjRtpHeader->getCsrcList();
+    std::list<RtpDt_UInt32>& pobjCsrcList = pobjRtpHeader->getCsrcList();
 
-    for (std::list<RtpDt_UInt32*>::iterator listIterator = pobjCsrcList.begin();
+    for (std::list<RtpDt_UInt32>::iterator listIterator = pobjCsrcList.begin();
             (usPos < ucCsrcCount && listIterator != pobjCsrcList.end()); usPos = usPos + RTP_ONE)
     {
-        RtpDt_UInt32* puiTempSsrc = RTP_NULL;
-
-        puiTempSsrc = (*listIterator);
-        bRcvrStatus = findEntryInRcvrList(*puiTempSsrc);
+        RtpDt_UInt32 csrc = (*listIterator);
+        bRcvrStatus = findEntryInRcvrList(csrc);
         if (bRcvrStatus == eRTP_FALSE)
         {
             RtpReceiverInfo* pobjRcvInfo = RTP_NULL;
@@ -1423,7 +1421,7 @@ eRTP_STATUS_CODE RtpSession::processCsrcList(
             }
             // fill pobjRcvInfo
             //  ssrc
-            pobjRcvInfo->setSsrc(*puiTempSsrc);
+            pobjRcvInfo->setSsrc(csrc);
             // m_bSender
             pobjRcvInfo->setSenderFlag(eRTP_FALSE);
 
@@ -1483,7 +1481,7 @@ eRTP_STATUS_CODE RtpSession::processRcvdRtpPkt(IN RtpBuffer* pobjRtpAddr, IN Rtp
 
     if (ucCsrcCount > RTP_ZERO)
     {
-        std::list<RtpDt_UInt32*>& pobjCsrcList = pobjRtpHeader->getCsrcList();
+        std::list<RtpDt_UInt32>& pobjCsrcList = pobjRtpHeader->getCsrcList();
         bCsrcStatus = findEntryInCsrcList(pobjCsrcList, m_uiSsrc);
     }
 

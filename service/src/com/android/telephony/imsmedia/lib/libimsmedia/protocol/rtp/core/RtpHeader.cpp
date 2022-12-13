@@ -23,7 +23,7 @@ RtpHeader::RtpHeader() :
         m_ucPadding(RTP_ZERO),
         m_ucExtension(RTP_ZERO),
         m_ucCsrcCount(RTP_ZERO),
-        m_uiCsrcList(std::list<RtpDt_UInt32*>()),
+        m_uiCsrcList(std::list<RtpDt_UInt32>()),
         m_ucMarker(RTP_ZERO),
         m_ucPayloadType(RTP_ZERO),
         m_usSequenceNumber(RTP_ZERO),
@@ -35,10 +35,6 @@ RtpHeader::RtpHeader() :
 
 RtpHeader::~RtpHeader()
 {
-    for (auto& puiCsrc : m_uiCsrcList)
-    {
-        delete puiCsrc;
-    }
     m_uiCsrcList.clear();
 }
 
@@ -82,25 +78,17 @@ RtpDt_UChar RtpHeader::getCsrcCount()
     return m_ucCsrcCount;
 }
 
-std::list<RtpDt_UInt32*>& RtpHeader::getCsrcList()
+std::list<RtpDt_UInt32>& RtpHeader::getCsrcList()
 {
     return m_uiCsrcList;
 }
 
-eRtp_Bool RtpHeader::addElementToCsrcList(IN RtpDt_UInt32 uiCsrc)
+RtpDt_Void RtpHeader::addElementToCsrcList(IN RtpDt_UInt32 uiCsrc)
 {
-    RtpDt_UInt32* puiCsrcElm = new RtpDt_UInt32();
-    if (puiCsrcElm == RTP_NULL)
-    {
-        RTP_TRACE_ERROR("[Memory Error] new returned NULL.", RTP_ZERO, RTP_ZERO);
-        return eRTP_FALSE;
-    }
-    *puiCsrcElm = uiCsrc;
-
-    // append puiCsrcElm into list.
-    m_uiCsrcList.push_back(puiCsrcElm);
-    RTP_TRACE_MESSAGE("CsrcList[%d] = %d", m_uiCsrcList.size(), *puiCsrcElm);
-    return eRTP_TRUE;
+    // append uiCsrc into list.
+    m_uiCsrcList.push_back(uiCsrc);
+    RTP_TRACE_MESSAGE("CsrcList[%d] = %d", m_uiCsrcList.size(), uiCsrc);
+    return;
 }
 
 RtpDt_Void RtpHeader::setMarker()
@@ -199,14 +187,9 @@ eRtp_Bool RtpHeader::formHeader(IN RtpBuffer* pobjRtpPktBuf)
     RtpDt_UInt32 uiBufLen = RTP_FIXED_HDR_LEN;
 
     // csrc list
-    for (auto& puiCsrc : m_uiCsrcList)
+    for (auto csrc : m_uiCsrcList)
     {
-        if (puiCsrc == NULL)
-        {
-            RTP_TRACE_ERROR("Csrc is not available ", RTP_ZERO, RTP_ZERO);
-            return eRTP_FALSE;
-        }
-        *(RtpDt_UInt32*)pucRtpHeaderBuffer = RtpOsUtil::Ntohl(*puiCsrc);
+        *(RtpDt_UInt32*)pucRtpHeaderBuffer = RtpOsUtil::Ntohl(csrc);
         pucRtpHeaderBuffer = pucRtpHeaderBuffer + RTP_WORD_SIZE;
     }
     RtpDt_UInt16 usSize = m_uiCsrcList.size();
@@ -282,10 +265,7 @@ eRtp_Bool RtpHeader::decodeHeader(IN RtpBuffer* pobjRtpPktBuf, OUT RtpDt_UInt32&
         // csrc list
         for (RtpDt_UInt32 usCsrcIdx = RTP_ZERO; usCsrcIdx < m_ucCsrcCount; usCsrcIdx++)
         {
-            if (!addElementToCsrcList(RtpOsUtil::Ntohl(*((RtpDt_UInt32*)pucRtpHeaderBuffer))))
-            {
-                return eRTP_FALSE;
-            }
+            addElementToCsrcList(RtpOsUtil::Ntohl(*((RtpDt_UInt32*)pucRtpHeaderBuffer)));
             pucRtpHeaderBuffer = pucRtpHeaderBuffer + RTP_FOUR;
             uiBufPos = uiBufPos + RTP_WORD_SIZE;
         }

@@ -226,8 +226,7 @@ class RtpSession
     /**
      * It iterates through the pobjCsrcList to find uiSsrc.
      */
-    eRtp_Bool findEntryInCsrcList(
-            IN std::list<RtpDt_UInt32*>& pobjCsrcList, IN RtpDt_UInt32 uiSsrc);
+    eRtp_Bool findEntryInCsrcList(IN std::list<RtpDt_UInt32>& pobjCsrcList, IN RtpDt_UInt32 uiSsrc);
 
     /**
      * Checks if the received packet has the same ssrc as ours.

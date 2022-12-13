@@ -333,7 +333,7 @@ ImsMediaResult ImsMediaVideoUtil::ParseHevcSpropParam(const char* szSpropparam, 
 {
     uint32_t nSize = strlen(szSpropparam);
 
-    if (nSize <= 0)
+    if (nSize == 0)
     {
         return RESULT_INVALID_PARAM;
     }
