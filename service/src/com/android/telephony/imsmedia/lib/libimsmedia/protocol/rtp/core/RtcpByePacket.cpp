@@ -78,7 +78,7 @@ eRTP_STATUS_CODE RtcpByePacket::decodeByePacket(IN RtpDt_UChar* pucByeBuf, IN Rt
             return RTP_MEMORY_FAIL;
         }
 
-        (*puiRcvdSsrc) = RtpOsUtil::Ntohl(*((RtpDt_UInt32*)pucByeBuf));
+        (*puiRcvdSsrc) = RtpOsUtil::Ntohl(*(reinterpret_cast<RtpDt_UInt32*>(pucByeBuf)));
         pucByeBuf = pucByeBuf + RTP_WORD_SIZE;
 
         m_uiSsrcList.push_back(puiRcvdSsrc);
@@ -89,7 +89,7 @@ eRTP_STATUS_CODE RtcpByePacket::decodeByePacket(IN RtpDt_UChar* pucByeBuf, IN Rt
     if (usByeLen >= RTP_ONE)  // check if optional length is present.
     {
         // m_pReason
-        RtpDt_UInt32 uiByte4Data = RtpOsUtil::Ntohl(*((RtpDt_UInt32*)pucByeBuf));
+        RtpDt_UInt32 uiByte4Data = RtpOsUtil::Ntohl(*(reinterpret_cast<RtpDt_UInt32*>(pucByeBuf)));
         pucByeBuf = pucByeBuf + RTP_ONE;
         uiByte4Data = uiByte4Data >> RTP_24;  // length of "Reason for leaving"
         if (uiByte4Data > RTP_ZERO)
@@ -127,7 +127,7 @@ eRTP_STATUS_CODE RtcpByePacket::formByePacket(OUT RtpBuffer* pobjRtcpPktBuf)
     for (auto& puiSsrc : m_uiSsrcList)
     {
         // ssrc
-        *(RtpDt_UInt32*)pucBuffer = RtpOsUtil::Ntohl(*puiSsrc);
+        *(reinterpret_cast<RtpDt_UInt32*>(pucBuffer)) = RtpOsUtil::Ntohl(*puiSsrc);
         pucBuffer = pucBuffer + RTP_WORD_SIZE;
         uiCurPos = uiCurPos + RTP_WORD_SIZE;
     }
@@ -136,7 +136,7 @@ eRTP_STATUS_CODE RtcpByePacket::formByePacket(OUT RtpBuffer* pobjRtcpPktBuf)
     if (m_pReason != RTP_NULL)
     {
         // length
-        *(RtpDt_UChar*)pucBuffer = (RtpDt_UChar)m_pReason->getLength();
+        *(reinterpret_cast<RtpDt_UChar*>(pucBuffer)) = (RtpDt_UChar)m_pReason->getLength();
         pucBuffer = pucBuffer + RTP_ONE;
         uiCurPos = uiCurPos + RTP_ONE;
 
@@ -161,7 +161,7 @@ eRTP_STATUS_CODE RtcpByePacket::formByePacket(OUT RtpBuffer* pobjRtcpPktBuf)
 
             pucBuffer = pucBuffer + uiPadLen;
             pucBuffer = pucBuffer - RTP_ONE;
-            *(RtpDt_UChar*)pucBuffer = (RtpDt_UChar)uiPadLen;
+            *(reinterpret_cast<RtpDt_UChar*>(pucBuffer)) = (RtpDt_UChar)uiPadLen;
 
             // set pad bit in header
             m_objRtcpHdr.setPadding();

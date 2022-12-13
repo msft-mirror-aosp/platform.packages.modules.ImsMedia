@@ -108,7 +108,7 @@ eRtp_Bool RtcpHeader::decodeRtcpHeader(IN RtpDt_UChar* pRtcpBuffer, RtpDt_Int32 
     if (length < RTP_WORD_SIZE)
         return eRTP_FALSE;
 
-    RtpDt_UInt32 uiTemp4Data = RtpOsUtil::Ntohl(*((RtpDt_UInt32*)pRtcpBuffer));
+    RtpDt_UInt32 uiTemp4Data = RtpOsUtil::Ntohl(*(reinterpret_cast<RtpDt_UInt32*>(pRtcpBuffer)));
 
     // Packet Length
     m_usLength = uiTemp4Data & 0x0000FFFF;
@@ -133,7 +133,7 @@ eRtp_Bool RtcpHeader::decodeRtcpHeader(IN RtpDt_UChar* pRtcpBuffer, RtpDt_Int32 
     if (m_usLength)
     {
         pRtcpBuffer = pRtcpBuffer + RTP_WORD_SIZE;
-        m_uiSsrc = RtpOsUtil::Ntohl(*((RtpDt_UInt32*)pRtcpBuffer));
+        m_uiSsrc = RtpOsUtil::Ntohl(*(reinterpret_cast<RtpDt_UInt32*>(pRtcpBuffer)));
     }
 
     return eRTP_SUCCESS;
@@ -149,7 +149,7 @@ eRtp_Bool RtcpHeader::formRtcpHeader(OUT RtpBuffer* pobjRtcpPktBuf)
     pcRtcpHdrBuf = pcRtcpHdrBuf + uiBufPos;
 
     // ssrc
-    *(RtpDt_UInt32*)pcRtcpHdrBuf = RtpOsUtil::Ntohl(m_uiSsrc);
+    *(reinterpret_cast<RtpDt_UInt32*>(pcRtcpHdrBuf)) = RtpOsUtil::Ntohl(m_uiSsrc);
 
     uiBufPos = uiBufPos + RTP_WORD_SIZE;
     pobjRtcpPktBuf->setLength(uiBufPos);
@@ -185,7 +185,7 @@ eRtp_Bool RtcpHeader::formPartialRtcpHeader(OUT RtpBuffer* pobjRtcpPktBuf)
     // length 16 bits
     uiByte4Data = uiByte4Data | m_usLength;
 
-    *(RtpDt_UInt32*)pcRtcpHdrBuf = RtpOsUtil::Ntohl(uiByte4Data);
+    *(reinterpret_cast<RtpDt_UInt32*>(pcRtcpHdrBuf)) = RtpOsUtil::Ntohl(uiByte4Data);
 
     uiBufPos = uiBufPos + RTP_WORD_SIZE;
     pobjRtcpPktBuf->setLength(uiBufPos);

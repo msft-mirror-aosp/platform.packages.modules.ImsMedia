@@ -696,7 +696,7 @@ RtpDt_Void RtpSession::rtcpTimerExpiry(IN RtpDt_Void* pvTimerId)
             if (m_bEnableRTCP == eRTP_TRUE)
             {
                 RtpDt_Void* pvSTRes = m_pobjAppInterface->RtpStartTimer(
-                        uiTimerVal, eRTP_FALSE, m_pfnTimerCb, (RtpDt_Void*)this);
+                        uiTimerVal, eRTP_FALSE, m_pfnTimerCb, reinterpret_cast<RtpDt_Void*>(this));
                 if (pvSTRes == RTP_NULL)
                 {
                     return;
@@ -767,7 +767,7 @@ RtpDt_Void RtpSession::rtcpTimerExpiry(IN RtpDt_Void* pvTimerId)
         RtpDt_Void* pvSTRes = RTP_NULL;
 
         pvSTRes = m_pobjAppInterface->RtpStartTimer(
-                uiTimerVal, eRTP_FALSE, m_pfnTimerCb, (RtpDt_Void*)this);
+                uiTimerVal, eRTP_FALSE, m_pfnTimerCb, reinterpret_cast<RtpDt_Void*>(this));
 
         if (pvSTRes == RTP_NULL)
         {
@@ -997,7 +997,7 @@ eRTP_STATUS_CODE RtpSession::populateRtcpFbPacket(IN_OUT RtcpPacket* pobjRtcpPkt
     RtcpFbPacket* pobjRtcpRtpFbPacket = new RtcpFbPacket();
 
     // create payload FCI buffer
-    RtpBuffer* pobjPayload = new RtpBuffer(uiLen, (RtpDt_UChar*)pcBuff);
+    RtpBuffer* pobjPayload = new RtpBuffer(uiLen, reinterpret_cast<RtpDt_UChar*>(pcBuff));
 
     // set Media SSRC
     pobjRtcpRtpFbPacket->setMediaSsrc(uiMediaSSRC);
@@ -1134,7 +1134,7 @@ eRTP_STATUS_CODE RtpSession::enableRtcp(eRtp_Bool enableRTCPBye)
     m_bEnableRTCPBye = enableRTCPBye;
 
     RtpSessionManager* pobjActSesDb = RtpSessionManager::getInstance();
-    pobjActSesDb->addRtpSession((RtpDt_Void*)this);
+    pobjActSesDb->addRtpSession(reinterpret_cast<RtpDt_Void*>(this));
     RtpDt_Void* pvData = RTP_NULL;
 
     if (m_pTimerId != RTP_NULL && m_pobjAppInterface != RTP_NULL)
@@ -1155,7 +1155,7 @@ eRTP_STATUS_CODE RtpSession::enableRtcp(eRtp_Bool enableRTCPBye)
         m_pfnTimerCb = Rtp_RtcpTimerCb;
         // start RTCP timer with default value
         pvSTRes = m_pobjAppInterface->RtpStartTimer(
-                uiTimerVal, eRTP_FALSE, m_pfnTimerCb, (RtpDt_Void*)this);
+                uiTimerVal, eRTP_FALSE, m_pfnTimerCb, reinterpret_cast<RtpDt_Void*>(this));
         if (pvSTRes == RTP_NULL)
         {
             RTP_TRACE_WARNING(

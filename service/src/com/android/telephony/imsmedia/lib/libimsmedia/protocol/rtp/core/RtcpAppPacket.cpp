@@ -66,7 +66,7 @@ RtpDt_Void RtcpAppPacket::setAppData(IN RtpBuffer* pobjAppData)
 eRTP_STATUS_CODE RtcpAppPacket::decodeAppPacket(IN RtpDt_UChar* pucAppBuf, IN RtpDt_UInt16 usAppLen)
 {
     // name
-    m_uiName = *((RtpDt_UInt32*)pucAppBuf);
+    m_uiName = *(reinterpret_cast<RtpDt_UInt32*>(pucAppBuf));
     pucAppBuf = pucAppBuf + RTP_WORD_SIZE;
 
     RtpDt_UInt16 usTmpAppLen = usAppLen;
@@ -97,7 +97,7 @@ eRTP_STATUS_CODE RtcpAppPacket::formAppPacket(OUT RtpBuffer* pobjRtcpPktBuf)
     pucBuffer = pucBuffer + uiCurPos;
 
     // m_uiName
-    *(RtpDt_UInt32*)pucBuffer = m_uiName;
+    *(reinterpret_cast<RtpDt_UInt32*>(pucBuffer)) = m_uiName;
     pucBuffer = pucBuffer + RTP_WORD_SIZE;
     uiCurPos = uiCurPos + RTP_WORD_SIZE;
 
@@ -123,7 +123,7 @@ eRTP_STATUS_CODE RtcpAppPacket::formAppPacket(OUT RtpBuffer* pobjRtcpPktBuf)
 
             pucBuffer = pucBuffer + uiPadLen;
             pucBuffer = pucBuffer - RTP_ONE;
-            *(RtpDt_UChar*)pucBuffer = (RtpDt_UChar)uiPadLen;
+            *(reinterpret_cast<RtpDt_UChar*>(pucBuffer)) = (RtpDt_UChar)uiPadLen;
 
             // set pad bit in header
             m_objRtcpHdr.setPadding();

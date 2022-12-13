@@ -167,13 +167,13 @@ void TextRtpPayloadDecoderNode::DecodeT140(uint8_t* data, uint32_t size, ImsMedi
         {
             uint32_t nRedTimestamp = 0;
             uint32_t nRedLength = 0;
-            uint32_t nRedSeqNum = 0;
 
             nRedTimestamp = lstTSOffset.front();
             nRedLength = lstLength.front();
 
             if (nRedLength > 0)
             {
+                uint32_t nRedSeqNum = 0;
                 // here should compare mPayload size red length
                 mBitReader.ReadByteBuffer(mPayload, nRedLength * 8);
                 nReadByte += nRedLength;

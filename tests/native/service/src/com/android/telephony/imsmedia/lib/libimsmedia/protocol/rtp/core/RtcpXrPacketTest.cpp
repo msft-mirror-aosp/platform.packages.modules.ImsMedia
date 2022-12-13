@@ -51,7 +51,8 @@ TEST(RtcpXrPacketTest, TestDecodeXrPacket)
     RtcpXrPacket objRtcpXrPacket;
     uint8_t bufXrPacket[] = {0xe6, 0x5f, 0xa5, 0x31, 0x53, 0x91, 0x24, 0xc2, 0x00, 0x04, 0x01, 0x85,
             0x00, 0x00, 0x00, 0x41, 0x00, 0x00, 0xc8, 0x53, 0x81, 0xca, 0x00, 0x0a};
-    eRTP_STATUS_CODE res = objRtcpXrPacket.decodeRtcpXrPacket((RtpDt_UChar*)bufXrPacket, 24, 0);
+    eRTP_STATUS_CODE res =
+            objRtcpXrPacket.decodeRtcpXrPacket(reinterpret_cast<RtpDt_UChar*>(bufXrPacket), 24, 0);
     // Result should be failure because decode XR packet is not supported or implemented.
     EXPECT_EQ(res, RTP_FAILURE);
 }

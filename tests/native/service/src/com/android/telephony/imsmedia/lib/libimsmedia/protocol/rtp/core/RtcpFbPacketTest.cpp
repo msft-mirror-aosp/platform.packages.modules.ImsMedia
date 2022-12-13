@@ -53,8 +53,8 @@ TEST(RtcpFbPacketTest, TestDecodeFbPacket)
     uint8_t bufPacket[] = {0xb1, 0xc8, 0xcb, 0x03, 0x54, 0x4d, 0x4d, 0x42, 0x52, 0x2a, 0x2a, 0x2a};
 
     RtcpFbPacket objRtcpFbPacket;
-    eRTP_STATUS_CODE res =
-            objRtcpFbPacket.decodeRtcpFbPacket((RtpDt_UChar*)bufPacket, sizeof(bufPacket));
+    eRTP_STATUS_CODE res = objRtcpFbPacket.decodeRtcpFbPacket(
+            reinterpret_cast<RtpDt_UChar*>(bufPacket), sizeof(bufPacket));
     EXPECT_EQ(res, RTP_SUCCESS);
     EXPECT_EQ(objRtcpFbPacket.getMediaSsrc(), 0xb1c8cb03);
     RtpBuffer* pRtpBuf = objRtcpFbPacket.getFCI();

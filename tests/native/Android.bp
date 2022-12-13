@@ -16,6 +16,13 @@ package {
     default_applicable_licenses: ["Android-Apache-2.0"],
 }
 
+cc_library_headers {
+    name: "libimsmedia_tests_headers",
+    export_include_dirs: [
+        "service/src/com/android/telephony/imsmedia/lib/libimsmedia/include",
+    ],
+}
+
 cc_defaults {
     name: "imsmedia_tests_defaults",
     defaults: [
@@ -48,6 +55,7 @@ cc_defaults {
         "libimsmedia_headers",
         "libimsmedia_config_headers",
         "libimsmedia_android_audio_headers",
+        "libimsmedia_tests_headers",
     ],
     include_dirs: [
         "frameworks/native/include",
@@ -64,57 +72,5 @@ cc_test {
     srcs: [
         "**/*.cpp",
     ],
-    local_include_dirs: [
-        "service/src/com/android/telephony/imsmedia/lib/libimsmedia/include",
-    ],
     test_config: "imsmedia_tests.xml",
-    enabled: true,
-}
-
-cc_test {
-    name: "ImsMediaNativeVideoTests",
-    defaults: [
-        "imsmedia_tests_defaults",
-    ],
-    srcs: [
-        "service/src/com/android/telephony/imsmedia/lib/libimsmedia/src/video/**/*.cpp",
-    ],
-    test_config: "imsmediavideo_tests.xml",
-    enabled: false,
-}
-
-cc_test {
-    name: "ImsMediaNativeUtilsTests",
-    defaults: [
-        "imsmedia_tests_defaults",
-    ],
-    srcs: [
-        "service/src/com/android/telephony/imsmedia/lib/libimsmedia/src/utils/**/*.cpp",
-    ],
-    test_config: "imsmediautils_tests.xml",
-    enabled: false,
-}
-
-cc_test {
-    name: "ImsMediaRtpProtocolNativeTests",
-    defaults: [
-        "imsmedia_tests_defaults",
-    ],
-    srcs: [
-        "service/src/com/android/telephony/imsmedia/lib/libimsmedia/rtpservice/**/*.cpp",
-    ],
-    test_config: "imsmediartpprotocol_tests.xml",
-    enabled: false,
-}
-
-cc_test {
-    name: "ImsMediaNativeConfigTests",
-    defaults: [
-        "imsmedia_tests_defaults",
-    ],
-    srcs: [
-        "service/src/com/android/telephony/imsmedia/lib/libimsmedia_config/**/*.cpp",
-    ],
-    test_config: "imsmedia_config_tests.xml",
-    enabled: false,
 }

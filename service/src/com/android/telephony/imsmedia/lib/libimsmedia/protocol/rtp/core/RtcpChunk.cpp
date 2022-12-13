@@ -69,7 +69,7 @@ eRTP_STATUS_CODE RtcpChunk::decodeRtcpChunk(IN RtpDt_UChar* pucChunkBuf,
         memset(pstSdesItem, RTP_ZERO, sizeof(tRTCP_SDES_ITEM));
 
         // type
-        pstSdesItem->ucType = *(RtpDt_UChar*)pucChunkBuf;
+        pstSdesItem->ucType = *(reinterpret_cast<RtpDt_UChar*>(pucChunkBuf));
         pucChunkBuf = pucChunkBuf + RTP_ONE;
         usChunkLen = usChunkLen + RTP_ONE;
 
@@ -78,7 +78,7 @@ eRTP_STATUS_CODE RtcpChunk::decodeRtcpChunk(IN RtpDt_UChar* pucChunkBuf,
             bCName = eRTP_TRUE;
         }
         // length
-        pstSdesItem->ucLength = *(RtpDt_UChar*)pucChunkBuf;
+        pstSdesItem->ucLength = *(reinterpret_cast<RtpDt_UChar*>(pucChunkBuf));
         pucChunkBuf = pucChunkBuf + RTP_ONE;
         usChunkLen = usChunkLen + RTP_ONE;
 
@@ -121,7 +121,7 @@ eRTP_STATUS_CODE RtcpChunk::formRtcpChunk(OUT RtpBuffer* pobjRtcpPktBuf)
     pucBuffer = pucBuffer + uiCurPos;
 
     // m_uiSsrc
-    *(RtpDt_UInt32*)pucBuffer = RtpOsUtil::Ntohl(m_uiSsrc);
+    *(reinterpret_cast<RtpDt_UInt32*>(pucBuffer)) = RtpOsUtil::Ntohl(m_uiSsrc);
     pucBuffer = pucBuffer + RTP_WORD_SIZE;
     uiCurPos = uiCurPos + RTP_WORD_SIZE;
 
@@ -131,7 +131,7 @@ eRTP_STATUS_CODE RtcpChunk::formRtcpChunk(OUT RtpBuffer* pobjRtcpPktBuf)
     for (auto& pstSdesItem : m_stSdesItemList)
     {
         // ucType
-        *(RtpDt_UChar*)pucBuffer = pstSdesItem->ucType;
+        *(reinterpret_cast<RtpDt_UChar*>(pucBuffer)) = pstSdesItem->ucType;
         pucBuffer = pucBuffer + RTP_ONE;
         uiCurPos = uiCurPos + RTP_ONE;
 
@@ -141,7 +141,7 @@ eRTP_STATUS_CODE RtcpChunk::formRtcpChunk(OUT RtpBuffer* pobjRtcpPktBuf)
         }
 
         // ucLength
-        *(RtpDt_UChar*)pucBuffer = pstSdesItem->ucLength;
+        *(reinterpret_cast<RtpDt_UChar*>(pucBuffer)) = pstSdesItem->ucLength;
         pucBuffer = pucBuffer + RTP_ONE;
         uiCurPos = uiCurPos + RTP_ONE;
 
