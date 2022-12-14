@@ -172,7 +172,9 @@ bool ImsMediaAudioSource::Start()
         // TODO: Integration with libEVS is required.
         mIsEvsInitialized = true;
     }
+
     auto audioResult = AAudioStream_requestStart(mAudioStream);
+
     if (audioResult != AAUDIO_OK)
     {
         IMLOGE1("[Start] Error start stream[%s]", AAudio_convertResultToText(audioResult));
@@ -227,15 +229,6 @@ bool ImsMediaAudioSource::Start()
 
     // start audio read thread
     StartThread();
-
-    // start encoder output thread
-    if (mCodecType == kAudioCodecAmr || mCodecType == kAudioCodecAmrWb)
-    {
-        std::thread t1(&ImsMediaAudioSource::processOutputBuffer, this);
-        t1.detach();
-        IMLOGD0("[Start] exit");
-    }
-
     return true;
 }
 
@@ -378,6 +371,11 @@ void* ImsMediaAudioSource::run()
                     size = 0;
                 }
             }
+
+            if (mCodecType == kAudioCodecAmr || mCodecType == kAudioCodecAmrWb)
+            {
+                dequeueOutputBuffer();
+            }
         }
 
         nNextTime += mPtime;
@@ -389,6 +387,7 @@ void* ImsMediaAudioSource::run()
         }
     }
 
+    mConditionExit.signal();
     return NULL;
 }
 
@@ -515,74 +514,52 @@ void ImsMediaAudioSource::queueInputBuffer(int16_t* buffer, uint32_t size)
     }
 }
 
-void ImsMediaAudioSource::processOutputBuffer()
+void ImsMediaAudioSource::dequeueOutputBuffer()
 {
-    IMLOGD0("[processOutputBuffer] enter");
-    uint32_t nNextTime = ImsMediaTimer::GetTimeInMilliSeconds();
+    AMediaCodecBufferInfo info;
+    auto index = AMediaCodec_dequeueOutputBuffer(mCodec, &info, CODEC_TIMEOUT_NANO);
 
-    for (;;)
+    if (index >= 0)
     {
-        if (IsThreadStopped())
-        {
-            IMLOGD0("[processOutputBuffer] terminated");
-            break;
-        }
-
-        AMediaCodecBufferInfo info;
-        auto index = AMediaCodec_dequeueOutputBuffer(mCodec, &info, CODEC_TIMEOUT_NANO);
-
-        if (index >= 0)
-        {
-            IMLOGD_PACKET5(IM_PACKET_LOG_AUDIO,
-                    "[processOutputBuffer] index[%d], size[%d], offset[%d], time[%ld],\
+        IMLOGD_PACKET5(IM_PACKET_LOG_AUDIO,
+                "[dequeueOutputBuffer] index[%d], size[%d], offset[%d], time[%ld],\
 flags[%d]",
-                    index, info.size, info.offset, info.presentationTimeUs, info.flags);
+                index, info.size, info.offset, info.presentationTimeUs, info.flags);
 
-            if (info.size > 0)
+        if (info.size > 0)
+        {
+            size_t buffCapacity;
+            uint8_t* buf = AMediaCodec_getOutputBuffer(mCodec, index, &buffCapacity);
+
+            if (mCallback != NULL)
             {
-                size_t buffCapacity;
-                uint8_t* buf = AMediaCodec_getOutputBuffer(mCodec, index, &buffCapacity);
-
-                if (mCallback != NULL)
-                {
-                    mCallback->onDataFrame(buf, info.size, info.presentationTimeUs, info.flags);
-                }
+                mCallback->onDataFrame(buf, info.size, info.presentationTimeUs, info.flags);
             }
-
-            AMediaCodec_releaseOutputBuffer(mCodec, index, false);
-        }
-        else if (index == AMEDIACODEC_INFO_OUTPUT_BUFFERS_CHANGED)
-        {
-            IMLOGD0("[processOutputBuffer] Encoder output buffer changed");
-        }
-        else if (index == AMEDIACODEC_INFO_OUTPUT_FORMAT_CHANGED)
-        {
-            if (mFormat != NULL)
-            {
-                AMediaFormat_delete(mFormat);
-            }
-
-            mFormat = AMediaCodec_getOutputFormat(mCodec);
-            IMLOGD1("[processOutputBuffer] Encoder format changed, format[%s]",
-                    AMediaFormat_toString(mFormat));
-        }
-        else if (index == AMEDIACODEC_INFO_TRY_AGAIN_LATER)
-        {
-            IMLOGD0("[processOutputBuffer] no output buffer");
-        }
-        else
-        {
-            IMLOGD1("[processOutputBuffer] unexpected index[%d]", index);
         }
 
-        nNextTime += mPtime;
-        uint32_t nCurrTime = ImsMediaTimer::GetTimeInMilliSeconds();
-
-        if (nNextTime > nCurrTime)
-        {
-            ImsMediaTimer::Sleep(nNextTime - nCurrTime);
-        }
+        AMediaCodec_releaseOutputBuffer(mCodec, index, false);
     }
+    else if (index == AMEDIACODEC_INFO_OUTPUT_BUFFERS_CHANGED)
+    {
+        IMLOGD0("[dequeueOutputBuffer] Encoder output buffer changed");
+    }
+    else if (index == AMEDIACODEC_INFO_OUTPUT_FORMAT_CHANGED)
+    {
+        if (mFormat != NULL)
+        {
+            AMediaFormat_delete(mFormat);
+        }
 
-    mConditionExit.signal();
+        mFormat = AMediaCodec_getOutputFormat(mCodec);
+        IMLOGD1("[dequeueOutputBuffer] Encoder format changed, format[%s]",
+                AMediaFormat_toString(mFormat));
+    }
+    else if (index == AMEDIACODEC_INFO_TRY_AGAIN_LATER)
+    {
+        IMLOGD0("[dequeueOutputBuffer] no output buffer");
+    }
+    else
+    {
+        IMLOGD1("[dequeueOutputBuffer] unexpected index[%d]", index);
+    }
 }
