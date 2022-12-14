@@ -350,9 +350,10 @@ bool VideoStreamGraphRtpTx::OnEvent(int32_t type, uint64_t param1, uint64_t para
             if (node != NULL)
             {
                 RtpEncoderNode* pNode = reinterpret_cast<RtpEncoderNode*>(node);
-                pNode->SetCvoExtension(param1, param2);
-                return true;
+                return pNode->SetCvoExtension(param1, param2);
             }
+
+            return false;
         }
         break;
         case kRequestVideoBitrateChange:

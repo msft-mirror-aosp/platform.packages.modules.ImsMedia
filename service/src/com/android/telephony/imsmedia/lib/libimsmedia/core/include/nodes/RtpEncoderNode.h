@@ -19,6 +19,7 @@
 
 #include <BaseNode.h>
 #include <IRtpSession.h>
+#include <mutex>
 
 class RtpEncoderNode : public BaseNode, public IRtpEncoderListener
 {
@@ -49,7 +50,7 @@ public:
     /**
      * @brief Set the camera facing and device orientation parameter for cvo extension in rtp header
      */
-    void SetCvoExtension(const int64_t facing, const int64_t orientation);
+    bool SetCvoExtension(const int64_t facing, const int64_t orientation);
 
     /**
      * @brief Set the rtp header extension parameter
@@ -63,7 +64,9 @@ private:
             uint32_t timestamp, bool mark);
     void ProcessTextData(ImsMediaSubType subtype, uint8_t* pData, uint32_t nDataSize,
             uint32_t timestamp, bool mark);
+
     IRtpSession* mRtpSession;
+    std::mutex mMutex;
     RtpAddress mLocalAddress;
     RtpAddress mPeerAddress;
     bool mDTMFMode;
