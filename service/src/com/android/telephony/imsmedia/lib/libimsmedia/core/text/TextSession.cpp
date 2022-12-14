@@ -41,6 +41,7 @@ TextSession::~TextSession()
         }
 
         delete mGraphRtpTx;
+        mGraphRtpTx = NULL;
     }
 
     if (mGraphRtpRx != NULL)
@@ -51,6 +52,7 @@ TextSession::~TextSession()
         }
 
         delete mGraphRtpRx;
+        mGraphRtpRx = NULL;
     }
 
     if (mGraphRtcp != NULL)
@@ -61,6 +63,7 @@ TextSession::~TextSession()
         }
 
         delete mGraphRtcp;
+        mGraphRtcp = NULL;
     }
 }
 
@@ -68,12 +71,7 @@ SessionState TextSession::getState()
 {
     SessionState state = kSessionStateOpened;
 
-    if ((mGraphRtpTx != NULL && mGraphRtpTx->getState() == kStreamStateWaitSurface) ||
-            (mGraphRtpRx != NULL && mGraphRtpRx->getState() == kStreamStateWaitSurface))
-    {
-        return kSessionStateSuspended;
-    }
-    else if ((mGraphRtpTx != NULL && mGraphRtpTx->getState() == kStreamStateRunning) ||
+    if ((mGraphRtpTx != NULL && mGraphRtpTx->getState() == kStreamStateRunning) ||
             (mGraphRtpRx != NULL && mGraphRtpRx->getState() == kStreamStateRunning))
     {
         return kSessionStateActive;
