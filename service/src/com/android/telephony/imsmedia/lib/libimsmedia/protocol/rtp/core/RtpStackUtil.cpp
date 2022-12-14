@@ -30,7 +30,7 @@ RtpDt_UInt16 RtpStackUtil::getSequenceNumber(IN RtpDt_UChar* pucRtpHdrBuf)
     RtpDt_UInt32 uiByte4Data = RTP_ZERO;
     RtpDt_UInt16 usSeqNum = RTP_ZERO;
 
-    uiByte4Data = RtpOsUtil::Ntohl(*((RtpDt_UInt32*)pucRtpHdrBuf));
+    uiByte4Data = RtpOsUtil::Ntohl(*(reinterpret_cast<RtpDt_UInt32*>(pucRtpHdrBuf)));
     usSeqNum = (RtpDt_UInt16)(uiByte4Data & RTP_HEX_16_BIT_MAX);
 
     return usSeqNum;
@@ -46,7 +46,7 @@ RtpDt_UInt32 RtpStackUtil::getRtpSsrc(IN RtpDt_UChar* pucRtpBuf)
     RtpDt_UInt32 uiByte4Data = RTP_ZERO;
     pucRtpBuf = pucRtpBuf + RTP_EIGHT;
 
-    uiByte4Data = RtpOsUtil::Ntohl(*((RtpDt_UInt32*)pucRtpBuf));
+    uiByte4Data = RtpOsUtil::Ntohl(*(reinterpret_cast<RtpDt_UInt32*>(pucRtpBuf)));
     return uiByte4Data;
 }
 
@@ -58,7 +58,7 @@ RtpDt_UInt32 RtpStackUtil::getRtcpSsrc(IN RtpDt_UChar* pucRtcpBuf)
     }
     pucRtcpBuf = pucRtcpBuf + RTP_WORD_SIZE;
 
-    RtpDt_UInt32 uiByte4Data = RtpOsUtil::Ntohl(*((RtpDt_UInt32*)pucRtcpBuf));
+    RtpDt_UInt32 uiByte4Data = RtpOsUtil::Ntohl(*(reinterpret_cast<RtpDt_UInt32*>(pucRtcpBuf)));
     return uiByte4Data;
 }
 

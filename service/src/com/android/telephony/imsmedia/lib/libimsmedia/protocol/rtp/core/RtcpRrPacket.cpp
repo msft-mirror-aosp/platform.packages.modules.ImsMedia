@@ -160,7 +160,7 @@ eRTP_STATUS_CODE RtcpRrPacket::formRrPacket(OUT RtpBuffer* pobjRtcpPktBuf, IN eR
 
             pucBuffer = pucBuffer + uiPadLen;
             pucBuffer = pucBuffer - RTP_ONE;
-            *(RtpDt_UChar*)pucBuffer = (RtpDt_UChar)uiPadLen;
+            *(reinterpret_cast<RtpDt_UChar*>(pucBuffer)) = (RtpDt_UChar)uiPadLen;
 
             // set pad bit in header
             m_objRtcpHdr.setPadding();

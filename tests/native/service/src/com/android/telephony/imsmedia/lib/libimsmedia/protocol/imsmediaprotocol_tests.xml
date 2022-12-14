@@ -13,16 +13,16 @@
      See the License for the specific language governing permissions and
      limitations under the License.
 -->
-<configuration description="Configuration for ImsMedia config native tests">
+<configuration description="Configuration for ImsMedia native RTP protocol tests">
     <option name="test-suite-tag" value="apct" />
     <option name="test-suite-tag" value="apct-native" />
     <target_preparer class="com.android.tradefed.targetprep.PushFilePreparer">
         <option name="cleanup" value="true" />
         <option name="push"
-          value="ImsMediaNativeConfigTests->/data/local/tmp/ImsMediaNativeConfigTests"/>
+          value="ImsMediaNativeProtocolTests->/data/local/tmp/ImsMediaNativeProtocolTests"/>
     </target_preparer>
     <test class="com.android.tradefed.testtype.GTest">
         <option name="native-test-device-path" value="/data/local/tmp" />
-        <option name="module-name" value="ImsMediaNativeConfigTests" />
+        <option name="module-name" value="ImsMediaNativeProtocolTests" />
     </test>
 </configuration>

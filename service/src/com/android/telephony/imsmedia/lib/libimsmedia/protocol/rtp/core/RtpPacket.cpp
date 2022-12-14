@@ -115,7 +115,7 @@ eRtp_Bool RtpPacket::formPacket(IN RtpBuffer* pobjRtpPktBuf)
             RtpDt_UChar ucTmpPadLen = m_ucPadLen - RTP_ONE;
             memset(pcRtpBuf, RTP_ZERO, m_ucPadLen);
             // pad length
-            *((RtpDt_UChar*)(pcRtpBuf + ucTmpPadLen)) = m_ucPadLen;
+            *(reinterpret_cast<RtpDt_UChar*>(pcRtpBuf + ucTmpPadLen)) = m_ucPadLen;
             uiRtpBufPos += m_ucPadLen;
         }
 #endif
@@ -157,7 +157,7 @@ eRtp_Bool RtpPacket::decodePacket(IN RtpBuffer* pobjRtpPktBuf)
         }
 
         // Get XHdr type and length
-        RtpDt_UInt32 uiByte4Data = RtpOsUtil::Ntohl(*((RtpDt_UInt32*)pcRtpBuf));
+        RtpDt_UInt32 uiByte4Data = RtpOsUtil::Ntohl(*(reinterpret_cast<RtpDt_UInt32*>(pcRtpBuf)));
         pcRtpBuf = pcRtpBuf + RTP_WORD_SIZE;
         uiRtpBufPos = uiRtpBufPos + RTP_WORD_SIZE;
         RtpDt_UInt16 uXHdrLen = (RtpDt_UInt16)(uiByte4Data & RTP_HEX_16_BIT_MAX);
@@ -199,7 +199,7 @@ eRtp_Bool RtpPacket::decodePacket(IN RtpBuffer* pobjRtpPktBuf)
         RtpDt_UInt32 uiPadLenPos = uiRtpUtlBufLen;
 
         uiPadLenPos = uiPadLenPos - RTP_ONE;
-        ucPadLen = *(RtpDt_UChar*)(pcRtpBuf + uiPadLenPos);
+        ucPadLen = *(reinterpret_cast<RtpDt_UChar*>(pcRtpBuf + uiPadLenPos));
         if (ucPadLen == RTP_ZERO)
         {
             return eRTP_FAILURE;

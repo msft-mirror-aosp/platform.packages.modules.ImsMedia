@@ -215,27 +215,29 @@ eRTP_STATUS_CODE RtcpSrPacket::decodeSrPacket(
         return RTP_FAILURE;
 
     // NTP timestamp most significant word
-    m_stNtpTimestamp.m_uiNtpHigh32Bits = RtpOsUtil::Ntohl(*((RtpDt_UInt32*)pucSrPktBuf));
+    m_stNtpTimestamp.m_uiNtpHigh32Bits =
+            RtpOsUtil::Ntohl(*(reinterpret_cast<RtpDt_UInt32*>(pucSrPktBuf)));
     pucSrPktBuf = pucSrPktBuf + RTP_WORD_SIZE;
     usSrPktLen = usSrPktLen - RTP_WORD_SIZE;
 
     // NTP timestamp least significant word
-    m_stNtpTimestamp.m_uiNtpLow32Bits = RtpOsUtil::Ntohl(*((RtpDt_UInt32*)pucSrPktBuf));
+    m_stNtpTimestamp.m_uiNtpLow32Bits =
+            RtpOsUtil::Ntohl(*(reinterpret_cast<RtpDt_UInt32*>(pucSrPktBuf)));
     pucSrPktBuf = pucSrPktBuf + RTP_WORD_SIZE;
     usSrPktLen = usSrPktLen - RTP_WORD_SIZE;
 
     // RTP timestamp
-    m_uiRtpTimestamp = RtpOsUtil::Ntohl(*((RtpDt_UInt32*)pucSrPktBuf));
+    m_uiRtpTimestamp = RtpOsUtil::Ntohl(*(reinterpret_cast<RtpDt_UInt32*>(pucSrPktBuf)));
     pucSrPktBuf = pucSrPktBuf + RTP_WORD_SIZE;
     usSrPktLen = usSrPktLen - RTP_WORD_SIZE;
 
     // sender's packet count
-    m_uiSendPktCount = RtpOsUtil::Ntohl(*((RtpDt_UInt32*)pucSrPktBuf));
+    m_uiSendPktCount = RtpOsUtil::Ntohl(*(reinterpret_cast<RtpDt_UInt32*>(pucSrPktBuf)));
     pucSrPktBuf = pucSrPktBuf + RTP_WORD_SIZE;
     usSrPktLen = usSrPktLen - RTP_WORD_SIZE;
 
     // sender's octet count
-    m_uiSendOctCount = RtpOsUtil::Ntohl(*((RtpDt_UInt32*)pucSrPktBuf));
+    m_uiSendOctCount = RtpOsUtil::Ntohl(*(reinterpret_cast<RtpDt_UInt32*>(pucSrPktBuf)));
     pucSrPktBuf = pucSrPktBuf + RTP_WORD_SIZE;
     usSrPktLen = usSrPktLen - RTP_WORD_SIZE;
 
@@ -311,26 +313,28 @@ block  +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
     RtcpHeader* pobjRtcpHdr = m_objRrPkt.getRtcpHdrInfo();
 
     // encode m_stNtpTimestamp
-    *(RtpDt_UInt32*)pucBuffer = RtpOsUtil::Ntohl(m_stNtpTimestamp.m_uiNtpHigh32Bits);
+    *(reinterpret_cast<RtpDt_UInt32*>(pucBuffer)) =
+            RtpOsUtil::Ntohl(m_stNtpTimestamp.m_uiNtpHigh32Bits);
     pucBuffer = pucBuffer + RTP_WORD_SIZE;
     uiCurPos = uiCurPos + RTP_WORD_SIZE;
 
-    *(RtpDt_UInt32*)pucBuffer = RtpOsUtil::Ntohl(m_stNtpTimestamp.m_uiNtpLow32Bits);
+    *(reinterpret_cast<RtpDt_UInt32*>(pucBuffer)) =
+            RtpOsUtil::Ntohl(m_stNtpTimestamp.m_uiNtpLow32Bits);
     pucBuffer = pucBuffer + RTP_WORD_SIZE;
     uiCurPos = uiCurPos + RTP_WORD_SIZE;
 
     // encode m_uiRtpTimestamp
-    *(RtpDt_UInt32*)pucBuffer = RtpOsUtil::Ntohl(m_uiRtpTimestamp);
+    *(reinterpret_cast<RtpDt_UInt32*>(pucBuffer)) = RtpOsUtil::Ntohl(m_uiRtpTimestamp);
     pucBuffer = pucBuffer + RTP_WORD_SIZE;
     uiCurPos = uiCurPos + RTP_WORD_SIZE;
 
     // encode m_uiSendPktCount
-    *(RtpDt_UInt32*)pucBuffer = RtpOsUtil::Ntohl(m_uiSendPktCount);
+    *(reinterpret_cast<RtpDt_UInt32*>(pucBuffer)) = RtpOsUtil::Ntohl(m_uiSendPktCount);
     pucBuffer = pucBuffer + RTP_WORD_SIZE;
     uiCurPos = uiCurPos + RTP_WORD_SIZE;
 
     // encode m_uiSendOctCount
-    *(RtpDt_UInt32*)pucBuffer = RtpOsUtil::Ntohl(m_uiSendOctCount);
+    *(reinterpret_cast<RtpDt_UInt32*>(pucBuffer)) = RtpOsUtil::Ntohl(m_uiSendOctCount);
     uiCurPos = uiCurPos + RTP_WORD_SIZE;
 
     // encode report blocks
@@ -357,7 +361,7 @@ block  +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
         memset(pucBuffer, RTP_ZERO, uiPadLen);
         pucBuffer = pucBuffer + uiPadLen;
         pucBuffer = pucBuffer - RTP_ONE;
-        *(RtpDt_UChar*)pucBuffer = (RtpDt_UChar)uiPadLen;
+        *(reinterpret_cast<RtpDt_UChar*>(pucBuffer)) = (RtpDt_UChar)uiPadLen;
 
         // set pad bit in header
         pobjRtcpHdr->setPadding();

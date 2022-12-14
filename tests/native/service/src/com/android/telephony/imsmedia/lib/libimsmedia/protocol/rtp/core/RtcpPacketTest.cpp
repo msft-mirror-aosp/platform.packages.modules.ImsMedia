@@ -75,7 +75,7 @@ TEST_F(RtcpPacketTest, DecodeCompoundSrSdesPacket)
 
     RtpDt_UChar IPAddress[] = "2600:100e:1008:af4f::1ebe:6851";
     RtcpConfigInfo rtcpConfigInfo;
-    addSdesItem(&rtcpConfigInfo, IPAddress, strlen((char*)IPAddress));
+    addSdesItem(&rtcpConfigInfo, IPAddress, strlen(reinterpret_cast<char*>(IPAddress)));
 
     RtpBuffer rtpBuffer(72, bufSrSdesPacket);
     eRTP_STATUS_CODE res = rtcpPacket.decodeRtcpPacket(&rtpBuffer, 0, &rtcpConfigInfo);
@@ -121,7 +121,10 @@ TEST_F(RtcpPacketTest, DecodeCompoundSrSdesPacket)
 
     EXPECT_EQ(sdesItem->ucType, 1);
     EXPECT_EQ(sdesItem->ucLength, 31);
-    EXPECT_EQ(strncmp((char*)sdesItem->pValue, (char*)"2600:100e:1008:af4f::1ebe:6851", 31), 0);
+    const char* expectedpValue = "2600:100e:1008:af4f::1ebe:6851";
+    EXPECT_EQ(strncmp(reinterpret_cast<char*>(sdesItem->pValue), expectedpValue,
+                      strlen(expectedpValue)),
+            0);
 
     pRtcpHeader = pRtcpSdesPacket->getRtcpHdrInfo();
     ASSERT_TRUE(pRtcpHeader != NULL);
@@ -352,7 +355,7 @@ TEST_F(RtcpPacketTest, DecodeCompoundSrRrSdesPacket)
 
     RtpDt_UChar IPAddress[] = "2600:100e:1008:af4f::1ebe:6851";
     RtcpConfigInfo rtcpConfigInfo;
-    addSdesItem(&rtcpConfigInfo, IPAddress, strlen((char*)IPAddress));
+    addSdesItem(&rtcpConfigInfo, IPAddress, strlen(reinterpret_cast<char*>(IPAddress)));
 
     eRTP_STATUS_CODE res = rtcpPacket.decodeRtcpPacket(&rtpBuffer, 0, &rtcpConfigInfo);
     EXPECT_EQ(res, RTP_SUCCESS);
@@ -447,7 +450,10 @@ TEST_F(RtcpPacketTest, DecodeCompoundSrRrSdesPacket)
 
     EXPECT_EQ(sdesItem->ucType, 1);
     EXPECT_EQ(sdesItem->ucLength, 20);
-    EXPECT_EQ(strncmp((char*)sdesItem->pValue, (char*)"unknown@200.57.7.204", 20), 0);
+    const char* expectedpValue = "unknown@200.57.7.204";
+    EXPECT_EQ(strncmp(reinterpret_cast<char*>(sdesItem->pValue), expectedpValue,
+                      strlen(expectedpValue)),
+            0);
 
     pRtcpHeader = pRtcpSdesPacket->getRtcpHdrInfo();
     ASSERT_TRUE(pRtcpHeader != NULL);
@@ -513,7 +519,9 @@ TEST_F(RtcpPacketTest, TestDecodeByePacket)
     ASSERT_TRUE(reason != NULL);
 
     EXPECT_EQ(reason->getLength(), 8);
-    EXPECT_EQ(strcmp((char*)reason->getBuffer(), (char*)"teardown"), 0);
+    EXPECT_EQ(strcmp(reinterpret_cast<char*>(reason->getBuffer()),
+                      reinterpret_cast<const char*>("teardown")),
+            0);
 }
 
 /**
@@ -557,11 +565,13 @@ TEST_F(RtcpPacketTest, TestDecodeAppPacket)
     EXPECT_EQ(pRtcpHeader->getLength(), 10 * RTP_WORD_SIZE);
     EXPECT_EQ(pRtcpHeader->getSsrc(), 0xb1c8cb02);
     RtpDt_UInt32 appPktName = pAppPacket->getName();
-    EXPECT_EQ(memcmp(&appPktName, (char*)"TEST", 4), 0);
+    const char* pktName = "TEST";
+    EXPECT_EQ(memcmp(&appPktName, pktName, strlen(pktName)), 0);
     RtpBuffer* pAppData = pAppPacket->getAppData();
     ASSERT_TRUE(pAppData != NULL);
-    EXPECT_EQ(memcmp(pAppData->getBuffer(), (char*)"This is a test application data.", 32), 0);
-    EXPECT_EQ(pAppData->getLength(), 32);
+    const char* appData = "This is a test application data.";
+    EXPECT_EQ(memcmp(pAppData->getBuffer(), appData, strlen(appData)), 0);
+    EXPECT_EQ(pAppData->getLength(), strlen(appData));
 }
 
 /**

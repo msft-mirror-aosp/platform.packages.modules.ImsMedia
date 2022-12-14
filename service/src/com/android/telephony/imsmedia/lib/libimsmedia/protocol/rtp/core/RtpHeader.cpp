@@ -173,15 +173,15 @@ eRtp_Bool RtpHeader::formHeader(IN RtpBuffer* pobjRtpPktBuf)
     // sequence number. 16 bits
     uiByte4Data = uiByte4Data | m_usSequenceNumber;
 
-    *(RtpDt_UInt32*)pucRtpHeaderBuffer = RtpOsUtil::Ntohl(uiByte4Data);
+    *(reinterpret_cast<RtpDt_UInt32*>(pucRtpHeaderBuffer)) = RtpOsUtil::Ntohl(uiByte4Data);
     pucRtpHeaderBuffer = pucRtpHeaderBuffer + RTP_WORD_SIZE;
 
     // time stamp
-    *(RtpDt_UInt32*)pucRtpHeaderBuffer = RtpOsUtil::Ntohl(m_uiTimestamp);
+    *(reinterpret_cast<RtpDt_UInt32*>(pucRtpHeaderBuffer)) = RtpOsUtil::Ntohl(m_uiTimestamp);
     pucRtpHeaderBuffer = pucRtpHeaderBuffer + RTP_WORD_SIZE;
 
     // ssrc
-    *(RtpDt_UInt32*)pucRtpHeaderBuffer = RtpOsUtil::Ntohl(m_uiSsrc);
+    *(reinterpret_cast<RtpDt_UInt32*>(pucRtpHeaderBuffer)) = RtpOsUtil::Ntohl(m_uiSsrc);
     pucRtpHeaderBuffer = pucRtpHeaderBuffer + RTP_WORD_SIZE;
 
     RtpDt_UInt32 uiBufLen = RTP_FIXED_HDR_LEN;
@@ -189,7 +189,7 @@ eRtp_Bool RtpHeader::formHeader(IN RtpBuffer* pobjRtpPktBuf)
     // csrc list
     for (auto csrc : m_uiCsrcList)
     {
-        *(RtpDt_UInt32*)pucRtpHeaderBuffer = RtpOsUtil::Ntohl(csrc);
+        *(reinterpret_cast<RtpDt_UInt32*>(pucRtpHeaderBuffer)) = RtpOsUtil::Ntohl(csrc);
         pucRtpHeaderBuffer = pucRtpHeaderBuffer + RTP_WORD_SIZE;
     }
     RtpDt_UInt16 usSize = m_uiCsrcList.size();
@@ -214,7 +214,8 @@ eRtp_Bool RtpHeader::decodeHeader(IN RtpBuffer* pobjRtpPktBuf, OUT RtpDt_UInt32&
         return eRTP_FALSE;
     }
 
-    RtpDt_UInt32 uiByte4Data = RtpOsUtil::Ntohl(*((RtpDt_UInt32*)pucRtpHeaderBuffer));
+    RtpDt_UInt32 uiByte4Data =
+            RtpOsUtil::Ntohl(*(reinterpret_cast<RtpDt_UInt32*>(pucRtpHeaderBuffer)));
     pucRtpHeaderBuffer = pucRtpHeaderBuffer + RTP_FOUR;
     uiBufPos = uiBufPos + RTP_WORD_SIZE;
 
@@ -242,12 +243,12 @@ eRtp_Bool RtpHeader::decodeHeader(IN RtpBuffer* pobjRtpPktBuf, OUT RtpDt_UInt32&
     m_usSequenceNumber = (RtpDt_UInt16)(uiByte4Data & RTP_HEX_16_BIT_MAX);
 
     // timestamp
-    m_uiTimestamp = RtpOsUtil::Ntohl(*((RtpDt_UInt32*)pucRtpHeaderBuffer));
+    m_uiTimestamp = RtpOsUtil::Ntohl(*(reinterpret_cast<RtpDt_UInt32*>(pucRtpHeaderBuffer)));
     pucRtpHeaderBuffer = pucRtpHeaderBuffer + RTP_FOUR;
     uiBufPos = uiBufPos + RTP_WORD_SIZE;
 
     // Synchronization source
-    m_uiSsrc = RtpOsUtil::Ntohl(*((RtpDt_UInt32*)pucRtpHeaderBuffer));
+    m_uiSsrc = RtpOsUtil::Ntohl(*(reinterpret_cast<RtpDt_UInt32*>(pucRtpHeaderBuffer)));
     pucRtpHeaderBuffer = pucRtpHeaderBuffer + RTP_FOUR;
     uiBufPos = uiBufPos + RTP_WORD_SIZE;
 
@@ -265,7 +266,8 @@ eRtp_Bool RtpHeader::decodeHeader(IN RtpBuffer* pobjRtpPktBuf, OUT RtpDt_UInt32&
         // csrc list
         for (RtpDt_UInt32 usCsrcIdx = RTP_ZERO; usCsrcIdx < m_ucCsrcCount; usCsrcIdx++)
         {
-            addElementToCsrcList(RtpOsUtil::Ntohl(*((RtpDt_UInt32*)pucRtpHeaderBuffer)));
+            addElementToCsrcList(
+                    RtpOsUtil::Ntohl(*(reinterpret_cast<RtpDt_UInt32*>(pucRtpHeaderBuffer))));
             pucRtpHeaderBuffer = pucRtpHeaderBuffer + RTP_FOUR;
             uiBufPos = uiBufPos + RTP_WORD_SIZE;
         }
