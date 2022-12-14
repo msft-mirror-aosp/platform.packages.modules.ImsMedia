@@ -56,8 +56,6 @@ RtpSession::RtpSession() :
         m_bisXr(eRTP_FALSE),
         m_bFirstRtpRecvd(eRTP_FALSE)
 {
-    // tRTP_NTP_TIME stNtpTs = {RTP_ZERO, RTP_ZERO};
-
     m_pobjRtcpCfgInfo = new RtcpConfigInfo();
     m_pobjRtpRcvrInfoList = new std::list<RtpReceiverInfo*>();
     m_pobjPayloadInfo = new RtpPayloadInfo();
@@ -828,7 +826,7 @@ eRTP_STATUS_CODE RtpSession::populateSrpacket(
 RtpDt_Void RtpSession::cleanUtlReceiverList()
 {
     // populate report blocks
-    for (auto& pobjRcvrElm : *m_pobjUtlRcvrList)
+    for (const auto& pobjRcvrElm : *m_pobjUtlRcvrList)
     {
         delete pobjRcvrElm;
     }
@@ -1928,8 +1926,6 @@ eRTP_STATUS_CODE RtpSession::processSdesPacket(IN RtcpSdesPacket* pobjSdesPkt)
 eRTP_STATUS_CODE RtpSession::processRcvdRtcpPkt(IN RtpBuffer* pobjRtcpAddr, IN RtpDt_UInt16 usPort,
         IN RtpBuffer* pobjRTCPBuf, OUT RtcpPacket* pobjRtcpPkt)
 {
-    tRTP_NTP_TIME stNtpTs;
-
     if (m_bEnableRTCP != eRTP_TRUE)
     {
         RTP_TRACE_WARNING("[ProcessRcvdRtcpPkt], RTCP is not enabled", RTP_ZERO, RTP_ZERO);
@@ -1948,6 +1944,7 @@ eRTP_STATUS_CODE RtpSession::processRcvdRtcpPkt(IN RtpBuffer* pobjRtcpAddr, IN R
     RtpDt_UInt16 usExtHdrLen = RTP_ZERO;
     eRTP_STATUS_CODE eDecodeStatus = RTP_FAILURE;
 
+    tRTP_NTP_TIME stNtpTs = {RTP_ZERO, RTP_ZERO};
     RtpOsUtil::GetNtpTime(stNtpTs);
     RtpDt_UInt32 currentTime = RtpStackUtil::getMidFourOctets(&stNtpTs);
     // decode compound packet
@@ -1990,7 +1987,7 @@ eRTP_STATUS_CODE RtpSession::processRcvdRtcpPkt(IN RtpBuffer* pobjRtcpAddr, IN R
         RtpReceiverInfo* pobjRcvInfo = processRtcpPkt(uiRcvdSsrc, pobjRtcpAddr, usPort);
         if (pobjRcvInfo != RTP_NULL)
         {
-            tRTP_NTP_TIME stNtpTs;
+            stNtpTs = {RTP_ZERO, RTP_ZERO};
             pobjRcvInfo->setpreSrTimestamp(pobjSrPkt->getNtpTime());
             RtpOsUtil::GetNtpTime(stNtpTs);
             pobjRcvInfo->setLastSrNtpTimestamp(&stNtpTs);

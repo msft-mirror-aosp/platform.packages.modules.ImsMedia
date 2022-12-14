@@ -26,6 +26,7 @@ cc_library_headers {
 cc_library_static {
     name: "libimsmedia_audio",
     defaults: [
+        "libimsmedia_defaults",
         "libimsmedia_audio_defaults",
         "libimsmedia_shared_defaults",
     ],

@@ -16,9 +16,20 @@ package {
     default_applicable_licenses: ["Android-Apache-2.0"],
 }
 
+cc_defaults {
+    name: "libimsmedia_defaults",
+    cflags: [
+        "-Wall",
+    ],
+}
+
+
 cc_library_shared {
     name: "libimsmedia",
     system_ext_specific: true,
+    defaults: [
+        "libimsmedia_defaults",
+    ],
     srcs: [
         "libimsmedia.cpp",
     ],

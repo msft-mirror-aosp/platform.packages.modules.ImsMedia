@@ -52,7 +52,7 @@ public:
 
     eRtp_Bool rtpMemberLeaveInd(IN eRTP_LEAVE_REASON eLeaveReason, IN RtpDt_Int32 uiSsrc);
 
-    eRtp_Bool rtcpPacketSendInd(IN RtpBuffer* pobjRtcpPkt, IN RtpSession* pobjRtpSession);
+    eRtp_Bool rtcpPacketSendInd(IN RtpBuffer* pobjRtcpBuf, IN RtpSession* pobjRtpSession);
 
     eRtp_Bool rtcpAppPayloadReqInd(
             OUT RtpDt_UInt16& usSubType, OUT RtpDt_UInt32& uiName, OUT RtpBuffer* pobjPayload);
@@ -67,7 +67,7 @@ public:
     RtpDt_Void* RtpStartTimer(IN RtpDt_UInt32 uiDuration, IN eRtp_Bool bRepeat,
             IN RTPCB_TIMERHANDLER pfnTimerCb, IN RtpDt_Void* pvData);
 
-    eRtp_Bool RtpStopTimer(IN RtpDt_Void* pTimerId, OUT RtpDt_Void** pUserData);
+    eRtp_Bool RtpStopTimer(IN RtpDt_Void* pTimerId, OUT RtpDt_Void** ppUserData);
 };
 
 #endif /* __RTP_IMPL_H_ */

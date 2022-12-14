@@ -240,7 +240,6 @@ void AudioJitterBuffer::Add(ImsMediaSubType subtype, uint8_t* pbBuffer, uint32_t
         else
         {
             // find the position of current data and insert current data to the correct position
-            bool bIsLateArrival = false;
             mDataQueue.SetReadPosFirst();
 
             for (int32_t i = 0; mDataQueue.GetNext(&pEntry); i++)
@@ -249,7 +248,6 @@ void AudioJitterBuffer::Add(ImsMediaSubType subtype, uint8_t* pbBuffer, uint32_t
                 if (!USHORT_SEQ_ROUND_COMPARE(nSeqNum, pEntry->nSeqNum))
                 {
                     mDataQueue.InsertAt(i, &currEntry);
-                    bIsLateArrival = true;
                     break;
                 }
             }
