@@ -258,7 +258,6 @@ void AudioRtpPayloadDecoderNode::DecodePayloadEvs(uint8_t* pData, uint32_t nData
             "arrivalTime[%u]",
             mCodecType, mOctetAligned, nSeqNum, nTimeStamp, arrivalTime);
 
-    kRtpPyaloadHeaderMode eEVSPHFormat = kRtpPyaloadHeaderModeEvsCompact;
     kRtpPyaloadHeaderMode eEVSReceivedPHFormat = kRtpPyaloadHeaderModeEvsCompact;
     kEvsCodecMode kEvsCodecMode = kEvsCodecModePrimary;
 
@@ -281,7 +280,6 @@ void AudioRtpPayloadDecoderNode::DecodePayloadEvs(uint8_t* pData, uint32_t nData
     uint32_t toc_ft_q = 0;  // 1bit, AMR-WB Q bit
     uint32_t toc_ft_b = 0;  // 4bits, EVS bit rate
 
-    eEVSPHFormat = mEvsPayloadHeaderMode;
     mBitReader.SetBuffer(pData, nDataSize);
 
     // check RTP payload format

@@ -305,7 +305,6 @@ bool ImsMediaSocket::RetrieveOptionMsg(uint32_t type, int32_t& value)
 
         if (recvmsg(mSocketFd, &hdr, 0) > 0)
         {
-            int ttl = -1;
             struct cmsghdr* cmsg = CMSG_FIRSTHDR(&hdr);
 
             for (; cmsg; cmsg = CMSG_NXTHDR(&hdr, cmsg))

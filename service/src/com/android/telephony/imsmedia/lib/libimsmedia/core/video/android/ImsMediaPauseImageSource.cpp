@@ -97,8 +97,14 @@ bool ImsMediaPauseImageSource::Initialize(int width, int height)
         return false;
     }
 
-    AndroidBitmapFormat format =
-            (AndroidBitmapFormat)AImageDecoderHeaderInfo_getAndroidBitmapFormat(info);
+    /*
+     * TODO: AImageDecoder output should be in ANDROID_BITMAP_FORMAT_RGBA_8888 format.
+     *       If not, configure AImageDecoder accordingly.
+     *
+     * AndroidBitmapFormat format =
+     *      (AndroidBitmapFormat)AImageDecoderHeaderInfo_getAndroidBitmapFormat(info);
+     */
+
     size_t stride = AImageDecoder_getMinimumStride(decoder);  // Image decoder does not
     // use padding by default
     size_t size = height * stride;
@@ -203,7 +209,7 @@ int8_t* ImsMediaPauseImageSource::ConvertRgbaToYuv(int8_t* pixels, int width, in
     int32_t nIndex = 0;
     int32_t nYIndex = 0;
     int32_t nUVIndex = width * height;
-    int32_t a, r, g, b;
+    int32_t r, g, b;
     double y, u, v;
 
     for (int32_t j = 0; j < height; j++)
@@ -211,7 +217,12 @@ int8_t* ImsMediaPauseImageSource::ConvertRgbaToYuv(int8_t* pixels, int width, in
         for (int32_t i = 0; i < width; i++)
         {
             nIndex = width * j + i;
-            a = (pSrcArray[nIndex] & 0xff000000) >> 24;
+
+            /*
+             * TODO: Decode alpha
+             * a = (pSrcArray[nIndex] & 0xff000000) >> 24;
+             */
+
             r = (pSrcArray[nIndex] & 0xff0000) >> 16;
             g = (pSrcArray[nIndex] & 0xff00) >> 8;
             b = (pSrcArray[nIndex] & 0xff) >> 0;

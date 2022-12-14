@@ -48,7 +48,7 @@ RtpDt_Void RtpSessionManager::removeRtpSession(IN RtpDt_Void* pvData)
 
 eRtp_Bool RtpSessionManager::isValidRtpSession(IN RtpDt_Void* pvData)
 {
-    for (auto& pobjActiveSession : m_objActiveSessionList)
+    for (const auto& pobjActiveSession : m_objActiveSessionList)
     {
         if (pobjActiveSession == RTP_NULL)
         {

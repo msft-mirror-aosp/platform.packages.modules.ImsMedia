@@ -25,13 +25,13 @@ RtcpByePacket::RtcpByePacket() :
 
 RtcpByePacket::~RtcpByePacket()
 {
-    for (auto& puiSsrc : m_uiSsrcList)
+    // delete all ssrc objects
+    for (const auto& puiSsrc : m_uiSsrcList)
     {
         delete puiSsrc;
     }
     m_uiSsrcList.clear();
 
-    // m_pReason
     if (m_pReason != RTP_NULL)
     {
         delete m_pReason;

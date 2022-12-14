@@ -25,7 +25,8 @@ RtcpChunk::RtcpChunk() :
 
 RtcpChunk::~RtcpChunk()
 {
-    for (auto& pstSdesItem : m_stSdesItemList)
+    // delete all tRTCP_SDES_ITEM objects from SdesItemList
+    for (const auto& pstSdesItem : m_stSdesItemList)
     {
         if (pstSdesItem->pValue != RTP_NULL)
         {
@@ -125,7 +126,6 @@ eRTP_STATUS_CODE RtcpChunk::formRtcpChunk(OUT RtpBuffer* pobjRtcpPktBuf)
     pucBuffer = pucBuffer + RTP_WORD_SIZE;
     uiCurPos = uiCurPos + RTP_WORD_SIZE;
 
-    // m_stSdesItemList
     eRtp_Bool bCName = eRTP_FALSE;
 
     for (auto& pstSdesItem : m_stSdesItemList)
