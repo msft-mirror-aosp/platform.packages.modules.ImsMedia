@@ -106,15 +106,18 @@ ImsMediaResult AudioStreamGraphRtpRx::update(RtpConfig* config)
         IMLOGI0("[update] pause RX");
         return stop();
     }
+
     ImsMediaResult ret = RESULT_NOT_READY;
 
     if (mGraphState == kStreamStateRunning)
     {
         mScheduler->Stop();
+
         for (auto& node : mListNodeStarted)
         {
             IMLOGD1("[update] update node[%s]", node->GetNodeName());
             ret = node->UpdateConfig(mConfig);
+
             if (ret != RESULT_SUCCESS)
             {
                 IMLOGE2("[update] error in update node[%s], ret[%d]", node->GetNodeName(), ret);
@@ -128,6 +131,7 @@ ImsMediaResult AudioStreamGraphRtpRx::update(RtpConfig* config)
         {
             IMLOGD1("[update] update node[%s]", node->GetNodeName());
             ret = node->UpdateConfig(mConfig);
+
             if (ret != RESULT_SUCCESS)
             {
                 IMLOGE2("[update] error in update node[%s], ret[%d]", node->GetNodeName(), ret);
@@ -144,4 +148,21 @@ ImsMediaResult AudioStreamGraphRtpRx::update(RtpConfig* config)
     }
 
     return ret;
+}
+
+ImsMediaResult AudioStreamGraphRtpRx::start()
+{
+    if (mConfig == nullptr)
+    {
+        return RESULT_NOT_READY;
+    }
+
+    if (mConfig->getMediaDirection() == RtpConfig::MEDIA_DIRECTION_RECEIVE_ONLY ||
+            mConfig->getMediaDirection() == RtpConfig::MEDIA_DIRECTION_SEND_RECEIVE)
+    {
+        return BaseStreamGraph::start();
+    }
+
+    // not started
+    return RESULT_SUCCESS;
 }

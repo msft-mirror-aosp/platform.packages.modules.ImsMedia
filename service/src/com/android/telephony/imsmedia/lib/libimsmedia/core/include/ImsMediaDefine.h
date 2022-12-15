@@ -447,7 +447,11 @@ enum SessionState
 {
     /** The state that the session is created but graph is not created */
     kSessionStateOpened,
-    /** The state that the session is created and the Rtp StreamGraphs are running */
+    /** The state that the session is created and the TX rtp StreamGraphs are running */
+    kSessionStateSending,
+    /** The state that the session is created and the RX rtp StreamGraphs are running */
+    kSessionStateReceiving,
+    /** The state that the session is created and the both TX and Rx rtp StreamGraphs are running */
     kSessionStateActive,
     /** The state that the session is created and the Rtp StreamGraphs is not running */
     kSessionStateSuspended,
