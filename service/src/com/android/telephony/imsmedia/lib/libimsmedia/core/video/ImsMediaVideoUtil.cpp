@@ -21,6 +21,7 @@
 #include <ImsMediaBinaryFormat.h>
 #include <ImsMediaTrace.h>
 #include <VideoConfig.h>
+#include <memory>
 #include <string.h>
 
 #define START_CODE_PREFIX_LEN           4
@@ -86,12 +87,9 @@ bool ImsMediaVideoUtil::ModifyAvcSpropParameterSet(
     if (inSpropparam == NULL || outSpropparam == NULL)
         return false;
 
-    bool bRet = false;
     char pSPSConfig[MAX_CONFIG_LEN] = {'\0'};
     uint8_t pbSPSConfig[MAX_CONFIG_LEN] = {'\0'};
     uint32_t nSPSConfigSize = 0;
-    uint8_t* pbSPSConfigModified = NULL;
-    char* pSPSConfigModified = NULL;
 
     memset(pSPSConfig, 0x00, MAX_CONFIG_LEN);
 
@@ -120,12 +118,12 @@ bool ImsMediaVideoUtil::ModifyAvcSpropParameterSet(
         return false;
     }
 
-    pbSPSConfigModified = (uint8_t*)malloc(nSPSConfigSize);
+    std::unique_ptr<uint8_t[]> pbSPSConfigModified(new uint8_t[nSPSConfigSize]);
 
     if (pbSPSConfigModified == NULL)
         return false;
 
-    memcpy(pbSPSConfigModified, pbSPSConfig, nSPSConfigSize);
+    memcpy(pbSPSConfigModified.get(), pbSPSConfig, nSPSConfigSize);
 
     // Skip profile modification
 
@@ -133,39 +131,25 @@ bool ImsMediaVideoUtil::ModifyAvcSpropParameterSet(
     pbSPSConfigModified[3] = nLevel;
 
     // For copy modified sps formed base64
-    pSPSConfigModified = (char*)malloc(MAX_CONFIG_LEN);
+    std::unique_ptr<char[]> pSPSConfigModified(new char[MAX_CONFIG_LEN]);
 
     if (pSPSConfigModified == NULL)
         return false;
 
-    memset(pSPSConfigModified, 0, MAX_CONFIG_LEN);
+    memset(pSPSConfigModified.get(), 0, MAX_CONFIG_LEN);
 
     // Convert binary to base64
-    ret = ImsMediaBinaryFormat::BinaryToBase00(pSPSConfigModified, MAX_CONFIG_LEN,
-            pbSPSConfigModified, nSPSConfigSize, BINARY_FORMAT_BASE64);
+    ret = ImsMediaBinaryFormat::BinaryToBase00(pSPSConfigModified.get(), MAX_CONFIG_LEN,
+            pbSPSConfigModified.get(), nSPSConfigSize, BINARY_FORMAT_BASE64);
 
-    if (ret == false || strlen(pSPSConfigModified) == 0)
+    if (ret == false || strlen(pSPSConfigModified.get()) == 0)
     {
-        bRet = false;
-        goto Exit_ModifyAvcSpropParameterSet;
+        return false;
     }
 
-    IMLOGW1("[ModifyAvcSpropParameterSet] output data[%s]", pSPSConfigModified);
-    memcpy(outSpropparam, pSPSConfigModified, strlen(pSPSConfigModified));
-    bRet = true;
-
-Exit_ModifyAvcSpropParameterSet:
-    if (pSPSConfigModified != NULL)
-    {
-        free(pSPSConfigModified);
-    }
-
-    if (pbSPSConfigModified != NULL)
-    {
-        free(pbSPSConfigModified);
-    }
-
-    return bRet;
+    IMLOGW1("[ModifyAvcSpropParameterSet] output data[%s]", pSPSConfigModified.get());
+    memcpy(outSpropparam, pSPSConfigModified.get(), strlen(pSPSConfigModified.get()));
+    return true;
 }
 
 ImsMediaResult ImsMediaVideoUtil::ParseAvcSpropParam(const char* szSpropparam, tCodecConfig* pInfo)
