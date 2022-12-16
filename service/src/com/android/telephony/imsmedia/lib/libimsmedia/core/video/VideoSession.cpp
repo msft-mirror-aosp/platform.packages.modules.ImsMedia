@@ -43,6 +43,7 @@ VideoSession::~VideoSession()
         }
 
         delete mGraphRtpTx;
+        mGraphRtpTx = NULL;
     }
 
     if (mGraphRtpRx != NULL)
@@ -53,6 +54,7 @@ VideoSession::~VideoSession()
         }
 
         delete mGraphRtpRx;
+        mGraphRtpRx = NULL;
     }
 
     if (mGraphRtcp != NULL)
@@ -63,6 +65,7 @@ VideoSession::~VideoSession()
         }
 
         delete mGraphRtcp;
+        mGraphRtcp = NULL;
     }
 }
 
