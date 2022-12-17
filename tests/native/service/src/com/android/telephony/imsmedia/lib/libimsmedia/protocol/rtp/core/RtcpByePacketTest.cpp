@@ -17,6 +17,8 @@
 #include <RtcpByePacket.h>
 #include <gtest/gtest.h>
 
+#include <memory>
+
 namespace android
 {
 
@@ -45,133 +47,122 @@ protected:
 /** Successful Test scenario with multiple SSRC */
 TEST_F(RtcpByePacketTest, decodeByePacketMultipleSSRCTest)
 {
-    RtpDt_UChar* pucByeBuf = new RtpDt_UChar[25];
+    std::unique_ptr<RtpDt_UChar[]> pucByeBuf(new RtpDt_UChar[25]);
     ASSERT_TRUE(pucByeBuf != NULL);
 
     /* pucByeBuf injected with multiple ssrc number */
-    memcpy(pucByeBuf,
+    memcpy(pucByeBuf.get(),
             (RtpDt_UChar[]){0x82, 0xCB, 0x00, 0x08, 0x19, 0x6D, 0x27, 0xC5, 0xE2, 0xA5, 0x19, 0x01,
                     0x08, 0x74, 0x65, 0x61, 0x72, 0x64, 0x6F, 0x77, 0x6E},
             22);
 
-    EXPECT_TRUE(testRtcpByePacket->decodeByePacket(pucByeBuf, 22));
-    delete[] pucByeBuf;
+    EXPECT_TRUE(testRtcpByePacket->decodeByePacket(pucByeBuf.get(), 22));
 }
 
 /** Successful Test scenario single SSRC without Optional reason and length */
 TEST_F(RtcpByePacketTest, decodeByePacketSingleSSRCTest)
 {
-    RtpDt_UChar* pucByeBuf = new RtpDt_UChar[13];
+    std::unique_ptr<RtpDt_UChar[]> pucByeBuf(new RtpDt_UChar[13]);
     ASSERT_TRUE(pucByeBuf != RTP_NULL);
 
     /* pucByeBuf contains session RTCP Header, Optional reason and length excluded */
-    memcpy(pucByeBuf,
+    memcpy(pucByeBuf.get(),
             (RtpDt_UChar[]){0x82, 0xCB, 0x00, 0x08, 0x19, 0x6D, 0x27, 0xC5, 0xE2, 0xA5, 0x19, 0x01},
             12);
 
-    EXPECT_TRUE(testRtcpByePacket->decodeByePacket(pucByeBuf, 12));
-    delete[] pucByeBuf;
+    EXPECT_TRUE(testRtcpByePacket->decodeByePacket(pucByeBuf.get(), 12));
 }
 
 /** Successful Test scenario with multiple SSRC with optional data included. */
 TEST_F(RtcpByePacketTest, decodeByePacketMultipleSSRCOptionalDataTest)
 {
-    RtpDt_UChar* pucByeBuf = new RtpDt_UChar[28];
+    std::unique_ptr<RtpDt_UChar[]> pucByeBuf(new RtpDt_UChar[28]);
     ASSERT_TRUE(pucByeBuf != RTP_NULL);
 
     /* pucByeBuf contains RTCP header, 2 SSRC and optional Length and Reason. */
-    memcpy(pucByeBuf,
+    memcpy(pucByeBuf.get(),
             (RtpDt_UChar[]){0x83, 0xCB, 0x00, 0x08, 0x19, 0x6D, 0x27, 0xC5, 0xE2, 0xA5, 0x19, 0x01,
                     0x07, 0xFF, 0xF4, 0xAA, 0x08, 0x74, 0x65, 0x61, 0x72, 0x64, 0x6F, 0x77, 0x6E},
             26);
 
-    EXPECT_TRUE(testRtcpByePacket->decodeByePacket(pucByeBuf, 26));
-    delete[] pucByeBuf;
+    EXPECT_TRUE(testRtcpByePacket->decodeByePacket(pucByeBuf.get(), 26));
 }
 
 /** Unexpected more length of Optional reason test. */
 TEST_F(RtcpByePacketTest, decodeByePacketReasonLengthOverflowTest)
 {
-    RtpDt_UChar* pucByeBuf = new RtpDt_UChar[28];
+    std::unique_ptr<RtpDt_UChar[]> pucByeBuf(new RtpDt_UChar[28]);
     ASSERT_TRUE(pucByeBuf != RTP_NULL);
 
     /* pucByeBuf injected with unexpected Optiona length value, how ever
      * optional message having less length */
-    memcpy(pucByeBuf,
+    memcpy(pucByeBuf.get(),
             (RtpDt_UChar[]){0x83, 0xCB, 0x00, 0x08, 0x19, 0x6D, 0x27, 0xC5, 0xE2, 0xA5, 0x19, 0x01,
                     0x07, 0xFF, 0xF4, 0xAA, 0x0C, 0x74, 0x65, 0x61, 0x72, 0x64, 0x6F, 0x77, 0x6E},
             26);
 
-    EXPECT_TRUE(testRtcpByePacket->decodeByePacket(pucByeBuf, 26));
-    delete[] pucByeBuf;
+    EXPECT_TRUE(testRtcpByePacket->decodeByePacket(pucByeBuf.get(), 26));
 }
 
 /** Unexpected less length of Optional reason test. */
 TEST_F(RtcpByePacketTest, decodeByePacketReasonLengthUnderflowTest)
 {
-    RtpDt_UChar* pucByeBuf = new RtpDt_UChar[28];
+    std::unique_ptr<RtpDt_UChar[]> pucByeBuf(new RtpDt_UChar[28]);
     ASSERT_TRUE(pucByeBuf != RTP_NULL);
 
     /* pucByeBuf injected with unexpected Optiona length value, how ever
      * optional message having more length */
-    memcpy(pucByeBuf,
+    memcpy(pucByeBuf.get(),
             (RtpDt_UChar[]){0x83, 0xCB, 0x00, 0x08, 0x19, 0x6D, 0x27, 0xC5, 0xE2, 0xA5, 0x19, 0x01,
                     0x07, 0xFF, 0xF4, 0xAA, 0x04, 0x74, 0x65, 0x61, 0x72, 0x64, 0x6F, 0x77, 0x6E},
             26);
 
-    EXPECT_TRUE(testRtcpByePacket->decodeByePacket(pucByeBuf, 26));
-    delete[] pucByeBuf;
+    EXPECT_TRUE(testRtcpByePacket->decodeByePacket(pucByeBuf.get(), 26));
 }
 /** Forming RtcpBye packet without Optional Bye reason */
 TEST_F(RtcpByePacketTest, formByePacketSuccessTest)
 {
-    RtpBuffer* testBuf;
-    testBuf = new RtpBuffer();
+    std::unique_ptr<RtpBuffer> testBuf(new RtpBuffer());
     ASSERT_TRUE(testBuf != RTP_NULL);
 
-    RtpDt_UChar* pcBuff = new RtpDt_UChar[RTP_DEF_MTU_SIZE];
+    std::unique_ptr<RtpDt_UChar[]> pcBuff(new RtpDt_UChar[RTP_DEF_MTU_SIZE]);
 
     ASSERT_TRUE(pcBuff != RTP_NULL);
 
-    testBuf->setBufferInfo(RTP_DEF_MTU_SIZE, pcBuff);
+    testBuf->setBufferInfo(RTP_DEF_MTU_SIZE, pcBuff.release());
     testBuf->setLength(RTP_ZERO);
 
     EXPECT_EQ(RTP_ZERO, testBuf->getLength());
 
-    EXPECT_TRUE(testRtcpByePacket->formByePacket(testBuf));
-
-    delete testBuf;
+    EXPECT_TRUE(testRtcpByePacket->formByePacket(testBuf.get()));
 }
 
 /** Forming RtcpBye packet with Optional Bye reason */
 TEST_F(RtcpByePacketTest, formByePacketSuccessTestWithByeReason)
 {
-    RtpBuffer* testBuf;
-    testBuf = new RtpBuffer();
+    std::unique_ptr<RtpBuffer> testBuf(new RtpBuffer());
     ASSERT_TRUE(testBuf != RTP_NULL);
 
-    RtpDt_UChar* pcBuff = new RtpDt_UChar[RTP_DEF_MTU_SIZE];
+    std::unique_ptr<RtpDt_UChar[]> pcBuff(new RtpDt_UChar[RTP_DEF_MTU_SIZE]);
 
     ASSERT_TRUE(pcBuff != RTP_NULL);
 
-    testBuf->setBufferInfo(RTP_DEF_MTU_SIZE, pcBuff);
+    testBuf->setBufferInfo(RTP_DEF_MTU_SIZE, pcBuff.release());
     testBuf->setLength(RTP_ZERO);
 
     EXPECT_EQ(RTP_ZERO, testBuf->getLength());
 
-    RtpBuffer* testReasonBuf;
-    testReasonBuf = new RtpBuffer();
+    std::unique_ptr<RtpBuffer> testReasonBuf(new RtpBuffer());
 
-    RtpDt_UChar* byeReasonBuf = new RtpDt_UChar[10];
-    memcpy(byeReasonBuf, (RtpDt_UChar[]){0x08, 0x74, 0x65, 0x61, 0x72, 0x64, 0x6F, 0x77, 0x6E}, 9);
+    std::unique_ptr<RtpDt_UChar[]> byeReasonBuf(new RtpDt_UChar[10]);
+    memcpy(byeReasonBuf.get(),
+            (RtpDt_UChar[]){0x08, 0x74, 0x65, 0x61, 0x72, 0x64, 0x6F, 0x77, 0x6E}, 9);
 
-    testReasonBuf->setBufferInfo(9, byeReasonBuf);
+    testReasonBuf->setBufferInfo(9, byeReasonBuf.release());
 
-    testRtcpByePacket->setReason(testReasonBuf);
+    testRtcpByePacket->setReason(testReasonBuf.release());
 
-    EXPECT_TRUE(testRtcpByePacket->formByePacket(testBuf));
-
-    delete testBuf;
+    EXPECT_TRUE(testRtcpByePacket->formByePacket(testBuf.get()));
 }
 
 }  // namespace android
