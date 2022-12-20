@@ -16,13 +16,10 @@
 
 #include <gtest/gtest.h>
 #include <gmock/gmock.h>
-
 #include <AudioConfig.h>
-
 #include <ImsMediaAudioUtil.h>
 #include <MediaQualityAnalyzer.h>
 #include <ImsMediaCondition.h>
-
 #include <MockBaseSessionCallback.h>
 
 using namespace android::telephony::imsmedia;
@@ -64,11 +61,11 @@ const int32_t kEvsMode = 8;
 const int8_t kChannelAwareMode = 3;
 const bool kUseHeaderFullOnly = false;
 
-class FakeBaseSessionCallback : public BaseSessionCallback
+class FakeMediaQualityCallback : public BaseSessionCallback
 {
 public:
-    FakeBaseSessionCallback() {}
-    virtual ~FakeBaseSessionCallback() {}
+    FakeMediaQualityCallback() {}
+    virtual ~FakeMediaQualityCallback() {}
 
     virtual void SendEvent(int32_t type, uint64_t param1, uint64_t param2)
     {
@@ -102,7 +99,7 @@ private:
 class MediaQualityAnalyzerTest : public ::testing::Test
 {
 public:
-    MediaQualityAnalyzerTest() {}
+    MediaQualityAnalyzerTest() { mAnalyzer = NULL; }
     virtual ~MediaQualityAnalyzerTest() {}
 
 protected:
@@ -111,7 +108,7 @@ protected:
     RtcpConfig mRtcpConfig;
     AmrParams mAmrParam;
     EvsParams mEvsParam;
-    FakeBaseSessionCallback mFakeCallback;
+    FakeMediaQualityCallback mFakeCallback;
     MockBaseSessionCallback mCallback;
     ImsMediaCondition mCondition;
 
@@ -156,6 +153,7 @@ protected:
 
         mAnalyzer->setCallback(&mCallback);
         mAnalyzer->setConfig(&mConfig);
+        mCondition.reset();
     }
 
     virtual void TearDown() override

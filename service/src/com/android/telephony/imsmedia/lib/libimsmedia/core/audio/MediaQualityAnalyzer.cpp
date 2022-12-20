@@ -42,6 +42,7 @@ MediaQualityAnalyzer::MediaQualityAnalyzer()
     mJitterDuration = 0;
     mPacketLossThreshold = 0;
     mPacketLossDuration = 0;
+    mTimerHandler = NULL;
     reset();
 }
 
@@ -371,8 +372,8 @@ void MediaQualityAnalyzer::processTimer()
     if (mTimerCount == DEFAULT_INACTIVITY_TIME && mMediaQuality->getNumRtpPacketsReceived() == 0)
     {
         mMediaQuality->setRtpInactivityDetected(true);
-        MediaQuality* quality = new MediaQuality(*mMediaQuality);
-        mCallback->SendEvent(kAudioCallQualityChangedInd, reinterpret_cast<uint64_t>(quality));
+        MediaQuality* mediaQuality = new MediaQuality(*mMediaQuality);
+        mCallback->SendEvent(kAudioCallQualityChangedInd, reinterpret_cast<uint64_t>(mediaQuality));
     }
 
     mMediaQuality->setCallDuration(mMediaQuality->getCallDuration() + 1000);
@@ -393,8 +394,9 @@ void MediaQualityAnalyzer::processTimer()
         if (mMediaQuality->getDownlinkCallQualityLevel() != quality)
         {
             mMediaQuality->setDownlinkCallQualityLevel(quality);
-            MediaQuality* quality = new MediaQuality(*mMediaQuality);
-            mCallback->SendEvent(kAudioCallQualityChangedInd, reinterpret_cast<uint64_t>(quality));
+            MediaQuality* mediaQuality = new MediaQuality(*mMediaQuality);
+            mCallback->SendEvent(
+                    kAudioCallQualityChangedInd, reinterpret_cast<uint64_t>(mediaQuality));
         }
 
         mCallQualityNumLostPacket = 0;
@@ -548,19 +550,19 @@ void MediaQualityAnalyzer::clearLostPacketList(const int32_t seq)
 
 uint32_t MediaQualityAnalyzer::getCallQuality(const double lossRate)
 {
-    if (lossRate < 1)
+    if (lossRate < 1.0f)
     {
         return MediaQuality::kCallQualityExcellent;
     }
-    else if (lossRate >= 1 && lossRate < 3)
+    else if (lossRate < 3.0f)
     {
         return MediaQuality::kCallQualityGood;
     }
-    else if (lossRate >= 3 && lossRate < 5)
+    else if (lossRate < 5.0f)
     {
         return MediaQuality::kCallQualityFair;
     }
-    else if (lossRate >= 5 && lossRate < 8)
+    else if (lossRate < 8.0f)
     {
         return MediaQuality::kCallQualityPoor;
     }
