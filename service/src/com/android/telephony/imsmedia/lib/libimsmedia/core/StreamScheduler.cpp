@@ -119,7 +119,7 @@ void StreamScheduler::Awake()
     mConditionMain.signal();
 }
 
-BaseNode* StreamScheduler::DeterminProcessingNode(uint32_t* pnMaxDataInNode)
+BaseNode* StreamScheduler::DetermineProcessingNode(uint32_t* pnMaxDataInNode)
 {
     if (IsThreadStopped())
     {
@@ -131,11 +131,9 @@ BaseNode* StreamScheduler::DeterminProcessingNode(uint32_t* pnMaxDataInNode)
 
     for (auto& node : mlistNodeToRun)
     {
-        uint32_t nDataInNode;
-
         if (node != NULL)
         {
-            nDataInNode = node->GetDataCount();
+            uint32_t nDataInNode = node->GetDataCount();
 
             if (nDataInNode > 0 && nDataInNode >= nMaxDataInNode)
             {
@@ -151,7 +149,6 @@ BaseNode* StreamScheduler::DeterminProcessingNode(uint32_t* pnMaxDataInNode)
 
 void StreamScheduler::RunRegisteredNode()
 {
-    BaseNode* pNode;
     uint32_t nMaxDataInNode;
 
     // run source nodes
@@ -174,7 +171,7 @@ void StreamScheduler::RunRegisteredNode()
 
     for (;;)
     {
-        pNode = DeterminProcessingNode(&nMaxDataInNode);
+        BaseNode* pNode = DetermineProcessingNode(&nMaxDataInNode);
 
         if (pNode == NULL)
         {

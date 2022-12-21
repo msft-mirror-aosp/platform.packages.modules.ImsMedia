@@ -37,7 +37,7 @@ public:
     virtual void* run();
 
 private:
-    BaseNode* DeterminProcessingNode(uint32_t* pnMaxDataInNode);
+    BaseNode* DetermineProcessingNode(uint32_t* pnMaxDataInNode);
     void RunRegisteredNode();
     std::list<BaseNode*> mlistSourceNode;
     std::list<BaseNode*> mlistRegisteredNode;

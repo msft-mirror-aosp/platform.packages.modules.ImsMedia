@@ -185,8 +185,6 @@ void* IAudioPlayerNode::run()
     bool bMark = false;
     uint32_t nSeqNum = 0;
     uint64_t nNextTime = ImsMediaTimer::GetTimeInMicroSeconds();
-    uint64_t nCurrTime = 0;
-    int64_t nTime = 0;
 
     while (true)
     {
@@ -219,8 +217,8 @@ void* IAudioPlayerNode::run()
         }
 
         nNextTime += 20000;
-        nCurrTime = ImsMediaTimer::GetTimeInMicroSeconds();
-        nTime = nNextTime - nCurrTime;
+        uint64_t nCurrTime = ImsMediaTimer::GetTimeInMicroSeconds();
+        int64_t nTime = nNextTime - nCurrTime;
 
         if (nTime < 0)
         {
