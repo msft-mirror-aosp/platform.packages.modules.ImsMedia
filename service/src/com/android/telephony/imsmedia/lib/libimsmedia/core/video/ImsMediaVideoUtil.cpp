@@ -183,7 +183,7 @@ ImsMediaResult ImsMediaVideoUtil::ParseAvcSpropParam(const char* szSpropparam, t
         return RESULT_INVALID_PARAM;
     }
 
-    uint8_t* pszSpropparam = (uint8_t*)malloc(nSPSConfigSize);
+    uint8_t* pszSpropparam = reinterpret_cast<uint8_t*>(malloc(nSPSConfigSize));
 
     if (pszSpropparam == NULL)
     {
@@ -343,7 +343,7 @@ ImsMediaResult ImsMediaVideoUtil::ParseHevcSpropParam(const char* szSpropparam, 
     if (nSPSConfigSize == 0)
         return RESULT_INVALID_PARAM;
 
-    pszSpropparam = (uint8_t*)malloc(nSPSConfigSize);
+    pszSpropparam = reinterpret_cast<uint8_t*>(malloc(nSPSConfigSize));
 
     if (pszSpropparam == NULL)
     {
@@ -358,7 +358,8 @@ ImsMediaResult ImsMediaVideoUtil::ParseHevcSpropParam(const char* szSpropparam, 
     memcpy(pszSpropparam, pbSPSConfig, nSPSConfigSize);
 
     // Check binary
-    ImsMediaTrace::IMLOGD_BINARY("[ParseHevcSpropParam] sps=", pszSpropparam, nSPSConfigSize);
+    ImsMediaTrace::IMLOGD_BINARY("[ParseHevcSpropParam] sps=",
+            reinterpret_cast<const char*>(pszSpropparam), nSPSConfigSize);
 
     uint32_t nOffset = 0;
 
@@ -494,7 +495,7 @@ bool ImsMediaVideoUtil::ParseAvcSps(uint8_t* pbBuffer, uint32_t nBufferSize, tCo
 {
     ImsMediaBitReader bitreader;
     uint32_t chroma_format_idc = 0;
-    uint8_t* pszSPS = (uint8_t*)malloc(nBufferSize);
+    uint8_t* pszSPS = reinterpret_cast<uint8_t*>(malloc(nBufferSize));
 
     if (pszSPS == NULL)
     {
@@ -857,8 +858,9 @@ char* ImsMediaVideoUtil::GenerateVideoSprop(VideoConfig* pVideoConfig)
 
     bool bSpsRead = false, bPpsRead = false;
     int8_t nMaxBufferReads = MAX_OUTPUT_BUFFER_READ_ATTEMPTS;
-    char* pSpropStr = (char*)malloc(MAX_CONFIG_LEN);
+    char* pSpropStr = reinterpret_cast<char*>(malloc(MAX_CONFIG_LEN));
     pSpropStr[0] = '\0';
+
     while (!bSpsRead || !bPpsRead)
     {
         // Get output buffer

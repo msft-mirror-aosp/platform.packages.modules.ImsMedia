@@ -194,8 +194,8 @@ public:
     static void IMLOGI_ARG(const char* format, ...);
     static void IMLOGW_ARG(const char* format, ...);
     static void IMLOGE_ARG(const char* format, ...);
-    static char* IMTrace_Bin2String(void* s, int length);
-    static void IMLOGD_BINARY(const char* msg, const void* s, int length);
+    static char* IMTrace_Bin2String(const char* s, int length);
+    static void IMLOGD_BINARY(const char* msg, const char* s, int length);
     static char* IM_StripFileName(char* pcFileName);
 };
 
