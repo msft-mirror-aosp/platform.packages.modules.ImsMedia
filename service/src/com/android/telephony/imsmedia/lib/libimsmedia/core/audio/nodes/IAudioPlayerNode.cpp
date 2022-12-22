@@ -132,8 +132,7 @@ void IAudioPlayerNode::SetConfig(void* config)
         mEvsChannelAwOffset = mConfig->getEvsParams().getChannelAwareMode();
         mEvsBandwidth = (kEvsBandwidth)ImsMediaAudioUtil::FindMaxEvsBandwidthFromRange(
                 mConfig->getEvsParams().getEvsBandwidth());
-        mEvsPayloadHeaderMode =
-                (kRtpPyaloadHeaderMode)mConfig->getEvsParams().getUseHeaderFullOnly();
+        mEvsPayloadHeaderMode = mConfig->getEvsParams().getUseHeaderFullOnly();
     }
 
     mSamplingRate = mConfig->getSamplingRateKHz();

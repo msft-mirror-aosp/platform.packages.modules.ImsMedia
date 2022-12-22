@@ -74,9 +74,9 @@ void ImsMediaAudioPlayer::SetEvsBandwidth(kEvsBandwidth evsBandwidth)
     mEvsBandwidth = evsBandwidth;
 }
 
-void ImsMediaAudioPlayer::SetEvsPayloadHeaderMode(kRtpPyaloadHeaderMode EvsPayloadHeaderMode)
+void ImsMediaAudioPlayer::SetEvsPayloadHeaderMode(int32_t EvsPayloadHeaderMode)
 {
-    mEvsCodecHeaderMode = EvsPayloadHeaderMode;
+    mEvsCodecHeaderMode = (kRtpPyaloadHeaderMode)EvsPayloadHeaderMode;
 }
 
 void ImsMediaAudioPlayer::SetCodecMode(uint32_t mode)

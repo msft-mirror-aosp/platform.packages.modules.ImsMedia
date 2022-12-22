@@ -79,7 +79,7 @@ public:
      *
      * @param EvsPayloadHeaderMode kRtpPyaloadHeaderMode defined in ImsMediaDefine.h
      */
-    void SetEvsPayloadHeaderMode(kRtpPyaloadHeaderMode EvsPayloadHeaderMode);
+    void SetEvsPayloadHeaderMode(int32_t EvsPayloadHeaderMode);
 
     /**
      * @brief Starts audio player to play the decoded audio frame and ndk audio decoder to decode
