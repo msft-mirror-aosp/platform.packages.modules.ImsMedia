@@ -19,25 +19,19 @@
 
 #include <MediaQuality.h>
 #include <ImsMediaDefine.h>
-#include <ImsMediaTimer.h>
+#include <IImsMediaThread.h>
+#include <ImsMediaCondition.h>
 #include <RtcpXrEncoder.h>
 #include <BaseSessionCallback.h>
 #include <AudioConfig.h>
 #include <list>
+#include <mutex>
 
-class MediaQualityAnalyzer
+class MediaQualityAnalyzer : public IImsMediaThread
 {
 public:
     MediaQualityAnalyzer();
     virtual ~MediaQualityAnalyzer();
-
-    /**
-     * @brief A function to invoke when timer expires in certain duration.
-     *
-     * @param hTimer timer handler
-     * @param pUserData instance who invoke timer
-     */
-    static void onTimer(hTimerHandler hTimer, void* pUserData);
 
     /**
      * @brief Set the session callback to send the event
@@ -76,16 +70,14 @@ public:
     bool isSameConfig(AudioConfig* config);
 
     /**
-     * @brief Set timer to trigger for calculating statistics from collected datas
-     *
-     * @param duration timer duration in seconds unit.
+     * @brief Start for calculating statistics from collected datas
      */
-    void startTimer(const int32_t duration);
+    void start();
 
     /**
-     * @brief Stop timer and calculating statistics from collected datas
+     * @brief Stop calculating the statistics from collected datas and send a report
      */
-    void stopTimer();
+    void stop();
 
     /**
      * @brief Collect information of sending or receiving the rtp or the rtcp packet datas.
@@ -109,8 +101,9 @@ public:
      *
      * @param seq The packet sequence number to collect.
      * @param status The status of the packet. Check in @link{kRtpPacketStatus}
+     * @param time The time marked when the frame was played in milliseconds unit
      */
-    void collectRxRtpStatus(const int32_t seq, kRtpPacketStatus status);
+    void collectRxRtpStatus(const int32_t seq, const kRtpPacketStatus status, const uint32_t time);
 
     /**
      * @brief Collects jitter buffer size.
@@ -119,11 +112,6 @@ public:
      * @param maxSize The maximum jitter buffer size.
      */
     void collectJitterBufferSize(const int32_t currSize, const int32_t maxSize);
-
-    /**
-     * @brief It is invoked when the timer expired
-     */
-    void processTimer();
 
     /**
      * @brief generate  Rtcp-Xr report blocks with given report block enabled in bitmask type
@@ -156,7 +144,25 @@ public:
      */
     uint32_t getLostPacketSize();
 
-private:
+    /**
+     * @brief Send message event to event handler
+     *
+     * @param event The event type
+     * @param paramA The 1st parameter
+     * @param paramB The 2nd parameter
+     */
+    void SendEvent(uint32_t event, uint64_t paramA, uint64_t paramB = 0);
+
+protected:
+    /**
+     * @brief Process the data stacked in the list
+     *
+     * @param timeCount The count increased every second
+     */
+    void processData(const int32_t timeCount);
+    void AddEvent(uint32_t event, uint64_t paramA, uint64_t paramB);
+    void processEvent(uint32_t event, uint64_t paramA, uint64_t paramB);
+    virtual void* run();
     void reset();
     void clearPacketList(std::list<RtpPacket*>& list, const int32_t seq);
     void clearLostPacketList(const int32_t seq);
@@ -165,11 +171,6 @@ private:
 
     BaseSessionCallback* mCallback;
     std::unique_ptr<RtcpXrEncoder> mRtcpXrEncoder;
-    /** The interval of timer in milliseconds  unit */
-    int32_t mTimerDuration;
-    /** The counter increased when the timer expires */
-    uint32_t mTimerCount;
-    hTimerHandler mTimerHandler;
     /** The list of the packets received ordered by arrival time */
     std::list<RtpPacket*> mListRxPacket;
     /** The list of the lost packets object */
@@ -187,7 +188,7 @@ private:
     /** The end of the rx rtp packet sequence number for Rtcp-Xr report */
     int32_t mEndSeq;
     /** The media quality structure to report */
-    MediaQuality* mMediaQuality;
+    MediaQuality mMediaQuality;
     /** The sum of the relative jitter of rx packet for call quality */
     int64_t mCallQualitySumRelativeJitter;
     /** The sum of the round trip delay of the session for call quality */
@@ -216,6 +217,12 @@ private:
     uint32_t mNumLostPacket;
     /** The cumulated jitter value when any rx packet received */
     double mJitterRxPacket;
+
+    std::list<uint32_t> mListevent;
+    std::list<uint64_t> mListParamA;
+    std::list<uint64_t> mListParamB;
+    std::mutex mEventMutex;
+    ImsMediaCondition mConditionExit;
 };
 
 #endif

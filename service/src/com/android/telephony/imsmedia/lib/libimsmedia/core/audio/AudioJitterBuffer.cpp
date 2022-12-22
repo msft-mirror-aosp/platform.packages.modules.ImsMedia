@@ -756,7 +756,9 @@ void AudioJitterBuffer::CollectRxRtpStatus(int32_t seq, kRtpPacketStatus status)
 
     if (mCallback != NULL)
     {
-        mCallback->SendEvent(kCollectRxRtpStatus, seq, status);
+        SessionCallbackParameter* param =
+                new SessionCallbackParameter(seq, status, ImsMediaTimer::GetTimeInMilliSeconds());
+        mCallback->SendEvent(kCollectRxRtpStatus, reinterpret_cast<uint64_t>(param));
     }
 }
 void AudioJitterBuffer::CollectJitterBufferStatus(int32_t currSize, int32_t maxSize)
