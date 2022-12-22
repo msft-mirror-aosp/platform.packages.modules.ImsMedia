@@ -22,7 +22,8 @@
 
 using namespace std::chrono;
 
-#define RUN_WAIT_TIMEOUT 6
+#define RUN_WAIT_TIMEOUT  6
+#define STOP_WAIT_TIMEOUT 1000
 
 StreamScheduler::StreamScheduler() {}
 
@@ -109,7 +110,7 @@ void StreamScheduler::Stop()
 
     StopThread();
     Awake();
-    mConditionExit.wait_timeout(RUN_WAIT_TIMEOUT * 2);
+    mConditionExit.wait_timeout(STOP_WAIT_TIMEOUT);
 
     IMLOGD1("[Stop] [%p] exit", this);
 }
