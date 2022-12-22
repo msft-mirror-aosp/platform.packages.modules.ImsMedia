@@ -582,7 +582,6 @@ void IVideoRendererNode::SaveConfigFrame(uint8_t* pbBuffer, uint32_t nBufferSize
 {
     bool bSPSString = false;
     bool bPPSString = false;
-    bool bVPSString = false;
 
     if (nBufferSize <= 4)
     {
@@ -674,6 +673,7 @@ void IVideoRendererNode::SaveConfigFrame(uint8_t* pbBuffer, uint32_t nBufferSize
             uint32_t nOffset = 0;
             uint32_t nConfigSize = 0;
             uint8_t* nCurrBuff = pbBuffer;
+            bool bVPSString = false;
 
             while (nCurrSize <= nBufferSize)
             {
