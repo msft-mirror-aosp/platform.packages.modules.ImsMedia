@@ -105,7 +105,6 @@ void TextRendererNode::ProcessData()
     bool mark;
     ImsMediaSubType subtype;
     ImsMediaSubType dataType;
-    uint32_t nCurTime = 0;
 
     while (GetData(&subtype, &data, &size, &timestamp, &mark, &seq, &dataType))
     {
@@ -139,7 +138,7 @@ void TextRendererNode::ProcessData()
                 }
 
                 // to wait 1000 sec - RFC4103 - 5.4 - Compensation for Packets Out of Order
-                nCurTime = ImsMediaTimer::GetTimeInMilliSeconds();
+                uint32_t nCurTime = ImsMediaTimer::GetTimeInMilliSeconds();
 
                 if (mLossWaitTime == 0)
                 {
@@ -175,12 +174,12 @@ void TextRendererNode::ProcessData()
         }
 
         // send event to notify to transfer rtt data received
-        uint32_t transSize = 0;
         uint32_t offset = size;
 
         while (offset > 0 && data != NULL && (seq > mLastPlayedSeq || mLastPlayedSeq == -1))
         {
             // remain last null data
+            uint32_t transSize = 0;
             offset > MAX_RTT_LEN - 1 ? transSize = MAX_RTT_LEN - 1 : transSize = offset;
 
             if (mBOMReceived == false && offset >= 3 && data[0] == 0xef && data[1] == 0xbb &&
@@ -194,7 +193,7 @@ void TextRendererNode::ProcessData()
                 offset -= 3;
             }
 
-            if (transSize > 0 && data != NULL)
+            if (transSize > 0)
             {
                 memset(mBuffer, 0, MAX_RTT_LEN);
                 memcpy(mBuffer, data, transSize);
