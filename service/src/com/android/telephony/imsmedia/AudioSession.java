@@ -35,7 +35,6 @@ import androidx.annotation.Nullable;
 
 import com.android.telephony.imsmedia.Utils.OpenSessionParams;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -412,9 +411,8 @@ public final class AudioSession extends IImsAudioSession.Stub implements IMediaS
         if (isAudioOffload()) {
             try {
                 List<android.hardware.radio.ims.media.RtpHeaderExtension>
-                        halExtensions = new ArrayList<>();
-                halExtensions = extensions.stream().map(Utils::convertRtpHeaderExtension)
-                        .collect(Collectors.toList());
+                        halExtensions = extensions.stream().map(Utils::convertRtpHeaderExtension)
+                                .collect(Collectors.toList());
                 mHalSession.sendHeaderExtension(halExtensions);
             } catch (RemoteException e) {
                 Log.e(TAG, "sendHeaderExtension : " + e);
