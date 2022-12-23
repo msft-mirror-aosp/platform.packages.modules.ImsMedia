@@ -129,14 +129,14 @@ static char buffer[MAX_PRINT_STRING_LEN];
 
 static char hex_char(char nibble)
 {
-    static char buf[16] = {
+    const static char buf[16] = {
             '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a', 'b', 'c', 'd', 'e', 'f'};
     return buf[nibble & 0xF];
 }
 
-char* ImsMediaTrace::IMTrace_Bin2String(void* s, int length)
+char* ImsMediaTrace::IMTrace_Bin2String(const char* s, int length)
 {
-    char* input = (char*)s;
+    const char* input = s;
     char* output = buffer;
     int i;
 
@@ -158,10 +158,10 @@ char* ImsMediaTrace::IMTrace_Bin2String(void* s, int length)
     return buffer;
 }
 
-void ImsMediaTrace::IMLOGD_BINARY(const char* msg, const void* s, int length)
+void ImsMediaTrace::IMLOGD_BINARY(const char* msg, const char* s, int length)
 {
 #define IMLOG_BIN_LINE_WIDTH 32
-    char* curr = (char*)s;
+    const char* curr = s;
     if (msg)
         IMLOGD1("%s", msg);
     while (length > 0)
@@ -179,8 +179,11 @@ char* IM_Strrchr(char* pszSrc, char cChar)
     do
     {
         if (*pszSrc == cChar)
-            pszDest = (char*)pszSrc;
-        if ((*pszSrc) == 0)
+        {
+            pszDest = reinterpret_cast<char*>(pszSrc);
+        }
+
+        if (*pszSrc == 0)
         {
             break;
         }

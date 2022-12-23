@@ -250,7 +250,8 @@ int32_t ImsMediaSocket::SendTo(uint8_t* pData, uint32_t nDataSize)
         pstSockAddr = (struct sockaddr*)&stAddr6;
     }
 
-    len = sendto(mSocketFd, (const char*)pData, (size_t)nDataSize, 0, pstSockAddr, nSockAddrLen);
+    len = sendto(mSocketFd, reinterpret_cast<const char*>(pData), nDataSize, 0, pstSockAddr,
+            nSockAddrLen);
 
     if (len < 0)
     {
@@ -311,8 +312,8 @@ bool ImsMediaSocket::RetrieveOptionMsg(uint32_t type, int32_t& value)
             {
                 if (cmsg->cmsg_level == IPPROTO_IP && cmsg->cmsg_type == IP_RECVTTL)
                 {
-                    uint8_t* ttlPtr = (uint8_t*)CMSG_DATA(cmsg);
-                    value = (int32_t)*ttlPtr;
+                    uint8_t* ttlPtr = reinterpret_cast<uint8_t*>(CMSG_DATA(cmsg));
+                    value = reinterpret_cast<int32_t&>(*ttlPtr);
                     return true;
                 }
             }
@@ -433,15 +434,15 @@ uint32_t ImsMediaSocket::SetSocketFD(void* pReadFds, void* pWriteFds, void* pExc
 {
     uint32_t nMaxSD = 0;
     std::lock_guard<std::mutex> guard(sMutexRxSocket);
-    FD_ZERO((fd_set*)pReadFds);
-    FD_ZERO((fd_set*)pWriteFds);
-    FD_ZERO((fd_set*)pExceptFds);
+    FD_ZERO(reinterpret_cast<fd_set*>(pReadFds));
+    FD_ZERO(reinterpret_cast<fd_set*>(pWriteFds));
+    FD_ZERO(reinterpret_cast<fd_set*>(pExceptFds));
     IMLOGD_PACKET0(IM_PACKET_LOG_SOCKET, "[SetSocketFD]");
 
     for (auto& i : slistRxSocket)
     {
         int32_t socketFD = i->GetSocketFd();
-        FD_SET(socketFD, (fd_set*)pReadFds);
+        FD_SET(socketFD, reinterpret_cast<fd_set*>(pReadFds));
 
         if (socketFD > nMaxSD)
         {
@@ -464,7 +465,7 @@ void ImsMediaSocket::ReadDataFromSocket(void* pReadfds)
         {
             int32_t socketFD = rxSocket->GetSocketFd();
 
-            if (FD_ISSET(socketFD, (fd_set*)pReadfds))
+            if (FD_ISSET(socketFD, reinterpret_cast<fd_set*>(pReadfds)))
             {
                 IMLOGD_PACKET1(IM_PACKET_LOG_SOCKET,
                         "[ReadDataFromSocket] send notify to listener %p", rxSocket->GetListener());
@@ -492,7 +493,6 @@ void ImsMediaSocket::SocketMonitorThread()
 
     for (;;)
     {
-        uint32_t nRes;
         struct timeval tv;
         tv.tv_sec = 0;
         tv.tv_usec = 100 * 1000;  // micro-second
@@ -511,19 +511,16 @@ void ImsMediaSocket::SocketMonitorThread()
         memcpy(&TmpWritefds, &WriteFds, sizeof(fd_set));
         memcpy(&TmpExcepfds, &ExceptFds, sizeof(fd_set));
 
-        nRes = select(nMaxSD + 1, &TmpReadfds, &TmpWritefds, &TmpExcepfds, &tv);
+        int32_t res = select(nMaxSD + 1, &TmpReadfds, &TmpWritefds, &TmpExcepfds, &tv);
 
         if (mTerminateMonitor)
         {
             break;
         }
-        else if (-1 == nRes)
+
+        if (res == -1)
         {
             IMLOGE0("[SocketMonitorThread] select function Error!!");
-        }
-        else if (0 == nRes)
-        {
-            // IMLOGD_PACKET0(IM_PACKET_LOG_SOCKET, "[SocketMonitorThread] timeout!!");
         }
         else
         {

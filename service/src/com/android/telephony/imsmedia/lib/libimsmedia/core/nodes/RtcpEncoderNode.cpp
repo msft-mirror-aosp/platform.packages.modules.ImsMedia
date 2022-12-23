@@ -173,7 +173,7 @@ void RtcpEncoderNode::OnRtcpPacket(unsigned char* pData, uint32_t wLen)
     {
         uint8_t* pCurr;
         int32_t nRemainSize;
-        pCurr = (uint8_t*)pData;
+        pCurr = reinterpret_cast<uint8_t*>(pData);
         nRemainSize = wLen;
 
         while (nRemainSize >= 4)

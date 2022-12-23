@@ -21,11 +21,16 @@ ISocket* ISocket::GetInstance(
         uint32_t localPort, const char* peerIpAddress, uint32_t peerPort, eSocketClass eSocket)
 {
     ISocket* pSocket = NULL;
+
     if (eSocket == SOCKET_CLASS_DEFAULT)
     {
-        pSocket = (ISocket*)ImsMediaSocket::GetInstance(localPort, peerIpAddress, peerPort);
-        if (pSocket)
+        pSocket = static_cast<ISocket*>(
+                ImsMediaSocket::GetInstance(localPort, peerIpAddress, peerPort));
+
+        if (pSocket != NULL)
+        {
             pSocket->mSocketClass = SOCKET_CLASS_DEFAULT;
+        }
     }
 
     return pSocket;
@@ -35,6 +40,6 @@ void ISocket::ReleaseInstance(ISocket* pSocket)
 {
     if (pSocket->mSocketClass == SOCKET_CLASS_DEFAULT)
     {
-        ImsMediaSocket::ReleaseInstance((ImsMediaSocket*)pSocket);
+        ImsMediaSocket::ReleaseInstance(static_cast<ImsMediaSocket*>(pSocket));
     }
 }

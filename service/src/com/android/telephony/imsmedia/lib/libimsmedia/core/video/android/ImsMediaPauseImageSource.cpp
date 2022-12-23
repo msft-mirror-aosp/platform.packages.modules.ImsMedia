@@ -108,7 +108,7 @@ bool ImsMediaPauseImageSource::Initialize(int width, int height)
     size_t stride = AImageDecoder_getMinimumStride(decoder);  // Image decoder does not
     // use padding by default
     size_t size = height * stride;
-    int8_t* pixels = (int8_t*)malloc(size);
+    int8_t* pixels = reinterpret_cast<int8_t*>(malloc(size));
 
     result = AImageDecoder_decodeImage(decoder, pixels, stride, size);
     if (result != ANDROID_IMAGE_DECODER_SUCCESS)
@@ -203,9 +203,9 @@ const char* ImsMediaPauseImageSource::getImageFilePath()
 int8_t* ImsMediaPauseImageSource::ConvertRgbaToYuv(int8_t* pixels, int width, int height)
 {
     // src array must be integer array, data have no padding alignment
-    int32_t* pSrcArray = (int32_t*)pixels;
+    int32_t* pSrcArray = reinterpret_cast<int32_t*>(pixels);
     mBufferSize = width * height * 1.5;
-    int8_t* pDstArray = (int8_t*)malloc(mBufferSize);
+    int8_t* pDstArray = reinterpret_cast<int8_t*>(malloc(mBufferSize));
     int32_t nIndex = 0;
     int32_t nYIndex = 0;
     int32_t nUVIndex = width * height;

@@ -22,7 +22,8 @@
 
 using namespace std::chrono;
 
-#define RUN_WAIT_TIMEOUT 6
+#define RUN_WAIT_TIMEOUT  6
+#define STOP_WAIT_TIMEOUT 1000
 
 StreamScheduler::StreamScheduler() {}
 
@@ -109,7 +110,7 @@ void StreamScheduler::Stop()
 
     StopThread();
     Awake();
-    mConditionExit.wait_timeout(RUN_WAIT_TIMEOUT * 2);
+    mConditionExit.wait_timeout(STOP_WAIT_TIMEOUT);
 
     IMLOGD1("[Stop] [%p] exit", this);
 }
@@ -119,7 +120,7 @@ void StreamScheduler::Awake()
     mConditionMain.signal();
 }
 
-BaseNode* StreamScheduler::DeterminProcessingNode(uint32_t* pnMaxDataInNode)
+BaseNode* StreamScheduler::DetermineProcessingNode(uint32_t* pnMaxDataInNode)
 {
     if (IsThreadStopped())
     {
@@ -131,11 +132,9 @@ BaseNode* StreamScheduler::DeterminProcessingNode(uint32_t* pnMaxDataInNode)
 
     for (auto& node : mlistNodeToRun)
     {
-        uint32_t nDataInNode;
-
         if (node != NULL)
         {
-            nDataInNode = node->GetDataCount();
+            uint32_t nDataInNode = node->GetDataCount();
 
             if (nDataInNode > 0 && nDataInNode >= nMaxDataInNode)
             {
@@ -151,7 +150,6 @@ BaseNode* StreamScheduler::DeterminProcessingNode(uint32_t* pnMaxDataInNode)
 
 void StreamScheduler::RunRegisteredNode()
 {
-    BaseNode* pNode;
     uint32_t nMaxDataInNode;
 
     // run source nodes
@@ -174,7 +172,7 @@ void StreamScheduler::RunRegisteredNode()
 
     for (;;)
     {
-        pNode = DeterminProcessingNode(&nMaxDataInNode);
+        BaseNode* pNode = DetermineProcessingNode(&nMaxDataInNode);
 
         if (pNode == NULL)
         {

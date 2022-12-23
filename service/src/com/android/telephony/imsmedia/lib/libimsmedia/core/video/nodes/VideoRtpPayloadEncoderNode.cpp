@@ -229,8 +229,11 @@ void VideoRtpPayloadEncoderNode::EncodeAvc(
     }
 
     pStartCodePos = FindAvcStartCode(pCurDataPos, nDataSize, &nSkipSize);
+
     if (pStartCodePos == NULL)
+    {
         return;
+    }
 
     // remove padding
     pCurDataPos = pStartCodePos + 4;
@@ -241,6 +244,7 @@ void VideoRtpPayloadEncoderNode::EncodeAvc(
     {
         // extract nal unit
         pStartCodePos = FindAvcStartCode(pCurDataPos + 1, nDataSize - 1);
+
         if (pStartCodePos == NULL)
         {
             nCurDataSize = nDataSize;
@@ -282,8 +286,10 @@ void VideoRtpPayloadEncoderNode::EncodeAvc(
 
     if (nNalUnitType == 5)  // check idf frame, send sps/pps
     {
-        EncodeAvcNALUnit(mSPS, mSpsSize, nTimestamp, 1, nNalUnitType);
-        EncodeAvcNALUnit(mPPS, mPpsSize, nTimestamp, 1, nNalUnitType);
+        // sps
+        EncodeAvcNALUnit(mSPS, mSpsSize, nTimestamp, 1, 7);
+        // pps
+        EncodeAvcNALUnit(mPPS, mPpsSize, nTimestamp, 1, 8);
         IMLOGD0("[EncodeAvc] Send SPS, PPS when an I frame send");
     }
 

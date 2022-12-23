@@ -381,7 +381,8 @@ bool IVideoRendererNode::IsIntraFrame(uint8_t* pbBuffer, uint32_t nBufferSize)
     }
 
     IMLOGD_PACKET2(IM_PACKET_LOG_VIDEO, "[IsIntraFrame] size[%d], data[%s]", nBufferSize,
-            ImsMediaTrace::IMTrace_Bin2String(pbBuffer, nBufferSize > 16 ? 16 : nBufferSize));
+            ImsMediaTrace::IMTrace_Bin2String(
+                    reinterpret_cast<const char*>(pbBuffer), nBufferSize > 16 ? 16 : nBufferSize));
 
     switch (mCodecType)
     {
@@ -439,7 +440,8 @@ bool IVideoRendererNode::IsConfigFrame(
         return false;
 
     IMLOGD_PACKET2(IM_PACKET_LOG_VIDEO, "[IsConfigFrame] size[%d], data[%s]", nBufferSize,
-            ImsMediaTrace::IMTrace_Bin2String(pbBuffer, nBufferSize > 16 ? 16 : nBufferSize));
+            ImsMediaTrace::IMTrace_Bin2String(
+                    reinterpret_cast<const char*>(pbBuffer), nBufferSize > 16 ? 16 : nBufferSize));
 
     switch (mCodecType)
     {
@@ -512,7 +514,8 @@ bool IVideoRendererNode::IsSps(uint8_t* pbBuffer, uint32_t nBufferSize, uint32_t
     }
 
     IMLOGD_PACKET2(IM_PACKET_LOG_VIDEO, "[IsSps] size[%d], data[%s]", nBufferSize,
-            ImsMediaTrace::IMTrace_Bin2String(pbBuffer, nBufferSize > 16 ? 16 : nBufferSize));
+            ImsMediaTrace::IMTrace_Bin2String(
+                    reinterpret_cast<const char*>(pbBuffer), nBufferSize > 16 ? 16 : nBufferSize));
 
     switch (mCodecType)
     {
@@ -582,7 +585,6 @@ void IVideoRendererNode::SaveConfigFrame(uint8_t* pbBuffer, uint32_t nBufferSize
 {
     bool bSPSString = false;
     bool bPPSString = false;
-    bool bVPSString = false;
 
     if (nBufferSize <= 4)
     {
@@ -591,7 +593,8 @@ void IVideoRendererNode::SaveConfigFrame(uint8_t* pbBuffer, uint32_t nBufferSize
 
     IMLOGD_PACKET3(IM_PACKET_LOG_VIDEO, "[SaveConfigFrame] mode[%d], size[%d], data[%s]", eMode,
             nBufferSize,
-            ImsMediaTrace::IMTrace_Bin2String(pbBuffer, nBufferSize > 52 ? 52 : nBufferSize));
+            ImsMediaTrace::IMTrace_Bin2String(
+                    reinterpret_cast<const char*>(pbBuffer), nBufferSize > 52 ? 52 : nBufferSize));
 
     switch (mCodecType)
     {
@@ -674,6 +677,7 @@ void IVideoRendererNode::SaveConfigFrame(uint8_t* pbBuffer, uint32_t nBufferSize
             uint32_t nOffset = 0;
             uint32_t nConfigSize = 0;
             uint8_t* nCurrBuff = pbBuffer;
+            bool bVPSString = false;
 
             while (nCurrSize <= nBufferSize)
             {

@@ -202,14 +202,13 @@ bool RtcpXrEncoder::createRtcpXrReport(const uint32_t rtcpXrReport, std::list<Rt
 tLossReport* RtcpXrEncoder::createLossAnalysisReport(std::list<RtpPacket*>* packets,
         std::list<LostPktEntry*>* lostPackets, uint16_t beginSeq, uint16_t endSeq)
 {
-    (void)packets;
     tLossReport* report = new tLossReport();
     report->beginSeq = beginSeq;
     report->endSeq = endSeq;
     report->numLostPackets = 0;
     report->numPacketsReceived = 0;
 
-    for (auto& packet : *packets)
+    for (const auto& packet : *packets)
     {
         if (packet->seqNum >= beginSeq && packet->seqNum <= endSeq)
         {
@@ -217,7 +216,7 @@ tLossReport* RtcpXrEncoder::createLossAnalysisReport(std::list<RtpPacket*>* pack
         }
     }
 
-    for (auto& packet : *lostPackets)
+    for (const auto& packet : *lostPackets)
     {
         if (packet->seqNum >= beginSeq && packet->seqNum <= endSeq)
         {
@@ -252,14 +251,13 @@ tJitterReport* RtcpXrEncoder::createJitterAnalysisReport(
     int64_t sumJitter = 0;
     int64_t sumJitterSqr = 0;
     uint32_t count = 0;
-    int32_t jitter = 0;
 
-    for (auto& packet : *packets)
+    for (const auto& packet : *packets)
     {
         if (packet->seqNum >= beginSeq && packet->seqNum <= endSeq)
         {
             // change units from ms to timestamp
-            jitter = packet->jitter * mSamplingRate;
+            int32_t jitter = packet->jitter * mSamplingRate;
             // min
             if (jitter < report->minJitter)
             {
@@ -313,14 +311,13 @@ tTTLReport* RtcpXrEncoder::createTTLAnalysisReport(
 tDuplicateReport* RtcpXrEncoder::createDuplicateAnalysisReport(
         std::list<RtpPacket*>* packets, uint16_t beginSeq, uint16_t endSeq)
 {
-    (void)packets;
     tDuplicateReport* report = new tDuplicateReport();
     report->beginSeq = beginSeq;
     report->endSeq = endSeq;
     report->numDuplicatedPackets = 0;
     report->numPacketsReceived = 0;
 
-    for (auto& packet : *packets)
+    for (const auto& packet : *packets)
     {
         if (packet->seqNum >= beginSeq && packet->seqNum <= endSeq)
         {

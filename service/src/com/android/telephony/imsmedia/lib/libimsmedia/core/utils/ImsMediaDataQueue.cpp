@@ -28,7 +28,7 @@ ImsMediaDataQueue::~ImsMediaDataQueue()
 void ImsMediaDataQueue::Add(DataEntry* pEntry)
 {
     uint8_t* pbData = NULL;
-    pbData = (uint8_t*)malloc(sizeof(DataEntry) + pEntry->nBufferSize);
+    pbData = reinterpret_cast<uint8_t*>(malloc(sizeof(DataEntry) + pEntry->nBufferSize));
 
     if (pbData == NULL)
         return;
@@ -40,7 +40,7 @@ void ImsMediaDataQueue::Add(DataEntry* pEntry)
         memcpy(pbData + sizeof(DataEntry), pEntry->pbBuffer, pEntry->nBufferSize);
     }
 
-    ((DataEntry*)pbData)->pbBuffer = pbData + sizeof(DataEntry);
+    (reinterpret_cast<DataEntry*>(pbData))->pbBuffer = pbData + sizeof(DataEntry);
 
     m_List.push_back(pbData);
 }
@@ -48,7 +48,7 @@ void ImsMediaDataQueue::Add(DataEntry* pEntry)
 void ImsMediaDataQueue::InsertAt(uint32_t index, DataEntry* pEntry)
 {
     uint8_t* pbData;
-    pbData = (uint8_t*)malloc(sizeof(DataEntry) + pEntry->nBufferSize);
+    pbData = reinterpret_cast<uint8_t*>(malloc(sizeof(DataEntry) + pEntry->nBufferSize));
 
     if (pbData == NULL)
         return;
@@ -60,7 +60,7 @@ void ImsMediaDataQueue::InsertAt(uint32_t index, DataEntry* pEntry)
         memcpy(pbData + sizeof(DataEntry), pEntry->pbBuffer, pEntry->nBufferSize);
     }
 
-    ((DataEntry*)pbData)->pbBuffer = pbData + sizeof(DataEntry);
+    (reinterpret_cast<DataEntry*>(pbData))->pbBuffer = pbData + sizeof(DataEntry);
 
     if (m_List.empty() || index == 0)
     {
@@ -83,7 +83,7 @@ void ImsMediaDataQueue::Delete()
     if (!m_List.empty())
     {
         uint8_t* pbData = m_List.front();
-        free((uint8_t*)pbData);
+        free(reinterpret_cast<uint8_t*>(pbData));
         pbData = NULL;
         m_List.pop_front();
     }
@@ -104,7 +104,7 @@ bool ImsMediaDataQueue::Get(DataEntry** ppEntry)
 
         if (pbData != NULL)
         {
-            *ppEntry = (DataEntry*)pbData;
+            *ppEntry = reinterpret_cast<DataEntry*>(pbData);
             return true;
         }
     }
@@ -118,7 +118,7 @@ bool ImsMediaDataQueue::GetLast(DataEntry** ppEntry)
     if (GetCount() > 0)
     {
         uint8_t* pbData = m_List.back();
-        *ppEntry = (DataEntry*)pbData;
+        *ppEntry = reinterpret_cast<DataEntry*>(pbData);
         return true;
     }
     else
@@ -135,7 +135,7 @@ bool ImsMediaDataQueue::GetAt(uint32_t index, DataEntry** ppEntry)
         std::list<uint8_t*>::iterator iter = m_List.begin();
         advance(iter, index);
         uint8_t* pbData = *(iter);
-        *ppEntry = (DataEntry*)pbData;
+        *ppEntry = reinterpret_cast<DataEntry*>(pbData);
         return true;
     }
     else
@@ -160,7 +160,7 @@ bool ImsMediaDataQueue::GetNext(DataEntry** ppEntry)
     if (m_ListIter != m_List.end())
     {
         uint8_t* pbData = *m_ListIter++;
-        *ppEntry = (DataEntry*)pbData;
+        *ppEntry = reinterpret_cast<DataEntry*>(pbData);
         return true;
     }
     else
