@@ -37,9 +37,6 @@ public:
             uint32_t* pnTimestamp, bool* pbMark, uint32_t* pnSeqNum, uint32_t* pnChecker = NULL);
 
 private:
-    bool CheckPartialRedundancyFrame(ImsMediaSubType* psubtype, uint8_t** ppData,
-            uint32_t* pnDataSize, uint32_t* pnTimestamp, bool* pbMark, uint32_t* pnSeqNum,
-            uint32_t* pnChecker = NULL);
     bool IsSID(uint8_t* pbBuffer, uint32_t nBufferSize);
     void CollectRxRtpStatus(int32_t seq, kRtpPacketStatus status);
     void CollectJitterBufferStatus(int32_t currSize, int32_t maxSize);
@@ -64,7 +61,6 @@ private:
     uint32_t mBufferUpdateDuration;
     uint32_t mSIDCount;
     uint32_t mDeleteCount;
-    uint32_t mRedundancyOffSet;
     uint32_t mNextJitterBufferSize;
 };
 

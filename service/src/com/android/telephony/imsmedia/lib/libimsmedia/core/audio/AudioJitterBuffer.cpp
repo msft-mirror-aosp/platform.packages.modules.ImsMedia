@@ -693,24 +693,7 @@ bool AudioJitterBuffer::Get(ImsMediaSubType* psubtype, uint8_t** ppData, uint32_
     }
     else
     {
-        // check EVS redundancy
-        {
-            if ((mCodecType == kAudioCodecEvs) && (mDtxOn == false) && (mRedundancyOffSet > 0) &&
-                    (mDataQueue.GetCount() > 0))
-            {
-                // check partial redundancy packet
-                bool ret = false;
-                ret = CheckPartialRedundancyFrame(
-                        psubtype, ppData, pnDataSize, pnTimestamp, pbMark, pnSeqNum, pnChecker);
-
-                if (ret == true)
-                {
-                    mCurrPlayingTS += 20;
-                    mCurrPlayingSeq += 1;
-                    return true;
-                }
-            }
-        }
+        // TODO: check EVS redundancy in channel aware mode
 
         if (mDtxOn == false)
         {
@@ -735,82 +718,6 @@ bool AudioJitterBuffer::Get(ImsMediaSubType* psubtype, uint8_t** ppData, uint32_
 
         mCurrPlayingTS += 20;
         mCurrPlayingSeq += 1;
-        return false;
-    }
-
-    return false;
-}
-
-bool AudioJitterBuffer::CheckPartialRedundancyFrame(ImsMediaSubType* psubtype, uint8_t** ppData,
-        uint32_t* pnDataSize, uint32_t* pnTimestamp, bool* pbMark, uint32_t* pnSeqNum,
-        uint32_t* pnChecker)
-{
-    if (mDataQueue.GetCount() == 0)
-    {
-        return false;
-    }
-
-    DataEntry* pEntry = NULL;
-    uint32_t nFindPartialRedundancyFrameSeq = mCurrPlayingSeq + mRedundancyOffSet;
-    bool nFindPartialFrame = false;
-
-    // Find redundancy frame from the DataQueue using CAM offset(mRedundancyOffSet)
-    for (int32_t i = 0; i < mDataQueue.GetCount(); i++)
-    {
-        mDataQueue.GetAt(i, &pEntry);
-
-        if ((pEntry != NULL) && (pEntry->nSeqNum == nFindPartialRedundancyFrameSeq))
-        {
-            if (psubtype)
-                *psubtype = pEntry->subtype;
-            if (ppData)
-                *ppData = pEntry->pbBuffer;
-            if (pnDataSize)
-                *pnDataSize = pEntry->nBufferSize;
-            if (pnTimestamp)
-                *pnTimestamp = pEntry->nTimestamp;
-            if (pbMark)
-                *pbMark = pEntry->bMark;
-            if (pnSeqNum)
-                *pnSeqNum = pEntry->nSeqNum;
-            nFindPartialFrame = true;
-            break;
-        }
-    }
-
-    if (pEntry == NULL)
-    {
-        return false;
-    }
-
-    // Check bitrate using dataSize (13.2kbps : data size -> 33 byte)
-    if ((nFindPartialFrame != true) || (pEntry->nBufferSize != 33))
-    {
-        IMLOGD1("[CheckPartialRedundancyFrame] not found or not adjust CAM -- PartialFrame[%d]",
-                nFindPartialFrame);
-        return false;
-    }
-
-    int16_t nPartialFrameOffset = 0;
-    int16_t nPartialFlag = 0;
-
-    // If PartialRedundancyFrame is useable, send ppData and set nChecker variable to 1, after that,
-    // return true. if not, return false.
-    if ((nPartialFlag == 1) && (mRedundancyOffSet == (uint32_t)nPartialFrameOffset))
-    {
-        IMLOGD2("[CheckPartialRedundancyFrame] adjust CAM -- redundancyOffSet[%d], adjust seq[%d]",
-                mRedundancyOffSet, pEntry->nSeqNum);
-        if (pnChecker)
-        {
-            *pnChecker = 1;
-        }
-
-        return true;
-    }
-    else
-    {
-        IMLOGD3("[CheckPartialRedundancyFrame] partial frame at seq[%d], flag[%d], offset[%d]",
-                pEntry->nSeqNum, nPartialFlag, nPartialFrameOffset);
         return false;
     }
 
