@@ -62,7 +62,11 @@ const int32_t kRtcpFbTypes = VideoConfig::RTP_FB_NACK | VideoConfig::RTP_FB_TMMB
 class VideoStreamGraphRtcpTest : public ::testing::Test
 {
 public:
-    VideoStreamGraphRtcpTest() {}
+    VideoStreamGraphRtcpTest()
+    {
+        graph = NULL;
+        socketRtcpFd = -1;
+    }
     virtual ~VideoStreamGraphRtcpTest() {}
 
 protected:

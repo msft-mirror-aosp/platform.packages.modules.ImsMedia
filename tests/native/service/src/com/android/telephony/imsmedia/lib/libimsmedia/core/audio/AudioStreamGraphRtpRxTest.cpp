@@ -61,6 +61,14 @@ const bool kUseHeaderFullOnly = false;
 class AudioStreamGraphRtpRxTest : public ::testing::Test
 {
 public:
+    AudioStreamGraphRtpRxTest()
+    {
+        graph = NULL;
+        socketRtpFd = -1;
+    }
+    ~AudioStreamGraphRtpRxTest() {}
+
+protected:
     AudioStreamGraphRtpRx* graph;
     AudioConfig config;
     RtcpConfig rtcp;
@@ -69,10 +77,6 @@ public:
     MediaQualityThreshold threshold;
     int socketRtpFd;
 
-    AudioStreamGraphRtpRxTest() {}
-    ~AudioStreamGraphRtpRxTest() {}
-
-protected:
     virtual void SetUp() override
     {
         rtcp.setCanonicalName(kCanonicalName);

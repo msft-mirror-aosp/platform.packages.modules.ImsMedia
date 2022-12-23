@@ -48,7 +48,11 @@ const bool kKeepRedundantLevel = true;
 class TextStreamGraphRtcpTest : public ::testing::Test
 {
 public:
-    TextStreamGraphRtcpTest() {}
+    TextStreamGraphRtcpTest()
+    {
+        graph = NULL;
+        socketRtcpFd = -1;
+    }
     virtual ~TextStreamGraphRtcpTest() {}
 
 protected:
