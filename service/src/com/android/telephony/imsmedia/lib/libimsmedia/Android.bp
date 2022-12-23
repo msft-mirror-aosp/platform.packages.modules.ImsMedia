@@ -21,10 +21,6 @@ cc_defaults {
     cflags: [
         "-Wall",
     ],
-    sanitize: {
-        cfi: true,
-        scs: true,
-    },
 }
 
 
