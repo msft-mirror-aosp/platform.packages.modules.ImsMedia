@@ -48,7 +48,7 @@ public class TextListener implements JNIImsMediaListener {
     /**
      * Sets native object to identify the instance of @BaseManager
      *
-     * @param object
+     * @param object the native instance of TextManager
      */
     public void setNativeObject(final long object) {
         mNativeObject = object;

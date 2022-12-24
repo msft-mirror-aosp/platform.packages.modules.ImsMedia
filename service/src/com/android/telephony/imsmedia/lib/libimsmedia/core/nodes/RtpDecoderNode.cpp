@@ -508,12 +508,12 @@ void RtpDecoderNode::OnNumReceivedPacket(uint32_t nNumRtpPacket)
     }
 }
 
-void RtpDecoderNode::SetLocalAddress(const RtpAddress address)
+void RtpDecoderNode::SetLocalAddress(const RtpAddress& address)
 {
     mLocalAddress = address;
 }
 
-void RtpDecoderNode::SetPeerAddress(const RtpAddress address)
+void RtpDecoderNode::SetPeerAddress(const RtpAddress& address)
 {
     mPeerAddress = address;
 }

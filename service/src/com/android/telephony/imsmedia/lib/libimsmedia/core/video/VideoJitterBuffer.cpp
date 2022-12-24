@@ -311,17 +311,7 @@ bool VideoJitterBuffer::Get(ImsMediaSubType* subtype, uint8_t** ppData, uint32_t
     (void)pnChecker;
 
     DataEntry* pEntry = NULL;
-    uint32_t nIndex = 0;
-    uint32_t nHeaderIndex = 0;
-    uint16_t nHeaderSeq = 0;
-    uint64_t nHeaderTimestamp = -1;
-    uint32_t nMarkIndex = 0;
-    uint16_t nMarkSeq = 0;
-    uint64_t nLastTimeStamp = -1;
     bool bValidPacket = false;
-    bool bFoundHeader = false;
-    uint32_t nSavedIdrFrame = 0;
-
     std::lock_guard<std::mutex> guard(mMutex);
 
     // check validation
@@ -329,10 +319,16 @@ bool VideoJitterBuffer::Get(ImsMediaSubType* subtype, uint8_t** ppData, uint32_t
     {
         mSavedFrameNum = 0;
         mMarkedFrameNum = 0;
-        bFoundHeader = false;
+        bool bFoundHeader = false;
         uint16_t nLastRecvSeq = 0;  // for NACK generation
         mDataQueue.SetReadPosFirst();
 
+        uint32_t nIndex = 0;
+        uint32_t nHeaderIndex = 0;
+        uint16_t nHeaderSeq = 0;
+        uint32_t nHeaderTimestamp = 0;
+        uint32_t nLastTimeStamp = 0;
+        uint32_t nSavedIdrFrame = 0;
         for (nIndex = 0; mDataQueue.GetNext(&pEntry); nIndex++)
         {
             IMLOGD_PACKET8(IM_PACKET_LOG_JITTER,
@@ -341,14 +337,14 @@ bool VideoJitterBuffer::Get(ImsMediaSubType* subtype, uint8_t** ppData, uint32_t
                     nIndex, mDataQueue.GetCount(), pEntry->bValid, pEntry->nSeqNum, pEntry->bMark,
                     pEntry->bHeader, pEntry->nTimestamp, pEntry->nBufferSize);
 
-            if (mResponseWaitTime > 0 && nLastTimeStamp != (uint64_t)-1)
+            if (mResponseWaitTime > 0 && nLastTimeStamp != 0)
             {
                 CheckPacketLoss(pEntry->nSeqNum, nLastRecvSeq);
             }
 
             nLastRecvSeq = pEntry->nSeqNum;
 
-            if (pEntry->nTimestamp != nLastTimeStamp || nLastTimeStamp == (uint64_t)-1)
+            if (pEntry->nTimestamp != nLastTimeStamp || nLastTimeStamp == 0)
             {
                 if (pEntry->eDataType != MEDIASUBTYPE_VIDEO_CONFIGSTRING)
                 {
@@ -393,7 +389,7 @@ bool VideoJitterBuffer::Get(ImsMediaSubType* subtype, uint8_t** ppData, uint32_t
                     // Check Header with new timestamp. Otherwise(duplicated header with
                     // same timestamp), do not update Header Information
                     if (bFoundHeader == false || pEntry->nTimestamp < nHeaderTimestamp ||
-                            nHeaderTimestamp == (uint64_t)-1)
+                            nHeaderTimestamp == 0)
                     {
                         nHeaderTimestamp = pEntry->nTimestamp;
                         nHeaderIndex = nIndex;
@@ -416,8 +412,8 @@ bool VideoJitterBuffer::Get(ImsMediaSubType* subtype, uint8_t** ppData, uint32_t
 
                 if (pEntry->bMark)
                 {
-                    nMarkIndex = nIndex;
-                    nMarkSeq = pEntry->nSeqNum;
+                    uint32_t nMarkIndex = nIndex;
+                    uint16_t nMarkSeq = pEntry->nSeqNum;
 
                     // make sure type of 16bit unsigned int sequence number
                     if (nMarkIndex - nHeaderIndex == nMarkSeq - nHeaderSeq)
@@ -516,7 +512,6 @@ bool VideoJitterBuffer::Get(ImsMediaSubType* subtype, uint8_t** ppData, uint32_t
                 mLastPlayedTimestamp, pEntry->nSeqNum, mLastPlayedSeqNum);
 
         uint32_t nCurrTime = ImsMediaTimer::GetTimeInMilliSeconds();
-        uint32_t nTimeDiff = 0;
 
         if (mLastPlayedTimestamp == 0 || mLastPlayedTime == 0)
         {
@@ -528,7 +523,7 @@ bool VideoJitterBuffer::Get(ImsMediaSubType* subtype, uint8_t** ppData, uint32_t
         }
         else
         {
-            nTimeDiff = nCurrTime - mLastPlayedTime;
+            uint32_t nTimeDiff = nCurrTime - mLastPlayedTime;
             uint32_t nThreshold;
 
             // this is optimized in 15fps

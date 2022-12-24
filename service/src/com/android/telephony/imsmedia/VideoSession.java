@@ -16,7 +16,6 @@
 
 package com.android.telephony.imsmedia;
 
-import android.hardware.radio.ims.media.IImsMediaSession;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
@@ -66,7 +65,6 @@ public final class VideoSession extends IImsVideoSession.Stub implements IMediaS
 
     private int mSessionId;
     private IImsVideoSessionCallback mCallback;
-    private IImsMediaSession mHalSession;
     private VideoSessionHandler mHandler;
     private VideoService mVideoService;
     private VideoListener mVideoListener;

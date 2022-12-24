@@ -138,12 +138,11 @@ void BaseStreamGraph::RemoveNode(BaseNode* pNode)
 
 ImsMediaResult BaseStreamGraph::startNodes()
 {
-    BaseNode* pNode = NULL;
     ImsMediaResult ret = ImsMediaResult::RESULT_NOT_READY;
 
     while (mListNodeToStart.size() > 0)
     {
-        pNode = mListNodeToStart.front();
+        BaseNode* pNode = mListNodeToStart.front();
 
         if (pNode != NULL)
         {
@@ -169,12 +168,11 @@ ImsMediaResult BaseStreamGraph::startNodes()
 
 ImsMediaResult BaseStreamGraph::stopNodes()
 {
-    BaseNode* pNode;
     mScheduler->Stop();
 
     while (mListNodeStarted.size() > 0)
     {
-        pNode = mListNodeStarted.front();
+        BaseNode* pNode = mListNodeStarted.front();
 
         if (pNode != NULL)
         {

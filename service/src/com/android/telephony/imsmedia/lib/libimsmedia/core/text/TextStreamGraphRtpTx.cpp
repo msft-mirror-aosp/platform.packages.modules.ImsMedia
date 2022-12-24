@@ -68,15 +68,15 @@ ImsMediaResult TextStreamGraphRtpTx::create(RtpConfig* config)
     BaseNode* pNodeRtpEncoder = new RtpEncoderNode(mCallback);
     pNodeRtpEncoder->SetMediaType(IMS_MEDIA_TEXT);
     pNodeRtpEncoder->SetConfig(mConfig);
-    ((RtpEncoderNode*)pNodeRtpEncoder)->SetLocalAddress(localAddress);
+    (static_cast<RtpEncoderNode*>(pNodeRtpEncoder))->SetLocalAddress(localAddress);
     AddNode(pNodeRtpEncoder);
     pNodeRtpPayloadEncoder->ConnectRearNode(pNodeRtpEncoder);
 
     BaseNode* pNodeSocketWriter = new SocketWriterNode(mCallback);
     pNodeSocketWriter->SetMediaType(IMS_MEDIA_TEXT);
-    ((SocketWriterNode*)pNodeSocketWriter)->SetLocalFd(mLocalFd);
-    ((SocketWriterNode*)pNodeSocketWriter)->SetLocalAddress(localAddress);
-    ((SocketWriterNode*)pNodeSocketWriter)->SetProtocolType(kProtocolRtp);
+    (static_cast<SocketWriterNode*>(pNodeSocketWriter))->SetLocalFd(mLocalFd);
+    (static_cast<SocketWriterNode*>(pNodeSocketWriter))->SetLocalAddress(localAddress);
+    (static_cast<SocketWriterNode*>(pNodeSocketWriter))->SetProtocolType(kProtocolRtp);
     pNodeSocketWriter->SetConfig(config);
     AddNode(pNodeSocketWriter);
     pNodeRtpEncoder->ConnectRearNode(pNodeSocketWriter);

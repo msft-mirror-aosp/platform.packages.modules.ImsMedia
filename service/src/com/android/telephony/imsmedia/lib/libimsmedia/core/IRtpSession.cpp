@@ -22,7 +22,7 @@
 std::list<IRtpSession*> IRtpSession::mListRtpSession;
 
 IRtpSession* IRtpSession::GetInstance(
-        ImsMediaType type, const RtpAddress localAddress, const RtpAddress peerAddress)
+        ImsMediaType type, const RtpAddress& localAddress, const RtpAddress& peerAddress)
 {
     IMLOGD1("[GetInstance] media[%d]", type);
 
@@ -330,7 +330,8 @@ bool IRtpSession::SendRtpPacket(uint32_t nPayloadType, uint8_t* pData, uint32_t 
     }
 
     mNumRtpDataToSend++;
-    IMS_RtpSvc_SendRtpPacket(this, mRtpSessionId, (char*)pData, nDataSize, &stRtpPacketParam);
+    IMS_RtpSvc_SendRtpPacket(
+            this, mRtpSessionId, reinterpret_cast<char*>(pData), nDataSize, &stRtpPacketParam);
     return true;
 }
 
@@ -343,9 +344,9 @@ bool IRtpSession::ProcRtpPacket(uint8_t* pData, uint32_t nDataSize)
     if (mLocalAddress == mPeerAddress)
     {
         unsigned int ssrc;
-        ssrc = *(unsigned int*)(pData + 8);
+        ssrc = *reinterpret_cast<uint32_t*>(pData + 8);
         ssrc++;
-        *(unsigned int*)(pData + 8) = ssrc;
+        *reinterpret_cast<uint32_t*>(pData + 8) = ssrc;
 
         IMLOGD1("[ProcRtcpPacket] loopback mode, ssrc changed[%d]", ssrc);
     }
@@ -415,9 +416,11 @@ void IRtpSession::OnPeerInd(tRtpSvc_IndicationFromStack type, void* pMsg)
     {
         case RTPSVC_RECEIVE_RTP_IND:
             mNumRtpPacket++;
+
             if (mRtpDecoderListener)
             {
-                tRtpSvcIndSt_ReceiveRtpInd* pstRtp = (tRtpSvcIndSt_ReceiveRtpInd*)pMsg;
+                tRtpSvcIndSt_ReceiveRtpInd* pstRtp =
+                        reinterpret_cast<tRtpSvcIndSt_ReceiveRtpInd*>(pMsg);
                 uint32_t nSSRC = 0;
 
                 if (pstRtp->wMsgHdrLen >= 12)
@@ -537,7 +540,7 @@ bool IRtpSession::SendRtcpFeedback(int32_t type, uint8_t* pFic, uint32_t nFicSiz
         // RTP-FB
         IMLOGD1("[SendRtcpFeedback] Send rtp feedback, type[%d]", type);
         bRet = IMS_RtpSvc_SendRtcpRtpFbPacket(
-                mRtpSessionId, type, (char*)pFic, nFicSize, mPeerRtpSsrc);
+                mRtpSessionId, type, reinterpret_cast<char*>(pFic), nFicSize, mPeerRtpSsrc);
     }
     else if (kPsfbPli <= type && type <= kPsfbFir)
     {
@@ -545,7 +548,7 @@ bool IRtpSession::SendRtcpFeedback(int32_t type, uint8_t* pFic, uint32_t nFicSiz
         // PSFB
         IMLOGD1("[SendRtcpFeedback] Send payload specific feedback, type[%d]", type);
         bRet = IMS_RtpSvc_SendRtcpPayloadFbPacket(
-                mRtpSessionId, type, (char*)pFic, nFicSize, mPeerRtpSsrc);
+                mRtpSessionId, type, reinterpret_cast<char*>(pFic), nFicSize, mPeerRtpSsrc);
     }
 
     if (bRet != eRTP_TRUE)

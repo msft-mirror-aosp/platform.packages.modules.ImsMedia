@@ -144,7 +144,7 @@ public:
     static uint32_t ConvertAmrModeToLen(uint32_t mode);
     static uint32_t ConvertAmrModeToBitLen(uint32_t mode);
     static uint32_t ConvertLenToAmrMode(uint32_t nLen);
-    static void ConvertEvsBandwidthToStr(kEvsBandwidth bandwidth, char* nBandwidth);
+    static void ConvertEvsBandwidthToStr(kEvsBandwidth bandwidth, char* nBandwidth, uint32_t nLen);
     static uint32_t ConvertAmrWbModeToLen(uint32_t mode);
     static uint32_t ConvertAmrWbModeToBitLen(uint32_t mode);
     static uint32_t ConvertLenToAmrWbMode(uint32_t nLen);
@@ -159,9 +159,6 @@ public:
     static uint32_t GetBitrateEVS(int mode);
     static kRtpPyaloadHeaderMode ConvertEVSPayloadMode(
             uint32_t nDataSize, kEvsCodecMode* pEVSCodecMode, uint32_t* pEVSCompactId);
-    static kEvsBandwidth FindMaxEVSBandwidth(const uint32_t nEVSBandwidthSet);
-    static kEvsBitrate FindMaxEVSBitrate(
-            const uint32_t nEVSBitrateSet, const kEvsCodecMode kEvsCodecMode);
     static kEvsCodecMode CheckEVSCodecMode(const uint32_t nAudioFrameLength);
     static int32_t ConvertEVSModeToBitRate(const int32_t mode);
     static kEvsBandwidth FindMaxEvsBandwidthFromRange(const int32_t EvsBandwidthRange);

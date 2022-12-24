@@ -218,12 +218,12 @@ void RtcpDecoderNode::OnEvent(uint32_t event, uint32_t param)
     mCallback->SendEvent(event, param);
 }
 
-void RtcpDecoderNode::SetLocalAddress(const RtpAddress address)
+void RtcpDecoderNode::SetLocalAddress(const RtpAddress& address)
 {
     mLocalAddress = address;
 }
 
-void RtcpDecoderNode::SetPeerAddress(const RtpAddress address)
+void RtcpDecoderNode::SetPeerAddress(const RtpAddress& address)
 {
     mPeerAddress = address;
 }

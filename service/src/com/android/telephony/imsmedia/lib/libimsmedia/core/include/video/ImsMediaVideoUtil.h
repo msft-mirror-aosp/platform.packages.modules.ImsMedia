@@ -191,8 +191,6 @@ public:
     ~ImsMediaVideoUtil();
     static int32_t ConvertCodecType(int32_t type);
     static uint32_t GetResolutionFromSize(uint32_t nWidth, uint32_t nHeight);
-    static bool ModifyAvcSpropParameterSet(const uint8_t* inSpropparam, uint8_t* outSpropparam,
-            uint32_t nProfile, uint32_t nLevel);
     static ImsMediaResult ParseAvcSpropParam(const char* szSpropparam, tCodecConfig* pInfo);
     static ImsMediaResult ParseHevcSpropParam(const char* szSpropparam, tCodecConfig* pInfo);
     static bool ParseAvcSps(uint8_t* pbBuffer, uint32_t nBufferSize, tCodecConfig* pInfo);

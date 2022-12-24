@@ -16,7 +16,6 @@
 
 package com.android.telephony.imsmedia;
 
-import android.hardware.radio.ims.media.IImsMediaSession;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
@@ -54,7 +53,6 @@ public final class TextSession extends IImsTextSession.Stub implements IMediaSes
 
     private int mSessionId;
     private IImsTextSessionCallback mCallback;
-    private IImsMediaSession mHalSession;
     private TextSessionHandler mHandler;
     private TextService mTextService;
     private TextListener mTextListener;

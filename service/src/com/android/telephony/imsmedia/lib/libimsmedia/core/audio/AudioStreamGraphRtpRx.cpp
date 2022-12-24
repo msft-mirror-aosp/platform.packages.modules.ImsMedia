@@ -47,16 +47,16 @@ ImsMediaResult AudioStreamGraphRtpRx::create(RtpConfig* config)
     uint32_t localPort = 0;
     ImsMediaNetworkUtil::getLocalIpPortFromSocket(mLocalFd, localIp, MAX_IP_LEN, localPort);
     RtpAddress localAddress(localIp, localPort);
-    ((SocketReaderNode*)pNodeSocketReader)->SetLocalFd(mLocalFd);
-    ((SocketReaderNode*)pNodeSocketReader)->SetLocalAddress(localAddress);
-    ((SocketReaderNode*)pNodeSocketReader)->SetProtocolType(kProtocolRtp);
+    (static_cast<SocketReaderNode*>(pNodeSocketReader))->SetLocalFd(mLocalFd);
+    (static_cast<SocketReaderNode*>(pNodeSocketReader))->SetLocalAddress(localAddress);
+    (static_cast<SocketReaderNode*>(pNodeSocketReader))->SetProtocolType(kProtocolRtp);
     pNodeSocketReader->SetConfig(config);
     AddNode(pNodeSocketReader);
 
     BaseNode* pNodeRtpDecoder = new RtpDecoderNode(mCallback);
     pNodeRtpDecoder->SetMediaType(IMS_MEDIA_AUDIO);
     pNodeRtpDecoder->SetConfig(mConfig);
-    ((RtpDecoderNode*)pNodeRtpDecoder)->SetLocalAddress(localAddress);
+    (static_cast<RtpDecoderNode*>(pNodeRtpDecoder))->SetLocalAddress(localAddress);
     AddNode(pNodeRtpDecoder);
     pNodeSocketReader->ConnectRearNode(pNodeRtpDecoder);
 

@@ -28,6 +28,8 @@ using namespace android::telephony::imsmedia;
 VideoRtpPayloadDecoderNode::VideoRtpPayloadDecoderNode(BaseSessionCallback* callback) :
         BaseNode(callback)
 {
+    mCodecType = 0;
+    mPayloadMode = 0;
     mBuffer = NULL;
     mSbitfirstByte = 0;
 }
@@ -42,8 +44,8 @@ kBaseNodeId VideoRtpPayloadDecoderNode::GetNodeId()
 ImsMediaResult VideoRtpPayloadDecoderNode::Start()
 {
     IMLOGD2("[Start] Codec[%d], PayloadMode[%d]", mCodecType, mPayloadMode);
-    std::lock_guard<std::mutex> guard(mMutexExit);
-    mBuffer = (uint8_t*)malloc(MAX_RTP_PAYLOAD_BUFFER_SIZE);
+
+    mBuffer = reinterpret_cast<uint8_t*>(malloc(MAX_RTP_PAYLOAD_BUFFER_SIZE * sizeof(uint8_t)));
 
     if (mBuffer == NULL)
     {
@@ -56,8 +58,6 @@ ImsMediaResult VideoRtpPayloadDecoderNode::Start()
 
 void VideoRtpPayloadDecoderNode::Stop()
 {
-    std::lock_guard<std::mutex> guard(mMutexExit);
-
     if (mBuffer != NULL)
     {
         free(mBuffer);
@@ -80,7 +80,10 @@ bool VideoRtpPayloadDecoderNode::IsSourceNode()
 void VideoRtpPayloadDecoderNode::SetConfig(void* config)
 {
     if (config == NULL)
+    {
         return;
+    }
+
     VideoConfig* pConfig = reinterpret_cast<VideoConfig*>(config);
     mCodecType = pConfig->getCodecType();
     mPayloadMode = pConfig->getPacketizationMode();
@@ -89,7 +92,10 @@ void VideoRtpPayloadDecoderNode::SetConfig(void* config)
 bool VideoRtpPayloadDecoderNode::IsSameConfig(void* config)
 {
     if (config == NULL)
+    {
         return false;
+    }
+
     VideoConfig* pConfig = reinterpret_cast<VideoConfig*>(config);
     return (mCodecType == pConfig->getCodecType() &&
             mPayloadMode == pConfig->getPacketizationMode());
@@ -124,24 +130,16 @@ void VideoRtpPayloadDecoderNode::OnDataFromFrontNode(ImsMediaSubType subtype, ui
 void VideoRtpPayloadDecoderNode::DecodeAvc(ImsMediaSubType subtype, uint8_t* pData,
         uint32_t nDataSize, uint32_t nTimeStamp, bool bMark, uint32_t nSeqNum)
 {
-    if (pData == NULL || nDataSize == 0)
+    if (pData == NULL || nDataSize == 0 || mBuffer == NULL)
     {
         return;
     }
 
     // check packet type
-    uint8_t bPacketType;
-    bPacketType = pData[0] & 0x1F;
-    std::lock_guard<std::mutex> guard(mMutexExit);
+    uint8_t bPacketType = pData[0] & 0x1F;
     ImsMediaSubType eDataType = MEDIASUBTYPE_UNDEFINED;
 
-    if (mBuffer == NULL)
-    {
-        return;
-    }
-
-    // Please check Decoder Start Code...
-    //  make start code prefix
+    // make start code prefix
     mBuffer[0] = 0x00;
     mBuffer[1] = 0x00;
     mBuffer[2] = 0x00;
@@ -152,6 +150,7 @@ void VideoRtpPayloadDecoderNode::DecodeAvc(ImsMediaSubType subtype, uint8_t* pDa
     if (bPacketType >= 1 && bPacketType <= 23)
     {  // Single NAL unit packet
         memcpy(mBuffer + 4, pData, nDataSize);
+
         if ((bPacketType & 0x1F) == 7 || (bPacketType & 0x1F) == 8)
         {
             eDataType = MEDIASUBTYPE_VIDEO_CONFIGSTRING;
@@ -175,7 +174,6 @@ void VideoRtpPayloadDecoderNode::DecodeAvc(ImsMediaSubType subtype, uint8_t* pDa
     {  // STAP-A
         uint8_t* pCurrData = pData + 1;
         int32_t nRemainSize = (int32_t)(nDataSize - 1);
-        uint32_t nNALUnitsize;
 
         if (mPayloadMode == kRtpPyaloadHeaderModeSingleNalUnit)
         {
@@ -202,7 +200,7 @@ void VideoRtpPayloadDecoderNode::DecodeAvc(ImsMediaSubType subtype, uint8_t* pDa
         while (nRemainSize > 2)
         {
             // read NAL unit size
-            nNALUnitsize = pCurrData[0];
+            uint32_t nNALUnitsize = pCurrData[0];
             nNALUnitsize = (nNALUnitsize << 8) + pCurrData[1];
             IMLOGD_PACKET1(IM_PACKET_LOG_PH, "[DecodeAvc] STAP-A nNALUnitsize[%d]", nNALUnitsize);
             pCurrData += 2;
@@ -296,14 +294,14 @@ void VideoRtpPayloadDecoderNode::DecodeHevc(ImsMediaSubType subtype, uint8_t* pD
         return;
     }
 
-    // check packet type
-    uint8_t bPacketType;
-    bPacketType = (pData[0] & 0x7E) >> 1;
-    ImsMediaSubType eDataType = MEDIASUBTYPE_UNDEFINED;
-    std::lock_guard<std::mutex> guard(mMutexExit);
-
     if (mBuffer == NULL)
+    {
         return;
+    }
+
+    // check packet type
+    uint8_t bPacketType = (pData[0] & 0x7E) >> 1;
+    ImsMediaSubType eDataType = MEDIASUBTYPE_UNDEFINED;
 
     // Please check Decoder Start Code...
     //  make start code prefix
@@ -315,9 +313,10 @@ void VideoRtpPayloadDecoderNode::DecodeHevc(ImsMediaSubType subtype, uint8_t* pD
     IMLOGD_PACKET3(IM_PACKET_LOG_PH, "[DecodeHevc] [%02X %02X] nDataSize[%d]", pData[0], pData[1],
             nDataSize);
 
-    if (bPacketType >= 0 && bPacketType <= 40)
+    if (bPacketType <= 40)
     {  // Single NAL unit packet
         memcpy(mBuffer + 4, pData, nDataSize);
+
         if (bPacketType >= 32 && bPacketType <= 34)
         {  // 32: VPS, 33: SPS, 34: PPS
             eDataType = MEDIASUBTYPE_VIDEO_CONFIGSTRING;
@@ -359,7 +358,6 @@ void VideoRtpPayloadDecoderNode::DecodeHevc(ImsMediaSubType subtype, uint8_t* pD
         bEndBit = (bFUHeader >> 6) & 0x01;
 
         uint8_t frameType = (bNALUnitType & 0x7E) >> 1;
-        ImsMediaSubType eDataType = MEDIASUBTYPE_UNDEFINED;
 
         if (frameType >= 32 && frameType <= 34)
         {  // 32: VPS, 33: SPS, 34: PPS

@@ -173,7 +173,7 @@ void RtcpEncoderNode::OnRtcpPacket(unsigned char* pData, uint32_t wLen)
     {
         uint8_t* pCurr;
         int32_t nRemainSize;
-        pCurr = (uint8_t*)pData;
+        pCurr = reinterpret_cast<uint8_t*>(pData);
         nRemainSize = wLen;
 
         while (nRemainSize >= 4)
@@ -231,12 +231,12 @@ void RtcpEncoderNode::ProcessTimer()
     }
 }
 
-void RtcpEncoderNode::SetLocalAddress(const RtpAddress address)
+void RtcpEncoderNode::SetLocalAddress(const RtpAddress& address)
 {
     mLocalAddress = address;
 }
 
-void RtcpEncoderNode::SetPeerAddress(const RtpAddress address)
+void RtcpEncoderNode::SetPeerAddress(const RtpAddress& address)
 {
     mPeerAddress = address;
 }

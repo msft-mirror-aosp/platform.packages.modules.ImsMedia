@@ -79,79 +79,6 @@ uint32_t ImsMediaVideoUtil::GetResolutionFromSize(uint32_t nWidth, uint32_t nHei
         return kVideoResolutionInvalid;
 }
 
-bool ImsMediaVideoUtil::ModifyAvcSpropParameterSet(
-        const uint8_t* inSpropparam, uint8_t* outSpropparam, uint32_t nProfile, uint32_t nLevel)
-{
-    (void)nProfile;
-
-    if (inSpropparam == NULL || outSpropparam == NULL)
-        return false;
-
-    char pSPSConfig[MAX_CONFIG_LEN] = {'\0'};
-    uint8_t pbSPSConfig[MAX_CONFIG_LEN] = {'\0'};
-    uint32_t nSPSConfigSize = 0;
-
-    memset(pSPSConfig, 0x00, MAX_CONFIG_LEN);
-
-    for (int32_t i = 0; i < MAX_CONFIG_LEN; i++)
-    {
-        uint8_t Comma = ',';
-        uint8_t cmpConfig = *(inSpropparam + i);
-
-        if (Comma == cmpConfig)
-        {
-            memset(pSPSConfig, 0x00, MAX_CONFIG_LEN);
-            memcpy(pSPSConfig, inSpropparam, i);
-            break;
-        }
-    }
-
-    IMLOGW1("[ModifyAvcSpropParameterSet] input data[%s]", pSPSConfig);
-
-    // Convert base64 to binary
-    bool ret = ImsMediaBinaryFormat::Base00ToBinary(
-            pbSPSConfig, &nSPSConfigSize, MAX_CONFIG_LEN, pSPSConfig, BINARY_FORMAT_BASE64);
-
-    if (ret == false || nSPSConfigSize == 0)
-    {
-        IMLOGW0("[ModifyAvcSpropParameterSet] sps convert fail");
-        return false;
-    }
-
-    std::unique_ptr<uint8_t[]> pbSPSConfigModified(new uint8_t[nSPSConfigSize]);
-
-    if (pbSPSConfigModified == NULL)
-        return false;
-
-    memcpy(pbSPSConfigModified.get(), pbSPSConfig, nSPSConfigSize);
-
-    // Skip profile modification
-
-    // Level modification
-    pbSPSConfigModified[3] = nLevel;
-
-    // For copy modified sps formed base64
-    std::unique_ptr<char[]> pSPSConfigModified(new char[MAX_CONFIG_LEN]);
-
-    if (pSPSConfigModified == NULL)
-        return false;
-
-    memset(pSPSConfigModified.get(), 0, MAX_CONFIG_LEN);
-
-    // Convert binary to base64
-    ret = ImsMediaBinaryFormat::BinaryToBase00(pSPSConfigModified.get(), MAX_CONFIG_LEN,
-            pbSPSConfigModified.get(), nSPSConfigSize, BINARY_FORMAT_BASE64);
-
-    if (ret == false || strlen(pSPSConfigModified.get()) == 0)
-    {
-        return false;
-    }
-
-    IMLOGW1("[ModifyAvcSpropParameterSet] output data[%s]", pSPSConfigModified.get());
-    memcpy(outSpropparam, pSPSConfigModified.get(), strlen(pSPSConfigModified.get()));
-    return true;
-}
-
 ImsMediaResult ImsMediaVideoUtil::ParseAvcSpropParam(const char* szSpropparam, tCodecConfig* pInfo)
 {
     ImsMediaBitReader bitreader;
@@ -183,7 +110,7 @@ ImsMediaResult ImsMediaVideoUtil::ParseAvcSpropParam(const char* szSpropparam, t
         return RESULT_INVALID_PARAM;
     }
 
-    uint8_t* pszSpropparam = (uint8_t*)malloc(nSPSConfigSize);
+    uint8_t* pszSpropparam = reinterpret_cast<uint8_t*>(malloc(nSPSConfigSize));
 
     if (pszSpropparam == NULL)
     {
@@ -329,7 +256,7 @@ ImsMediaResult ImsMediaVideoUtil::ParseHevcSpropParam(const char* szSpropparam, 
     uint32_t nSPSConfigSize = 0;
 
     memset(pSPSConfig, 0x00, MAX_CONFIG_LEN);
-    memcpy(pSPSConfig, szSpropparam, nSize);
+    strlcpy(pSPSConfig, szSpropparam, MAX_CONFIG_LEN);
 
     uint8_t* pszSpropparam = NULL;
 
@@ -343,7 +270,7 @@ ImsMediaResult ImsMediaVideoUtil::ParseHevcSpropParam(const char* szSpropparam, 
     if (nSPSConfigSize == 0)
         return RESULT_INVALID_PARAM;
 
-    pszSpropparam = (uint8_t*)malloc(nSPSConfigSize);
+    pszSpropparam = reinterpret_cast<uint8_t*>(malloc(nSPSConfigSize));
 
     if (pszSpropparam == NULL)
     {
@@ -358,7 +285,8 @@ ImsMediaResult ImsMediaVideoUtil::ParseHevcSpropParam(const char* szSpropparam, 
     memcpy(pszSpropparam, pbSPSConfig, nSPSConfigSize);
 
     // Check binary
-    ImsMediaTrace::IMLOGD_BINARY("[ParseHevcSpropParam] sps=", pszSpropparam, nSPSConfigSize);
+    ImsMediaTrace::IMLOGD_BINARY("[ParseHevcSpropParam] sps=",
+            reinterpret_cast<const char*>(pszSpropparam), nSPSConfigSize);
 
     uint32_t nOffset = 0;
 
@@ -494,7 +422,7 @@ bool ImsMediaVideoUtil::ParseAvcSps(uint8_t* pbBuffer, uint32_t nBufferSize, tCo
 {
     ImsMediaBitReader bitreader;
     uint32_t chroma_format_idc = 0;
-    uint8_t* pszSPS = (uint8_t*)malloc(nBufferSize);
+    uint8_t* pszSPS = reinterpret_cast<uint8_t*>(malloc(nBufferSize));
 
     if (pszSPS == NULL)
     {
@@ -857,8 +785,9 @@ char* ImsMediaVideoUtil::GenerateVideoSprop(VideoConfig* pVideoConfig)
 
     bool bSpsRead = false, bPpsRead = false;
     int8_t nMaxBufferReads = MAX_OUTPUT_BUFFER_READ_ATTEMPTS;
-    char* pSpropStr = (char*)malloc(MAX_CONFIG_LEN);
+    char* pSpropStr = reinterpret_cast<char*>(malloc(MAX_CONFIG_LEN));
     pSpropStr[0] = '\0';
+
     while (!bSpsRead || !bPpsRead)
     {
         // Get output buffer
@@ -916,7 +845,7 @@ char* ImsMediaVideoUtil::GenerateVideoSprop(VideoConfig* pVideoConfig)
 
                 if (frameType == FRAME_TYPE_SPS)  // Check if SPS
                 {
-                    strcat(pSpropStr, ",");
+                    strlcat(pSpropStr, ",", MAX_CONFIG_LEN);
                     bSpsRead = true;
                 }
                 else if (frameType == FRAME_TYPE_PPS)  // Check if PPS

@@ -37,12 +37,15 @@ VideoRtpPayloadEncoderNode::VideoRtpPayloadEncoderNode(BaseSessionCallback* call
 {
     mCodecType = VideoConfig::CODEC_AVC;
     mPayloadMode = kRtpPyaloadHeaderModeNonInterleaved;
-    mBuffer = NULL;
     mPrevMark = false;
-    mMaxFragmentUnitSize = MEDIABUF_DATAPACKET_MAX;
+    mBuffer = NULL;
+    memset(mVPS, 0, sizeof(mVPS));
+    memset(mSPS, 0, sizeof(mSPS));
+    memset(mPPS, 0, sizeof(mPPS));
     mSpsSize = 0;
     mPpsSize = 0;
     mVPSsize = 0;
+    mMaxFragmentUnitSize = MEDIABUF_DATAPACKET_MAX;
 }
 
 VideoRtpPayloadEncoderNode::~VideoRtpPayloadEncoderNode() {}
@@ -55,35 +58,34 @@ kBaseNodeId VideoRtpPayloadEncoderNode::GetNodeId()
 ImsMediaResult VideoRtpPayloadEncoderNode::Start()
 {
     mPrevMark = true;
+
     if (mMaxFragmentUnitSize == 0)
     {
         mMaxFragmentUnitSize = MEDIABUF_DATAPACKET_MAX;
     }
 
-    std::lock_guard<std::mutex> guard(mMutexExit);
+    IMLOGD3("[Start] codecType[%d], PayloadMode[%d], mtu[%d]", mCodecType, mPayloadMode,
+            mMaxFragmentUnitSize);
 
-    mBuffer = (uint8_t*)malloc(MAX_RTP_PAYLOAD_BUFFER_SIZE);
+    mBuffer = reinterpret_cast<uint8_t*>(malloc(MAX_RTP_PAYLOAD_BUFFER_SIZE * sizeof(uint8_t)));
+
     if (mBuffer == NULL)
     {
         return RESULT_NO_MEMORY;
     }
 
-    IMLOGD3("[Start] codecType[%d], PayloadMode[%d], mtu[%d]", mCodecType, mPayloadMode,
-            mMaxFragmentUnitSize);
     mNodeState = kNodeStateRunning;
     return RESULT_SUCCESS;
 }
 
 void VideoRtpPayloadEncoderNode::Stop()
 {
-    std::lock_guard<std::mutex> guard(mMutexExit);
-
-    if (mBuffer)
+    if (mBuffer != NULL)
     {
         free(mBuffer);
+        mBuffer = NULL;
     }
 
-    mBuffer = NULL;
     mNodeState = kNodeStateStopped;
 }
 
@@ -229,8 +231,11 @@ void VideoRtpPayloadEncoderNode::EncodeAvc(
     }
 
     pStartCodePos = FindAvcStartCode(pCurDataPos, nDataSize, &nSkipSize);
+
     if (pStartCodePos == NULL)
+    {
         return;
+    }
 
     // remove padding
     pCurDataPos = pStartCodePos + 4;
@@ -241,6 +246,7 @@ void VideoRtpPayloadEncoderNode::EncodeAvc(
     {
         // extract nal unit
         pStartCodePos = FindAvcStartCode(pCurDataPos + 1, nDataSize - 1);
+
         if (pStartCodePos == NULL)
         {
             nCurDataSize = nDataSize;
@@ -282,8 +288,10 @@ void VideoRtpPayloadEncoderNode::EncodeAvc(
 
     if (nNalUnitType == 5)  // check idf frame, send sps/pps
     {
-        EncodeAvcNALUnit(mSPS, mSpsSize, nTimestamp, 1, nNalUnitType);
-        EncodeAvcNALUnit(mPPS, mPpsSize, nTimestamp, 1, nNalUnitType);
+        // sps
+        EncodeAvcNALUnit(mSPS, mSpsSize, nTimestamp, 1, 7);
+        // pps
+        EncodeAvcNALUnit(mPPS, mPpsSize, nTimestamp, 1, 8);
         IMLOGD0("[EncodeAvc] Send SPS, PPS when an I frame send");
     }
 
@@ -312,6 +320,11 @@ void VideoRtpPayloadEncoderNode::EncodeAvcNALUnit(
         return;
     }
 
+    if (mBuffer == NULL)
+    {
+        return;
+    }
+
     // make FU-A packets
     if (mPayloadMode == kRtpPyaloadHeaderModeNonInterleaved && nDataSize > nMtu)
     {
@@ -323,7 +336,6 @@ void VideoRtpPayloadEncoderNode::EncodeAvcNALUnit(
         uint8_t bFUHeader;
         uint8_t bNALUnitType;
 
-        std::lock_guard<std::mutex> guard(mMutexExit);
         // Make FU indicator and save NAL unit type
         bFUIndicator = pCurDataPos[0] & 0xE0;  // copy F and NRI from NAL unit header
         bFUIndicator += 28;                    // Type is 28(FU-A)
@@ -433,7 +445,6 @@ void VideoRtpPayloadEncoderNode::EncodeHevc(
         uint8_t* pData, uint32_t nDataSize, uint32_t nTimestamp, bool bMark)
 {
     uint8_t* pCurDataPos = pData;
-    uint32_t nCurDataSize;
     uint32_t nSkipSize;
     uint8_t* pStartCodePos;
     uint8_t nNalUnitType;
@@ -447,8 +458,11 @@ void VideoRtpPayloadEncoderNode::EncodeHevc(
     }
 
     pStartCodePos = FindHevcStartCode(pCurDataPos, nDataSize, &nSkipSize);
+
     if (pStartCodePos == NULL)
+    {
         return;
+    }
 
     pCurDataPos = pStartCodePos + 4;
     nDataSize -= (nSkipSize + 4);
@@ -460,12 +474,13 @@ void VideoRtpPayloadEncoderNode::EncodeHevc(
         // extract nal unit
         // NAL unit header is 2 bytes on HEVC.
         pStartCodePos = FindHevcStartCode(pCurDataPos + 2, nDataSize - 2);
+
         if (pStartCodePos == NULL)
         {
             break;
         }
 
-        nCurDataSize = pStartCodePos - pCurDataPos;
+        uint32_t nCurDataSize = pStartCodePos - pCurDataPos;
         EncodeHevcNALUnit(pCurDataPos, nCurDataSize, nTimestamp, bMark, nNalUnitType);
 
         if (nNalUnitType == 32)
@@ -538,6 +553,11 @@ void VideoRtpPayloadEncoderNode::EncodeHevcNALUnit(
                 pData[0], pData[1], pData[2], pData[3], nDataSize, nTimestamp, bMark, nNalUnitType);
     }
 
+    if (mBuffer == NULL)
+    {
+        return;
+    }
+
     // Share payload header mode with h.264 - single nal unit mode, non interleaved mode
     // make FU-A packets
     if (mPayloadMode == kRtpPyaloadHeaderModeNonInterleaved && nDataSize > nMtu)
@@ -549,13 +569,6 @@ void VideoRtpPayloadEncoderNode::EncodeHevcNALUnit(
         uint8_t bFUIndicator1;
         uint8_t bFUIndicator2;
         uint8_t bFUHeader;
-
-        std::lock_guard<std::mutex> guard(mMutexExit);
-
-        if (mBuffer == NULL)
-        {
-            return;
-        }
 
         // Make FU indicator and save NAL unit type
         // bNALUnitType = pCurDataPos[0] & 0x7E;         // copy NAL unit type from NAL unit header
