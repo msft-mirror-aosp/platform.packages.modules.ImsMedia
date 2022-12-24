@@ -119,6 +119,10 @@ public abstract class RtpConfig implements Parcelable {
         return null;
     }
 
+    public int getMediaType() {
+        return mType;
+    }
+
     public int getMediaDirection() {
         return mDirection;
     }
@@ -301,7 +305,6 @@ public abstract class RtpConfig implements Parcelable {
         /**
          * Sets media flow direction of {@link MediaDirection}
          * @param direction direction of media.
-         * @return
          */
         public T setMediaDirection(final @MediaDirection int direction) {
             this.mDirection = direction;
@@ -311,7 +314,6 @@ public abstract class RtpConfig implements Parcelable {
         /**
          * Sets radio access metwork type
          * @param accessNetwork network type
-         * @return
          */
         public T setAccessNetwork(final int accessNetwork) {
             this.mAccessNetwork = accessNetwork;
@@ -321,7 +323,6 @@ public abstract class RtpConfig implements Parcelable {
         /**
          * Sets Ip address and port number of the other party for RTP media.
          * @param remoteRtpAddress ip address and port form of InetSocketAddress
-         * @return
          */
         public T setRemoteRtpAddress(final InetSocketAddress remoteRtpAddress) {
             this.mRemoteRtpAddress = remoteRtpAddress;
@@ -331,7 +332,6 @@ public abstract class RtpConfig implements Parcelable {
         /**
          * Sets rtcp configuration
          * @param rtcpConfig configuration fields of a {@link RtcpConfig}
-         * @return
          */
         public T setRtcpConfig(final RtcpConfig rtcpConfig) {
             this.mRtcpConfig = rtcpConfig;
@@ -341,7 +341,6 @@ public abstract class RtpConfig implements Parcelable {
         /**
          * Sets a dscp: Differentiated Services Field Code Point value, see RFC 2474
          * @param dscp dscp value
-         * @return
          */
         public T setDscp(final byte dscp) {
             this.mDscp = dscp;
@@ -353,7 +352,6 @@ public abstract class RtpConfig implements Parcelable {
          * the incoming RTP packets. This value shall be matched with the PT value
          * of the incoming RTP header. Values 0 to 127, see RFC 3551 section 6.
          * @param rxPayloadTypeNumber payload type number.
-         * @return
          */
         public T setRxPayloadTypeNumber(final byte rxPayloadTypeNumber) {
             this.mRxPayloadTypeNumber = rxPayloadTypeNumber;
@@ -365,7 +363,6 @@ public abstract class RtpConfig implements Parcelable {
          * the outgoing RTP packets. This value shall be set to the PT value
          * of the outgoing RTP header. Values 0 to 127, see RFC 3551 section 6.
          * @param txPayloadTypeNumber payload type number.
-         * @return
          */
         public T setTxPayloadTypeNumber(final byte txPayloadTypeNumber) {
             this.mTxPayloadTypeNumber = txPayloadTypeNumber;
@@ -375,7 +372,6 @@ public abstract class RtpConfig implements Parcelable {
         /**
          * Sets media source sampling rate in kHz.
          * @param samplingRateKHz sampling rate.
-         * @return
          */
         public T setSamplingRateKHz(final byte samplingRateKHz) {
             this.mSamplingRateKHz = samplingRateKHz;
