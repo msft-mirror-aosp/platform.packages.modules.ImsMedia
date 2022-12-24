@@ -45,8 +45,7 @@ private:
     uint32_t mCodecType;
     uint32_t mPayloadMode;
     uint8_t* mBuffer;
-    std::mutex mMutexExit;
     uint8_t mSbitfirstByte;
 };
 
-#endif  // NODE_RTPPAYLOADDECODER_VIDEO_H_INCLUDED
+#endif  // VIDEO_RTPPAYLOAD_DECODER_NODE_H_INCLUDED

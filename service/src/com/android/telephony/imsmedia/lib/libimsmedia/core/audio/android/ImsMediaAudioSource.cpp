@@ -104,7 +104,7 @@ bool ImsMediaAudioSource::Start()
     auto codecResult = 0;
     int amrBitrate;
     // TODO: Integration with libEVS is required.
-    ImsMediaAudioUtil::ConvertEvsBandwidthToStr(mEvsBandwidth, mEvsbandwidthStr);
+    ImsMediaAudioUtil::ConvertEvsBandwidthToStr(mEvsBandwidth, mEvsbandwidthStr, MAX_EVS_BW_STRLEN);
 
     if (mCodecType == kAudioCodecAmr)
     {

@@ -194,12 +194,12 @@ void SocketReaderNode::SetLocalFd(int fd)
     mLocalFd = fd;
 }
 
-void SocketReaderNode::SetLocalAddress(const RtpAddress address)
+void SocketReaderNode::SetLocalAddress(const RtpAddress& address)
 {
     mLocalAddress = address;
 }
 
-void SocketReaderNode::SetPeerAddress(const RtpAddress address)
+void SocketReaderNode::SetPeerAddress(const RtpAddress& address)
 {
     mPeerAddress = address;
 }

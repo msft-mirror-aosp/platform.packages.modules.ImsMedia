@@ -120,6 +120,15 @@ public class ConfigPreference extends PreferenceActivity {
         initPreferences();
     }
 
+    @Override
+    protected boolean isValidFragment(String fragmentName) {
+        if (ConfigListItemChangeListener.class.getName().equals(fragmentName)
+                || CheckBoxItemChangeListener.class.getName().equals(fragmentName)) {
+            return true;
+        }
+        return false;
+    }
+
     private void initPreferences() {
         Log.d(LOG_TAG, "initPreferences");
         for (int i = 0; i < KEY_LIST_PREFERENCES.length; ++i) {
@@ -201,7 +210,7 @@ public class ConfigPreference extends PreferenceActivity {
         try {
             intValue = Integer.parseInt(value);
         } catch (NumberFormatException e) {
-            e.printStackTrace();
+            Log.e(LOG_TAG, "NumberFormatException: " + e.toString());
         }
         return intValue;
     }

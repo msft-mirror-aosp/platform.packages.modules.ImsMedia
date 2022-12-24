@@ -25,7 +25,7 @@
 // TODO: Pause images from Irvine source are used. Get new pause images from UX team and replace.
 // TODO: Write unit test cases for this class
 #define DEFAULT_FHD_PORTRAIT_PAUSE_IMG_PATH    "pause_images/pause_img_fhd_p.jpg"
-#define DEFAULT_FHD_LANDSCAPE_PAUSE_IMG_PATH   "pause_images/pause_img_fhd_p.jpg"
+#define DEFAULT_FHD_LANDSCAPE_PAUSE_IMG_PATH   "pause_images/pause_img_fhd_l.jpg"
 #define DEFAULT_HD_PORTRAIT_PAUSE_IMG_PATH     "pause_images/pause_img_hd_p.jpg"
 #define DEFAULT_HD_LANDSCAPE_PAUSE_IMG_PATH    "pause_images/pause_img_hd_l.jpg"
 #define DEFAULT_VGA_PORTRAIT_PAUSE_IMG_PATH    "pause_images/pause_img_vga_p.jpg"

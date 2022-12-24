@@ -18,7 +18,11 @@
     package="com.android.telephony.imsmedia"
     coreApp="true"
     android:singleUser="true">
-<!-- TODO add permission -->
+
+  <permission android:name="com.android.telephony.permission.USE_IMSMEDIA"
+      android:protectionLevel="signature|privileged"
+      android:label="Permission to bind to ImsMedia"/>
+
   <uses-permission android:name="android.permission.RECORD_AUDIO"/>
   <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
   <uses-permission android:name="android.permission.INTERNET"/>
@@ -31,7 +35,8 @@
 
     <service android:name=".ImsMediaController"
         android:enabled="true"
-        android:exported="true" >
+        android:exported="true"
+        android:permission="com.android.telephony.permission.USE_IMSMEDIA">
     </service>
     <!-- configuration hidden menu -->
     <activity

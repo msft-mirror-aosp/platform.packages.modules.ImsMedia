@@ -98,7 +98,7 @@ public class AudioService {
      * associated with the session. This will also close the session object
      * and associated callback.
      *
-     * @param session RTP session to be closed.
+     * @param sessionId RTP session to be closed.
      */
     public void closeSession(final int sessionId) {
         Log.d(LOG_TAG, "closeSession");

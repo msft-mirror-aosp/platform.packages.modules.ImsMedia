@@ -22,7 +22,7 @@
 std::list<IRtpSession*> IRtpSession::mListRtpSession;
 
 IRtpSession* IRtpSession::GetInstance(
-        ImsMediaType type, const RtpAddress localAddress, const RtpAddress peerAddress)
+        ImsMediaType type, const RtpAddress& localAddress, const RtpAddress& peerAddress)
 {
     IMLOGD1("[GetInstance] media[%d]", type);
 

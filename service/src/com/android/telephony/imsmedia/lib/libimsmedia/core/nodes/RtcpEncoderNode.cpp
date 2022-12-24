@@ -231,12 +231,12 @@ void RtcpEncoderNode::ProcessTimer()
     }
 }
 
-void RtcpEncoderNode::SetLocalAddress(const RtpAddress address)
+void RtcpEncoderNode::SetLocalAddress(const RtpAddress& address)
 {
     mLocalAddress = address;
 }
 
-void RtcpEncoderNode::SetPeerAddress(const RtpAddress address)
+void RtcpEncoderNode::SetPeerAddress(const RtpAddress& address)
 {
     mPeerAddress = address;
 }

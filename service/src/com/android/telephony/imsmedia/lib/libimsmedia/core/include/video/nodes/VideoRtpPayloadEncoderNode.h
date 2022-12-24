@@ -20,7 +20,6 @@
 #include <ImsMediaDefine.h>
 #include <BaseNode.h>
 #include <ImsMediaVideoUtil.h>
-#include <mutex>
 
 /**
  * @brief this class is to decode the Avc/Hevc encoded video rtp payload header and send payload
@@ -62,7 +61,6 @@ private:
     uint32_t mPayloadMode;
     bool mPrevMark;
     uint8_t* mBuffer;
-    std::mutex mMutexExit;
     uint8_t mVPS[MAX_CONFIG_LEN];
     uint8_t mSPS[MAX_CONFIG_LEN];
     uint8_t mPPS[MAX_CONFIG_LEN];
@@ -72,4 +70,4 @@ private:
     uint32_t mMaxFragmentUnitSize;
 };
 
-#endif  // VIDEO_RTP_PAYLOAD_DECODER_NODE_H_INCLUDED
+#endif  // VIDEO_RTP_PAYLOAD_ENCODER_NODE_H_INCLUDED

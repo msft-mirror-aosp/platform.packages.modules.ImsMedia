@@ -18,12 +18,11 @@ package com.android.telephony.imsmedia;
 
 import android.content.res.AssetManager;
 import android.os.Parcel;
+import android.util.ArrayMap;
 import android.util.Log;
 import android.view.Surface;
 
 import androidx.annotation.VisibleForTesting;
-
-import java.util.Hashtable;
 
 /** JNI interface class to send message to libimsmediajni */
 public class JNIImsMediaService {
@@ -32,14 +31,14 @@ public class JNIImsMediaService {
     private final Object mLock = new Object();
 
     /** for media service based on type ex. audio, video, rtt */
-    private static Hashtable<Integer, JNIImsMediaListener> sListeners =
-            new Hashtable<Integer, JNIImsMediaListener>();
+    private static ArrayMap<Integer, JNIImsMediaListener> sListeners =
+            new ArrayMap<Integer, JNIImsMediaListener>();
 
     /**
      * Gets instance object of BaseManager with the corresponding media type
      *
      * @param mediatype Audio/Video/Text type
-     * @return
+     * @return the native instance of BaseManager
      */
     public static native long getInterface(int mediatype);
 

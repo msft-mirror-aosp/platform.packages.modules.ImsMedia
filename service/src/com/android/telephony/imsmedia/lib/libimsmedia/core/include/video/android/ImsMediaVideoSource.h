@@ -80,7 +80,7 @@ public:
     /**
      * @brief Set the pause image path stored
      */
-    void SetImagePath(const android::String8 path);
+    void SetImagePath(const android::String8& path);
 
     /**
      * @brief Set the Codec configuration parameter, this method should be called before calling
