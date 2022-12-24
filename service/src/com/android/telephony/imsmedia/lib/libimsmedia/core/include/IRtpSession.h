@@ -83,7 +83,7 @@ class IRtpSession : public RtpServiceListener
 {
 public:
     static IRtpSession* GetInstance(
-            ImsMediaType subtype, const RtpAddress local, const RtpAddress peer);
+            ImsMediaType type, const RtpAddress& localAddress, const RtpAddress& peerAddress);
     static void ReleaseInstance(IRtpSession* pSession);
     IRtpSession(ImsMediaType subtype, const RtpAddress local, const RtpAddress peer);
     virtual ~IRtpSession();

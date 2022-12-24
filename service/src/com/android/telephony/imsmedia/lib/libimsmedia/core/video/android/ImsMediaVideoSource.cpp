@@ -72,7 +72,7 @@ void ImsMediaVideoSource::SetCameraConfig(const uint32_t cameraId, const uint32_
     mCameraZoom = cameraZoom;
 }
 
-void ImsMediaVideoSource::SetImagePath(const android::String8 path)
+void ImsMediaVideoSource::SetImagePath(const android::String8& path)
 {
     IMLOGD1("[SetImagePath] path[%s]", path.string());
     mImagePath = path;
@@ -123,8 +123,6 @@ void ImsMediaVideoSource::SetDeviceOrientation(const uint32_t degree)
                 IMLOGD2("[SetDeviceOrientation] camera facing[%d], sensorOrientation[%d]", facing,
                         sensorOrientation);
             }
-
-            rotateDegree = 0;
 
             // assume device is always portrait
             if (mWidth > mHeight)
@@ -388,7 +386,7 @@ void ImsMediaVideoSource::onCameraFrame(AImage* pImage)
         size_t buffCapacity = 0;
         uint8_t* encoderBuf = AMediaCodec_getInputBuffer(mCodec, index, &buffCapacity);
 
-        if (!encoderBuf && !buffCapacity)
+        if (!encoderBuf || !buffCapacity)
         {
             IMLOGE1("[onCameraFrame] returned null buffer pointer or buffCapacity[%d]",
                     buffCapacity);
@@ -487,7 +485,7 @@ void ImsMediaVideoSource::EncodePauseImage()
     {
         size_t buffCapacity = 0;
         uint8_t* encoderBuf = AMediaCodec_getInputBuffer(mCodec, index, &buffCapacity);
-        if (!encoderBuf && !buffCapacity)
+        if (!encoderBuf || !buffCapacity)
         {
             IMLOGE1("[EncodePauseImage] returned null buffer pointer or buffCapacity[%d]",
                     buffCapacity);
@@ -603,26 +601,28 @@ void ImsMediaVideoSource::processOutputBuffer()
 
 static void ImageCallback(void* context, AImageReader* reader)
 {
-    if (context != NULL)
+    if (context == NULL)
     {
-        ImsMediaVideoSource* pVideoSource = static_cast<ImsMediaVideoSource*>(context);
-
-        if (pVideoSource->IsStopped())
-        {
-            return;
-        }
-
-        AImage* image = nullptr;
-        auto status = AImageReader_acquireNextImage(reader, &image);
-
-        if (status != AMEDIA_OK)
-        {
-            return;
-        }
-
-        pVideoSource->onCameraFrame(image);
-        AImage_delete(image);
+        return;
     }
+
+    ImsMediaVideoSource* pVideoSource = static_cast<ImsMediaVideoSource*>(context);
+
+    if (pVideoSource->IsStopped())
+    {
+        return;
+    }
+
+    AImage* image = nullptr;
+    auto status = AImageReader_acquireNextImage(reader, &image);
+
+    if (status != AMEDIA_OK)
+    {
+        return;
+    }
+
+    pVideoSource->onCameraFrame(image);
+    AImage_delete(image);
 }
 
 ANativeWindow* ImsMediaVideoSource::CreateImageReader(int width, int height)

@@ -27,6 +27,8 @@
 #include <media/NdkMediaCodec.h>
 #include <media/NdkMediaFormat.h>
 
+#define MAX_EVS_BW_STRLEN 5
+
 using android::sp;
 
 class ImsMediaAudioSource : public IImsMediaThread
@@ -134,7 +136,7 @@ private:
     uint32_t mSamplingRate;
     uint32_t mBufferSize;
     kEvsBandwidth mEvsBandwidth;
-    char mEvsbandwidthStr[5];
+    char mEvsbandwidthStr[MAX_EVS_BW_STRLEN];
     int32_t mEvsBitRate;
     int32_t mEvsChAwOffset;
     ImsMediaCondition mConditionExit;

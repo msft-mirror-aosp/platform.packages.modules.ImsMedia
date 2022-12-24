@@ -55,12 +55,12 @@ public:
     /**
      * @brief Set the local ip address and port number
      */
-    void SetLocalAddress(const RtpAddress address);
+    void SetLocalAddress(const RtpAddress& address);
 
     /**
      * @brief Set the peer ip address and port number
      */
-    void SetPeerAddress(const RtpAddress address);
+    void SetPeerAddress(const RtpAddress& address);
 
     /**
      * @brief Set the inactivity timer in second unit
