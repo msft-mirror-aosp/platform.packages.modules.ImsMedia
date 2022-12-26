@@ -55,16 +55,16 @@ TEST_F(ImsMediaImageRotateTest, Rotate90FlipTest_ZeroImageSize)
     const uint32_t img_width = 0, img_height = 0;
 
     // Input image Y buffer
-    uint8_t input_img_y[0];
+    uint8_t input_img_y[0] = {};
 
     // Input image UV buffer
-    uint8_t input_img_uv[0];
+    uint8_t input_img_uv[0] = {};
 
     // Expected output Y buffer
-    uint8_t exp_img[0];
+    uint8_t exp_img[0] = {};
 
     // Output image buffer to be verified
-    uint8_t output_img[0];
+    uint8_t output_img[0] = {};
 
     ImsMediaImageRotate::YUV420_SP_Rotate90_Flip(
             output_img, input_img_y, input_img_uv, img_width, img_height);
@@ -101,16 +101,16 @@ TEST_F(ImsMediaImageRotateTest, Rotate270Test_ZeroImageSize)
     const uint32_t img_width = 0, img_height = 0;
 
     // Input image Y buffer
-    uint8_t input_img_y[0];
+    uint8_t input_img_y[0] = {};
 
     // Input image UV buffer
-    uint8_t input_img_uv[0];
+    uint8_t input_img_uv[0] = {};
 
     // Expected output Y buffer
-    uint8_t exp_img[0];
+    uint8_t exp_img[0] = {};
 
     // Output image buffer to be verified
-    uint8_t output_img[0];
+    uint8_t output_img[0] = {};
 
     ImsMediaImageRotate::YUV420_SP_Rotate270(
             output_img, input_img_y, input_img_uv, img_width, img_height);
@@ -132,7 +132,7 @@ TEST_F(ImsMediaImageRotateTest, Rotate90Planar)
             93, 91, 92, 90};
 
     // Output image buffer to be verified
-    uint8_t output_img[24];
+    uint8_t output_img[24] = {0};
 
     ImsMediaImageRotate::YUV420_Planar_Rotate90_Flip(output_img, input_img, img_width, img_height);
 
@@ -144,13 +144,13 @@ TEST_F(ImsMediaImageRotateTest, Rotate90PlanarTest_ZeroImageSize)
     const uint32_t img_width = 0, img_height = 0;
 
     // Input image YUV buffer
-    uint8_t input_img[0];
+    uint8_t input_img[0] = {};
 
     // Expected output YUV buffer
-    uint8_t exp_img[0];
+    uint8_t exp_img[0] = {};
 
     // Output image buffer to be verified
-    uint8_t output_img[0];
+    uint8_t output_img[0] = {};
 
     ImsMediaImageRotate::YUV420_Planar_Rotate90_Flip(output_img, input_img, img_width, img_height);
 
