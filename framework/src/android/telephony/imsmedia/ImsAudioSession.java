@@ -43,7 +43,7 @@ public class ImsAudioSession implements ImsMediaSession {
         return miSession.asBinder();
     }
 
-    /** @inheritDoc */
+    /** {@inheritDoc} */
     public int getSessionId() {
         try {
             return miSession.getSessionId();
@@ -55,7 +55,7 @@ public class ImsAudioSession implements ImsMediaSession {
     }
 
     /**
-     * @inheritDoc
+     * {@inheritDoc}
      */
     public void modifySession(final RtpConfig config) {
         try {
@@ -66,7 +66,7 @@ public class ImsAudioSession implements ImsMediaSession {
     }
 
     /**
-     * @inheritDoc
+     * {@inheritDoc}
      */
     public void setMediaQualityThreshold(final MediaQualityThreshold threshold) {
         try {

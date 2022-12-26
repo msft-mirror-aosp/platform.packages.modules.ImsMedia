@@ -44,7 +44,7 @@ public class ImsVideoSession implements ImsMediaSession {
         return mSession.asBinder();
     }
 
-    /** @inheritDoc */
+    /** {@inheritDoc} */
     public int getSessionId() {
         try {
             return mSession.getSessionId();
@@ -56,7 +56,7 @@ public class ImsVideoSession implements ImsMediaSession {
     }
 
     /**
-     * @inheritDoc
+     * {@inheritDoc}
      */
     public void modifySession(final RtpConfig config) {
         try {
@@ -95,7 +95,7 @@ public class ImsVideoSession implements ImsMediaSession {
     }
 
     /**
-     * @inheritDoc
+     * {@inheritDoc}
      */
     public void setMediaQualityThreshold(final MediaQualityThreshold threshold) {
         try {
