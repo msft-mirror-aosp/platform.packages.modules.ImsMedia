@@ -101,7 +101,6 @@ void ImsMediaAudioSource::SetEvsBandwidth(kEvsBandwidth evsBandwidth)
 bool ImsMediaAudioSource::Start()
 {
     char kMimeType[128] = {'\0'};
-    auto codecResult = 0;
     int amrBitrate;
     // TODO: Integration with libEVS is required.
     ImsMediaAudioUtil::ConvertEvsBandwidthToStr(mEvsBandwidth, mEvsbandwidthStr, MAX_EVS_BW_STRLEN);
@@ -155,7 +154,7 @@ bool ImsMediaAudioSource::Start()
         }
 
         IMLOGD0("[Start] configure codec");
-        codecResult = AMediaCodec_configure(
+        media_status_t codecResult = AMediaCodec_configure(
                 mCodec, mFormat, NULL, NULL, AMEDIACODEC_CONFIGURE_FLAG_ENCODE);
 
         if (codecResult != AMEDIA_OK)
@@ -213,7 +212,7 @@ bool ImsMediaAudioSource::Start()
 
     if (mCodecType == kAudioCodecAmr || mCodecType == kAudioCodecAmrWb)
     {
-        codecResult = AMediaCodec_start(mCodec);
+        media_status_t codecResult = AMediaCodec_start(mCodec);
 
         if (codecResult != AMEDIA_OK)
         {

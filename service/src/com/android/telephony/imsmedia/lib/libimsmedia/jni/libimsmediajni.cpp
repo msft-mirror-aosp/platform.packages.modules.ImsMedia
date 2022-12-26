@@ -42,22 +42,6 @@ JavaVM* GetJavaVM()
     return gJVM;
 }
 
-JNIEnv* GetJNIEnv()
-{
-    if (gJVM == NULL)
-    {
-        return NULL;
-    }
-
-    JNIEnv* env = NULL;
-
-    if (gJVM->GetEnv((void**)&env, IMS_MEDIA_JNI_VERSION) != JNI_OK)
-    {
-        return NULL;
-    }
-    return env;
-}
-
 static int SendData2Java(int sessionId, const android::Parcel& objParcel)
 {
     JNIEnv* env;

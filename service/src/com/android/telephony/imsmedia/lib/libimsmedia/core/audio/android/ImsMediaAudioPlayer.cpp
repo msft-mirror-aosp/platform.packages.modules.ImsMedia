@@ -88,7 +88,6 @@ void ImsMediaAudioPlayer::SetCodecMode(uint32_t mode)
 bool ImsMediaAudioPlayer::Start()
 {
     char kMimeType[128] = {'\0'};
-    auto codecResult = 0;
 
     if (mCodecType == kAudioCodecAmr)
     {
@@ -136,7 +135,7 @@ bool ImsMediaAudioPlayer::Start()
         }
 
         IMLOGD0("[Start] configure codec");
-        codecResult = AMediaCodec_configure(mCodec, mFormat, NULL, NULL, 0);
+        media_status_t codecResult = AMediaCodec_configure(mCodec, mFormat, NULL, NULL, 0);
 
         if (codecResult != AMEDIA_OK)
         {
@@ -186,7 +185,7 @@ bool ImsMediaAudioPlayer::Start()
 
     if (mCodecType == kAudioCodecAmr || mCodecType == kAudioCodecAmrWb)
     {
-        codecResult = AMediaCodec_start(mCodec);
+        media_status_t codecResult = AMediaCodec_start(mCodec);
         if (codecResult != AMEDIA_OK)
         {
             IMLOGE1("[Start] unable to start codec - err[%d]", codecResult);
