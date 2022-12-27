@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+#include <algorithm>
 #include <VideoJitterBuffer.h>
 #include <ImsMediaDataQueue.h>
 #include <ImsMediaTrace.h>
@@ -823,12 +824,17 @@ void VideoJitterBuffer::CheckPacketLoss(uint16_t seqNum, uint16_t nLastRecvPkt)
 bool VideoJitterBuffer::UpdateLostPacketList(
         uint16_t lostSeq, uint16_t* countSecondNack, uint16_t* nPLIPkt, bool* bPLIPkt)
 {
-    for (auto& entry : mLostPktList)
+    LostPktEntry* foundLostPacket = NULL;
+    auto result = std::find_if(mLostPktList.begin(), mLostPktList.end(),
+            [lostSeq, &foundLostPacket](LostPktEntry* entry)
+            {
+                foundLostPacket = entry;
+                return (entry->seqNum == lostSeq);
+            });
+
+    if (result != mLostPktList.end() && foundLostPacket != NULL)
     {
-        if (entry != NULL && entry->seqNum == lostSeq)
-        {
-            return UpdateNackStatus(entry, lostSeq, countSecondNack, nPLIPkt, bPLIPkt);
-        }
+        return UpdateNackStatus(foundLostPacket, lostSeq, countSecondNack, nPLIPkt, bPLIPkt);
     }
 
     IMLOGD_PACKET2(IM_PACKET_LOG_JITTER, "[UpdateLostPacketList] add lost seq[%u], queue size[%d]",

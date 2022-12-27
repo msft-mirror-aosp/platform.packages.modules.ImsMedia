@@ -65,7 +65,12 @@ private:
 class ImsMediaAudioTest : public ::testing::Test
 {
 public:
-    ImsMediaAudioTest() {}
+    ImsMediaAudioTest()
+    {
+        audioSource = nullptr;
+        audioPlayer = nullptr;
+        mockAudioCallback = nullptr;
+    }
     virtual ~ImsMediaAudioTest() {}
 
     ImsMediaAudioSource* audioSource;

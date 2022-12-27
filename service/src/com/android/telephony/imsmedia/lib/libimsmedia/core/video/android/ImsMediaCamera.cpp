@@ -846,9 +846,15 @@ public:
         return (*this);
     }
 
-    bool IsSameRatio(const DisplayDimension& other) { return (w_ * other.h_ == h_ * other.w_); }
-    bool operator>(const DisplayDimension& other) { return (w_ >= other.w_ && h_ >= other.h_); }
-    bool operator==(const DisplayDimension& other)
+    bool IsSameRatio(const DisplayDimension& other) const
+    {
+        return (w_ * other.h_ == h_ * other.w_);
+    }
+    bool operator>(const DisplayDimension& other) const
+    {
+        return (w_ >= other.w_ && h_ >= other.h_);
+    }
+    bool operator==(const DisplayDimension& other) const
     {
         return (w_ == other.w_ && h_ == other.h_ && portrait_ == other.portrait_);
     }
@@ -858,8 +864,8 @@ public:
         return delta;
     }
     void Flip(void) { portrait_ = !portrait_; }
-    int32_t width(void) { return w_; }
-    int32_t height(void) { return h_; }
+    int32_t width(void) const { return w_; }
+    int32_t height(void) const { return h_; }
 
 private:
     int32_t w_, h_;

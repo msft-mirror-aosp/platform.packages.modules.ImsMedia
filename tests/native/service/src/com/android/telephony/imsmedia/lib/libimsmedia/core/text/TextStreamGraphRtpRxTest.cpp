@@ -48,16 +48,20 @@ const bool kKeepRedundantLevel = true;
 class TextStreamGraphRtpRxTest : public ::testing::Test
 {
 public:
+    TextStreamGraphRtpRxTest()
+    {
+        graph = NULL;
+        socketRtpFd = -1;
+    }
+    virtual ~TextStreamGraphRtpRxTest() {}
+
+protected:
     TextStreamGraphRtpRx* graph;
     TextConfig config;
     RtcpConfig rtcp;
     MediaQualityThreshold threshold;
     int socketRtpFd;
 
-    TextStreamGraphRtpRxTest() {}
-    ~TextStreamGraphRtpRxTest() {}
-
-protected:
     virtual void SetUp() override
     {
         rtcp.setCanonicalName(kCanonicalName);

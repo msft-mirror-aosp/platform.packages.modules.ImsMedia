@@ -61,6 +61,16 @@ const int32_t kRtcpFbTypes = VideoConfig::RTP_FB_NONE;
 class VideoStreamGraphRtpRxTest : public ::testing::Test
 {
 public:
+    VideoStreamGraphRtpRxTest()
+    {
+        graph = NULL;
+        displayReader = NULL;
+        displaySurface = NULL;
+        socketRtpFd = -1;
+    }
+    virtual ~VideoStreamGraphRtpRxTest() {}
+
+protected:
     VideoStreamGraphRtpRx* graph;
     VideoConfig config;
     RtcpConfig rtcp;
@@ -69,10 +79,6 @@ public:
     MediaQualityThreshold threshold;
     int socketRtpFd;
 
-    VideoStreamGraphRtpRxTest() {}
-    virtual ~VideoStreamGraphRtpRxTest() {}
-
-protected:
     virtual void SetUp() override
     {
         rtcp.setCanonicalName(kCanonicalName);

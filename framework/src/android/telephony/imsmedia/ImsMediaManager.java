@@ -133,6 +133,7 @@ public class ImsMediaManager {
             try {
                 mContext.unbindService(mConnection);
             } catch (IllegalArgumentException e) {
+                Log.e(TAG, "IllegalArgumentException: " + e.toString());
             }
             mImsMedia = null;
         }

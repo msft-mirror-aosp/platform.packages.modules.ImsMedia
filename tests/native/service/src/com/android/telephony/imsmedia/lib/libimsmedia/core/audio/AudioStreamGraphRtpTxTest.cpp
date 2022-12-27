@@ -78,6 +78,14 @@ public:
 class AudioStreamGraphRtpTxTest : public ::testing::Test
 {
 public:
+    AudioStreamGraphRtpTxTest()
+    {
+        graph = NULL;
+        socketRtpFd = -1;
+    }
+    ~AudioStreamGraphRtpTxTest() {}
+
+protected:
     AudioStreamGraphRtpTx* graph;
     AudioConfig config;
     RtcpConfig rtcp;
@@ -85,10 +93,6 @@ public:
     EvsParams evs;
     int socketRtpFd;
 
-    AudioStreamGraphRtpTxTest() {}
-    ~AudioStreamGraphRtpTxTest() {}
-
-protected:
     virtual void SetUp() override
     {
         rtcp.setCanonicalName(kCanonicalName);
