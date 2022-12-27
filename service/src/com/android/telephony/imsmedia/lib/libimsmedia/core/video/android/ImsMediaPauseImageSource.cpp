@@ -206,7 +206,6 @@ int8_t* ImsMediaPauseImageSource::ConvertRgbaToYuv(int8_t* pixels, int width, in
     int32_t* pSrcArray = reinterpret_cast<int32_t*>(pixels);
     mBufferSize = width * height * 1.5;
     int8_t* pDstArray = reinterpret_cast<int8_t*>(malloc(mBufferSize));
-    int32_t nIndex = 0;
     int32_t nYIndex = 0;
     int32_t nUVIndex = width * height;
     int32_t r, g, b;
@@ -216,7 +215,7 @@ int8_t* ImsMediaPauseImageSource::ConvertRgbaToYuv(int8_t* pixels, int width, in
     {
         for (int32_t i = 0; i < width; i++)
         {
-            nIndex = width * j + i;
+            int32_t nIndex = width * j + i;
 
             /*
              * TODO: Decode alpha

@@ -61,7 +61,11 @@ const bool kUseHeaderFullOnly = false;
 class AudioStreamGraphRtcpTest : public ::testing::Test
 {
 public:
-    AudioStreamGraphRtcpTest() {}
+    AudioStreamGraphRtcpTest()
+    {
+        graph = NULL;
+        socketRtcpFd = -1;
+    }
     virtual ~AudioStreamGraphRtcpTest() {}
 
 protected:

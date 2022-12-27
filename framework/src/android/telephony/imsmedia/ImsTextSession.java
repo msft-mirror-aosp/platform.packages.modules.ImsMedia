@@ -40,7 +40,7 @@ public class ImsTextSession implements ImsMediaSession {
         return mSession.asBinder();
     }
 
-    /** @inheritDoc */
+    /** {@inheritDoc} */
     public int getSessionId() {
         try {
             return mSession.getSessionId();
@@ -52,7 +52,7 @@ public class ImsTextSession implements ImsMediaSession {
     }
 
     /**
-     * @inheritDoc
+     * {@inheritDoc}
      */
     public void modifySession(final RtpConfig config) {
         try {
@@ -63,7 +63,7 @@ public class ImsTextSession implements ImsMediaSession {
     }
 
     /**
-     * @inheritDoc
+     * {@inheritDoc}
      */
     public void setMediaQualityThreshold(final MediaQualityThreshold threshold) {
         try {

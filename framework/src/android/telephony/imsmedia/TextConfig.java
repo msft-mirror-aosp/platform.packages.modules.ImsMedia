@@ -202,7 +202,6 @@ public final class TextConfig extends RtpConfig {
         /**
          * Sets text Codec type. It can be T.140 and RED.
          * @param mCodecType codec type, see {@link CodecType}
-         * @return
          */
         public Builder setCodecType(final @CodecType int mCodecType) {
             this.mCodecType = mCodecType;
@@ -212,7 +211,6 @@ public final class TextConfig extends RtpConfig {
         /**
          * Sets text bitrate of encoding streaming
          * @param bitrate mBitrate per second
-         * @return
          */
         public Builder setBitrate(final int bitrate) {
             this.mBitrate = bitrate;
@@ -221,8 +219,7 @@ public final class TextConfig extends RtpConfig {
 
         /**
          * Set negotiated text redundancy payload number for RED payload
-         * @param payload
-         * @return
+         * @param payload text redundancy payload number
          */
         public Builder setRedundantPayload(final byte payload) {
             this.mRedundantPayload = payload;
@@ -231,8 +228,7 @@ public final class TextConfig extends RtpConfig {
 
         /**
          * Set text redundancy level of the T.140 payload
-         * @param level
-         * @return
+         * @param level text redundancy level
          */
         public Builder setRedundantLevel(final byte level) {
             this.mRedundantLevel = level;
@@ -242,8 +238,8 @@ public final class TextConfig extends RtpConfig {
         /**
          * The option for sending empty redundant payload when the codec type is sending T.140 and
          * RED payload
-         * @param enable
-         * @return
+         * @param enable {@code true} enables sending empty redundant payload
+         * {@code false} otherwise.
          */
         public Builder setKeepRedundantLevel(final boolean enable) {
             this.mKeepRedundantLevel = enable;

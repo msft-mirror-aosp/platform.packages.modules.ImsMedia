@@ -48,15 +48,19 @@ const bool kKeepRedundantLevel = true;
 class TextStreamGraphRtpTxTest : public ::testing::Test
 {
 public:
+    TextStreamGraphRtpTxTest()
+    {
+        graph = NULL;
+        socketRtpFd = -1;
+    }
+    virtual ~TextStreamGraphRtpTxTest() {}
+
+protected:
     TextStreamGraphRtpTx* graph;
     TextConfig config;
     RtcpConfig rtcp;
     int socketRtpFd;
 
-    TextStreamGraphRtpTxTest() {}
-    ~TextStreamGraphRtpTxTest() {}
-
-protected:
     virtual void SetUp() override
     {
         rtcp.setCanonicalName(kCanonicalName);
@@ -82,7 +86,6 @@ protected:
         unsigned int testPort = 30000;
         socketRtpFd = ImsMediaNetworkUtil::openSocket(testIp, testPort, AF_INET);
         EXPECT_NE(socketRtpFd, -1);
-
         graph = new TextStreamGraphRtpTx(NULL, socketRtpFd);
     }
 

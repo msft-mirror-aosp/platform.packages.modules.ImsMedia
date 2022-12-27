@@ -505,7 +505,6 @@ void ImsMediaVideoSource::processOutputBuffer()
 {
     uint32_t nextTime = ImsMediaTimer::GetTimeInMilliSeconds();
     uint32_t timeInterval = 66;
-    uint32_t timeDiff = 0;
 
     if (mFramerate != 0)
     {
@@ -590,7 +589,7 @@ void ImsMediaVideoSource::processOutputBuffer()
 
         if (nextTime > nCurrTime)
         {
-            timeDiff = nextTime - nCurrTime;
+            uint32_t timeDiff = nextTime - nCurrTime;
             IMLOGD_PACKET1(IM_PACKET_LOG_VIDEO, "[processOutputBuffer] timeDiff[%u]", timeDiff);
             ImsMediaTimer::Sleep(timeDiff);
         }

@@ -61,6 +61,16 @@ const int32_t kRtcpFbTypes = VideoConfig::RTP_FB_NONE;
 class VideoStreamGraphRtpTxTest : public ::testing::Test
 {
 public:
+    VideoStreamGraphRtpTxTest()
+    {
+        graph = NULL;
+        previewReader = NULL;
+        previewSurface = NULL;
+        socketRtpFd = -1;
+    }
+    virtual ~VideoStreamGraphRtpTxTest() {}
+
+protected:
     VideoStreamGraphRtpTx* graph;
     VideoConfig config;
     RtcpConfig rtcp;
@@ -69,10 +79,6 @@ public:
     int socketRtpFd;
     MockBaseSessionCallback mCallback;
 
-    VideoStreamGraphRtpTxTest() {}
-    virtual ~VideoStreamGraphRtpTxTest() {}
-
-protected:
     virtual void SetUp() override
     {
         rtcp.setCanonicalName(kCanonicalName);
