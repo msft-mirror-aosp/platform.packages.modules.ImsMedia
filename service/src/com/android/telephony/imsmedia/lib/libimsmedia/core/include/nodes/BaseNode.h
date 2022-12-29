@@ -22,8 +22,8 @@
 #include <BaseSessionCallback.h>
 #include <StreamSchedulerCallback.h>
 
-#define MAX_AUDIO_PAYLOAD_SIZE 1500
-#define MAX_FRAME_IN_PACKET    (MAX_AUDIO_PAYLOAD_SIZE - 1) / 32
+#define MAX_AUDIO_PAYLOAD_SIZE (1500)
+#define MAX_FRAME_IN_PACKET    ((MAX_AUDIO_PAYLOAD_SIZE - 1) / 32)
 
 enum kBaseNodeState
 {
@@ -93,6 +93,11 @@ public:
      * @param pRearNode The instance of node to connect to next node
      */
     void ConnectRearNode(BaseNode* pRearNode);
+
+    /**
+     * @brief Disconnect nodes connected to rear and front
+     */
+    void DisconnectNodes();
 
     /**
      * @brief Empty the data queue

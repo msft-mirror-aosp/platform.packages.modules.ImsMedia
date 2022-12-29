@@ -19,10 +19,10 @@
 #include <ImsMediaTimer.h>
 #include <ImsMediaTrace.h>
 
-#define AUDIO_JITTER_BUFFER_MIN_SIZE   3
-#define AUDIO_JITTER_BUFFER_MAX_SIZE   9
-#define AUDIO_JITTER_BUFFER_START_SIZE 4
-#define GET_SEQ_GAP(a, b)              ((uint16_t)a - (uint16_t)b)
+#define AUDIO_JITTER_BUFFER_MIN_SIZE   (3)
+#define AUDIO_JITTER_BUFFER_MAX_SIZE   (9)
+#define AUDIO_JITTER_BUFFER_START_SIZE (4)
+#define GET_SEQ_GAP(a, b)              ((uint16_t)(a) - (uint16_t)(b))
 
 AudioJitterBuffer::AudioJitterBuffer()
 {

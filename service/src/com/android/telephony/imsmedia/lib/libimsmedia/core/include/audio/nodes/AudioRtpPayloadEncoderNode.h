@@ -44,7 +44,7 @@ private:
 
     int32_t mCodecType;
     bool mOctetAligned;
-    uint32_t mPtime;
+    int8_t mPtime;
     uint8_t mPayload[MAX_AUDIO_PAYLOAD_SIZE];
     bool mFirstFrame;
     uint32_t mTimestamp;
@@ -56,7 +56,7 @@ private:
     ImsMediaBitWriter mBWPayload;
     kEvsBandwidth mEvsBandwidth;
     kEvsCodecMode mEvsCodecMode;
-    int32_t mEvsOffset;
+    int8_t mEvsOffset;
     int8_t mSendCMR;
     kEvsBitrate mEvsMode;
     int32_t mCoreEvsMode;

@@ -63,7 +63,7 @@ protected:
     uint32_t mHeight;
     uint32_t mFramerate;
     uint32_t mBitrate;
-    uint32_t mSamplingRate;
+    int8_t mSamplingRate;
     uint32_t mIntraInterval;
     android::String8 mImagePath;
     uint32_t mDeviceOrientation;

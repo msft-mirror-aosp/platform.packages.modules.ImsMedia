@@ -33,12 +33,12 @@ class BaseStreamGraph
 protected:
     virtual ImsMediaResult create(RtpConfig* config) = 0;
     virtual ImsMediaResult update(RtpConfig* config) = 0;
-    virtual void AddNode(BaseNode* pNode, bool bReverse = true);
-    virtual void RemoveNode(BaseNode* pNode);
-    virtual ImsMediaResult startNodes();
-    virtual ImsMediaResult stopNodes();
-    virtual void deleteNodes();
-    virtual BaseNode* findNode(kBaseNodeId id);
+    void AddNode(BaseNode* pNode, bool bReverse = true);
+    void RemoveNode(BaseNode* pNode);
+    ImsMediaResult startNodes();
+    ImsMediaResult stopNodes();
+    void deleteNodes();
+    BaseNode* findNode(kBaseNodeId id);
 
 public:
     /**

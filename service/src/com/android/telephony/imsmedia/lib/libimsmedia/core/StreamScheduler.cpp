@@ -210,14 +210,7 @@ void* StreamScheduler::run()
             break;
         }
 
-        if (mlistSourceNode.size() > 0)
-        {
-            mConditionMain.wait_timeout(RUN_WAIT_TIMEOUT / 2);
-        }
-        else
-        {
-            mConditionMain.wait_timeout(RUN_WAIT_TIMEOUT / 2);
-        }
+        mConditionMain.wait_timeout(RUN_WAIT_TIMEOUT / 2);
     }
 
     mConditionExit.signal();

@@ -24,9 +24,6 @@
 using namespace android::telephony::imsmedia;
 using namespace android;
 
-using ::testing::_;
-using ::testing::AnyNumber;
-using ::testing::NotNull;
 using ::testing::Return;
 
 // RtpConfig

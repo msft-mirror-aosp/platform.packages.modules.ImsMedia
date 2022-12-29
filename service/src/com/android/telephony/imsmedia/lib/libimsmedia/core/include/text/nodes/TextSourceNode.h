@@ -48,7 +48,7 @@ private:
     void SendBOM();
 
     int32_t mCodecType;
-    int32_t mRedundantLevel;
+    int8_t mRedundantLevel;
     int32_t mRedundantCount;
     int32_t mTimeLastSent;
     int32_t mBitrate;

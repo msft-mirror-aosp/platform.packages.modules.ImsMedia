@@ -162,7 +162,7 @@ void* DtmfEncoderNode::run()
             break;
         }
 
-        uint16_t nPeriod = 0;
+        uint32_t nPeriod = 0;
         uint8_t pbPayload[BUNDLE_DTMF_DATA_MAX];
         uint32_t nPayloadSize;
         uint32_t nTimestamp = ImsMediaTimer::GetTimeInMilliSeconds();
@@ -245,27 +245,13 @@ uint32_t DtmfEncoderNode::calculateDtmfDuration(uint32_t duration)
 
 bool DtmfEncoderNode::SendDTMFEvent(uint8_t digit, uint32_t duration)
 {
-    uint16_t nPeriod = 0;
+    uint32_t nPeriod = 0;
     uint8_t pbPayload[BUNDLE_DTMF_DATA_MAX];
     uint32_t nPayloadSize;
     uint32_t nTimestamp = 0;
     bool bMarker = true;
     uint32_t nDTMFDuration = calculateDtmfDuration(duration);
     uint32_t nDTMFRetransmitDuration = mRetransmitDuration * (mAudioFrameDuration / mPtime);
-
-#if 0
-    // support bundling...
-    int32_t  nFrameBundlingSize = 1;
-    if (nFrameBundlingSize > 1) {
-        uint32_t nBundlingDuration;
-        uint8_t nRemainedTime;
-        nBundlingDuration = nFrameBundlingSize * AUDIO_FRAME_DURATION_INTERVAL;
-        nRemainedTime = nDTMFRetransmitDuration % nBundlingDuration;
-        if (nRemainedTime > 0) {
-            nDTMFRetransmitDuration += (nBundlingDuration - nRemainedTime);
-        }
-    }
-#endif
 
     // make and send DTMF packet
     for (nPeriod = mAudioFrameDuration; nPeriod < nDTMFDuration; nPeriod += mAudioFrameDuration)
@@ -321,7 +307,7 @@ bool DtmfEncoderNode::convertSignal(uint8_t digit, uint8_t& signal)
 }
 
 uint32_t DtmfEncoderNode::MakeDTMFPayload(
-        uint8_t* pbPayload, uint8_t digit, bool bEnd, uint8_t nVolume, uint16_t nPeriod)
+        uint8_t* pbPayload, uint8_t digit, bool bEnd, uint8_t nVolume, uint32_t nPeriod)
 {
     // Event: 8 bits
     pbPayload[0] = digit;
