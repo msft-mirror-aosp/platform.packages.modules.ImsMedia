@@ -21,104 +21,98 @@ ImsMediaDataQueue::ImsMediaDataQueue() {}
 
 ImsMediaDataQueue::~ImsMediaDataQueue()
 {
-    while (GetCount() > 0)
-        Delete();
+    Clear();
 }
 
 void ImsMediaDataQueue::Add(DataEntry* pEntry)
 {
-    uint8_t* pbData = NULL;
-    pbData = reinterpret_cast<uint8_t*>(malloc(sizeof(DataEntry) + pEntry->nBufferSize));
-
-    if (pbData == NULL)
-        return;
-
-    memcpy(pbData, pEntry, sizeof(DataEntry));
-
-    if (pEntry->nBufferSize > 0 && pEntry->pbBuffer)
+    if (pEntry != NULL)
     {
-        memcpy(pbData + sizeof(DataEntry), pEntry->pbBuffer, pEntry->nBufferSize);
+        std::lock_guard<std::mutex> guard(mMutex);
+        DataEntry* pbData = new DataEntry(*pEntry);
+        mList.push_back(pbData);
     }
-
-    (reinterpret_cast<DataEntry*>(pbData))->pbBuffer = pbData + sizeof(DataEntry);
-
-    m_List.push_back(pbData);
 }
 
 void ImsMediaDataQueue::InsertAt(uint32_t index, DataEntry* pEntry)
 {
-    uint8_t* pbData;
-    pbData = reinterpret_cast<uint8_t*>(malloc(sizeof(DataEntry) + pEntry->nBufferSize));
-
-    if (pbData == NULL)
-        return;
-
-    memcpy(pbData, pEntry, sizeof(DataEntry));
-
-    if (pEntry->nBufferSize > 0 && pEntry->pbBuffer)
+    if (pEntry != NULL)
     {
-        memcpy(pbData + sizeof(DataEntry), pEntry->pbBuffer, pEntry->nBufferSize);
-    }
+        std::lock_guard<std::mutex> guard(mMutex);
+        DataEntry* pbData = new DataEntry(*pEntry);
 
-    (reinterpret_cast<DataEntry*>(pbData))->pbBuffer = pbData + sizeof(DataEntry);
-
-    if (m_List.empty() || index == 0)
-    {
-        m_List.push_front(pbData);
-    }
-    else if (index >= GetCount())
-    {
-        m_List.push_back(pbData);
-    }
-    else
-    {
-        std::list<uint8_t*>::iterator iter = m_List.begin();
-        advance(iter, index);
-        m_List.insert(iter, pbData);
+        if (mList.empty() || index == 0)
+        {
+            mList.push_front(pbData);
+        }
+        else if (index >= mList.size())
+        {
+            mList.push_back(pbData);
+        }
+        else
+        {
+            std::list<DataEntry*>::iterator iter = mList.begin();
+            advance(iter, index);
+            mList.insert(iter, pbData);
+        }
     }
 }
 
 void ImsMediaDataQueue::Delete()
 {
-    if (!m_List.empty())
+    std::lock_guard<std::mutex> guard(mMutex);
+
+    if (!mList.empty())
     {
-        uint8_t* pbData = m_List.front();
-        free(reinterpret_cast<uint8_t*>(pbData));
-        pbData = NULL;
-        m_List.pop_front();
+        DataEntry* pbData = mList.front();
+        pbData->deleteBuffer();
+        delete pbData;
+        mList.pop_front();
     }
 }
 
 void ImsMediaDataQueue::Clear()
 {
-    while (GetCount() > 0)
+    while (!mList.empty())
+    {
         Delete();
+    }
 }
 
 bool ImsMediaDataQueue::Get(DataEntry** ppEntry)
 {
-    if (!m_List.empty())
+    if (ppEntry == NULL)
+    {
+        return false;
+    }
+
+    std::lock_guard<std::mutex> guard(mMutex);
+
+    if (!mList.empty())
     {
         // get first data in the queue
-        uint8_t* pbData = m_List.front();
-
-        if (pbData != NULL)
-        {
-            *ppEntry = reinterpret_cast<DataEntry*>(pbData);
-            return true;
-        }
+        *ppEntry = mList.front();
+        return true;
     }
-    *ppEntry = NULL;
-    return false;
+    else
+    {
+        *ppEntry = NULL;
+        return false;
+    }
 }
 
 bool ImsMediaDataQueue::GetLast(DataEntry** ppEntry)
 {
-    // get last data in the queue
-    if (GetCount() > 0)
+    if (ppEntry == NULL)
     {
-        uint8_t* pbData = m_List.back();
-        *ppEntry = reinterpret_cast<DataEntry*>(pbData);
+        return false;
+    }
+
+    std::lock_guard<std::mutex> guard(mMutex);
+    // get last data in the queue
+    if (!mList.empty())
+    {
+        *ppEntry = mList.back();
         return true;
     }
     else
@@ -130,12 +124,18 @@ bool ImsMediaDataQueue::GetLast(DataEntry** ppEntry)
 
 bool ImsMediaDataQueue::GetAt(uint32_t index, DataEntry** ppEntry)
 {
-    if (GetCount() > index)
+    if (ppEntry == NULL)
     {
-        std::list<uint8_t*>::iterator iter = m_List.begin();
+        return false;
+    }
+
+    std::lock_guard<std::mutex> guard(mMutex);
+
+    if (mList.size() > index)
+    {
+        std::list<DataEntry*>::iterator iter = mList.begin();
         advance(iter, index);
-        uint8_t* pbData = *(iter);
-        *ppEntry = reinterpret_cast<DataEntry*>(pbData);
+        *ppEntry = *(iter);
         return true;
     }
     else
@@ -147,20 +147,28 @@ bool ImsMediaDataQueue::GetAt(uint32_t index, DataEntry** ppEntry)
 
 uint32_t ImsMediaDataQueue::GetCount()
 {
-    return m_List.size();
+    std::lock_guard<std::mutex> guard(mMutex);
+    return mList.size();
 }
 
 void ImsMediaDataQueue::SetReadPosFirst()
 {
-    m_ListIter = m_List.begin();
+    std::lock_guard<std::mutex> guard(mMutex);
+    mListIter = mList.begin();
 }
 
 bool ImsMediaDataQueue::GetNext(DataEntry** ppEntry)
 {
-    if (m_ListIter != m_List.end())
+    if (ppEntry == NULL)
     {
-        uint8_t* pbData = *m_ListIter++;
-        *ppEntry = reinterpret_cast<DataEntry*>(pbData);
+        return false;
+    }
+
+    std::lock_guard<std::mutex> guard(mMutex);
+
+    if (mListIter != mList.end())
+    {
+        *ppEntry = *mListIter++;
         return true;
     }
     else
