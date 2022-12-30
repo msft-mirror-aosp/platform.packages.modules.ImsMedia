@@ -45,7 +45,7 @@ cc_defaults {
         "libimsmedia_core",
         "libimsmedia_config",
         "libimsmedia_protocol",
-        "libimsmedia_audio",
+        "libimsmedia_aosp_audio_codec",
     ],
     shared_libs: [
         "libbinder",
@@ -57,7 +57,7 @@ cc_defaults {
     header_libs: [
         "libimsmedia_headers",
         "libimsmedia_config_headers",
-        "libimsmedia_android_audio_headers",
+        "libimsmedia_aosp_audio_codec_headers",
         "libimsmedia_tests_headers",
     ],
     include_dirs: [
