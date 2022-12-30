@@ -386,13 +386,14 @@ bool RtpDecoderNode::IsSameConfig(void* config)
 }
 
 void RtpDecoderNode::OnMediaDataInd(unsigned char* data, uint32_t datasize, uint32_t timestamp,
-        bool mark, uint16_t seq, uint32_t payloadType, uint32_t ssrc, bool extension,
-        uint16_t nExtensionData)
+        bool mark, uint16_t seq, uint32_t payloadType, uint32_t ssrc,
+        const RtpHeaderExtensionInfo& extensionInfo)
 {
     IMLOGD_PACKET8(IM_PACKET_LOG_RTP,
             "[OnMediaDataInd] media[%d] size[%d], TS[%d], mark[%d], seq[%d], payloadType[%d] "
-            "sampling[%d], ext[%d]",
-            mMediaType, datasize, timestamp, mark, seq, payloadType, mSamplingRate, extension);
+            "sampling[%d], extensionSize[%d]",
+            mMediaType, datasize, timestamp, mark, seq, payloadType, mSamplingRate,
+            extensionInfo.length);
 
     if (mMediaType == IMS_MEDIA_AUDIO && mRtpPayloadRx != payloadType &&
             mRtpPayloadTx != payloadType && payloadType != mRtpRxDtmfPayload &&
@@ -423,46 +424,53 @@ void RtpDecoderNode::OnMediaDataInd(unsigned char* data, uint32_t datasize, uint
         return;
     }
 
-    if (extension && mMediaType == IMS_MEDIA_VIDEO && mCvoValue != CVO_DEFINE_NONE)
+    if (extensionInfo.length > 0 && mMediaType == IMS_MEDIA_AUDIO)
     {
-        uint16_t nExtensionID;
-        uint16_t nCamID;
-        uint16_t nRotation;
-        nExtensionID = nExtensionData;
-        nExtensionID = nExtensionID >> 12;
+        std::list<RtpHeaderExtension>* extensions = DecodeRtpHeaderExtension(extensionInfo);
 
-        nCamID = nExtensionData;  // 0: Front-facing camera, 1: Back-facing camera
-        nCamID = nCamID << 12;
-        nCamID = nCamID >> 15;
-
-        nRotation = nExtensionData;
-        nRotation = nRotation << 13;
-        nRotation = nRotation >> 13;
-
-        switch (nRotation)
+        if (mCallback != nullptr && extensions != nullptr)
         {
-            case 0:  // No rotation (Rotated 0CW/CCW = To rotate 0CW/CCW)
-            case 4:  // + Horizontal Flip, but it's treated as same as above
-                mSubtype = MEDIASUBTYPE_ROT0;
-                break;
-            case 1:  // Rotated 270CW(90CCW) = To rotate 90CW(270CCW)
-            case 5:  // + Horizontal Flip, but it's treated as same as above
-                mSubtype = MEDIASUBTYPE_ROT90;
-                break;
-            case 2:  // Rotated 180CW = To rotate 180CW
-            case 6:  // + Horizontal Flip, but it's treated as same as above
-                mSubtype = MEDIASUBTYPE_ROT180;
-                break;
-            case 3:  // Rotated 90CW(270CCW) = To rotate 270CW(90CCW)
-            case 7:  // + Horizontal Flip, but it's treated as same as above
-                mSubtype = MEDIASUBTYPE_ROT270;
-                break;
-            default:
-                break;
+            mCallback->SendEvent(
+                    kImsMediaEventHeaderExtensionReceived, reinterpret_cast<uint64_t>(extensions));
         }
+    }
 
-        IMLOGD4("[OnMediaDataInd] extensionId[%d], camId[%d], rot[%d], subtype[%d]", nExtensionID,
-                nCamID, nRotation, mSubtype);
+    if (extensionInfo.extensionData != nullptr && extensionInfo.extensionDataSize >= 2 &&
+            mMediaType == IMS_MEDIA_VIDEO && mCvoValue != CVO_DEFINE_NONE)
+    {
+        uint16_t extensionId = extensionInfo.extensionData[0] >> 4;
+
+        if (extensionId == mCvoValue)
+        {
+            // 0: Front-facing camera, 1: Back-facing camera
+            uint16_t cameraId = extensionInfo.extensionData[1] >> 3;
+            uint16_t rotation = extensionInfo.extensionData[1] & 0x07;
+
+            switch (rotation)
+            {
+                case 0:  // No rotation (Rotated 0CW/CCW = To rotate 0CW/CCW)
+                case 4:  // + Horizontal Flip, but it's treated as same as above
+                    mSubtype = MEDIASUBTYPE_ROT0;
+                    break;
+                case 1:  // Rotated 270CW(90CCW) = To rotate 90CW(270CCW)
+                case 5:  // + Horizontal Flip, but it's treated as same as above
+                    mSubtype = MEDIASUBTYPE_ROT90;
+                    break;
+                case 2:  // Rotated 180CW = To rotate 180CW
+                case 6:  // + Horizontal Flip, but it's treated as same as above
+                    mSubtype = MEDIASUBTYPE_ROT180;
+                    break;
+                case 3:  // Rotated 90CW(270CCW) = To rotate 270CW(90CCW)
+                case 7:  // + Horizontal Flip, but it's treated as same as above
+                    mSubtype = MEDIASUBTYPE_ROT270;
+                    break;
+                default:
+                    break;
+            }
+
+            IMLOGD4("[OnMediaDataInd] extensionId[%d], cameraId[%d], rotation[%d], subtype[%d]",
+                    extensionId, cameraId, rotation, mSubtype);
+        }
     }
 
     if (mMediaType == IMS_MEDIA_TEXT)
@@ -564,4 +572,76 @@ void RtpDecoderNode::processDtmf(uint8_t* data)
         // mark true when the new event started
         mDtmfEndBit = true;
     }
+}
+
+std::list<RtpHeaderExtension>* RtpDecoderNode::DecodeRtpHeaderExtension(
+        const RtpHeaderExtensionInfo& extensionInfo)
+{
+    if (extensionInfo.length == 0 || extensionInfo.extensionData == nullptr ||
+            extensionInfo.extensionDataSize == 0)
+    {
+        return nullptr;
+    }
+
+    std::list<RtpHeaderExtension>* extensions = new std::list<RtpHeaderExtension>();
+
+    // header
+    bool useTwoByteHeader =
+            (extensionInfo.definedByProfile == RtpHeaderExtensionInfo::kBitPatternForTwoByteHeader);
+    uint32_t length = extensionInfo.length;  // word size
+    IMLOGD2("[DecodeRtpHeaderExtension] twoByteHeader[%d], len[%d]", useTwoByteHeader, length);
+
+    uint32_t offset = 0;
+    int32_t remainingSize = extensionInfo.extensionDataSize;
+
+    while (remainingSize > 0)
+    {
+        RtpHeaderExtension extension;
+
+        if (useTwoByteHeader)
+        {
+            // header
+            extension.setLocalIdentifier(extensionInfo.extensionData[offset++]);
+            int8_t dataSize = extensionInfo.extensionData[offset++];  // add header
+
+            // payload
+            if (dataSize > 0)
+            {
+                extension.setExtensionData(
+                        reinterpret_cast<const uint8_t*>(extensionInfo.extensionData + offset),
+                        dataSize);
+            }
+
+            offset += dataSize;
+            remainingSize -= (dataSize + 2);  // remove two byte header too
+        }
+        else  // one byte header
+        {
+            // header
+            extension.setLocalIdentifier(extensionInfo.extensionData[offset] >> 4);
+            int8_t dataSize = (extensionInfo.extensionData[offset] & 0x0F) + 1;  // data + header
+            offset++;
+
+            // payload
+            if (dataSize > 0)
+            {
+                extension.setExtensionData(
+                        reinterpret_cast<const uint8_t*>(extensionInfo.extensionData + offset),
+                        dataSize);
+            }
+
+            offset += dataSize;
+            remainingSize -= (dataSize + 1);  // remove one byte header too
+        }
+
+        extensions->push_back(extension);
+
+        while (remainingSize > 0 && extensionInfo.extensionData[offset] == 0x00)  // ignore padding
+        {
+            offset++;
+            remainingSize--;
+        }
+    }
+
+    return extensions;
 }

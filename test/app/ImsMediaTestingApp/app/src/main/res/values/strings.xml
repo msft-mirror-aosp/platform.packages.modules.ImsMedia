@@ -40,6 +40,8 @@
   <string name="connected_call_toast_text">Connected!</string>
   <string name="connection_failed_toast_text">Connection failed!</string>
 
+  <!-- Send Header extension button text -->
+  <string name="send_header_extension_button_text">Send RtpHdrExt</string>
 
   <!-- Settings page Strings -->
   <string name="settings_remote_device_title">Remote Device</string>

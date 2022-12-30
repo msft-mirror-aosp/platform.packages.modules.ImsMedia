@@ -174,10 +174,20 @@ void AudioManager::sendDtmf(int sessionId, char dtmfDigit, int duration)
     }
 }
 
-/*void AudioManager::sendHeaderExtension(int sessionId, RtpHeaderExtension* data) {
-    (void)sessionId;
-    (void)data;
-}*/
+void AudioManager::sendRtpHeaderExtension(
+        int sessionId, std::list<RtpHeaderExtension>* listExtension)
+{
+    auto session = mSessions.find(sessionId);
+    IMLOGI1("[sendRtpHeaderExtension] sessionId[%d]", sessionId);
+    if (session != mSessions.end())
+    {
+        (session->second)->sendRtpHeaderExtension(listExtension);
+    }
+    else
+    {
+        IMLOGE1("[sendRtpHeaderExtension] no session id[%d]", sessionId);
+    }
+}
 
 void AudioManager::setMediaQualityThreshold(int sessionId, MediaQualityThreshold* threshold)
 {
@@ -225,7 +235,7 @@ void AudioManager::sendMessage(const int sessionId, const android::Parcel& parce
         case kAudioDeleteConfig:
         {
             AudioConfig* config = new AudioConfig();
-            config->readFromParcel(&parcel);
+            err = config->readFromParcel(&parcel);
             if (err != NO_ERROR)
             {
                 IMLOGE1("[sendMessage] error readFromParcel[%d]", err);
@@ -241,9 +251,25 @@ void AudioManager::sendMessage(const int sessionId, const android::Parcel& parce
                     "AUDIO_REQUEST_EVENT", nMsg, sessionId, reinterpret_cast<uint64_t>(param));
         }
         break;
-        case kAudioSendHeaderExtension:
-            // TO DO
-            break;
+        case kAudioSendRtpHeaderExtension:
+        {
+            std::list<RtpHeaderExtension>* listExtension = new std::list<RtpHeaderExtension>();
+            int listSize = parcel.readInt32();
+
+            for (int32_t i = 0; i < listSize; i++)
+            {
+                RtpHeaderExtension extension;
+
+                if (extension.readFromParcel(&parcel) == NO_ERROR)
+                {
+                    listExtension->push_back(extension);
+                }
+            }
+
+            ImsMediaEventHandler::SendEvent("AUDIO_REQUEST_EVENT", nMsg, sessionId,
+                    reinterpret_cast<uint64_t>(listExtension));
+        }
+        break;
         case kAudioSetMediaQualityThreshold:
         {
             MediaQualityThreshold* threshold = new MediaQualityThreshold();
@@ -377,9 +403,19 @@ void AudioManager::RequestHandler::processEvent(
             }
         }
         break;
-        case kAudioSendHeaderExtension:
-            // TO DO : add implementation
-            break;
+        case kAudioSendRtpHeaderExtension:
+        {
+            std::list<RtpHeaderExtension>* listExtension =
+                    reinterpret_cast<std::list<RtpHeaderExtension>*>(paramA);
+
+            if (listExtension != nullptr)
+            {
+                AudioManager::getInstance()->sendRtpHeaderExtension(
+                        static_cast<int>(sessionId), listExtension);
+                delete listExtension;
+            }
+        }
+        break;
         case kAudioSetMediaQualityThreshold:
         {
             MediaQualityThreshold* threshold = reinterpret_cast<MediaQualityThreshold*>(paramA);
@@ -455,8 +491,25 @@ void AudioManager::ResponseHandler::processEvent(
         }
         break;
         case kAudioRtpHeaderExtensionInd:
-            // TODO : add implementation
-            break;
+        {
+            parcel.writeInt32(event);
+            std::list<RtpHeaderExtension>* listExtension =
+                    reinterpret_cast<std::list<RtpHeaderExtension>*>(paramA);
+
+            if (listExtension != nullptr)
+            {
+                parcel.writeInt32(listExtension->size());
+
+                for (auto& extension : *listExtension)
+                {
+                    extension.writeToParcel(&parcel);
+                }
+
+                AudioManager::getInstance()->sendResponse(sessionId, parcel);
+                delete listExtension;
+            }
+        }
+        break;
         case kAudioMediaQualityStatusInd:
         {
             parcel.writeInt32(event);

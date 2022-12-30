@@ -298,40 +298,40 @@ void IRtpSession::StopRtcp()
     }
 }
 
-bool IRtpSession::SendRtpPacket(uint32_t nPayloadType, uint8_t* pData, uint32_t nDataSize,
-        uint32_t nTimestamp, bool bMark, uint32_t nTimeDiff, bool bExtension,
-        tRtpHeaderExtensionInfo* pExtensionInfo)
+bool IRtpSession::SendRtpPacket(uint32_t payloadType, uint8_t* data, uint32_t dataSize,
+        uint32_t timestamp, bool mark, uint32_t timeDiff, RtpHeaderExtensionInfo* extensionInfo)
 {
-    tRtpSvc_SendRtpPacketParm stRtpPacketParam;
-    memset(&stRtpPacketParam, 0, sizeof(tRtpSvc_SendRtpPacketParm));
+    tRtpSvc_SendRtpPacketParam stRtpPacketParam;
+    memset(&stRtpPacketParam, 0, sizeof(tRtpSvc_SendRtpPacketParam));
     IMLOGD_PACKET5(IM_PACKET_LOG_RTP,
-            "SendRtpPacket, payloadType[%u], size[%u], nTS[%u], bMark[%d], bExtension[%d]",
-            nPayloadType, nDataSize, nTimestamp, bMark, bExtension);
-    stRtpPacketParam.bMbit = bMark ? eRTP_TRUE : eRTP_FALSE;
-    stRtpPacketParam.byPayLoadType = nPayloadType;
-    stRtpPacketParam.diffFromLastRtpTimestamp = nTimeDiff;
-    stRtpPacketParam.bXbit = bExtension ? eRTP_TRUE : eRTP_FALSE;
+            "SendRtpPacket, payloadType[%u], size[%u], TS[%u], mark[%d], extension[%d]",
+            payloadType, dataSize, timestamp, mark, extensionInfo != nullptr);
+    stRtpPacketParam.bMbit = mark ? eRTP_TRUE : eRTP_FALSE;
+    stRtpPacketParam.byPayLoadType = payloadType;
+    stRtpPacketParam.diffFromLastRtpTimestamp = timeDiff;
+    stRtpPacketParam.bXbit = extensionInfo != nullptr ? eRTP_TRUE : eRTP_FALSE;
 
-    if (bExtension && pExtensionInfo != nullptr)
+    if (extensionInfo != nullptr)
     {
-        stRtpPacketParam.nDefinedByProfile = pExtensionInfo->nDefinedByProfile;
-        stRtpPacketParam.nLength = pExtensionInfo->nLength;
-        stRtpPacketParam.nExtensionData = pExtensionInfo->nExtensionData;
+        stRtpPacketParam.wDefinedByProfile = extensionInfo->definedByProfile;
+        stRtpPacketParam.wExtLen = extensionInfo->length;
+        stRtpPacketParam.pExtData = extensionInfo->extensionData;
+        stRtpPacketParam.nExtDataSize = extensionInfo->extensionDataSize;
     }
 
-    if (mPrevTimestamp == nTimestamp)
+    if (mPrevTimestamp == timestamp)
     {
         stRtpPacketParam.bUseLastTimestamp = eRTP_TRUE;
     }
     else
     {
         stRtpPacketParam.bUseLastTimestamp = eRTP_FALSE;
-        mPrevTimestamp = nTimestamp;
+        mPrevTimestamp = timestamp;
     }
 
     mNumRtpDataToSend++;
     IMS_RtpSvc_SendRtpPacket(
-            this, mRtpSessionId, reinterpret_cast<char*>(pData), nDataSize, &stRtpPacketParam);
+            this, mRtpSessionId, reinterpret_cast<char*>(data), dataSize, &stRtpPacketParam);
     return true;
 }
 
@@ -421,26 +421,16 @@ void IRtpSession::OnPeerInd(tRtpSvc_IndicationFromStack type, void* pMsg)
             {
                 tRtpSvcIndSt_ReceiveRtpInd* pstRtp =
                         reinterpret_cast<tRtpSvcIndSt_ReceiveRtpInd*>(pMsg);
-                uint32_t nSSRC = 0;
-
-                if (pstRtp->wMsgHdrLen >= 12)
-                {
-                    nSSRC = pstRtp->pMsgHdr[8];
-                    nSSRC <<= 8;
-                    nSSRC += pstRtp->pMsgHdr[9];
-                    nSSRC <<= 8;
-                    nSSRC += pstRtp->pMsgHdr[10];
-                    nSSRC <<= 8;
-                    nSSRC += pstRtp->pMsgHdr[11];
-                }
 
                 if ((mEnableDTMF == false || mRtpDtmfPayloadType != pstRtp->dwPayloadType) &&
                         pstRtp->dwPayloadType != 20)
                 {
+                    RtpHeaderExtensionInfo extensionInfo(pstRtp->wDefinedByProfile, pstRtp->wExtLen,
+                            reinterpret_cast<int8_t*>(pstRtp->pExtData), pstRtp->wExtDataSize);
+
                     mRtpDecoderListener->OnMediaDataInd(pstRtp->pMsgBody, pstRtp->wMsgBodyLen,
                             pstRtp->dwTimestamp, pstRtp->bMbit, pstRtp->dwSeqNum,
-                            pstRtp->dwPayloadType, nSSRC, pstRtp->bExtension,
-                            pstRtp->extensionData);
+                            pstRtp->dwPayloadType, pstRtp->dwSsrc, extensionInfo);
                 }
             }
             break;
