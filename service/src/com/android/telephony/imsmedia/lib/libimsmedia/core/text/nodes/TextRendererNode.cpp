@@ -27,8 +27,9 @@ TextRendererNode::TextRendererNode(BaseSessionCallback* callback) :
 {
     mCodecType = TextConfig::TEXT_CODEC_NONE;
     mBOMReceived = false;
-    mLastPlayedSeq = -1;
+    mLastPlayedSeq = 0;
     mLossWaitTime = 0;
+    mFirstFrameReceived = false;
 }
 
 TextRendererNode::~TextRendererNode() {}
@@ -48,8 +49,9 @@ ImsMediaResult TextRendererNode::Start()
     }
 
     mBOMReceived = false;
-    mLastPlayedSeq = -1;
+    mLastPlayedSeq = 0;
     mLossWaitTime = 0;
+    mFirstFrameReceived = false;
     mNodeState = kNodeStateRunning;
     return RESULT_SUCCESS;
 }
@@ -108,12 +110,14 @@ void TextRendererNode::ProcessData()
 
     while (GetData(&subtype, &data, &size, &timestamp, &mark, &seq, &dataType))
     {
-        IMLOGD4("[ProcessData] Size[%u],TS[%u],Mark[%u],Seq[%u]", size, timestamp, mark, seq);
+        IMLOGD_PACKET5(IM_PACKET_LOG_TEXT,
+                "[ProcessData] size[%u], TS[%u], mark[%u], seq[%u], last seq[%u]", size, timestamp,
+                mark, seq, mLastPlayedSeq);
 
         // ignore empty t.140
         if (size == 0)
         {
-            mLastPlayedSeq = (uint32_t)seq;
+            mLastPlayedSeq = (uint16_t)seq;
             DeleteData();
             break;
         }
@@ -124,20 +128,14 @@ void TextRendererNode::ProcessData()
             break;
         }
 
-        if (mLastPlayedSeq != -1)
+        if (mFirstFrameReceived)
         {
-            uint32_t lostCount = seq - mLastPlayedSeq - 1;
             // detect lost packet
-            if (lostCount > 0)
-            {
-                /* it is out of idle period, lost packet is empty t.140, ignore this */
-                if (lostCount == 1 && mark == true)
-                {
-                    mLastPlayedSeq++;
-                    break;
-                }
+            uint16_t seqDiff = (uint16_t)seq - mLastPlayedSeq;
 
-                // to wait 1000 sec - RFC4103 - 5.4 - Compensation for Packets Out of Order
+            if (seqDiff > 1)  // lost found
+            {
+                // Wait 1000 sec - RFC4103: 5.4 - Compensation for Packets Out of Order
                 uint32_t nCurTime = ImsMediaTimer::GetTimeInMilliSeconds();
 
                 if (mLossWaitTime == 0)
@@ -147,67 +145,67 @@ void TextRendererNode::ProcessData()
 
                 if (nCurTime - mLossWaitTime <= TEXT_LOSS_MAX_WAITING_TIME)
                 {
-                    IMLOGD1("[ProcessData] Lost wait[%u]", nCurTime - mLossWaitTime);
-                    break;
+                    return;
                 }
 
-                // lost count should consider redundant level, maximum lost count = lost packet
-                // count - (redundancy level - 1)
-                mRedundantRevel == 0 ? lostCount = seq - mLastPlayedSeq - 1
-                                     : lostCount = seq - mLastPlayedSeq - mRedundantRevel;
-
+                int32_t lostCount = seqDiff - 1;
                 IMLOGD1("[ProcessData] lostCount[%d]", lostCount);
 
                 // Send a lost T140 as question mark
-                for (uint32_t nIndex = 0; nIndex < lostCount; nIndex++)
+                for (int32_t nIndex = 1; nIndex <= lostCount; nIndex++)
                 {
                     // send replacement character in case of lost packet detected
                     android::String8* text = new android::String8(CHAR_REPLACEMENT);
                     mCallback->SendEvent(
                             kImsMediaEventNotifyRttReceived, reinterpret_cast<uint64_t>(text), 0);
+
+                    uint16_t lostSeq = mLastPlayedSeq + (uint16_t)nIndex;
                     IMLOGD_PACKET2(IM_PACKET_LOG_TEXT, "[ProcessData] LostSeq[%u], text[%s]",
-                            nIndex + mLastPlayedSeq + 1, text->string());
+                            lostSeq, text->string());
                 }
             }
 
             mLossWaitTime = 0;  // reset loss wait
         }
 
-        // send event to notify to transfer rtt data received
-        uint32_t offset = size;
+        int32_t offset = size;
+        uint8_t* dataPtr = data;
 
-        while (offset > 0 && data != NULL && (seq > mLastPlayedSeq || mLastPlayedSeq == -1))
+        // remove BOM from the string and send event
+        while (offset > 0)
         {
             // remain last null data
             uint32_t transSize = 0;
-            offset > MAX_RTT_LEN - 1 ? transSize = MAX_RTT_LEN - 1 : transSize = offset;
+            offset > MAX_RTT_LEN ? transSize = MAX_RTT_LEN : transSize = offset;
 
-            if (mBOMReceived == false && offset >= 3 && data[0] == 0xef && data[1] == 0xbb &&
-                    data[2] == 0xbf)
+            if (mBOMReceived == false && offset >= 3 && dataPtr[0] == 0xef && dataPtr[1] == 0xbb &&
+                    dataPtr[2] == 0xbf)
             {
-                // it is BOM - optional packet
-                IMLOGD0("[ProcessData] got BOM");
+                IMLOGD0("[ProcessData] got byte order mark");
                 mBOMReceived = true;
-                data += 3;
+                dataPtr += 3;
                 transSize -= 3;
                 offset -= 3;
             }
 
+            // send event to notify to transfer rtt data received
             if (transSize > 0)
             {
-                memset(mBuffer, 0, MAX_RTT_LEN);
-                memcpy(mBuffer, data, transSize);
+                memset(mBuffer, 0, sizeof(mBuffer));
+                memcpy(mBuffer, dataPtr, transSize);
                 android::String8* text = new android::String8(mBuffer);
                 mCallback->SendEvent(
                         kImsMediaEventNotifyRttReceived, reinterpret_cast<uint64_t>(text), 0);
-                IMLOGD_PACKET1(IM_PACKET_LOG_TEXT, "[ProcessData] text[%s]", mBuffer);
+                IMLOGD_PACKET2(
+                        IM_PACKET_LOG_TEXT, "[ProcessData] size[%d] text[%s]", transSize, mBuffer);
             }
 
-            data += transSize;
+            dataPtr += transSize;
             offset -= transSize;
         }
 
-        mLastPlayedSeq = (uint32_t)seq;
+        mFirstFrameReceived = true;
+        mLastPlayedSeq = (uint16_t)seq;
         DeleteData();
     }
 }
