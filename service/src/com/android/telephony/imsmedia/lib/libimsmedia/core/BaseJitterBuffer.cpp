@@ -19,6 +19,8 @@
 
 BaseJitterBuffer::BaseJitterBuffer()
 {
+    mCallback = NULL;
+    mFirstFrameReceived = false;
     mSsrc = 0;
     mCodecType = 0;
     mInitJitterBufferSize = 4;

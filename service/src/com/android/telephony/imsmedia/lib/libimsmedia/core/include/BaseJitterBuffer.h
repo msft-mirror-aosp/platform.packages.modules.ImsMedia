@@ -82,6 +82,7 @@ public:
 
 protected:
     BaseSessionCallback* mCallback;
+    bool mFirstFrameReceived;
     uint32_t mSsrc;
     uint32_t mCodecType;
     ImsMediaDataQueue mDataQueue;

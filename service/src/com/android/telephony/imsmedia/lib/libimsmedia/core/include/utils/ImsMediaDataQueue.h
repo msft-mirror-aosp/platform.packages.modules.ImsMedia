@@ -22,8 +22,52 @@
 
 using namespace std;
 
-struct DataEntry
+class DataEntry
 {
+public:
+    DataEntry()
+    {
+        pbBuffer = NULL;
+        nBufferSize = 0;
+        nTimestamp = 0;
+        bMark = false;
+        nSeqNum = 0;
+        bHeader = false;
+        bValid = false;
+        arrivalTime = 0;
+        eDataType = MEDIASUBTYPE_UNDEFINED;
+        subtype = MEDIASUBTYPE_UNDEFINED;
+    }
+
+    DataEntry(const DataEntry& entry)
+    {
+        if (entry.nBufferSize > 0 && entry.pbBuffer != NULL)
+        {
+            pbBuffer = new uint8_t[entry.nBufferSize];
+            memcpy(pbBuffer, entry.pbBuffer, entry.nBufferSize);
+        }
+
+        nBufferSize = entry.nBufferSize;
+        nTimestamp = entry.nTimestamp;
+        bMark = entry.bMark;
+        nSeqNum = entry.nSeqNum;
+        bHeader = entry.bHeader;
+        bValid = entry.bValid;
+        arrivalTime = entry.arrivalTime;
+        eDataType = entry.eDataType;
+        subtype = entry.subtype;
+    }
+
+    ~DataEntry() {}
+
+    void deleteBuffer()
+    {
+        if (pbBuffer != NULL)
+        {
+            delete[] pbBuffer;
+        }
+    }
+
     uint8_t* pbBuffer;     // The data buffer
     uint32_t nBufferSize;  // The size of data
     /** The timestamp of data, it can be milliseconds unit or rtp timestamp unit */
@@ -72,8 +116,9 @@ public:
     bool GetNext(DataEntry** ppEntry);
 
 private:
-    list<uint8_t*> m_List;  // data list
-    list<uint8_t*>::iterator m_ListIter;
+    list<DataEntry*> mList;  // data list
+    list<DataEntry*>::iterator mListIter;
+    std::mutex mMutex;
 };
 
 #endif
