@@ -130,6 +130,7 @@ void RtpEncoderNode::Stop()
         mRtpSession->StopRtp();
     }
 
+    ClearDataQueue();
     mNodeState = kNodeStateStopped;
 }
 
