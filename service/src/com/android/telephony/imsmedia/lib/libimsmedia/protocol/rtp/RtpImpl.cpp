@@ -18,7 +18,7 @@
 #include <RtpImpl.h>
 #include <RtpService.h>
 #include <RtpTrace.h>
-#include <string.h>
+#include <string>
 
 RtpImpl::RtpImpl()
 {
@@ -86,14 +86,8 @@ eRtp_Bool RtpImpl::rtcpAppPayloadReqInd(
         return eRTP_FALSE;
     }
 
-    /* App packet is not used by IMS application and below is only a test data */
-    pusSubType = 1;
-    uiName = 1111;
-    // allocated memory will be released by the RTP stack
-    RtpDt_UChar* pcAppData = new RtpDt_UChar[25];
-    memset(pcAppData, 0, 25);
-    memcpy(pcAppData, "application specific data", 25);
-    pobjPayload->setBufferInfo(25, pcAppData);
+    (RtpDt_Void) pusSubType, (RtpDt_Void)uiName, (RtpDt_Void)pobjPayload;
+    // To be implemented when Application-Defined RTCP Packet Type feature has to be enabled
 
     return eRTP_TRUE;
 }
@@ -104,11 +98,12 @@ eRtp_Bool RtpImpl::getRtpHdrExtInfo(OUT RtpBuffer* pobjExtHdrInfo)
     {
         return eRTP_FALSE;
     }
+
     // allocated memory will be released by the RTP stack
-    RtpDt_UChar* pcExtHdrInfo = new RtpDt_UChar[21];
-    memset(pcExtHdrInfo, 0, 21);
-    memcpy(pcExtHdrInfo, "extension header info", 21);
-    pobjExtHdrInfo->setBufferInfo(21, pcExtHdrInfo);
+    std::string extInfo("extension header info");
+    RtpDt_UChar* pcExtHdrInfo = new RtpDt_UChar[extInfo.size() + 1];
+    strlcpy(reinterpret_cast<RtpDt_Char*>(pcExtHdrInfo), extInfo.data(), extInfo.size() + 1);
+    pobjExtHdrInfo->setBufferInfo(extInfo.size(), pcExtHdrInfo);
     return eRTP_TRUE;
 }
 

@@ -26,7 +26,7 @@
 #define RTP_NULL            0
 #define RTP_FALSE           0
 #define RTP_TRUE            1
-#define RTP_INVALID         -1
+#define RTP_INVALID         (-1)
 #define RTP_EQUALS          0
 #define RTP_MATCHES         0
 #define RTP_NOT_MATCH       1

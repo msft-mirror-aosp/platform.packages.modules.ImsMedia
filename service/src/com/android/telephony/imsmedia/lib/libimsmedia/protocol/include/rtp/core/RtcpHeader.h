@@ -158,6 +158,11 @@ public:
     RtpDt_UInt32 getSsrc();
 
     /**
+     * Equality operator overloaded
+     */
+    bool operator==(const RtcpHeader& objRtcpHeader) const;
+
+    /**
      * Decodes and stores the information of the RTCP Header.
      *
      * @param[in] pobjRtcpPktBuf RTCP pcaket buffer.

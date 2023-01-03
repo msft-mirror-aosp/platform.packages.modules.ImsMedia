@@ -130,7 +130,6 @@ eRTP_STATUS_CODE RtcpFbPacket::formRtcpFbPacket(OUT RtpBuffer* pobjRtcpPktBuf)
     // set the FCI buffer
     RtpBuffer* pFCI = this->getFCI();
     memcpy(pucBuffer, pFCI->getBuffer(), pFCI->getLength());
-    pucBuffer = pucBuffer + pFCI->getLength();
     uiCurPos = uiCurPos + pFCI->getLength();
 
     // padding
@@ -142,6 +141,7 @@ eRTP_STATUS_CODE RtcpFbPacket::formRtcpFbPacket(OUT RtpBuffer* pobjRtcpPktBuf)
         uiPadLen = RTP_WORD_SIZE - uiPadLen;
         uiFbPktLen = uiFbPktLen + uiPadLen;
         uiCurPos = uiCurPos + uiPadLen;
+        pucBuffer = pucBuffer + pFCI->getLength();
         memset(pucBuffer, RTP_ZERO, uiPadLen);
 
         pucBuffer = pucBuffer + uiPadLen;

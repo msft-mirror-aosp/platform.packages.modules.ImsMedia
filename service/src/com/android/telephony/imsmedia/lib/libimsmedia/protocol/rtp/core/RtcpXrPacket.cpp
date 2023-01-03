@@ -20,7 +20,7 @@
 
 #define NTP2MSEC 65.555555
 #define SET16BIT_ENDIAN(ptr, p_offset, value) \
-    (ptr)[(*(p_offset))++] = (value >> 8) & 0x00ff, (ptr)[(*(p_offset))++] = (value & 0x00ff)
+    (ptr)[(*(p_offset))++] = ((value) >> 8) & 0x00ff, (ptr)[(*(p_offset))++] = ((value)&0x00ff)
 
 RtcpXrPacket::RtcpXrPacket() :
         m_reportBlk(RTP_NULL)
@@ -110,7 +110,6 @@ eRTP_STATUS_CODE RtcpXrPacket::formRtcpXrPacket(OUT RtpBuffer* pobjRtcpPktBuf)
     memcpy(pucBuffer, pReportBlk->getBuffer(), pReportBlk->getLength());
     SET16BIT_ENDIAN(pucBuffer, &uiRttdOffset, msecRTTD);
 
-    pucBuffer = pucBuffer + pReportBlk->getLength();
     uiCurPos = uiCurPos + pReportBlk->getLength();
 
     // padding
@@ -123,6 +122,7 @@ eRTP_STATUS_CODE RtcpXrPacket::formRtcpXrPacket(OUT RtpBuffer* pobjRtcpPktBuf)
         uiPadLen = RTP_WORD_SIZE - uiPadLen;
         uiXrPktLen = uiXrPktLen + uiPadLen;
         uiCurPos = uiCurPos + uiPadLen;
+        pucBuffer = pucBuffer + pReportBlk->getLength();
         memset(pucBuffer, RTP_ZERO, uiPadLen);
 
         pucBuffer = pucBuffer + uiPadLen;
