@@ -73,6 +73,8 @@ AudioSession::~AudioSession()
         mListGraphRtcp.pop_front();
         delete graph;
     }
+
+    mMediaQualityAnalyzer->stop();
 }
 
 SessionState AudioSession::getState()
@@ -243,9 +245,9 @@ ImsMediaResult AudioSession::startGraph(RtpConfig* config)
     if (mMediaQualityAnalyzer != NULL &&
             !mMediaQualityAnalyzer->isSameConfig(reinterpret_cast<AudioConfig*>(config)))
     {
-        mMediaQualityAnalyzer->stopTimer();
+        mMediaQualityAnalyzer->stop();
         mMediaQualityAnalyzer->setConfig(reinterpret_cast<AudioConfig*>(config));
-        mMediaQualityAnalyzer->startTimer(1000);
+        mMediaQualityAnalyzer->start();
     }
 
     return ret;
@@ -341,6 +343,15 @@ ImsMediaResult AudioSession::addGraph(RtpConfig* config, bool enableRtcp)
     }
 
     IMLOGD1("[addGraph] mListGraphRtcp size[%d]", mListGraphRtcp.size());
+
+    if (mMediaQualityAnalyzer != NULL &&
+            !mMediaQualityAnalyzer->isSameConfig(reinterpret_cast<AudioConfig*>(config)))
+    {
+        mMediaQualityAnalyzer->stop();
+        mMediaQualityAnalyzer->setConfig(reinterpret_cast<AudioConfig*>(config));
+        mMediaQualityAnalyzer->start();
+    }
+
     return RESULT_SUCCESS;
 }
 
@@ -631,40 +642,16 @@ void AudioSession::onEvent(int32_t type, uint64_t param1, uint64_t param2)
                     "AUDIO_REQUEST_EVENT", kRequestAudioCmr, mSessionId, param1, param2);
             break;
         case kRequestRoundTripTimeDelayUpdate:
-            onCollectOptionalInfo(kRoundTripDelay, 0, param1);
-            break;
         case kCollectPacketInfo:
-            onCollectInfo(
-                    static_cast<ImsMediaStreamType>(param1), reinterpret_cast<RtpPacket*>(param2));
-            break;
         case kCollectOptionalInfo:
-            if (param1 != 0)
-            {
-                SessionCallbackParameter* param =
-                        reinterpret_cast<SessionCallbackParameter*>(param1);
-                onCollectOptionalInfo(param->type, param->param1, param->param2);
-                delete param;
-            }
-            break;
         case kCollectRxRtpStatus:
-            onCollectRxRtpStatus(
-                    static_cast<int32_t>(param1), static_cast<kRtpPacketStatus>(param2));
-            break;
         case kCollectJitterBufferSize:
-            onCollectJitterBufferSize(static_cast<int32_t>(param1), static_cast<int32_t>(param2));
-            break;
         case kGetRtcpXrReportBlock:
-        {
-            uint32_t size = 0;
-            uint8_t* reportBlock = new uint8_t[MAX_BLOCK_LENGTH];
-
-            if (onGetRtcpXrReportBlock(static_cast<int32_t>(param1), reportBlock, size))
+            if (mMediaQualityAnalyzer != NULL)
             {
-                ImsMediaEventHandler::SendEvent("AUDIO_REQUEST_EVENT", kRequestSendRtcpXrReport,
-                        mSessionId, reinterpret_cast<uint64_t>(reportBlock), size);
+                mMediaQualityAnalyzer->SendEvent(type, param1, param2);
             }
-        }
-        break;
+            break;
         default:
             break;
     }
@@ -765,46 +752,4 @@ void AudioSession::SendInternalEvent(int32_t type, uint64_t param1, uint64_t par
         default:
             break;
     }
-}
-
-void AudioSession::onCollectInfo(ImsMediaStreamType streamType, RtpPacket* packet)
-{
-    if (packet == NULL)
-    {
-        return;
-    }
-
-    IMLOGD_PACKET1(IM_PACKET_LOG_RTP, "[onCollectInfo] streamType[%d]", streamType);
-
-    mMediaQualityAnalyzer->collectInfo(streamType, packet);
-}
-
-void AudioSession::onCollectOptionalInfo(int32_t optionType, int32_t seq, int32_t value)
-{
-    IMLOGD_PACKET3(IM_PACKET_LOG_RTP, "[onCollectOptionalInfo] optionType[%d], seq[%d], value[%d]",
-            optionType, seq, value);
-
-    mMediaQualityAnalyzer->collectOptionalInfo(optionType, seq, value);
-}
-
-void AudioSession::onCollectRxRtpStatus(int32_t seq, kRtpPacketStatus status)
-{
-    IMLOGD_PACKET2(IM_PACKET_LOG_RTP, "[onCollectRxRtpStatus] seq[%d], status[%d]", seq, status);
-
-    mMediaQualityAnalyzer->collectRxRtpStatus(seq, status);
-}
-
-void AudioSession::onCollectJitterBufferSize(int32_t currSize, int32_t maxSize)
-{
-    IMLOGD_PACKET2(IM_PACKET_LOG_RTP, "[onCollectJitterBufferSize] current size[%d], max size[%d]",
-            currSize, maxSize);
-
-    mMediaQualityAnalyzer->collectJitterBufferSize(currSize, maxSize);
-}
-
-bool AudioSession::onGetRtcpXrReportBlock(uint32_t nReportBlocks, uint8_t* data, uint32_t& size)
-{
-    IMLOGD1("[onGetRtcpXrReportBlock] nReportBlocks[%d]", nReportBlocks);
-
-    return mMediaQualityAnalyzer->getRtcpXrReportBlock(nReportBlocks, data, size);
 }
