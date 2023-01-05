@@ -96,12 +96,6 @@ public:
     bool IsGraphAlreadyExist(RtpConfig* config);
 
 private:
-    void onCollectInfo(ImsMediaStreamType streamType, RtpPacket* packet);
-    void onCollectOptionalInfo(int32_t optionType, int32_t seq, int32_t value);
-    void onCollectRxRtpStatus(int32_t seq, kRtpPacketStatus status);
-    void onCollectJitterBufferSize(int32_t currSize, int32_t maxSize);
-    bool onGetRtcpXrReportBlock(uint32_t nReportBlocks, uint8_t* data, uint32_t& size);
-
     std::list<AudioStreamGraphRtpTx*> mListGraphRtpTx;
     std::list<AudioStreamGraphRtpRx*> mListGraphRtpRx;
     std::list<AudioStreamGraphRtcp*> mListGraphRtcp;
