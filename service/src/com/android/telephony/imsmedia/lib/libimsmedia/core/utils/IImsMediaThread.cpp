@@ -33,14 +33,12 @@ void* runThread(void* arg)
         return NULL;
     }
 
-    IMLOGD0("[runThread]");
     IImsMediaThread* thread = reinterpret_cast<IImsMediaThread*>(arg);
     return thread->runBase();
 }
 
 bool IImsMediaThread::StartThread()
 {
-    IMLOGD0("[StartThread]");
     std::lock_guard<std::mutex> guard(mThreadMutex);
     mThreadStopped = false;
 
@@ -51,7 +49,6 @@ bool IImsMediaThread::StartThread()
 
 void IImsMediaThread::StopThread()
 {
-    IMLOGD0("[StopThread]");
     std::lock_guard<std::mutex> guard(mThreadMutex);
     mThreadStopped = true;
 }

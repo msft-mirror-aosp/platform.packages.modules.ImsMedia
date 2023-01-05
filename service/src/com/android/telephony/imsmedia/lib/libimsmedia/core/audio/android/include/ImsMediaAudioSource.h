@@ -122,7 +122,7 @@ private:
     void openAudioStream();
     void restartAudioStream();
     void queueInputBuffer(int16_t* buffer, uint32_t size);
-    void processOutputBuffer();
+    void dequeueOutputBuffer();
     static void audioErrorCallback(AAudioStream* stream, void* userData, aaudio_result_t error);
 
     std::mutex mMutexUplink;
