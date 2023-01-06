@@ -218,31 +218,32 @@ void ImsMediaAudioPlayer::Stop()
         mFormat = NULL;
     }
 
-    aaudio_stream_state_t inputState = AAUDIO_STREAM_STATE_STOPPING;
-    aaudio_stream_state_t nextState = AAUDIO_STREAM_STATE_UNINITIALIZED;
-    aaudio_result_t result = AAudioStream_requestStop(mAudioStream);
-
-    if (result != AAUDIO_OK)
-    {
-        IMLOGE1("[Stop] Error stop stream[%s]", AAudio_convertResultToText(result));
-    }
-
-    result = AAudioStream_waitForStateChange(
-            mAudioStream, inputState, &nextState, AAUDIO_STATE_TIMEOUT_NANO);
-
-    if (result != AAUDIO_OK)
-    {
-        IMLOGE1("[Stop] Error stop stream[%s]", AAudio_convertResultToText(result));
-    }
-
-    IMLOGI1("[Stop] stream state[%s]", AAudio_convertStreamStateToText(nextState));
-
     if (mAudioStream != NULL)
     {
+        aaudio_stream_state_t inputState = AAUDIO_STREAM_STATE_STOPPING;
+        aaudio_stream_state_t nextState = AAUDIO_STREAM_STATE_UNINITIALIZED;
+        aaudio_result_t result = AAudioStream_requestStop(mAudioStream);
+
+        if (result != AAUDIO_OK)
+        {
+            IMLOGE1("[Stop] Error stop stream[%s]", AAudio_convertResultToText(result));
+        }
+
+        // TODO: if it causes extra delay in stop, optimize later
+        result = AAudioStream_waitForStateChange(
+                mAudioStream, inputState, &nextState, AAUDIO_STATE_TIMEOUT_NANO);
+
+        if (result != AAUDIO_OK)
+        {
+            IMLOGE1("[Stop] Error stop stream[%s]", AAudio_convertResultToText(result));
+        }
+
+        IMLOGI1("[Stop] stream state[%s]", AAudio_convertStreamStateToText(nextState));
+
         AAudioStream_close(mAudioStream);
+        mAudioStream = NULL;
     }
 
-    mAudioStream = NULL;
     IMLOGD0("[Stop] exit ");
 }
 
