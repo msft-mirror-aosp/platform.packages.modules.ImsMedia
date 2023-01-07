@@ -49,10 +49,12 @@ TEST_F(RtcpRrPacketTest, TestGetSetMethods)
     RtcpRrPacket objRtcpRrPacket;
 
     RtcpHeader objRtcpHeader;
+    RtpDt_UChar pRtcpBuff[] = {0x81, 0xc8, 0x00, 0x06, 0x59, 0x09, 0x41, 0x02};
+    objRtcpHeader.decodeRtcpHeader(pRtcpBuff, sizeof(pRtcpBuff));
     objRtcpRrPacket.setRtcpHdrInfo(objRtcpHeader);
     RtcpHeader* pRet = objRtcpRrPacket.getRtcpHdrInfo();
     ASSERT_TRUE(pRet != NULL);
-    EXPECT_EQ(memcmp(pRet, &objRtcpHeader, sizeof(RtcpHeader)), 0);
+    EXPECT_EQ(*pRet, objRtcpHeader);
 
     uint8_t hdrExtBuf[] = {0xe6, 0x5f, 0xa5, 0x31, 0x53, 0x91, 0x24, 0xc2, 0x00, 0x04, 0x01};
 

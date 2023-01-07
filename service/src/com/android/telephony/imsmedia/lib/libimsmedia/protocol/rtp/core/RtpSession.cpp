@@ -200,14 +200,21 @@ eRtp_Bool RtpSession::compareRtpSessions(IN RtpSession* pobjSession)
             {
                 return eRTP_SUCCESS;
             }
-            RtpDt_UChar* pcTranAddr1 = m_pobjTransAddr->getBuffer();
-            RtpDt_UInt32 uiTBufLen = m_pobjTransAddr->getLength();
-            RtpDt_UChar* pcTranAddr2 = objRtpBuff->getBuffer();
+            RtpDt_UChar* pcTranAddr1 = RTP_NULL;
+            if (m_pobjTransAddr != RTP_NULL)
+            {
+                pcTranAddr1 = m_pobjTransAddr->getBuffer();
+            }
+            RtpDt_UChar* pcTranAddr2 = RTP_NULL;
+            if (objRtpBuff != RTP_NULL)
+            {
+                pcTranAddr2 = objRtpBuff->getBuffer();
+            }
             if (pcTranAddr1 == RTP_NULL || pcTranAddr2 == RTP_NULL)
             {
                 return eRTP_FAILURE;
             }
-            if (memcmp(pcTranAddr1, pcTranAddr2, uiTBufLen) == RTP_ZERO)
+            if (memcmp(pcTranAddr1, pcTranAddr2, m_pobjTransAddr->getLength()) == RTP_ZERO)
             {
                 return eRTP_SUCCESS;
             }

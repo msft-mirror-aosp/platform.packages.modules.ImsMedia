@@ -128,7 +128,6 @@ eRtp_Bool RtcpReportBlock::decodeReportBlock(IN RtpDt_UChar* pcRepBlkBuf)
 
     // delay since last SR
     m_uiDelayLastSR = RtpOsUtil::Ntohl(*(reinterpret_cast<RtpDt_UInt32*>(pcRepBlkBuf)));
-    pcRepBlkBuf = pcRepBlkBuf + RTP_WORD_SIZE;
 
     return eRTP_SUCCESS;
 }  // decodeReportBlock

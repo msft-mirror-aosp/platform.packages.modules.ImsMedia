@@ -77,6 +77,7 @@ TEST_F(RtcpHeaderTest, TestReceptionReportCount)
 
     // Positive case: value within limits.
     res = rtcpHeader.setReceptionReportCount(MAX_RECEPTION_REPORT_COUNT);
+    EXPECT_EQ(res, eRTP_TRUE);
     EXPECT_EQ(rtcpHeader.getReceptionReportCount(), MAX_RECEPTION_REPORT_COUNT);
 }
 

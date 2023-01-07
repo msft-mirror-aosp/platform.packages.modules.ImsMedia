@@ -56,12 +56,13 @@ RtpDt_UInt32 RtpOsUtil::Ntohl(RtpDt_UInt32 uiNetlong)
 
 RtpDt_Double RtpOsUtil::RRand()
 {
-    tRTP_NTP_TIME stNtpTs;
+    tRTP_NTP_TIME stNtpTs = {0, 0};
     RtpOsUtil::Srand();
-    RtpDt_Double dRandNum = rand() / RAND_MAX;
+    RtpDt_Double dRandNum = static_cast<RtpDt_Double>(rand()) / static_cast<RtpDt_Double>(RAND_MAX);
     RtpOsUtil::GetNtpTime(stNtpTs);
     RtpDt_Double dTemp = ((dRandNum * stNtpTs.m_uiNtpHigh32Bits) +
-            (stNtpTs.m_uiNtpLow32Bits / RTP_MILLISEC_MICRO));
+            (stNtpTs.m_uiNtpLow32Bits / static_cast<RtpDt_Double>(RTP_MILLISEC_MICRO)));
+
     if (dTemp > RTP_ZERO)
     {
         return 1.0 / dTemp;

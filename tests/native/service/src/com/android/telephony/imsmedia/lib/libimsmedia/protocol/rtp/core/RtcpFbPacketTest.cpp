@@ -22,10 +22,12 @@ TEST(RtcpFbPacketTest, TestGetSetMethods)
     RtcpFbPacket objRtcpFbPacket;
 
     RtcpHeader objRtcpHeader;
+    RtpDt_UChar pRtcpBuff[] = {0x81, 0xc8, 0x00, 0x06, 0x59, 0x09, 0x41, 0x02};
+    objRtcpHeader.decodeRtcpHeader(pRtcpBuff, sizeof(pRtcpBuff));
     objRtcpFbPacket.setRtcpHdrInfo(objRtcpHeader);
     RtcpHeader* pRet = objRtcpFbPacket.getRtcpHdrInfo();
     ASSERT_TRUE(pRet != NULL);
-    EXPECT_EQ(memcmp(pRet, &objRtcpHeader, sizeof(RtcpHeader)), 0);
+    EXPECT_EQ(*pRet, objRtcpHeader);
 
     objRtcpFbPacket.setSsrc(0xAAAAAAAA);
     EXPECT_EQ(objRtcpFbPacket.getSsrc(), 0xAAAAAAAA);

@@ -103,6 +103,15 @@ RtpDt_UInt32 RtcpHeader::getSsrc()
     return m_uiSsrc;
 }
 
+bool RtcpHeader::operator==(const RtcpHeader& objRtcpHeader) const
+{
+    return (m_ucVersion == objRtcpHeader.m_ucVersion &&
+            m_ucIsPadding == objRtcpHeader.m_ucIsPadding &&
+            m_ucReceptionReportCount == objRtcpHeader.m_ucReceptionReportCount &&
+            m_ucPacketType == objRtcpHeader.m_ucPacketType &&
+            m_usLength == objRtcpHeader.m_usLength && m_uiSsrc == objRtcpHeader.m_uiSsrc);
+}
+
 eRtp_Bool RtcpHeader::decodeRtcpHeader(IN RtpDt_UChar* pRtcpBuffer, RtpDt_Int32 length)
 {
     if (length < RTP_WORD_SIZE)
