@@ -113,9 +113,9 @@ TEST_F(RtcpAppPacketTest, formAppPacketBufferOverflowTest)
     ASSERT_TRUE(pcBuff != RTP_NULL);
 
     testBuf->setBufferInfo(RTP_DEF_MTU_SIZE, pcBuff.release());
-    testBuf->setLength(RTP_DEF_MTU_SIZE);
+    testBuf->setLength(RTP_ZERO);
 
-    EXPECT_EQ(RTP_DEF_MTU_SIZE, testBuf->getLength());
+    EXPECT_EQ(RTP_ZERO, testBuf->getLength());
 
     RtpDt_UInt32 uiName = 11111111;
     testRtcpAppPacket->setName(uiName);
