@@ -26,7 +26,7 @@
 VideoStreamGraphRtpRx::VideoStreamGraphRtpRx(BaseSessionCallback* callback, int localFd) :
         VideoStreamGraph(callback, localFd)
 {
-    mSurface = NULL;
+    mSurface = nullptr;
 }
 
 VideoStreamGraphRtpRx::~VideoStreamGraphRtpRx() {}
@@ -35,7 +35,7 @@ ImsMediaResult VideoStreamGraphRtpRx::create(RtpConfig* config)
 {
     IMLOGI1("[create] state[%d]", mGraphState);
 
-    if (config == NULL)
+    if (config == nullptr)
     {
         return RESULT_INVALID_PARAM;
     }
@@ -81,7 +81,7 @@ ImsMediaResult VideoStreamGraphRtpRx::update(RtpConfig* config)
 {
     IMLOGI1("[update] state[%d]", mGraphState);
 
-    if (config == NULL)
+    if (config == nullptr)
     {
         return RESULT_INVALID_PARAM;
     }
@@ -99,10 +99,10 @@ ImsMediaResult VideoStreamGraphRtpRx::update(RtpConfig* config)
         setState(StreamState::kStreamStateCreated);
     }
 
-    if (mConfig != NULL)
+    if (mConfig != nullptr)
     {
         delete mConfig;
-        mConfig = NULL;
+        mConfig = nullptr;
     }
 
     mConfig = new VideoConfig(pConfig);
@@ -123,7 +123,7 @@ ImsMediaResult VideoStreamGraphRtpRx::update(RtpConfig* config)
 
         for (auto& node : mListNodeStarted)
         {
-            if (node != NULL)
+            if (node != nullptr)
             {
                 IMLOGD1("[update] update node[%s]", node->GetNodeName());
                 ret = node->UpdateConfig(mConfig);
@@ -140,7 +140,7 @@ ImsMediaResult VideoStreamGraphRtpRx::update(RtpConfig* config)
     {
         for (auto& node : mListNodeToStart)
         {
-            if (node != NULL)
+            if (node != nullptr)
             {
                 IMLOGD1("[update] update node[%s]", node->GetNodeName());
                 ret = node->UpdateConfig(mConfig);
@@ -168,7 +168,7 @@ ImsMediaResult VideoStreamGraphRtpRx::start()
 {
     IMLOGI1("[start] state[%d]", mGraphState);
 
-    if (mConfig == NULL)
+    if (mConfig == nullptr)
     {
         return RESULT_INVALID_PARAM;
     }
@@ -183,7 +183,7 @@ ImsMediaResult VideoStreamGraphRtpRx::start()
         return RESULT_SUCCESS;
     }
 
-    if (mSurface == NULL)
+    if (mSurface == nullptr)
     {
         IMLOGI2("[start] direction[%d], mode[%d], surface is not ready, wait",
                 pConfig->getMediaDirection(), pConfig->getVideoMode());
@@ -206,11 +206,11 @@ ImsMediaResult VideoStreamGraphRtpRx::start()
 
 bool VideoStreamGraphRtpRx::setMediaQualityThreshold(MediaQualityThreshold* threshold)
 {
-    if (threshold != NULL)
+    if (threshold != nullptr)
     {
         BaseNode* node = findNode(kNodeIdRtpDecoder);
 
-        if (node != NULL)
+        if (node != nullptr)
         {
             RtpDecoderNode* decoder = reinterpret_cast<RtpDecoderNode*>(node);
             decoder->SetInactivityTimerSec(threshold->getRtpInactivityTimerMillis() / 1000);
@@ -219,7 +219,7 @@ bool VideoStreamGraphRtpRx::setMediaQualityThreshold(MediaQualityThreshold* thre
 
         node = findNode(kNodeIdVideoRenderer);
 
-        if (node != NULL)
+        if (node != nullptr)
         {
             IVideoRendererNode* decoder = reinterpret_cast<IVideoRendererNode*>(node);
             decoder->SetPacketLossParam(
@@ -235,13 +235,13 @@ void VideoStreamGraphRtpRx::setSurface(ANativeWindow* surface)
 {
     IMLOGD0("[setSurface]");
 
-    if (surface != NULL)
+    if (surface != nullptr)
     {
         mSurface = surface;
 
         BaseNode* node = findNode(kNodeIdVideoRenderer);
 
-        if (node != NULL)
+        if (node != nullptr)
         {
             IVideoRendererNode* renderer = reinterpret_cast<IVideoRendererNode*>(node);
             renderer->UpdateSurface(surface);
@@ -265,7 +265,7 @@ bool VideoStreamGraphRtpRx::OnEvent(int32_t type, uint64_t param1, uint64_t para
         {
             BaseNode* node = findNode(kNodeIdVideoRenderer);
 
-            if (node != NULL)
+            if (node != nullptr)
             {
                 IVideoRendererNode* pNode = reinterpret_cast<IVideoRendererNode*>(node);
                 pNode->UpdateRoundTripTimeDelay(param1);

@@ -30,7 +30,7 @@ public:
             ImsMediaSubType dataType = ImsMediaSubType::MEDIASUBTYPE_UNDEFINED,
             uint32_t arrivalTime = 0);
     virtual bool Get(ImsMediaSubType* subtype, uint8_t** data, uint32_t* dataSize,
-            uint32_t* timestamp, bool* mark, uint32_t* seqNum, uint32_t* checker = NULL);
+            uint32_t* timestamp, bool* mark, uint32_t* seqNum, uint32_t* checker = nullptr);
     virtual void Delete();
 };
 

@@ -26,22 +26,22 @@ class VideoStreamGraph : public BaseStreamGraph
 public:
     VideoStreamGraph(BaseSessionCallback* callback, int localFd = 0) :
             BaseStreamGraph(callback, localFd),
-            mConfig(NULL)
+            mConfig(nullptr)
     {
     }
 
     virtual ~VideoStreamGraph()
     {
-        if (mConfig != NULL)
+        if (mConfig != nullptr)
         {
             delete mConfig;
-            mConfig = NULL;
+            mConfig = nullptr;
         }
     }
 
     virtual bool isSameGraph(RtpConfig* config)
     {
-        if (config == NULL || mConfig == NULL)
+        if (config == nullptr || mConfig == nullptr)
         {
             return false;
         }

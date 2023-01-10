@@ -18,8 +18,8 @@
 #include <RtpTrace.h>
 
 RtpPacket::RtpPacket() :
-        m_pobjExt(RTP_NULL),
-        m_pobjRtpPayload(RTP_NULL)
+        m_pobjExt(nullptr),
+        m_pobjRtpPayload(nullptr)
 #ifdef ENABLE_PADDING
         ,
         m_ucPadLen(RTP_ZERO)
@@ -29,16 +29,16 @@ RtpPacket::RtpPacket() :
 
 RtpPacket::~RtpPacket()
 {
-    if (m_pobjExt != RTP_NULL)
+    if (m_pobjExt != nullptr)
     {
         delete m_pobjExt;
-        m_pobjExt = RTP_NULL;
+        m_pobjExt = nullptr;
     }
 
-    if (m_pobjRtpPayload != RTP_NULL)
+    if (m_pobjRtpPayload != nullptr)
     {
         delete m_pobjRtpPayload;
-        m_pobjRtpPayload = RTP_NULL;
+        m_pobjRtpPayload = nullptr;
     }
 }
 
@@ -84,7 +84,7 @@ eRtp_Bool RtpPacket::formPacket(IN RtpBuffer* pobjRtpPktBuf)
     pcRtpBuf = pcRtpBuf + uiRtpBufPos;
 
     // extension header
-    if (m_pobjExt != RTP_NULL)
+    if (m_pobjExt != nullptr)
     {
         const RtpDt_UChar* pRtpUtlBuf = m_pobjExt->getBuffer();
         uiRtpUtlBufLen = m_pobjExt->getLength();
@@ -94,7 +94,7 @@ eRtp_Bool RtpPacket::formPacket(IN RtpBuffer* pobjRtpPktBuf)
     }
 
     // rtp packet
-    if (m_pobjRtpPayload != RTP_NULL)
+    if (m_pobjRtpPayload != nullptr)
     {
         const RtpDt_UChar* pRtpUtlBuf = m_pobjRtpPayload->getBuffer();
         uiRtpUtlBufLen = m_pobjRtpPayload->getLength();
@@ -151,7 +151,7 @@ eRtp_Bool RtpPacket::decodePacket(IN RtpBuffer* pobjRtpPktBuf)
     {
         RTP_TRACE_MESSAGE("[XHdr] Extension Header detected", 0, 0);
         m_pobjExt = new RtpBuffer();
-        if (m_pobjExt == RTP_NULL)
+        if (m_pobjExt == nullptr)
         {
             return eRTP_FAILURE;
         }
@@ -173,7 +173,7 @@ eRtp_Bool RtpPacket::decodePacket(IN RtpBuffer* pobjRtpPktBuf)
         }
 
         RtpDt_UChar* pRtpExtData = new RtpDt_UChar[uXHdrLen];
-        if (pRtpExtData == RTP_NULL)
+        if (pRtpExtData == nullptr)
         {
             return eRTP_FAILURE;
         }
@@ -211,13 +211,13 @@ eRtp_Bool RtpPacket::decodePacket(IN RtpBuffer* pobjRtpPktBuf)
     }
 
     m_pobjRtpPayload = new RtpBuffer();
-    if (m_pobjRtpPayload == RTP_NULL)
+    if (m_pobjRtpPayload == nullptr)
     {
         return eRTP_FAILURE;
     }
-    RtpDt_UChar* pRtpUtlBuf = RTP_NULL;
+    RtpDt_UChar* pRtpUtlBuf = nullptr;
     pRtpUtlBuf = new RtpDt_UChar[uiRtpUtlBufLen];
-    if (pRtpUtlBuf == RTP_NULL)
+    if (pRtpUtlBuf == nullptr)
     {
         return eRTP_FAILURE;
     }

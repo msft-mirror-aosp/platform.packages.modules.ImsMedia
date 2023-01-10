@@ -40,14 +40,14 @@ static uint IM_remove_log = 1;
         vsnprintf(szBuffer, TRACEMAXSTRING, format, args); \
         va_end(args);                                      \
         android_printLog(IMLOGTYPE, TAG, "%s", szBuffer);  \
-        FILE* fp_IM_log = NULL;                            \
+        FILE* fp_IM_log = nullptr;                         \
         if (IM_remove_log)                                 \
         {                                                  \
             remove(IM_LOG_FILE);                           \
             IM_remove_log = 0;                             \
         }                                                  \
         fp_IM_log = fopen(IM_LOG_FILE, "a+");              \
-        if (fp_IM_log != NULL)                             \
+        if (fp_IM_log != nullptr)                          \
         {                                                  \
             fprintf(fp_IM_log, "%s", szBuffer);            \
             fclose(fp_IM_log);                             \
@@ -175,7 +175,7 @@ void ImsMediaTrace::IMLOGD_BINARY(const char* msg, const char* s, int length)
 
 char* IM_Strrchr(char* pszSrc, char cChar)
 {
-    char* pszDest = NULL;
+    char* pszDest = nullptr;
     do
     {
         if (*pszSrc == cChar)
@@ -194,7 +194,7 @@ char* IM_Strrchr(char* pszSrc, char cChar)
 
 char* ImsMediaTrace::IM_StripFileName(char* pcFileName)
 {
-    char* pcTemp = NULL;
+    char* pcTemp = nullptr;
     pcTemp = IM_Strrchr(pcFileName, '/');
 
     if (pcTemp)

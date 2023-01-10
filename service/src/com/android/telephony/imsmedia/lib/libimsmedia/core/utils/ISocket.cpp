@@ -20,14 +20,14 @@
 ISocket* ISocket::GetInstance(
         uint32_t localPort, const char* peerIpAddress, uint32_t peerPort, eSocketClass eSocket)
 {
-    ISocket* pSocket = NULL;
+    ISocket* pSocket = nullptr;
 
     if (eSocket == SOCKET_CLASS_DEFAULT)
     {
         pSocket = static_cast<ISocket*>(
                 ImsMediaSocket::GetInstance(localPort, peerIpAddress, peerPort));
 
-        if (pSocket != NULL)
+        if (pSocket != nullptr)
         {
             pSocket->mSocketClass = SOCKET_CLASS_DEFAULT;
         }

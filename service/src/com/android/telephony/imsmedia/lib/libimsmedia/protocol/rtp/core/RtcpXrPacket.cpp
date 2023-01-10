@@ -23,7 +23,7 @@
     (ptr)[(*(p_offset))++] = ((value) >> 8) & 0x00ff, (ptr)[(*(p_offset))++] = ((value)&0x00ff)
 
 RtcpXrPacket::RtcpXrPacket() :
-        m_reportBlk(RTP_NULL)
+        m_reportBlk(nullptr)
 {
 }
 
@@ -32,7 +32,7 @@ RtcpXrPacket::~RtcpXrPacket()
     if (m_reportBlk)
     {
         delete (m_reportBlk);
-        m_reportBlk = RTP_NULL;
+        m_reportBlk = nullptr;
     }
 }
 

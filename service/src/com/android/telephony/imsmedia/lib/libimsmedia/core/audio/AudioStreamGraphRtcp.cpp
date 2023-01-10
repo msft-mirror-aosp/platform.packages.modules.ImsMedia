@@ -25,7 +25,7 @@
 AudioStreamGraphRtcp::AudioStreamGraphRtcp(BaseSessionCallback* callback, int localFd) :
         AudioStreamGraph(callback, localFd)
 {
-    mConfig = NULL;
+    mConfig = nullptr;
 }
 
 AudioStreamGraphRtcp::~AudioStreamGraphRtcp() {}
@@ -34,7 +34,7 @@ ImsMediaResult AudioStreamGraphRtcp::create(RtpConfig* config)
 {
     IMLOGD1("[create] state[%d]", mGraphState);
 
-    if (config == NULL)
+    if (config == nullptr)
     {
         return RESULT_INVALID_PARAM;
     }
@@ -83,7 +83,7 @@ ImsMediaResult AudioStreamGraphRtcp::update(RtpConfig* config)
 {
     IMLOGD1("[update] state[%d]", mGraphState);
 
-    if (config == NULL)
+    if (config == nullptr)
     {
         return RESULT_INVALID_PARAM;
     }
@@ -96,7 +96,7 @@ ImsMediaResult AudioStreamGraphRtcp::update(RtpConfig* config)
         return RESULT_SUCCESS;
     }
 
-    if (mConfig != NULL)
+    if (mConfig != nullptr)
     {
         delete mConfig;
         mConfig = new AudioConfig(pConfig);
@@ -140,11 +140,11 @@ ImsMediaResult AudioStreamGraphRtcp::update(RtpConfig* config)
 
 bool AudioStreamGraphRtcp::setMediaQualityThreshold(MediaQualityThreshold* threshold)
 {
-    if (threshold != NULL)
+    if (threshold != nullptr)
     {
         BaseNode* node = findNode(kNodeIdRtcpDecoder);
 
-        if (node != NULL)
+        if (node != nullptr)
         {
             RtcpDecoderNode* decoder = reinterpret_cast<RtcpDecoderNode*>(node);
             decoder->SetInactivityTimerSec(threshold->getRtcpInactivityTimerMillis() / 1000);
@@ -165,7 +165,7 @@ bool AudioStreamGraphRtcp::OnEvent(int32_t type, uint64_t param1, uint64_t param
         {
             BaseNode* node = findNode(kNodeIdRtcpEncoder);
 
-            if (node != NULL)
+            if (node != nullptr)
             {
                 RtcpEncoderNode* encoder = reinterpret_cast<RtcpEncoderNode*>(node);
                 encoder->SendRtcpXr(

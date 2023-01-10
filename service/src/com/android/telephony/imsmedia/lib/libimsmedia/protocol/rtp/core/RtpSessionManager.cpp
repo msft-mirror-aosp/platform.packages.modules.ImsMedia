@@ -16,7 +16,7 @@
 
 #include <RtpSessionManager.h>
 
-RtpSessionManager* RtpSessionManager::m_pInstance = RTP_NULL;
+RtpSessionManager* RtpSessionManager::m_pInstance = nullptr;
 
 RtpSessionManager::RtpSessionManager() :
         m_objActiveSessionList(std::list<RtpDt_Void*>())
@@ -27,7 +27,7 @@ RtpSessionManager::~RtpSessionManager() {}
 
 RtpSessionManager* RtpSessionManager::getInstance()
 {
-    if (m_pInstance == RTP_NULL)
+    if (m_pInstance == nullptr)
     {
         m_pInstance = new RtpSessionManager();
     }
@@ -50,7 +50,7 @@ eRtp_Bool RtpSessionManager::isValidRtpSession(IN RtpDt_Void* pvData)
 {
     for (const auto& pobjActiveSession : m_objActiveSessionList)
     {
-        if (pobjActiveSession == RTP_NULL)
+        if (pobjActiveSession == nullptr)
         {
             return eRTP_FALSE;
         }

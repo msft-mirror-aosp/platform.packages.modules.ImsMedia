@@ -25,7 +25,7 @@
 class TextRendererNode : public JitterBufferControlNode
 {
 public:
-    TextRendererNode(BaseSessionCallback* callback = NULL);
+    TextRendererNode(BaseSessionCallback* callback = nullptr);
     virtual ~TextRendererNode();
     virtual kBaseNodeId GetNodeId();
     virtual ImsMediaResult Start();

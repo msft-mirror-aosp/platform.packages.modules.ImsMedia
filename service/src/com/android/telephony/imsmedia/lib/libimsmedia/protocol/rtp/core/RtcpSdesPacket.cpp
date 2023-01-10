@@ -54,7 +54,7 @@ eRTP_STATUS_CODE RtcpSdesPacket::decodeSdesPacket(
     while ((unSourceCount > RTP_ZERO) && (usSdesLen > RTP_ZERO))
     {
         RtcpChunk* pobjRtcpChunk = new RtcpChunk();
-        if (pobjRtcpChunk == RTP_NULL)
+        if (pobjRtcpChunk == nullptr)
         {
             RTP_TRACE_ERROR("[Memory Error] new returned NULL.", RTP_ZERO, RTP_ZERO);
             return RTP_MEMORY_FAIL;
@@ -132,7 +132,7 @@ eRTP_STATUS_CODE RtcpSdesPacket::formSdesPacket(OUT RtpBuffer* pobjRtcpPktBuf)
     m_objRtcpHdr.formPartialRtcpHeader(pobjRtcpPktBuf);
 
     RTP_TRACE_MESSAGE(
-            "formSdesPacket, [SDES packet length] : %d]", m_objRtcpHdr.getLength(), RTP_NULL);
+            "formSdesPacket, [SDES packet length] : %d]", m_objRtcpHdr.getLength(), nullptr);
 
     // set the actual position of the RTCP compound packet
     pobjRtcpPktBuf->setLength(uiCurPos);

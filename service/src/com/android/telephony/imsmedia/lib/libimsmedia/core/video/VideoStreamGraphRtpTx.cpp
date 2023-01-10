@@ -26,7 +26,7 @@
 VideoStreamGraphRtpTx::VideoStreamGraphRtpTx(BaseSessionCallback* callback, int localFd) :
         VideoStreamGraph(callback, localFd)
 {
-    mSurface = NULL;
+    mSurface = nullptr;
     mVideoMode = -1;
 }
 
@@ -36,7 +36,7 @@ ImsMediaResult VideoStreamGraphRtpTx::create(RtpConfig* config)
 {
     IMLOGI1("[create] state[%d]", mGraphState);
 
-    if (config == NULL)
+    if (config == nullptr)
     {
         return RESULT_INVALID_PARAM;
     }
@@ -48,10 +48,10 @@ ImsMediaResult VideoStreamGraphRtpTx::create(RtpConfig* config)
         return createPreviewMode(pConfig);
     }
 
-    if (mConfig != NULL)
+    if (mConfig != nullptr)
     {
         delete mConfig;
-        mConfig = NULL;
+        mConfig = nullptr;
     }
 
     mConfig = new VideoConfig(pConfig);
@@ -97,7 +97,7 @@ ImsMediaResult VideoStreamGraphRtpTx::update(RtpConfig* config)
 {
     IMLOGI2("[update] current mode[%d], state[%d]", mVideoMode, mGraphState);
 
-    if (config == NULL)
+    if (config == nullptr)
     {
         return RESULT_INVALID_PARAM;
     }
@@ -115,10 +115,10 @@ ImsMediaResult VideoStreamGraphRtpTx::update(RtpConfig* config)
         setState(kStreamStateCreated);
     }
 
-    if (mConfig != NULL)
+    if (mConfig != nullptr)
     {
         delete mConfig;
-        mConfig = NULL;
+        mConfig = nullptr;
     }
 
     ImsMediaResult result = RESULT_NOT_READY;
@@ -136,7 +136,7 @@ ImsMediaResult VideoStreamGraphRtpTx::update(RtpConfig* config)
 
         /** delete nodes */
         deleteNodes();
-        mSurface = NULL;
+        mSurface = nullptr;
 
         /** create nodes */
         result = create(pConfig);
@@ -159,7 +159,7 @@ ImsMediaResult VideoStreamGraphRtpTx::update(RtpConfig* config)
         return stop();
     }
 
-    if (pConfig->getVideoMode() != VideoConfig::VIDEO_MODE_PAUSE_IMAGE && mSurface == NULL)
+    if (pConfig->getVideoMode() != VideoConfig::VIDEO_MODE_PAUSE_IMAGE && mSurface == nullptr)
     {
         IMLOGI2("[update] direction[%d], mode[%d], surface is not ready, wait",
                 pConfig->getMediaDirection(), pConfig->getVideoMode());
@@ -196,7 +196,7 @@ ImsMediaResult VideoStreamGraphRtpTx::start()
 {
     IMLOGI2("[start] current mode[%d], state[%d]", mVideoMode, mGraphState);
 
-    if (mConfig == NULL)
+    if (mConfig == nullptr)
     {
         return RESULT_INVALID_PARAM;
     }
@@ -212,7 +212,7 @@ ImsMediaResult VideoStreamGraphRtpTx::start()
         return RESULT_SUCCESS;
     }
 
-    if (pConfig->getVideoMode() != VideoConfig::VIDEO_MODE_PAUSE_IMAGE && mSurface == NULL)
+    if (pConfig->getVideoMode() != VideoConfig::VIDEO_MODE_PAUSE_IMAGE && mSurface == nullptr)
     {
         IMLOGI2("[start] direction[%d], mode[%d], surface is not ready, wait",
                 pConfig->getMediaDirection(), pConfig->getVideoMode());
@@ -238,13 +238,13 @@ void VideoStreamGraphRtpTx::setSurface(ANativeWindow* surface)
 {
     IMLOGI1("[setSurface] state[%d]", mGraphState);
 
-    if (surface != NULL)
+    if (surface != nullptr)
     {
         mSurface = surface;
 
         BaseNode* node = findNode(kNodeIdVideoSource);
 
-        if (node != NULL)
+        if (node != nullptr)
         {
             IVideoSourceNode* source = reinterpret_cast<IVideoSourceNode*>(node);
             source->UpdateSurface(surface);
@@ -264,15 +264,15 @@ void VideoStreamGraphRtpTx::setSurface(ANativeWindow* surface)
 
 ImsMediaResult VideoStreamGraphRtpTx::createPreviewMode(RtpConfig* config)
 {
-    if (config == NULL)
+    if (config == nullptr)
     {
         return RESULT_INVALID_PARAM;
     }
 
-    if (mConfig != NULL)
+    if (mConfig != nullptr)
     {
         delete mConfig;
-        mConfig = NULL;
+        mConfig = nullptr;
     }
 
     IMLOGI0("[createPreviewMode]");
@@ -299,7 +299,7 @@ ImsMediaResult VideoStreamGraphRtpTx::updateNodes(RtpConfig* config)
 
         for (auto& node : mListNodeStarted)
         {
-            if (node != NULL)
+            if (node != nullptr)
             {
                 IMLOGD1("[updateNodes] update node[%s]", node->GetNodeName());
                 result = node->UpdateConfig(config);
@@ -319,7 +319,7 @@ ImsMediaResult VideoStreamGraphRtpTx::updateNodes(RtpConfig* config)
     {
         for (auto& node : mListNodeToStart)
         {
-            if (node != NULL)
+            if (node != nullptr)
             {
                 IMLOGD1("[updateNodes] update node[%s]", node->GetNodeName());
                 result = node->UpdateConfig(config);
@@ -347,7 +347,7 @@ bool VideoStreamGraphRtpTx::OnEvent(int32_t type, uint64_t param1, uint64_t para
         {
             BaseNode* node = findNode(kNodeIdRtpEncoder);
 
-            if (node != NULL)
+            if (node != nullptr)
             {
                 RtpEncoderNode* pNode = reinterpret_cast<RtpEncoderNode*>(node);
                 return pNode->SetCvoExtension(param1, param2);
@@ -361,7 +361,7 @@ bool VideoStreamGraphRtpTx::OnEvent(int32_t type, uint64_t param1, uint64_t para
         {
             BaseNode* node = findNode(kNodeIdVideoSource);
 
-            if (node != NULL)
+            if (node != nullptr)
             {
                 IVideoSourceNode* pNode = reinterpret_cast<IVideoSourceNode*>(node);
                 pNode->OnEvent(type, param1, param2);

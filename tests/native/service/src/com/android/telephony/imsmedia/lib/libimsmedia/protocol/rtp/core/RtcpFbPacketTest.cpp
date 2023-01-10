@@ -26,7 +26,7 @@ TEST(RtcpFbPacketTest, TestGetSetMethods)
     objRtcpHeader.decodeRtcpHeader(pRtcpBuff, sizeof(pRtcpBuff));
     objRtcpFbPacket.setRtcpHdrInfo(objRtcpHeader);
     RtcpHeader* pRet = objRtcpFbPacket.getRtcpHdrInfo();
-    ASSERT_TRUE(pRet != NULL);
+    ASSERT_TRUE(pRet != nullptr);
     EXPECT_EQ(*pRet, objRtcpHeader);
 
     objRtcpFbPacket.setSsrc(0xAAAAAAAA);
@@ -39,7 +39,7 @@ TEST(RtcpFbPacketTest, TestGetSetMethods)
     objRtcpFbPacket.setFCI(new RtpBuffer(sizeof(testFci), testFci));
     RtpBuffer* pRtpBuf = objRtcpFbPacket.getFCI();
 
-    ASSERT_TRUE(pRtpBuf != NULL);
+    ASSERT_TRUE(pRtpBuf != nullptr);
     EXPECT_EQ(memcmp(pRtpBuf->getBuffer(), testFci, sizeof(testFci)), 0);
 
     objRtcpFbPacket.setPayloadType(RTCP_RTPFB);
@@ -60,7 +60,7 @@ TEST(RtcpFbPacketTest, TestDecodeFbPacket)
     EXPECT_EQ(res, RTP_SUCCESS);
     EXPECT_EQ(objRtcpFbPacket.getMediaSsrc(), 0xb1c8cb03);
     RtpBuffer* pRtpBuf = objRtcpFbPacket.getFCI();
-    ASSERT_TRUE(pRtpBuf != NULL);
+    ASSERT_TRUE(pRtpBuf != nullptr);
     EXPECT_EQ(memcmp(pRtpBuf->getBuffer(), (bufPacket + RTP_WORD_SIZE),
                       (sizeof(bufPacket) - RTP_WORD_SIZE)),
             0);
@@ -68,7 +68,7 @@ TEST(RtcpFbPacketTest, TestDecodeFbPacket)
 
 TEST(RtcpFbPacketTest, TestEncodeRtcpRTPFB)
 {
-    RtpBuffer objRtcpPktBuf(64, NULL);
+    RtpBuffer objRtcpPktBuf(64, nullptr);
     objRtcpPktBuf.setLength(0);
     RtcpFbPacket objRtcpFbPacket;
 

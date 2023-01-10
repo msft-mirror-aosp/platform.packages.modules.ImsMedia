@@ -27,7 +27,7 @@
 class IAudioSourceNode : public BaseNode, IFrameCallback
 {
 public:
-    IAudioSourceNode(BaseSessionCallback* callback = NULL);
+    IAudioSourceNode(BaseSessionCallback* callback = nullptr);
     virtual ~IAudioSourceNode();
     virtual kBaseNodeId GetNodeId();
     virtual ImsMediaResult Start();

@@ -63,7 +63,7 @@ class AudioStreamGraphRtpRxTest : public ::testing::Test
 public:
     AudioStreamGraphRtpRxTest()
     {
-        graph = NULL;
+        graph = nullptr;
         socketRtpFd = -1;
     }
     ~AudioStreamGraphRtpRxTest() {}
@@ -119,12 +119,12 @@ protected:
         socketRtpFd = ImsMediaNetworkUtil::openSocket(testIp, testPort, AF_INET);
         EXPECT_NE(socketRtpFd, -1);
 
-        graph = new AudioStreamGraphRtpRx(NULL, socketRtpFd);
+        graph = new AudioStreamGraphRtpRx(nullptr, socketRtpFd);
     }
 
     virtual void TearDown() override
     {
-        if (graph != NULL)
+        if (graph != nullptr)
         {
             delete graph;
         }

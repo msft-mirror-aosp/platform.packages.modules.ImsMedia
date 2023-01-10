@@ -24,7 +24,7 @@
 class RtpEncoderNode : public BaseNode, public IRtpEncoderListener
 {
 public:
-    RtpEncoderNode(BaseSessionCallback* callback = NULL);
+    RtpEncoderNode(BaseSessionCallback* callback = nullptr);
     virtual ~RtpEncoderNode();
     virtual kBaseNodeId GetNodeId();
     virtual ImsMediaResult Start();

@@ -44,7 +44,7 @@
 RtpDecoderNode::RtpDecoderNode(BaseSessionCallback* callback) :
         BaseNode(callback)
 {
-    mRtpSession = NULL;
+    mRtpSession = nullptr;
     mReceivingSSRC = 0;
     mInactivityTime = 0;
     mNoRtpTime = 0;
@@ -74,9 +74,9 @@ RtpDecoderNode::~RtpDecoderNode()
     if (mRtpSession)
     {
         mRtpSession->StopRtp();
-        mRtpSession->SetRtpDecoderListener(NULL);
+        mRtpSession->SetRtpDecoderListener(nullptr);
         IRtpSession::ReleaseInstance(mRtpSession);
-        mRtpSession = NULL;
+        mRtpSession = nullptr;
     }
 }
 
@@ -95,11 +95,11 @@ ImsMediaResult RtpDecoderNode::Start()
         return RESULT_INVALID_PARAM;
     }
 
-    if (mRtpSession == NULL)
+    if (mRtpSession == nullptr)
     {
         mRtpSession = IRtpSession::GetInstance(mMediaType, mLocalAddress, mPeerAddress);
 
-        if (mRtpSession == NULL)
+        if (mRtpSession == nullptr)
         {
             IMLOGE0("[Start] - Can't create rtp session");
             return RESULT_NOT_READY;
@@ -303,7 +303,7 @@ void RtpDecoderNode::SetConfig(void* config)
 {
     IMLOGD1("[SetConfig] type[%d]", mMediaType);
 
-    if (config == NULL)
+    if (config == nullptr)
     {
         return;
     }
@@ -343,7 +343,7 @@ void RtpDecoderNode::SetConfig(void* config)
 
 bool RtpDecoderNode::IsSameConfig(void* config)
 {
-    if (config == NULL)
+    if (config == nullptr)
     {
         return true;
     }
@@ -411,7 +411,7 @@ void RtpDecoderNode::OnMediaDataInd(unsigned char* data, uint32_t datasize, uint
         IMLOGD3("[OnMediaDataInd] media[%d] SSRC changed, [%x] -> [%x]", mMediaType, mReceivingSSRC,
                 ssrc);
         mReceivingSSRC = ssrc;
-        SendDataToRearNode(MEDIASUBTYPE_REFRESHED, NULL, mReceivingSSRC, 0, 0, 0);
+        SendDataToRearNode(MEDIASUBTYPE_REFRESHED, nullptr, mReceivingSSRC, 0, 0, 0);
     }
 
     /** TODO : add checking receiving dtmf by the payload type number */
@@ -501,7 +501,7 @@ void RtpDecoderNode::OnNumReceivedPacket(uint32_t nNumRtpPacket)
 
     if (mInactivityTime != 0 && mNoRtpTime == mInactivityTime)
     {
-        if (mCallback != NULL)
+        if (mCallback != nullptr)
         {
             mCallback->SendEvent(kImsMediaEventMediaInactivity, kProtocolRtp, mInactivityTime);
         }

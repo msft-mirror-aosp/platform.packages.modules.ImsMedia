@@ -24,7 +24,7 @@
 class TextRtpPayloadEncoderNode : public BaseNode
 {
 public:
-    TextRtpPayloadEncoderNode(BaseSessionCallback* callback = NULL);
+    TextRtpPayloadEncoderNode(BaseSessionCallback* callback = nullptr);
     virtual ~TextRtpPayloadEncoderNode();
     virtual kBaseNodeId GetNodeId();
     virtual ImsMediaResult Start();

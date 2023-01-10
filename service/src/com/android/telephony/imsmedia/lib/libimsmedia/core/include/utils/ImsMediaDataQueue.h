@@ -27,7 +27,7 @@ class DataEntry
 public:
     DataEntry()
     {
-        pbBuffer = NULL;
+        pbBuffer = nullptr;
         nBufferSize = 0;
         nTimestamp = 0;
         bMark = false;
@@ -41,7 +41,7 @@ public:
 
     DataEntry(const DataEntry& entry)
     {
-        if (entry.nBufferSize > 0 && entry.pbBuffer != NULL)
+        if (entry.nBufferSize > 0 && entry.pbBuffer != nullptr)
         {
             pbBuffer = new uint8_t[entry.nBufferSize];
             memcpy(pbBuffer, entry.pbBuffer, entry.nBufferSize);
@@ -62,7 +62,7 @@ public:
 
     void deleteBuffer()
     {
-        if (pbBuffer != NULL)
+        if (pbBuffer != nullptr)
         {
             delete[] pbBuffer;
         }

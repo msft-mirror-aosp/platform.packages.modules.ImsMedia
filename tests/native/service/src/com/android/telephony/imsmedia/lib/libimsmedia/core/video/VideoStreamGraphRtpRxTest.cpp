@@ -63,9 +63,9 @@ class VideoStreamGraphRtpRxTest : public ::testing::Test
 public:
     VideoStreamGraphRtpRxTest()
     {
-        graph = NULL;
-        displayReader = NULL;
-        displaySurface = NULL;
+        graph = nullptr;
+        displayReader = nullptr;
+        displaySurface = nullptr;
         socketRtpFd = -1;
     }
     virtual ~VideoStreamGraphRtpRxTest() {}
@@ -117,7 +117,7 @@ protected:
         socketRtpFd = ImsMediaNetworkUtil::openSocket(testIp, testPort, AF_INET);
         EXPECT_NE(socketRtpFd, -1);
 
-        graph = new VideoStreamGraphRtpRx(NULL, socketRtpFd);
+        graph = new VideoStreamGraphRtpRx(nullptr, socketRtpFd);
 
         EXPECT_EQ(AImageReader_new(kResolutionWidth, kResolutionHeight, AIMAGE_FORMAT_YUV_420_888,
                           1, &displayReader),
@@ -127,7 +127,7 @@ protected:
 
     virtual void TearDown() override
     {
-        if (graph != NULL)
+        if (graph != nullptr)
         {
             delete graph;
         }
@@ -137,7 +137,7 @@ protected:
             ImsMediaNetworkUtil::closeSocket(socketRtpFd);
         }
 
-        if (displayReader != NULL)
+        if (displayReader != nullptr)
         {
             AImageReader_delete(displayReader);
         }

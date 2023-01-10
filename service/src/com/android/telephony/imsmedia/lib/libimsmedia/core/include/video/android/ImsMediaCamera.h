@@ -43,13 +43,13 @@ public:
     int32_t mFacing;
     bool mAvailable;
     bool mOwner;
-    explicit CameraId(const char* id = NULL) :
-            mDevice(NULL),
+    explicit CameraId(const char* id = nullptr) :
+            mDevice(nullptr),
             mFacing(ACAMERA_LENS_FACING_FRONT),
             mAvailable(false),
             mOwner(false)
     {
-        mId = (id != NULL) ? id : "";
+        mId = (id != nullptr) ? id : "";
     }
 
     CameraId& operator=(const CameraId& camera)
@@ -100,7 +100,7 @@ public:
         outputNativeWindows.clear();
         sessionOutputs.clear();
         targets.clear();
-        request = NULL;
+        request = nullptr;
         sessionSequenceId = -1;
     }
     std::vector<ANativeWindow*> outputNativeWindows;

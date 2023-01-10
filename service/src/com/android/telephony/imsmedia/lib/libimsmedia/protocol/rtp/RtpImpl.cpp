@@ -22,7 +22,7 @@
 
 RtpImpl::RtpImpl()
 {
-    m_pvAppdata = RTP_NULL;
+    m_pvAppdata = nullptr;
 }
 
 RtpImpl::~RtpImpl() {}
@@ -60,7 +60,7 @@ eRtp_Bool RtpImpl::rtcpPacketSendInd(IN RtpBuffer* pobjRtcpBuf, IN RtpSession* p
     RTP_TRACE_MESSAGE("rtcpPacketSendInd", 0, 0);
     RtpServiceListener* pobjRtpServiceListener =
             reinterpret_cast<RtpServiceListener*>(getAppdata());
-    if (pobjRtpServiceListener == RTP_NULL || pobjRtcpBuf == RTP_NULL || pobjRtpSession == RTP_NULL)
+    if (pobjRtpServiceListener == nullptr || pobjRtcpBuf == nullptr || pobjRtpSession == nullptr)
     {
         RTP_TRACE_ERROR("RTCP send failed. No listeners are set", 0, 0);
         return eRTP_FALSE;
@@ -71,7 +71,7 @@ eRtp_Bool RtpImpl::rtcpPacketSendInd(IN RtpBuffer* pobjRtcpBuf, IN RtpSession* p
             -1)
     {
         RTP_TRACE_ERROR("Send RTCP: IRTPSession returned Error", 0, 0);
-        pobjRtcpBuf->setBufferInfo(RTP_ZERO, RTP_NULL);
+        pobjRtcpBuf->setBufferInfo(RTP_ZERO, nullptr);
         return eRTP_FALSE;
     }
 
@@ -81,7 +81,7 @@ eRtp_Bool RtpImpl::rtcpPacketSendInd(IN RtpBuffer* pobjRtcpBuf, IN RtpSession* p
 eRtp_Bool RtpImpl::rtcpAppPayloadReqInd(
         OUT RtpDt_UInt16& pusSubType, OUT RtpDt_UInt32& uiName, OUT RtpBuffer* pobjPayload)
 {
-    if (pobjPayload == RTP_NULL)
+    if (pobjPayload == nullptr)
     {
         return eRTP_FALSE;
     }
@@ -94,7 +94,7 @@ eRtp_Bool RtpImpl::rtcpAppPayloadReqInd(
 
 eRtp_Bool RtpImpl::getRtpHdrExtInfo(OUT RtpBuffer* pobjExtHdrInfo)
 {
-    if (pobjExtHdrInfo == RTP_NULL)
+    if (pobjExtHdrInfo == nullptr)
     {
         return eRTP_FALSE;
     }

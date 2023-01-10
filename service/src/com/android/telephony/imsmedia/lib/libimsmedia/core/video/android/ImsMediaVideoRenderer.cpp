@@ -25,10 +25,10 @@
 
 ImsMediaVideoRenderer::ImsMediaVideoRenderer()
 {
-    mCallback = NULL;
-    mWindow = NULL;
-    mCodec = NULL;
-    mFormat = NULL;
+    mCallback = nullptr;
+    mWindow = nullptr;
+    mCodec = nullptr;
+    mFormat = nullptr;
     mCodecType = -1;
     mWidth = 0;
     mHeight = 0;
@@ -99,25 +99,25 @@ bool ImsMediaVideoRenderer::Start()
     AMediaFormat_setInt32(mFormat, AMEDIAFORMAT_KEY_ROTATION, mFarOrientationDegree);
 
     mCodec = AMediaCodec_createDecoderByType(kMimeType);
-    if (mCodec == NULL)
+    if (mCodec == nullptr)
     {
         IMLOGE0("[Start] Unable to create decoder");
         return false;
     }
 
-    if (mWindow != NULL)
+    if (mWindow != nullptr)
     {
         ANativeWindow_acquire(mWindow);
     }
 
-    media_status_t err = AMediaCodec_configure(mCodec, mFormat, mWindow, NULL, 0);
+    media_status_t err = AMediaCodec_configure(mCodec, mFormat, mWindow, nullptr, 0);
     if (err != AMEDIA_OK)
     {
         IMLOGE1("[Start] configure error[%d]", err);
         AMediaCodec_delete(mCodec);
-        mCodec = NULL;
+        mCodec = nullptr;
         AMediaFormat_delete(mFormat);
-        mFormat = NULL;
+        mFormat = nullptr;
         return false;
     }
 
@@ -126,9 +126,9 @@ bool ImsMediaVideoRenderer::Start()
     {
         IMLOGE1("[Start] codec start[%d]", err);
         AMediaCodec_delete(mCodec);
-        mCodec = NULL;
+        mCodec = nullptr;
         AMediaFormat_delete(mFormat);
-        mFormat = NULL;
+        mFormat = nullptr;
         return false;
     }
 
@@ -148,30 +148,30 @@ void ImsMediaVideoRenderer::Stop()
     mMutex.unlock();
     mConditionExit.wait_timeout(MAX_WAIT_RESTART);
 
-    if (mCodec != NULL)
+    if (mCodec != nullptr)
     {
         AMediaCodec_signalEndOfInputStream(mCodec);
         AMediaCodec_stop(mCodec);
         AMediaCodec_delete(mCodec);
-        mCodec = NULL;
+        mCodec = nullptr;
     }
 
-    if (mWindow != NULL)
+    if (mWindow != nullptr)
     {
         ANativeWindow_release(mWindow);
     }
 
-    if (mFormat != NULL)
+    if (mFormat != nullptr)
     {
         AMediaFormat_delete(mFormat);
-        mFormat = NULL;
+        mFormat = nullptr;
     }
 }
 
 void ImsMediaVideoRenderer::OnDataFrame(
         uint8_t* buffer, uint32_t size, uint32_t timestamp, const bool isConfigFrame)
 {
-    if (size == 0 || buffer == NULL)
+    if (size == 0 || buffer == nullptr)
     {
         return;
     }
@@ -179,7 +179,7 @@ void ImsMediaVideoRenderer::OnDataFrame(
     IMLOGD_PACKET2(IM_PACKET_LOG_VIDEO, "[OnDataFrame] frame size[%u], list[%d]", size,
             mFrameDatas.size());
     std::lock_guard<std::mutex> guard(mMutex);
-    if (mCodec == NULL)
+    if (mCodec == nullptr)
     {
         return;
     }
@@ -214,7 +214,7 @@ void ImsMediaVideoRenderer::processBuffers()
         {
             size_t bufferSize = 0;
             uint8_t* inputBuffer = AMediaCodec_getInputBuffer(mCodec, index, &bufferSize);
-            if (inputBuffer != NULL)
+            if (inputBuffer != nullptr)
             {
                 FrameData* frame = mFrameDatas.front();
                 memcpy(inputBuffer, frame->data, frame->size);
@@ -262,7 +262,7 @@ void ImsMediaVideoRenderer::processBuffers()
         }
         else if (index == AMEDIACODEC_INFO_OUTPUT_FORMAT_CHANGED)
         {
-            if (mFormat != NULL)
+            if (mFormat != nullptr)
             {
                 AMediaFormat_delete(mFormat);
             }

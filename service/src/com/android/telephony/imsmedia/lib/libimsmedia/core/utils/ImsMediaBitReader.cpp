@@ -20,7 +20,7 @@
 
 ImsMediaBitReader::ImsMediaBitReader()
 {
-    mBuffer = NULL;
+    mBuffer = nullptr;
     mMaxBufferSize = 0;
     mBytePos = 0;
     mBitPos = 0;
@@ -45,7 +45,7 @@ uint32_t ImsMediaBitReader::Read(uint32_t nSize)
     uint32_t value;
     if (nSize == 0)
         return 0;
-    if (mBuffer == NULL || nSize > 24 || mBufferEOF)
+    if (mBuffer == nullptr || nSize > 24 || mBufferEOF)
     {
         IMLOGE2("[Read] nSize[%d], bBufferEOF[%d]", nSize, mBufferEOF);
         return 0;

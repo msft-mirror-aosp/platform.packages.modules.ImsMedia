@@ -54,7 +54,7 @@ bool RtcpConfig::operator!=(const RtcpConfig& config) const
 status_t RtcpConfig::writeToParcel(Parcel* out) const
 {
     status_t err;
-    if (out == NULL)
+    if (out == nullptr)
     {
         return BAD_VALUE;
     }
@@ -90,7 +90,7 @@ status_t RtcpConfig::writeToParcel(Parcel* out) const
 status_t RtcpConfig::readFromParcel(const Parcel* in)
 {
     status_t err;
-    if (in == NULL)
+    if (in == nullptr)
     {
         return BAD_VALUE;
     }

@@ -84,9 +84,9 @@ static void* ImsMediaTimer_run(void* arg)
     TimerInstance* pInstance = reinterpret_cast<TimerInstance*>(arg);
     uint32_t nSleepTime;
 
-    if (pInstance == NULL)
+    if (pInstance == nullptr)
     {
-        return NULL;
+        return nullptr;
     }
 
     if (pInstance->mDuration < 100)
@@ -118,7 +118,7 @@ static void* ImsMediaTimer_run(void* arg)
             break;
         }
 
-        if (gettimeofday(&tp, NULL) != -1)
+        if (gettimeofday(&tp, nullptr) != -1)
         {
             uint32_t nCurrTimeSec, nCurrTimeMSec;
             uint32_t nTimeDiff;
@@ -160,13 +160,13 @@ static void* ImsMediaTimer_run(void* arg)
 
     DeleteTimerFromList(pInstance);
 
-    if (pInstance != NULL)
+    if (pInstance != nullptr)
     {
         free(pInstance);
-        pInstance = NULL;
+        pInstance = nullptr;
     }
 
-    return NULL;
+    return nullptr;
 }
 
 hTimerHandler ImsMediaTimer::TimerStart(
@@ -175,9 +175,9 @@ hTimerHandler ImsMediaTimer::TimerStart(
     struct timeval tp;
     TimerInstance* pInstance = reinterpret_cast<TimerInstance*>(malloc(sizeof(TimerInstance)));
 
-    if (pInstance == NULL)
+    if (pInstance == nullptr)
     {
-        return NULL;
+        return nullptr;
     }
 
     pInstance->mTimerCb = pTimerCb;
@@ -189,7 +189,7 @@ hTimerHandler ImsMediaTimer::TimerStart(
     IMLOGD3("[TimerStart] Duratation[%u], bRepeat[%d], pUserData[%x]", pInstance->mDuration,
             bRepeat, pInstance->mUserData);
 
-    if (gettimeofday(&tp, NULL) != -1)
+    if (gettimeofday(&tp, nullptr) != -1)
     {
         pInstance->mStartTimeSec = tp.tv_sec;
         pInstance->mStartTimeMSec = tp.tv_usec / 1000;
@@ -197,7 +197,7 @@ hTimerHandler ImsMediaTimer::TimerStart(
     else
     {
         free(pInstance);
-        return NULL;
+        return nullptr;
     }
 
     AddTimerToList(pInstance);
@@ -211,7 +211,7 @@ bool ImsMediaTimer::TimerStop(hTimerHandler hTimer, void** ppUserData)
 {
     TimerInstance* pInstance = reinterpret_cast<TimerInstance*>(hTimer);
 
-    if (pInstance == NULL)
+    if (pInstance == nullptr)
     {
         return false;
     }
@@ -237,7 +237,7 @@ void ImsMediaTimer::GetNtpTime(IMNtpTime* pNtpTime)
 {
     struct timeval stAndrodTp;
 
-    if (gettimeofday(&stAndrodTp, NULL) != -1)
+    if (gettimeofday(&stAndrodTp, nullptr) != -1)
     {
         // To convert a UNIX timestamp (seconds since 1970) to NTP time, add 2,208,988,800 seconds
         pNtpTime->ntpHigh32Bits = stAndrodTp.tv_sec + 2208988800UL;
@@ -276,14 +276,14 @@ uint32_t ImsMediaTimer::GetRtpTsFromNtpTs(IMNtpTime* initNtpTimestamp, uint32_t 
 uint32_t ImsMediaTimer::GetTimeInMilliSeconds(void)
 {
     struct timeval tp;
-    gettimeofday(&tp, NULL);
+    gettimeofday(&tp, nullptr);
     return (tp.tv_sec * 1000) + (tp.tv_usec / 1000);
 }
 
 uint64_t ImsMediaTimer::GetTimeInMicroSeconds(void)
 {
     struct timeval tp;
-    gettimeofday(&tp, NULL);
+    gettimeofday(&tp, nullptr);
     return (tp.tv_sec * 1000000) + (tp.tv_usec);
 }
 
@@ -292,7 +292,7 @@ uint32_t ImsMediaTimer::GenerateRandom(uint32_t nRange)
     uint32_t rand;
     struct timeval tp;
 
-    gettimeofday(&tp, NULL);
+    gettimeofday(&tp, nullptr);
     rand = (tp.tv_sec * 13) + (tp.tv_usec / 1000);
 
     if (0 == nRange)

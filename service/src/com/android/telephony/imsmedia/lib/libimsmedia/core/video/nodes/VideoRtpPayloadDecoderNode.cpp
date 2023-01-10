@@ -30,7 +30,7 @@ VideoRtpPayloadDecoderNode::VideoRtpPayloadDecoderNode(BaseSessionCallback* call
 {
     mCodecType = 0;
     mPayloadMode = 0;
-    mBuffer = NULL;
+    mBuffer = nullptr;
     mSbitfirstByte = 0;
 }
 
@@ -47,7 +47,7 @@ ImsMediaResult VideoRtpPayloadDecoderNode::Start()
 
     mBuffer = reinterpret_cast<uint8_t*>(malloc(MAX_RTP_PAYLOAD_BUFFER_SIZE * sizeof(uint8_t)));
 
-    if (mBuffer == NULL)
+    if (mBuffer == nullptr)
     {
         return RESULT_NO_MEMORY;
     }
@@ -58,10 +58,10 @@ ImsMediaResult VideoRtpPayloadDecoderNode::Start()
 
 void VideoRtpPayloadDecoderNode::Stop()
 {
-    if (mBuffer != NULL)
+    if (mBuffer != nullptr)
     {
         free(mBuffer);
-        mBuffer = NULL;
+        mBuffer = nullptr;
     }
 
     mNodeState = kNodeStateStopped;
@@ -79,7 +79,7 @@ bool VideoRtpPayloadDecoderNode::IsSourceNode()
 
 void VideoRtpPayloadDecoderNode::SetConfig(void* config)
 {
-    if (config == NULL)
+    if (config == nullptr)
     {
         return;
     }
@@ -91,7 +91,7 @@ void VideoRtpPayloadDecoderNode::SetConfig(void* config)
 
 bool VideoRtpPayloadDecoderNode::IsSameConfig(void* config)
 {
-    if (config == NULL)
+    if (config == nullptr)
     {
         return false;
     }
@@ -107,7 +107,7 @@ void VideoRtpPayloadDecoderNode::OnDataFromFrontNode(ImsMediaSubType subtype, ui
 {
     if (subtype == MEDIASUBTYPE_REFRESHED)
     {
-        SendDataToRearNode(subtype, NULL, nDataSize, 0, 0, 0, MEDIASUBTYPE_UNDEFINED);
+        SendDataToRearNode(subtype, nullptr, nDataSize, 0, 0, 0, MEDIASUBTYPE_UNDEFINED);
         return;
     }
 
@@ -130,7 +130,7 @@ void VideoRtpPayloadDecoderNode::OnDataFromFrontNode(ImsMediaSubType subtype, ui
 void VideoRtpPayloadDecoderNode::DecodeAvc(ImsMediaSubType subtype, uint8_t* pData,
         uint32_t nDataSize, uint32_t nTimeStamp, bool bMark, uint32_t nSeqNum)
 {
-    if (pData == NULL || nDataSize == 0 || mBuffer == NULL)
+    if (pData == nullptr || nDataSize == 0 || mBuffer == nullptr)
     {
         return;
     }
@@ -288,13 +288,13 @@ void VideoRtpPayloadDecoderNode::DecodeHevc(ImsMediaSubType subtype, uint8_t* pD
         return;
     }
 
-    if (pData == NULL || nDataSize == 0)
+    if (pData == nullptr || nDataSize == 0)
     {
         IMLOGE1("[DecodeHevc] INVALID Data, Size[%d]", nDataSize);
         return;
     }
 
-    if (mBuffer == NULL)
+    if (mBuffer == nullptr)
     {
         return;
     }

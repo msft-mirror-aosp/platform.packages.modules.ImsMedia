@@ -103,7 +103,7 @@ bool IAudioSourceNode::IsSourceNode()
 
 void IAudioSourceNode::SetConfig(void* config)
 {
-    if (config == NULL)
+    if (config == nullptr)
     {
         return;
     }
@@ -128,7 +128,7 @@ void IAudioSourceNode::SetConfig(void* config)
 
 bool IAudioSourceNode::IsSameConfig(void* config)
 {
-    if (config == NULL)
+    if (config == nullptr)
     {
         return true;
     }
@@ -171,7 +171,7 @@ void IAudioSourceNode::ProcessCmr(uint32_t cmr)
 {
     IMLOGD1("[ProcessCmr] cmr[%d]", cmr);
 
-    if (mAudioSource == NULL)
+    if (mAudioSource == nullptr)
     {
         return;
     }

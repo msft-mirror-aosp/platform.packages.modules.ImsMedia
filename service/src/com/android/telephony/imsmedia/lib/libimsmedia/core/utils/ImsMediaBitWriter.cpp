@@ -20,7 +20,7 @@
 
 ImsMediaBitWriter::ImsMediaBitWriter()
 {
-    mBuffer = NULL;
+    mBuffer = nullptr;
     mMaxBufferSize = 0;
     mBytePos = 0;
     mBitPos = 0;
@@ -45,7 +45,7 @@ void ImsMediaBitWriter::Write(uint32_t nValue, uint32_t nSize)
     if (nSize == 0)
         return;
 
-    if (mBuffer == NULL || nSize > 24 || mBufferFull)
+    if (mBuffer == nullptr || nSize > 24 || mBufferFull)
     {
         IMLOGE2("[Write] nSize[%d], BufferFull[%d]", nSize, mBufferFull);
         return;

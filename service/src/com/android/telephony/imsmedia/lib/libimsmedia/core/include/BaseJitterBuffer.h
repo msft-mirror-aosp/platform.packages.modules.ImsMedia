@@ -78,7 +78,8 @@ public:
      * @param pnChecker
      */
     virtual bool Get(ImsMediaSubType* psubtype, uint8_t** ppData, uint32_t* pnDataSize,
-            uint32_t* ptimestamp, bool* pmark, uint32_t* pnSeqNum, uint32_t* pnChecker = NULL) = 0;
+            uint32_t* ptimestamp, bool* pmark, uint32_t* pnSeqNum,
+            uint32_t* pnChecker = nullptr) = 0;
 
 protected:
     BaseSessionCallback* mCallback;

@@ -31,7 +31,7 @@ jint JNI_OnLoad(JavaVM* vm, void* reserved)
 
     ALOGD("JNI_OnLoad::JNI_OnLoad");
 
-    JNIEnv* env = NULL;
+    JNIEnv* env = nullptr;
 
     if (vm->GetEnv((void**)&env, IMS_MEDIA_JNI_VERSION) != JNI_OK)
     {
@@ -39,7 +39,7 @@ jint JNI_OnLoad(JavaVM* vm, void* reserved)
         return (-1);
     }
 
-    assert(env != NULL);
+    assert(env != nullptr);
 
     if (ImsMediaServiceJni_OnLoad(vm, env) < 0)
     {

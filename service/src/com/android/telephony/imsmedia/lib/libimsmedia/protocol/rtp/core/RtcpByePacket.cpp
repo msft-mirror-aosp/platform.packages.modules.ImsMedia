@@ -19,7 +19,7 @@
 
 RtcpByePacket::RtcpByePacket() :
         m_uiSsrcList(std::list<RtpDt_UInt32*>()),
-        m_pReason(RTP_NULL)
+        m_pReason(nullptr)
 {
 }  // Constructor
 
@@ -32,10 +32,10 @@ RtcpByePacket::~RtcpByePacket()
     }
     m_uiSsrcList.clear();
 
-    if (m_pReason != RTP_NULL)
+    if (m_pReason != nullptr)
     {
         delete m_pReason;
-        m_pReason = RTP_NULL;
+        m_pReason = nullptr;
     }
 }  // Destructor
 
@@ -70,9 +70,9 @@ eRTP_STATUS_CODE RtcpByePacket::decodeByePacket(IN RtpDt_UChar* pucByeBuf, IN Rt
     // m_uiSsrcList
     while (ucSsrcCnt > RTP_ONE && usByeLen >= RTP_WORD_SIZE)
     {
-        RtpDt_UInt32* puiRcvdSsrc = RTP_NULL;
+        RtpDt_UInt32* puiRcvdSsrc = nullptr;
         puiRcvdSsrc = new RtpDt_UInt32();
-        if (puiRcvdSsrc == RTP_NULL)
+        if (puiRcvdSsrc == nullptr)
         {
             RTP_TRACE_ERROR("[Memory Error] new returned NULL.", RTP_ZERO, RTP_ZERO);
             return RTP_MEMORY_FAIL;
@@ -95,14 +95,14 @@ eRTP_STATUS_CODE RtcpByePacket::decodeByePacket(IN RtpDt_UChar* pucByeBuf, IN Rt
         if (uiByte4Data > RTP_ZERO)
         {
             RtpDt_UChar* pucReason = new RtpDt_UChar[uiByte4Data];
-            if (pucReason == RTP_NULL)
+            if (pucReason == nullptr)
             {
                 RTP_TRACE_ERROR("[Memory Error] new returned NULL.", RTP_ZERO, RTP_ZERO);
                 return RTP_MEMORY_FAIL;
             }
 
             m_pReason = new RtpBuffer();
-            if (m_pReason == RTP_NULL)
+            if (m_pReason == nullptr)
             {
                 RTP_TRACE_ERROR("[Memory Error] new returned NULL.", RTP_ZERO, RTP_ZERO);
                 delete[] pucReason;
@@ -133,7 +133,7 @@ eRTP_STATUS_CODE RtcpByePacket::formByePacket(OUT RtpBuffer* pobjRtcpPktBuf)
     }
 
     // m_pReason
-    if (m_pReason != RTP_NULL)
+    if (m_pReason != nullptr)
     {
         // length
         *(reinterpret_cast<RtpDt_UChar*>(pucBuffer)) = (RtpDt_UChar)m_pReason->getLength();

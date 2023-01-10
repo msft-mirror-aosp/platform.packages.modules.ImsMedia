@@ -24,16 +24,16 @@
 TextSession::TextSession()
 {
     IMLOGD0("[TextSession]");
-    mGraphRtpTx = NULL;
-    mGraphRtpRx = NULL;
-    mGraphRtcp = NULL;
+    mGraphRtpTx = nullptr;
+    mGraphRtpRx = nullptr;
+    mGraphRtcp = nullptr;
 }
 
 TextSession::~TextSession()
 {
     IMLOGD0("[~TextSession]");
 
-    if (mGraphRtpTx != NULL)
+    if (mGraphRtpTx != nullptr)
     {
         if (mGraphRtpTx->getState() == kStreamStateRunning)
         {
@@ -41,10 +41,10 @@ TextSession::~TextSession()
         }
 
         delete mGraphRtpTx;
-        mGraphRtpTx = NULL;
+        mGraphRtpTx = nullptr;
     }
 
-    if (mGraphRtpRx != NULL)
+    if (mGraphRtpRx != nullptr)
     {
         if (mGraphRtpRx->getState() == kStreamStateRunning)
         {
@@ -52,10 +52,10 @@ TextSession::~TextSession()
         }
 
         delete mGraphRtpRx;
-        mGraphRtpRx = NULL;
+        mGraphRtpRx = nullptr;
     }
 
-    if (mGraphRtcp != NULL)
+    if (mGraphRtcp != nullptr)
     {
         if (mGraphRtcp->getState() == kStreamStateRunning)
         {
@@ -63,7 +63,7 @@ TextSession::~TextSession()
         }
 
         delete mGraphRtcp;
-        mGraphRtcp = NULL;
+        mGraphRtcp = nullptr;
     }
 }
 
@@ -71,13 +71,13 @@ SessionState TextSession::getState()
 {
     SessionState state = kSessionStateOpened;
 
-    if ((mGraphRtpTx != NULL && mGraphRtpTx->getState() == kStreamStateRunning) ||
-            (mGraphRtpRx != NULL && mGraphRtpRx->getState() == kStreamStateRunning))
+    if ((mGraphRtpTx != nullptr && mGraphRtpTx->getState() == kStreamStateRunning) ||
+            (mGraphRtpRx != nullptr && mGraphRtpRx->getState() == kStreamStateRunning))
     {
         return kSessionStateActive;
     }
 
-    if (mGraphRtcp != NULL && mGraphRtcp->getState() == kStreamStateRunning)
+    if (mGraphRtcp != nullptr && mGraphRtcp->getState() == kStreamStateRunning)
     {
         return kSessionStateSuspended;
     }
@@ -89,7 +89,7 @@ ImsMediaResult TextSession::startGraph(RtpConfig* config)
 {
     IMLOGI0("[startGraph]");
 
-    if (config == NULL)
+    if (config == nullptr)
     {
         return RESULT_INVALID_PARAM;
     }
@@ -103,7 +103,7 @@ ImsMediaResult TextSession::startGraph(RtpConfig* config)
 
     ImsMediaResult ret = RESULT_NOT_READY;
 
-    if (mGraphRtpTx != NULL)
+    if (mGraphRtpTx != nullptr)
     {
         ret = mGraphRtpTx->update(config);
 
@@ -132,7 +132,7 @@ ImsMediaResult TextSession::startGraph(RtpConfig* config)
         }
     }
 
-    if (mGraphRtpRx != NULL)
+    if (mGraphRtpRx != nullptr)
     {
         mGraphRtpRx->setMediaQualityThreshold(&mThreshold);
         ret = mGraphRtpRx->update(config);
@@ -162,7 +162,7 @@ ImsMediaResult TextSession::startGraph(RtpConfig* config)
         }
     }
 
-    if (mGraphRtcp != NULL)
+    if (mGraphRtcp != nullptr)
     {
         mGraphRtcp->setMediaQualityThreshold(&mThreshold);
         ret = mGraphRtcp->update(config);
@@ -195,7 +195,7 @@ ImsMediaResult TextSession::startGraph(RtpConfig* config)
 
 ImsMediaResult TextSession::sendRtt(const android::String8* text)
 {
-    if (mGraphRtpTx != NULL && mGraphRtpTx->getState() == kStreamStateRunning)
+    if (mGraphRtpTx != nullptr && mGraphRtpTx->getState() == kStreamStateRunning)
     {
         mGraphRtpTx->sendRtt(text);
         return RESULT_SUCCESS;

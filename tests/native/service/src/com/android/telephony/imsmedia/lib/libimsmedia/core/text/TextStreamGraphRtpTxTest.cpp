@@ -50,7 +50,7 @@ class TextStreamGraphRtpTxTest : public ::testing::Test
 public:
     TextStreamGraphRtpTxTest()
     {
-        graph = NULL;
+        graph = nullptr;
         socketRtpFd = -1;
     }
     virtual ~TextStreamGraphRtpTxTest() {}
@@ -86,12 +86,12 @@ protected:
         unsigned int testPort = 30000;
         socketRtpFd = ImsMediaNetworkUtil::openSocket(testIp, testPort, AF_INET);
         EXPECT_NE(socketRtpFd, -1);
-        graph = new TextStreamGraphRtpTx(NULL, socketRtpFd);
+        graph = new TextStreamGraphRtpTx(nullptr, socketRtpFd);
     }
 
     virtual void TearDown() override
     {
-        if (graph != NULL)
+        if (graph != nullptr)
         {
             delete graph;
         }

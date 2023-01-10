@@ -85,9 +85,9 @@ ImsMediaCamera* ImsMediaCamera::getInstance()
 }
 
 ImsMediaCamera::ImsMediaCamera() :
-        mManager(NULL),
-        mSessionOutputContainer(NULL),
-        mCaptureSession(NULL),
+        mManager(nullptr),
+        mSessionOutputContainer(nullptr),
+        mCaptureSession(nullptr),
         mCaptureSessionState(CaptureSessionState::kStateMax),
         mExposureTime(0),
         mSensitivity(0),
@@ -112,7 +112,7 @@ void ImsMediaCamera::Initialize()
     gCameraIds.clear();
     mManager = ACameraManager_create();
 
-    if (mManager == NULL)
+    if (mManager == nullptr)
     {
         IMLOGD0("[Initialize] manager is not created");
         return;
@@ -147,7 +147,7 @@ void ImsMediaCamera::DeInitialize()
         }
 
         ACameraManager_delete(mManager);
-        mManager = NULL;
+        mManager = nullptr;
     }
 
     gCameraIds.clear();
@@ -170,7 +170,7 @@ void ImsMediaCamera::DeInitialize()
         }
 
         ACameraManager_delete(mManager);
-        mManager = NULL;
+        mManager = nullptr;
     }
 
     gCameraIds.clear();
@@ -180,7 +180,7 @@ bool ImsMediaCamera::OpenCamera()
 {
     IMLOGD1("[OpenCamera] active camera[%s]", mActiveCameraId.c_str());
 
-    if (mManager == NULL)
+    if (mManager == nullptr)
     {
         return false;
     }
@@ -280,7 +280,7 @@ void ImsMediaCamera::SetCameraConfig(int32_t cameraId, int32_t cameraZoom, int32
 
 bool ImsMediaCamera::CreateSession(ANativeWindow* preview, ANativeWindow* recording)
 {
-    if (preview == NULL)
+    if (preview == nullptr)
     {
         return false;
     }
@@ -293,7 +293,7 @@ bool ImsMediaCamera::CreateSession(ANativeWindow* preview, ANativeWindow* record
 
     mCaptureRequest.outputNativeWindows.push_back(preview);
 
-    if (recording != NULL)
+    if (recording != nullptr)
     {
         mCaptureRequest.outputNativeWindows.push_back(recording);
     }
@@ -302,8 +302,8 @@ bool ImsMediaCamera::CreateSession(ANativeWindow* preview, ANativeWindow* record
     mCaptureRequest.targets.resize(mCaptureRequest.outputNativeWindows.size());
 
     // Create output from this app's ANativeWindow, and add into output container
-    recording == NULL ? mCaptureRequest.requestTemplate = TEMPLATE_PREVIEW
-                      : mCaptureRequest.requestTemplate = TEMPLATE_RECORD;
+    recording == nullptr ? mCaptureRequest.requestTemplate = TEMPLATE_PREVIEW
+                         : mCaptureRequest.requestTemplate = TEMPLATE_RECORD;
 
     camera_status_t status = ACaptureSessionOutputContainer_create(&mSessionOutputContainer);
 
@@ -315,7 +315,7 @@ bool ImsMediaCamera::CreateSession(ANativeWindow* preview, ANativeWindow* record
 
     for (int idxTarget = 0; idxTarget < mCaptureRequest.outputNativeWindows.size(); idxTarget++)
     {
-        if (mCaptureRequest.outputNativeWindows[idxTarget] == NULL)
+        if (mCaptureRequest.outputNativeWindows[idxTarget] == nullptr)
             continue;
 
         IMLOGD0("[CreateSession] acquire window");
@@ -366,7 +366,7 @@ bool ImsMediaCamera::CreateSession(ANativeWindow* preview, ANativeWindow* record
     if (status != ACAMERA_OK)
     {
         IMLOGE1("[CreateSession] create capture session, error[%s]", GetErrorStr(status));
-        mCaptureSession = NULL;
+        mCaptureSession = nullptr;
         return false;
     }
 
@@ -386,18 +386,18 @@ bool ImsMediaCamera::DeleteSession()
     IMLOGD0("[DeleteSession]");
     camera_status_t status;
 
-    if (mCaptureSession != NULL)
+    if (mCaptureSession != nullptr)
     {
         IMLOGD0("[DeleteSession] session close");
         gCondition.reset();
         ACameraCaptureSession_close(mCaptureSession);
         gCondition.wait_timeout(MAX_WAIT_CAMERA);
-        mCaptureSession = NULL;
+        mCaptureSession = nullptr;
     }
 
     for (int idxTarget = 0; idxTarget < mCaptureRequest.outputNativeWindows.size(); idxTarget++)
     {
-        if (mCaptureRequest.outputNativeWindows[idxTarget] == NULL)
+        if (mCaptureRequest.outputNativeWindows[idxTarget] == nullptr)
         {
             continue;
         }
@@ -424,7 +424,7 @@ bool ImsMediaCamera::DeleteSession()
         ANativeWindow_release(mCaptureRequest.outputNativeWindows[idxTarget]);
     }
 
-    if (mCaptureRequest.request != NULL)
+    if (mCaptureRequest.request != nullptr)
     {
         IMLOGD0("[DeleteSession] free request");
         ACaptureRequest_free(mCaptureRequest.request);
@@ -434,7 +434,7 @@ bool ImsMediaCamera::DeleteSession()
     mCaptureRequest.sessionOutputs.resize(0);
     mCaptureRequest.targets.resize(0);
 
-    if (mSessionOutputContainer != NULL)
+    if (mSessionOutputContainer != nullptr)
     {
         IMLOGD0("[DeleteSession] free container");
         ACaptureSessionOutputContainer_free(mSessionOutputContainer);
@@ -452,7 +452,7 @@ bool ImsMediaCamera::StartSession(bool bRecording)
 
     gCondition.reset();
     status = ACameraCaptureSession_setRepeatingRequest(
-            mCaptureSession, NULL, 1, &mCaptureRequest.request, NULL);
+            mCaptureSession, nullptr, 1, &mCaptureRequest.request, nullptr);
 
     if (status != ACAMERA_OK)
     {
@@ -489,9 +489,9 @@ bool ImsMediaCamera::StopSession()
  */
 void OnCameraAvailable(void* context, const char* id)
 {
-    IMLOGD1("[OnCameraAvailable] id[%s]", id == NULL ? "NULL" : id);
+    IMLOGD1("[OnCameraAvailable] id[%s]", id == nullptr ? "nullptr" : id);
 
-    if (context != NULL)
+    if (context != nullptr)
     {
         reinterpret_cast<ImsMediaCamera*>(context)->OnCameraStatusChanged(id, true);
     }
@@ -499,9 +499,9 @@ void OnCameraAvailable(void* context, const char* id)
 
 void OnCameraUnavailable(void* context, const char* id)
 {
-    IMLOGD1("[OnCameraUnavailable] id[%s]", id == NULL ? "NULL" : id);
+    IMLOGD1("[OnCameraUnavailable] id[%s]", id == nullptr ? "nullptr" : id);
 
-    if (context != NULL)
+    if (context != nullptr)
     {
         reinterpret_cast<ImsMediaCamera*>(context)->OnCameraStatusChanged(id, false);
     }
@@ -509,9 +509,10 @@ void OnCameraUnavailable(void* context, const char* id)
 
 void ImsMediaCamera::OnCameraStatusChanged(const char* id, bool available)
 {
-    IMLOGD2("[OnCameraStatusChanged] id[%s], available[%d]", id == NULL ? "NULL" : id, available);
+    IMLOGD2("[OnCameraStatusChanged] id[%s], available[%d]", id == nullptr ? "nullptr" : id,
+            available);
 
-    if (id != NULL && mManager != NULL && !gCameraIds.empty())
+    if (id != nullptr && mManager != nullptr && !gCameraIds.empty())
     {
         if (gCameraIds.find(std::string(id)) != gCameraIds.end())
         {
@@ -542,7 +543,7 @@ void OnDeviceStateChanges(void* context, ACameraDevice* dev)
 {
     IMLOGW0("[OnDeviceStateChanges]");
 
-    if (context != NULL)
+    if (context != nullptr)
     {
         reinterpret_cast<ImsMediaCamera*>(context)->OnDeviceState(dev);
     }
@@ -552,7 +553,7 @@ void OnDeviceErrorChanges(void* context, ACameraDevice* dev, int err)
 {
     IMLOGW0("[OnDeviceErrorChanges]");
 
-    if (context != NULL)
+    if (context != nullptr)
     {
         reinterpret_cast<ImsMediaCamera*>(context)->OnDeviceError(dev, err);
     }
@@ -647,7 +648,7 @@ void ImsMediaCamera::OnSessionState(ACameraCaptureSession* session, CaptureSessi
 {
     IMLOGD0("[OnSessionState]");
 
-    if (mCaptureSession == NULL)
+    if (mCaptureSession == nullptr)
     {
         IMLOGW0("[OnSessionState] CaptureSession closed");
         return;
@@ -655,7 +656,7 @@ void ImsMediaCamera::OnSessionState(ACameraCaptureSession* session, CaptureSessi
 
     if (!session || session != mCaptureSession)
     {
-        IMLOGW1("[OnSessionState] CaptureSession is %s", (session ? "NOT our session" : "NULL"));
+        IMLOGW1("[OnSessionState] CaptureSession is %s", (session ? "NOT our session" : "nullptr"));
         return;
     }
 
@@ -673,12 +674,12 @@ void ImsMediaCamera::OnSessionState(ACameraCaptureSession* session, CaptureSessi
 
 void ImsMediaCamera::EnumerateCamera()
 {
-    if (mManager == NULL)
+    if (mManager == nullptr)
     {
         return;
     }
 
-    ACameraIdList* cameraIds = NULL;
+    ACameraIdList* cameraIds = nullptr;
     auto ret = ACameraManager_getCameraIdList(mManager, &cameraIds);
 
     if (ret != ACAMERA_OK)
@@ -693,7 +694,7 @@ void ImsMediaCamera::EnumerateCamera()
         ACameraManager_getCameraCharacteristics(mManager, id, &metadataObj);
 
         int32_t count = 0;
-        const uint32_t* tags = NULL;
+        const uint32_t* tags = nullptr;
         ACameraMetadata_getAllTags(metadataObj, &count, &tags);
 
         for (int tagIdx = 0; tagIdx < count; ++tagIdx)
@@ -706,7 +707,7 @@ void ImsMediaCamera::EnumerateCamera()
                 cam.mFacing = static_cast<acamera_metadata_enum_android_lens_facing_t>(
                         lensInfo.data.u8[0]);
                 cam.mOwner = false;
-                cam.mDevice = NULL;
+                cam.mDevice = nullptr;
                 gCameraIds[cam.mId] = cam;
                 IMLOGD2("[EnumerateCamera] cameraId[%s], facing[%d]", cam.mId.c_str(), cam.mFacing);
             }

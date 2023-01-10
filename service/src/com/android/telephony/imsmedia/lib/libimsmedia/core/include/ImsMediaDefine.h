@@ -396,7 +396,7 @@ public:
     int rtpFd;
     int rtcpFd;
     EventParamOpenSession(
-            int rtp = UNDEFINED_SOCKET_FD, int rtcp = UNDEFINED_SOCKET_FD, void* config = NULL) :
+            int rtp = UNDEFINED_SOCKET_FD, int rtcp = UNDEFINED_SOCKET_FD, void* config = nullptr) :
             mConfig(config),
             rtpFd(rtp),
             rtcpFd(rtcp)
@@ -600,10 +600,10 @@ struct tRtpHeaderExtensionInfo
 class RtpAddress
 {
 public:
-    RtpAddress(const char* ip = NULL, uint32_t p = 0)
+    RtpAddress(const char* ip = nullptr, uint32_t p = 0)
     {
         memset(this->ipAddress, 0, MAX_IP_LEN);
-        if (ip != NULL)
+        if (ip != nullptr)
         {
             std::strncpy(ipAddress, ip, MAX_IP_LEN);
         }

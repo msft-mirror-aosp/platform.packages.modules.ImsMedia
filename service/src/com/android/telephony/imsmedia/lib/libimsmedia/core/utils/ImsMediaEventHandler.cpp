@@ -47,9 +47,9 @@ ImsMediaEventHandler::~ImsMediaEventHandler()
 void ImsMediaEventHandler::SendEvent(const char* strEventHandlerName, uint32_t event,
         uint64_t paramA, uint64_t paramB, uint64_t paramC)
 {
-    if (strEventHandlerName == NULL)
+    if (strEventHandlerName == nullptr)
     {
-        IMLOGE0("[SendEvent] strEventHandlerName is NULL");
+        IMLOGE0("[SendEvent] strEventHandlerName is nullptr");
         return;
     }
 
@@ -58,7 +58,7 @@ void ImsMediaEventHandler::SendEvent(const char* strEventHandlerName, uint32_t e
 
     for (auto& i : gListEventHandler)
     {
-        if (i != NULL && strcmp(i->getName(), strEventHandlerName) == 0)
+        if (i != nullptr && strcmp(i->getName(), strEventHandlerName) == 0)
         {
             i->AddEvent(event, paramA, paramB, paramC);
         }
@@ -125,5 +125,5 @@ void* ImsMediaEventHandler::run()
 
     IMLOGD2("[run] %s exit, %p", mName, this);
     mConditionExit.signal();
-    return NULL;
+    return nullptr;
 }
