@@ -28,7 +28,7 @@ protected:
 
 TEST_F(ImsMediaImageRotateTest, Rotate90FlipTest)
 {
-    const uint32_t img_width = 4, img_height = 4;
+    const uint16_t img_width = 4, img_height = 4;
     const uint32_t img_buf_size = img_width * img_height * 1.5f;
 
     // Input image Y buffer
@@ -52,7 +52,7 @@ TEST_F(ImsMediaImageRotateTest, Rotate90FlipTest)
 
 TEST_F(ImsMediaImageRotateTest, Rotate90FlipTest_ZeroImageSize)
 {
-    const uint32_t img_width = 0, img_height = 0;
+    const uint16_t img_width = 0, img_height = 0;
 
     // Input image Y buffer
     uint8_t input_img_y[0] = {};
@@ -74,7 +74,7 @@ TEST_F(ImsMediaImageRotateTest, Rotate90FlipTest_ZeroImageSize)
 
 TEST_F(ImsMediaImageRotateTest, Rotate270Test)
 {
-    const uint32_t img_width = 4, img_height = 4;
+    const uint16_t img_width = 4, img_height = 4;
     const uint32_t img_buf_size = img_width * img_height * 1.5f;
 
     // Input image Y buffer
@@ -98,7 +98,7 @@ TEST_F(ImsMediaImageRotateTest, Rotate270Test)
 
 TEST_F(ImsMediaImageRotateTest, Rotate270Test_ZeroImageSize)
 {
-    const uint32_t img_width = 0, img_height = 0;
+    const uint16_t img_width = 0, img_height = 0;
 
     // Input image Y buffer
     uint8_t input_img_y[0] = {};
@@ -120,7 +120,7 @@ TEST_F(ImsMediaImageRotateTest, Rotate270Test_ZeroImageSize)
 
 TEST_F(ImsMediaImageRotateTest, Rotate90Planar)
 {
-    const uint32_t img_width = 4, img_height = 4;
+    const uint16_t img_width = 4, img_height = 4;
     const uint32_t img_buf_size = img_width * img_height * 1.5f;
 
     // Input image YUV buffer
@@ -141,7 +141,7 @@ TEST_F(ImsMediaImageRotateTest, Rotate90Planar)
 
 TEST_F(ImsMediaImageRotateTest, Rotate90PlanarTest_ZeroImageSize)
 {
-    const uint32_t img_width = 0, img_height = 0;
+    const uint16_t img_width = 0, img_height = 0;
 
     // Input image YUV buffer
     uint8_t input_img[0] = {};
