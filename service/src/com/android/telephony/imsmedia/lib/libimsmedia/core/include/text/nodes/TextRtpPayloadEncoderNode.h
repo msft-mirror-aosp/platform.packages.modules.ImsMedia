@@ -42,8 +42,8 @@ private:
     void EncodeT140(uint8_t* data, uint32_t size, uint32_t timestamp, bool bMark);
 
     int32_t mCodecType;
-    uint8_t mRedundantPayload;
-    int32_t mRedundantLevel;
+    int8_t mRedundantPayload;
+    int8_t mRedundantLevel;
     bool mKeepRedundantLevel;
     uint8_t mPayload[MAX_RTT_LEN];
     uint32_t mLastTimestampSent;

@@ -20,37 +20,38 @@
 #include <stdint.h>
 #include <pthread.h>
 
-/**
- *    @class        ImsMediaCondition
- *    @brief        Event class
- */
 class ImsMediaCondition
 {
+public:
+    ImsMediaCondition();
+    ~ImsMediaCondition();
+
+    /**
+     * @brief Wait the current thread
+     *
+     */
+    void wait();
+
+    /**
+     * @brief Wait the current thread until the timer expired
+     *
+     * @param time The relative time in milliseconds unit
+     * @return true Returned when the timer expires
+     * @return false Returned when the thread is stopped by signal
+     */
+    bool wait_timeout(int64_t time);
+    void signal();
+    void reset();
+
 private:
+    void IncCount(uint32_t* pnCount);
+
     pthread_mutex_t* mMutex;
     pthread_cond_t* mCondition;
     uint32_t mWaitFlag;
     uint32_t mSignalFlag;
     uint32_t mWaitCount;
     uint32_t mSignalCount;
-
-private:
-    ImsMediaCondition(const ImsMediaCondition& objRHS);
-    ImsMediaCondition& operator=(const ImsMediaCondition& objRHS);
-
-public:
-    ImsMediaCondition();
-    ~ImsMediaCondition();
-    void wait();
-    /*
-     *@param nRelativeTime : unit msec
-     */
-    bool wait_timeout(int64_t nRelativeTime);
-    void signal();
-    void reset();
-
-private:
-    void IncCount(uint32_t* pnCount);
 };
 
 #endif  // IMS_MEDIA_CONDITION_H

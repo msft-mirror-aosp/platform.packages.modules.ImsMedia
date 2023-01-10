@@ -98,7 +98,7 @@ private:
     int32_t mCodecType;
     uint32_t mWidth;
     uint32_t mHeight;
-    uint32_t mSamplingRate;
+    int8_t mSamplingRate;
     int32_t mCvoValue;
     uint8_t mConfigBuffer[MAX_CONFIG_INDEX][MAX_CONFIG_LEN];
     uint32_t mConfigLen[MAX_CONFIG_INDEX];

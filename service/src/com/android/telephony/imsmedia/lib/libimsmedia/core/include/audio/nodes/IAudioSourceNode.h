@@ -62,10 +62,10 @@ public:
     int32_t mCodecType;
     uint32_t mCodecMode;
     uint32_t mRunningCodecMode;
-    uint32_t mPtime;
+    int8_t mPtime;
     kEvsBandwidth mEvsBandwidth;
-    int32_t mSamplingRate;
-    int32_t mEvsChAwOffset;
+    int8_t mSamplingRate;
+    int8_t mEvsChAwOffset;
 };
 
 #endif

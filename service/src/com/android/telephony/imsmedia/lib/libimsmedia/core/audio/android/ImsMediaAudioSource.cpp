@@ -27,10 +27,10 @@
 #include <utils/Errors.h>
 #include <thread>
 
-#define AAUDIO_STATE_TIMEOUT_NANO 100 * 1000000L
-#define NUM_FRAMES_PER_SEC        50
-#define DEFAULT_SAMPLING_RATE     8000
-#define CODEC_TIMEOUT_NANO        100000
+#define AAUDIO_STATE_TIMEOUT_NANO (100 * 1000000L)
+#define NUM_FRAMES_PER_SEC        (50)
+#define DEFAULT_SAMPLING_RATE     (8000)
+#define CODEC_TIMEOUT_NANO        (100000)
 
 using namespace android;
 
@@ -101,28 +101,26 @@ void ImsMediaAudioSource::SetEvsBandwidth(kEvsBandwidth evsBandwidth)
 bool ImsMediaAudioSource::Start()
 {
     char kMimeType[128] = {'\0'};
-    int amrBitrate;
+    int amrBitrate = 0;
     // TODO: Integration with libEVS is required.
     ImsMediaAudioUtil::ConvertEvsBandwidthToStr(mEvsBandwidth, mEvsbandwidthStr, MAX_EVS_BW_STRLEN);
 
-    if (mCodecType == kAudioCodecAmr)
+    switch (mCodecType)
     {
-        sprintf(kMimeType, "audio/3gpp");
-        amrBitrate = ImsMediaAudioUtil::ConvertAmrModeToBitrate(mMode);
-    }
-    else if (mCodecType == kAudioCodecAmrWb)
-    {
-        sprintf(kMimeType, "audio/amr-wb");
-        amrBitrate = ImsMediaAudioUtil::ConvertAmrWbModeToBitrate(mMode);
-    }
-    else if (mCodecType == kAudioCodecEvs)
-    {
-        // TODO: Integration with libEVS is required.
-        sprintf(kMimeType, "audio/evs");
-    }
-    else
-    {
-        return false;
+        case kAudioCodecAmr:
+            sprintf(kMimeType, "audio/3gpp");
+            amrBitrate = ImsMediaAudioUtil::ConvertAmrModeToBitrate(mMode);
+            break;
+        case kAudioCodecAmrWb:
+            sprintf(kMimeType, "audio/amr-wb");
+            amrBitrate = ImsMediaAudioUtil::ConvertAmrWbModeToBitrate(mMode);
+            break;
+        case kAudioCodecEvs:
+            // TODO: Integration with libEVS is required.
+            sprintf(kMimeType, "audio/evs");
+            break;
+        default:
+            return false;
     }
 
     openAudioStream();
@@ -414,9 +412,6 @@ void ImsMediaAudioSource::openAudioStream()
     AAudioStreamBuilder_setUsage(builder, AAUDIO_USAGE_VOICE_COMMUNICATION);
     AAudioStreamBuilder_setErrorCallback(builder, audioErrorCallback, this);
     AAudioStreamBuilder_setPrivacySensitive(builder, true);
-
-    int numFramesPerSec = 0;
-    mPtime == 0 ? numFramesPerSec = NUM_FRAMES_PER_SEC : numFramesPerSec = 1000 / mPtime;
 
     // open stream
     result = AAudioStreamBuilder_openStream(builder, &mAudioStream);

@@ -30,9 +30,9 @@
 #include <ImsMediaAudioPlayer.h>
 #include <utils/Errors.h>
 
-#define AAUDIO_STATE_TIMEOUT_NANO 100 * 1000000L
-#define DEFAULT_SAMPLING_RATE     8000
-#define CODEC_TIMEOUT_NANO        100000
+#define AAUDIO_STATE_TIMEOUT_NANO (100 * 1000000L)
+#define DEFAULT_SAMPLING_RATE     (8000)
+#define CODEC_TIMEOUT_NANO        (100000)
 
 using namespace android;
 

@@ -37,7 +37,7 @@ public:
 private:
     uint32_t mNextTime;
     uint32_t mPrevTime;
-    uint32_t mPtime;  // msec unit, interval between dtmf packets
+    int8_t mPtime;  // msec unit, interval between dtmf packets
 };
 
 #endif  // DTMFSENDERNODE_H_INCLUDED

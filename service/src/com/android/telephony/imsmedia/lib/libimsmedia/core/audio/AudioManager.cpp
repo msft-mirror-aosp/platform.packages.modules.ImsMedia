@@ -456,18 +456,10 @@ void AudioManager::ResponseHandler::processEvent(
             // TODO : add implementation
             break;
         case kAudioMediaInactivityInd:
-            parcel.writeInt32(event);
-            parcel.writeInt32(static_cast<int>(paramA));  // type
-            AudioManager::getInstance()->sendResponse(sessionId, parcel);
-            break;
         case kAudioPacketLossInd:
-            parcel.writeInt32(event);
-            parcel.writeInt32(static_cast<int>(paramA));  // loss rate
-            AudioManager::getInstance()->sendResponse(sessionId, parcel);
-            break;
         case kAudioJitterInd:
             parcel.writeInt32(event);
-            parcel.writeInt32(static_cast<int>(paramA));  // jitter
+            parcel.writeInt32(static_cast<int>(paramA));
             AudioManager::getInstance()->sendResponse(sessionId, parcel);
             break;
         case kAudioTriggerAnbrQueryInd:
