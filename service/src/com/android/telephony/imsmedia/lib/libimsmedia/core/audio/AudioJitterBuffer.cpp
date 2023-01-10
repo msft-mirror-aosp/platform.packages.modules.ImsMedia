@@ -101,7 +101,7 @@ void AudioJitterBuffer::SetJitterOptions(
     // do it later
     mBufferIgnoreSIDPacket = bIgnoreSID;
     mBufferImprovement = bImprovement;
-    mJitterAnalyser.SetJitterOptions(nReduceTH, nStepSize, zValue, bImprovement);
+    mJitterAnalyser.SetJitterOptions(nReduceTH, nStepSize, zValue);
 }
 
 void AudioJitterBuffer::Add(ImsMediaSubType subtype, uint8_t* pbBuffer, uint32_t nBufferSize,
@@ -142,10 +142,10 @@ void AudioJitterBuffer::Add(ImsMediaSubType subtype, uint8_t* pbBuffer, uint32_t
 
     if (mBufferIgnoreSIDPacket == false)
     {
-        jitter = mJitterAnalyser.calculateTransitTimeDifference(nTimestamp, arrivalTime);
+        jitter = mJitterAnalyser.CalculateTransitTimeDifference(nTimestamp, arrivalTime);
         mBaseTimestamp = currEntry.nTimestamp;
         mBaseArrivalTime = currEntry.arrivalTime;
-        mJitterAnalyser.BasePacketChange(mBaseTimestamp, mBaseArrivalTime);
+        mJitterAnalyser.UpdateBaseTimestamp(mBaseTimestamp, mBaseArrivalTime);
     }
     // TODO: remove mBufferIgnoreSIDPacket logic and the statements
     else if ((mBufferIgnoreSIDPacket == true) && !IsSID(currEntry.pbBuffer, currEntry.nBufferSize))
@@ -155,7 +155,7 @@ void AudioJitterBuffer::Add(ImsMediaSubType subtype, uint8_t* pbBuffer, uint32_t
         {
             mBaseTimestamp = currEntry.nTimestamp;
             mBaseArrivalTime = currEntry.arrivalTime;
-            mJitterAnalyser.BasePacketChange(mBaseTimestamp, mBaseArrivalTime);
+            mJitterAnalyser.UpdateBaseTimestamp(mBaseTimestamp, mBaseArrivalTime);
             mNeedToUpdateBasePacket = false;
         }
         else if (mBaseTimestamp > currEntry.nTimestamp || mBaseArrivalTime > currEntry.arrivalTime)
@@ -163,7 +163,7 @@ void AudioJitterBuffer::Add(ImsMediaSubType subtype, uint8_t* pbBuffer, uint32_t
             // rounding case (more consider case)
             mBaseTimestamp = currEntry.nTimestamp;
             mBaseArrivalTime = currEntry.arrivalTime;
-            mJitterAnalyser.BasePacketChange(mBaseTimestamp, mBaseArrivalTime);
+            mJitterAnalyser.UpdateBaseTimestamp(mBaseTimestamp, mBaseArrivalTime);
         }
         else
         {
@@ -172,7 +172,7 @@ void AudioJitterBuffer::Add(ImsMediaSubType subtype, uint8_t* pbBuffer, uint32_t
             {
                 mBaseTimestamp = currEntry.nTimestamp;
                 mBaseArrivalTime = currEntry.arrivalTime;
-                mJitterAnalyser.BasePacketChange(mBaseTimestamp, mBaseArrivalTime);
+                mJitterAnalyser.UpdateBaseTimestamp(mBaseTimestamp, mBaseArrivalTime);
             }
             else
             {  // compensation case
@@ -185,7 +185,7 @@ void AudioJitterBuffer::Add(ImsMediaSubType subtype, uint8_t* pbBuffer, uint32_t
             }
         }
 
-        jitter = mJitterAnalyser.calculateTransitTimeDifference(nTimestamp, arrivalTime);
+        jitter = mJitterAnalyser.CalculateTransitTimeDifference(nTimestamp, arrivalTime);
     }
 
     RtpPacket* packet = new RtpPacket();
@@ -311,7 +311,8 @@ bool AudioJitterBuffer::Get(ImsMediaSubType* psubtype, uint8_t** ppData, uint32_
         if ((mWaiting == false && bWait == true) || mUpdateJitterBufferSize > 2 * 50)
         {
             uint32_t nPrev_jitterbufferSize = mCurrJitterBufferSize;
-            mCurrJitterBufferSize = mJitterAnalyser.GetJitterBufferSize(mCurrJitterBufferSize);
+            mCurrJitterBufferSize = mJitterAnalyser.GetNextJitterBufferSize(
+                    mCurrJitterBufferSize, ImsMediaTimer::GetTimeInMilliSeconds());
 
             if (mUpdateJitterBufferSize > 2 * 50)
             {  // 2s
@@ -331,7 +332,8 @@ bool AudioJitterBuffer::Get(ImsMediaSubType* psubtype, uint8_t** ppData, uint32_
             // update mCurrJitterBufferSize
             if (mCheckUpdateJitterPacketCnt > 50 * mBufferUpdateDuration)
             {
-                mCurrJitterBufferSize = mJitterAnalyser.GetJitterBufferSize(mCurrJitterBufferSize);
+                mCurrJitterBufferSize = mJitterAnalyser.GetNextJitterBufferSize(
+                        mCurrJitterBufferSize, ImsMediaTimer::GetTimeInMilliSeconds());
                 mCheckUpdateJitterPacketCnt = 0;
             }
 
