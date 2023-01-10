@@ -75,7 +75,7 @@ eRTP_STATUS_CODE RtcpSdesPacket::decodeSdesPacket(
 
         if (uiPadLen != RTP_ZERO)
         {
-            uiPadLen -= RTP_WORD_SIZE;
+            uiPadLen = RTP_WORD_SIZE - uiPadLen;
             usChunkSize += uiPadLen;
         }
         pucSdesBuf += usChunkSize;
