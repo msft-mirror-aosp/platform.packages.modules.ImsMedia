@@ -72,7 +72,7 @@ TEST_F(RtcpRrPacketTest, TestGetSetMethods)
 TEST_F(RtcpRrPacketTest, TestDecodeRrPacket)
 {
     RtcpRrPacket objRtcpRrPacket;
-    RtpDt_UInt16 len = 53;
+    RtpDt_UInt16 len = bBufLen;
     eRTP_STATUS_CODE res = objRtcpRrPacket.decodeRrPacket(bufRrWithOneReport, len, 0);
     EXPECT_EQ(res, RTP_SUCCESS);
 
