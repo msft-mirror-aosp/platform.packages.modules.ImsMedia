@@ -362,7 +362,7 @@ tVoIPMatricReport* RtcpXrEncoder::createVoIPMatricReport()
     }
     else
     {
-        p32 = (double)mVoipC32 / (mVoipC31 + mVoipC32 + mVoipC33);
+        p32 = static_cast<double>(mVoipC32) / (mVoipC31 + mVoipC32 + mVoipC33);
     }
 
     if ((mVoipC22 + mVoipC23) == 0)
@@ -371,7 +371,7 @@ tVoIPMatricReport* RtcpXrEncoder::createVoIPMatricReport()
     }
     else
     {
-        p23 = 1 - mVoipC22 / (mVoipC22 + mVoipC23);
+        p23 = 1 - static_cast<double>(mVoipC22) / (mVoipC22 + mVoipC23);
     }
 
     IMLOGD3("[createVoIPMatricReport] cTotal[%d], P23[%lf], P32[%lf]", cTotal, p23, p32);

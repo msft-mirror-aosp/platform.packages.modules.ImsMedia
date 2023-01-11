@@ -77,16 +77,19 @@ RtpConfig::RtpConfig(const RtpConfig& config)
 
 RtpConfig& RtpConfig::operator=(const RtpConfig& config)
 {
-    type = config.type;
-    direction = config.direction;
-    accessNetwork = config.accessNetwork;
-    remoteAddress = String8(config.remoteAddress.string());
-    remotePort = config.remotePort;
-    rtcpConfig = config.rtcpConfig;
-    dscp = config.dscp;
-    rxPayloadTypeNumber = config.rxPayloadTypeNumber;
-    txPayloadTypeNumber = config.txPayloadTypeNumber;
-    samplingRateKHz = config.samplingRateKHz;
+    if (this != &config)
+    {
+        type = config.type;
+        direction = config.direction;
+        accessNetwork = config.accessNetwork;
+        remoteAddress = String8(config.remoteAddress.string());
+        remotePort = config.remotePort;
+        rtcpConfig = config.rtcpConfig;
+        dscp = config.dscp;
+        rxPayloadTypeNumber = config.rxPayloadTypeNumber;
+        txPayloadTypeNumber = config.txPayloadTypeNumber;
+        samplingRateKHz = config.samplingRateKHz;
+    }
     return *this;
 }
 
@@ -305,7 +308,7 @@ int32_t RtpConfig::getAccessNetwork()
     return accessNetwork;
 }
 
-void RtpConfig::setRemoteAddress(const String8 address)
+void RtpConfig::setRemoteAddress(const String8& address)
 {
     this->remoteAddress = address;
 }

@@ -55,7 +55,6 @@ TEST_F(RtcpSdesPacketTest, decodeSdesPacketSingleSdesItem)
     sdesItem->ucLength = 18;
 
     RtpDt_UChar* pcBuffer = new RtpDt_UChar[sdesItem->ucLength];
-    ASSERT_TRUE(pcBuffer != nullptr);
 
     memcpy(pcBuffer, "sleepy@example.com", sdesItem->ucLength);
 
@@ -117,7 +116,6 @@ TEST_F(RtcpSdesPacketTest, decodeSdesPacketMultiSdesItem)
     sdesItem->ucLength = 18;
 
     RtpDt_UChar* pcBuffer = new RtpDt_UChar[sdesItem->ucLength];
-    ASSERT_TRUE(pcBuffer != nullptr);
 
     memcpy(pcBuffer, "sleepy@example.com", sdesItem->ucLength);
 
@@ -132,8 +130,6 @@ TEST_F(RtcpSdesPacketTest, decodeSdesPacketMultiSdesItem)
 
     sdesItemSec->ucType = 1;
     sdesItemSec->ucLength = 18;
-
-    ASSERT_TRUE(pcBuffer != nullptr);
 
     memcpy(pcBuffer, "google@example.com", sdesItemSec->ucLength);
 
@@ -191,7 +187,6 @@ TEST_F(RtcpSdesPacketTest, decodeSdesPacketDiffSdesType)
     sdesItem->ucLength = 18;
 
     RtpDt_UChar* pcBuffer = new RtpDt_UChar[sdesItem->ucLength];
-    ASSERT_TRUE(pcBuffer != nullptr);
 
     memcpy(pcBuffer, "sleepy@example.com", sdesItem->ucLength);
 
@@ -207,8 +202,6 @@ TEST_F(RtcpSdesPacketTest, decodeSdesPacketDiffSdesType)
 
     sdesItemSec->ucType = 2;
     sdesItemSec->ucLength = 18;
-
-    ASSERT_TRUE(pcBuffer != nullptr);
 
     memcpy(pcBuffer, "google@example.com", sdesItemSec->ucLength);
 

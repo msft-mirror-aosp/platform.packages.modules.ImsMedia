@@ -225,8 +225,7 @@ void TextRtpPayloadEncoderNode::EncodeT140(
             uint32_t nTempRedCount = mBufferQueue.GetCount();
             for (uint32_t indexRed = 0; indexRed < mRedundantLevel - nTempRedCount - 1; indexRed++)
             {
-                DataEntry nullRED;
-                memset(&nullRED, 0, sizeof(DataEntry));
+                DataEntry nullRED = DataEntry();
                 nullRED.subtype = MEDIASUBTYPE_RTPPAYLOAD;
                 nullRED.pbBuffer = nullptr;
                 nullRED.nBufferSize = 0;
@@ -305,8 +304,7 @@ void TextRtpPayloadEncoderNode::EncodeT140(
         }
 
         // Queueing a primary data
-        DataEntry newEntry;
-        memset(&newEntry, 0, sizeof(DataEntry));
+        DataEntry newEntry = DataEntry();
         newEntry.subtype = MEDIASUBTYPE_RTPPAYLOAD;
         newEntry.pbBuffer = data;
         newEntry.nBufferSize = size;

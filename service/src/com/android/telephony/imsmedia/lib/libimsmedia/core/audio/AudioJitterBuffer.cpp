@@ -110,8 +110,7 @@ void AudioJitterBuffer::Add(ImsMediaSubType subtype, uint8_t* pbBuffer, uint32_t
 {
     (void)nDataType;
 
-    DataEntry currEntry;
-    memset(&currEntry, 0, sizeof(DataEntry));
+    DataEntry currEntry = DataEntry();
     currEntry.subtype = subtype;
     currEntry.pbBuffer = pbBuffer;
     currEntry.nBufferSize = nBufferSize;

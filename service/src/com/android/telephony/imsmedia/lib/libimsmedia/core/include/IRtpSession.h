@@ -85,10 +85,12 @@ public:
     static IRtpSession* GetInstance(
             ImsMediaType type, const RtpAddress& localAddress, const RtpAddress& peerAddress);
     static void ReleaseInstance(IRtpSession* pSession);
-    IRtpSession(ImsMediaType subtype, const RtpAddress local, const RtpAddress peer);
+    IRtpSession(
+            ImsMediaType subtype, const RtpAddress& localAddress, const RtpAddress& peerAddress);
     virtual ~IRtpSession();
     bool operator==(const IRtpSession& obj2);
-    bool isSameInstance(ImsMediaType subtype, const RtpAddress local, const RtpAddress peer);
+    bool isSameInstance(
+            ImsMediaType subtype, const RtpAddress& localAddress, const RtpAddress& peerAddress);
     void SetRtpEncoderListener(IRtpEncoderListener* pRtpEncoderListener);
     void SetRtpDecoderListener(IRtpDecoderListener* pRtpDecoderListener);
     void SetRtcpEncoderListener(IRtcpEncoderListener* pRtcpEncoderListener);

@@ -50,8 +50,7 @@ void TextJitterBuffer::Add(ImsMediaSubType subtype, uint8_t* buffer, uint32_t si
         return;
     }
 
-    DataEntry currEntry;
-    memset(&currEntry, 0, sizeof(DataEntry));
+    DataEntry currEntry = DataEntry();
     currEntry.subtype = subtype;
     currEntry.pbBuffer = buffer;
     currEntry.nBufferSize = size;
