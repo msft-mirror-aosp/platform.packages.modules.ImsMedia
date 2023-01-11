@@ -19,14 +19,14 @@
 
 BaseManager::BaseManager()
 {
-    mCallback = NULL;
+    mCallback = nullptr;
 }
 
 BaseManager::~BaseManager() {}
 
 void BaseManager::setCallback(CBManager pfnCallback)
 {
-    if (mCallback == NULL)
+    if (mCallback == nullptr)
     {
         IMLOGI0("[setCallback]");
         mCallback = std::bind(pfnCallback, std::placeholders::_1, std::placeholders::_2);
@@ -35,7 +35,7 @@ void BaseManager::setCallback(CBManager pfnCallback)
 
 int BaseManager::sendResponse(int sessionId, const android::Parcel& parcel)
 {
-    if (mCallback != NULL)
+    if (mCallback != nullptr)
     {
         return mCallback(sessionId, parcel);
     }

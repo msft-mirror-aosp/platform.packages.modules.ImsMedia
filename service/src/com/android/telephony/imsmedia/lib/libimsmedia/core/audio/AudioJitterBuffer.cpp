@@ -227,7 +227,7 @@ void AudioJitterBuffer::Add(ImsMediaSubType subtype, uint8_t* pbBuffer, uint32_t
         DataEntry* pEntry;
         mDataQueue.GetLast(&pEntry);
 
-        if (pEntry == NULL)
+        if (pEntry == nullptr)
         {
             return;
         }
@@ -266,7 +266,7 @@ bool AudioJitterBuffer::Get(ImsMediaSubType* psubtype, uint8_t** ppData, uint32_
         if (psubtype)
             *psubtype = MEDIASUBTYPE_UNDEFINED;
         if (ppData)
-            *ppData = NULL;
+            *ppData = nullptr;
         if (pnDataSize)
             *pnDataSize = 0;
         if (pnTimestamp)
@@ -284,7 +284,7 @@ bool AudioJitterBuffer::Get(ImsMediaSubType* psubtype, uint8_t** ppData, uint32_
     std::lock_guard<std::mutex> guard(mMutex);
 
     bool bWait = false;
-    DataEntry* pEntry = NULL;
+    DataEntry* pEntry = nullptr;
     bool bForceToPlay = false;
     mUpdateJitterBufferSize++;  // add code for no dtx
     mCheckUpdateJitterPacketCnt++;
@@ -369,7 +369,7 @@ bool AudioJitterBuffer::Get(ImsMediaSubType* psubtype, uint8_t** ppData, uint32_
             if (psubtype)
                 *psubtype = MEDIASUBTYPE_UNDEFINED;
             if (ppData)
-                *ppData = NULL;
+                *ppData = nullptr;
             if (pnDataSize)
                 *pnDataSize = 0;
             if (pnTimestamp)
@@ -417,7 +417,7 @@ bool AudioJitterBuffer::Get(ImsMediaSubType* psubtype, uint8_t** ppData, uint32_
     {
         mDataQueue.Get(&pEntry);
 
-        if (pEntry == NULL)
+        if (pEntry == nullptr)
         {
             return false;
         }
@@ -632,7 +632,7 @@ bool AudioJitterBuffer::Get(ImsMediaSubType* psubtype, uint8_t** ppData, uint32_
         mDeleteCount++;
     }
 
-    if (mDataQueue.Get(&pEntry) && pEntry != NULL &&
+    if (mDataQueue.Get(&pEntry) && pEntry != nullptr &&
             (pEntry->nTimestamp == mCurrPlayingTS || bForceToPlay ||
                     (pEntry->nTimestamp < TS_ROUND_QUARD && mCurrPlayingTS > 0xFFFF)))
     {
@@ -705,7 +705,7 @@ bool AudioJitterBuffer::Get(ImsMediaSubType* psubtype, uint8_t** ppData, uint32_
         if (psubtype)
             *psubtype = MEDIASUBTYPE_UNDEFINED;
         if (ppData)
-            *ppData = NULL;
+            *ppData = nullptr;
         if (pnDataSize)
             *pnDataSize = 0;
         if (pnTimestamp)
@@ -756,7 +756,7 @@ void AudioJitterBuffer::CollectRxRtpStatus(int32_t seq, kRtpPacketStatus status)
 {
     IMLOGD_PACKET2(IM_PACKET_LOG_JITTER, "[CollectRxRtpStatus] seq[%d], status[%d]", seq, status);
 
-    if (mCallback != NULL)
+    if (mCallback != nullptr)
     {
         SessionCallbackParameter* param =
                 new SessionCallbackParameter(seq, status, ImsMediaTimer::GetTimeInMilliSeconds());
@@ -768,7 +768,7 @@ void AudioJitterBuffer::CollectJitterBufferStatus(int32_t currSize, int32_t maxS
     IMLOGD_PACKET2(IM_PACKET_LOG_JITTER, "[CollectJitterBufferStatus] currSize[%d], maxSize[%d]",
             currSize, maxSize);
 
-    if (mCallback != NULL)
+    if (mCallback != nullptr)
     {
         mCallback->SendEvent(kCollectJitterBufferSize, currSize, maxSize);
     }

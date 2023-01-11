@@ -64,7 +64,7 @@ class VideoStreamGraphRtcpTest : public ::testing::Test
 public:
     VideoStreamGraphRtcpTest()
     {
-        graph = NULL;
+        graph = nullptr;
         socketRtcpFd = -1;
     }
     virtual ~VideoStreamGraphRtcpTest() {}
@@ -114,12 +114,12 @@ protected:
         socketRtcpFd = ImsMediaNetworkUtil::openSocket(testIp, testPort, AF_INET);
         EXPECT_NE(socketRtcpFd, -1);
 
-        graph = new VideoStreamGraphRtcp(NULL, socketRtcpFd);
+        graph = new VideoStreamGraphRtcp(nullptr, socketRtcpFd);
     }
 
     virtual void TearDown() override
     {
-        if (graph != NULL)
+        if (graph != nullptr)
         {
             delete graph;
         }

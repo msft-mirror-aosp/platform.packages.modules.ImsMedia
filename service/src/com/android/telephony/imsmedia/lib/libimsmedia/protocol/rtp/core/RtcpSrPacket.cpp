@@ -211,7 +211,7 @@ eRTP_STATUS_CODE RtcpSrPacket::decodeSrPacket(
 
     */
 
-    if (pucSrPktBuf == NULL || usSrPktLen < RTCP_SR_PACKET_LENGTH)
+    if (pucSrPktBuf == nullptr || usSrPktLen < RTCP_SR_PACKET_LENGTH)
         return RTP_FAILURE;
 
     // NTP timestamp most significant word

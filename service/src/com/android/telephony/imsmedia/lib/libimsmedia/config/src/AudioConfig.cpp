@@ -43,7 +43,7 @@ AudioConfig::AudioConfig() :
 AudioConfig::AudioConfig(AudioConfig* config) :
         RtpConfig(config)
 {
-    if (config != NULL)
+    if (config != nullptr)
     {
         pTimeMillis = config->pTimeMillis;
         maxPtimeMillis = config->maxPtimeMillis;
@@ -113,7 +113,7 @@ bool AudioConfig::operator!=(const AudioConfig& config) const
 status_t AudioConfig::writeToParcel(Parcel* out) const
 {
     status_t err;
-    if (out == NULL)
+    if (out == nullptr)
     {
         return BAD_VALUE;
     }
@@ -202,7 +202,7 @@ status_t AudioConfig::writeToParcel(Parcel* out) const
 status_t AudioConfig::readFromParcel(const Parcel* in)
 {
     status_t err;
-    if (in == NULL)
+    if (in == nullptr)
     {
         return BAD_VALUE;
     }

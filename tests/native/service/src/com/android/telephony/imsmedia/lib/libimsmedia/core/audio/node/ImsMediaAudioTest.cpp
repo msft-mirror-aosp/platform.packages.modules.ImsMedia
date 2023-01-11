@@ -94,17 +94,17 @@ protected:
 
     virtual void TearDown() override
     {
-        if (audioSource != NULL)
+        if (audioSource != nullptr)
         {
             delete audioSource;
         }
 
-        if (audioPlayer != NULL)
+        if (audioPlayer != nullptr)
         {
             delete audioPlayer;
         }
 
-        if (mockAudioCallback != NULL)
+        if (mockAudioCallback != nullptr)
         {
             delete mockAudioCallback;
         }

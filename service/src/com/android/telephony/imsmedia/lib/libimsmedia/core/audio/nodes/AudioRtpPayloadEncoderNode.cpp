@@ -117,7 +117,7 @@ void AudioRtpPayloadEncoderNode::SetConfig(void* config)
 {
     AudioConfig* pConfig = reinterpret_cast<AudioConfig*>(config);
 
-    if (pConfig != NULL)
+    if (pConfig != nullptr)
     {
         mCodecType = ImsMediaAudioUtil::ConvertCodecType(pConfig->getCodecType());
         if (mCodecType == kAudioCodecAmr || mCodecType == kAudioCodecAmrWb)
@@ -140,7 +140,7 @@ void AudioRtpPayloadEncoderNode::SetConfig(void* config)
 
 bool AudioRtpPayloadEncoderNode::IsSameConfig(void* config)
 {
-    if (config == NULL)
+    if (config == nullptr)
         return true;
     AudioConfig* pConfig = reinterpret_cast<AudioConfig*>(config);
 

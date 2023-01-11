@@ -26,7 +26,7 @@
 RtpEncoderNode::RtpEncoderNode(BaseSessionCallback* callback) :
         BaseNode(callback)
 {
-    mRtpSession = NULL;
+    mRtpSession = nullptr;
     mDTMFMode = false;
     mMark = false;
     mPrevTimestamp = 0;
@@ -48,9 +48,9 @@ RtpEncoderNode::~RtpEncoderNode()
     if (mRtpSession)
     {
         mRtpSession->StopRtp();
-        mRtpSession->SetRtpEncoderListener(NULL);
+        mRtpSession->SetRtpEncoderListener(nullptr);
         IRtpSession::ReleaseInstance(mRtpSession);
-        mRtpSession = NULL;
+        mRtpSession = nullptr;
     }
 }
 
@@ -69,11 +69,11 @@ ImsMediaResult RtpEncoderNode::Start()
         return RESULT_INVALID_PARAM;
     }
 
-    if (mRtpSession == NULL)
+    if (mRtpSession == nullptr)
     {
         mRtpSession = IRtpSession::GetInstance(mMediaType, mLocalAddress, mPeerAddress);
 
-        if (mRtpSession == NULL)
+        if (mRtpSession == nullptr)
         {
             IMLOGE0("[Start] Can't create rtp session");
             return RESULT_NOT_READY;
@@ -144,7 +144,7 @@ void RtpEncoderNode::ProcessData()
     }
 
     ImsMediaSubType subtype;
-    uint8_t* data = NULL;
+    uint8_t* data = nullptr;
     uint32_t size = 0;
     uint32_t timestamp = 0;
     bool mark = false;
@@ -188,7 +188,7 @@ void RtpEncoderNode::SetConfig(void* config)
 {
     IMLOGD1("[SetConfig] media[%d]", mMediaType);
 
-    if (config == NULL)
+    if (config == nullptr)
     {
         return;
     }
@@ -229,7 +229,7 @@ void RtpEncoderNode::SetConfig(void* config)
 
 bool RtpEncoderNode::IsSameConfig(void* config)
 {
-    if (config == NULL)
+    if (config == nullptr)
     {
         return true;
     }
@@ -469,7 +469,7 @@ void RtpEncoderNode::ProcessVideoData(
     }
     else
     {
-        mRtpSession->SendRtpPacket(mRtpPayloadTx, data, size, timestamp, mark, 0, false, NULL);
+        mRtpSession->SendRtpPacket(mRtpPayloadTx, data, size, timestamp, mark, 0, false, nullptr);
     }
 }
 
@@ -496,17 +496,18 @@ void RtpEncoderNode::ProcessTextData(
         if (mRedundantLevel > 1 && mRedundantPayload > 0)
         {
             mRtpSession->SendRtpPacket(
-                    mRedundantPayload, data, size, timestamp, mark, timeDiff, 0, NULL);
+                    mRedundantPayload, data, size, timestamp, mark, timeDiff, 0, nullptr);
         }
         else
         {
             mRtpSession->SendRtpPacket(
-                    mRtpPayloadRx, data, size, timestamp, mark, timeDiff, 0, NULL);
+                    mRtpPayloadRx, data, size, timestamp, mark, timeDiff, 0, nullptr);
         }
     }
     else if (subtype == MEDIASUBTYPE_BITSTREAM_T140_RED)
     {
-        mRtpSession->SendRtpPacket(mRtpPayloadTx, data, size, timestamp, mark, timeDiff, 0, NULL);
+        mRtpSession->SendRtpPacket(
+                mRtpPayloadTx, data, size, timestamp, mark, timeDiff, 0, nullptr);
     }
 
     mMark = false;

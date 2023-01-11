@@ -48,7 +48,7 @@ protected:
 TEST_F(RtcpAppPacketTest, decodeAppPacketSuccess)
 {
     std::unique_ptr<RtpDt_UChar[]> pucAppBuf(new RtpDt_UChar[14]);
-    ASSERT_TRUE(pucAppBuf != RTP_NULL);
+    ASSERT_TRUE(pucAppBuf != nullptr);
 
     memcpy(pucAppBuf.get(),
             (RtpDt_UChar[]){0x80, 0xCC, 0x00, 0x07, 0x19, 0x6D, 0x27, 0xC5, 0x2B, 0x67, 0x01}, 13);
@@ -59,7 +59,7 @@ TEST_F(RtcpAppPacketTest, decodeAppPacketSuccess)
 TEST_F(RtcpAppPacketTest, decodeAppPacketBoundaryLength)
 {
     std::unique_ptr<RtpDt_UChar[]> pucAppBuf(new RtpDt_UChar[14]);
-    ASSERT_TRUE(pucAppBuf != RTP_NULL);
+    ASSERT_TRUE(pucAppBuf != nullptr);
 
     memcpy(pucAppBuf.get(),
             (RtpDt_UChar[]){0x80, 0xCC, 0x00, 0x07, 0x19, 0x6D, 0x27, 0xC5, 0x2B, 0x67}, 12);
@@ -70,7 +70,7 @@ TEST_F(RtcpAppPacketTest, decodeAppPacketBoundaryLength)
 TEST_F(RtcpAppPacketTest, decodeAppPacketUnderBoundaryLength)
 {
     std::unique_ptr<RtpDt_UChar[]> pucAppBuf(new RtpDt_UChar[14]);
-    ASSERT_TRUE(pucAppBuf != RTP_NULL);
+    ASSERT_TRUE(pucAppBuf != nullptr);
 
     memcpy(pucAppBuf.get(), (RtpDt_UChar[]){0x80, 0xCC, 0x00, 0x07, 0x19, 0x6D, 0x27, 0xC5, 0x2B},
             11);
@@ -85,7 +85,7 @@ TEST_F(RtcpAppPacketTest, formAppPacketSuccessTest)
 
     std::unique_ptr<RtpDt_UChar[]> pcBuff(new RtpDt_UChar[RTP_DEF_MTU_SIZE]);
 
-    ASSERT_TRUE(pcBuff != RTP_NULL);
+    ASSERT_TRUE(pcBuff != nullptr);
 
     testBuf->setBufferInfo(RTP_DEF_MTU_SIZE, pcBuff.release());
     testBuf->setLength(RTP_ZERO);
@@ -110,7 +110,7 @@ TEST_F(RtcpAppPacketTest, formAppPacketBufferOverflowTest)
 
     std::unique_ptr<RtpDt_UChar[]> pcBuff(new RtpDt_UChar[RTP_DEF_MTU_SIZE]);
 
-    ASSERT_TRUE(pcBuff != RTP_NULL);
+    ASSERT_TRUE(pcBuff != nullptr);
 
     testBuf->setBufferInfo(RTP_DEF_MTU_SIZE, pcBuff.release());
     testBuf->setLength(RTP_ZERO);

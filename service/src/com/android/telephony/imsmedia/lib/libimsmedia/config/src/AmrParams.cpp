@@ -65,7 +65,7 @@ bool AmrParams::operator!=(const AmrParams& param) const
 status_t AmrParams::writeToParcel(Parcel* out) const
 {
     status_t err;
-    if (out == NULL)
+    if (out == nullptr)
     {
         return BAD_VALUE;
     }
@@ -95,7 +95,7 @@ status_t AmrParams::writeToParcel(Parcel* out) const
 status_t AmrParams::readFromParcel(const Parcel* in)
 {
     status_t err;
-    if (in == NULL)
+    if (in == nullptr)
     {
         return BAD_VALUE;
     }

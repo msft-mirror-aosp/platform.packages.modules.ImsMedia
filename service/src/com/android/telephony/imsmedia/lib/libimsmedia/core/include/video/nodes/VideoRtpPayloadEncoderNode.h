@@ -29,7 +29,7 @@
 class VideoRtpPayloadEncoderNode : public BaseNode
 {
 public:
-    VideoRtpPayloadEncoderNode(BaseSessionCallback* callback = NULL);
+    VideoRtpPayloadEncoderNode(BaseSessionCallback* callback = nullptr);
     virtual ~VideoRtpPayloadEncoderNode();
     virtual kBaseNodeId GetNodeId();
     virtual ImsMediaResult Start();
@@ -44,8 +44,8 @@ public:
 
 private:
     bool ResetStartTime();
-    uint8_t* FindAvcStartCode(uint8_t* pData, uint32_t nDataSize, uint32_t* pnSkipSize = NULL);
-    uint8_t* FindHevcStartCode(uint8_t* pData, uint32_t nDataSize, uint32_t* pnSkipSize = NULL);
+    uint8_t* FindAvcStartCode(uint8_t* pData, uint32_t nDataSize, uint32_t* pnSkipSize = nullptr);
+    uint8_t* FindHevcStartCode(uint8_t* pData, uint32_t nDataSize, uint32_t* pnSkipSize = nullptr);
     void EncodeAvc(uint8_t* pData, uint32_t nDataSize, uint32_t nTimeStamp, bool bMark);
     /** h.264 start coded has been removed at EncodeAvc()
      * pData starts with nal unit header */

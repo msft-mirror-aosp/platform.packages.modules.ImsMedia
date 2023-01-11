@@ -38,7 +38,7 @@ VideoRtpPayloadEncoderNode::VideoRtpPayloadEncoderNode(BaseSessionCallback* call
     mCodecType = VideoConfig::CODEC_AVC;
     mPayloadMode = kRtpPyaloadHeaderModeNonInterleaved;
     mPrevMark = false;
-    mBuffer = NULL;
+    mBuffer = nullptr;
     memset(mVPS, 0, sizeof(mVPS));
     memset(mSPS, 0, sizeof(mSPS));
     memset(mPPS, 0, sizeof(mPPS));
@@ -69,7 +69,7 @@ ImsMediaResult VideoRtpPayloadEncoderNode::Start()
 
     mBuffer = reinterpret_cast<uint8_t*>(malloc(MAX_RTP_PAYLOAD_BUFFER_SIZE * sizeof(uint8_t)));
 
-    if (mBuffer == NULL)
+    if (mBuffer == nullptr)
     {
         return RESULT_NO_MEMORY;
     }
@@ -80,10 +80,10 @@ ImsMediaResult VideoRtpPayloadEncoderNode::Start()
 
 void VideoRtpPayloadEncoderNode::Stop()
 {
-    if (mBuffer != NULL)
+    if (mBuffer != nullptr)
     {
         free(mBuffer);
-        mBuffer = NULL;
+        mBuffer = nullptr;
     }
 
     mNodeState = kNodeStateStopped;
@@ -101,7 +101,7 @@ bool VideoRtpPayloadEncoderNode::IsSourceNode()
 
 void VideoRtpPayloadEncoderNode::SetConfig(void* config)
 {
-    if (config == NULL)
+    if (config == nullptr)
     {
         return;
     }
@@ -114,7 +114,7 @@ void VideoRtpPayloadEncoderNode::SetConfig(void* config)
 
 bool VideoRtpPayloadEncoderNode::IsSameConfig(void* config)
 {
-    if (config == NULL)
+    if (config == nullptr)
     {
         return false;
     }
@@ -176,7 +176,7 @@ uint8_t* VideoRtpPayloadEncoderNode::FindAvcStartCode(
 
     if (pnSkipSize)
         *pnSkipSize = nSkipSize;
-    return NULL;
+    return nullptr;
 }
 
 // [HEVC] return buffer position of h.265 start code
@@ -207,7 +207,7 @@ uint8_t* VideoRtpPayloadEncoderNode::FindHevcStartCode(
 
     if (pnSkipSize)
         *pnSkipSize = nSkipSize;
-    return NULL;
+    return nullptr;
 }
 
 void VideoRtpPayloadEncoderNode::EncodeAvc(
@@ -232,7 +232,7 @@ void VideoRtpPayloadEncoderNode::EncodeAvc(
 
     pStartCodePos = FindAvcStartCode(pCurDataPos, nDataSize, &nSkipSize);
 
-    if (pStartCodePos == NULL)
+    if (pStartCodePos == nullptr)
     {
         return;
     }
@@ -247,7 +247,7 @@ void VideoRtpPayloadEncoderNode::EncodeAvc(
         // extract nal unit
         pStartCodePos = FindAvcStartCode(pCurDataPos + 1, nDataSize - 1);
 
-        if (pStartCodePos == NULL)
+        if (pStartCodePos == nullptr)
         {
             nCurDataSize = nDataSize;
         }
@@ -320,7 +320,7 @@ void VideoRtpPayloadEncoderNode::EncodeAvcNALUnit(
         return;
     }
 
-    if (mBuffer == NULL)
+    if (mBuffer == nullptr)
     {
         return;
     }
@@ -459,7 +459,7 @@ void VideoRtpPayloadEncoderNode::EncodeHevc(
 
     pStartCodePos = FindHevcStartCode(pCurDataPos, nDataSize, &nSkipSize);
 
-    if (pStartCodePos == NULL)
+    if (pStartCodePos == nullptr)
     {
         return;
     }
@@ -475,7 +475,7 @@ void VideoRtpPayloadEncoderNode::EncodeHevc(
         // NAL unit header is 2 bytes on HEVC.
         pStartCodePos = FindHevcStartCode(pCurDataPos + 2, nDataSize - 2);
 
-        if (pStartCodePos == NULL)
+        if (pStartCodePos == nullptr)
         {
             break;
         }
@@ -553,7 +553,7 @@ void VideoRtpPayloadEncoderNode::EncodeHevcNALUnit(
                 pData[0], pData[1], pData[2], pData[3], nDataSize, nTimestamp, bMark, nNalUnitType);
     }
 
-    if (mBuffer == NULL)
+    if (mBuffer == nullptr)
     {
         return;
     }

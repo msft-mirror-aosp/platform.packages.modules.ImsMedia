@@ -34,7 +34,7 @@ VideoJitterBuffer::VideoJitterBuffer() :
         BaseJitterBuffer()
 {
     // base member valuable
-    mCallback = NULL;
+    mCallback = nullptr;
     mCodecType = kVideoCodecAvc;
     mInitJitterBufferSize = 0;
     mMinJitterBufferSize = 0;
@@ -63,18 +63,18 @@ VideoJitterBuffer::VideoJitterBuffer() :
     mLossDuration = DEFAULT_PACKET_LOSS_MONITORING_TIME;
     mLossRateThreshold = 0;
     mCountTimerExpired = 0;
-    mTimer = NULL;
+    mTimer = nullptr;
 }
 
 VideoJitterBuffer::~VideoJitterBuffer()
 {
     InitLostPktList();
 
-    if (mTimer != NULL)
+    if (mTimer != nullptr)
     {
         IMLOGD0("[~VideoJitterBuffer] stop timer");
-        ImsMediaTimer::TimerStop(mTimer, NULL);
-        mTimer = NULL;
+        ImsMediaTimer::TimerStop(mTimer, nullptr);
+        mTimer = nullptr;
     }
 }
 
@@ -108,7 +108,7 @@ void VideoJitterBuffer::InitLostPktList()
     {
         LostPktEntry* entry = mLostPktList.front();
 
-        if (entry != NULL)
+        if (entry != nullptr)
         {
             delete entry;
         }
@@ -139,7 +139,7 @@ void VideoJitterBuffer::StartTimer(uint32_t time, uint32_t rate)
 {
     IMLOGD2("[StartTimer] time[%d], rate[%u]", time, rate);
 
-    if (mTimer == NULL)
+    if (mTimer == nullptr)
     {
         IMLOGD0("[StartTimer] timer start");
         mTimer = ImsMediaTimer::TimerStart(1000, true, OnTimer, this);
@@ -148,16 +148,16 @@ void VideoJitterBuffer::StartTimer(uint32_t time, uint32_t rate)
 
 void VideoJitterBuffer::StopTimer()
 {
-    if (mTimer != NULL)
+    if (mTimer != nullptr)
     {
         IMLOGD0("[StopTimer] stop timer");
 
-        if (ImsMediaTimer::TimerStop(mTimer, NULL) == false)
+        if (ImsMediaTimer::TimerStop(mTimer, nullptr) == false)
         {
             IMLOGE0("[StopTimer] stop timer error");
         }
 
-        mTimer = NULL;
+        mTimer = nullptr;
     }
 }
 
@@ -233,7 +233,7 @@ void VideoJitterBuffer::Add(ImsMediaSubType subtype, uint8_t* pbBuffer, uint32_t
         DataEntry* pEntry;
         mDataQueue.GetLast(&pEntry);
 
-        if (pEntry == NULL)
+        if (pEntry == nullptr)
         {
             return;
         }
@@ -311,7 +311,7 @@ bool VideoJitterBuffer::Get(ImsMediaSubType* subtype, uint8_t** ppData, uint32_t
 {
     (void)pnChecker;
 
-    DataEntry* pEntry = NULL;
+    DataEntry* pEntry = nullptr;
     bool bValidPacket = false;
     std::lock_guard<std::mutex> guard(mMutex);
 
@@ -426,7 +426,7 @@ bool VideoJitterBuffer::Get(ImsMediaSubType* subtype, uint8_t** ppData, uint32_t
                             DataEntry* pValidEntry;
                             mDataQueue.GetAt(i, &pValidEntry);
 
-                            if (pValidEntry == NULL)
+                            if (pValidEntry == nullptr)
                             {
                                 return false;
                             }
@@ -453,7 +453,7 @@ bool VideoJitterBuffer::Get(ImsMediaSubType* subtype, uint8_t** ppData, uint32_t
 
             mDataQueue.Get(&pEntry);
 
-            if (pEntry == NULL)
+            if (pEntry == nullptr)
                 return false;
 
             if (pEntry->bValid == false)
@@ -474,7 +474,7 @@ bool VideoJitterBuffer::Get(ImsMediaSubType* subtype, uint8_t** ppData, uint32_t
                     mDataQueue.Delete();
                     mDataQueue.Get(&pEntry);  // next packet
 
-                    if (pEntry == NULL)
+                    if (pEntry == nullptr)
                     {
                         break;
                     }
@@ -494,7 +494,7 @@ bool VideoJitterBuffer::Get(ImsMediaSubType* subtype, uint8_t** ppData, uint32_t
         {
             mDataQueue.Get(&pEntry);
 
-            if (pEntry == NULL)
+            if (pEntry == nullptr)
             {
                 return false;
             }
@@ -571,7 +571,7 @@ bool VideoJitterBuffer::Get(ImsMediaSubType* subtype, uint8_t** ppData, uint32_t
         bValidPacket = false;
     }
 
-    if (bValidPacket && pEntry != NULL)
+    if (bValidPacket && pEntry != nullptr)
     {
         if (subtype)
             *subtype = pEntry->subtype;
@@ -600,7 +600,7 @@ bool VideoJitterBuffer::Get(ImsMediaSubType* subtype, uint8_t** ppData, uint32_t
         if (subtype)
             *subtype = MEDIASUBTYPE_UNDEFINED;
         if (ppData)
-            *ppData = NULL;
+            *ppData = nullptr;
         if (pnDataSize)
             *pnDataSize = 0;
         if (pnTimestamp)
@@ -618,7 +618,7 @@ bool VideoJitterBuffer::Get(ImsMediaSubType* subtype, uint8_t** ppData, uint32_t
 
 void VideoJitterBuffer::CheckValidIDR(DataEntry* pIDREntry)
 {
-    if (pIDREntry == NULL)
+    if (pIDREntry == nullptr)
     {
         return;
     }
@@ -645,7 +645,7 @@ void VideoJitterBuffer::Delete()
     std::lock_guard<std::mutex> guard(mMutex);
     mDataQueue.Get(&pEntry);
 
-    if (pEntry == NULL)
+    if (pEntry == nullptr)
     {
         return;
     }
@@ -669,7 +669,7 @@ uint32_t VideoJitterBuffer::GetCount()
 
 bool VideoJitterBuffer::CheckHeader(uint8_t* pbBuffer)
 {
-    if (pbBuffer == NULL)
+    if (pbBuffer == nullptr)
     {
         return false;
     }
@@ -688,14 +688,14 @@ bool VideoJitterBuffer::CheckHeader(uint8_t* pbBuffer)
 
 void VideoJitterBuffer::RemovePacketFromLostList(uint16_t seqNum, bool bRemoveOldPacket)
 {
-    LostPktEntry* pEntry = NULL;
+    LostPktEntry* pEntry = nullptr;
     std::list<LostPktEntry*>::iterator it = mLostPktList.begin();
 
     while (it != mLostPktList.end())
     {
         pEntry = *it;
 
-        if (pEntry == NULL)
+        if (pEntry == nullptr)
         {
             mLostPktList.erase(it++);
             continue;
@@ -800,7 +800,7 @@ void VideoJitterBuffer::CheckPacketLoss(uint16_t seqNum, uint16_t nLastRecvPkt)
 bool VideoJitterBuffer::UpdateLostPacketList(
         uint16_t lostSeq, uint16_t* countSecondNack, uint16_t* nPLIPkt, bool* bPLIPkt)
 {
-    LostPktEntry* foundLostPacket = NULL;
+    LostPktEntry* foundLostPacket = nullptr;
     auto result = std::find_if(mLostPktList.begin(), mLostPktList.end(),
             [lostSeq, &foundLostPacket](LostPktEntry* entry)
             {
@@ -808,7 +808,7 @@ bool VideoJitterBuffer::UpdateLostPacketList(
                 return (entry->seqNum == lostSeq);
             });
 
-    if (result != mLostPktList.end() && foundLostPacket != NULL)
+    if (result != mLostPktList.end() && foundLostPacket != nullptr)
     {
         return UpdateNackStatus(foundLostPacket, lostSeq, countSecondNack, nPLIPkt, bPLIPkt);
     }
@@ -920,7 +920,7 @@ void VideoJitterBuffer::OnTimer(hTimerHandler hTimer, void* pUserData)
     (void)hTimer;
     VideoJitterBuffer* jitter = reinterpret_cast<VideoJitterBuffer*>(pUserData);
 
-    if (jitter != NULL)
+    if (jitter != nullptr)
     {
         jitter->ProcessTimer();
     }

@@ -42,7 +42,7 @@ JitterBufferControlNode::JitterBufferControlNode(BaseSessionCallback* callback, 
 
 JitterBufferControlNode::~JitterBufferControlNode()
 {
-    if (mJitterBuffer != NULL)
+    if (mJitterBuffer != nullptr)
     {
         delete mJitterBuffer;
     }

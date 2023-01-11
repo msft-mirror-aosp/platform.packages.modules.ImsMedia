@@ -25,7 +25,7 @@ BaseStreamGraph::BaseStreamGraph(BaseSessionCallback* callback, int localFd) :
     std::unique_ptr<StreamScheduler> scheduler(new StreamScheduler());
     mScheduler = std::move(scheduler);
 
-    if (mCallback != NULL)
+    if (mCallback != nullptr)
     {
         mCallback->SendEvent(kImsMediaEventStateChanged);
     }
@@ -81,7 +81,7 @@ void BaseStreamGraph::setState(StreamState state)
     {
         mGraphState = state;
 
-        if (mCallback != NULL)
+        if (mCallback != nullptr)
         {
             mCallback->SendEvent(kImsMediaEventStateChanged);
         }
@@ -95,7 +95,7 @@ StreamState BaseStreamGraph::getState()
 
 void BaseStreamGraph::AddNode(BaseNode* pNode, bool bReverse)
 {
-    if (pNode == NULL)
+    if (pNode == nullptr)
     {
         return;
     }
@@ -120,7 +120,7 @@ void BaseStreamGraph::AddNode(BaseNode* pNode, bool bReverse)
 
 void BaseStreamGraph::RemoveNode(BaseNode* pNode)
 {
-    if (pNode == NULL)
+    if (pNode == nullptr)
     {
         return;
     }
@@ -142,7 +142,7 @@ ImsMediaResult BaseStreamGraph::startNodes()
     {
         BaseNode* pNode = mListNodeToStart.front();
 
-        if (pNode != NULL)
+        if (pNode != nullptr)
         {
             IMLOGD2("[startNodes] media[%d], start node[%s]", pNode->GetMediaType(),
                     pNode->GetNodeName());
@@ -172,7 +172,7 @@ ImsMediaResult BaseStreamGraph::stopNodes()
     {
         BaseNode* pNode = mListNodeStarted.front();
 
-        if (pNode != NULL)
+        if (pNode != nullptr)
         {
             IMLOGD2("[stopNodes] media[%d], stop node[%s]", pNode->GetMediaType(),
                     pNode->GetNodeName());
@@ -196,7 +196,7 @@ void BaseStreamGraph::deleteNodes()
     {
         BaseNode* pNode = mListNodeToStart.front();
 
-        if (pNode != NULL)
+        if (pNode != nullptr)
         {
             IMLOGD2("[deleteNodes] media[%d], delete node[%s]", pNode->GetMediaType(),
                     pNode->GetNodeName());
@@ -213,7 +213,7 @@ BaseNode* BaseStreamGraph::findNode(kBaseNodeId id)
 {
     for (auto& node : mListNodeToStart)
     {
-        if (node != NULL && node->GetNodeId() == id)
+        if (node != nullptr && node->GetNodeId() == id)
         {
             return node;
         }
@@ -221,13 +221,13 @@ BaseNode* BaseStreamGraph::findNode(kBaseNodeId id)
 
     for (auto& node : mListNodeStarted)
     {
-        if (node != NULL && node->GetNodeId() == id)
+        if (node != nullptr && node->GetNodeId() == id)
         {
             return node;
         }
     }
 
-    return NULL;
+    return nullptr;
 }
 
 bool BaseStreamGraph::setMediaQualityThreshold(MediaQualityThreshold* threshold)

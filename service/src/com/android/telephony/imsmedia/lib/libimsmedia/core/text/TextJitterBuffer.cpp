@@ -73,10 +73,10 @@ void TextJitterBuffer::Add(ImsMediaSubType subtype, uint8_t* buffer, uint32_t si
     }
     else
     {
-        DataEntry* pEntry = NULL;
+        DataEntry* pEntry = nullptr;
         mDataQueue.GetLast(&pEntry);
 
-        if (pEntry == NULL)
+        if (pEntry == nullptr)
         {
             return;
         }
@@ -118,7 +118,7 @@ bool TextJitterBuffer::Get(ImsMediaSubType* subtype, uint8_t** data, uint32_t* d
     std::lock_guard<std::mutex> guard(mMutex);
     DataEntry* pEntry;
 
-    if (mDataQueue.Get(&pEntry) == true && pEntry != NULL)
+    if (mDataQueue.Get(&pEntry) == true && pEntry != nullptr)
     {
         if (subtype)
             *subtype = pEntry->subtype;
@@ -144,7 +144,7 @@ bool TextJitterBuffer::Get(ImsMediaSubType* subtype, uint8_t** data, uint32_t* d
         if (subtype)
             *subtype = MEDIASUBTYPE_UNDEFINED;
         if (data)
-            *data = NULL;
+            *data = nullptr;
         if (dataSize)
             *dataSize = 0;
         if (timestamp)
@@ -166,7 +166,7 @@ void TextJitterBuffer::Delete()
     std::lock_guard<std::mutex> guard(mMutex);
     mDataQueue.Get(&pEntry);
 
-    if (pEntry == NULL)
+    if (pEntry == nullptr)
     {
         return;
     }

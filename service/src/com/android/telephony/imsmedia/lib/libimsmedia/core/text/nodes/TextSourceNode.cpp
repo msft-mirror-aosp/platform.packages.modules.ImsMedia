@@ -82,7 +82,7 @@ bool TextSourceNode::IsSourceNode()
 
 void TextSourceNode::SetConfig(void* config)
 {
-    if (config == NULL)
+    if (config == nullptr)
     {
         return;
     }
@@ -96,7 +96,7 @@ void TextSourceNode::SetConfig(void* config)
 
 bool TextSourceNode::IsSameConfig(void* config)
 {
-    if (config == NULL)
+    if (config == nullptr)
     {
         return true;
     }
@@ -142,7 +142,7 @@ void TextSourceNode::ProcessData()
         uint8_t* pData = mListTextSource.front();
         uint32_t nDataSize = mListTextSourceSize.front();
 
-        if (pData == NULL || nDataSize == 0)
+        if (pData == nullptr || nDataSize == 0)
         {
             continue;
         }
@@ -180,7 +180,7 @@ void TextSourceNode::ProcessData()
          */
         IMLOGD1("[ProcessData] send empty, nRedCount[%d]", mRedundantCount);
         // send default if there is no data to send
-        SendDataToRearNode(MEDIASUBTYPE_BITSTREAM_T140, NULL, 0,
+        SendDataToRearNode(MEDIASUBTYPE_BITSTREAM_T140, nullptr, 0,
                 ImsMediaTimer::GetTimeInMilliSeconds(), false, 0);
         mRedundantCount--;
     }
@@ -188,7 +188,7 @@ void TextSourceNode::ProcessData()
 
 void TextSourceNode::SendRtt(const android::String8* text)
 {
-    if (text == NULL || text->length() == 0)
+    if (text == nullptr || text->length() == 0)
     {
         IMLOGE0("[SendRtt] invalid data");
         return;
@@ -223,7 +223,7 @@ void TextSourceNode::SendRtt(const android::String8* text)
 
         uint8_t* buffer = (uint8_t*)calloc(nChunkSize, sizeof(uint8_t));
 
-        if (buffer == NULL)
+        if (buffer == nullptr)
         {
             IMLOGE0("[SendRtt] allocated data is null");
             return;
@@ -242,7 +242,7 @@ void TextSourceNode::SendBOM()
     const uint32_t sizeofBom = 3;
     uint8_t* buffer = (uint8_t*)calloc(sizeofBom, sizeof(uint8_t));
 
-    if (buffer == NULL)
+    if (buffer == nullptr)
     {
         IMLOGE0("[SendBOM] allocated data is null");
         return;

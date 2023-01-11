@@ -26,7 +26,7 @@
 class DtmfEncoderNode : public BaseNode, IImsMediaThread
 {
 public:
-    DtmfEncoderNode(BaseSessionCallback* callback = NULL);
+    DtmfEncoderNode(BaseSessionCallback* callback = nullptr);
     virtual ~DtmfEncoderNode();
     virtual kBaseNodeId GetNodeId();
     virtual ImsMediaResult Start();

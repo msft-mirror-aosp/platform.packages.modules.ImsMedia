@@ -27,7 +27,7 @@ VideoManager::~VideoManager() {}
 
 VideoManager* VideoManager::getInstance()
 {
-    if (manager == NULL)
+    if (manager == nullptr)
     {
         manager = new VideoManager();
     }
@@ -174,7 +174,7 @@ void VideoManager::sendMessage(const int sessionId, const android::Parcel& parce
             {
                 IMLOGE1("[sendMessage] error readFromParcel[%d]", err);
                 delete config;
-                config = NULL;
+                config = nullptr;
             }
 
             EventParamOpenSession* param = new EventParamOpenSession(rtpFd, rtcpFd, config);
@@ -265,7 +265,7 @@ void VideoManager::RequestHandler::processEvent(
         {
             EventParamOpenSession* param = reinterpret_cast<EventParamOpenSession*>(paramA);
 
-            if (param != NULL)
+            if (param != nullptr)
             {
                 VideoConfig* pConfig = reinterpret_cast<VideoConfig*>(param->mConfig);
                 result = VideoManager::getInstance()->openSession(
@@ -284,7 +284,7 @@ void VideoManager::RequestHandler::processEvent(
 
                 delete param;
 
-                if (pConfig != NULL)
+                if (pConfig != nullptr)
                 {
                     delete pConfig;
                 }
@@ -328,7 +328,7 @@ void VideoManager::RequestHandler::processEvent(
         {
             MediaQualityThreshold* threshold = reinterpret_cast<MediaQualityThreshold*>(paramA);
 
-            if (threshold != NULL)
+            if (threshold != nullptr)
             {
                 VideoManager::getInstance()->setMediaQualityThreshold(
                         static_cast<int>(sessionId), threshold);
@@ -385,7 +385,7 @@ void VideoManager::ResponseHandler::processEvent(
             parcel.writeInt32(static_cast<int>(paramA));  // result
             VideoConfig* config = reinterpret_cast<VideoConfig*>(paramB);
 
-            if (config != NULL)
+            if (config != nullptr)
             {
                 config->writeToParcel(&parcel);
                 VideoManager::getInstance()->sendResponse(sessionId, parcel);

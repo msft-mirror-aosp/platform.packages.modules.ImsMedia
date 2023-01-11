@@ -23,10 +23,10 @@ RtcpPacket::RtcpPacket() :
         m_objSrPktList(std::list<RtcpSrPacket*>()),
         m_objRrPktList(std::list<RtcpRrPacket*>()),
         m_objFbPktList(std::list<RtcpFbPacket*>()),
-        m_pobjSdesPkt(RTP_NULL),
-        m_pobjByePkt(RTP_NULL),
-        m_pobjAppPkt(RTP_NULL),
-        m_pobjRtcpXrPkt(RTP_NULL)
+        m_pobjSdesPkt(nullptr),
+        m_pobjByePkt(nullptr),
+        m_pobjAppPkt(nullptr),
+        m_pobjRtcpXrPkt(nullptr)
 
 {
 }  // Constructor
@@ -54,26 +54,26 @@ RtcpPacket::~RtcpPacket()
     }
     m_objFbPktList.clear();
 
-    if (m_pobjSdesPkt != RTP_NULL)
+    if (m_pobjSdesPkt != nullptr)
     {
         delete m_pobjSdesPkt;
-        m_pobjSdesPkt = RTP_NULL;
+        m_pobjSdesPkt = nullptr;
     }
-    if (m_pobjByePkt != RTP_NULL)
+    if (m_pobjByePkt != nullptr)
     {
         delete m_pobjByePkt;
-        m_pobjByePkt = RTP_NULL;
+        m_pobjByePkt = nullptr;
     }
-    if (m_pobjAppPkt != RTP_NULL)
+    if (m_pobjAppPkt != nullptr)
     {
         delete m_pobjAppPkt;
-        m_pobjAppPkt = RTP_NULL;
+        m_pobjAppPkt = nullptr;
     }
 
-    if (m_pobjRtcpXrPkt != RTP_NULL)
+    if (m_pobjRtcpXrPkt != nullptr)
     {
         delete m_pobjRtcpXrPkt;
-        m_pobjRtcpXrPkt = RTP_NULL;
+        m_pobjRtcpXrPkt = nullptr;
     }
 }  // Destructor
 
@@ -129,7 +129,7 @@ RtpDt_Void RtcpPacket::setAppPktData(IN RtcpAppPacket* pobjAppData)
 
 eRTP_STATUS_CODE RtcpPacket::addSrPacketData(IN RtcpSrPacket* pobjSrPkt)
 {
-    if (pobjSrPkt == RTP_NULL)
+    if (pobjSrPkt == nullptr)
     {
         return RTP_FAILURE;
     }
@@ -139,7 +139,7 @@ eRTP_STATUS_CODE RtcpPacket::addSrPacketData(IN RtcpSrPacket* pobjSrPkt)
 
 eRTP_STATUS_CODE RtcpPacket::addRrPacketData(IN RtcpRrPacket* pobjRrPkt)
 {
-    if (pobjRrPkt == RTP_NULL)
+    if (pobjRrPkt == nullptr)
     {
         return RTP_FAILURE;
     }
@@ -149,7 +149,7 @@ eRTP_STATUS_CODE RtcpPacket::addRrPacketData(IN RtcpRrPacket* pobjRrPkt)
 
 eRTP_STATUS_CODE RtcpPacket::addFbPacketData(IN RtcpFbPacket* pobjFbPkt)
 {
-    if (pobjFbPkt == RTP_NULL)
+    if (pobjFbPkt == nullptr)
     {
         return RTP_FAILURE;
     }
@@ -176,7 +176,7 @@ eRTP_STATUS_CODE RtcpPacket::decodeRtcpPacket(IN RtpBuffer* pobjRtcpPktBuf,
     eRtp_Bool bFbPkt = eRTP_FALSE;
     eRtp_Bool bOtherPkt = eRTP_FALSE;
 
-    if (pobjRtcpPktBuf == NULL || pobjRtcpPktBuf->getBuffer() == NULL ||
+    if (pobjRtcpPktBuf == nullptr || pobjRtcpPktBuf->getBuffer() == nullptr ||
             pobjRtcpPktBuf->getLength() < RTP_WORD_SIZE)
         return RTP_INVALID_PARAMS;
 
@@ -235,7 +235,7 @@ eRTP_STATUS_CODE RtcpPacket::decodeRtcpPacket(IN RtpBuffer* pobjRtcpPktBuf,
             {
                 RTP_TRACE_MESSAGE("[DecodeRtcpPacket] Decoding RTCP_SR", 0, 0);
                 RtcpSrPacket* pobjSrPkt = new RtcpSrPacket();
-                if (pobjSrPkt == RTP_NULL)
+                if (pobjSrPkt == nullptr)
                 {
                     RTP_TRACE_ERROR("[Memory Error] new returned NULL.", RTP_ZERO, RTP_ZERO);
                     return RTP_MEMORY_FAIL;
@@ -251,7 +251,7 @@ eRTP_STATUS_CODE RtcpPacket::decodeRtcpPacket(IN RtpBuffer* pobjRtcpPktBuf,
                 RTP_TRACE_MESSAGE("[DecodeRtcpPacket] Decoding RTCP_RR", 0, 0);
                 RtpDt_UInt16 uiRrPktLen = usPktLen;
                 RtcpRrPacket* pobjRrPkt = new RtcpRrPacket();
-                if (pobjRrPkt == RTP_NULL)
+                if (pobjRrPkt == nullptr)
                 {
                     RTP_TRACE_ERROR("[Memory Error] new returned NULL.", RTP_ZERO, RTP_ZERO);
                     return RTP_MEMORY_FAIL;
@@ -266,7 +266,7 @@ eRTP_STATUS_CODE RtcpPacket::decodeRtcpPacket(IN RtpBuffer* pobjRtcpPktBuf,
             {
                 RTP_TRACE_MESSAGE("[DecodeRtcpPacket] Decoding RTCP_SDES", 0, 0);
                 m_pobjSdesPkt = new RtcpSdesPacket();
-                if (m_pobjSdesPkt == RTP_NULL)
+                if (m_pobjSdesPkt == nullptr)
                 {
                     RTP_TRACE_ERROR("[Memory Error] new returned NULL.", RTP_ZERO, RTP_ZERO);
                     return RTP_MEMORY_FAIL;
@@ -280,7 +280,7 @@ eRTP_STATUS_CODE RtcpPacket::decodeRtcpPacket(IN RtpBuffer* pobjRtcpPktBuf,
             {
                 RTP_TRACE_MESSAGE("[DecodeRtcpPacket] Decoding RTCP_BYE", 0, 0);
                 m_pobjByePkt = new RtcpByePacket();
-                if (m_pobjByePkt == RTP_NULL)
+                if (m_pobjByePkt == nullptr)
                 {
                     RTP_TRACE_ERROR("[Memory Error] new returned NULL.", RTP_ZERO, RTP_ZERO);
                     return RTP_MEMORY_FAIL;
@@ -294,7 +294,7 @@ eRTP_STATUS_CODE RtcpPacket::decodeRtcpPacket(IN RtpBuffer* pobjRtcpPktBuf,
             {
                 RTP_TRACE_MESSAGE("[DecodeRtcpPacket] Decoding RTCP_APP", 0, 0);
                 m_pobjAppPkt = new RtcpAppPacket();
-                if (m_pobjAppPkt == RTP_NULL)
+                if (m_pobjAppPkt == nullptr)
                 {
                     RTP_TRACE_ERROR("[Memory Error] new returned NULL.", RTP_ZERO, RTP_ZERO);
                     return RTP_MEMORY_FAIL;
@@ -309,7 +309,7 @@ eRTP_STATUS_CODE RtcpPacket::decodeRtcpPacket(IN RtpBuffer* pobjRtcpPktBuf,
             {
                 RTP_TRACE_MESSAGE("[DecodeRtcpPacket] Decoding RTCP_RTPFB", 0, 0);
                 RtcpFbPacket* pobjFbPkt = new RtcpFbPacket();
-                if (pobjFbPkt == RTP_NULL)
+                if (pobjFbPkt == nullptr)
                 {
                     RTP_TRACE_ERROR("[Memory Error] new returned NULL.", RTP_ZERO, RTP_ZERO);
                     return RTP_MEMORY_FAIL;
@@ -358,13 +358,13 @@ eRTP_STATUS_CODE RtcpPacket::formRtcpPacket(OUT RtpBuffer* pobjRtcpPktBuf)
 
     pobjRtcpPktBuf->setLength(RTP_ZERO);
 
-    if ((usSrSize == RTP_ZERO) && (usRrSize == RTP_ZERO) && (m_pobjByePkt == RTP_NULL))
+    if ((usSrSize == RTP_ZERO) && (usRrSize == RTP_ZERO) && (m_pobjByePkt == nullptr))
     {
         RTP_TRACE_WARNING("[formRtcpPacket] m_pobjSrPkt is NULL", RTP_ZERO, RTP_ZERO);
         return RTP_FAILURE;
     }
 
-    if ((m_pobjByePkt == RTP_NULL) && (m_pobjSdesPkt == RTP_NULL) && (m_pobjAppPkt == RTP_NULL) &&
+    if ((m_pobjByePkt == nullptr) && (m_pobjSdesPkt == nullptr) && (m_pobjAppPkt == nullptr) &&
             (usFbSize == RTP_ZERO))
     {
         RTP_TRACE_WARNING("[formRtcpPacket] Not present 2nd pkt in Comp pkt", RTP_ZERO, RTP_ZERO);
@@ -395,7 +395,7 @@ eRTP_STATUS_CODE RtcpPacket::formRtcpPacket(OUT RtpBuffer* pobjRtcpPktBuf)
         }
     }
 
-    if (m_pobjSdesPkt != RTP_NULL)
+    if (m_pobjSdesPkt != nullptr)
     {
         eEncodeRes = m_pobjSdesPkt->formSdesPacket(pobjRtcpPktBuf);
         if (eEncodeRes != RTP_SUCCESS)
@@ -405,7 +405,7 @@ eRTP_STATUS_CODE RtcpPacket::formRtcpPacket(OUT RtpBuffer* pobjRtcpPktBuf)
         }
     }
 
-    if (m_pobjAppPkt != RTP_NULL)
+    if (m_pobjAppPkt != nullptr)
     {
         eEncodeRes = m_pobjAppPkt->formAppPacket(pobjRtcpPktBuf);
         if (eEncodeRes != RTP_SUCCESS)
@@ -414,7 +414,7 @@ eRTP_STATUS_CODE RtcpPacket::formRtcpPacket(OUT RtpBuffer* pobjRtcpPktBuf)
             return eEncodeRes;
         }
     }
-    if (m_pobjByePkt != RTP_NULL)
+    if (m_pobjByePkt != nullptr)
     {
         eEncodeRes = m_pobjByePkt->formByePacket(pobjRtcpPktBuf);
         if (eEncodeRes != RTP_SUCCESS)
@@ -435,7 +435,7 @@ eRTP_STATUS_CODE RtcpPacket::formRtcpPacket(OUT RtpBuffer* pobjRtcpPktBuf)
         }
     }
 
-    if (m_pobjRtcpXrPkt != RTP_NULL)
+    if (m_pobjRtcpXrPkt != nullptr)
     {
         eEncodeRes = m_pobjRtcpXrPkt->formRtcpXrPacket(pobjRtcpPktBuf);
         if (eEncodeRes != RTP_SUCCESS)

@@ -70,7 +70,7 @@ TEST(RtcpReportBlockTest, TestFormReportBlock)
     objRtcpReportBlock.setLastSR(0x86d4e600);
     objRtcpReportBlock.setDelayLastSR(0x86d4e601);
 
-    RtpBuffer objRtcpPktBuf(64, NULL);
+    RtpBuffer objRtcpPktBuf(64, nullptr);
     objRtcpPktBuf.setLength(0);
     eRtp_Bool res = objRtcpReportBlock.formReportBlock(&objRtcpPktBuf);
     EXPECT_EQ(res, eRTP_SUCCESS);

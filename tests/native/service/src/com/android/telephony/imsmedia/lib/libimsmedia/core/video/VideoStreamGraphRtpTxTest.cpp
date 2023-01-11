@@ -63,9 +63,9 @@ class VideoStreamGraphRtpTxTest : public ::testing::Test
 public:
     VideoStreamGraphRtpTxTest()
     {
-        graph = NULL;
-        previewReader = NULL;
-        previewSurface = NULL;
+        graph = nullptr;
+        previewReader = nullptr;
+        previewSurface = nullptr;
         socketRtpFd = -1;
     }
     virtual ~VideoStreamGraphRtpTxTest() {}
@@ -131,12 +131,12 @@ protected:
             ImsMediaNetworkUtil::closeSocket(socketRtpFd);
         }
 
-        if (previewReader != NULL)
+        if (previewReader != nullptr)
         {
             AImageReader_delete(previewReader);
         }
 
-        if (graph != NULL)
+        if (graph != nullptr)
         {
             delete graph;
         }

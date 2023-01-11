@@ -20,14 +20,14 @@
 
 RtpStack::RtpStack() :
         m_objRtpSessionList(std::list<RtpSession*>()),
-        m_pobjStackProfile(RTP_NULL)
+        m_pobjStackProfile(nullptr)
 {
 }
 
 RtpStack::~RtpStack()
 {
     // clear stack profile
-    if (m_pobjStackProfile != RTP_NULL)
+    if (m_pobjStackProfile != nullptr)
     {
         delete m_pobjStackProfile;
     }
@@ -50,10 +50,10 @@ RtpSession* RtpStack::createRtpSession()
     RtpDt_UInt32 uiTermNum = m_pobjStackProfile->getTermNumber();
 
     RtpSession* pobjRtpSession = new RtpSession(this);
-    if (pobjRtpSession == RTP_NULL)
+    if (pobjRtpSession == nullptr)
     {
         RTP_TRACE_WARNING("Memory allocation error.", RTP_ZERO, RTP_ZERO);
-        return RTP_NULL;
+        return nullptr;
     }
 
     // add session into m_objRtpSessionList
@@ -82,7 +82,7 @@ eRtp_Bool RtpStack::isValidRtpSession(IN RtpSession* pobjSession)
 
 eRTP_STATUS_CODE RtpStack::deleteRtpSession(IN RtpSession* pobjRtpSession)
 {
-    if (pobjRtpSession == RTP_NULL)
+    if (pobjRtpSession == nullptr)
     {
         RTP_TRACE_WARNING("deleteRtpSession, pobjRtpSession is NULL.", RTP_ZERO, RTP_ZERO);
         return RTP_INVALID_PARAMS;

@@ -52,7 +52,7 @@ VideoConfig::VideoConfig() :
 VideoConfig::VideoConfig(VideoConfig* config) :
         RtpConfig(config)
 {
-    if (config == NULL)
+    if (config == nullptr)
         return;
     videoMode = config->videoMode;
     codecType = config->codecType;
@@ -155,7 +155,7 @@ bool VideoConfig::operator!=(const VideoConfig& config) const
 status_t VideoConfig::writeToParcel(Parcel* out) const
 {
     status_t err;
-    if (out == NULL)
+    if (out == nullptr)
     {
         return BAD_VALUE;
     }
@@ -274,7 +274,7 @@ status_t VideoConfig::writeToParcel(Parcel* out) const
 status_t VideoConfig::readFromParcel(const Parcel* in)
 {
     status_t err;
-    if (in == NULL)
+    if (in == nullptr)
     {
         return BAD_VALUE;
     }

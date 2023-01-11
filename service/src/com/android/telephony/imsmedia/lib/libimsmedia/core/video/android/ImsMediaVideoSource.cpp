@@ -26,13 +26,13 @@
 
 ImsMediaVideoSource::ImsMediaVideoSource()
 {
-    mCamera = NULL;
-    mWindow = NULL;
-    mCodec = NULL;
-    mFormat = NULL;
-    mRecordingSurface = NULL;
-    mImageReaderSurface = NULL;
-    mImageReader = NULL;
+    mCamera = nullptr;
+    mWindow = nullptr;
+    mCodec = nullptr;
+    mFormat = nullptr;
+    mRecordingSurface = nullptr;
+    mImageReaderSurface = nullptr;
+    mImageReader = nullptr;
     mCodecType = -1;
     mVideoMode = -1;
     mCodecProfile = 0;
@@ -117,7 +117,7 @@ void ImsMediaVideoSource::SetDeviceOrientation(const uint32_t degree)
             int32_t sensorOrientation = 0;
             int32_t rotateDegree = 0;
 
-            if (mCamera != NULL)
+            if (mCamera != nullptr)
             {
                 mCamera->GetSensorOrientation(mCameraId, &facing, &sensorOrientation);
                 IMLOGD2("[SetDeviceOrientation] camera facing[%d], sensorOrientation[%d]", facing,
@@ -151,7 +151,7 @@ void ImsMediaVideoSource::SetDeviceOrientation(const uint32_t degree)
                 }
             }
 
-            if (mListener != NULL)
+            if (mListener != nullptr)
             {
                 mListener->OnEvent(kVideoSourceEventUpdateOrientation, facing, rotateDegree);
             }
@@ -164,7 +164,7 @@ void ImsMediaVideoSource::SetDeviceOrientation(const uint32_t degree)
 bool ImsMediaVideoSource::Start()
 {
     IMLOGD1("[Start], VideoMode[%d]", mVideoMode);
-    mRecordingSurface = NULL;
+    mRecordingSurface = nullptr;
 
     if (mVideoMode == kVideoModeRecording || mVideoMode == kVideoModePauseImage)
     {
@@ -195,22 +195,22 @@ bool ImsMediaVideoSource::Start()
 
         mCodec = AMediaCodec_createEncoderByType(kMimeType);
 
-        if (mCodec == NULL)
+        if (mCodec == nullptr)
         {
             IMLOGE0("[Start] Unable to create encoder");
             return false;
         }
 
         media_status_t err = AMediaCodec_configure(
-                mCodec, mFormat, NULL, NULL, AMEDIACODEC_CONFIGURE_FLAG_ENCODE);
+                mCodec, mFormat, nullptr, nullptr, AMEDIACODEC_CONFIGURE_FLAG_ENCODE);
 
         if (err != AMEDIA_OK)
         {
             IMLOGE1("[Start] configure error[%d]", err);
             AMediaCodec_delete(mCodec);
-            mCodec = NULL;
+            mCodec = nullptr;
             AMediaFormat_delete(mFormat);
-            mFormat = NULL;
+            mFormat = nullptr;
             return false;
         }
 
@@ -222,9 +222,9 @@ bool ImsMediaVideoSource::Start()
             {
                 IMLOGE1("[Start] create input surface error[%d]", err);
                 AMediaCodec_delete(mCodec);
-                mCodec = NULL;
+                mCodec = nullptr;
                 AMediaFormat_delete(mFormat);
-                mFormat = NULL;
+                mFormat = nullptr;
                 return false;
             }
         }
@@ -232,7 +232,7 @@ bool ImsMediaVideoSource::Start()
         {
             mImageReaderSurface = CreateImageReader(mWidth, mHeight);
 
-            if (mImageReaderSurface == NULL)
+            if (mImageReaderSurface == nullptr)
             {
                 IMLOGE0("[Start] create image reader failed");
                 return false;
@@ -245,9 +245,9 @@ bool ImsMediaVideoSource::Start()
         {
             IMLOGE1("[Start] codec start[%d]", err);
             AMediaCodec_delete(mCodec);
-            mCodec = NULL;
+            mCodec = nullptr;
             AMediaFormat_delete(mFormat);
-            mFormat = NULL;
+            mFormat = nullptr;
             return false;
         }
     }
@@ -262,9 +262,9 @@ bool ImsMediaVideoSource::Start()
         {
             IMLOGE0("[Start] error open camera");
             AMediaCodec_delete(mCodec);
-            mCodec = NULL;
+            mCodec = nullptr;
             AMediaFormat_delete(mFormat);
-            mFormat = NULL;
+            mFormat = nullptr;
             return false;
         }
 
@@ -274,9 +274,9 @@ bool ImsMediaVideoSource::Start()
         {
             IMLOGE0("[Start] error create camera session");
             AMediaCodec_delete(mCodec);
-            mCodec = NULL;
+            mCodec = nullptr;
             AMediaFormat_delete(mFormat);
-            mFormat = NULL;
+            mFormat = nullptr;
             mCamera->DeleteSession();
             mCamera->DeInitialize();
             return false;
@@ -286,9 +286,9 @@ bool ImsMediaVideoSource::Start()
         {
             IMLOGE0("[Start] error camera start");
             AMediaCodec_delete(mCodec);
-            mCodec = NULL;
+            mCodec = nullptr;
             AMediaFormat_delete(mFormat);
-            mFormat = NULL;
+            mFormat = nullptr;
             return false;
         }
     }
@@ -298,7 +298,7 @@ bool ImsMediaVideoSource::Start()
     }
 
     // start encoder output thread
-    if (mCodec != NULL)
+    if (mCodec != nullptr)
     {
         mStopped = false;
         std::thread t1(&ImsMediaVideoSource::processOutputBuffer, this);
@@ -318,47 +318,47 @@ void ImsMediaVideoSource::Stop()
     mStopped = true;
     mMutex.unlock();
 
-    if (mCamera != NULL)
+    if (mCamera != nullptr)
     {
         mCamera->StopSession();
     }
 
     IMLOGD0("[Stop] deinitialize camera");
 
-    if (mCamera != NULL)
+    if (mCamera != nullptr)
     {
         mCamera->DeleteSession();
         mCamera->DeInitialize();
-        mCamera = NULL;
+        mCamera = nullptr;
     }
 
-    if (mCodec != NULL)
+    if (mCodec != nullptr)
     {
         AMediaCodec_signalEndOfInputStream(mCodec);
         AMediaCodec_stop(mCodec);
 
-        if (mRecordingSurface != NULL)
+        if (mRecordingSurface != nullptr)
         {
             ANativeWindow_release(mRecordingSurface);
-            mRecordingSurface = NULL;
+            mRecordingSurface = nullptr;
         }
 
         AMediaCodec_delete(mCodec);
-        mCodec = NULL;
+        mCodec = nullptr;
     }
 
-    if (mFormat != NULL)
+    if (mFormat != nullptr)
     {
         AMediaFormat_delete(mFormat);
-        mFormat = NULL;
+        mFormat = nullptr;
     }
 
-    if (mImageReader != NULL)
+    if (mImageReader != nullptr)
     {
         std::lock_guard<std::mutex> guard(mImageReaderMutex);
         AImageReader_delete(mImageReader);
-        mImageReader = NULL;
-        mImageReaderSurface = NULL;
+        mImageReader = nullptr;
+        mImageReaderSurface = nullptr;
     }
 
     mPauseImageSource.Uninitialize();
@@ -374,7 +374,7 @@ void ImsMediaVideoSource::onCameraFrame(AImage* pImage)
 {
     std::lock_guard<std::mutex> guard(mImageReaderMutex);
 
-    if (mImageReader == NULL || pImage == NULL)
+    if (mImageReader == nullptr || pImage == nullptr)
     {
         return;
     }
@@ -545,9 +545,9 @@ void ImsMediaVideoSource::processOutputBuffer()
                 size_t buffCapacity;
                 uint8_t* buf = AMediaCodec_getOutputBuffer(mCodec, index, &buffCapacity);
 
-                if (buf != NULL && buffCapacity > 0)
+                if (buf != nullptr && buffCapacity > 0)
                 {
-                    if (mListener != NULL)
+                    if (mListener != nullptr)
                     {
                         mListener->OnUplinkEvent(
                                 buf + info.offset, info.size, info.presentationTimeUs, info.flags);
@@ -566,7 +566,7 @@ void ImsMediaVideoSource::processOutputBuffer()
         }
         else if (index == AMEDIACODEC_INFO_OUTPUT_FORMAT_CHANGED)
         {
-            if (mFormat != NULL)
+            if (mFormat != nullptr)
             {
                 AMediaFormat_delete(mFormat);
             }
@@ -600,7 +600,7 @@ void ImsMediaVideoSource::processOutputBuffer()
 
 static void ImageCallback(void* context, AImageReader* reader)
 {
-    if (context == NULL)
+    if (context == nullptr)
     {
         return;
     }
@@ -631,7 +631,7 @@ ANativeWindow* ImsMediaVideoSource::CreateImageReader(int width, int height)
 
     if (status != AMEDIA_OK)
     {
-        return NULL;
+        return nullptr;
     }
 
     AImageReader_ImageListener listener{

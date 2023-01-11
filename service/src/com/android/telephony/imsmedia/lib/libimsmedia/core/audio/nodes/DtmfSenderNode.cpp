@@ -63,7 +63,7 @@ void DtmfSenderNode::SetConfig(void* config)
 {
     AudioConfig* pConfig = reinterpret_cast<AudioConfig*>(config);
 
-    if (pConfig != NULL)
+    if (pConfig != nullptr)
     {
         mPtime = pConfig->getPtimeMillis();
     }
@@ -71,7 +71,7 @@ void DtmfSenderNode::SetConfig(void* config)
 
 bool DtmfSenderNode::IsSameConfig(void* config)
 {
-    if (config == NULL)
+    if (config == nullptr)
     {
         return true;
     }
@@ -89,7 +89,7 @@ void DtmfSenderNode::ProcessData()
     bool bMark;
     uint32_t nCurrTime;
 
-    if (GetData(&subtype, &pData, &nDataSize, &nTimeStamp, &bMark, NULL) == false)
+    if (GetData(&subtype, &pData, &nDataSize, &nTimeStamp, &bMark, nullptr) == false)
     {
         return;
     }
@@ -109,7 +109,7 @@ void DtmfSenderNode::ProcessData()
         mNextTime = nCurrTime;
 
         // send the first dtmf packet
-        if (GetData(&subtype, &pData, &nDataSize, &nTimeStamp, &bMark, NULL, NULL) &&
+        if (GetData(&subtype, &pData, &nDataSize, &nTimeStamp, &bMark, nullptr, nullptr) &&
                 subtype == MEDIASUBTYPE_DTMF_PAYLOAD)
         {
             SendDataToRearNode(subtype, pData, nDataSize, nTimeStamp, bMark, 0);

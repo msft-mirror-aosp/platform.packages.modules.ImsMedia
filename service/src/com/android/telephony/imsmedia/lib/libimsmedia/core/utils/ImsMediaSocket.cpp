@@ -44,7 +44,7 @@ std::mutex ImsMediaSocket::sMutexSocketList;
 ImsMediaSocket* ImsMediaSocket::GetInstance(
         uint32_t localPort, const char* peerIpAddress, uint32_t peerPort)
 {
-    ImsMediaSocket* pImsMediaSocket = NULL;
+    ImsMediaSocket* pImsMediaSocket = nullptr;
     std::lock_guard<std::mutex> guard(sMutexSocketList);
 
     for (auto& i : slistSocket)
@@ -62,7 +62,7 @@ ImsMediaSocket* ImsMediaSocket::GetInstance(
 
 void ImsMediaSocket::ReleaseInstance(ImsMediaSocket* pSocket)
 {
-    if (pSocket != NULL && pSocket->mRefCount == 0)
+    if (pSocket != nullptr && pSocket->mRefCount == 0)
     {
         delete pSocket;
     }
@@ -70,7 +70,7 @@ void ImsMediaSocket::ReleaseInstance(ImsMediaSocket* pSocket)
 
 ImsMediaSocket::ImsMediaSocket()
 {
-    mListener = NULL;
+    mListener = nullptr;
     mRefCount = 0;
     mLocalIPVersion = IPV4;
     mPeerIPVersion = IPV4;
@@ -92,7 +92,7 @@ void ImsMediaSocket::SetLocalEndpoint(const char* ipAddress, const uint32_t port
     std::strncpy(mLocalIP, ipAddress, strlen(ipAddress));
     mLocalPort = port;
 
-    if (strstr(mLocalIP, ":") == NULL)
+    if (strstr(mLocalIP, ":") == nullptr)
     {
         mLocalIPVersion = IPV4;
     }
@@ -107,7 +107,7 @@ void ImsMediaSocket::SetPeerEndpoint(const char* ipAddress, const uint32_t port)
     std::strncpy(mPeerIP, ipAddress, strlen(ipAddress));
     mPeerPort = port;
 
-    if (strstr(mPeerIP, ":") == NULL)
+    if (strstr(mPeerIP, ":") == nullptr)
     {
         mPeerIPVersion = IPV4;
     }
@@ -164,7 +164,7 @@ void ImsMediaSocket::Listen(ISocketListener* listener)
     IMLOGD0("[Listen]");
     mListener = listener;
 
-    if (listener != NULL)
+    if (listener != nullptr)
     {
         // add socket list, run thread
         sMutexRxSocket.lock();
@@ -216,7 +216,7 @@ int32_t ImsMediaSocket::SendTo(uint8_t* pData, uint32_t nDataSize)
 
     struct sockaddr_in stAddr4;
     struct sockaddr_in6 stAddr6;
-    struct sockaddr* pstSockAddr = NULL;
+    struct sockaddr* pstSockAddr = nullptr;
     socklen_t nSockAddrLen = 0;
 
     if (mPeerIPVersion == IPV4)
@@ -265,7 +265,7 @@ int32_t ImsMediaSocket::SendTo(uint8_t* pData, uint32_t nDataSize)
 int32_t ImsMediaSocket::ReceiveFrom(uint8_t* pData, uint32_t nBufferSize)
 {
     int32_t len;
-    struct sockaddr* pstSockAddr = NULL;
+    struct sockaddr* pstSockAddr = nullptr;
     socklen_t nSockAddrLen = 0;
     sockaddr_storage ss;
     pstSockAddr = reinterpret_cast<sockaddr*>(&ss);
@@ -461,7 +461,7 @@ void ImsMediaSocket::ReadDataFromSocket(void* pReadfds)
 
     for (auto& rxSocket : slistRxSocket)
     {
-        if (rxSocket != NULL)
+        if (rxSocket != nullptr)
         {
             int32_t socketFD = rxSocket->GetSocketFd();
 
@@ -470,7 +470,7 @@ void ImsMediaSocket::ReadDataFromSocket(void* pReadfds)
                 IMLOGD_PACKET1(IM_PACKET_LOG_SOCKET,
                         "[ReadDataFromSocket] send notify to listener %p", rxSocket->GetListener());
 
-                if (rxSocket->GetListener() != NULL)
+                if (rxSocket->GetListener() != nullptr)
                 {
                     rxSocket->GetListener()->OnReadDataFromSocket();
                 }

@@ -142,7 +142,7 @@ bool RtcpXrEncoder::createRtcpXrReport(const uint32_t rtcpXrReport, std::list<Rt
 {
     size = 0;
 
-    if (data == NULL || rtcpXrReport == RtcpConfig::FLAG_RTCPXR_NONE)
+    if (data == nullptr || rtcpXrReport == RtcpConfig::FLAG_RTCPXR_NONE)
     {
         return false;
     }
@@ -159,22 +159,22 @@ bool RtcpXrEncoder::createRtcpXrReport(const uint32_t rtcpXrReport, std::list<Rt
 
         encodeStatisticSummeryReport(lossReport, jitterReport, ttlReport, duplicateReport, buffer);
 
-        if (lossReport != NULL)
+        if (lossReport != nullptr)
         {
             delete lossReport;
         }
 
-        if (jitterReport != NULL)
+        if (jitterReport != nullptr)
         {
             delete jitterReport;
         }
 
-        if (ttlReport != NULL)
+        if (ttlReport != nullptr)
         {
             delete ttlReport;
         }
 
-        if (duplicateReport != NULL)
+        if (duplicateReport != nullptr)
         {
             delete duplicateReport;
         }
@@ -188,7 +188,7 @@ bool RtcpXrEncoder::createRtcpXrReport(const uint32_t rtcpXrReport, std::list<Rt
         encodeVoipMetricReport(voipReport, buffer + size);
         size += BLOCK_LENGTH_STATISTICS;
 
-        if (voipReport != NULL)
+        if (voipReport != nullptr)
         {
             delete voipReport;
         }
@@ -444,8 +444,8 @@ void RtcpXrEncoder::encodeStatisticSummeryReport(tLossReport* lossReport,
     | min_ttl_or_hl | max_ttl_or_hl |mean_ttl_or_hl | dev_ttl_or_hl |
     +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 */
-    if (data == NULL || lossReport == NULL || jitterReport == NULL || ttlReport == NULL ||
-            duplicateReport == NULL)
+    if (data == nullptr || lossReport == nullptr || jitterReport == nullptr ||
+            ttlReport == nullptr || duplicateReport == nullptr)
     {
         return;
     }
@@ -507,7 +507,7 @@ void RtcpXrEncoder::encodeStatisticSummeryReport(tLossReport* lossReport,
 
 void RtcpXrEncoder::encodeVoipMetricReport(tVoIPMatricReport* report, uint8_t* data)
 {
-    if (report == NULL || data == NULL)
+    if (report == nullptr || data == nullptr)
     {
         return;
     }

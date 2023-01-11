@@ -82,8 +82,8 @@ class TextRendererNodeTest : public ::testing::Test
 public:
     TextRendererNodeTest()
     {
-        mFakeCallback = NULL;
-        mNode = NULL;
+        mFakeCallback = nullptr;
+        mNode = nullptr;
         memset(mTempBuffer, 0, sizeof(mTempBuffer));
     }
     virtual ~TextRendererNodeTest() {}

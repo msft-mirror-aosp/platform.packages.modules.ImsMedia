@@ -26,7 +26,7 @@ ImsMediaDataQueue::~ImsMediaDataQueue()
 
 void ImsMediaDataQueue::Add(DataEntry* pEntry)
 {
-    if (pEntry != NULL)
+    if (pEntry != nullptr)
     {
         std::lock_guard<std::mutex> guard(mMutex);
         DataEntry* pbData = new DataEntry(*pEntry);
@@ -36,7 +36,7 @@ void ImsMediaDataQueue::Add(DataEntry* pEntry)
 
 void ImsMediaDataQueue::InsertAt(uint32_t index, DataEntry* pEntry)
 {
-    if (pEntry != NULL)
+    if (pEntry != nullptr)
     {
         std::lock_guard<std::mutex> guard(mMutex);
         DataEntry* pbData = new DataEntry(*pEntry);
@@ -81,7 +81,7 @@ void ImsMediaDataQueue::Clear()
 
 bool ImsMediaDataQueue::Get(DataEntry** ppEntry)
 {
-    if (ppEntry == NULL)
+    if (ppEntry == nullptr)
     {
         return false;
     }
@@ -96,14 +96,14 @@ bool ImsMediaDataQueue::Get(DataEntry** ppEntry)
     }
     else
     {
-        *ppEntry = NULL;
+        *ppEntry = nullptr;
         return false;
     }
 }
 
 bool ImsMediaDataQueue::GetLast(DataEntry** ppEntry)
 {
-    if (ppEntry == NULL)
+    if (ppEntry == nullptr)
     {
         return false;
     }
@@ -117,14 +117,14 @@ bool ImsMediaDataQueue::GetLast(DataEntry** ppEntry)
     }
     else
     {
-        *ppEntry = NULL;
+        *ppEntry = nullptr;
         return false;
     }
 }
 
 bool ImsMediaDataQueue::GetAt(uint32_t index, DataEntry** ppEntry)
 {
-    if (ppEntry == NULL)
+    if (ppEntry == nullptr)
     {
         return false;
     }
@@ -140,7 +140,7 @@ bool ImsMediaDataQueue::GetAt(uint32_t index, DataEntry** ppEntry)
     }
     else
     {
-        *ppEntry = NULL;
+        *ppEntry = nullptr;
         return false;
     }
 }
@@ -159,7 +159,7 @@ void ImsMediaDataQueue::SetReadPosFirst()
 
 bool ImsMediaDataQueue::GetNext(DataEntry** ppEntry)
 {
-    if (ppEntry == NULL)
+    if (ppEntry == nullptr)
     {
         return false;
     }
@@ -173,7 +173,7 @@ bool ImsMediaDataQueue::GetNext(DataEntry** ppEntry)
     }
     else
     {
-        *ppEntry = NULL;
+        *ppEntry = nullptr;
         return false;
     }
 }

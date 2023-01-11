@@ -23,7 +23,7 @@ TEST(RtpOsUtilTest, TestGetNtpTime)
     struct timeval stAndrodTp;
     RtpOsUtil::GetNtpTime(stCurNtpTimestamp);
 
-    if (gettimeofday(&stAndrodTp, RTP_NULL) != -1)
+    if (gettimeofday(&stAndrodTp, nullptr) != -1)
     {
         EXPECT_EQ(stCurNtpTimestamp.m_uiNtpHigh32Bits, stAndrodTp.tv_sec + 2208988800UL);
     }

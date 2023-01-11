@@ -24,7 +24,7 @@ RtpReceiverInfo::RtpReceiverInfo() :
         m_bSender(eRTP_FALSE),
         m_uiTotalRcvdRtpPkts(RTP_ZERO),
         m_uiTotalRcvdRtpOcts(RTP_ZERO),
-        m_pobjIpAddr(RTP_NULL),
+        m_pobjIpAddr(nullptr),
         m_usPort(RTP_ZERO),
         m_bIsCsrcFlag(eRTP_FALSE),
         m_prevRtpTimestamp(RTP_ZERO),
@@ -44,10 +44,10 @@ RtpReceiverInfo::RtpReceiverInfo() :
 
 RtpReceiverInfo::~RtpReceiverInfo()
 {
-    if (m_pobjIpAddr != RTP_NULL)
+    if (m_pobjIpAddr != nullptr)
     {
         delete m_pobjIpAddr;
-        m_pobjIpAddr = RTP_NULL;
+        m_pobjIpAddr = nullptr;
     }
 }
 
@@ -271,7 +271,7 @@ eRTP_STATUS_CODE RtpReceiverInfo::setIpAddr(IN RtpBuffer* pobjIpAddr)
     RtpDt_UChar* pBuffer = pobjIpAddr->getBuffer();
     RtpDt_UInt32 uiLength = pobjIpAddr->getLength();
     m_pobjIpAddr = new RtpBuffer(uiLength, pBuffer);
-    if (m_pobjIpAddr == RTP_NULL)
+    if (m_pobjIpAddr == nullptr)
     {
         RTP_TRACE_ERROR("[Memory Error] new returned NULL.", RTP_ZERO, RTP_ZERO);
         return RTP_MEMORY_FAIL;

@@ -30,7 +30,7 @@
 class RtcpEncoderNode : public BaseNode, public IRtcpEncoderListener
 {
 public:
-    RtcpEncoderNode(BaseSessionCallback* callback = NULL);
+    RtcpEncoderNode(BaseSessionCallback* callback = nullptr);
     ~RtcpEncoderNode();
     static void OnTimer(hTimerHandler hTimer, void* pUserData);
     virtual kBaseNodeId GetNodeId();

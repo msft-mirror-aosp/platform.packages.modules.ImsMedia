@@ -23,7 +23,7 @@
 class SocketWriterNode : public BaseNode
 {
 public:
-    SocketWriterNode(BaseSessionCallback* callback = NULL);
+    SocketWriterNode(BaseSessionCallback* callback = nullptr);
     virtual ~SocketWriterNode();
     virtual kBaseNodeId GetNodeId();
     virtual ImsMediaResult Start();

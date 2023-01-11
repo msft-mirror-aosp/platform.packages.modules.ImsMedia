@@ -53,7 +53,7 @@ TEST_F(RtcpRrPacketTest, TestGetSetMethods)
     objRtcpHeader.decodeRtcpHeader(pRtcpBuff, sizeof(pRtcpBuff));
     objRtcpRrPacket.setRtcpHdrInfo(objRtcpHeader);
     RtcpHeader* pRet = objRtcpRrPacket.getRtcpHdrInfo();
-    ASSERT_TRUE(pRet != NULL);
+    ASSERT_TRUE(pRet != nullptr);
     EXPECT_EQ(*pRet, objRtcpHeader);
 
     uint8_t hdrExtBuf[] = {0xe6, 0x5f, 0xa5, 0x31, 0x53, 0x91, 0x24, 0xc2, 0x00, 0x04, 0x01};
@@ -61,11 +61,11 @@ TEST_F(RtcpRrPacketTest, TestGetSetMethods)
     RtpBuffer rtpbuffer(11, hdrExtBuf);
     objRtcpRrPacket.setExtHdrInfo(&rtpbuffer);
     RtpBuffer* pExtBuf = objRtcpRrPacket.getExtHdrInfo();
-    ASSERT_TRUE(pExtBuf != NULL);
+    ASSERT_TRUE(pExtBuf != nullptr);
     EXPECT_EQ(memcmp(rtpbuffer.getBuffer(), pExtBuf->getBuffer(), 11), 0);
     EXPECT_EQ(pExtBuf->getLength(), 11);
 
-    RtpBuffer* pRtpbufferEmpty = new RtpBuffer(0, NULL);
+    RtpBuffer* pRtpbufferEmpty = new RtpBuffer(0, nullptr);
     objRtcpRrPacket.setExtHdrInfo(pRtpbufferEmpty);
 }
 
@@ -80,7 +80,7 @@ TEST_F(RtcpRrPacketTest, TestDecodeRrPacket)
     ASSERT_TRUE(reports.size() != 0);
 
     RtcpReportBlock* report = reports.front();
-    ASSERT_TRUE(report != NULL);
+    ASSERT_TRUE(report != nullptr);
 
     EXPECT_EQ(report->getSsrc(), 0x01020304);
     EXPECT_EQ((int)report->getFracLost(), 0x10);
@@ -94,7 +94,7 @@ TEST_F(RtcpRrPacketTest, TestDecodeRrPacket)
 TEST_F(RtcpRrPacketTest, TestFormRrPacket)
 {
     RtcpRrPacket objRtcpRrPacket;
-    RtpBuffer objRtcpPktBuf(bBufLen, NULL);
+    RtpBuffer objRtcpPktBuf(bBufLen, nullptr);
     objRtcpPktBuf.setLength(0);
     RtcpReportBlock* pobjRtcpReportBlock = new RtcpReportBlock();
     pobjRtcpReportBlock->setSsrc(0x01020304);
@@ -111,4 +111,4 @@ TEST_F(RtcpRrPacketTest, TestFormRrPacket)
     EXPECT_EQ(memcmp(objRtcpPktBuf.getBuffer(), RtcpRrPacketTest::bufRrWithOneReport, bBufLen), 0);
 }
 
-//TODO: Add test case for RTCP extension headers.
+// TODO: Add test case for RTCP extension headers.

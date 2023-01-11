@@ -74,7 +74,7 @@ bool TextRendererNode::IsSourceNode()
 
 void TextRendererNode::SetConfig(void* config)
 {
-    if (config == NULL)
+    if (config == nullptr)
     {
         return;
     }
@@ -86,7 +86,7 @@ void TextRendererNode::SetConfig(void* config)
 
 bool TextRendererNode::IsSameConfig(void* config)
 {
-    if (config == NULL)
+    if (config == nullptr)
     {
         return true;
     }
@@ -122,7 +122,7 @@ void TextRendererNode::ProcessData()
             break;
         }
 
-        if (data == NULL)
+        if (data == nullptr)
         {
             IMLOGD0("[ProcessData] invalid data");
             break;

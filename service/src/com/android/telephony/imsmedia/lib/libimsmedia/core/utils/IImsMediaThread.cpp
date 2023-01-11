@@ -27,10 +27,10 @@ IImsMediaThread::~IImsMediaThread() {}
 
 void* runThread(void* arg)
 {
-    if (arg == NULL)
+    if (arg == nullptr)
     {
         IMLOGE0("[runThread] invalid argument");
-        return NULL;
+        return nullptr;
     }
 
     IImsMediaThread* thread = reinterpret_cast<IImsMediaThread*>(arg);

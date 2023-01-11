@@ -34,7 +34,7 @@
 class RtpDecoderNode : public BaseNode, public IRtpDecoderListener
 {
 public:
-    RtpDecoderNode(BaseSessionCallback* callback = NULL);
+    RtpDecoderNode(BaseSessionCallback* callback = nullptr);
     virtual ~RtpDecoderNode();
     virtual kBaseNodeId GetNodeId();
     virtual ImsMediaResult Start();

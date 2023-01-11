@@ -149,7 +149,7 @@ TEST_F(RtcpHeaderTest, TestFormRtcpHeader)
     rtcpHeader.setPacketType(200);
     rtcpHeader.setLength(28);
     rtcpHeader.setSsrc(0xFFFFFFFF);
-    RtpBuffer rtpBuffer(16, NULL);
+    RtpBuffer rtpBuffer(16, nullptr);
     rtpBuffer.setLength(0);
     rtcpHeader.formRtcpHeader(&rtpBuffer);
 

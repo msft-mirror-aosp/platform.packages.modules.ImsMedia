@@ -23,7 +23,7 @@
 class VideoRtpPayloadDecoderNode : public BaseNode
 {
 public:
-    VideoRtpPayloadDecoderNode(BaseSessionCallback* callback = NULL);
+    VideoRtpPayloadDecoderNode(BaseSessionCallback* callback = nullptr);
     virtual ~VideoRtpPayloadDecoderNode();
     virtual kBaseNodeId GetNodeId();
     virtual ImsMediaResult Start();

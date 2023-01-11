@@ -24,7 +24,7 @@ TEST(RtpStackUtilTest, TestgetSequenceNumber)
             0x0f, 0x0a, 0x69, 0xa8, 0x10, 0x10, 0x10, 0x3c, 0x58, 0xba, 0x80};
 
     EXPECT_EQ(RtpStackUtil::getSequenceNumber(pobjRtpPktBuf), 0xa583);
-    EXPECT_EQ(RtpStackUtil::getSequenceNumber(RTP_NULL), 0);
+    EXPECT_EQ(RtpStackUtil::getSequenceNumber(nullptr), 0);
 }
 
 TEST(RtpStackUtilTest, TestgetRtpSsrc)
@@ -34,7 +34,7 @@ TEST(RtpStackUtilTest, TestgetRtpSsrc)
             0x0f, 0x0a, 0x69, 0xa8, 0x10, 0x10, 0x10, 0x3c, 0x58, 0xba, 0x80};
 
     EXPECT_EQ(RtpStackUtil::getRtpSsrc(pobjRtpPktBuf), 0x927dcd02);
-    EXPECT_EQ(RtpStackUtil::getRtpSsrc(RTP_NULL), 0);
+    EXPECT_EQ(RtpStackUtil::getRtpSsrc(nullptr), 0);
 }
 
 TEST(RtpStackUtilTest, TestgetRtcpSsrc)
@@ -42,7 +42,7 @@ TEST(RtpStackUtilTest, TestgetRtcpSsrc)
     uint8_t pobjRtcpPktBuf[] = {0xFF, 0xFF, 0xFF, 0xFF, 0x59, 0x09, 0x41, 0x02};
 
     EXPECT_EQ(RtpStackUtil::getRtcpSsrc(pobjRtcpPktBuf), 0x59094102);
-    EXPECT_EQ(RtpStackUtil::getRtcpSsrc(RTP_NULL), 0);
+    EXPECT_EQ(RtpStackUtil::getRtcpSsrc(nullptr), 0);
 }
 
 TEST(RtpStackUtilTest, TestgenerateNewSsrc)
@@ -67,7 +67,7 @@ TEST(RtpStackUtilTest, TestgetMidFourOctets)
     stNtpTimestamp.m_uiNtpLow32Bits = 3417268256;
 
     EXPECT_EQ(RtpStackUtil::getMidFourOctets(&stNtpTimestamp), 0xa195cbaf);
-    EXPECT_EQ(RtpStackUtil::getMidFourOctets(RTP_NULL), 0);
+    EXPECT_EQ(RtpStackUtil::getMidFourOctets(nullptr), 0);
 }
 
 TEST(RtpStackUtilTest, TestcalcRtpTs)
@@ -102,13 +102,12 @@ TEST(RtpStackUtilTest, TestcalcRtpTsWithNoPrevTs)
             uiPrevRtpTimestamp, &stCurNtpTimestamp, &stPrevNtpTimestamp, 8000);
     EXPECT_EQ(rtpTs, uiPrevRtpTimestamp);
 
-    rtpTs = RtpStackUtil::calcRtpTimestamp(
-            uiPrevRtpTimestamp, RTP_NULL, &stPrevNtpTimestamp, 16000);
+    rtpTs = RtpStackUtil::calcRtpTimestamp(uiPrevRtpTimestamp, nullptr, &stPrevNtpTimestamp, 16000);
     EXPECT_EQ(rtpTs, 0);
 
-    rtpTs = RtpStackUtil::calcRtpTimestamp(uiPrevRtpTimestamp, &stCurNtpTimestamp, RTP_NULL, 8000);
+    rtpTs = RtpStackUtil::calcRtpTimestamp(uiPrevRtpTimestamp, &stCurNtpTimestamp, nullptr, 8000);
     EXPECT_EQ(rtpTs, 0);
 
-    rtpTs = RtpStackUtil::calcRtpTimestamp(uiPrevRtpTimestamp, RTP_NULL, RTP_NULL, 16000);
+    rtpTs = RtpStackUtil::calcRtpTimestamp(uiPrevRtpTimestamp, nullptr, nullptr, 16000);
     EXPECT_EQ(rtpTs, 0);
 }
