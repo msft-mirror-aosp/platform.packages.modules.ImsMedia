@@ -36,9 +36,25 @@ public:
             uint32_t timestamp, bool mark, uint32_t nSeqNum,
             ImsMediaSubType nDataType = ImsMediaSubType::MEDIASUBTYPE_UNDEFINED,
             uint32_t arrivalTime = 0);
+
+    /**
+     * @brief Set the local socket file descriptor
+     */
     void SetLocalFd(int fd);
-    void SetLocalAddress(const RtpAddress address);
-    void SetPeerAddress(const RtpAddress address);
+
+    /**
+     * @brief Set the local ip address and port number
+     */
+    void SetLocalAddress(const RtpAddress& address);
+
+    /**
+     * @brief Set the peer ip address and port number
+     */
+    void SetPeerAddress(const RtpAddress& address);
+
+    /**
+     * @brief Set the protocol type defined as kProtocolType
+     */
     void SetProtocolType(kProtocolType type) { mProtocolType = type; }
 
 private:
@@ -47,7 +63,7 @@ private:
     kProtocolType mProtocolType;
     RtpAddress mLocalAddress;
     RtpAddress mPeerAddress;
-    int32_t mDscp;
+    int8_t mDscp;
     bool mSocketOpened;
     bool mDisableSocket;
 };

@@ -22,7 +22,6 @@ BaseStreamGraph::BaseStreamGraph(BaseSessionCallback* callback, int localFd) :
         mLocalFd(localFd),
         mGraphState(kStreamStateIdle)
 {
-    IMLOGD0("[BaseStreamGraph]");
     std::unique_ptr<StreamScheduler> scheduler(new StreamScheduler());
     mScheduler = std::move(scheduler);
 
@@ -35,9 +34,7 @@ BaseStreamGraph::BaseStreamGraph(BaseSessionCallback* callback, int localFd) :
 BaseStreamGraph::~BaseStreamGraph()
 {
     deleteNodes();
-
     setState(kStreamStateIdle);
-    IMLOGD0("[~BaseStreamGraph]");
 }
 
 void BaseStreamGraph::setLocalFd(int localFd)
@@ -133,6 +130,7 @@ void BaseStreamGraph::RemoveNode(BaseNode* pNode)
         mScheduler->DeRegisterNode(pNode);
     }
 
+    pNode->DisconnectNodes();
     delete pNode;
 }
 
@@ -140,7 +138,7 @@ ImsMediaResult BaseStreamGraph::startNodes()
 {
     ImsMediaResult ret = ImsMediaResult::RESULT_NOT_READY;
 
-    while (mListNodeToStart.size() > 0)
+    while (!mListNodeToStart.empty())
     {
         BaseNode* pNode = mListNodeToStart.front();
 
@@ -170,7 +168,7 @@ ImsMediaResult BaseStreamGraph::stopNodes()
 {
     mScheduler->Stop();
 
-    while (mListNodeStarted.size() > 0)
+    while (!mListNodeStarted.empty())
     {
         BaseNode* pNode = mListNodeStarted.front();
 
@@ -189,17 +187,12 @@ ImsMediaResult BaseStreamGraph::stopNodes()
 
 void BaseStreamGraph::deleteNodes()
 {
-    if (mListNodeStarted.size() > 0)
-    {
-        stop();
-    }
-
-    if (mListNodeStarted.size() > 0)
+    if (!mListNodeStarted.empty())
     {
         IMLOGE1("[deleteNodes] error node remained[%d]", mListNodeStarted.size());
     }
 
-    while (mListNodeToStart.size() > 0)
+    while (!mListNodeToStart.empty())
     {
         BaseNode* pNode = mListNodeToStart.front();
 

@@ -49,9 +49,9 @@ private:
     uint32_t mMode;
     ImsMediaCondition mCondition;
     bool mFirstFrame;
-    int32_t mEvsChannelAwOffset;
+    int8_t mEvsChannelAwOffset;
     kEvsBandwidth mEvsBandwidth;
-    int32_t mSamplingRate;
+    int8_t mSamplingRate;
     int32_t mEvsPayloadHeaderMode;
 };
 

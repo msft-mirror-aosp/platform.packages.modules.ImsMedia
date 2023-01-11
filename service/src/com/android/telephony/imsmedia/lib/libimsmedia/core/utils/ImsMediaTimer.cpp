@@ -243,6 +243,11 @@ void ImsMediaTimer::GetNtpTime(IMNtpTime* pNtpTime)
         pNtpTime->ntpHigh32Bits = stAndrodTp.tv_sec + 2208988800UL;
         pNtpTime->ntpLow32Bits = (unsigned int)(stAndrodTp.tv_usec * 4294UL);
     }
+    else
+    {
+        pNtpTime->ntpHigh32Bits = 0;
+        pNtpTime->ntpLow32Bits = 0;
+    }
 }
 
 /*!
@@ -262,7 +267,7 @@ uint32_t ImsMediaTimer::GetRtpTsFromNtpTs(IMNtpTime* initNtpTimestamp, uint32_t 
     /* SPR #1256 BEGIN */
     timeDiffHigh32Bits = currentNtpTs.ntpHigh32Bits - initNtpTimestamp->ntpHigh32Bits;
     timeDiffLow32Bits =
-            (currentNtpTs.ntpLow32Bits / 4294UL) - (initNtpTimestamp->ntpLow32Bits / 4294UL);
+            (currentNtpTs.ntpLow32Bits / 4294) - (initNtpTimestamp->ntpLow32Bits / 4294);
     /*! timeDiffHigh32Bits should always be positive */
     timeDiff = (timeDiffHigh32Bits * 1000) + timeDiffLow32Bits / 1000;
     return timeDiff * (samplingRate / 1000);

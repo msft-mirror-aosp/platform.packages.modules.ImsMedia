@@ -22,7 +22,7 @@
 
 using namespace android::telephony::imsmedia;
 
-#define DEFAULT_UNDEFINE -1
+#define DEFAULT_UNDEFINE (-1)
 
 IVideoSourceNode::IVideoSourceNode(BaseSessionCallback* callback) :
         BaseNode(callback)

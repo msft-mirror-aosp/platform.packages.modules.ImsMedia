@@ -21,14 +21,14 @@
 #include <ImsMediaVideoUtil.h>
 #include <ImsMediaTimer.h>
 
-#define DEFAULT_MAX_SAVE_FRAME_NUM          5
-#define DEFAULT_IDR_FRAME_CHECK_INTRERVAL   3
-#define DEFAULT_VIDEO_JITTER_IDR_WAIT_DELAY 200
-#define RTCPNACK_SEQ_INCREASE(seq)          (seq == 0xffff ? 0 : seq + 1)
-#define RTCPNACK_SEQ_ROUND_COMPARE(a, b)    ((a > b) && (a > 0xfff0) && (b < 0x000f))
-#define DEFAULT_PACKET_LOSS_MONITORING_TIME 5     // sec
-#define PACKET_LOSS_RATIO                   2     // percentage
-#define BITRATE_ADAPTIVE_RATIO              0.1f  // ratio
+#define DEFAULT_MAX_SAVE_FRAME_NUM          (5)
+#define DEFAULT_IDR_FRAME_CHECK_INTRERVAL   (3)
+#define DEFAULT_VIDEO_JITTER_IDR_WAIT_DELAY (200)
+#define RTCPNACK_SEQ_INCREASE(seq)          ((seq) == 0xffff ? 0 : (seq) + 1)
+#define RTCPNACK_SEQ_ROUND_COMPARE(a, b)    (((a) > (b)) && ((a) > 0xfff0) && ((b) < 0x000f))
+#define DEFAULT_PACKET_LOSS_MONITORING_TIME (5)     // sec
+#define PACKET_LOSS_RATIO                   (2)     // percentage
+#define BITRATE_ADAPTIVE_RATIO              (0.1f)  // ratio
 
 VideoJitterBuffer::VideoJitterBuffer() :
         BaseJitterBuffer()
@@ -514,11 +514,8 @@ bool VideoJitterBuffer::Get(ImsMediaSubType* subtype, uint8_t** ppData, uint32_t
 
         uint32_t nCurrTime = ImsMediaTimer::GetTimeInMilliSeconds();
 
-        if (mLastPlayedTimestamp == 0 || mLastPlayedTime == 0)
-        {
-            bValidPacket = true;
-        }
-        else if (pEntry->nTimestamp == mLastPlayedTimestamp)
+        if (mLastPlayedTimestamp == 0 || mLastPlayedTime == 0 ||
+                pEntry->nTimestamp == mLastPlayedTimestamp)
         {
             bValidPacket = true;
         }
@@ -672,42 +669,21 @@ uint32_t VideoJitterBuffer::GetCount()
 
 bool VideoJitterBuffer::CheckHeader(uint8_t* pbBuffer)
 {
-    bool ret = false;
-    switch (mCodecType)
+    if (pbBuffer == NULL)
     {
-        case kVideoCodecAvc:
-            // check start code
-            if ((pbBuffer[0] == 0x00 && pbBuffer[1] == 0x00 && pbBuffer[2] == 0x00) ||
-                    (pbBuffer[0] == 0x00 && pbBuffer[1] == 0x00 && pbBuffer[2] == 0x01))
-            {
-                ret = true;
-            }
-            else
-            {
-                ret = false;
-            }
-            break;
-        case kVideoCodecHevc: /* [HEVC] check H.265 start code */
-            // check start code
-            if ((pbBuffer[0] == 0x00 && pbBuffer[1] == 0x00 && pbBuffer[2] == 0x00) ||
-                    (pbBuffer[0] == 0x00 && pbBuffer[1] == 0x00 && pbBuffer[2] == 0x01))
-            {
-                ret = true;
-            }
-            else
-            {
-                ret = false;
-            }
-            break;
-        default:
-            ret = true;
-            IMLOGE1("[CheckHeader] Invalid video codec type %u", mCodecType);
+        return false;
     }
 
-    IMLOGD_PACKET5(IM_PACKET_LOG_JITTER, "[CheckHeader] ret[%u] %02X %02X %02X %02X ", ret,
-            pbBuffer[0], pbBuffer[1], pbBuffer[2], pbBuffer[3]);
-
-    return ret;
+    // check start code
+    if ((pbBuffer[0] == 0x00 && pbBuffer[1] == 0x00 && pbBuffer[2] == 0x00) ||
+            (pbBuffer[0] == 0x00 && pbBuffer[1] == 0x00 && pbBuffer[2] == 0x01))
+    {
+        return true;
+    }
+    else
+    {
+        return false;
+    }
 }
 
 void VideoJitterBuffer::RemovePacketFromLostList(uint16_t seqNum, bool bRemoveOldPacket)
