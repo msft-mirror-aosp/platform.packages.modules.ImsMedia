@@ -89,7 +89,7 @@ ImsMediaSocket::~ImsMediaSocket()
 
 void ImsMediaSocket::SetLocalEndpoint(const char* ipAddress, const uint32_t port)
 {
-    std::strcpy(mLocalIP, ipAddress);
+    std::strncpy(mLocalIP, ipAddress, strlen(ipAddress));
     mLocalPort = port;
 
     if (strstr(mLocalIP, ":") == NULL)
@@ -104,7 +104,7 @@ void ImsMediaSocket::SetLocalEndpoint(const char* ipAddress, const uint32_t port
 
 void ImsMediaSocket::SetPeerEndpoint(const char* ipAddress, const uint32_t port)
 {
-    std::strcpy(mPeerIP, ipAddress);
+    std::strncpy(mPeerIP, ipAddress, strlen(ipAddress));
     mPeerPort = port;
 
     if (strstr(mPeerIP, ":") == NULL)

@@ -71,17 +71,17 @@ private:
     IRtpSession* mRtpSession;
     RtpAddress mLocalAddress;
     RtpAddress mPeerAddress;
-    uint32_t mSamplingRate;
-    int32_t mRtpPayloadTx;
-    int32_t mRtpPayloadRx;
-    int32_t mRtpTxDtmfPayload;
-    int32_t mRtpRxDtmfPayload;
-    int32_t mDtmfSamplingRate;
+    int8_t mSamplingRate;
+    int8_t mRtpPayloadTx;
+    int8_t mRtpPayloadRx;
+    int8_t mRtpTxDtmfPayload;
+    int8_t mRtpRxDtmfPayload;
+    int8_t mDtmfSamplingRate;
     int32_t mCvoValue;
     uint32_t mReceivingSSRC;
     uint32_t mInactivityTime;
     uint32_t mNoRtpTime;
-    int32_t mRedundantPayload;
+    int8_t mRedundantPayload;
     uint32_t mArrivalTime;
     ImsMediaSubType mSubtype;
 #if (defined(DEBUG_JITTER_GEN_SIMULATION_LOSS) || defined(DEBUG_JITTER_GEN_SIMULATION_DUPLICATE))

@@ -41,18 +41,30 @@ public:
     ACameraDevice* mDevice;
     std::string mId;
     int32_t mFacing;
-    bool mAvailable;  // free to use ( no other apps are using
-    bool mOwner;      // we are the owner of the camera
-    explicit CameraId(const char* id) :
+    bool mAvailable;
+    bool mOwner;
+    explicit CameraId(const char* id = NULL) :
             mDevice(NULL),
             mFacing(ACAMERA_LENS_FACING_FRONT),
             mAvailable(false),
             mOwner(false)
     {
-        mId = id;
+        mId = (id != NULL) ? id : "";
     }
 
-    explicit CameraId() { CameraId(""); }
+    CameraId& operator=(const CameraId& camera)
+    {
+        if (this != &camera)
+        {
+            mDevice = camera.mDevice;
+            mId = camera.mId;
+            mFacing = camera.mFacing;
+            mAvailable = camera.mAvailable;
+            mOwner = camera.mOwner;
+        }
+
+        return *this;
+    }
 };
 
 template <typename T>
@@ -68,8 +80,12 @@ public:
     RangeValue() { min = max = static_cast<T>(0); }
     RangeValue& operator=(const RangeValue& rangeValue)
     {
-        min = rangeValue.min;
-        max = rangeValue.max;
+        if (this != &rangeValue)
+        {
+            min = rangeValue.min;
+            max = rangeValue.max;
+        }
+
         return *this;
     }
 

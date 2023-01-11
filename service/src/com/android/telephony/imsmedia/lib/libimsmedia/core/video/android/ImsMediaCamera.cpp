@@ -237,8 +237,8 @@ bool ImsMediaCamera::OpenCamera()
     else
     {
         IMLOGW0("[OpenCamera] Unsupported ACAMERA_SENSOR_INFO_EXPOSURE_TIME_RANGE");
-        mExposureRange.min = mExposureRange.max = 0l;
-        mExposureTime = 0l;
+        mExposureRange.min = mExposureRange.max = 0L;
+        mExposureTime = 0L;
     }
     status =
             ACameraMetadata_getConstEntry(metadataObj, ACAMERA_SENSOR_INFO_SENSITIVITY_RANGE, &val);
@@ -606,25 +606,8 @@ void ImsMediaCamera::OnDeviceError(ACameraDevice* dev, int err)
     std::string id(ACameraDevice_getId(dev));
     IMLOGE2("[OnDeviceError] CameraDevice %s is in error %#x", id.c_str(), err);
     PrintCameraDeviceError(err);
-
-    CameraId& cam = gCameraIds[id];
-
-    switch (err)
-    {
-        case ERROR_CAMERA_IN_USE:
-            cam.mAvailable = false;
-            cam.mOwner = false;
-            break;
-        case ERROR_CAMERA_SERVICE:
-        case ERROR_CAMERA_DEVICE:
-        case ERROR_CAMERA_DISABLED:
-        case ERROR_MAX_CAMERAS_IN_USE:
-            cam.mAvailable = false;
-            cam.mOwner = false;
-            break;
-        default:
-            IMLOGD1("[OnDeviceError] Unknown Camera Device Error: %#x", err);
-    }
+    gCameraIds[id].mAvailable = false;
+    gCameraIds[id].mOwner = false;
 }
 
 // CaptureSession state callbacks
@@ -839,9 +822,12 @@ public:
     }
     DisplayDimension& operator=(const DisplayDimension& other)
     {
-        w_ = other.w_;
-        h_ = other.h_;
-        portrait_ = other.portrait_;
+        if (this != &other)
+        {
+            w_ = other.w_;
+            h_ = other.h_;
+            portrait_ = other.portrait_;
+        }
 
         return (*this);
     }

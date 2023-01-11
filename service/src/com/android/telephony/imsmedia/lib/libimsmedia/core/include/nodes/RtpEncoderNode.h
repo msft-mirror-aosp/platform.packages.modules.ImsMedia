@@ -73,15 +73,15 @@ private:
     bool mMark;
     uint32_t mPrevTimestamp;
     uint32_t mDTMFTimestamp;
-    uint32_t mSamplingRate;
-    int32_t mRtpPayloadTx;
-    int32_t mRtpPayloadRx;
-    int32_t mRtpTxDtmfPayload;
-    int32_t mRtpRxDtmfPayload;
-    int32_t mDtmfSamplingRate;
+    int8_t mSamplingRate;
+    int8_t mRtpPayloadTx;
+    int8_t mRtpPayloadRx;
+    int8_t mRtpTxDtmfPayload;
+    int8_t mRtpRxDtmfPayload;
+    int8_t mDtmfSamplingRate;
     int32_t mCvoValue;
-    int32_t mRedundantPayload;
-    int32_t mRedundantLevel;
+    int8_t mRedundantPayload;
+    int8_t mRedundantLevel;
     tRtpHeaderExtensionInfo mRtpExtension;
 };
 

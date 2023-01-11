@@ -23,13 +23,13 @@
 
 #define DEFAULT_MTU     1500
 #define SEQ_ROUND_QUARD 655  // 1% of FFFF
-#define USHORT_SEQ_ROUND_COMPARE(a, b)                                              \
-    (((a >= b) && ((b >= SEQ_ROUND_QUARD) || ((a <= 0xffff - SEQ_ROUND_QUARD)))) || \
-            ((a <= SEQ_ROUND_QUARD) && (b >= 0xffff - SEQ_ROUND_QUARD)))
+#define USHORT_SEQ_ROUND_COMPARE(a, b)                                                      \
+    ((((a) >= (b)) && (((b) >= SEQ_ROUND_QUARD) || (((a) <= 0xffff - SEQ_ROUND_QUARD)))) || \
+            (((a) <= SEQ_ROUND_QUARD) && ((b) >= 0xffff - SEQ_ROUND_QUARD)))
 #define TS_ROUND_QUARD 3000
 #define USHORT_TS_ROUND_COMPARE(a, b)                                             \
-    (((a >= b) && ((b >= TS_ROUND_QUARD) || ((a <= 0xffff - TS_ROUND_QUARD)))) || \
-            ((a <= TS_ROUND_QUARD) && (b >= 0xffff - TS_ROUND_QUARD)))
+    (((a) >= (b) && (b) >= TS_ROUND_QUARD) || ((a) <= 0xffff - TS_ROUND_QUARD) || \
+            ((a) <= TS_ROUND_QUARD && (b) >= 0xffff - TS_ROUND_QUARD))
 
 using namespace android::telephony::imsmedia;
 
@@ -381,13 +381,13 @@ enum ImsMediaTextMsgResponse
     kTextSessionClosed,
 };
 
-#define UNDEFINED_SOCKET_FD                        -1
-#define T140_BUFFERING_TIME                        300
-#define RTT_MAX_CHAR_PER_SEC                       30  // ATIS_GTT : 30 characters per second
-#define RTT_MAX_UNICODE_UTF8                       4
-#define MAX_RTT_LEN                                RTT_MAX_CHAR_PER_SEC* RTT_MAX_UNICODE_UTF8
-#define T140_MAX_CHUNK                             1
-#define PAYLOADENCODER_TEXT_MAX_REDUNDANT_INTERVAL 16383
+#define UNDEFINED_SOCKET_FD                        (-1)
+#define T140_BUFFERING_TIME                        (300)
+#define RTT_MAX_CHAR_PER_SEC                       (30)  // ATIS_GTT : 30 characters per second
+#define RTT_MAX_UNICODE_UTF8                       (4)
+#define MAX_RTT_LEN                                (RTT_MAX_CHAR_PER_SEC * RTT_MAX_UNICODE_UTF8)
+#define T140_MAX_CHUNK                             (1)
+#define PAYLOADENCODER_TEXT_MAX_REDUNDANT_INTERVAL (16383)
 
 struct EventParamOpenSession
 {
@@ -583,9 +583,13 @@ struct tRtpHeaderExtensionInfo
     }
     tRtpHeaderExtensionInfo& operator=(const tRtpHeaderExtensionInfo& extension)
     {
-        nDefinedByProfile = extension.nDefinedByProfile;
-        nLength = extension.nLength;
-        nExtensionData = extension.nExtensionData;
+        if (this != &extension)
+        {
+            nDefinedByProfile = extension.nDefinedByProfile;
+            nLength = extension.nLength;
+            nExtensionData = extension.nExtensionData;
+        }
+
         return *this;
     }
 };
@@ -614,9 +618,13 @@ public:
     }
     RtpAddress& operator=(const RtpAddress& address)
     {
-        memset(this->ipAddress, 0, MAX_IP_LEN);
-        std::strncpy(this->ipAddress, address.ipAddress, MAX_IP_LEN);
-        this->port = address.port;
+        if (this != &address)
+        {
+            memset(this->ipAddress, 0, MAX_IP_LEN);
+            std::strncpy(this->ipAddress, address.ipAddress, MAX_IP_LEN);
+            this->port = address.port;
+        }
+
         return *this;
     }
     bool operator==(const RtpAddress& address)

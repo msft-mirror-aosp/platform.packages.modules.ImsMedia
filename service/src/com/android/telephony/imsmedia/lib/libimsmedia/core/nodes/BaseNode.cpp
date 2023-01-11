@@ -55,16 +55,6 @@ BaseNode::BaseNode(BaseSessionCallback* callback)
 
 BaseNode::~BaseNode()
 {
-    while (!mListFrontNodes.empty())
-    {
-        DisconnectFrontNode(mListFrontNodes.back());
-    }
-
-    while (!mListRearNodes.empty())
-    {
-        DisconnectRearNode(mListRearNodes.back());
-    }
-
     ClearDataQueue();
     mNodeState = kNodeStateStopped;
 }
@@ -90,6 +80,19 @@ void BaseNode::ConnectRearNode(BaseNode* pRearNode)
             pRearNode->GetNodeName());
     mListRearNodes.push_back(pRearNode);
     pRearNode->mListFrontNodes.push_back(this);
+}
+
+void BaseNode::DisconnectNodes()
+{
+    while (!mListFrontNodes.empty())
+    {
+        DisconnectFrontNode(mListFrontNodes.back());
+    }
+
+    while (!mListRearNodes.empty())
+    {
+        DisconnectRearNode(mListRearNodes.back());
+    }
 }
 
 void BaseNode::ClearDataQueue()

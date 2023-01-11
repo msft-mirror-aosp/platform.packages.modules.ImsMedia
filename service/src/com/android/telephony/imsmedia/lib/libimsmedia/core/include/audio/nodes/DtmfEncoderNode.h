@@ -45,18 +45,18 @@ private:
     uint32_t calculateDtmfDuration(uint32_t duration);
     bool convertSignal(uint8_t digit, uint8_t& signal);
     uint32_t MakeDTMFPayload(
-            uint8_t* pbPayload, uint8_t nEvent, bool bEnd, uint8_t nVolume, uint16_t nPeriod);
+            uint8_t* pbPayload, uint8_t nEvent, bool bEnd, uint8_t nVolume, uint32_t nPeriod);
     ImsMediaCondition mConditionDtmf;
     ImsMediaCondition mConditionExit;
     std::mutex mMutex;
     std::list<uint8_t> mListDtmfDigit;
     bool mStopDtmf;
-    uint32_t mSamplingRate;        // audio sampling rate
+    int8_t mSamplingRate;          // audio sampling rate
     uint32_t mDuration;            // msec unit, duration of one DTMF tone
     uint32_t mRetransmitDuration;  // msec unit, duration of retransmitting the last packet
     uint32_t mVolume;              // Volume of DTMF, 0~63, default value is 10.
     uint32_t mAudioFrameDuration;
-    uint32_t mPtime;
+    int8_t mPtime;
 };
 
 #endif  // DTMFENCODERNODE_H_INCLUDED

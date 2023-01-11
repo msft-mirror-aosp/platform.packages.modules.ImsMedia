@@ -26,7 +26,7 @@
 
 using namespace android::telephony::imsmedia;
 
-#define DEFAULT_UNDEFINED -1
+#define DEFAULT_UNDEFINED (-1)
 
 IVideoRendererNode::IVideoRendererNode(BaseSessionCallback* callback) :
         JitterBufferControlNode(callback, IMS_MEDIA_VIDEO)

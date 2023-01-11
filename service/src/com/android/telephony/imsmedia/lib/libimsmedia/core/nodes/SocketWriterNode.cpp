@@ -29,7 +29,7 @@ SocketWriterNode::~SocketWriterNode()
 {
     if (mSocket != NULL)
     {
-        Stop();
+        IMLOGE0("[~SocketWriterNode] socket is not closed");
     }
 }
 
@@ -169,12 +169,12 @@ void SocketWriterNode::SetLocalFd(int fd)
     mLocalFd = fd;
 }
 
-void SocketWriterNode::SetLocalAddress(const RtpAddress address)
+void SocketWriterNode::SetLocalAddress(const RtpAddress& address)
 {
     mLocalAddress = address;
 }
 
-void SocketWriterNode::SetPeerAddress(const RtpAddress address)
+void SocketWriterNode::SetPeerAddress(const RtpAddress& address)
 {
     mPeerAddress = address;
 }

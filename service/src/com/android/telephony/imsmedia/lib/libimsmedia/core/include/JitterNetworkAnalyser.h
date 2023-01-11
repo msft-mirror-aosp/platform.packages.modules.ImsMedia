@@ -16,9 +16,9 @@
 
 #ifndef JITTERNETWORKANALYSER_H_INCLUDED
 #define JITTERNETWORKANALYSER_H_INCLUDED
-#define JITTER_LIST_SIZE 50
 
 #include <stdint.h>
+#include <list>
 
 enum NETWORK_STATUS
 {
@@ -35,10 +35,24 @@ public:
     void Reset();
     // initialze network analyser
     void SetMinMaxJitterBufferSize(uint32_t nMinBufferSize, uint32_t nMaxBufferSize);
-    void SetJitterOptions(uint32_t nReduceTH, uint32_t nStepSize, double zValue, bool bImprovement);
-    void BasePacketChange(uint32_t packetTime, uint32_t arrivalTime);
-    // output data of analyzer
-    uint32_t GetJitterBufferSize(uint32_t nCurrJitterBufferSize);
+    void SetJitterOptions(uint32_t nReduceTH, uint32_t nStepSize, double zValue);
+
+    /**
+     * @brief Update the base timestamp
+     *
+     * @param packetTime The packet timestamp in milliseconds
+     * @param arrivalTime The arrival timestamp in milliseconds
+     */
+    void UpdateBaseTimestamp(uint32_t packetTime, uint32_t arrivalTime);
+
+    /**
+     * @brief Get the next jitter buffer size
+     *
+     * @param nCurrJitterBufferSize The current jiter buffer size
+     * @param currentTime The current timestamp when invoked this method with milliseconds unit
+     * @return uint32_t The next jitter buffer size
+     */
+    uint32_t GetNextJitterBufferSize(uint32_t nCurrJitterBufferSize, uint32_t currentTime);
 
     /**
      * @brief Calculate transit time difference
@@ -47,25 +61,23 @@ public:
      * @param arrivalTime The received timestamp of the packet in milliseconds
      * @return int32_t The calculated transit time difference of the packet
      */
-    int32_t calculateTransitTimeDifference(uint32_t timestamp, uint32_t arrivalTime);
+    int32_t CalculateTransitTimeDifference(uint32_t timestamp, uint32_t arrivalTime);
 
 private:
-    double DevCalc(double* pMean);
-    uint32_t GetMaxJitterValue();
+    double CalculateDeviation(double* pMean);
+    int32_t GetMaxJitterValue();
 
     uint32_t mMinJitterBufferSize;
     uint32_t mMaxJitterBufferSize;
     uint32_t mBasePacketTime;
     uint32_t mBaseArrivalTime;
-    uint32_t mJitters[JITTER_LIST_SIZE];
-    uint32_t mJitterIndex;
+    std::list<int32_t> mListJitters;
     NETWORK_STATUS mNetworkStatus;
     uint32_t mGoodStatusEnteringTime;
     uint32_t mBadStatusChangedTime;
     uint32_t mBufferReduceTH;
     uint32_t mBufferStepSize;
     double mBufferZValue;
-    bool mImprovement;
 };
 
 #endif  // JITTERNETWORKANALYSER_H_INCLUDED

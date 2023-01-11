@@ -24,14 +24,14 @@
 #include <AudioConfig.h>
 #include <stdlib.h>
 
-#define DEFAULT_PARAM                -1
-#define DEFAULT_INACTIVITY_TIME      5
-#define CALL_QUALITY_MONITORING_TIME 5
-#define MAX_NUM_PACKET_STORED        500
-#define DELETE_ALL                   65536
-#define TIMER_INTERVAL               1000   // 1 sec
-#define STOP_TIMEOUT                 1000   // 1 sec
-#define MESSAGE_PROCESSING_INTERVAL  20000  // 20 msec
+#define DEFAULT_PARAM                (-1)
+#define DEFAULT_INACTIVITY_TIME      (5)
+#define CALL_QUALITY_MONITORING_TIME (5)
+#define MAX_NUM_PACKET_STORED        (500)
+#define DELETE_ALL                   (65536)
+#define TIMER_INTERVAL               (1000)   // 1 sec
+#define STOP_TIMEOUT                 (1000)   // 1 sec
+#define MESSAGE_PROCESSING_INTERVAL  (20000)  // 20 msec
 
 MediaQualityAnalyzer::MediaQualityAnalyzer()
 {

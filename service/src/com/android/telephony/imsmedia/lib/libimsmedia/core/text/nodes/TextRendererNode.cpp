@@ -20,7 +20,7 @@
 #include <ImsMediaTrace.h>
 
 /** Maximum waiting time when packet loss found */
-#define TEXT_LOSS_MAX_WAITING_TIME 1000
+#define TEXT_LOSS_MAX_WAITING_TIME (1000)
 
 TextRendererNode::TextRendererNode(BaseSessionCallback* callback) :
         JitterBufferControlNode(callback, IMS_MEDIA_TEXT)
@@ -81,7 +81,7 @@ void TextRendererNode::SetConfig(void* config)
 
     TextConfig* pConfig = reinterpret_cast<TextConfig*>(config);
     mCodecType = pConfig->getCodecType();
-    mRedundantRevel = pConfig->getRedundantLevel();
+    mRedundantLevel = pConfig->getRedundantLevel();
 }
 
 bool TextRendererNode::IsSameConfig(void* config)
@@ -94,7 +94,7 @@ bool TextRendererNode::IsSameConfig(void* config)
     TextConfig* pConfig = reinterpret_cast<TextConfig*>(config);
 
     return (mCodecType == pConfig->getCodecType() &&
-            mRedundantRevel == pConfig->getRedundantLevel());
+            mRedundantLevel == pConfig->getRedundantLevel());
 }
 
 void TextRendererNode::ProcessData()
