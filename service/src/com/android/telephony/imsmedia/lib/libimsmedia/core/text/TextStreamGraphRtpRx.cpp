@@ -34,7 +34,7 @@ ImsMediaResult TextStreamGraphRtpRx::create(RtpConfig* config)
 {
     IMLOGI1("[create] state[%d]", mGraphState);
 
-    if (config == NULL)
+    if (config == nullptr)
     {
         return RESULT_INVALID_PARAM;
     }
@@ -80,7 +80,7 @@ ImsMediaResult TextStreamGraphRtpRx::update(RtpConfig* config)
 {
     IMLOGI1("[update] state[%d]", mGraphState);
 
-    if (config == NULL)
+    if (config == nullptr)
     {
         return RESULT_INVALID_PARAM;
     }
@@ -93,10 +93,10 @@ ImsMediaResult TextStreamGraphRtpRx::update(RtpConfig* config)
         return RESULT_SUCCESS;
     }
 
-    if (mConfig != NULL)
+    if (mConfig != nullptr)
     {
         delete mConfig;
-        mConfig = NULL;
+        mConfig = nullptr;
     }
 
     mConfig = new TextConfig(pConfig);
@@ -117,7 +117,7 @@ ImsMediaResult TextStreamGraphRtpRx::update(RtpConfig* config)
 
         for (auto& node : mListNodeStarted)
         {
-            if (node != NULL)
+            if (node != nullptr)
             {
                 IMLOGD1("[update] update node[%s]", node->GetNodeName());
                 ret = node->UpdateConfig(mConfig);
@@ -134,7 +134,7 @@ ImsMediaResult TextStreamGraphRtpRx::update(RtpConfig* config)
     {
         for (auto& node : mListNodeToStart)
         {
-            if (node != NULL)
+            if (node != nullptr)
             {
                 IMLOGD1("[update] update node[%s]", node->GetNodeName());
                 ret = node->UpdateConfig(mConfig);
@@ -162,7 +162,7 @@ ImsMediaResult TextStreamGraphRtpRx::start()
 {
     IMLOGD1("[start] state[%d]", mGraphState);
 
-    if (mConfig == NULL)
+    if (mConfig == nullptr)
     {
         return RESULT_INVALID_PARAM;
     }
@@ -192,11 +192,11 @@ ImsMediaResult TextStreamGraphRtpRx::start()
 
 bool TextStreamGraphRtpRx::setMediaQualityThreshold(MediaQualityThreshold* threshold)
 {
-    if (threshold != NULL)
+    if (threshold != nullptr)
     {
         BaseNode* node = findNode(kNodeIdRtpDecoder);
 
-        if (node != NULL)
+        if (node != nullptr)
         {
             RtpDecoderNode* decoder = reinterpret_cast<RtpDecoderNode*>(node);
             decoder->SetInactivityTimerSec(threshold->getRtpInactivityTimerMillis() / 1000);

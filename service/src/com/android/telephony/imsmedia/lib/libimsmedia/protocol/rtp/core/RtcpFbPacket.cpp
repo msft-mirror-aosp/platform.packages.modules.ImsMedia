@@ -19,7 +19,7 @@
 #include <string.h>
 
 RtcpFbPacket::RtcpFbPacket() :
-        m_pFCI(RTP_NULL)
+        m_pFCI(nullptr)
 {
 }
 
@@ -28,7 +28,7 @@ RtcpFbPacket::~RtcpFbPacket()
     if (m_pFCI)
     {
         delete (m_pFCI);
-        m_pFCI = RTP_NULL;
+        m_pFCI = nullptr;
     }
 }
 
@@ -95,7 +95,7 @@ eRTP_STATUS_CODE RtcpFbPacket::decodeRtcpFbPacket(
     if (usRtcpFbLen > 0)
     {
         RtpBuffer* pFCI = new RtpBuffer(usRtcpFbLen, reinterpret_cast<RtpDt_UChar*>(pucRtcpFbBuf));
-        if (pFCI == RTP_NULL)
+        if (pFCI == nullptr)
         {
             RTP_TRACE_ERROR("[Memory Error] new returned NULL.", RTP_ZERO, RTP_ZERO);
             return RTP_MEMORY_FAIL;

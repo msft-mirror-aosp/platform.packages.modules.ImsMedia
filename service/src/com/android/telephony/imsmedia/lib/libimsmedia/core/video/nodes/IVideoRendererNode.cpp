@@ -40,7 +40,7 @@ IVideoRendererNode::IVideoRendererNode(BaseSessionCallback* callback) :
         mJitterBuffer->SetSessionCallback(mCallback);
     }
 
-    mWindow = NULL;
+    mWindow = nullptr;
     mCondition.reset();
     mCodecType = DEFAULT_UNDEFINED;
     mWidth = 0;
@@ -108,7 +108,7 @@ void IVideoRendererNode::Stop()
         mVideoRenderer->Stop();
     }
 
-    if (mJitterBuffer != NULL)
+    if (mJitterBuffer != nullptr)
     {
         VideoJitterBuffer* jitter = reinterpret_cast<VideoJitterBuffer*>(mJitterBuffer);
         jitter->StopTimer();
@@ -129,7 +129,7 @@ bool IVideoRendererNode::IsSourceNode()
 
 void IVideoRendererNode::SetConfig(void* config)
 {
-    if (config == NULL)
+    if (config == nullptr)
     {
         return;
     }
@@ -146,7 +146,7 @@ void IVideoRendererNode::SetConfig(void* config)
 
 bool IVideoRendererNode::IsSameConfig(void* config)
 {
-    if (config == NULL)
+    if (config == nullptr)
     {
         return true;
     }
@@ -162,7 +162,7 @@ bool IVideoRendererNode::IsSameConfig(void* config)
 void IVideoRendererNode::ProcessData()
 {
     std::lock_guard<std::mutex> guard(mMutex);
-    uint8_t* pData = NULL;
+    uint8_t* pData = nullptr;
     uint32_t nDataSize = 0;
     uint32_t nTimeStamp = 0;
     bool bMark = false;
@@ -294,7 +294,7 @@ void IVideoRendererNode::ProcessData()
         IMLOGD0("[ProcessData] notify first frame");
         mFirstFrame = true;
 
-        if (mCallback != NULL)
+        if (mCallback != nullptr)
         {
             mCallback->SendEvent(kImsMediaEventFirstPacketReceived);
         }
@@ -354,7 +354,7 @@ void IVideoRendererNode::UpdateRoundTripTimeDelay(int32_t delay)
 {
     IMLOGD1("[UpdateRoundTripTimeDelay] delay[%d]", delay);
 
-    if (mJitterBuffer != NULL)
+    if (mJitterBuffer != nullptr)
     {
         VideoJitterBuffer* jitter = reinterpret_cast<VideoJitterBuffer*>(mJitterBuffer);
 
@@ -644,7 +644,7 @@ void IVideoRendererNode::SaveConfigFrame(uint8_t* pbBuffer, uint32_t nBufferSize
             // save
             if (bSPSString || bPPSString)
             {
-                uint8_t* pConfigData = NULL;
+                uint8_t* pConfigData = nullptr;
                 uint32_t nConfigIndex = 0;
 
                 if (eMode == kConfigSps)
@@ -726,7 +726,7 @@ void IVideoRendererNode::SaveConfigFrame(uint8_t* pbBuffer, uint32_t nBufferSize
             // save
             if (bVPSString || bSPSString || bPPSString)
             {
-                uint8_t* pConfigData = NULL;
+                uint8_t* pConfigData = nullptr;
                 uint32_t nConfigIndex = 0;
 
                 if (eMode == kConfigVps)
@@ -838,11 +838,11 @@ void IVideoRendererNode::QueueConfigFrame(uint32_t timestamp)
 
     for (int32_t i = 0; i < nNumOfConfigString; i++)
     {
-        uint8_t* pConfigData = NULL;
+        uint8_t* pConfigData = nullptr;
         uint32_t nConfigLen = mConfigLen[i];
         pConfigData = mConfigBuffer[i];
 
-        if (nConfigLen == 0 || mVideoRenderer == NULL)
+        if (nConfigLen == 0 || mVideoRenderer == nullptr)
         {
             continue;
         }
@@ -853,7 +853,7 @@ void IVideoRendererNode::QueueConfigFrame(uint32_t timestamp)
 
 void IVideoRendererNode::NotifyPeerDimensionChanged()
 {
-    if (mCallback == NULL)
+    if (mCallback == nullptr)
     {
         return;
     }

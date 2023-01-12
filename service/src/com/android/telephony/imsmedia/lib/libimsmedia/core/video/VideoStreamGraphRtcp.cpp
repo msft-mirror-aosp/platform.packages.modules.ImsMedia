@@ -34,7 +34,7 @@ ImsMediaResult VideoStreamGraphRtcp::create(RtpConfig* config)
 {
     IMLOGI1("[create] state[%d]", mGraphState);
 
-    if (config == NULL)
+    if (config == nullptr)
     {
         return RESULT_INVALID_PARAM;
     }
@@ -85,7 +85,7 @@ ImsMediaResult VideoStreamGraphRtcp::update(RtpConfig* config)
 {
     IMLOGI1("[update] state[%d]", mGraphState);
 
-    if (config == NULL)
+    if (config == nullptr)
     {
         return RESULT_INVALID_PARAM;
     }
@@ -98,7 +98,7 @@ ImsMediaResult VideoStreamGraphRtcp::update(RtpConfig* config)
         return RESULT_SUCCESS;
     }
 
-    if (mConfig != NULL)
+    if (mConfig != nullptr)
     {
         delete mConfig;
     }
@@ -114,7 +114,7 @@ ImsMediaResult VideoStreamGraphRtcp::update(RtpConfig* config)
 
     for (auto& node : mListNodeStarted)
     {
-        if (node != NULL)
+        if (node != nullptr)
         {
             IMLOGD1("[update] update node[%s]", node->GetNodeName());
             ret = node->UpdateConfig(pConfig);
@@ -142,11 +142,11 @@ ImsMediaResult VideoStreamGraphRtcp::update(RtpConfig* config)
 
 bool VideoStreamGraphRtcp::setMediaQualityThreshold(MediaQualityThreshold* threshold)
 {
-    if (threshold != NULL)
+    if (threshold != nullptr)
     {
         BaseNode* node = findNode(kNodeIdRtcpDecoder);
 
-        if (node != NULL)
+        if (node != nullptr)
         {
             RtcpDecoderNode* decoder = reinterpret_cast<RtcpDecoderNode*>(node);
             decoder->SetInactivityTimerSec(threshold->getRtcpInactivityTimerMillis() / 1000);
@@ -173,7 +173,7 @@ bool VideoStreamGraphRtcp::OnEvent(int32_t type, uint64_t param1, uint64_t param
             BaseNode* node = findNode(kNodeIdRtcpEncoder);
             InternalRequestEventParam* param = reinterpret_cast<InternalRequestEventParam*>(param1);
 
-            if (node != NULL && param != NULL)
+            if (node != nullptr && param != nullptr)
             {
                 RtcpEncoderNode* encoder = reinterpret_cast<RtcpEncoderNode*>(node);
 

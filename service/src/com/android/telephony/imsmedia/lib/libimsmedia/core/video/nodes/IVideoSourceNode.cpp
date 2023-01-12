@@ -44,7 +44,7 @@ IVideoSourceNode::IVideoSourceNode(BaseSessionCallback* callback) :
     mIntraInterval = 1;
     mImagePath = "";
     mDeviceOrientation = 0;
-    mWindow = NULL;
+    mWindow = nullptr;
 }
 
 IVideoSourceNode::~IVideoSourceNode() {}
@@ -71,7 +71,7 @@ ImsMediaResult IVideoSourceNode::Start()
         {
             mVideoSource->SetCameraConfig(mCameraId, mCameraZoom);
 
-            if (mWindow == NULL)
+            if (mWindow == nullptr)
             {
                 IMLOGE0("[Start] surface is not ready");
                 return RESULT_NOT_READY;
@@ -122,7 +122,7 @@ bool IVideoSourceNode::IsSourceNode()
 
 void IVideoSourceNode::SetConfig(void* config)
 {
-    if (config == NULL)
+    if (config == nullptr)
     {
         return;
     }
@@ -155,7 +155,7 @@ void IVideoSourceNode::SetConfig(void* config)
 
 bool IVideoSourceNode::IsSameConfig(void* config)
 {
-    if (config == NULL)
+    if (config == nullptr)
     {
         return true;
     }
@@ -177,7 +177,7 @@ ImsMediaResult IVideoSourceNode::UpdateConfig(void* config)
 {
     IMLOGD1("[UpdateConfig] current mode[%d]", mVideoMode);
 
-    if (config == NULL)
+    if (config == nullptr)
     {
         return RESULT_INVALID_PARAM;
     }
@@ -239,7 +239,7 @@ ImsMediaResult IVideoSourceNode::UpdateConfig(void* config)
 void IVideoSourceNode::ProcessData()
 {
     std::lock_guard<std::mutex> guard(mMutex);
-    uint8_t* data = NULL;
+    uint8_t* data = nullptr;
     uint32_t dataSize = 0;
     uint32_t timestamp = 0;
     bool mark = false;
@@ -284,25 +284,25 @@ void IVideoSourceNode::OnEvent(int32_t type, int32_t param1, int32_t param2)
     switch (type)
     {
         case kVideoSourceEventUpdateOrientation:
-            if (mCallback != NULL)
+            if (mCallback != nullptr)
             {
                 mCallback->SendEvent(kRequestVideoCvoUpdate, param1, param2);
             }
             break;
         case kVideoSourceEventCameraError:
-            if (mCallback != NULL)
+            if (mCallback != nullptr)
             {
                 mCallback->SendEvent(kImsMediaEventNotifyError, param1, param2);
             }
             break;
         case kRequestVideoBitrateChange:
-            if (mVideoSource != NULL)
+            if (mVideoSource != nullptr)
             {
                 mVideoSource->changeBitrate(param1);
             }
             break;
         case kRequestVideoIdrFrame:
-            if (mVideoSource != NULL)
+            if (mVideoSource != nullptr)
             {
                 mVideoSource->requestIdrFrame();
             }

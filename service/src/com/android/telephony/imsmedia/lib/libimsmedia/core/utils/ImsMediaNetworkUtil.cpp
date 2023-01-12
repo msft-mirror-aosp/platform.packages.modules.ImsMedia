@@ -66,7 +66,7 @@ static bool GetIpPortFromSockAddr(
 bool ImsMediaNetworkUtil::getLocalIpPortFromSocket(
         const int nSocketFD, char* pIPAddress, int len, unsigned int& port)
 {
-    if (pIPAddress == NULL)
+    if (pIPAddress == nullptr)
     {
         return false;
     }
@@ -88,7 +88,7 @@ bool ImsMediaNetworkUtil::getLocalIpPortFromSocket(
 bool ImsMediaNetworkUtil::getRemoteIpPortFromSocket(
         const int nSocketFD, char* pIPAddress, int len, unsigned int& port)
 {
-    if (pIPAddress == NULL)
+    if (pIPAddress == nullptr)
     {
         return false;
     }

@@ -76,7 +76,7 @@ public:
         {
             MediaQuality* quality = reinterpret_cast<MediaQuality*>(param1);
 
-            if (quality != NULL)
+            if (quality != nullptr)
             {
                 mMediaQuality = *quality;
                 delete quality;
@@ -100,7 +100,7 @@ private:
 class MediaQualityAnalyzerTest : public ::testing::Test
 {
 public:
-    MediaQualityAnalyzerTest() { mAnalyzer = NULL; }
+    MediaQualityAnalyzerTest() { mAnalyzer = nullptr; }
     virtual ~MediaQualityAnalyzerTest() {}
 
 protected:
@@ -159,7 +159,7 @@ protected:
 
     virtual void TearDown() override
     {
-        if (mAnalyzer != NULL)
+        if (mAnalyzer != nullptr)
         {
             delete mAnalyzer;
         }

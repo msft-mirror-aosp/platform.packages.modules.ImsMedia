@@ -28,12 +28,12 @@ IAudioPlayerNode::IAudioPlayerNode(BaseSessionCallback* callback) :
 {
     std::unique_ptr<ImsMediaAudioPlayer> track(new ImsMediaAudioPlayer());
     mAudioPlayer = std::move(track);
-    mConfig = NULL;
+    mConfig = nullptr;
 }
 
 IAudioPlayerNode::~IAudioPlayerNode()
 {
-    if (mConfig != NULL)
+    if (mConfig != nullptr)
     {
         delete mConfig;
     }
@@ -108,15 +108,15 @@ bool IAudioPlayerNode::IsSourceNode()
 
 void IAudioPlayerNode::SetConfig(void* config)
 {
-    if (config == NULL)
+    if (config == nullptr)
     {
         return;
     }
 
-    if (mConfig != NULL)
+    if (mConfig != nullptr)
     {
         delete mConfig;
-        mConfig = NULL;
+        mConfig = nullptr;
     }
 
     mConfig = new AudioConfig(*static_cast<AudioConfig*>(config));
@@ -144,7 +144,7 @@ void IAudioPlayerNode::SetConfig(void* config)
 
 bool IAudioPlayerNode::IsSameConfig(void* config)
 {
-    if (config == NULL)
+    if (config == nullptr)
     {
         return true;
     }
@@ -178,7 +178,7 @@ void* IAudioPlayerNode::run()
     IMLOGD0("[run] enter");
     ImsMediaSubType subtype = MEDIASUBTYPE_UNDEFINED;
     ImsMediaSubType datatype = MEDIASUBTYPE_UNDEFINED;
-    uint8_t* pData = NULL;
+    uint8_t* pData = nullptr;
     uint32_t nDataSize = 0;
     uint32_t nTimestamp = 0;
     bool bMark = false;
@@ -226,5 +226,5 @@ void* IAudioPlayerNode::run()
 
         ImsMediaTimer::USleep(nTime);
     }
-    return NULL;
+    return nullptr;
 }

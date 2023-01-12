@@ -74,7 +74,7 @@ bool AudioRtpPayloadDecoderNode::IsSourceNode()
 void AudioRtpPayloadDecoderNode::SetConfig(void* config)
 {
     AudioConfig* pConfig = reinterpret_cast<AudioConfig*>(config);
-    if (pConfig != NULL)
+    if (pConfig != nullptr)
     {
         mCodecType = ImsMediaAudioUtil::ConvertCodecType(pConfig->getCodecType());
         if (mCodecType == kAudioCodecAmr || mCodecType == kAudioCodecAmrWb)
@@ -94,7 +94,7 @@ void AudioRtpPayloadDecoderNode::SetConfig(void* config)
 
 bool AudioRtpPayloadDecoderNode::IsSameConfig(void* config)
 {
-    if (config == NULL)
+    if (config == nullptr)
         return true;
     AudioConfig* pConfig = reinterpret_cast<AudioConfig*>(config);
 
@@ -125,7 +125,7 @@ void AudioRtpPayloadDecoderNode::OnDataFromFrontNode(ImsMediaSubType subtype, ui
 {
     if (subtype == MEDIASUBTYPE_REFRESHED)
     {
-        SendDataToRearNode(subtype, NULL, nDataSize, 0, 0, 0, MEDIASUBTYPE_UNDEFINED);
+        SendDataToRearNode(subtype, nullptr, nDataSize, 0, 0, 0, MEDIASUBTYPE_UNDEFINED);
         return;
     }
 
@@ -154,7 +154,7 @@ void AudioRtpPayloadDecoderNode::OnDataFromFrontNode(ImsMediaSubType subtype, ui
 void AudioRtpPayloadDecoderNode::DecodePayloadAmr(uint8_t* pData, uint32_t nDataSize,
         uint32_t nTimestamp, bool bMark, uint32_t nSeqNum, uint32_t arrivalTime)
 {
-    if (pData == NULL || nDataSize == 0)
+    if (pData == nullptr || nDataSize == 0)
     {
         return;
     }
@@ -258,7 +258,7 @@ void AudioRtpPayloadDecoderNode::DecodePayloadAmr(uint8_t* pData, uint32_t nData
 void AudioRtpPayloadDecoderNode::DecodePayloadEvs(uint8_t* pData, uint32_t nDataSize,
         uint32_t nTimeStamp, bool bMark, uint32_t nSeqNum, uint32_t arrivalTime)
 {
-    if (pData == NULL || nDataSize == 0)
+    if (pData == nullptr || nDataSize == 0)
     {
         return;
     }

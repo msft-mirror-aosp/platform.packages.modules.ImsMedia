@@ -48,7 +48,7 @@ protected:
 TEST_F(RtcpByePacketTest, decodeByePacketMultipleSSRCTest)
 {
     std::unique_ptr<RtpDt_UChar[]> pucByeBuf(new RtpDt_UChar[25]);
-    ASSERT_TRUE(pucByeBuf != NULL);
+    ASSERT_TRUE(pucByeBuf != nullptr);
 
     /* pucByeBuf injected with multiple ssrc number */
     memcpy(pucByeBuf.get(),
@@ -63,7 +63,7 @@ TEST_F(RtcpByePacketTest, decodeByePacketMultipleSSRCTest)
 TEST_F(RtcpByePacketTest, decodeByePacketSingleSSRCTest)
 {
     std::unique_ptr<RtpDt_UChar[]> pucByeBuf(new RtpDt_UChar[13]);
-    ASSERT_TRUE(pucByeBuf != RTP_NULL);
+    ASSERT_TRUE(pucByeBuf != nullptr);
 
     /* pucByeBuf contains session RTCP Header, Optional reason and length excluded */
     memcpy(pucByeBuf.get(),
@@ -77,7 +77,7 @@ TEST_F(RtcpByePacketTest, decodeByePacketSingleSSRCTest)
 TEST_F(RtcpByePacketTest, decodeByePacketMultipleSSRCOptionalDataTest)
 {
     std::unique_ptr<RtpDt_UChar[]> pucByeBuf(new RtpDt_UChar[28]);
-    ASSERT_TRUE(pucByeBuf != RTP_NULL);
+    ASSERT_TRUE(pucByeBuf != nullptr);
 
     /* pucByeBuf contains RTCP header, 2 SSRC and optional Length and Reason. */
     memcpy(pucByeBuf.get(),
@@ -92,7 +92,7 @@ TEST_F(RtcpByePacketTest, decodeByePacketMultipleSSRCOptionalDataTest)
 TEST_F(RtcpByePacketTest, decodeByePacketReasonLengthOverflowTest)
 {
     std::unique_ptr<RtpDt_UChar[]> pucByeBuf(new RtpDt_UChar[28]);
-    ASSERT_TRUE(pucByeBuf != RTP_NULL);
+    ASSERT_TRUE(pucByeBuf != nullptr);
 
     /* pucByeBuf injected with unexpected Optiona length value, how ever
      * optional message having less length */
@@ -108,7 +108,7 @@ TEST_F(RtcpByePacketTest, decodeByePacketReasonLengthOverflowTest)
 TEST_F(RtcpByePacketTest, decodeByePacketReasonLengthUnderflowTest)
 {
     std::unique_ptr<RtpDt_UChar[]> pucByeBuf(new RtpDt_UChar[28]);
-    ASSERT_TRUE(pucByeBuf != RTP_NULL);
+    ASSERT_TRUE(pucByeBuf != nullptr);
 
     /* pucByeBuf injected with unexpected Optiona length value, how ever
      * optional message having more length */
@@ -123,11 +123,11 @@ TEST_F(RtcpByePacketTest, decodeByePacketReasonLengthUnderflowTest)
 TEST_F(RtcpByePacketTest, formByePacketSuccessTest)
 {
     std::unique_ptr<RtpBuffer> testBuf(new RtpBuffer());
-    ASSERT_TRUE(testBuf != RTP_NULL);
+    ASSERT_TRUE(testBuf != nullptr);
 
     std::unique_ptr<RtpDt_UChar[]> pcBuff(new RtpDt_UChar[RTP_DEF_MTU_SIZE]);
 
-    ASSERT_TRUE(pcBuff != RTP_NULL);
+    ASSERT_TRUE(pcBuff != nullptr);
 
     testBuf->setBufferInfo(RTP_DEF_MTU_SIZE, pcBuff.release());
     testBuf->setLength(RTP_ZERO);
@@ -141,11 +141,11 @@ TEST_F(RtcpByePacketTest, formByePacketSuccessTest)
 TEST_F(RtcpByePacketTest, formByePacketSuccessTestWithByeReason)
 {
     std::unique_ptr<RtpBuffer> testBuf(new RtpBuffer());
-    ASSERT_TRUE(testBuf != RTP_NULL);
+    ASSERT_TRUE(testBuf != nullptr);
 
     std::unique_ptr<RtpDt_UChar[]> pcBuff(new RtpDt_UChar[RTP_DEF_MTU_SIZE]);
 
-    ASSERT_TRUE(pcBuff != RTP_NULL);
+    ASSERT_TRUE(pcBuff != nullptr);
 
     testBuf->setBufferInfo(RTP_DEF_MTU_SIZE, pcBuff.release());
     testBuf->setLength(RTP_ZERO);

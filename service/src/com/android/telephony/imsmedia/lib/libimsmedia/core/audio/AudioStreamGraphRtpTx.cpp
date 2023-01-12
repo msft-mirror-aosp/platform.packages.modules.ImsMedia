@@ -36,7 +36,7 @@ ImsMediaResult AudioStreamGraphRtpTx::create(RtpConfig* config)
 {
     IMLOGI1("[create] state[%d]", mGraphState);
 
-    if (config == NULL)
+    if (config == nullptr)
     {
         return RESULT_INVALID_PARAM;
     }
@@ -87,7 +87,7 @@ ImsMediaResult AudioStreamGraphRtpTx::update(RtpConfig* config)
 {
     IMLOGI1("[update] state[%d]", mGraphState);
 
-    if (config == NULL)
+    if (config == nullptr)
     {
         return RESULT_INVALID_PARAM;
     }
@@ -100,7 +100,7 @@ ImsMediaResult AudioStreamGraphRtpTx::update(RtpConfig* config)
         return RESULT_SUCCESS;
     }
 
-    if (mConfig != NULL)
+    if (mConfig != nullptr)
     {
         delete mConfig;
     }
@@ -157,7 +157,7 @@ ImsMediaResult AudioStreamGraphRtpTx::update(RtpConfig* config)
 
 bool AudioStreamGraphRtpTx::createDtmfGraph(RtpConfig* config, BaseNode* rtpEncoderNode)
 {
-    if (config == NULL)
+    if (config == nullptr)
     {
         return false;
     }
@@ -182,7 +182,7 @@ bool AudioStreamGraphRtpTx::createDtmfGraph(RtpConfig* config, BaseNode* rtpEnco
     AddNode(pDtmfSenderNode);
     mListDtmfNodes.push_back(pDtmfSenderNode);
 
-    if (rtpEncoderNode != NULL)
+    if (rtpEncoderNode != nullptr)
     {
         pDtmfSenderNode->ConnectRearNode(rtpEncoderNode);
     }
@@ -193,13 +193,13 @@ bool AudioStreamGraphRtpTx::createDtmfGraph(RtpConfig* config, BaseNode* rtpEnco
 bool AudioStreamGraphRtpTx::sendDtmf(char digit, int duration)
 {
     IMLOGD1("[sendDtmf], state[%d]", mGraphState);
-    BaseNode* pDTMFNode = NULL;
+    BaseNode* pDTMFNode = nullptr;
     if (!mListDtmfNodes.empty())
     {
         pDTMFNode = mListDtmfNodes.front();
     }
 
-    if (pDTMFNode != NULL && pDTMFNode->GetNodeId() == kNodeIdDtmfEncoder)
+    if (pDTMFNode != nullptr && pDTMFNode->GetNodeId() == kNodeIdDtmfEncoder)
     {
         IMLOGD2("[sendDtmf] %c, duration[%d]", digit, duration);
         ImsMediaSubType subtype = MEDIASUBTYPE_DTMF_PAYLOAD;
@@ -225,7 +225,7 @@ void AudioStreamGraphRtpTx::processCmr(const uint32_t cmr)
 {
     BaseNode* node = findNode(kNodeIdAudioSource);
 
-    if (node != NULL)
+    if (node != nullptr)
     {
         (reinterpret_cast<IAudioSourceNode*>(node))->ProcessCmr(cmr);
     }

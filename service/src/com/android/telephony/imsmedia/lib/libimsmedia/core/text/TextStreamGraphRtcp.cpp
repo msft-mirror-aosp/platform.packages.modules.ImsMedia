@@ -34,7 +34,7 @@ ImsMediaResult TextStreamGraphRtcp::create(RtpConfig* config)
 {
     IMLOGI1("[create] state[%d]", mGraphState);
 
-    if (config == NULL)
+    if (config == nullptr)
     {
         return RESULT_INVALID_PARAM;
     }
@@ -85,7 +85,7 @@ ImsMediaResult TextStreamGraphRtcp::update(RtpConfig* config)
 {
     IMLOGI1("[update] state[%d]", mGraphState);
 
-    if (config == NULL)
+    if (config == nullptr)
     {
         return RESULT_INVALID_PARAM;
     }
@@ -98,7 +98,7 @@ ImsMediaResult TextStreamGraphRtcp::update(RtpConfig* config)
         return RESULT_SUCCESS;
     }
 
-    if (mConfig != NULL)
+    if (mConfig != nullptr)
     {
         delete mConfig;
     }
@@ -120,7 +120,7 @@ ImsMediaResult TextStreamGraphRtcp::update(RtpConfig* config)
 
     for (auto& node : mListNodeStarted)
     {
-        if (node != NULL)
+        if (node != nullptr)
         {
             IMLOGD1("[update] update node[%s]", node->GetNodeName());
             ret = node->UpdateConfig(pConfig);
@@ -149,11 +149,11 @@ ImsMediaResult TextStreamGraphRtcp::update(RtpConfig* config)
 
 bool TextStreamGraphRtcp::setMediaQualityThreshold(MediaQualityThreshold* threshold)
 {
-    if (threshold != NULL)
+    if (threshold != nullptr)
     {
         BaseNode* node = findNode(kNodeIdRtcpDecoder);
 
-        if (node != NULL)
+        if (node != nullptr)
         {
             RtcpDecoderNode* decoder = reinterpret_cast<RtcpDecoderNode*>(node);
             decoder->SetInactivityTimerSec(threshold->getRtcpInactivityTimerMillis() / 1000);

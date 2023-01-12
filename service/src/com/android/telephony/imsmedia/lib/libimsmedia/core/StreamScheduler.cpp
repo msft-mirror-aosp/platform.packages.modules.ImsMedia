@@ -34,7 +34,7 @@ StreamScheduler::~StreamScheduler()
 
 void StreamScheduler::RegisterNode(BaseNode* pNode)
 {
-    if (pNode == NULL)
+    if (pNode == nullptr)
     {
         return;
     }
@@ -54,7 +54,7 @@ void StreamScheduler::RegisterNode(BaseNode* pNode)
 
 void StreamScheduler::DeRegisterNode(BaseNode* pNode)
 {
-    if (pNode == NULL)
+    if (pNode == nullptr)
     {
         return;
     }
@@ -79,7 +79,7 @@ void StreamScheduler::Start()
 
     for (auto& node : mlistSourceNode)
     {
-        if (node != NULL)
+        if (node != nullptr)
         {
             nNumOfRegisteredNode++;
             IMLOGD2("[Start] [%p] registered source node [%s]", this, node->GetNodeName());
@@ -88,7 +88,7 @@ void StreamScheduler::Start()
 
     for (auto& node : mlistRegisteredNode)
     {
-        if (node != NULL)
+        if (node != nullptr)
         {
             nNumOfRegisteredNode++;
             IMLOGD2("[Start] [%p] registered node [%s]", this, node->GetNodeName());
@@ -124,15 +124,15 @@ BaseNode* StreamScheduler::DetermineProcessingNode(uint32_t* pnMaxDataInNode)
 {
     if (IsThreadStopped())
     {
-        return NULL;
+        return nullptr;
     }
 
-    BaseNode* pRetNode = NULL;
+    BaseNode* pRetNode = nullptr;
     uint32_t nMaxDataInNode = 0;
 
     for (auto& node : mlistNodeToRun)
     {
-        if (node != NULL)
+        if (node != nullptr)
         {
             uint32_t nDataInNode = node->GetDataCount();
 
@@ -155,7 +155,7 @@ void StreamScheduler::RunRegisteredNode()
     // run source nodes
     for (auto& node : mlistSourceNode)
     {
-        if (node != NULL && node->GetState() == kNodeStateRunning)
+        if (node != nullptr && node->GetState() == kNodeStateRunning)
         {
             node->ProcessData();
         }
@@ -164,7 +164,7 @@ void StreamScheduler::RunRegisteredNode()
     // run nodes
     for (auto& node : mlistRegisteredNode)
     {
-        if (node != NULL)
+        if (node != nullptr)
         {
             mlistNodeToRun.push_back(node);
         }
@@ -174,7 +174,7 @@ void StreamScheduler::RunRegisteredNode()
     {
         BaseNode* pNode = DetermineProcessingNode(&nMaxDataInNode);
 
-        if (pNode == NULL)
+        if (pNode == nullptr)
         {
             break;
         }
@@ -215,5 +215,5 @@ void* StreamScheduler::run()
 
     mConditionExit.signal();
     IMLOGD1("[run] [%p] exit", this);
-    return NULL;
+    return nullptr;
 }

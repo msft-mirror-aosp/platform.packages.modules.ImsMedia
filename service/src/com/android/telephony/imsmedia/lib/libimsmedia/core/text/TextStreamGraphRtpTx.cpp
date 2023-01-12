@@ -34,17 +34,17 @@ ImsMediaResult TextStreamGraphRtpTx::create(RtpConfig* config)
 {
     IMLOGI1("[create] state[%d]", mGraphState);
 
-    if (config == NULL)
+    if (config == nullptr)
     {
         return RESULT_INVALID_PARAM;
     }
 
     TextConfig* pConfig = reinterpret_cast<TextConfig*>(config);
 
-    if (mConfig != NULL)
+    if (mConfig != nullptr)
     {
         delete mConfig;
-        mConfig = NULL;
+        mConfig = nullptr;
     }
 
     mConfig = new TextConfig(pConfig);
@@ -89,7 +89,7 @@ ImsMediaResult TextStreamGraphRtpTx::update(RtpConfig* config)
 {
     IMLOGI1("[update] state[%d]", mGraphState);
 
-    if (config == NULL)
+    if (config == nullptr)
     {
         return RESULT_INVALID_PARAM;
     }
@@ -102,10 +102,10 @@ ImsMediaResult TextStreamGraphRtpTx::update(RtpConfig* config)
         return RESULT_SUCCESS;
     }
 
-    if (mConfig != NULL)
+    if (mConfig != nullptr)
     {
         delete mConfig;
-        mConfig = NULL;
+        mConfig = nullptr;
     }
 
     ImsMediaResult ret = RESULT_NOT_READY;
@@ -128,7 +128,7 @@ ImsMediaResult TextStreamGraphRtpTx::update(RtpConfig* config)
 
         for (auto& node : mListNodeStarted)
         {
-            if (node != NULL)
+            if (node != nullptr)
             {
                 IMLOGD1("[update] update node[%s]", node->GetNodeName());
                 ret = node->UpdateConfig(mConfig);
@@ -146,7 +146,7 @@ ImsMediaResult TextStreamGraphRtpTx::update(RtpConfig* config)
     {
         for (auto& node : mListNodeToStart)
         {
-            if (node != NULL)
+            if (node != nullptr)
             {
                 IMLOGD1("[update] update node[%s]", node->GetNodeName());
                 ret = node->UpdateConfig(mConfig);
@@ -174,7 +174,7 @@ ImsMediaResult TextStreamGraphRtpTx::start()
 {
     IMLOGI1("[start] state[%d]", mGraphState);
 
-    if (mConfig == NULL)
+    if (mConfig == nullptr)
     {
         return RESULT_INVALID_PARAM;
     }
@@ -205,14 +205,14 @@ ImsMediaResult TextStreamGraphRtpTx::start()
 bool TextStreamGraphRtpTx::sendRtt(const android::String8* text)
 {
     IMLOGD1("[sendRtt], state[%d]", mGraphState);
-    TextSourceNode* node = NULL;
+    TextSourceNode* node = nullptr;
 
     if (!mListNodeStarted.empty())
     {
         node = reinterpret_cast<TextSourceNode*>(mListNodeStarted.front());
     }
 
-    if (node != NULL)
+    if (node != nullptr)
     {
         node->SendRtt(text);
         return true;

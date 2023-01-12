@@ -27,7 +27,7 @@ RtpDt_Void RtpOsUtil::GetNtpTime(tRTP_NTP_TIME& pstNtpTime)
 {
     struct timeval stAndrodTp;
 
-    if (gettimeofday(&stAndrodTp, RTP_NULL) != -1)
+    if (gettimeofday(&stAndrodTp, nullptr) != -1)
     {
         // To convert a UNIX timestamp (seconds since 1970) to NTP time, add 2,208,988,800 seconds
         pstNtpTime.m_uiNtpHigh32Bits = stAndrodTp.tv_sec + 2208988800UL;
@@ -38,7 +38,7 @@ RtpDt_Void RtpOsUtil::GetNtpTime(tRTP_NTP_TIME& pstNtpTime)
 RtpDt_Void RtpOsUtil::Srand()
 {
     struct timeval stSysTime;
-    gettimeofday(&stSysTime, RTP_NULL);
+    gettimeofday(&stSysTime, nullptr);
     RtpDt_UInt32 uiSeed = stSysTime.tv_usec * 1000;
     srand(uiSeed);
 }

@@ -41,7 +41,7 @@ ImsMediaResult SocketReaderNode::Start()
     IMLOGD1("[Start] media[%d]", mMediaType);
     mSocket = ISocket::GetInstance(mLocalAddress.port, mPeerAddress.ipAddress, mPeerAddress.port);
 
-    if (mSocket == NULL)
+    if (mSocket == nullptr)
     {
         IMLOGE0("[Start] can't create socket instance");
         return RESULT_NOT_READY;
@@ -76,9 +76,9 @@ void SocketReaderNode::Stop()
     IMLOGD1("[Stop] media[%d]", mMediaType);
     std::lock_guard<std::mutex> guard(mMutex);
 
-    if (mSocket != NULL)
+    if (mSocket != nullptr)
     {
-        mSocket->Listen(NULL);
+        mSocket->Listen(nullptr);
 
         if (mSocketOpened)
         {
@@ -86,7 +86,7 @@ void SocketReaderNode::Stop()
         }
 
         ISocket::ReleaseInstance(mSocket);
-        mSocket = NULL;
+        mSocket = nullptr;
         mSocketOpened = false;
     }
 
@@ -97,7 +97,7 @@ void SocketReaderNode::Stop()
 void SocketReaderNode::ProcessData()
 {
     std::lock_guard<std::mutex> guard(mMutex);
-    uint8_t* data = NULL;
+    uint8_t* data = nullptr;
     uint32_t dataSize = 0;
     uint32_t timeStamp = 0;
     bool bMark = false;
@@ -129,7 +129,7 @@ bool SocketReaderNode::IsSourceNode()
 
 void SocketReaderNode::SetConfig(void* config)
 {
-    if (config == NULL)
+    if (config == nullptr)
     {
         return;
     }
@@ -149,7 +149,7 @@ void SocketReaderNode::SetConfig(void* config)
 
 bool SocketReaderNode::IsSameConfig(void* config)
 {
-    if (config == NULL)
+    if (config == nullptr)
     {
         return true;
     }

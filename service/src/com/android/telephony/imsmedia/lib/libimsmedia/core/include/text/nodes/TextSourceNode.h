@@ -26,7 +26,7 @@
 class TextSourceNode : public BaseNode
 {
 public:
-    TextSourceNode(BaseSessionCallback* callback = NULL);
+    TextSourceNode(BaseSessionCallback* callback = nullptr);
     virtual ~TextSourceNode();
     virtual kBaseNodeId GetNodeId();
     virtual ImsMediaResult Start();

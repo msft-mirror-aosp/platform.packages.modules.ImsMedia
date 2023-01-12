@@ -38,7 +38,7 @@ TextConfig::TextConfig() :
 TextConfig::TextConfig(TextConfig* config) :
         RtpConfig(config)
 {
-    if (config != NULL)
+    if (config != nullptr)
     {
         this->mCodecType = config->mCodecType;
         this->mBitrate = config->mBitrate;
@@ -89,7 +89,7 @@ bool TextConfig::operator!=(const TextConfig& config) const
 status_t TextConfig::writeToParcel(Parcel* out) const
 {
     status_t err;
-    if (out == NULL)
+    if (out == nullptr)
     {
         return BAD_VALUE;
     }
@@ -138,7 +138,7 @@ status_t TextConfig::writeToParcel(Parcel* out) const
 status_t TextConfig::readFromParcel(const Parcel* in)
 {
     status_t err;
-    if (in == NULL)
+    if (in == nullptr)
     {
         return BAD_VALUE;
     }

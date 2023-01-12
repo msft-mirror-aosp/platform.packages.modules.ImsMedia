@@ -71,7 +71,7 @@ enum kBaseNodeId
 class BaseNode
 {
 public:
-    BaseNode(BaseSessionCallback* callback = NULL);
+    BaseNode(BaseSessionCallback* callback = nullptr);
     virtual ~BaseNode();
     /**
      * @brief Sets the BaseSession callback listener
@@ -224,8 +224,8 @@ public:
      * @return false Fails to gets the valid data
      */
     virtual bool GetData(ImsMediaSubType* subtype, uint8_t** data, uint32_t* dataSize,
-            uint32_t* timestamp, bool* mark, uint32_t* seq, ImsMediaSubType* dataType = NULL,
-            uint32_t* arrivalTime = NULL);
+            uint32_t* timestamp, bool* mark, uint32_t* seq, ImsMediaSubType* dataType = nullptr,
+            uint32_t* arrivalTime = nullptr);
 
     /**
      * @brief Deletes the data stored in the front of the data queue

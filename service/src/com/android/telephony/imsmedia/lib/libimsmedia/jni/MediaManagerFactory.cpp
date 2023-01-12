@@ -21,7 +21,7 @@
 
 BaseManager* MediaManagerFactory::getInterface(int mediatype)
 {
-    BaseManager* pManager = NULL;
+    BaseManager* pManager = nullptr;
 
     switch ((IMS_MEDIA_TYPE)mediatype)
     {
@@ -35,7 +35,7 @@ BaseManager* MediaManagerFactory::getInterface(int mediatype)
             pManager = TextManager::getInstance();
             break;
         default:
-            return NULL;
+            return nullptr;
     }
 
     return pManager;

@@ -23,7 +23,7 @@
 class DtmfSenderNode : public BaseNode
 {
 public:
-    DtmfSenderNode(BaseSessionCallback* callback = NULL);
+    DtmfSenderNode(BaseSessionCallback* callback = nullptr);
     virtual ~DtmfSenderNode();
     virtual kBaseNodeId GetNodeId();
     virtual ImsMediaResult Start();

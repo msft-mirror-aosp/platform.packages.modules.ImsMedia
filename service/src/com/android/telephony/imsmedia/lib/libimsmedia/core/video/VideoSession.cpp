@@ -24,18 +24,18 @@
 VideoSession::VideoSession()
 {
     IMLOGD0("[VideoSession]");
-    mGraphRtpTx = NULL;
-    mGraphRtpRx = NULL;
-    mGraphRtcp = NULL;
-    mPreviewSurface = NULL;
-    mDisplaySurface = NULL;
+    mGraphRtpTx = nullptr;
+    mGraphRtpRx = nullptr;
+    mGraphRtcp = nullptr;
+    mPreviewSurface = nullptr;
+    mDisplaySurface = nullptr;
 }
 
 VideoSession::~VideoSession()
 {
     IMLOGD0("[~VideoSession]");
 
-    if (mGraphRtpTx != NULL)
+    if (mGraphRtpTx != nullptr)
     {
         if (mGraphRtpTx->getState() == kStreamStateRunning)
         {
@@ -43,10 +43,10 @@ VideoSession::~VideoSession()
         }
 
         delete mGraphRtpTx;
-        mGraphRtpTx = NULL;
+        mGraphRtpTx = nullptr;
     }
 
-    if (mGraphRtpRx != NULL)
+    if (mGraphRtpRx != nullptr)
     {
         if (mGraphRtpRx->getState() == kStreamStateRunning)
         {
@@ -54,10 +54,10 @@ VideoSession::~VideoSession()
         }
 
         delete mGraphRtpRx;
-        mGraphRtpRx = NULL;
+        mGraphRtpRx = nullptr;
     }
 
-    if (mGraphRtcp != NULL)
+    if (mGraphRtcp != nullptr)
     {
         if (mGraphRtcp->getState() == kStreamStateRunning)
         {
@@ -65,7 +65,7 @@ VideoSession::~VideoSession()
         }
 
         delete mGraphRtcp;
-        mGraphRtcp = NULL;
+        mGraphRtcp = nullptr;
     }
 }
 
@@ -73,18 +73,18 @@ SessionState VideoSession::getState()
 {
     SessionState state = kSessionStateOpened;
 
-    if ((mGraphRtpTx != NULL && mGraphRtpTx->getState() == kStreamStateWaitSurface) ||
-            (mGraphRtpRx != NULL && mGraphRtpRx->getState() == kStreamStateWaitSurface))
+    if ((mGraphRtpTx != nullptr && mGraphRtpTx->getState() == kStreamStateWaitSurface) ||
+            (mGraphRtpRx != nullptr && mGraphRtpRx->getState() == kStreamStateWaitSurface))
     {
         return kSessionStateSuspended;
     }
-    else if ((mGraphRtpTx != NULL && mGraphRtpTx->getState() == kStreamStateRunning) ||
-            (mGraphRtpRx != NULL && mGraphRtpRx->getState() == kStreamStateRunning))
+    else if ((mGraphRtpTx != nullptr && mGraphRtpTx->getState() == kStreamStateRunning) ||
+            (mGraphRtpRx != nullptr && mGraphRtpRx->getState() == kStreamStateRunning))
     {
         return kSessionStateActive;
     }
 
-    if (mGraphRtcp != NULL && mGraphRtcp->getState() == kStreamStateRunning)
+    if (mGraphRtcp != nullptr && mGraphRtcp->getState() == kStreamStateRunning)
     {
         return kSessionStateSuspended;
     }
@@ -96,7 +96,7 @@ ImsMediaResult VideoSession::startGraph(RtpConfig* config)
 {
     IMLOGI0("[startGraph]");
 
-    if (config == NULL)
+    if (config == nullptr)
     {
         return RESULT_INVALID_PARAM;
     }
@@ -104,7 +104,7 @@ ImsMediaResult VideoSession::startGraph(RtpConfig* config)
     VideoConfig* pConfig = reinterpret_cast<VideoConfig*>(config);
     ImsMediaResult ret = RESULT_NOT_READY;
 
-    if (mGraphRtpTx != NULL)
+    if (mGraphRtpTx != nullptr)
     {
         ret = mGraphRtpTx->update(config);
 
@@ -114,7 +114,7 @@ ImsMediaResult VideoSession::startGraph(RtpConfig* config)
             return ret;
         }
 
-        if (mPreviewSurface != NULL)
+        if (mPreviewSurface != nullptr)
         {
             mGraphRtpTx->setSurface(mPreviewSurface);
         }
@@ -145,7 +145,7 @@ ImsMediaResult VideoSession::startGraph(RtpConfig* config)
                 return ret;
             }
 
-            if (mPreviewSurface != NULL)
+            if (mPreviewSurface != nullptr)
             {
                 mGraphRtpTx->setSurface(mPreviewSurface);
             }
@@ -158,7 +158,7 @@ ImsMediaResult VideoSession::startGraph(RtpConfig* config)
         return RESULT_SUCCESS;
     }
 
-    if (mGraphRtpRx != NULL)
+    if (mGraphRtpRx != nullptr)
     {
         mGraphRtpRx->setMediaQualityThreshold(&mThreshold);
         ret = mGraphRtpRx->update(config);
@@ -169,7 +169,7 @@ ImsMediaResult VideoSession::startGraph(RtpConfig* config)
             return ret;
         }
 
-        if (mDisplaySurface != NULL)
+        if (mDisplaySurface != nullptr)
         {
             mGraphRtpRx->setSurface(mDisplaySurface);
         }
@@ -192,14 +192,14 @@ ImsMediaResult VideoSession::startGraph(RtpConfig* config)
                 return ret;
             }
 
-            if (mDisplaySurface != NULL)
+            if (mDisplaySurface != nullptr)
             {
                 mGraphRtpRx->setSurface(mDisplaySurface);
             }
         }
     }
 
-    if (mGraphRtcp != NULL)
+    if (mGraphRtcp != nullptr)
     {
         mGraphRtcp->setMediaQualityThreshold(&mThreshold);
         ret = mGraphRtcp->update(config);
@@ -287,14 +287,14 @@ void VideoSession::onEvent(int32_t type, uint64_t param1, uint64_t param2)
 
 ImsMediaResult VideoSession::setPreviewSurface(ANativeWindow* surface)
 {
-    if (surface == NULL)
+    if (surface == nullptr)
     {
         return RESULT_INVALID_PARAM;
     }
 
     mPreviewSurface = surface;
 
-    if (mGraphRtpTx != NULL)
+    if (mGraphRtpTx != nullptr)
     {
         mGraphRtpTx->setSurface(surface);
     }
@@ -304,14 +304,14 @@ ImsMediaResult VideoSession::setPreviewSurface(ANativeWindow* surface)
 
 ImsMediaResult VideoSession::setDisplaySurface(ANativeWindow* surface)
 {
-    if (surface == NULL)
+    if (surface == nullptr)
     {
         return RESULT_INVALID_PARAM;
     }
 
     mDisplaySurface = surface;
 
-    if (mGraphRtpRx != NULL)
+    if (mGraphRtpRx != nullptr)
     {
         mGraphRtpRx->setSurface(surface);
     }
@@ -328,7 +328,7 @@ void VideoSession::SendInternalEvent(int32_t type, uint64_t param1, uint64_t par
         case kRequestVideoCvoUpdate:
         case kRequestVideoBitrateChange:
         case kRequestVideoIdrFrame:
-            if (mGraphRtpTx != NULL)
+            if (mGraphRtpTx != nullptr)
             {
                 if (!mGraphRtpTx->OnEvent(type, param1, param2))
                 {
@@ -340,7 +340,7 @@ void VideoSession::SendInternalEvent(int32_t type, uint64_t param1, uint64_t par
         case kRequestVideoSendPictureLost:
         case kRequestVideoSendTmmbr:
         case kRequestVideoSendTmmbn:
-            if (mGraphRtcp != NULL)
+            if (mGraphRtcp != nullptr)
             {
                 if (!mGraphRtcp->OnEvent(type, param1, param2))
                 {
@@ -349,7 +349,7 @@ void VideoSession::SendInternalEvent(int32_t type, uint64_t param1, uint64_t par
             }
             break;
         case kRequestRoundTripTimeDelayUpdate:
-            if (mGraphRtpRx != NULL)
+            if (mGraphRtpRx != nullptr)
             {
                 if (!mGraphRtpRx->OnEvent(type, param1, param2))
                 {

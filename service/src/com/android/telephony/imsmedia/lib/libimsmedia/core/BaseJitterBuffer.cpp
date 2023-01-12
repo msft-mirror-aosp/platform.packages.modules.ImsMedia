@@ -19,7 +19,7 @@
 
 BaseJitterBuffer::BaseJitterBuffer()
 {
-    mCallback = NULL;
+    mCallback = nullptr;
     mFirstFrameReceived = false;
     mSsrc = 0;
     mCodecType = 0;

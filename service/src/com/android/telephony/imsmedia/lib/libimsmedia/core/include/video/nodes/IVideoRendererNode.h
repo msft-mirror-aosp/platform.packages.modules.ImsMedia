@@ -35,7 +35,7 @@
 class IVideoRendererNode : public JitterBufferControlNode
 {
 public:
-    IVideoRendererNode(BaseSessionCallback* callback = NULL);
+    IVideoRendererNode(BaseSessionCallback* callback = nullptr);
     virtual ~IVideoRendererNode();
     virtual kBaseNodeId GetNodeId();
     virtual ImsMediaResult Start();
@@ -70,8 +70,8 @@ public:
 
 private:
     bool IsIntraFrame(uint8_t* pbBuffer, uint32_t nBufferSize);
-    bool IsConfigFrame(uint8_t* pbBuffer, uint32_t nBufferSize, uint32_t* nBufferOffset = NULL);
-    bool IsSps(uint8_t* pbBuffer, uint32_t nBufferSize, uint32_t* nBufferOffset = NULL);
+    bool IsConfigFrame(uint8_t* pbBuffer, uint32_t nBufferSize, uint32_t* nBufferOffset = nullptr);
+    bool IsSps(uint8_t* pbBuffer, uint32_t nBufferSize, uint32_t* nBufferOffset = nullptr);
     void SaveConfigFrame(uint8_t* pbBuffer, uint32_t nBufferSize, uint32_t type);
     /**
      * @brief Remove Access Uint Delimiter Nal Unit.

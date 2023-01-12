@@ -35,7 +35,7 @@ TEST_F(RtpStackTest, TestConstructor)
     RtpStack rtpStack2;
 
     // Check default value
-    EXPECT_TRUE(rtpStack2.getStackProfile() == NULL);
+    EXPECT_TRUE(rtpStack2.getStackProfile() == nullptr);
 
     RtpStackProfile* pobjStackProfile3 = new RtpStackProfile();
     RtpStack rtpStack3(pobjStackProfile3);
@@ -77,7 +77,7 @@ TEST_F(RtpStackTest, TestDeleteRtpSessionFailures)
     EXPECT_EQ(rtpStack.deleteRtpSession(pobjRtpSession2), RTP_FAILURE);
 
     // check for Invalid param
-    EXPECT_EQ(rtpStack.deleteRtpSession(RTP_NULL), RTP_INVALID_PARAMS);
+    EXPECT_EQ(rtpStack.deleteRtpSession(nullptr), RTP_INVALID_PARAMS);
 
     // delete Rtp Sessions
     EXPECT_EQ(rtpStack.deleteRtpSession(pobjRtpSession1), RTP_SUCCESS);

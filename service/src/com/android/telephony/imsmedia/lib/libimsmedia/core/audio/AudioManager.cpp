@@ -20,7 +20,7 @@
 
 using namespace android;
 
-AudioManager* AudioManager::sManager = NULL;
+AudioManager* AudioManager::sManager = nullptr;
 
 AudioManager::AudioManager() {}
 
@@ -28,7 +28,7 @@ AudioManager::~AudioManager() {}
 
 AudioManager* AudioManager::getInstance()
 {
-    if (sManager == NULL)
+    if (sManager == nullptr)
     {
         sManager = new AudioManager();
     }
@@ -289,7 +289,7 @@ void AudioManager::RequestHandler::processEvent(
         case kAudioOpenSession:
         {
             EventParamOpenSession* param = reinterpret_cast<EventParamOpenSession*>(paramA);
-            if (param != NULL)
+            if (param != nullptr)
             {
                 AudioConfig* pConfig = reinterpret_cast<AudioConfig*>(param->mConfig);
                 result = AudioManager::getInstance()->openSession(
@@ -308,7 +308,7 @@ void AudioManager::RequestHandler::processEvent(
 
                 delete param;
 
-                if (pConfig != NULL)
+                if (pConfig != nullptr)
                 {
                     delete pConfig;
                 }
@@ -357,7 +357,7 @@ void AudioManager::RequestHandler::processEvent(
         case kAudioDeleteConfig:
         {
             AudioConfig* config = reinterpret_cast<AudioConfig*>(paramA);
-            if (config != NULL)
+            if (config != nullptr)
             {
                 AudioManager::getInstance()->deleteConfig(static_cast<int>(sessionId), config);
                 delete config;
@@ -367,7 +367,7 @@ void AudioManager::RequestHandler::processEvent(
         case kAudioSendDtmf:
         {
             EventParamDtmf* param = reinterpret_cast<EventParamDtmf*>(paramA);
-            if (param != NULL)
+            if (param != nullptr)
             {
                 AudioManager::getInstance()->sendDtmf(
                         static_cast<int>(sessionId), param->digit, param->duration);
@@ -381,7 +381,7 @@ void AudioManager::RequestHandler::processEvent(
         case kAudioSetMediaQualityThreshold:
         {
             MediaQualityThreshold* threshold = reinterpret_cast<MediaQualityThreshold*>(paramA);
-            if (threshold != NULL)
+            if (threshold != nullptr)
             {
                 AudioManager::getInstance()->setMediaQualityThreshold(
                         static_cast<int>(sessionId), threshold);
@@ -432,7 +432,7 @@ void AudioManager::ResponseHandler::processEvent(
             parcel.writeInt32(event);
             parcel.writeInt32(paramA);  // result
             AudioConfig* config = reinterpret_cast<AudioConfig*>(paramB);
-            if (config != NULL)
+            if (config != nullptr)
             {
                 config->writeToParcel(&parcel);
                 AudioManager::getInstance()->sendResponse(sessionId, parcel);
@@ -444,7 +444,7 @@ void AudioManager::ResponseHandler::processEvent(
         {
             parcel.writeInt32(event);
             AudioConfig* config = reinterpret_cast<AudioConfig*>(paramA);
-            if (config != NULL)
+            if (config != nullptr)
             {
                 config->writeToParcel(&parcel);
                 AudioManager::getInstance()->sendResponse(sessionId, parcel);
@@ -470,7 +470,7 @@ void AudioManager::ResponseHandler::processEvent(
         {
             parcel.writeInt32(event);
             MediaQuality* quality = reinterpret_cast<MediaQuality*>(paramA);
-            if (quality != NULL)
+            if (quality != nullptr)
             {
                 quality->writeToParcel(&parcel);
                 AudioManager::getInstance()->sendResponse(sessionId, parcel);

@@ -20,14 +20,14 @@
 SocketWriterNode::SocketWriterNode(BaseSessionCallback* callback) :
         BaseNode(callback)
 {
-    mSocket = NULL;
+    mSocket = nullptr;
     mSocketOpened = false;
     mDisableSocket = false;
 }
 
 SocketWriterNode::~SocketWriterNode()
 {
-    if (mSocket != NULL)
+    if (mSocket != nullptr)
     {
         IMLOGE0("[~SocketWriterNode] socket is not closed");
     }
@@ -43,7 +43,7 @@ ImsMediaResult SocketWriterNode::Start()
     IMLOGD1("[Start] media[%d]", mMediaType);
     mSocket = ISocket::GetInstance(mLocalAddress.port, mPeerAddress.ipAddress, mPeerAddress.port);
 
-    if (mSocket == NULL)
+    if (mSocket == nullptr)
     {
         IMLOGE0("[Start] can't create socket instance");
         return RESULT_NOT_READY;
@@ -70,7 +70,7 @@ void SocketWriterNode::Stop()
 {
     IMLOGD1("[Stop] media[%d]", mMediaType);
 
-    if (mSocket != NULL)
+    if (mSocket != nullptr)
     {
         if (mSocketOpened)
         {
@@ -79,7 +79,7 @@ void SocketWriterNode::Stop()
         }
 
         ISocket::ReleaseInstance(mSocket);
-        mSocket = NULL;
+        mSocket = nullptr;
     }
 
     mNodeState = kNodeStateStopped;
@@ -97,7 +97,7 @@ bool SocketWriterNode::IsSourceNode()
 
 void SocketWriterNode::SetConfig(void* config)
 {
-    if (config == NULL)
+    if (config == nullptr)
     {
         return;
     }
@@ -119,7 +119,7 @@ void SocketWriterNode::SetConfig(void* config)
 
 bool SocketWriterNode::IsSameConfig(void* config)
 {
-    if (config == NULL)
+    if (config == nullptr)
     {
         return true;
     }
@@ -156,7 +156,7 @@ void SocketWriterNode::OnDataFromFrontNode(ImsMediaSubType subtype, uint8_t* pDa
     IMLOGD_PACKET3(IM_PACKET_LOG_SOCKET, "[OnDataFromFrontNode] TS[%d], SeqNum[%u], size[%u]",
             nTimestamp, nSeqNum, nDataSize);
 
-    if (mSocket == NULL)
+    if (mSocket == nullptr)
     {
         return;
     }

@@ -22,7 +22,7 @@ RtpStackUtil::~RtpStackUtil() {}
 
 RtpDt_UInt16 RtpStackUtil::getSequenceNumber(IN RtpDt_UChar* pucRtpHdrBuf)
 {
-    if (pucRtpHdrBuf == RTP_NULL)
+    if (pucRtpHdrBuf == nullptr)
     {
         return RTP_ZERO;
     }
@@ -38,7 +38,7 @@ RtpDt_UInt16 RtpStackUtil::getSequenceNumber(IN RtpDt_UChar* pucRtpHdrBuf)
 
 RtpDt_UInt32 RtpStackUtil::getRtpSsrc(IN RtpDt_UChar* pucRtpBuf)
 {
-    if (pucRtpBuf == RTP_NULL)
+    if (pucRtpBuf == nullptr)
     {
         return RTP_ZERO;
     }
@@ -52,7 +52,7 @@ RtpDt_UInt32 RtpStackUtil::getRtpSsrc(IN RtpDt_UChar* pucRtpBuf)
 
 RtpDt_UInt32 RtpStackUtil::getRtcpSsrc(IN RtpDt_UChar* pucRtcpBuf)
 {
-    if (pucRtcpBuf == RTP_NULL)
+    if (pucRtcpBuf == nullptr)
     {
         return RTP_ZERO;
     }
@@ -76,7 +76,7 @@ RtpDt_UInt32 RtpStackUtil::generateNewSsrc(IN RtpDt_UInt32 uiTermNum)
 
 RtpDt_UInt32 RtpStackUtil::getMidFourOctets(IN tRTP_NTP_TIME* pstNtpTs)
 {
-    if (pstNtpTs == RTP_NULL)
+    if (pstNtpTs == nullptr)
     {
         return RTP_ZERO;
     }
@@ -93,7 +93,7 @@ RtpDt_UInt32 RtpStackUtil::calcRtpTimestamp(IN RtpDt_UInt32 uiPrevRtpTs,
         IN tRTP_NTP_TIME* pstCurNtpTs, IN tRTP_NTP_TIME* pstPrevNtpTs,
         IN RtpDt_UInt32 uiSamplingRate)
 {
-    if (pstCurNtpTs == RTP_NULL || pstPrevNtpTs == RTP_NULL)
+    if (pstCurNtpTs == nullptr || pstPrevNtpTs == nullptr)
     {
         return RTP_ZERO;
     }

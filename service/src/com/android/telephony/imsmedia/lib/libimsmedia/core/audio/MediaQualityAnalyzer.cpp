@@ -37,7 +37,7 @@ MediaQualityAnalyzer::MediaQualityAnalyzer()
 {
     mCodecType = 0;
     mCodecAttribute = 0;
-    mCallback = NULL;
+    mCallback = nullptr;
     std::unique_ptr<RtcpXrEncoder> analyzer(new RtcpXrEncoder());
     mRtcpXrEncoder = std::move(analyzer);
     mJitterThreshold = 0;
@@ -122,7 +122,7 @@ void MediaQualityAnalyzer::stop()
         StopThread();
         mConditionExit.wait_timeout(STOP_TIMEOUT);
 
-        if (mCallback != NULL)
+        if (mCallback != nullptr)
         {
             MediaQuality* quality = new MediaQuality(mMediaQuality);
             mCallback->SendEvent(kAudioCallQualityChangedInd, reinterpret_cast<uint64_t>(quality));
@@ -134,7 +134,7 @@ void MediaQualityAnalyzer::stop()
 
 void MediaQualityAnalyzer::collectInfo(const int32_t streamType, RtpPacket* packet)
 {
-    if (packet == NULL)
+    if (packet == nullptr)
     {
         return;
     }
@@ -346,7 +346,7 @@ void MediaQualityAnalyzer::processData(const int32_t timeCount)
     {
         mMediaQuality.setRtpInactivityDetected(true);
 
-        if (mCallback != NULL)
+        if (mCallback != nullptr)
         {
             MediaQuality* mediaQuality = new MediaQuality(mMediaQuality);
             mCallback->SendEvent(
@@ -373,7 +373,7 @@ void MediaQualityAnalyzer::processData(const int32_t timeCount)
         {
             mMediaQuality.setDownlinkCallQualityLevel(quality);
 
-            if (mCallback != NULL)
+            if (mCallback != nullptr)
             {
                 MediaQuality* mediaQuality = new MediaQuality(mMediaQuality);
                 mCallback->SendEvent(
@@ -397,7 +397,7 @@ void MediaQualityAnalyzer::processData(const int32_t timeCount)
 
         IMLOGD1("[processData] lossRate[%lf]", lossRate);
 
-        if (lossRate >= mPacketLossThreshold && mCallback != NULL)
+        if (lossRate >= mPacketLossThreshold && mCallback != nullptr)
         {
             mCallback->SendEvent(kImsMediaEventPacketLoss, lossRate);
         }
@@ -411,7 +411,7 @@ void MediaQualityAnalyzer::processData(const int32_t timeCount)
     {
         IMLOGD1("[processData] Jitter[%lf]", mJitterRxPacket);
 
-        if (mJitterRxPacket >= mJitterThreshold && mCallback != NULL)
+        if (mJitterRxPacket >= mJitterThreshold && mCallback != nullptr)
         {
             mCallback->SendEvent(kImsMediaEventNotifyJitter, mJitterRxPacket);
         }
@@ -591,7 +591,7 @@ void* MediaQualityAnalyzer::run()
 
     IMLOGD1("[run] exit %p", this);
     mConditionExit.signal();
-    return NULL;
+    return nullptr;
 }
 
 void MediaQualityAnalyzer::reset()
