@@ -93,9 +93,9 @@ void ImsMediaAudioSource::SetPtime(uint32_t time)
     mPtime = time;
 }
 
-void ImsMediaAudioSource::SetEvsBandwidth(kEvsBandwidth evsBandwidth)
+void ImsMediaAudioSource::SetEvsBandwidth(int32_t evsBandwidth)
 {
-    mEvsBandwidth = evsBandwidth;
+    mEvsBandwidth = (kEvsBandwidth)evsBandwidth;
 }
 
 bool ImsMediaAudioSource::Start()
