@@ -35,7 +35,7 @@ TEST_F(RtcpSrPacketTest, TestGetSetMethods)
     objRtcpHeader.decodeRtcpHeader(pRtcpBuff, sizeof(pRtcpBuff));
     objRtcpSrPacket.setRtcpHdrInfo(objRtcpHeader);
     RtcpHeader* pRet = objRtcpSrPacket.getRtcpHdrInfo();
-    ASSERT_TRUE(pRet != NULL);
+    ASSERT_TRUE(pRet != nullptr);
     EXPECT_EQ(*pRet, objRtcpHeader);
 
     objRtcpSrPacket.setRtpTimestamp(0xAAAAAAAA);
@@ -68,7 +68,7 @@ TEST_F(RtcpSrPacketTest, TestDecodeSrPacketWithZeroReports)
     EXPECT_EQ(res, RTP_SUCCESS);
 
     tRTP_NTP_TIME* ntpTime = objRtcpSrPacket.getNtpTime();
-    ASSERT_TRUE(ntpTime != NULL);
+    ASSERT_TRUE(ntpTime != nullptr);
 
     EXPECT_EQ(ntpTime->m_uiNtpHigh32Bits, 0xe65fa531);
     EXPECT_EQ(ntpTime->m_uiNtpLow32Bits, 0x539124c2);
@@ -113,7 +113,7 @@ TEST_F(RtcpSrPacketTest, TestDecodeSrPacketWithOneReport)
     EXPECT_EQ(res, RTP_SUCCESS);
 
     tRTP_NTP_TIME* ntpTime = objRtcpSrPacket.getNtpTime();
-    ASSERT_TRUE(ntpTime != NULL);
+    ASSERT_TRUE(ntpTime != nullptr);
 
     EXPECT_EQ(ntpTime->m_uiNtpHigh32Bits, 3314714324);
     EXPECT_EQ(ntpTime->m_uiNtpLow32Bits, 3874060501);
@@ -122,13 +122,13 @@ TEST_F(RtcpSrPacketTest, TestDecodeSrPacketWithOneReport)
     EXPECT_EQ(objRtcpSrPacket.getSendOctetCount(), 320);
 
     RtcpRrPacket* pRRInfo = objRtcpSrPacket.getRrPktInfo();
-    ASSERT_TRUE(pRRInfo != NULL);
+    ASSERT_TRUE(pRRInfo != nullptr);
 
     std::list<RtcpReportBlock*> reports = pRRInfo->getReportBlockList();
     ASSERT_TRUE(reports.size() != 0);
 
     RtcpReportBlock* report = reports.front();
-    ASSERT_TRUE(report != NULL);
+    ASSERT_TRUE(report != nullptr);
 
     EXPECT_EQ(report->getSsrc(), 0xd2bd4e3e);
     EXPECT_EQ((int)report->getFracLost(), 0x10);
@@ -149,4 +149,4 @@ TEST_F(RtcpSrPacketTest, TestDecodeSrPacketWithShorterInputBuffer)
     EXPECT_EQ(res, RTP_FAILURE);
 }
 
-//TODO: Write test cases for formSRPacket
+// TODO: Write test cases for formSRPacket

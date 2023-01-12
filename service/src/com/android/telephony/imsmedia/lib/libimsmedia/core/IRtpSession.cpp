@@ -28,7 +28,7 @@ IRtpSession* IRtpSession::GetInstance(
 
     for (auto& i : mListRtpSession)
     {
-        if (i != NULL && i->isSameInstance(type, localAddress, peerAddress))
+        if (i != nullptr && i->isSameInstance(type, localAddress, peerAddress))
         {
             i->increaseRefCounter();
             return i;
@@ -49,7 +49,7 @@ IRtpSession* IRtpSession::GetInstance(
 
 void IRtpSession::ReleaseInstance(IRtpSession* session)
 {
-    if (session == NULL)
+    if (session == nullptr)
     {
         return;
     }
@@ -79,10 +79,10 @@ IRtpSession::IRtpSession(
     mRefCount = 0;
     mLocalAddress = localAddress;
     mPeerAddress = peerAddress;
-    mRtpEncoderListener = NULL;
-    mRtpDecoderListener = NULL;
-    mRtcpEncoderListener = NULL;
-    mRtcpDecoderListener = NULL;
+    mRtpEncoderListener = nullptr;
+    mRtpDecoderListener = nullptr;
+    mRtcpEncoderListener = nullptr;
+    mRtcpDecoderListener = nullptr;
     std::memset(mPayloadParam, 0, sizeof(tRtpSvc_SetPayloadParam) * MAX_NUM_PAYLOAD_PARAM);
     mNumPayloadParam = 0;
     mLocalRtpSsrc = 0;
@@ -115,10 +115,10 @@ IRtpSession::IRtpSession(
 IRtpSession::~IRtpSession()
 {
     IMS_RtpSvc_DeleteSession(mRtpSessionId);
-    mRtpEncoderListener = NULL;
-    mRtpDecoderListener = NULL;
-    mRtcpEncoderListener = NULL;
-    mRtcpDecoderListener = NULL;
+    mRtpEncoderListener = nullptr;
+    mRtpDecoderListener = nullptr;
+    mRtcpEncoderListener = nullptr;
+    mRtcpDecoderListener = nullptr;
 }
 
 bool IRtpSession::operator==(const IRtpSession& obj2)
@@ -312,7 +312,7 @@ bool IRtpSession::SendRtpPacket(uint32_t nPayloadType, uint8_t* pData, uint32_t 
     stRtpPacketParam.diffFromLastRtpTimestamp = nTimeDiff;
     stRtpPacketParam.bXbit = bExtension ? eRTP_TRUE : eRTP_FALSE;
 
-    if (bExtension && pExtensionInfo != NULL)
+    if (bExtension && pExtensionInfo != nullptr)
     {
         stRtpPacketParam.nDefinedByProfile = pExtensionInfo->nDefinedByProfile;
         stRtpPacketParam.nLength = pExtensionInfo->nLength;
@@ -391,7 +391,7 @@ int IRtpSession::OnRtcpPacket(unsigned char* pData, RtpSvc_Length wLen)
     std::lock_guard<std::mutex> guard(mutexEncoder);
     if (mRtcpEncoderListener)
     {
-        if (pData != NULL)
+        if (pData != nullptr)
         {
             mNumRtcpPacketSent++;
             mRtcpEncoderListener->OnRtcpPacket(pData, wLen);
@@ -478,7 +478,7 @@ void IRtpSession::OnPeerRtcpComponents(void* nMsg)
 {
     IMLOGD0("[OnPeerRtcpComponents]");
 
-    if (nMsg != NULL && mRtcpDecoderListener != NULL)
+    if (nMsg != nullptr && mRtcpDecoderListener != nullptr)
     {
         int32_t roundTripTimeDelay = *reinterpret_cast<int32_t*>(nMsg);
         mRtcpDecoderListener->OnEvent(kRequestRoundTripTimeDelayUpdate, roundTripTimeDelay);

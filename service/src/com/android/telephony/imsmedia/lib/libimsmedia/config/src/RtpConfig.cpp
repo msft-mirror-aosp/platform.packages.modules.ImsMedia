@@ -45,7 +45,7 @@ RtpConfig::~RtpConfig() {}
 
 RtpConfig::RtpConfig(RtpConfig* config)
 {
-    if (config == NULL)
+    if (config == nullptr)
     {
         return;
     }
@@ -115,7 +115,7 @@ bool RtpConfig::operator!=(const RtpConfig& config) const
 status_t RtpConfig::writeToParcel(Parcel* out) const
 {
     status_t err;
-    if (out == NULL)
+    if (out == nullptr)
     {
         return BAD_VALUE;
     }
@@ -194,7 +194,7 @@ status_t RtpConfig::writeToParcel(Parcel* out) const
 status_t RtpConfig::readFromParcel(const Parcel* in)
 {
     status_t err;
-    if (in == NULL)
+    if (in == nullptr)
     {
         return BAD_VALUE;
     }

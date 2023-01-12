@@ -19,17 +19,17 @@
 
 RtcpAppPacket::RtcpAppPacket() :
         m_uiName(RTP_ZERO),
-        m_pAppData(RTP_NULL)
+        m_pAppData(nullptr)
 {
 }
 
 RtcpAppPacket::~RtcpAppPacket()
 {
     // m_pAppData
-    if (m_pAppData != RTP_NULL)
+    if (m_pAppData != nullptr)
     {
         delete m_pAppData;
-        m_pAppData = RTP_NULL;
+        m_pAppData = nullptr;
     }
 }
 
@@ -75,7 +75,7 @@ eRTP_STATUS_CODE RtcpAppPacket::decodeAppPacket(IN RtpDt_UChar* pucAppBuf, IN Rt
     usTmpAppLen = usTmpAppLen - RTP_WORD_SIZE;
     if (usTmpAppLen > 0)
     {
-        RtpDt_UChar* pucTmpBuf = RTP_NULL;
+        RtpDt_UChar* pucTmpBuf = nullptr;
         m_pAppData = new RtpBuffer();
         pucTmpBuf = new RtpDt_UChar[usTmpAppLen];
 
@@ -102,7 +102,7 @@ eRTP_STATUS_CODE RtcpAppPacket::formAppPacket(OUT RtpBuffer* pobjRtcpPktBuf)
     uiCurPos = uiCurPos + RTP_WORD_SIZE;
 
     // m_pAppData
-    if (m_pAppData != RTP_NULL)
+    if (m_pAppData != nullptr)
     {
         memcpy(pucBuffer, m_pAppData->getBuffer(), m_pAppData->getLength());
         uiCurPos = uiCurPos + m_pAppData->getLength();

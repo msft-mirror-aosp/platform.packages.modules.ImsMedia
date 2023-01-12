@@ -29,12 +29,12 @@
 struct FrameData
 {
 public:
-    FrameData(
-            uint8_t* data = NULL, uint32_t size = 0, uint32_t timestamp = 0, bool isConfig = false)
+    FrameData(uint8_t* data = nullptr, uint32_t size = 0, uint32_t timestamp = 0,
+            bool isConfig = false)
     {
-        this->data = NULL;
+        this->data = nullptr;
 
-        if (size != 0 && data != NULL)
+        if (size != 0 && data != nullptr)
         {
             this->data = new uint8_t[size];
             memcpy(this->data, data, size);
@@ -47,7 +47,7 @@ public:
 
     ~FrameData()
     {
-        if (data != NULL)
+        if (data != nullptr)
         {
             delete[] data;
         }

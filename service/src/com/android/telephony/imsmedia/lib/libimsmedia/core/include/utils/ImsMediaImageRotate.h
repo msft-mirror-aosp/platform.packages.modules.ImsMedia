@@ -39,7 +39,7 @@ public:
      * @param nSrcHeight Source Image height.
      */
     static void YUV420_Planar_Rotate90_Flip(
-            uint8_t* pbDst, uint8_t* pbSrc, uint32_t nSrcWidth, uint32_t nSrcHeight);
+            uint8_t* pbDst, uint8_t* pbSrc, uint16_t nSrcWidth, uint16_t nSrcHeight);
 
     /**
      * @brief Rotates YUVImage_420_888 Image by 90 degrees.
@@ -59,7 +59,7 @@ public:
      * @param nSrcHeight Source Image height.
      */
     static void YUV420_SP_Rotate90(uint8_t* pbDst, uint8_t* pYPlane, uint8_t* pUVPlane,
-            uint32_t nSrcWidth, uint32_t nSrcHeight);
+            uint16_t nSrcWidth, uint16_t nSrcHeight);
 
     /**
      * @brief Rotates YUVImage_420_888 Image by 90 degrees and flip.
@@ -79,7 +79,7 @@ public:
      * @param nSrcHeight Source Image height.
      */
     static void YUV420_SP_Rotate90_Flip(uint8_t* pbDst, uint8_t* pYPlane, uint8_t* pUVPlane,
-            uint32_t nSrcWidth, uint32_t nSrcHeight);
+            uint16_t nSrcWidth, uint16_t nSrcHeight);
 
     /**
      * @brief Rotates YUVImage_420_888 Image by 270 degrees.
@@ -99,7 +99,7 @@ public:
      * @param nSrcHeight Source Image height.
      */
     static void YUV420_SP_Rotate270(uint8_t* pbDst, uint8_t* pYPlane, uint8_t* pUVPlane,
-            uint32_t nSrcWidth, uint32_t nSrcHeight);
+            uint16_t nSrcWidth, uint16_t nSrcHeight);
 };
 
 #endif  // IMS_MEDIA_IMAGE_ROTATE

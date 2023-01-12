@@ -28,7 +28,7 @@ RtcpChunk::~RtcpChunk()
     // delete all tRTCP_SDES_ITEM objects from SdesItemList
     for (const auto& pstSdesItem : m_stSdesItemList)
     {
-        if (pstSdesItem->pValue != RTP_NULL)
+        if (pstSdesItem->pValue != nullptr)
         {
             delete[] pstSdesItem->pValue;
         }
@@ -62,7 +62,7 @@ eRTP_STATUS_CODE RtcpChunk::decodeRtcpChunk(IN RtpDt_UChar* pucChunkBuf,
     while (uiSdesItemCnt > RTP_ZERO)
     {
         tRTCP_SDES_ITEM* pstSdesItem = new tRTCP_SDES_ITEM();
-        if (pstSdesItem == RTP_NULL)
+        if (pstSdesItem == nullptr)
         {
             RTP_TRACE_ERROR("[Memory Error] new returned NULL.", RTP_ZERO, RTP_ZERO);
             return RTP_MEMORY_FAIL;
@@ -88,7 +88,7 @@ eRTP_STATUS_CODE RtcpChunk::decodeRtcpChunk(IN RtpDt_UChar* pucChunkBuf,
 
         // value
         RtpDt_UChar* pcSdesBuf = new RtpDt_UChar[pstSdesItem->ucLength];
-        if (pcSdesBuf == RTP_NULL)
+        if (pcSdesBuf == nullptr)
         {
             RTP_TRACE_ERROR("[Memory Error] new returned NULL.", RTP_ZERO, RTP_ZERO);
             delete pstSdesItem;

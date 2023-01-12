@@ -30,7 +30,7 @@
 class AudioRtpPayloadDecoderNode : public BaseNode
 {
 public:
-    AudioRtpPayloadDecoderNode(BaseSessionCallback* callback = NULL);
+    AudioRtpPayloadDecoderNode(BaseSessionCallback* callback = nullptr);
     virtual ~AudioRtpPayloadDecoderNode();
     virtual kBaseNodeId GetNodeId();
     virtual ImsMediaResult Start();

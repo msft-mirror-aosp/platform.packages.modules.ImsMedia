@@ -28,7 +28,7 @@
 class IVideoSourceNode : public BaseNode, IVideoSourceCallback
 {
 public:
-    IVideoSourceNode(BaseSessionCallback* callback = NULL);
+    IVideoSourceNode(BaseSessionCallback* callback = nullptr);
     virtual ~IVideoSourceNode();
     virtual kBaseNodeId GetNodeId();
     virtual ImsMediaResult Start();

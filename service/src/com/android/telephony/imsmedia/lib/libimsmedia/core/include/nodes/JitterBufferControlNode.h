@@ -24,7 +24,7 @@ class JitterBufferControlNode : public BaseNode
 {
 public:
     JitterBufferControlNode(
-            BaseSessionCallback* callback = NULL, ImsMediaType type = IMS_MEDIA_AUDIO);
+            BaseSessionCallback* callback = nullptr, ImsMediaType type = IMS_MEDIA_AUDIO);
     virtual ~JitterBufferControlNode();
     void SetJitterBufferSize(uint32_t nInit, uint32_t nMin, uint32_t nMax);
     void SetJitterOptions(uint32_t nReduceTH, uint32_t nStepSize, double zValue, bool bIgnoreSID,
@@ -37,7 +37,7 @@ public:
             uint32_t arrivalTime = 0);
     virtual bool GetData(ImsMediaSubType* psubtype, uint8_t** ppData, uint32_t* pnDataSize,
             uint32_t* ptimestamp, bool* pmark, uint32_t* pnSeqNum,
-            ImsMediaSubType* pnDataType = NULL, uint32_t* arrivalTime = NULL);
+            ImsMediaSubType* pnDataType = nullptr, uint32_t* arrivalTime = nullptr);
     virtual void DeleteData();
 
 private:

@@ -23,7 +23,7 @@
 class MockBaseNode : public BaseNode
 {
 public:
-    MockBaseNode(BaseSessionCallback* callback = NULL) :
+    MockBaseNode(BaseSessionCallback* callback = nullptr) :
             BaseNode(callback)
     {
     }

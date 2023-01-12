@@ -24,39 +24,39 @@ ImsMediaCondition::ImsMediaCondition()
     mMutex = new pthread_mutex_t;
     mCondition = new pthread_cond_t;
 
-    if (mMutex != NULL)
+    if (mMutex != nullptr)
     {
-        pthread_mutex_init(mMutex, NULL);
+        pthread_mutex_init(mMutex, nullptr);
     }
 
-    if (mCondition != NULL)
+    if (mCondition != nullptr)
     {
-        pthread_cond_init(mCondition, NULL);
+        pthread_cond_init(mCondition, nullptr);
     }
 }
 
 ImsMediaCondition::~ImsMediaCondition()
 {
-    if (mCondition != NULL)
+    if (mCondition != nullptr)
     {
         pthread_cond_destroy(mCondition);
     }
 
-    if (mMutex != NULL)
+    if (mMutex != nullptr)
     {
         pthread_mutex_destroy(mMutex);
     }
 
-    if (mCondition != NULL)
+    if (mCondition != nullptr)
     {
         delete mCondition;
-        mCondition = NULL;
+        mCondition = nullptr;
     }
 
-    if (mMutex != NULL)
+    if (mMutex != nullptr)
     {
         delete mMutex;
-        mMutex = NULL;
+        mMutex = nullptr;
     }
 }
 
@@ -84,7 +84,7 @@ bool ImsMediaCondition::wait_timeout(int64_t nRelativeTime)
     // make abs time
     struct timespec ts;
     struct timeval tv;
-    gettimeofday(&tv, (struct timezone*)NULL);
+    gettimeofday(&tv, (struct timezone*)nullptr);
     uint64_t nInitTime = (tv.tv_sec * 1000) + (tv.tv_usec / 1000);
     ts.tv_sec = tv.tv_sec + (nRelativeTime / 1000);
     long addedUSec = tv.tv_usec + (nRelativeTime % 1000) * 1000L;
@@ -113,7 +113,7 @@ bool ImsMediaCondition::wait_timeout(int64_t nRelativeTime)
     IncCount(&mWaitCount);
     pthread_mutex_unlock(mMutex);
     struct timeval tl;
-    gettimeofday(&tl, (struct timezone*)NULL);
+    gettimeofday(&tl, (struct timezone*)nullptr);
     uint64_t nCurrTime = (tl.tv_sec * 1000) + (tl.tv_usec / 1000);
 
     if (nCurrTime - nInitTime >= nRelativeTime)
@@ -128,7 +128,7 @@ bool ImsMediaCondition::wait_timeout(int64_t nRelativeTime)
 
 void ImsMediaCondition::signal()
 {
-    if (mCondition == NULL || mMutex == NULL)
+    if (mCondition == nullptr || mMutex == nullptr)
     {
         return;
     }

@@ -21,18 +21,18 @@
 RtcpDecoderNode::RtcpDecoderNode(BaseSessionCallback* callback) :
         BaseNode(callback)
 {
-    mRtpSession = NULL;
+    mRtpSession = nullptr;
     mInactivityTime = 0;
     mNoRtcpTime = 0;
 }
 
 RtcpDecoderNode::~RtcpDecoderNode()
 {
-    if (mRtpSession != NULL)
+    if (mRtpSession != nullptr)
     {
-        mRtpSession->SetRtcpEncoderListener(NULL);
+        mRtpSession->SetRtcpEncoderListener(nullptr);
         IRtpSession::ReleaseInstance(mRtpSession);
-        mRtpSession = NULL;
+        mRtpSession = nullptr;
     }
 }
 
@@ -45,11 +45,11 @@ ImsMediaResult RtcpDecoderNode::Start()
 {
     IMLOGD0("[Start]");
 
-    if (mRtpSession == NULL)
+    if (mRtpSession == nullptr)
     {
         mRtpSession = IRtpSession::GetInstance(mMediaType, mLocalAddress, mPeerAddress);
 
-        if (mRtpSession == NULL)
+        if (mRtpSession == nullptr)
         {
             IMLOGE0("[Start] Can't create rtp session");
             return RESULT_NOT_READY;
@@ -99,7 +99,7 @@ bool RtcpDecoderNode::IsSourceNode()
 
 void RtcpDecoderNode::SetConfig(void* config)
 {
-    if (config == NULL)
+    if (config == nullptr)
     {
         return;
     }
@@ -111,7 +111,7 @@ void RtcpDecoderNode::SetConfig(void* config)
 
 bool RtcpDecoderNode::IsSameConfig(void* config)
 {
-    if (config == NULL)
+    if (config == nullptr)
     {
         return true;
     }
@@ -125,7 +125,7 @@ bool RtcpDecoderNode::IsSameConfig(void* config)
 
 void RtcpDecoderNode::OnRtcpInd(tRtpSvc_IndicationFromStack type, void* data)
 {
-    if (data == NULL)
+    if (data == nullptr)
     {
         return;
     }
@@ -206,7 +206,7 @@ void RtcpDecoderNode::OnNumReceivedPacket(uint32_t nNumRtcpSRPacket, uint32_t nN
 
     if (mInactivityTime != 0 && mNoRtcpTime == mInactivityTime)
     {
-        if (mCallback != NULL)
+        if (mCallback != nullptr)
         {
             mCallback->SendEvent(kImsMediaEventMediaInactivity, kProtocolRtcp, mInactivityTime);
         }
@@ -237,7 +237,7 @@ void RtcpDecoderNode::SetInactivityTimerSec(const uint32_t time)
 
 void RtcpDecoderNode::ReceiveTmmbr(const tRtpSvcIndSt_ReceiveRtcpFeedbackInd* payload)
 {
-    if (payload == NULL || payload->pMsg == NULL || mCallback == NULL)
+    if (payload == nullptr || payload->pMsg == nullptr || mCallback == nullptr)
     {
         return;
     }
@@ -272,7 +272,7 @@ void RtcpDecoderNode::RequestIdrFrame()
 {
     IMLOGD0("[RequestIdrFrame]");
 
-    if (mCallback != NULL)
+    if (mCallback != nullptr)
     {
         mCallback->SendEvent(kRequestVideoIdrFrame, 0);
     }

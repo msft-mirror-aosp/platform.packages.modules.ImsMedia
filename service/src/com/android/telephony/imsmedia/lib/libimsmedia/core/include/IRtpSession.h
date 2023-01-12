@@ -103,7 +103,7 @@ public:
     void StopRtcp();
     bool SendRtpPacket(uint32_t nPayloadType, uint8_t* pData, uint32_t nDataSize,
             uint32_t timestamp, bool mark, uint32_t nTimeDiff, bool bExtension = false,
-            tRtpHeaderExtensionInfo* pExtensionInfo = NULL);
+            tRtpHeaderExtensionInfo* pExtensionInfo = nullptr);
     bool ProcRtpPacket(uint8_t* pData, uint32_t nDataSize);
     bool ProcRtcpPacket(uint8_t* pData, uint32_t nDataSize);
     void OnTimer();

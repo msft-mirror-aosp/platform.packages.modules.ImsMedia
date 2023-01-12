@@ -79,7 +79,7 @@ void DtmfEncoderNode::SetConfig(void* config)
 {
     AudioConfig* pConfig = reinterpret_cast<AudioConfig*>(config);
 
-    if (pConfig != NULL)
+    if (pConfig != nullptr)
     {
         mSamplingRate = pConfig->getDtmfsamplingRateKHz();
         mDuration = DTMF_DEFAULT_DURATION;
@@ -91,7 +91,7 @@ void DtmfEncoderNode::SetConfig(void* config)
 
 bool DtmfEncoderNode::IsSameConfig(void* config)
 {
-    if (config == NULL)
+    if (config == nullptr)
     {
         return true;
     }
@@ -119,9 +119,9 @@ void DtmfEncoderNode::OnDataFromFrontNode(ImsMediaSubType subtype, uint8_t* pDat
         {
             return;
         }
-        SendDataToRearNode(MEDIASUBTYPE_DTMFSTART, NULL, 0, 0, 0, 0);  // set dtmf mode true
+        SendDataToRearNode(MEDIASUBTYPE_DTMFSTART, nullptr, 0, 0, 0, 0);  // set dtmf mode true
         SendDTMFEvent(nSignal, duration);
-        SendDataToRearNode(MEDIASUBTYPE_DTMFEND, NULL, 0, 0, 0, 0);  // set dtmf mode false
+        SendDataToRearNode(MEDIASUBTYPE_DTMFEND, nullptr, 0, 0, 0, 0);  // set dtmf mode false
     }
     else
     {
@@ -174,7 +174,7 @@ void* DtmfEncoderNode::run()
 
         bool bMarker = true;
         nPayloadSize = MakeDTMFPayload(pbPayload, mListDtmfDigit.front(), false, mVolume, nPeriod);
-        SendDataToRearNode(MEDIASUBTYPE_DTMFSTART, NULL, 0, 0, 0, 0);  // set dtmf mode true
+        SendDataToRearNode(MEDIASUBTYPE_DTMFSTART, nullptr, 0, 0, 0, 0);  // set dtmf mode true
 
         for (;;)
         {
@@ -203,7 +203,7 @@ void* DtmfEncoderNode::run()
                     }
                 }
 
-                SendDataToRearNode(MEDIASUBTYPE_DTMFEND, NULL, 0, 0, 0, 0);
+                SendDataToRearNode(MEDIASUBTYPE_DTMFEND, nullptr, 0, 0, 0, 0);
                 mListDtmfDigit.pop_front();
                 mMutex.unlock();
                 break;
@@ -229,7 +229,7 @@ void* DtmfEncoderNode::run()
             }
         }
     }
-    return NULL;
+    return nullptr;
 }
 
 uint32_t DtmfEncoderNode::calculateDtmfDuration(uint32_t duration)

@@ -45,7 +45,7 @@ extern AAssetManager* gpAssetManager;
 
 ImsMediaPauseImageSource::ImsMediaPauseImageSource()
 {
-    mYuvImageBuffer = NULL;
+    mYuvImageBuffer = nullptr;
     mBufferSize = 0;
 }
 
@@ -56,10 +56,10 @@ ImsMediaPauseImageSource::~ImsMediaPauseImageSource()
 
 void ImsMediaPauseImageSource::Uninitialize()
 {
-    if (mYuvImageBuffer != NULL)
+    if (mYuvImageBuffer != nullptr)
     {
         free(mYuvImageBuffer);
-        mYuvImageBuffer = NULL;
+        mYuvImageBuffer = nullptr;
     }
 }
 
@@ -71,7 +71,7 @@ bool ImsMediaPauseImageSource::Initialize(int width, int height)
 
     // Decode JPEG image and save in YUV buffer.
     AAsset* asset = getImageAsset();
-    if (asset == NULL)
+    if (asset == nullptr)
     {
         IMLOGE0("[ImsMediaPauseImageSource] Failed to open pause image");
         return false;
@@ -129,9 +129,9 @@ bool ImsMediaPauseImageSource::Initialize(int width, int height)
 
 size_t ImsMediaPauseImageSource::GetYuvImage(uint8_t* buffer, size_t len)
 {
-    if (buffer == NULL)
+    if (buffer == nullptr)
     {
-        IMLOGE0("[ImsMediaPauseImageSource] GetYuvImage. buffer == NULL");
+        IMLOGE0("[ImsMediaPauseImageSource] GetYuvImage. buffer == nullptr");
         return 0;
     }
 
@@ -148,10 +148,10 @@ size_t ImsMediaPauseImageSource::GetYuvImage(uint8_t* buffer, size_t len)
 AAsset* ImsMediaPauseImageSource::getImageAsset()
 {
     IMLOGD0("[ImsMediaPauseImageSource] getImageFileFd");
-    if (gpAssetManager == NULL)
+    if (gpAssetManager == nullptr)
     {
-        IMLOGE0("[ImsMediaPauseImageSource] AssetManager is NULL");
-        return NULL;
+        IMLOGE0("[ImsMediaPauseImageSource] AssetManager is nullptr");
+        return nullptr;
     }
 
     const char* filePath = getImageFilePath();
@@ -197,7 +197,7 @@ const char* ImsMediaPauseImageSource::getImageFilePath()
         IMLOGE2("Resolution [%dx%d] pause image is not available", mWidth, mHeight);
     }
 
-    return NULL;
+    return nullptr;
 }
 
 int8_t* ImsMediaPauseImageSource::ConvertRgbaToYuv(int8_t* pixels, int width, int height)

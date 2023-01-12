@@ -38,8 +38,8 @@ using namespace android;
 
 ImsMediaAudioPlayer::ImsMediaAudioPlayer()
 {
-    mAudioStream = NULL;
-    mCodec = NULL;
+    mAudioStream = nullptr;
+    mCodec = nullptr;
     mSamplingRate = DEFAULT_SAMPLING_RATE;
     mEvsCodecHeaderMode = kRtpPyaloadHeaderModeEvsHeaderFull;
     mFirstFrame = false;
@@ -109,7 +109,7 @@ bool ImsMediaAudioPlayer::Start()
 
     openAudioStream();
 
-    if (mAudioStream == NULL)
+    if (mAudioStream == nullptr)
     {
         IMLOGE0("[Start] create audio stream failed");
         return false;
@@ -126,24 +126,24 @@ bool ImsMediaAudioPlayer::Start()
 
         mCodec = AMediaCodec_createDecoderByType(kMimeType);
 
-        if (mCodec == NULL)
+        if (mCodec == nullptr)
         {
             IMLOGE1("[Start] unable to create %s codec instance", kMimeType);
             AMediaFormat_delete(mFormat);
-            mFormat = NULL;
+            mFormat = nullptr;
             return false;
         }
 
         IMLOGD0("[Start] configure codec");
-        media_status_t codecResult = AMediaCodec_configure(mCodec, mFormat, NULL, NULL, 0);
+        media_status_t codecResult = AMediaCodec_configure(mCodec, mFormat, nullptr, nullptr, 0);
 
         if (codecResult != AMEDIA_OK)
         {
             IMLOGE2("[Start] unable to configure[%s] codec - err[%d]", kMimeType, codecResult);
             AMediaCodec_delete(mCodec);
-            mCodec = NULL;
+            mCodec = nullptr;
             AMediaFormat_delete(mFormat);
-            mFormat = NULL;
+            mFormat = nullptr;
             return false;
         }
     }
@@ -158,9 +158,9 @@ bool ImsMediaAudioPlayer::Start()
         if (mCodecType == kAudioCodecAmr || mCodecType == kAudioCodecAmrWb)
         {
             AMediaCodec_delete(mCodec);
-            mCodec = NULL;
+            mCodec = nullptr;
             AMediaFormat_delete(mFormat);
-            mFormat = NULL;
+            mFormat = nullptr;
         }
         return false;
     }
@@ -174,9 +174,9 @@ bool ImsMediaAudioPlayer::Start()
         if (mCodecType == kAudioCodecAmr || mCodecType == kAudioCodecAmrWb)
         {
             AMediaCodec_delete(mCodec);
-            mCodec = NULL;
+            mCodec = nullptr;
             AMediaFormat_delete(mFormat);
-            mFormat = NULL;
+            mFormat = nullptr;
         }
         return false;
     }
@@ -190,9 +190,9 @@ bool ImsMediaAudioPlayer::Start()
         {
             IMLOGE1("[Start] unable to start codec - err[%d]", codecResult);
             AMediaCodec_delete(mCodec);
-            mCodec = NULL;
+            mCodec = nullptr;
             AMediaFormat_delete(mFormat);
-            mFormat = NULL;
+            mFormat = nullptr;
             return false;
         }
     }
@@ -205,20 +205,20 @@ void ImsMediaAudioPlayer::Stop()
 {
     IMLOGD0("[Stop] enter");
     std::lock_guard<std::mutex> guard(mMutex);
-    if ((mCodecType == kAudioCodecAmr || mCodecType == kAudioCodecAmrWb) && (mCodec != NULL))
+    if ((mCodecType == kAudioCodecAmr || mCodecType == kAudioCodecAmrWb) && (mCodec != nullptr))
     {
         AMediaCodec_stop(mCodec);
         AMediaCodec_delete(mCodec);
-        mCodec = NULL;
+        mCodec = nullptr;
     }
 
-    if ((mCodecType == kAudioCodecAmr || mCodecType == kAudioCodecAmrWb) && (mFormat != NULL))
+    if ((mCodecType == kAudioCodecAmr || mCodecType == kAudioCodecAmrWb) && (mFormat != nullptr))
     {
         AMediaFormat_delete(mFormat);
-        mFormat = NULL;
+        mFormat = nullptr;
     }
 
-    if (mAudioStream != NULL)
+    if (mAudioStream != nullptr)
     {
         aaudio_stream_state_t inputState = AAUDIO_STREAM_STATE_STOPPING;
         aaudio_stream_state_t nextState = AAUDIO_STREAM_STATE_UNINITIALIZED;
@@ -241,7 +241,7 @@ void ImsMediaAudioPlayer::Stop()
         IMLOGI1("[Stop] stream state[%s]", AAudio_convertStreamStateToText(nextState));
 
         AAudioStream_close(mAudioStream);
-        mAudioStream = NULL;
+        mAudioStream = nullptr;
     }
 
     IMLOGD0("[Stop] exit ");
@@ -251,7 +251,7 @@ bool ImsMediaAudioPlayer::onDataFrame(uint8_t* buffer, uint32_t size)
 {
     std::lock_guard<std::mutex> guard(mMutex);
 
-    if (size == 0 || buffer == NULL || mAudioStream == NULL ||
+    if (size == 0 || buffer == nullptr || mAudioStream == nullptr ||
             AAudioStream_getState(mAudioStream) != AAUDIO_STREAM_STATE_STARTED)
     {
         return false;
@@ -259,7 +259,7 @@ bool ImsMediaAudioPlayer::onDataFrame(uint8_t* buffer, uint32_t size)
 
     if (mCodecType == kAudioCodecAmr || mCodecType == kAudioCodecAmrWb)
     {
-        if (mCodec == NULL)
+        if (mCodec == nullptr)
         {
             return false;
         }
@@ -284,7 +284,7 @@ bool ImsMediaAudioPlayer::decodeAmr(uint8_t* buffer, uint32_t size)
     {
         size_t bufferSize = 0;
         uint8_t* inputBuffer = AMediaCodec_getInputBuffer(mCodec, index, &bufferSize);
-        if (inputBuffer != NULL)
+        if (inputBuffer != nullptr)
         {
             memcpy(inputBuffer, buffer, size);
             IMLOGD_PACKET2(IM_PACKET_LOG_AUDIO,
@@ -316,7 +316,7 @@ bool ImsMediaAudioPlayer::decodeAmr(uint8_t* buffer, uint32_t size)
         {
             size_t buffCapacity;
             uint8_t* buf = AMediaCodec_getOutputBuffer(mCodec, index, &buffCapacity);
-            if (buf != NULL && buffCapacity > 0)
+            if (buf != nullptr && buffCapacity > 0)
             {
                 memcpy(mBuffer, buf, info.size);
                 // call audio write
@@ -332,7 +332,7 @@ bool ImsMediaAudioPlayer::decodeAmr(uint8_t* buffer, uint32_t size)
     }
     else if (index == AMEDIACODEC_INFO_OUTPUT_FORMAT_CHANGED)
     {
-        if (mFormat != NULL)
+        if (mFormat != nullptr)
         {
             AMediaFormat_delete(mFormat);
         }
@@ -382,7 +382,7 @@ bool ImsMediaAudioPlayer::decodeEvs(uint8_t* buffer, uint32_t size)
 
 void ImsMediaAudioPlayer::openAudioStream()
 {
-    AAudioStreamBuilder* builder = NULL;
+    AAudioStreamBuilder* builder = nullptr;
     aaudio_result_t result = AAudio_createStreamBuilder(&builder);
 
     if (result != AAUDIO_OK)
@@ -411,11 +411,11 @@ void ImsMediaAudioPlayer::openAudioStream()
     {
         IMLOGE1("[openAudioStream] Failed to openStream. Error[%s]",
                 AAudio_convertResultToText(result));
-        if (mAudioStream != NULL)
+        if (mAudioStream != nullptr)
         {
             AAudioStream_close(mAudioStream);
         }
-        mAudioStream = NULL;
+        mAudioStream = nullptr;
     }
 }
 
@@ -423,7 +423,7 @@ void ImsMediaAudioPlayer::restartAudioStream()
 {
     std::lock_guard<std::mutex> guard(mMutex);
 
-    if (mAudioStream == NULL)
+    if (mAudioStream == nullptr)
     {
         return;
     }
@@ -431,10 +431,10 @@ void ImsMediaAudioPlayer::restartAudioStream()
     AAudioStream_requestStop(mAudioStream);
     AAudioStream_close(mAudioStream);
 
-    mAudioStream = NULL;
+    mAudioStream = nullptr;
     openAudioStream();
 
-    if (mAudioStream == NULL)
+    if (mAudioStream == nullptr)
     {
         return;
     }
@@ -464,7 +464,7 @@ void ImsMediaAudioPlayer::restartAudioStream()
 void ImsMediaAudioPlayer::audioErrorCallback(
         AAudioStream* stream, void* userData, aaudio_result_t error)
 {
-    if (stream == NULL || userData == NULL)
+    if (stream == nullptr || userData == nullptr)
     {
         return;
     }

@@ -88,7 +88,7 @@ void TextRtpPayloadEncoderNode::OnDataFromFrontNode(ImsMediaSubType subtype, uin
 
 void TextRtpPayloadEncoderNode::SetConfig(void* config)
 {
-    if (config == NULL)
+    if (config == nullptr)
     {
         return;
     }
@@ -102,7 +102,7 @@ void TextRtpPayloadEncoderNode::SetConfig(void* config)
 
 bool TextRtpPayloadEncoderNode::IsSameConfig(void* config)
 {
-    if (config == NULL)
+    if (config == nullptr)
     {
         return true;
     }
@@ -154,9 +154,9 @@ void TextRtpPayloadEncoderNode::EncodeT140(
         }
 
         // Remove very old redundant data
-        DataEntry* pEntry = NULL;
+        DataEntry* pEntry = nullptr;
 
-        while (mBufferQueue.Get(&pEntry) && pEntry != NULL)
+        while (mBufferQueue.Get(&pEntry) && pEntry != nullptr)
         {
             /** [RFC 4103] 10.1. Registration of MIME Media Type text/t140 Required parameters:
              * rate: The RTP timestamp clock rate, which is equal to the sampling rate.  The only
@@ -173,7 +173,7 @@ void TextRtpPayloadEncoderNode::EncodeT140(
             if (nTSInterval >= PAYLOADENCODER_TEXT_MAX_REDUNDANT_INTERVAL ||
                     pEntry->arrivalTime == 0)
             {
-                pEntry = NULL;
+                pEntry = nullptr;
                 mBufferQueue.Delete();
             }
             else
@@ -187,7 +187,7 @@ void TextRtpPayloadEncoderNode::EncodeT140(
 
         for (uint32_t i = 0; i < mBufferQueue.GetCount(); i++)
         {
-            if (mBufferQueue.GetAt(i, &pEntry) && pEntry != NULL)
+            if (mBufferQueue.GetAt(i, &pEntry) && pEntry != nullptr)
             {
                 if (pEntry->nBufferSize > 0)
                 {
@@ -228,7 +228,7 @@ void TextRtpPayloadEncoderNode::EncodeT140(
                 DataEntry nullRED;
                 memset(&nullRED, 0, sizeof(DataEntry));
                 nullRED.subtype = MEDIASUBTYPE_RTPPAYLOAD;
-                nullRED.pbBuffer = NULL;
+                nullRED.pbBuffer = nullptr;
                 nullRED.nBufferSize = 0;
                 nullRED.nTimestamp = timestamp;
                 nullRED.arrivalTime = 1;  // Remained time to be retransmitted
@@ -249,11 +249,11 @@ void TextRtpPayloadEncoderNode::EncodeT140(
         }
 
         // Write redundant header & data to payload
-        pEntry = NULL;
+        pEntry = nullptr;
 
         for (uint32_t i = 0; i < mBufferQueue.GetCount(); i++)
         {
-            if (mBufferQueue.GetAt(i, &pEntry) && pEntry != NULL)
+            if (mBufferQueue.GetAt(i, &pEntry) && pEntry != nullptr)
             {
                 uint32_t nTSInterval = timestamp - pEntry->nTimestamp;
                 mBWHeader.Write(1, 1);
@@ -268,7 +268,7 @@ void TextRtpPayloadEncoderNode::EncodeT140(
                         i, mBufferQueue.GetCount(), pEntry->arrivalTime, mRedundantPayload,
                         nTSInterval, pEntry->nBufferSize);
 
-                if (pEntry->nBufferSize > 0 && pEntry->pbBuffer != NULL)
+                if (pEntry->nBufferSize > 0 && pEntry->pbBuffer != nullptr)
                 {
                     mBWPayload.WriteByteBuffer(pEntry->pbBuffer, pEntry->nBufferSize * 8);
                 }
@@ -285,7 +285,7 @@ void TextRtpPayloadEncoderNode::EncodeT140(
          * device needs to send new / non-redundant text data only, it shall send it using an RTP
          * packet that has a payload type (PT) of 111 (i.e., send in a T.140 RTP packet).*/
 
-        if (size > 0 && data != NULL)
+        if (size > 0 && data != nullptr)
         {
             mBWPayload.WriteByteBuffer(data, size * 8);
         }

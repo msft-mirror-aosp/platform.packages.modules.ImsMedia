@@ -24,7 +24,7 @@
 class RtcpDecoderNode : public BaseNode, public IRtcpDecoderListener
 {
 public:
-    RtcpDecoderNode(BaseSessionCallback* callback = NULL);
+    RtcpDecoderNode(BaseSessionCallback* callback = nullptr);
     virtual ~RtcpDecoderNode();
     virtual kBaseNodeId GetNodeId();
     virtual ImsMediaResult Start();

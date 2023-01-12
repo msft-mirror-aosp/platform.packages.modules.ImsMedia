@@ -20,7 +20,7 @@
 
 RtcpRrPacket::RtcpRrPacket() :
         m_objReportBlkList(std::list<RtcpReportBlock*>()),
-        m_pobjExt(RTP_NULL)
+        m_pobjExt(nullptr)
 {
 }
 
@@ -33,10 +33,10 @@ RtcpRrPacket::~RtcpRrPacket()
     }
     m_objReportBlkList.clear();
 
-    if (m_pobjExt != RTP_NULL)
+    if (m_pobjExt != nullptr)
     {
         delete m_pobjExt;
-        m_pobjExt = RTP_NULL;
+        m_pobjExt = nullptr;
     }
 }
 
@@ -77,7 +77,7 @@ eRTP_STATUS_CODE RtcpRrPacket::decodeRrPacket(
     while (usRepBlkLen >= RTP_24)
     {
         RtcpReportBlock* pobjRptBlk = new RtcpReportBlock();
-        if (pobjRptBlk == RTP_NULL)
+        if (pobjRptBlk == nullptr)
         {
             RTP_TRACE_ERROR("[Memory Error] new returned NULL.", RTP_ZERO, RTP_ZERO);
             return RTP_MEMORY_FAIL;
@@ -92,14 +92,14 @@ eRTP_STATUS_CODE RtcpRrPacket::decodeRrPacket(
     if (usProfExtLen > RTP_ZERO)
     {
         RtpDt_UChar* pcProfExtBuf = new RtpDt_UChar[usProfExtLen];
-        if (pcProfExtBuf == RTP_NULL)
+        if (pcProfExtBuf == nullptr)
         {
             RTP_TRACE_ERROR("[Memory Error] new returned NULL.", RTP_ZERO, RTP_ZERO);
             return RTP_MEMORY_FAIL;
         }
 
         m_pobjExt = new RtpBuffer();
-        if (m_pobjExt == RTP_NULL)
+        if (m_pobjExt == nullptr)
         {
             RTP_TRACE_ERROR("[Memory Error] new returned NULL.", RTP_ZERO, RTP_ZERO);
             delete[] pcProfExtBuf;
@@ -132,7 +132,7 @@ eRTP_STATUS_CODE RtcpRrPacket::formRrPacket(OUT RtpBuffer* pobjRtcpPktBuf, IN eR
 
     RtpDt_UInt32 uiCurPos = pobjRtcpPktBuf->getLength();
 #ifdef ENABLE_RTCPEXT
-    if (m_pobjExt != RTP_NULL)
+    if (m_pobjExt != nullptr)
     {
         RtpDt_UChar* pucExtHdr = m_pobjExt->getBuffer();
         RtpDt_UInt32 uiExtHdrLen = m_pobjExt->getLength();

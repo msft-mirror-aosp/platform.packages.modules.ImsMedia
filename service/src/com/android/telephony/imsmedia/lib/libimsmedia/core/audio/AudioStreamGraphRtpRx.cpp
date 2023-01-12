@@ -34,7 +34,7 @@ ImsMediaResult AudioStreamGraphRtpRx::create(RtpConfig* config)
 {
     IMLOGI1("[create] state[%d]", mGraphState);
 
-    if (config == NULL)
+    if (config == nullptr)
     {
         return RESULT_INVALID_PARAM;
     }
@@ -79,7 +79,7 @@ ImsMediaResult AudioStreamGraphRtpRx::update(RtpConfig* config)
 {
     IMLOGI1("[update] state[%d]", mGraphState);
 
-    if (config == NULL)
+    if (config == nullptr)
     {
         return RESULT_INVALID_PARAM;
     }
@@ -92,7 +92,7 @@ ImsMediaResult AudioStreamGraphRtpRx::update(RtpConfig* config)
         return RESULT_SUCCESS;
     }
 
-    if (mConfig != NULL)
+    if (mConfig != nullptr)
     {
         delete mConfig;
     }
@@ -148,11 +148,11 @@ ImsMediaResult AudioStreamGraphRtpRx::update(RtpConfig* config)
 
 bool AudioStreamGraphRtpRx::setMediaQualityThreshold(MediaQualityThreshold* threshold)
 {
-    if (threshold != NULL)
+    if (threshold != nullptr)
     {
         BaseNode* node = findNode(kNodeIdRtpDecoder);
 
-        if (node != NULL)
+        if (node != nullptr)
         {
             RtpDecoderNode* decoder = reinterpret_cast<RtpDecoderNode*>(node);
             decoder->SetInactivityTimerSec(threshold->getRtpInactivityTimerMillis() / 1000);

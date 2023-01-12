@@ -27,7 +27,7 @@ TextManager::~TextManager() {}
 
 TextManager* TextManager::getInstance()
 {
-    if (manager == NULL)
+    if (manager == nullptr)
     {
         manager = new TextManager();
     }
@@ -219,7 +219,7 @@ void TextManager::RequestHandler::processEvent(
         case kTextOpenSession:
         {
             EventParamOpenSession* param = reinterpret_cast<EventParamOpenSession*>(paramA);
-            if (param != NULL)
+            if (param != nullptr)
             {
                 TextConfig* pConfig = reinterpret_cast<TextConfig*>(param->mConfig);
                 result = TextManager::getInstance()->openSession(
@@ -238,7 +238,7 @@ void TextManager::RequestHandler::processEvent(
 
                 delete param;
 
-                if (pConfig != NULL)
+                if (pConfig != nullptr)
                 {
                     delete pConfig;
                 }
@@ -270,7 +270,7 @@ void TextManager::RequestHandler::processEvent(
         {
             MediaQualityThreshold* threshold = reinterpret_cast<MediaQualityThreshold*>(paramA);
 
-            if (threshold != NULL)
+            if (threshold != nullptr)
             {
                 TextManager::getInstance()->setMediaQualityThreshold(
                         static_cast<int>(sessionId), threshold);
@@ -282,7 +282,7 @@ void TextManager::RequestHandler::processEvent(
         {
             android::String8* text = reinterpret_cast<android::String8*>(paramA);
 
-            if (text != NULL)
+            if (text != nullptr)
             {
                 TextManager::getInstance()->sendRtt(static_cast<int>(sessionId), text);
                 delete text;
@@ -328,7 +328,7 @@ void TextManager::ResponseHandler::processEvent(
             parcel.writeInt32(paramA);  // result
             TextConfig* config = reinterpret_cast<TextConfig*>(paramB);
 
-            if (config != NULL)
+            if (config != nullptr)
             {
                 config->writeToParcel(&parcel);
                 TextManager::getInstance()->sendResponse(sessionId, parcel);
@@ -347,7 +347,7 @@ void TextManager::ResponseHandler::processEvent(
             parcel.writeInt32(event);
             android::String8* text = reinterpret_cast<String8*>(paramA);
 
-            if (text != NULL)
+            if (text != nullptr)
             {
                 String16 rttText(*text);
                 parcel.writeString16(rttText);

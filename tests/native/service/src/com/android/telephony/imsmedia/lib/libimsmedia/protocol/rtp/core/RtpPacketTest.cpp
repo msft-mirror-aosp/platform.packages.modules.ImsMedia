@@ -22,9 +22,9 @@ TEST(RtpPacketTest, TestConstructor)
     RtpPacket rtpPacket;
 
     // Check default value
-    EXPECT_TRUE(rtpPacket.getExtHeader() == NULL);
+    EXPECT_TRUE(rtpPacket.getExtHeader() == nullptr);
 
-    EXPECT_TRUE(rtpPacket.getRtpPayload() == NULL);
+    EXPECT_TRUE(rtpPacket.getRtpPayload() == nullptr);
 }
 
 TEST(RtpPacketTest, TestGetSets)
@@ -37,7 +37,7 @@ TEST(RtpPacketTest, TestGetSets)
     RtpBuffer* rtpPayloadBuffer = new RtpBuffer(sizeof(pRtpPayLoad), pRtpPayLoad);
     rtpPacket.setRtpPayload(rtpPayloadBuffer);
     RtpBuffer* pobjRtpBuffer = rtpPacket.getRtpPayload();
-    ASSERT_TRUE(pobjRtpBuffer != NULL);
+    ASSERT_TRUE(pobjRtpBuffer != nullptr);
 
     EXPECT_EQ(memcmp(pRtpPayLoad, pobjRtpBuffer->getBuffer(), sizeof(pRtpPayLoad)), 0);
     EXPECT_EQ(pobjRtpBuffer->getLength(), sizeof(pRtpPayLoad));
@@ -48,7 +48,7 @@ TEST(RtpPacketTest, TestGetSets)
     rtpPacket.setExtHeader(rtpExtBuffer);
     RtpBuffer* pobjRtpExtHdr = rtpPacket.getExtHeader();
 
-    ASSERT_TRUE(pobjRtpBuffer != NULL);
+    ASSERT_TRUE(pobjRtpBuffer != nullptr);
     EXPECT_EQ(memcmp(pRtpExtHdr, pobjRtpExtHdr->getBuffer(), sizeof(pRtpExtHdr)), 0);
     EXPECT_EQ(pobjRtpExtHdr->getLength(), sizeof(pRtpExtHdr));
 }
@@ -88,7 +88,7 @@ TEST(RtpPacketTest, TestDecodePacket)
 
     // check Header extension
     RtpBuffer* pobjRtpExtHdr = rtpPacket.getExtHeader();
-    ASSERT_TRUE(pobjRtpExtHdr != NULL);
+    ASSERT_TRUE(pobjRtpExtHdr != nullptr);
 
     uint8_t pRtpExtHdr[] = {0x41, 0x78, 0x42, 0x00};
 
@@ -100,7 +100,7 @@ TEST(RtpPacketTest, TestDecodePacket)
     uint8_t pRtpPayLoad[] = {0x67, 0x42, 0xc0, 0x0c, 0xda, 0x0f, 0x0a, 0x69, 0xa8, 0x10, 0x10, 0x10,
             0x3c, 0x58, 0xba, 0x80};
 
-    ASSERT_TRUE(pobjRtpBuffer != NULL);
+    ASSERT_TRUE(pobjRtpBuffer != nullptr);
     EXPECT_EQ(memcmp(pRtpPayLoad, pobjRtpBuffer->getBuffer(), sizeof(pRtpPayLoad)), 0);
     EXPECT_EQ(pobjRtpBuffer->getLength(), sizeof(pRtpPayLoad));
 }
@@ -215,7 +215,7 @@ TEST(RtpPacketTest, TestDecodePacketWithPadding)
     uint8_t pRtpPayLoad[] = {0x67, 0x42, 0xc0, 0x0c, 0xda, 0x0f, 0x0a, 0x69, 0xa8, 0x10, 0x10, 0x10,
             0x3c, 0x58, 0xba, 0x80};
 
-    ASSERT_TRUE(pobjRtpBuffer != NULL);
+    ASSERT_TRUE(pobjRtpBuffer != nullptr);
     EXPECT_EQ(memcmp(pRtpPayLoad, pobjRtpBuffer->getBuffer(), sizeof(pRtpPayLoad)), 0);
     EXPECT_EQ(pobjRtpBuffer->getLength(), sizeof(pRtpPayLoad));
 }
@@ -224,7 +224,7 @@ TEST(RtpPacketTest, TestFormPacketwithoutExtension)
 {
     RtpPacket rtpPacket;
     RtpHeader* pobjRtpHdr = rtpPacket.getRtpHeader();
-    ASSERT_TRUE(pobjRtpHdr != NULL);
+    ASSERT_TRUE(pobjRtpHdr != nullptr);
 
     // set Rtp Headers
     pobjRtpHdr->setVersion(RTP_TWO);
@@ -266,7 +266,7 @@ TEST(RtpPacketTest, TestFormPacketwithExtension)
 {
     RtpPacket rtpPacket;
     RtpHeader* pobjRtpHdr = rtpPacket.getRtpHeader();
-    ASSERT_TRUE(pobjRtpHdr != NULL);
+    ASSERT_TRUE(pobjRtpHdr != nullptr);
 
     /*
      * Real-Time Transport Protocol

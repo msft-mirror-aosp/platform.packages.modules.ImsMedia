@@ -28,20 +28,20 @@
 extern RtpDt_Void Rtp_RtcpTimerCb(IN RtpDt_Void* pvTimerId, IN RtpDt_Void* pvData);
 
 RtpSession::RtpSession() :
-        m_pobjTransAddr(RTP_NULL),
+        m_pobjTransAddr(nullptr),
         m_usRtpPort(RTP_ZERO),
         m_usRtcpPort(RTP_ZERO),
-        m_pobjRtpStack(RTP_NULL),
+        m_pobjRtpStack(nullptr),
         m_usExtHdrLen(RTP_ZERO),
-        m_pobjRtcpCfgInfo(RTP_NULL),
+        m_pobjRtcpCfgInfo(nullptr),
         m_bEnableRTP(eRTP_FALSE),
         m_bEnableRTCP(eRTP_FALSE),
         m_bEnableRTCPBye(eRTP_FALSE),
         m_usRTCPTimerVal(RTP_ZERO),
         m_usSeqNum(RTP_ZERO),
         m_usSeqNumCycles(RTP_ZERO),
-        m_pobjPayloadInfo(RTP_NULL),
-        m_pobjAppInterface(RTP_NULL),
+        m_pobjPayloadInfo(nullptr),
+        m_pobjAppInterface(nullptr),
         m_uiSsrc(RTP_ZERO),
         m_uiSessionMtu(RTP_DEF_MTU_SIZE),
         m_uiRtpSendPktCount(RTP_ZERO),
@@ -49,7 +49,7 @@ RtpSession::RtpSession() :
         m_uiRtcpSendPktCount(RTP_ZERO),
         m_uiRtcpSendOctCount(RTP_ZERO),
         m_bSelfCollisionByeSent(eRTP_FAILURE),
-        m_pTimerId(RTP_NULL),
+        m_pTimerId(nullptr),
         m_bRtcpSendPkt(eRTP_FALSE),
         m_bSndRtcpByePkt(eRTP_FALSE),
         m_lastRTTDelay(RTP_ZERO),
@@ -59,25 +59,25 @@ RtpSession::RtpSession() :
     m_pobjRtcpCfgInfo = new RtcpConfigInfo();
     m_pobjRtpRcvrInfoList = new std::list<RtpReceiverInfo*>();
     m_pobjPayloadInfo = new RtpPayloadInfo();
-    m_pobjUtlRcvrList = RTP_NULL;
-    m_stRtcpXr.m_pBlockBuffer = RTP_NULL;
+    m_pobjUtlRcvrList = nullptr;
+    m_stRtcpXr.m_pBlockBuffer = nullptr;
 }
 
 RtpSession::RtpSession(IN RtpStack* pobjStack) :
-        m_pobjTransAddr(RTP_NULL),
+        m_pobjTransAddr(nullptr),
         m_usRtpPort(RTP_ZERO),
         m_usRtcpPort(RTP_ZERO),
         m_pobjRtpStack(pobjStack),
         m_usExtHdrLen(RTP_ZERO),
-        m_pobjRtcpCfgInfo(RTP_NULL),
+        m_pobjRtcpCfgInfo(nullptr),
         m_bEnableRTP(eRTP_FALSE),
         m_bEnableRTCP(eRTP_FALSE),
         m_bEnableRTCPBye(eRTP_FALSE),
         m_usRTCPTimerVal(RTP_ZERO),
         m_usSeqNum(RTP_ZERO),
         m_usSeqNumCycles(RTP_ZERO),
-        m_pobjPayloadInfo(RTP_NULL),
-        m_pobjAppInterface(RTP_NULL),
+        m_pobjPayloadInfo(nullptr),
+        m_pobjAppInterface(nullptr),
         m_uiSsrc(RTP_ZERO),
         m_uiSessionMtu(RTP_DEF_MTU_SIZE),
         m_uiRtpSendPktCount(RTP_ZERO),
@@ -85,7 +85,7 @@ RtpSession::RtpSession(IN RtpStack* pobjStack) :
         m_uiRtcpSendPktCount(RTP_ZERO),
         m_uiRtcpSendOctCount(RTP_ZERO),
         m_bSelfCollisionByeSent(eRTP_FAILURE),
-        m_pTimerId(RTP_NULL),
+        m_pTimerId(nullptr),
         m_bRtcpSendPkt(eRTP_FALSE),
         m_bSndRtcpByePkt(eRTP_FALSE),
         m_lastRTTDelay(RTP_ZERO),
@@ -95,34 +95,34 @@ RtpSession::RtpSession(IN RtpStack* pobjStack) :
     m_pobjRtcpCfgInfo = new RtcpConfigInfo();
     m_pobjPayloadInfo = new RtpPayloadInfo();
     m_pobjRtpRcvrInfoList = new std::list<RtpReceiverInfo*>();
-    m_pobjUtlRcvrList = RTP_NULL;
-    m_stRtcpXr.m_pBlockBuffer = RTP_NULL;
+    m_pobjUtlRcvrList = nullptr;
+    m_stRtcpXr.m_pBlockBuffer = nullptr;
 }
 
 RtpSession::~RtpSession()
 {
     std::lock_guard<std::mutex> guard(m_objRtpSessionLock);
 
-    if (m_pobjTransAddr != RTP_NULL)
+    if (m_pobjTransAddr != nullptr)
     {
         delete m_pobjTransAddr;
-        m_pobjTransAddr = RTP_NULL;
+        m_pobjTransAddr = nullptr;
     }
 
-    m_pobjRtpStack = RTP_NULL;
-    if (m_pobjRtcpCfgInfo != RTP_NULL)
+    m_pobjRtpStack = nullptr;
+    if (m_pobjRtcpCfgInfo != nullptr)
     {
         delete m_pobjRtcpCfgInfo;
-        m_pobjRtcpCfgInfo = RTP_NULL;
+        m_pobjRtcpCfgInfo = nullptr;
     }
 
-    if (m_pobjPayloadInfo != RTP_NULL)
+    if (m_pobjPayloadInfo != nullptr)
     {
         delete m_pobjPayloadInfo;
-        m_pobjPayloadInfo = RTP_NULL;
+        m_pobjPayloadInfo = nullptr;
     }
 
-    if (m_pTimerId != RTP_NULL)
+    if (m_pTimerId != nullptr)
     {
     }
 
@@ -132,7 +132,7 @@ RtpSession::~RtpSession()
 
     for (RtpDt_UInt32 uiCount = RTP_ZERO; uiCount < usSize; uiCount++)
     {
-        RtpReceiverInfo* pobjRcvrElm = RTP_NULL;
+        RtpReceiverInfo* pobjRcvrElm = nullptr;
         // get the member information
         pobjRcvrElm = m_pobjRtpRcvrInfoList->front();
         m_pobjRtpRcvrInfoList->pop_front();
@@ -141,8 +141,8 @@ RtpSession::~RtpSession()
 
     delete m_pobjRtpRcvrInfoList;
     delete m_pobjAppInterface;
-    m_pobjRtpRcvrInfoList = RTP_NULL;
-    m_pobjAppInterface = RTP_NULL;
+    m_pobjRtpRcvrInfoList = nullptr;
+    m_pobjAppInterface = nullptr;
 }
 
 RtpDt_UInt16 RtpSession::getExtHdrLen()
@@ -172,7 +172,7 @@ RtpDt_UInt16 RtpSession::getRtpPort()
 
 RtpDt_Void RtpSession::setRtpTransAddr(IN RtpBuffer* pobjDestTransAddr)
 {
-    if (m_pobjTransAddr != RTP_NULL)
+    if (m_pobjTransAddr != nullptr)
         delete m_pobjTransAddr;
 
     m_pobjTransAddr = pobjDestTransAddr;
@@ -185,7 +185,7 @@ RtpBuffer* RtpSession::getRtpTransAddr()
 
 eRtp_Bool RtpSession::compareRtpSessions(IN RtpSession* pobjSession)
 {
-    if (pobjSession == RTP_NULL)
+    if (pobjSession == nullptr)
     {
         RTP_TRACE_WARNING("compareRtpSessions, Input param is Null.", RTP_ZERO, RTP_ZERO);
         return eRTP_FAILURE;
@@ -196,21 +196,21 @@ eRtp_Bool RtpSession::compareRtpSessions(IN RtpSession* pobjSession)
         if (m_usRtpPort == pobjSession->getRtpPort())
         {
             RtpBuffer* objRtpBuff = pobjSession->getRtpTransAddr();
-            if (m_pobjTransAddr == RTP_NULL && objRtpBuff == RTP_NULL)
+            if (m_pobjTransAddr == nullptr && objRtpBuff == nullptr)
             {
                 return eRTP_SUCCESS;
             }
-            RtpDt_UChar* pcTranAddr1 = RTP_NULL;
-            if (m_pobjTransAddr != RTP_NULL)
+            RtpDt_UChar* pcTranAddr1 = nullptr;
+            if (m_pobjTransAddr != nullptr)
             {
                 pcTranAddr1 = m_pobjTransAddr->getBuffer();
             }
-            RtpDt_UChar* pcTranAddr2 = RTP_NULL;
-            if (objRtpBuff != RTP_NULL)
+            RtpDt_UChar* pcTranAddr2 = nullptr;
+            if (objRtpBuff != nullptr)
             {
                 pcTranAddr2 = objRtpBuff->getBuffer();
             }
-            if (pcTranAddr1 == RTP_NULL || pcTranAddr2 == RTP_NULL)
+            if (pcTranAddr1 == nullptr || pcTranAddr2 == nullptr)
             {
                 return eRTP_FAILURE;
             }
@@ -228,7 +228,7 @@ RtpDt_Void Rtp_RtcpTimerCb(IN RtpDt_Void* pvTimerId, IN RtpDt_Void* pvData)
 {
     RtpSessionManager* pobjActSesDb = RtpSessionManager::getInstance();
     RtpSession* pobjRtpSession = static_cast<RtpSession*>(pvData);
-    if (pobjRtpSession == RTP_NULL)
+    if (pobjRtpSession == nullptr)
     {
         RTP_TRACE_WARNING("Rtp_RtcpTimerCb, pvTimerId is NULL.", RTP_ZERO, RTP_ZERO);
         return;
@@ -255,14 +255,14 @@ RtpDt_UInt32 RtpSession::estimateRtcpPktSize()
         uiEstRtcpSize = RTP_DEF_BYE_PKT_SIZE;
         uiEstRtcpSize += m_pobjRtcpCfgInfo->getByeReasonSize();
 
-        RTP_TRACE_MESSAGE("estimateRtcpPktSize, [Bye packet size : %d]", uiEstRtcpSize, RTP_NULL);
+        RTP_TRACE_MESSAGE("estimateRtcpPktSize, [Bye packet size : %d]", uiEstRtcpSize, nullptr);
     }
     else if (uiSdesItems > RTP_ZERO)
     {
         RtpDt_UInt32 uiSdesPktSize = RTP_WORD_SIZE;
         uiSdesPktSize = uiSdesPktSize + m_pobjRtcpCfgInfo->estimateSdesPktSize();
 
-        RTP_TRACE_MESSAGE("estimateRtcpPktSize, [uiSdesPktSize : %d]", uiSdesPktSize, RTP_NULL);
+        RTP_TRACE_MESSAGE("estimateRtcpPktSize, [uiSdesPktSize : %d]", uiSdesPktSize, nullptr);
 
         uiEstRtcpSize += uiSdesPktSize;
     }
@@ -272,7 +272,7 @@ RtpDt_UInt32 RtpSession::estimateRtcpPktSize()
         uiEstRtcpSize += RTP_DEF_APP_PKT_SIZE;
         uiEstRtcpSize += m_pobjRtcpCfgInfo->getAppDepDataSize();
 
-        RTP_TRACE_MESSAGE("estimateRtcpPktSize, [after app pkt size: %d]", uiEstRtcpSize, RTP_NULL);
+        RTP_TRACE_MESSAGE("estimateRtcpPktSize, [after app pkt size: %d]", uiEstRtcpSize, nullptr);
     }
 
     return uiEstRtcpSize;
@@ -286,7 +286,7 @@ eRTP_STATUS_CODE RtpSession::formSrList(IN RtpDt_UInt32 uiSndrCount, OUT RtcpPac
     while (uiSndrCount > RTP_MAX_RECEP_REP_CNT)
     {
         RtcpSrPacket* pobjSrPkt = new RtcpSrPacket();
-        if (pobjSrPkt == RTP_NULL)
+        if (pobjSrPkt == nullptr)
         {
             RTP_TRACE_ERROR("[Memory Error] new returned NULL.", RTP_ZERO, RTP_ZERO);
             return RTP_MEMORY_FAIL;
@@ -308,7 +308,7 @@ eRTP_STATUS_CODE RtpSession::formSrList(IN RtpDt_UInt32 uiSndrCount, OUT RtcpPac
     if ((uiSndrCount > RTP_ZERO) || (uiTmpFlg == RTP_ZERO))
     {
         RtcpSrPacket* pobjSrPkt = new RtcpSrPacket();
-        if (pobjSrPkt == RTP_NULL)
+        if (pobjSrPkt == nullptr)
         {
             RTP_TRACE_ERROR("[Memory Error] new returned NULL.", RTP_ZERO, RTP_ZERO);
             return RTP_MEMORY_FAIL;
@@ -336,7 +336,7 @@ eRTP_STATUS_CODE RtpSession::formRrList(IN RtpDt_UInt32 uiSndrCount, OUT RtcpPac
     while (uiSndrCount > RTP_MAX_RECEP_REP_CNT)
     {
         RtcpRrPacket* pobjRrPkt = new RtcpRrPacket();
-        if (pobjRrPkt == RTP_NULL)
+        if (pobjRrPkt == nullptr)
         {
             RTP_TRACE_ERROR("[Memory Error] new returned NULL.", RTP_ZERO, RTP_ZERO);
             return RTP_MEMORY_FAIL;
@@ -360,7 +360,7 @@ eRTP_STATUS_CODE RtpSession::formRrList(IN RtpDt_UInt32 uiSndrCount, OUT RtcpPac
     if ((uiSndrCount > RTP_ZERO) || (uiTmpFlg == RTP_ZERO))
     {
         RtcpRrPacket* pobjRrPkt = new RtcpRrPacket();
-        if (pobjRrPkt == RTP_NULL)
+        if (pobjRrPkt == nullptr)
         {
             RTP_TRACE_ERROR("[Memory Error] new returned NULL.", RTP_ZERO, RTP_ZERO);
             return RTP_MEMORY_FAIL;
@@ -581,7 +581,7 @@ eRTP_STATUS_CODE RtpSession::rtpSendRtcpPacket(IN_OUT RtcpPacket* objRtcpPkt)
 {
     RtpBuffer* pRtcpBuf = new RtpBuffer();
 
-    if (pRtcpBuf == RTP_NULL)
+    if (pRtcpBuf == nullptr)
     {
         RTP_TRACE_ERROR("[Memory Error] new returned NULL.", RTP_ZERO, RTP_ZERO);
         m_pobjAppInterface->rtcpTimerHdlErrorInd(RTP_MEMORY_FAIL);
@@ -590,7 +590,7 @@ eRTP_STATUS_CODE RtpSession::rtpSendRtcpPacket(IN_OUT RtcpPacket* objRtcpPkt)
 
     RtpDt_UChar* pcBuff = new RtpDt_UChar[RTP_DEF_MTU_SIZE];
 
-    if (pcBuff == RTP_NULL)
+    if (pcBuff == nullptr)
     {
         RTP_TRACE_ERROR("[Memory Error] new returned NULL.", RTP_ZERO, RTP_ZERO);
         delete pRtcpBuf;
@@ -623,10 +623,10 @@ eRTP_STATUS_CODE RtpSession::rtpSendRtcpPacket(IN_OUT RtcpPacket* objRtcpPkt)
     m_objTimerInfo.updateAvgRtcpSize(pRtcpBuf->getLength());
     delete pRtcpBuf;
 
-    if (m_stRtcpXr.m_pBlockBuffer != RTP_NULL)
+    if (m_stRtcpXr.m_pBlockBuffer != nullptr)
     {
         delete m_stRtcpXr.m_pBlockBuffer;
-        m_stRtcpXr.m_pBlockBuffer = RTP_NULL;
+        m_stRtcpXr.m_pBlockBuffer = nullptr;
     }
 
     return RTP_SUCCESS;
@@ -649,7 +649,7 @@ RtpDt_Void RtpSession::rtcpTimerExpiry(IN RtpDt_Void* pvTimerId)
 
     if (m_pTimerId == pvTimerId)
     {
-        m_pTimerId = RTP_NULL;
+        m_pTimerId = nullptr;
     }
 
     RtpDt_UInt16 usMembers = m_pobjRtpRcvrInfoList->size();
@@ -674,7 +674,7 @@ RtpDt_Void RtpSession::rtcpTimerExpiry(IN RtpDt_Void* pvTimerId)
 
     m_objTimerInfo.setTn(uiTempTn);
     RtpDt_UInt32 uiTimerVal = RTP_ZERO;
-    RtpDt_Void* pvData = RTP_NULL;
+    RtpDt_Void* pvData = nullptr;
 
     if ((m_bSelfCollisionByeSent != eRTP_TRUE) || (m_bSndRtcpByePkt != eRTP_TRUE))
     {
@@ -693,7 +693,7 @@ RtpDt_Void RtpSession::rtcpTimerExpiry(IN RtpDt_Void* pvTimerId)
             eRtp_Bool bTSres = eRTP_FALSE;
 
             bTSres = m_pobjAppInterface->RtpStopTimer(m_pTimerId, &pvData);
-            m_pTimerId = RTP_NULL;
+            m_pTimerId = nullptr;
             if (bTSres == eRTP_FALSE)
             {
                 return;
@@ -702,7 +702,7 @@ RtpDt_Void RtpSession::rtcpTimerExpiry(IN RtpDt_Void* pvTimerId)
             {
                 RtpDt_Void* pvSTRes = m_pobjAppInterface->RtpStartTimer(
                         uiTimerVal, eRTP_FALSE, m_pfnTimerCb, reinterpret_cast<RtpDt_Void*>(this));
-                if (pvSTRes == RTP_NULL)
+                if (pvSTRes == nullptr)
                 {
                     return;
                 }
@@ -756,11 +756,11 @@ RtpDt_Void RtpSession::rtcpTimerExpiry(IN RtpDt_Void* pvTimerId)
 
     // uiTimerVal = (RtpDt_UInt32)dTempT;
     //  Reschedule the next report for time tn
-    if (m_pTimerId != RTP_NULL)
+    if (m_pTimerId != nullptr)
     {
         eRtp_Bool bTSres = eRTP_FALSE;
         bTSres = m_pobjAppInterface->RtpStopTimer(m_pTimerId, &pvData);
-        m_pTimerId = RTP_NULL;
+        m_pTimerId = nullptr;
         if (bTSres == eRTP_FALSE)
         {
             return;
@@ -769,12 +769,12 @@ RtpDt_Void RtpSession::rtcpTimerExpiry(IN RtpDt_Void* pvTimerId)
 
     if (m_bEnableRTCP == eRTP_TRUE)
     {
-        RtpDt_Void* pvSTRes = RTP_NULL;
+        RtpDt_Void* pvSTRes = nullptr;
 
         pvSTRes = m_pobjAppInterface->RtpStartTimer(
                 uiTimerVal, eRTP_FALSE, m_pfnTimerCb, reinterpret_cast<RtpDt_Void*>(this));
 
-        if (pvSTRes == RTP_NULL)
+        if (pvSTRes == nullptr)
         {
             return;
         }
@@ -863,7 +863,7 @@ eRTP_STATUS_CODE RtpSession::populateReportPacket(
 
     std::list<RtpReceiverInfo*>* pobjTmpRcvrList = m_pobjRtpRcvrInfoList;
     m_pobjUtlRcvrList = new std::list<RtpReceiverInfo*>();
-    if (m_pobjUtlRcvrList == RTP_NULL)
+    if (m_pobjUtlRcvrList == nullptr)
     {
         RTP_TRACE_ERROR("[Memory Error] new returned NULL.", RTP_ZERO, RTP_ZERO);
         return RTP_MEMORY_FAIL;
@@ -879,12 +879,12 @@ eRTP_STATUS_CODE RtpSession::populateReportPacket(
         if ((pobjRcvrElm->isSender() == eRTP_TRUE) && (uiTmpRecpCount <= uiRecepCount))
         {
             RtcpReportBlock* pobjRepBlk = new RtcpReportBlock();
-            if (pobjRepBlk == RTP_NULL)
+            if (pobjRepBlk == nullptr)
             {
                 RTP_TRACE_ERROR("[Memory Error] new returned NULL.", RTP_ZERO, RTP_ZERO);
                 cleanUtlReceiverList();
                 delete m_pobjUtlRcvrList;
-                m_pobjUtlRcvrList = RTP_NULL;
+                m_pobjUtlRcvrList = nullptr;
                 return RTP_MEMORY_FAIL;
             }
             pobjRcvrElm->populateReportBlock(pobjRepBlk);
@@ -923,7 +923,7 @@ eRTP_STATUS_CODE RtpSession::populateReportPacket(
     if (m_usExtHdrLen > RTP_ZERO)
     {
         RtpBuffer* pobjExtHdrInfo = new RtpBuffer();
-        if (pobjExtHdrInfo == RTP_NULL)
+        if (pobjExtHdrInfo == nullptr)
         {
             RTP_TRACE_ERROR("[Memory Error] new returned NULL.", RTP_ZERO, RTP_ZERO);
             return RTP_MEMORY_FAIL;
@@ -942,7 +942,7 @@ eRTP_STATUS_CODE RtpSession::populateReportPacket(
 eRTP_STATUS_CODE RtpSession::populateByePacket(IN_OUT RtcpPacket* pobjRtcpPkt)
 {
     RtcpByePacket* pobjByePkt = new RtcpByePacket();
-    if (pobjByePkt == RTP_NULL)
+    if (pobjByePkt == nullptr)
     {
         RTP_TRACE_ERROR("[Memory Error] new returned NULL.", RTP_ZERO, RTP_ZERO);
         return RTP_MEMORY_FAIL;
@@ -959,13 +959,13 @@ eRTP_STATUS_CODE RtpSession::populateByePacket(IN_OUT RtcpPacket* pobjRtcpPkt)
 eRTP_STATUS_CODE RtpSession::populateAppPacket(IN_OUT RtcpPacket* pobjRtcpPkt)
 {
     RtcpAppPacket* pobjAppPkt = new RtcpAppPacket();
-    if (pobjAppPkt == RTP_NULL)
+    if (pobjAppPkt == nullptr)
     {
         RTP_TRACE_ERROR("[Memory Error] new returned NULL.", RTP_ZERO, RTP_ZERO);
         return RTP_MEMORY_FAIL;
     }
     RtpBuffer* pobjPayload = new RtpBuffer();
-    if (pobjPayload == RTP_NULL)
+    if (pobjPayload == nullptr)
     {
         RTP_TRACE_ERROR("[Memory Error] new returned NULL.", RTP_ZERO, RTP_ZERO);
         delete pobjAppPkt;
@@ -1026,20 +1026,20 @@ eRTP_STATUS_CODE RtpSession::populateRtcpFbPacket(IN_OUT RtcpPacket* pobjRtcpPkt
 
 eRTP_STATUS_CODE RtpSession::constructSdesPkt(IN_OUT RtcpPacket* pobjRtcpPkt)
 {
-    if (m_pobjRtcpCfgInfo == RTP_NULL || pobjRtcpPkt == RTP_NULL)
+    if (m_pobjRtcpCfgInfo == nullptr || pobjRtcpPkt == nullptr)
         return RTP_FAILURE;
 
     RtpDt_UInt32 uiSdesItems = m_pobjRtcpCfgInfo->getSdesItemCount();
 
     RtcpSdesPacket* pobjSdesPkt = new RtcpSdesPacket();
-    if (pobjSdesPkt == RTP_NULL)
+    if (pobjSdesPkt == nullptr)
     {
         RTP_TRACE_ERROR("[Memory Error] new returned NULL.", RTP_ZERO, RTP_ZERO);
         return RTP_MEMORY_FAIL;
     }
 
     RtcpChunk* pobjChunk = new RtcpChunk();
-    if (pobjChunk == RTP_NULL)
+    if (pobjChunk == nullptr)
     {
         RTP_TRACE_ERROR("[Memory Error] new returned NULL.", RTP_ZERO, RTP_ZERO);
         delete pobjSdesPkt;
@@ -1047,7 +1047,7 @@ eRTP_STATUS_CODE RtpSession::constructSdesPkt(IN_OUT RtcpPacket* pobjRtcpPkt)
     }
 
     RtcpHeader* pRtcpHdr = pobjSdesPkt->getRtcpHdrInfo();
-    if (pRtcpHdr == RTP_NULL)
+    if (pRtcpHdr == nullptr)
     {
         RTP_TRACE_ERROR("Failed to retrieve Rtcp Header Info", RTP_ZERO, RTP_ZERO);
         delete pobjSdesPkt;
@@ -1071,16 +1071,16 @@ eRTP_STATUS_CODE RtpSession::constructSdesPkt(IN_OUT RtcpPacket* pobjRtcpPkt)
     {
         tRTCP_SDES_ITEM* pstSdesItem = m_pobjRtcpCfgInfo->getRtcpSdesItem(uiCount);
 
-        if (pstSdesItem && pstSdesItem->pValue != RTP_NULL)
+        if (pstSdesItem && pstSdesItem->pValue != nullptr)
         {
             tRTCP_SDES_ITEM* pstTmpSdesItem = new tRTCP_SDES_ITEM();
-            if (pstTmpSdesItem == RTP_NULL)
+            if (pstTmpSdesItem == nullptr)
             {
                 return RTP_MEMORY_FAIL;
             }
 
             RtpDt_UChar* pucSdesBuf = new RtpDt_UChar[pstSdesItem->ucLength];
-            if (pucSdesBuf == RTP_NULL)
+            if (pucSdesBuf == nullptr)
             {
                 delete pstTmpSdesItem;
                 return RTP_MEMORY_FAIL;
@@ -1117,7 +1117,7 @@ eRtp_Bool RtpSession::isRtpEnabled()
 eRTP_STATUS_CODE RtpSession::enableRtcp(eRtp_Bool enableRTCPBye)
 {
     RtpStackProfile* pobjRtpProfile = m_pobjRtpStack->getStackProfile();
-    if (pobjRtpProfile == RTP_NULL)
+    if (pobjRtpProfile == nullptr)
         return RTP_FAILURE;
 
     // timer value shall be in milli seconds
@@ -1140,28 +1140,28 @@ eRTP_STATUS_CODE RtpSession::enableRtcp(eRtp_Bool enableRTCPBye)
 
     RtpSessionManager* pobjActSesDb = RtpSessionManager::getInstance();
     pobjActSesDb->addRtpSession(reinterpret_cast<RtpDt_Void*>(this));
-    RtpDt_Void* pvData = RTP_NULL;
+    RtpDt_Void* pvData = nullptr;
 
-    if (m_pTimerId != RTP_NULL && m_pobjAppInterface != RTP_NULL)
+    if (m_pTimerId != nullptr && m_pobjAppInterface != nullptr)
     {
         eRtp_Bool bTSres = eRTP_FALSE;
         bTSres = m_pobjAppInterface->RtpStopTimer(m_pTimerId, &pvData);
-        m_pTimerId = RTP_NULL;
+        m_pTimerId = nullptr;
         if (bTSres == eRTP_FALSE)
         {
             RTP_TRACE_WARNING("enableRtcp, Stop timer is returned NULL value.", RTP_ZERO, RTP_ZERO);
             return RTP_TIMER_PROC_ERR;
         }
     }
-    RtpDt_Void* pvSTRes = RTP_NULL;
+    RtpDt_Void* pvSTRes = nullptr;
 
-    if (m_pobjAppInterface != RTP_NULL)
+    if (m_pobjAppInterface != nullptr)
     {
         m_pfnTimerCb = Rtp_RtcpTimerCb;
         // start RTCP timer with default value
         pvSTRes = m_pobjAppInterface->RtpStartTimer(
                 uiTimerVal, eRTP_FALSE, m_pfnTimerCb, reinterpret_cast<RtpDt_Void*>(this));
-        if (pvSTRes == RTP_NULL)
+        if (pvSTRes == nullptr)
         {
             RTP_TRACE_WARNING(
                     "enableRtcp, start timer is returned NULL value.", RTP_ZERO, RTP_ZERO);
@@ -1185,17 +1185,17 @@ eRTP_STATUS_CODE RtpSession::enableRtcp(eRtp_Bool enableRTCPBye)
 
 eRTP_STATUS_CODE RtpSession::disableRtcp()
 {
-    RtpDt_Void* pvData = RTP_NULL;
+    RtpDt_Void* pvData = nullptr;
 
     RtpSessionManager* pobjActSesDb = RtpSessionManager::getInstance();
     pobjActSesDb->removeRtpSession(this);
 
     m_bEnableRTCP = eRTP_FALSE;
     m_bEnableRTCPBye = eRTP_FALSE;
-    if (m_pTimerId != RTP_NULL && m_pobjAppInterface != RTP_NULL)
+    if (m_pTimerId != nullptr && m_pobjAppInterface != nullptr)
     {
         m_pobjAppInterface->RtpStopTimer(m_pTimerId, &pvData);
-        m_pTimerId = RTP_NULL;
+        m_pTimerId = nullptr;
     }
 
     m_objTimerInfo.cleanUp();
@@ -1207,9 +1207,9 @@ eRTP_STATUS_CODE RtpSession::initSession(
         IN IRtpAppInterface* pobjAppInterface, IN RtcpConfigInfo* pobjRtcpConfigInfo)
 {
     // set m_pobjAppInterface
-    if (pobjAppInterface != RTP_NULL)
+    if (pobjAppInterface != nullptr)
     {
-        if (m_pobjAppInterface != RTP_NULL)
+        if (m_pobjAppInterface != nullptr)
             delete m_pobjAppInterface;
 
         m_pobjAppInterface = pobjAppInterface;
@@ -1222,9 +1222,9 @@ eRTP_STATUS_CODE RtpSession::initSession(
     }
 
     // set pobjRtcpConfigInfo
-    if (pobjRtcpConfigInfo != RTP_NULL)
+    if (pobjRtcpConfigInfo != nullptr)
     {
-        if (m_pobjRtcpCfgInfo != RTP_NULL)
+        if (m_pobjRtcpCfgInfo != nullptr)
             delete m_pobjRtcpCfgInfo;
 
         m_pobjRtcpCfgInfo = pobjRtcpConfigInfo;
@@ -1243,9 +1243,9 @@ eRTP_STATUS_CODE RtpSession::setPayload(
 
 {
     // set RTP payload information
-    if (pstPayloadInfo != RTP_NULL)
+    if (pstPayloadInfo != nullptr)
     {
-        if (m_pobjPayloadInfo == RTP_NULL)
+        if (m_pobjPayloadInfo == nullptr)
         {
             RTP_TRACE_ERROR("setPayload, m_pobjPayloadInfo is NULL.", RTP_ZERO, RTP_ZERO);
             return RTP_INVALID_PARAMS;
@@ -1279,17 +1279,17 @@ eRTP_STATUS_CODE RtpSession::setRTCPTimerValue(IN RtpDt_UInt16 usRTCPTimerVal)
 
 eRTP_STATUS_CODE RtpSession::deleteRtpSession()
 {
-    RtpDt_Void* pvData = RTP_NULL;
+    RtpDt_Void* pvData = nullptr;
 
     std::lock_guard<std::mutex> guard(m_objRtpSessionLock);
 
     RtpSessionManager* pobjActSesDb = RtpSessionManager::getInstance();
     pobjActSesDb->removeRtpSession(this);
 
-    if (m_pTimerId != RTP_NULL)
+    if (m_pTimerId != nullptr)
     {
         m_pobjAppInterface->RtpStopTimer(m_pTimerId, &pvData);
-        m_pTimerId = RTP_NULL;
+        m_pTimerId = nullptr;
     }
 
     for (auto& pobjRcvrElm : *m_pobjRtpRcvrInfoList)
@@ -1321,16 +1321,16 @@ eRTP_STATUS_CODE RtpSession::chkRcvdSsrcStatus(
 RtpReceiverInfo* RtpSession::checkSsrcCollisionOnRcv(IN RtpBuffer* pobjRtpAddr,
         IN RtpDt_UInt16 usPort, IN RtpDt_UInt32 uiRcvdSsrc, OUT eRTP_STATUS_CODE& eResult)
 {
-    if (m_pobjRtpRcvrInfoList == RTP_NULL)
+    if (m_pobjRtpRcvrInfoList == nullptr)
     {
         eResult = RTP_INVALID_PARAMS;
-        return RTP_NULL;
+        return nullptr;
     }
 
     for (auto& pobjRcvInfo : *m_pobjRtpRcvrInfoList)
     {
         RtpDt_UInt32 uiTmpSsrc = RTP_ZERO;
-        if (pobjRcvInfo == RTP_NULL)
+        if (pobjRcvInfo == nullptr)
             break;
 
         uiTmpSsrc = pobjRcvInfo->getSsrc();
@@ -1356,10 +1356,10 @@ RtpReceiverInfo* RtpSession::checkSsrcCollisionOnRcv(IN RtpBuffer* pobjRtpAddr,
                 return pobjRcvInfo;
             }
 
-            if (pcDestAddr == RTP_NULL || pcRcvDestAddr == RTP_NULL)
+            if (pcDestAddr == nullptr || pcRcvDestAddr == nullptr)
             {
                 eResult = RTP_INVALID_PARAMS;
-                return RTP_NULL;
+                return nullptr;
             }
 
             if (memcmp(pcDestAddr, pcRcvDestAddr, uiRcvDestAddrLen) != RTP_ZERO)
@@ -1374,7 +1374,7 @@ RtpReceiverInfo* RtpSession::checkSsrcCollisionOnRcv(IN RtpBuffer* pobjRtpAddr,
     }
 
     eResult = RTP_NEW_SSRC_RCVD;
-    return RTP_NULL;
+    return nullptr;
 }  // checkSsrcCollisionOnRcv
 
 eRtp_Bool RtpSession::findEntryInCsrcList(
@@ -1394,7 +1394,7 @@ eRtp_Bool RtpSession::findEntryInRcvrList(IN RtpDt_UInt32 uiSsrc)
 {
     for (auto& pobjRcvInfo : *m_pobjRtpRcvrInfoList)
     {
-        if (pobjRcvInfo != RTP_NULL && pobjRcvInfo->getSsrc() == uiSsrc)
+        if (pobjRcvInfo != nullptr && pobjRcvInfo->getSsrc() == uiSsrc)
         {
             return eRTP_TRUE;
         }
@@ -1417,9 +1417,9 @@ eRTP_STATUS_CODE RtpSession::processCsrcList(
         bRcvrStatus = findEntryInRcvrList(csrc);
         if (bRcvrStatus == eRTP_FALSE)
         {
-            RtpReceiverInfo* pobjRcvInfo = RTP_NULL;
+            RtpReceiverInfo* pobjRcvInfo = nullptr;
             pobjRcvInfo = new RtpReceiverInfo();
-            if (pobjRcvInfo == RTP_NULL)
+            if (pobjRcvInfo == nullptr)
             {
                 RTP_TRACE_ERROR("[Memory Error] new returned NULL.", RTP_ZERO, RTP_ZERO);
                 return RTP_MEMORY_FAIL;
@@ -1448,7 +1448,7 @@ eRTP_STATUS_CODE RtpSession::processRcvdRtpPkt(IN RtpBuffer* pobjRtpAddr, IN Rtp
     std::lock_guard<std::mutex> guard(m_objRtpSessionLock);
 
     // validation
-    if ((pobjRTPPacket == RTP_NULL) || (pobjRtpPkt == RTP_NULL) || (pobjRtpAddr == RTP_NULL))
+    if ((pobjRTPPacket == nullptr) || (pobjRtpPkt == nullptr) || (pobjRtpAddr == nullptr))
     {
         RTP_TRACE_WARNING(
                 "processRcvdRtpPkt, pobjRTPPacket || pobjRtpPkt is NULL.", RTP_ZERO, RTP_ZERO);
@@ -1531,7 +1531,7 @@ eRTP_STATUS_CODE RtpSession::processRcvdRtpPkt(IN RtpBuffer* pobjRtpAddr, IN Rtp
         return eRcvdResult;
     }
 
-    if (eRcvdResult != RTP_NEW_SSRC_RCVD && pobjRcvInfo == RTP_NULL)
+    if (eRcvdResult != RTP_NEW_SSRC_RCVD && pobjRcvInfo == nullptr)
     {
         RTP_TRACE_WARNING(
                 "processRcvdRtpPkt -eRcvdResult == RTP_INVALID_PARAMS. pobjRcvInfo is NULL)",
@@ -1544,7 +1544,7 @@ eRTP_STATUS_CODE RtpSession::processRcvdRtpPkt(IN RtpBuffer* pobjRtpAddr, IN Rtp
     {
         // add entry into the list.
         pobjRcvInfo = new RtpReceiverInfo();
-        if (pobjRcvInfo == RTP_NULL)
+        if (pobjRcvInfo == nullptr)
         {
             RTP_TRACE_ERROR("[Memory Error] new returned NULL.", RTP_ZERO, RTP_ZERO);
             return RTP_MEMORY_FAIL;
@@ -1598,7 +1598,7 @@ eRTP_STATUS_CODE RtpSession::processRcvdRtpPkt(IN RtpBuffer* pobjRtpAddr, IN Rtp
     // process CSRC list
     processCsrcList(pobjRtpHeader, ucCsrcCount);
 
-    if (pobjRcvInfo == RTP_NULL)
+    if (pobjRcvInfo == nullptr)
         return RTP_SUCCESS;
 
     // calculate interarrival jitter
@@ -1725,11 +1725,11 @@ eRTP_STATUS_CODE RtpSession::createRtpPacket(IN RtpBuffer* pobjPayload, IN eRtp_
         uiRtpLength += pobjXHdr->getLength();
 
     RtpDt_UChar* pucRtpBuffer = new RtpDt_UChar[uiRtpLength];
-    if (pucRtpBuffer == RTP_NULL)
+    if (pucRtpBuffer == nullptr)
     {
         RTP_TRACE_WARNING("createRtpPacket, error in allocating memory ", RTP_ZERO, RTP_ZERO);
         // set rtp payload as NULL in RtpPacket
-        objRtpPacket.setRtpPayload(RTP_NULL);
+        objRtpPacket.setRtpPayload(nullptr);
         return RTP_MEMORY_FAIL;
     }
     memset(pucRtpBuffer, RTP_ZERO, uiRtpLength);
@@ -1750,7 +1750,7 @@ eRTP_STATUS_CODE RtpSession::createRtpPacket(IN RtpBuffer* pobjPayload, IN eRtp_
     bPackRes = objRtpPacket.formPacket(pRtpPkt);
 
     // set pobjPayload to NULL in both success and failure case
-    objRtpPacket.setRtpPayload(RTP_NULL);
+    objRtpPacket.setRtpPayload(nullptr);
 
     if (bPackRes != eRTP_TRUE)
     {
@@ -1785,9 +1785,9 @@ RtpReceiverInfo* RtpSession::processRtcpPkt(
     {
         // add entry into the list.
         pobjRcvInfo = new RtpReceiverInfo();
-        if (pobjRcvInfo == RTP_NULL)
+        if (pobjRcvInfo == nullptr)
         {
-            return RTP_NULL;
+            return nullptr;
         }
         // populate pobjRcvInfo object
         // ip address
@@ -1803,7 +1803,7 @@ RtpReceiverInfo* RtpSession::processRtcpPkt(
     else if (eRcvdResult != RTP_INVALID_PARAMS)
     {
         // m_bSender should be FALSE for RTCP
-        /* if(pobjRcvInfo != NULL)
+        /* if(pobjRcvInfo != nullptr)
          {
             pobjRcvInfo->setSenderFlag(eRTP_FALSE);
          }
@@ -1850,10 +1850,10 @@ eRTP_STATUS_CODE RtpSession::processByePacket(
         }
         else
         {
-            RtpDt_UInt32* puiSsrc = RTP_NULL;
+            RtpDt_UInt32* puiSsrc = nullptr;
             // get element from list
             puiSsrc = (*listIterator);
-            if (puiSsrc != RTP_NULL)
+            if (puiSsrc != nullptr)
             {
                 delEntryFromRcvrList(puiSsrc);
             }
@@ -1867,7 +1867,7 @@ eRTP_STATUS_CODE RtpSession::processByePacket(
     bByeResult = m_objTimerInfo.updateByePktInfo(usRcvrNum);
 
     if ((bByeResult == eRTP_TRUE) && (m_bEnableRTCP == eRTP_TRUE) &&
-            (m_pobjAppInterface != RTP_NULL))
+            (m_pobjAppInterface != nullptr))
     {
         // Reschedule the next report for time tn
         RtpDt_UInt32 uiTempTn = m_objTimerInfo.getTn();
@@ -1900,13 +1900,13 @@ eRTP_STATUS_CODE RtpSession::processByePacket(
         }
 
         RTP_TRACE_MESSAGE("processByePacket [uiTimerVal : %u]", uiTimerVal, RTP_ZERO);
-        RtpDt_Void* pvData = RTP_NULL;
+        RtpDt_Void* pvData = nullptr;
         eRtp_Bool bTSres = eRTP_FALSE;
 
-        if (m_pTimerId != RTP_NULL)
+        if (m_pTimerId != nullptr)
         {
             bTSres = m_pobjAppInterface->RtpStopTimer(m_pTimerId, &pvData);
-            m_pTimerId = RTP_NULL;
+            m_pTimerId = nullptr;
             if (bTSres == eRTP_FALSE)
             {
                 return RTP_TIMER_PROC_ERR;
@@ -1914,7 +1914,7 @@ eRTP_STATUS_CODE RtpSession::processByePacket(
         }
         RtpDt_Void* pvSTRes =
                 m_pobjAppInterface->RtpStartTimer(uiTimerVal, eRTP_FALSE, m_pfnTimerCb, this);
-        if (pvSTRes == RTP_NULL)
+        if (pvSTRes == nullptr)
         {
             return RTP_TIMER_PROC_ERR;
         }
@@ -1941,7 +1941,7 @@ eRTP_STATUS_CODE RtpSession::processRcvdRtcpPkt(IN RtpBuffer* pobjRtcpAddr, IN R
     }
 
     // validity checking
-    if (pobjRtcpAddr == RTP_NULL || pobjRTCPBuf == RTP_NULL || pobjRtcpPkt == RTP_NULL)
+    if (pobjRtcpAddr == nullptr || pobjRTCPBuf == nullptr || pobjRtcpPkt == nullptr)
     {
         RTP_TRACE_ERROR("[ProcessRcvdRtcpPkt] Invalid params. pobjRtcpAddr[%x] pobjRTCPBuf[%x]",
                 pobjRtcpAddr, pobjRTCPBuf);
@@ -1983,7 +1983,7 @@ eRTP_STATUS_CODE RtpSession::processRcvdRtcpPkt(IN RtpBuffer* pobjRtcpAddr, IN R
         if (pobjReportBlkList.size() > RTP_ZERO)
         {
             RtcpReportBlock* pobjReportBlk = pobjReportBlkList.front();
-            if (pobjReportBlk != RTP_NULL)
+            if (pobjReportBlk != nullptr)
             {
                 calculateAndSetRTTD(
                         currentTime, pobjReportBlk->getLastSR(), pobjReportBlk->getDelayLastSR());
@@ -1992,7 +1992,7 @@ eRTP_STATUS_CODE RtpSession::processRcvdRtcpPkt(IN RtpBuffer* pobjRtcpAddr, IN R
         // decrement rtcp port by one
         usPort = usPort - RTP_ONE;
         RtpReceiverInfo* pobjRcvInfo = processRtcpPkt(uiRcvdSsrc, pobjRtcpAddr, usPort);
-        if (pobjRcvInfo != RTP_NULL)
+        if (pobjRcvInfo != nullptr)
         {
             stNtpTs = {RTP_ZERO, RTP_ZERO};
             pobjRcvInfo->setpreSrTimestamp(pobjSrPkt->getNtpTime());
@@ -2014,7 +2014,7 @@ eRTP_STATUS_CODE RtpSession::processRcvdRtcpPkt(IN RtpBuffer* pobjRtcpAddr, IN R
         if (pobjReportBlkList.size() > RTP_ZERO)
         {
             RtcpReportBlock* pobjReportBlk = pobjReportBlkList.front();
-            if (pobjReportBlk != RTP_NULL)
+            if (pobjReportBlk != nullptr)
             {
                 calculateAndSetRTTD(
                         currentTime, pobjReportBlk->getLastSR(), pobjReportBlk->getDelayLastSR());
@@ -2031,7 +2031,7 @@ eRTP_STATUS_CODE RtpSession::processRcvdRtcpPkt(IN RtpBuffer* pobjRtcpAddr, IN R
 
     // RTCP SDES packet
     RtcpSdesPacket* pobjSdesPkt = pobjRtcpPkt->getSdesPacket();
-    if (pobjSdesPkt != RTP_NULL)
+    if (pobjSdesPkt != nullptr)
     {
         // sdes
         processSdesPacket(pobjSdesPkt);
@@ -2039,7 +2039,7 @@ eRTP_STATUS_CODE RtpSession::processRcvdRtcpPkt(IN RtpBuffer* pobjRtcpAddr, IN R
 
     // RTCP BYE packet
     RtcpByePacket* pobjByePkt = pobjRtcpPkt->getByePacket();
-    if (pobjByePkt != RTP_NULL)
+    if (pobjByePkt != nullptr)
     {
         // bye
         processByePacket(pobjByePkt, pobjRtcpAddr, usPort);
@@ -2155,7 +2155,7 @@ RtpDt_Double RtpSession::rtcp_interval(IN RtpDt_UInt16 usMembers)
 
     if (usMembers == RTP_ZERO)
     {
-        RTP_TRACE_MESSAGE("rtcp_interval usmebers is equal to 0", RTP_NULL, RTP_NULL);
+        RTP_TRACE_MESSAGE("rtcp_interval usmebers is equal to 0", nullptr, nullptr);
         ulTimerVal = dDefTimerVal;
         return ulTimerVal;
     }
@@ -2230,7 +2230,7 @@ RtpDt_Double RtpSession::rtcp_interval(IN RtpDt_UInt16 usMembers)
     if (ulTimerVal < 0)
     {
         ulTimerVal = RTP_INIT_TRUE_T_MIN;
-        RTP_TRACE_MESSAGE("Generated a negative timer value. using Default", RTP_NULL, RTP_NULL);
+        RTP_TRACE_MESSAGE("Generated a negative timer value. using Default", nullptr, nullptr);
     }
     return ulTimerVal;
 }  // rtcp_interval
@@ -2241,7 +2241,7 @@ RtpDt_UInt32 RtpSession::getSenderCount()
     for (auto& pobjRcvrElm : *m_pobjRtpRcvrInfoList)
     {
         // get key material element from list.
-        if (pobjRcvrElm != RTP_NULL && pobjRcvrElm->isSender() == eRTP_TRUE &&
+        if (pobjRcvrElm != nullptr && pobjRcvrElm->isSender() == eRTP_TRUE &&
                 pobjRcvrElm->getTotalRcvdRtpPkts() != 0)
         {
             uiSenderCnt = uiSenderCnt + RTP_ONE;
@@ -2261,20 +2261,20 @@ RtpDt_Void RtpSession::calculateAndSetRTTD(
     {
         m_lastRTTDelay = (currentTime - lsr - dlsr);
     }
-    RTP_TRACE_MESSAGE("calculateAndSetRTTD = %d", m_lastRTTDelay, RTP_NULL);
+    RTP_TRACE_MESSAGE("calculateAndSetRTTD = %d", m_lastRTTDelay, nullptr);
 }
 eRTP_STATUS_CODE RtpSession::populateRtcpXrPacket(IN_OUT RtcpPacket* pobjRtcpPkt)
 {
     // create RtcpXrPacket
     RtcpXrPacket* pobjRtcpXrPacket = new RtcpXrPacket();
-    if (pobjRtcpXrPacket == RTP_NULL)
+    if (pobjRtcpXrPacket == nullptr)
     {
         RTP_TRACE_ERROR("[Memory Error] new returned NULL.", RTP_ZERO, RTP_ZERO);
         return RTP_FAILURE;
     }
     // set extended report block data
     RtpBuffer* pobjPayload = new RtpBuffer(m_stRtcpXr.nlength, m_stRtcpXr.m_pBlockBuffer);
-    if (pobjPayload == RTP_NULL)
+    if (pobjPayload == nullptr)
     {
         RTP_TRACE_ERROR("[Memory Error] new returned NULL.", RTP_ZERO, RTP_ZERO);
         delete pobjRtcpXrPacket;
@@ -2304,7 +2304,7 @@ eRTP_STATUS_CODE RtpSession::sendRtcpXrPacket(
 {
     // set timestamp
     m_stRtcpXr.m_pBlockBuffer = new RtpDt_UChar[nblockLength];
-    if (m_stRtcpXr.m_pBlockBuffer == RTP_NULL)
+    if (m_stRtcpXr.m_pBlockBuffer == nullptr)
     {
         RTP_TRACE_ERROR("[Memory Error] new returned NULL.", RTP_ZERO, RTP_ZERO);
         return RTP_FAILURE;

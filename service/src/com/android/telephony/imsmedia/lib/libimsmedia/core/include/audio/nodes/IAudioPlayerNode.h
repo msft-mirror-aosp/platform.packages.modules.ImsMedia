@@ -31,7 +31,7 @@
 class IAudioPlayerNode : public JitterBufferControlNode, IImsMediaThread
 {
 public:
-    IAudioPlayerNode(BaseSessionCallback* callback = NULL);
+    IAudioPlayerNode(BaseSessionCallback* callback = nullptr);
     virtual ~IAudioPlayerNode();
     virtual kBaseNodeId GetNodeId();
     virtual ImsMediaResult Start();

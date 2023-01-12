@@ -70,7 +70,7 @@ void TextRtpPayloadDecoderNode::OnDataFromFrontNode(ImsMediaSubType subtype, uin
 
     if (subtype == MEDIASUBTYPE_REFRESHED)
     {
-        SendDataToRearNode(subtype, NULL, size, 0, 0, 0, MEDIASUBTYPE_UNDEFINED);
+        SendDataToRearNode(subtype, nullptr, size, 0, 0, 0, MEDIASUBTYPE_UNDEFINED);
         return;
     }
 
@@ -88,7 +88,7 @@ void TextRtpPayloadDecoderNode::OnDataFromFrontNode(ImsMediaSubType subtype, uin
 
 void TextRtpPayloadDecoderNode::SetConfig(void* config)
 {
-    if (config == NULL)
+    if (config == nullptr)
     {
         return;
     }
@@ -99,7 +99,7 @@ void TextRtpPayloadDecoderNode::SetConfig(void* config)
 
 bool TextRtpPayloadDecoderNode::IsSameConfig(void* config)
 {
-    if (config == NULL)
+    if (config == nullptr)
     {
         return true;
     }

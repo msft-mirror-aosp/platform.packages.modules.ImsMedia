@@ -112,7 +112,7 @@ ImsMediaResult ImsMediaVideoUtil::ParseAvcSpropParam(const char* szSpropparam, t
 
     uint8_t* pszSpropparam = reinterpret_cast<uint8_t*>(malloc(nSPSConfigSize));
 
-    if (pszSpropparam == NULL)
+    if (pszSpropparam == nullptr)
     {
         pInfo->nProfile = 0;
         pInfo->nLevel = 0;
@@ -258,7 +258,7 @@ ImsMediaResult ImsMediaVideoUtil::ParseHevcSpropParam(const char* szSpropparam, 
     memset(pSPSConfig, 0x00, MAX_CONFIG_LEN);
     strlcpy(pSPSConfig, szSpropparam, MAX_CONFIG_LEN);
 
-    uint8_t* pszSpropparam = NULL;
+    uint8_t* pszSpropparam = nullptr;
 
     if (ImsMediaBinaryFormat::Base00ToBinary(pbSPSConfig, &nSPSConfigSize, MAX_CONFIG_LEN,
                 pSPSConfig, BINARY_FORMAT_BASE64) == false)
@@ -272,7 +272,7 @@ ImsMediaResult ImsMediaVideoUtil::ParseHevcSpropParam(const char* szSpropparam, 
 
     pszSpropparam = reinterpret_cast<uint8_t*>(malloc(nSPSConfigSize));
 
-    if (pszSpropparam == NULL)
+    if (pszSpropparam == nullptr)
     {
         pInfo->nProfile = 0;
         pInfo->nLevel = 0;
@@ -424,7 +424,7 @@ bool ImsMediaVideoUtil::ParseAvcSps(uint8_t* pbBuffer, uint32_t nBufferSize, tCo
     uint32_t chroma_format_idc = 0;
     uint8_t* pszSPS = reinterpret_cast<uint8_t*>(malloc(nBufferSize));
 
-    if (pszSPS == NULL)
+    if (pszSPS == nullptr)
     {
         pInfo->nProfile = 0;
         pInfo->nLevel = 0;
@@ -566,7 +566,7 @@ bool ImsMediaVideoUtil::ParseAvcSps(uint8_t* pbBuffer, uint32_t nBufferSize, tCo
 
 bool ImsMediaVideoUtil::ParseHevcSps(uint8_t* pbBuffer, uint32_t nBufferSize, tCodecConfig* pInfo)
 {
-    if (pbBuffer == NULL || nBufferSize == 0)
+    if (pbBuffer == nullptr || nBufferSize == 0)
     {
         pInfo->nProfile = 0;
         pInfo->nLevel = 0;
@@ -708,15 +708,15 @@ uint8_t* FindAvcStartCode(uint8_t* pData, uint32_t nDataSize, uint32_t* pnSkipSi
 
     if (pnSkipSize)
         *pnSkipSize = nSkipSize;
-    return NULL;
+    return nullptr;
 }
 
 char* ImsMediaVideoUtil::GenerateVideoSprop(VideoConfig* pVideoConfig)
 {
-    if (pVideoConfig == NULL)
+    if (pVideoConfig == nullptr)
     {
         IMLOGE0("[GenerateVideoSprop] pVideoConfig is null");
-        return NULL;
+        return nullptr;
     }
 
     // Configure Encoder
@@ -754,22 +754,22 @@ char* ImsMediaVideoUtil::GenerateVideoSprop(VideoConfig* pVideoConfig)
             pVideoConfig->getResolutionWidth() * pVideoConfig->getResolutionHeight() * 10);
 
     AMediaCodec* pCodec = AMediaCodec_createEncoderByType(kMimeType);
-    if (pCodec == NULL)
+    if (pCodec == nullptr)
     {
         IMLOGE1("[GenerateVideoSprop] Unable to create encoder. MimeType[%s]", kMimeType);
-        return NULL;
+        return nullptr;
     }
 
-    media_status_t err =
-            AMediaCodec_configure(pCodec, pFormat, NULL, NULL, AMEDIACODEC_CONFIGURE_FLAG_ENCODE);
+    media_status_t err = AMediaCodec_configure(
+            pCodec, pFormat, nullptr, nullptr, AMEDIACODEC_CONFIGURE_FLAG_ENCODE);
     if (err != AMEDIA_OK)
     {
         IMLOGE1("[GenerateVideoSprop] Encoder configure error[%d]", err);
         AMediaCodec_delete(pCodec);
-        pCodec = NULL;
+        pCodec = nullptr;
         AMediaFormat_delete(pFormat);
-        pFormat = NULL;
-        return NULL;
+        pFormat = nullptr;
+        return nullptr;
     }
 
     err = AMediaCodec_start(pCodec);
@@ -777,10 +777,10 @@ char* ImsMediaVideoUtil::GenerateVideoSprop(VideoConfig* pVideoConfig)
     {
         IMLOGE1("[GenerateVideoSprop] Encoder start Err[%d]", err);
         AMediaCodec_delete(pCodec);
-        pCodec = NULL;
+        pCodec = nullptr;
         AMediaFormat_delete(pFormat);
-        pFormat = NULL;
-        return NULL;
+        pFormat = nullptr;
+        return nullptr;
     }
 
     bool bSpsRead = false, bPpsRead = false;
@@ -804,17 +804,17 @@ char* ImsMediaVideoUtil::GenerateVideoSprop(VideoConfig* pVideoConfig)
             buf += info.offset;
             buffCapacity = info.size;
 
-            while (buf != NULL && buffCapacity > 0)
+            while (buf != nullptr && buffCapacity > 0)
             {
                 uint32_t skipLen = 0;
                 uint8_t* tempBufPtr = FindAvcStartCode(buf, buffCapacity, &skipLen);
-                if (tempBufPtr != NULL)
+                if (tempBufPtr != nullptr)
                 {
                     buf = tempBufPtr;
                     buffCapacity -= skipLen;
                 }
 
-                if (buf == NULL || buffCapacity < START_CODE_PREFIX_LEN)
+                if (buf == nullptr || buffCapacity < START_CODE_PREFIX_LEN)
                     continue;
 
                 // Remove start sequence
@@ -826,7 +826,7 @@ char* ImsMediaVideoUtil::GenerateVideoSprop(VideoConfig* pVideoConfig)
                 // Extract frame
                 int frameLen = buffCapacity;
                 tempBufPtr = FindAvcStartCode(buf, buffCapacity, &skipLen);
-                if (tempBufPtr != NULL)
+                if (tempBufPtr != nullptr)
                 {
                     frameLen = tempBufPtr - buf;
                 }
@@ -838,7 +838,7 @@ char* ImsMediaVideoUtil::GenerateVideoSprop(VideoConfig* pVideoConfig)
                 {
                     IMLOGE0("[GenerateVideoSprop] BinaryToBase64 failed");
                     free(pSpropStr);
-                    pSpropStr = NULL;
+                    pSpropStr = nullptr;
                     AMediaCodec_releaseOutputBuffer(pCodec, index, false);
                     goto JP_Exit_GenerateSprop;
                 }
@@ -869,14 +869,14 @@ char* ImsMediaVideoUtil::GenerateVideoSprop(VideoConfig* pVideoConfig)
         if (--nMaxBufferReads <= 0)
         {
             free(pSpropStr);
-            pSpropStr = NULL;
+            pSpropStr = nullptr;
             goto JP_Exit_GenerateSprop;
         }
     }
 
 JP_Exit_GenerateSprop:
     // Stop Encoder
-    if (pCodec != NULL)
+    if (pCodec != nullptr)
     {
         IMLOGD0("[GenerateVideoSprop] Stop encoder");
         AMediaCodec_signalEndOfInputStream(pCodec);
@@ -884,7 +884,7 @@ JP_Exit_GenerateSprop:
         AMediaCodec_delete(pCodec);
     }
 
-    if (pFormat != NULL)
+    if (pFormat != nullptr)
     {
         AMediaFormat_delete(pFormat);
     }

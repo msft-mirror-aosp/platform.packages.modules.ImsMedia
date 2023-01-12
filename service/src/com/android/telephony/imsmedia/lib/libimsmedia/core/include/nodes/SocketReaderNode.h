@@ -24,7 +24,7 @@
 class SocketReaderNode : public BaseNode, public ISocketListener
 {
 public:
-    SocketReaderNode(BaseSessionCallback* callback = NULL);
+    SocketReaderNode(BaseSessionCallback* callback = nullptr);
     virtual ~SocketReaderNode();
     virtual kBaseNodeId GetNodeId();
     virtual ImsMediaResult Start();

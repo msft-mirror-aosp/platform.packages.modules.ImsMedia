@@ -19,21 +19,21 @@
 
 RtpBuffer::RtpBuffer() :
         m_uiLength(RTP_ZERO),
-        m_pBuffer(RTP_NULL)
+        m_pBuffer(nullptr)
 {
 }
 
 RtpBuffer::RtpBuffer(IN RtpDt_UInt32 uiLength, IN RtpDt_UChar* pBuffer)
 {
     m_uiLength = 0;
-    m_pBuffer = RTP_NULL;
+    m_pBuffer = nullptr;
 
     if (uiLength > RTP_ZERO)
     {
         m_uiLength = uiLength;
         m_pBuffer = new RtpDt_UChar[m_uiLength];
 
-        if (pBuffer != RTP_NULL)
+        if (pBuffer != nullptr)
         {
             memcpy(m_pBuffer, pBuffer, m_uiLength);
         }
@@ -46,7 +46,7 @@ RtpBuffer::RtpBuffer(IN RtpDt_UInt32 uiLength, IN RtpDt_UChar* pBuffer)
 
 RtpBuffer::~RtpBuffer()
 {
-    if (m_pBuffer != RTP_NULL)
+    if (m_pBuffer != nullptr)
     {
         delete[] m_pBuffer;
     }

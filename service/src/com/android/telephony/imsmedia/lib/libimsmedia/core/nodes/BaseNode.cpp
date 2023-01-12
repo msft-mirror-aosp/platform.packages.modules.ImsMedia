@@ -45,7 +45,7 @@ static std::vector<NODE_ID_PAIR> vectorNodeId{
 
 BaseNode::BaseNode(BaseSessionCallback* callback)
 {
-    mScheduler = NULL;
+    mScheduler = nullptr;
     mCallback = callback;
     mNodeState = kNodeStateStopped;
     mMediaType = IMS_MEDIA_AUDIO;
@@ -71,7 +71,7 @@ void BaseNode::SetSchedulerCallback(std::shared_ptr<StreamSchedulerCallback>& ca
 
 void BaseNode::ConnectRearNode(BaseNode* pRearNode)
 {
-    if (pRearNode == NULL)
+    if (pRearNode == nullptr)
     {
         return;
     }
@@ -168,7 +168,7 @@ const char* BaseNode::GetNodeName()
         }
     }
 
-    return NULL;
+    return nullptr;
 }
 
 void BaseNode::SetMediaType(ImsMediaType eType)
@@ -228,7 +228,7 @@ bool BaseNode::GetData(ImsMediaSubType* psubtype, uint8_t** ppData, uint32_t* pn
         if (psubtype)
             *psubtype = MEDIASUBTYPE_UNDEFINED;
         if (ppData)
-            *ppData = NULL;
+            *ppData = nullptr;
         if (pnDataSize)
             *pnDataSize = 0;
         if (pnTimestamp)
@@ -258,7 +258,7 @@ void BaseNode::SendDataToRearNode(ImsMediaSubType subtype, uint8_t* pData, uint3
 
     for (auto& node : mListRearNodes)
     {
-        if (node != NULL && node->GetState() == kNodeStateRunning)
+        if (node != nullptr && node->GetState() == kNodeStateRunning)
         {
             node->OnDataFromFrontNode(
                     subtype, pData, nDataSize, nTimestamp, bMark, nSeqNum, nDataType, arrivalTime);
@@ -270,7 +270,7 @@ void BaseNode::SendDataToRearNode(ImsMediaSubType subtype, uint8_t* pData, uint3
         }
     }
 
-    if (nNeedRunCount == true && mScheduler != NULL)
+    if (nNeedRunCount == true && mScheduler != nullptr)
     {
         mScheduler->onAwakeScheduler();
     }
@@ -295,7 +295,7 @@ void BaseNode::OnDataFromFrontNode(ImsMediaSubType subtype, uint8_t* pData, uint
 
 void BaseNode::DisconnectRearNode(BaseNode* pRearNode)
 {
-    if (pRearNode == NULL)
+    if (pRearNode == nullptr)
     {
         mListRearNodes.pop_back();
         return;
@@ -310,7 +310,7 @@ void BaseNode::DisconnectRearNode(BaseNode* pRearNode)
 
 void BaseNode::DisconnectFrontNode(BaseNode* pFrontNode)
 {
-    if (pFrontNode == NULL)
+    if (pFrontNode == nullptr)
     {
         mListFrontNodes.pop_back();
         return;

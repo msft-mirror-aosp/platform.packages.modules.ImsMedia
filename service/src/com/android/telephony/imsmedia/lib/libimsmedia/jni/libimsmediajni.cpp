@@ -32,10 +32,10 @@
 
 static const char* gClassPath = "com/android/telephony/imsmedia/JNIImsMediaService";
 
-static JavaVM* gJVM = NULL;
-static jclass gClass_JNIImsMediaService = NULL;
-static jmethodID gMethod_sendData2Java = NULL;
-AAssetManager* gpAssetManager = NULL;
+static JavaVM* gJVM = nullptr;
+static jclass gClass_JNIImsMediaService = nullptr;
+static jmethodID gMethod_sendData2Java = nullptr;
+AAssetManager* gpAssetManager = nullptr;
 
 JavaVM* GetJavaVM()
 {
@@ -46,7 +46,7 @@ static int SendData2Java(int sessionId, const android::Parcel& objParcel)
 {
     JNIEnv* env;
 
-    if ((gClass_JNIImsMediaService == NULL) || (gMethod_sendData2Java == NULL))
+    if ((gClass_JNIImsMediaService == nullptr) || (gMethod_sendData2Java == nullptr))
     {
         ALOGE(0, "SendData2Java: Method is null", 0, 0, 0);
         return 0;
@@ -54,16 +54,16 @@ static int SendData2Java(int sessionId, const android::Parcel& objParcel)
 
     JavaVM* jvm = GetJavaVM();
 
-    if (jvm->AttachCurrentThread(&env, NULL) != JNI_OK)
+    if (jvm->AttachCurrentThread(&env, nullptr) != JNI_OK)
     {
         ALOGE(0, "SendData2Java: AttachCurrentThread fail", 0, 0, 0);
         return 0;
     }
 
     jbyteArray baData = env->NewByteArray(objParcel.dataSize());
-    jbyte* pBuffer = env->GetByteArrayElements(baData, NULL);
+    jbyte* pBuffer = env->GetByteArrayElements(baData, nullptr);
 
-    if (pBuffer != NULL)
+    if (pBuffer != nullptr)
     {
         memcpy(pBuffer, objParcel.data(), objParcel.dataSize());
         env->ReleaseByteArrayElements(baData, pBuffer, 0);
@@ -80,9 +80,9 @@ static jlong JNIImsMediaService_getInterface(
         JNIEnv* /* env */, jobject /* object */, jint mediatype)
 {
     ALOGD("JNIImsMediaService_getInterface: type[%d]", mediatype);
-    BaseManager* manager = NULL;
+    BaseManager* manager = nullptr;
     manager = MediaManagerFactory::getInterface(mediatype);
-    if (manager != NULL)
+    if (manager != nullptr)
     {
         manager->setCallback(SendData2Java);
     }
@@ -95,7 +95,7 @@ static void JNIImsMediaService_sendMessage(
 {
     BaseManager* manager = reinterpret_cast<BaseManager*>(nativeObj);
     android::Parcel parcel;
-    jbyte* pBuff = env->GetByteArrayElements(baData, NULL);
+    jbyte* pBuff = env->GetByteArrayElements(baData, nullptr);
     int nBuffSize = env->GetArrayLength(baData);
     parcel.setData(reinterpret_cast<const uint8_t*>(pBuff), nBuffSize);
     parcel.setDataPosition(0);
@@ -113,7 +113,7 @@ static void JNIImsMediaService_setPreviewSurface(
 {
     VideoManager* manager = reinterpret_cast<VideoManager*>(nativeObj);
 
-    if (manager != NULL)
+    if (manager != nullptr)
     {
         manager->setPreviewSurface(sessionId, ANativeWindow_fromSurface(env, surface));
     }
@@ -124,7 +124,7 @@ static void JNIImsMediaService_setDisplaySurface(
 {
     VideoManager* manager = reinterpret_cast<VideoManager*>(nativeObj);
 
-    if (manager != NULL)
+    if (manager != nullptr)
     {
         manager->setDisplaySurface(sessionId, ANativeWindow_fromSurface(env, surface));
     }
@@ -133,7 +133,7 @@ static void JNIImsMediaService_setDisplaySurface(
 static jstring JNIImsMediaUtil_generateSPROP(JNIEnv* env, jobject, jbyteArray baData)
 {
     android::Parcel parcel;
-    jbyte* pBuff = env->GetByteArrayElements(baData, NULL);
+    jbyte* pBuff = env->GetByteArrayElements(baData, nullptr);
     int nBuffSize = env->GetArrayLength(baData);
     parcel.setData(reinterpret_cast<const uint8_t*>(pBuff), nBuffSize);
     parcel.setDataPosition(0);
@@ -145,8 +145,8 @@ static jstring JNIImsMediaUtil_generateSPROP(JNIEnv* env, jobject, jbyteArray ba
             videoConfig.getCodecLevel());
 
     char* sprop = ImsMediaVideoUtil::GenerateVideoSprop(&videoConfig);
-    jstring str = NULL;
-    if (sprop != NULL)
+    jstring str = nullptr;
+    if (sprop != nullptr)
     {
         str = env->NewStringUTF(sprop);
         free(sprop);
@@ -185,7 +185,7 @@ jint ImsMediaServiceJni_OnLoad(JavaVM* vm, JNIEnv* env)
 
     jclass _jclassImsMediaService = env->FindClass(gClassPath);
 
-    if (_jclassImsMediaService == NULL)
+    if (_jclassImsMediaService == nullptr)
     {
         ALOGE("ImsMediaServiceJni_OnLoad :: FindClass failed");
         return -1;
@@ -193,7 +193,7 @@ jint ImsMediaServiceJni_OnLoad(JavaVM* vm, JNIEnv* env)
 
     gClass_JNIImsMediaService = reinterpret_cast<jclass>(env->NewGlobalRef(_jclassImsMediaService));
 
-    if (gClass_JNIImsMediaService == NULL)
+    if (gClass_JNIImsMediaService == nullptr)
     {
         ALOGE("ImsMediaServiceJni_OnLoad :: FindClass failed2");
         return -1;
@@ -208,7 +208,7 @@ jint ImsMediaServiceJni_OnLoad(JavaVM* vm, JNIEnv* env)
     gMethod_sendData2Java =
             env->GetStaticMethodID(gClass_JNIImsMediaService, "sendData2Java", "(I[B)I");
 
-    if (gMethod_sendData2Java == NULL)
+    if (gMethod_sendData2Java == nullptr)
     {
         ALOGE("ImsMediaServiceJni_OnLoad: GetStaticMethodID failed");
         return -1;

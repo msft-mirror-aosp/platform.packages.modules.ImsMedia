@@ -25,7 +25,7 @@ RtcpConfigInfo::RtcpConfigInfo() :
 {
     for (RtpDt_UInt32 uiCount = RTP_ZERO; uiCount < RTP_MAX_SDES_TYPE; uiCount++)
     {
-        m_arrSdesInfo[uiCount].pValue = RTP_NULL;
+        m_arrSdesInfo[uiCount].pValue = nullptr;
         m_arrSdesInfo[uiCount].ucType = RTP_ZERO;
         m_arrSdesInfo[uiCount].ucLength = RTP_ZERO;
     }
@@ -35,10 +35,10 @@ RtcpConfigInfo::~RtcpConfigInfo()
 {
     for (RtpDt_UInt32 uiCount = RTP_ZERO; uiCount < RTP_MAX_SDES_TYPE; uiCount++)
     {
-        if (m_arrSdesInfo[uiCount].pValue != RTP_NULL)
+        if (m_arrSdesInfo[uiCount].pValue != nullptr)
         {
             delete[] m_arrSdesInfo[uiCount].pValue;
-            m_arrSdesInfo[uiCount].pValue = RTP_NULL;
+            m_arrSdesInfo[uiCount].pValue = nullptr;
             m_arrSdesInfo[uiCount].ucLength = 0;
         }
     }
@@ -69,7 +69,7 @@ RtpDt_UInt32 RtcpConfigInfo::estimateSdesPktSize()
     RtpDt_UInt32 uiSdesPktSize = RTP_WORD_SIZE;
     for (RtpDt_UInt32 uiCount = RTP_ZERO; uiCount < RTP_MAX_SDES_TYPE; uiCount++)
     {
-        if (m_arrSdesInfo[uiCount].pValue != RTP_NULL)
+        if (m_arrSdesInfo[uiCount].pValue != nullptr)
         {
             uiSdesPktSize += m_arrSdesInfo[uiCount].ucLength;
             uiSdesPktSize += RTP_TWO;
@@ -86,7 +86,7 @@ RtpDt_UInt32 RtcpConfigInfo::estimateSdesPktSize()
 
 eRtp_Bool RtcpConfigInfo::addRtcpSdesItem(IN tRTCP_SDES_ITEM* pstSdesItem, IN RtpDt_UInt32 uiIndex)
 {
-    if (pstSdesItem == RTP_NULL)
+    if (pstSdesItem == nullptr)
     {
         return eRTP_FAILURE;
     }
@@ -95,12 +95,12 @@ eRtp_Bool RtcpConfigInfo::addRtcpSdesItem(IN tRTCP_SDES_ITEM* pstSdesItem, IN Rt
     if (pstSdesItem->ucLength > RTP_ZERO)
     {
         RtpDt_UChar* pcBuffer = new RtpDt_UChar[pstSdesItem->ucLength];
-        if (pcBuffer == RTP_NULL)
+        if (pcBuffer == nullptr)
         {
             return eRTP_FALSE;
         }
         memcpy(pcBuffer, pstSdesItem->pValue, pstSdesItem->ucLength);
-        if (m_arrSdesInfo[uiIndex].pValue != RTP_NULL)
+        if (m_arrSdesInfo[uiIndex].pValue != nullptr)
         {
             delete[] m_arrSdesInfo[uiIndex].pValue;
         }
@@ -140,7 +140,7 @@ RtpDt_Void RtcpConfigInfo::setSdesItemCount(IN RtpDt_UInt32 uiSdesItemCnt)
 tRTCP_SDES_ITEM* RtcpConfigInfo::getRtcpSdesItem(IN RtpDt_UInt32 uiIndex)
 {
     if (uiIndex >= RTP_MAX_SDES_TYPE)
-        return RTP_NULL;
+        return nullptr;
 
     return &m_arrSdesInfo[uiIndex];
 }

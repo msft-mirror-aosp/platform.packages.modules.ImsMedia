@@ -23,25 +23,25 @@
 RtcpEncoderNode::RtcpEncoderNode(BaseSessionCallback* callback) :
         BaseNode(callback)
 {
-    mRtpSession = NULL;
+    mRtpSession = nullptr;
     mRtcpInterval = 0;
-    mRtcpXrPayload = NULL;
+    mRtcpXrPayload = nullptr;
     mEnableRtcpBye = false;
     mRtcpXrBlockTypes = RtcpConfig::FLAG_RTCPXR_NONE;
     mRtcpXrCounter = 0;
-    mTimer = NULL;
+    mTimer = nullptr;
     mLastTimeSentPli = 0;
     mLastTimeSentFir = 0;
 }
 
 RtcpEncoderNode::~RtcpEncoderNode()
 {
-    if (mRtpSession != NULL)
+    if (mRtpSession != nullptr)
     {
         mRtpSession->StopRtcp();
-        mRtpSession->SetRtcpEncoderListener(NULL);
+        mRtpSession->SetRtcpEncoderListener(nullptr);
         IRtpSession::ReleaseInstance(mRtpSession);
-        mRtpSession = NULL;
+        mRtpSession = nullptr;
     }
 
     mRtcpXrBlockTypes = RtcpConfig::FLAG_RTCPXR_NONE;
@@ -57,11 +57,11 @@ ImsMediaResult RtcpEncoderNode::Start()
 {
     std::lock_guard<std::mutex> guard(mMutexTimer);
 
-    if (mRtpSession == NULL)
+    if (mRtpSession == nullptr)
     {
         mRtpSession = IRtpSession::GetInstance(mMediaType, mLocalAddress, mPeerAddress);
 
-        if (mRtpSession == NULL)
+        if (mRtpSession == nullptr)
         {
             IMLOGE0("[Start] Can't create rtp session");
             return RESULT_NOT_READY;
@@ -78,7 +78,7 @@ ImsMediaResult RtcpEncoderNode::Start()
         mRtpSession->StartRtcp(mEnableRtcpBye);
     }
 
-    if (mTimer == NULL)
+    if (mTimer == nullptr)
     {
         mTimer = ImsMediaTimer::TimerStart(1000, true, OnTimer, this);
         IMLOGD0("[Start] Rtcp Timer started");
@@ -94,15 +94,15 @@ void RtcpEncoderNode::Stop()
     IMLOGD0("[Stop]");
     std::lock_guard<std::mutex> guard(mMutexTimer);
 
-    if (mRtpSession != NULL)
+    if (mRtpSession != nullptr)
     {
         mRtpSession->StopRtcp();
     }
 
-    if (mTimer != NULL)
+    if (mTimer != nullptr)
     {
-        ImsMediaTimer::TimerStop(mTimer, NULL);
-        mTimer = NULL;
+        ImsMediaTimer::TimerStop(mTimer, nullptr);
+        mTimer = nullptr;
         IMLOGD0("[Stop] Rtcp Timer stopped");
     }
 
@@ -140,7 +140,7 @@ void RtcpEncoderNode::SetConfig(void* config)
 
 bool RtcpEncoderNode::IsSameConfig(void* config)
 {
-    if (config == NULL)
+    if (config == nullptr)
     {
         return true;
     }
@@ -206,7 +206,7 @@ void RtcpEncoderNode::OnTimer(hTimerHandler hTimer, void* pUserData)
     (void)hTimer;
     RtcpEncoderNode* pNode = reinterpret_cast<RtcpEncoderNode*>(pUserData);
 
-    if (pNode != NULL)
+    if (pNode != nullptr)
     {
         pNode->ProcessTimer();
     }
@@ -216,7 +216,7 @@ void RtcpEncoderNode::ProcessTimer()
 {
     std::lock_guard<std::mutex> guard(mMutexTimer);
 
-    if (mTimer == NULL || mRtpSession == NULL)
+    if (mTimer == nullptr || mRtpSession == nullptr)
     {
         return;
     }
@@ -243,7 +243,7 @@ void RtcpEncoderNode::SetPeerAddress(const RtpAddress& address)
 
 bool RtcpEncoderNode::SendNack(NackParams* param)
 {
-    if (param == NULL)
+    if (param == nullptr)
     {
         return false;
     }
@@ -268,7 +268,7 @@ bool RtcpEncoderNode::SendNack(NackParams* param)
 
         if (param->bNackReport)
         {
-            if (mRtpSession != NULL)
+            if (mRtpSession != nullptr)
             {
                 return mRtpSession->SendRtcpFeedback(kRtpFbNack, pNackBuff, 4);
             }
@@ -280,7 +280,7 @@ bool RtcpEncoderNode::SendNack(NackParams* param)
 
 bool RtcpEncoderNode::SendPictureLost(const uint32_t type)
 {
-    if (mRtpSession == NULL)
+    if (mRtpSession == nullptr)
     {
         return false;
     }
@@ -294,7 +294,7 @@ bool RtcpEncoderNode::SendPictureLost(const uint32_t type)
         if (mLastTimeSentPli == 0 ||
                 (mLastTimeSentPli + RTCPFBMNGR_PLI_FIR_REQUEST_MIN_INTERVAL < nCurrentTime))
         {
-            if (mRtpSession->SendRtcpFeedback(kPsfbPli, NULL, 0))
+            if (mRtpSession->SendRtcpFeedback(kPsfbPli, nullptr, 0))
             {
                 mLastTimeSentPli = nCurrentTime;
                 return true;
@@ -306,7 +306,7 @@ bool RtcpEncoderNode::SendPictureLost(const uint32_t type)
         if (mLastTimeSentFir == 0 ||
                 (mLastTimeSentFir + RTCPFBMNGR_PLI_FIR_REQUEST_MIN_INTERVAL < nCurrentTime))
         {
-            if (mRtpSession->SendRtcpFeedback(kPsfbFir, NULL, 0))
+            if (mRtpSession->SendRtcpFeedback(kPsfbFir, nullptr, 0))
             {
                 mLastTimeSentFir = nCurrentTime;
                 return true;
@@ -319,7 +319,7 @@ bool RtcpEncoderNode::SendPictureLost(const uint32_t type)
 
 bool RtcpEncoderNode::SendTmmbrn(const uint32_t type, TmmbrParams* param)
 {
-    if (mRtpSession == NULL || param == NULL)
+    if (mRtpSession == nullptr || param == nullptr)
     {
         return false;
     }
@@ -361,7 +361,7 @@ bool RtcpEncoderNode::SendTmmbrn(const uint32_t type, TmmbrParams* param)
 
 bool RtcpEncoderNode::SendRtcpXr(uint8_t* data, uint32_t size)
 {
-    if (data == NULL || mRtpSession == NULL)
+    if (data == nullptr || mRtpSession == nullptr)
     {
         return false;
     }

@@ -24,7 +24,7 @@
 class TextRtpPayloadDecoderNode : public BaseNode
 {
 public:
-    TextRtpPayloadDecoderNode(BaseSessionCallback* callback = NULL);
+    TextRtpPayloadDecoderNode(BaseSessionCallback* callback = nullptr);
     virtual ~TextRtpPayloadDecoderNode();
     virtual kBaseNodeId GetNodeId();
     virtual ImsMediaResult Start();

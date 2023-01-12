@@ -21,7 +21,7 @@
 #include <RtpTrace.h>
 #include <RtpError.h>
 
-RtpStack* g_pobjRtpStack = RTP_NULL;
+RtpStack* g_pobjRtpStack = nullptr;
 
 RtpDt_Void addSdesItem(
         OUT RtcpConfigInfo* pobjRtcpCfgInfo, IN RtpDt_UChar* sdesName, IN RtpDt_UInt32 uiLength)
@@ -58,7 +58,7 @@ RtpDt_Void populateReceiveRtpIndInfo(
     else
     {
         pstRtpIndMsg->bExtension = eRTP_FALSE;
-        pstRtpIndMsg->extensionData = RTP_NULL;
+        pstRtpIndMsg->extensionData = 0;
     }
     // End Header length
     // play the payload
@@ -69,7 +69,7 @@ RtpDt_Void populateReceiveRtpIndInfo(
     if (!pobjRtpPayload)
     {
         pstRtpIndMsg->wMsgBodyLen = 0;
-        pstRtpIndMsg->pMsgBody = NULL;
+        pstRtpIndMsg->pMsgBody = nullptr;
         return;
     }
 
@@ -84,7 +84,7 @@ eRtp_Bool populateRcvdReportFromStk(
     {
         // application supports one RR
         RtcpReportBlock* pobjRepBlkElm = pobjRepBlkList.front();
-        if (pobjRepBlkElm == RTP_NULL)
+        if (pobjRepBlkElm == nullptr)
         {
             return eRTP_FALSE;
         }
@@ -107,7 +107,7 @@ eRtp_Bool populateRcvdReportFromStk(
                 pstRcvdReport->lsr);
 
         RTP_TRACE_MESSAGE(
-                "Received RR info :  [DELAY SINCE LSR = %u] ", pstRcvdReport->delayLsr, RTP_NULL);
+                "Received RR info :  [DELAY SINCE LSR = %u] ", pstRcvdReport->delayLsr, nullptr);
     }
     else
     {
@@ -132,7 +132,7 @@ eRtp_Bool populateRcvdRrInfoFromStk(
     }
     // application supports one RR
     RtcpRrPacket* pobjRrPkt = pobjRrList.front();
-    if (pobjRrPkt == RTP_NULL)
+    if (pobjRrPkt == nullptr)
     {
         return eRTP_FALSE;
     }
@@ -151,7 +151,7 @@ eRtp_Bool populateRcvdSrInfoFromStk(
     }
     // get SR packet data
     RtcpSrPacket* pobjSrPkt = pobjSrList.front();
-    if (pobjSrPkt == RTP_NULL)
+    if (pobjSrPkt == nullptr)
     {
         return eRTP_FALSE;
     }
@@ -166,7 +166,7 @@ eRtp_Bool populateRcvdSrInfoFromStk(
             pstSrInfo->ntpTimestampMsw, pstSrInfo->ntpTimestampLsw);
 
     RTP_TRACE_MESSAGE(
-            "Received SR info :  [RTP timestamp = %u] ", pstSrInfo->rtpTimestamp, RTP_NULL);
+            "Received SR info :  [RTP timestamp = %u] ", pstSrInfo->rtpTimestamp, nullptr);
 
     RTP_TRACE_MESSAGE("Received SR info :  [SEND PKT COUNT = %u] [SEND OCTET COUNT = %u]",
             pstSrInfo->sendPktCount, pstSrInfo->sendOctCount);
@@ -181,13 +181,13 @@ eRtp_Bool populateRcvdSrInfoFromStk(
 eRtp_Bool populateRcvdFbInfoFromStk(
         IN RtcpFbPacket* m_pobjRtcpFbPkt, OUT tRtpSvcIndSt_ReceiveRtcpFeedbackInd* stFbRtcpMsg)
 {
-    if (m_pobjRtcpFbPkt != RTP_NULL)
+    if (m_pobjRtcpFbPkt != nullptr)
     {
         stFbRtcpMsg->wPayloadType = m_pobjRtcpFbPkt->getRtcpHdrInfo()->getPacketType();
         stFbRtcpMsg->wFmt = m_pobjRtcpFbPkt->getRtcpHdrInfo()->getReceptionReportCount();
         stFbRtcpMsg->dwMediaSsrc = m_pobjRtcpFbPkt->getMediaSsrc();
         stFbRtcpMsg->wMsgLen = m_pobjRtcpFbPkt->getRtcpHdrInfo()->getLength();
-        if (m_pobjRtcpFbPkt->getFCI() != RTP_NULL)
+        if (m_pobjRtcpFbPkt->getFCI() != nullptr)
         {
             stFbRtcpMsg->pMsg = m_pobjRtcpFbPkt->getFCI()->getBuffer();
         }
@@ -228,7 +228,7 @@ RtpBuffer* GetCVOXHdr(IN tRtpSvc_SendRtpPacketParm* pstRtpParam)
     }
     else
     {
-        pobjXHdr->setBufferInfo(0, RTP_NULL);
+        pobjXHdr->setBufferInfo(0, nullptr);
     }
 
     return pobjXHdr;
@@ -244,16 +244,16 @@ RtpDt_UInt16 GetCVOXHdrLen(eRtp_Bool bEnableCVO)
 
 GLOBAL eRtp_Bool IMS_RtpSvc_Initialize()
 {
-    if (g_pobjRtpStack == RTP_NULL)
+    if (g_pobjRtpStack == nullptr)
     {
         g_pobjRtpStack = new RtpStack();
-        if (g_pobjRtpStack == RTP_NULL)
+        if (g_pobjRtpStack == nullptr)
         {
             return eRTP_FALSE;
         }
 
         RtpStackProfile* pobjStackProfile = new RtpStackProfile();
-        if (pobjStackProfile == RTP_NULL)
+        if (pobjStackProfile == nullptr)
         {
             return eRTP_FALSE;
         }
@@ -270,7 +270,7 @@ GLOBAL eRtp_Bool IMS_RtpSvc_Deinitialize()
     if (g_pobjRtpStack)
     {
         delete g_pobjRtpStack;
-        g_pobjRtpStack = RTP_NULL;
+        g_pobjRtpStack = nullptr;
     }
 
     return eRTP_TRUE;
@@ -279,13 +279,13 @@ GLOBAL eRtp_Bool IMS_RtpSvc_Deinitialize()
 GLOBAL eRtp_Bool IMS_RtpSvc_CreateSession(IN RtpDt_Char* szLocalIP, IN RtpDt_UInt32 port,
         IN RtpDt_Void* pAppData, OUT RtpDt_UInt32* puSsrc, OUT RTPSESSIONID* hRtpSession)
 {
-    if (g_pobjRtpStack == RTP_NULL || szLocalIP == RTP_NULL)
+    if (g_pobjRtpStack == nullptr || szLocalIP == nullptr)
     {
         return eRTP_FALSE;
     }
 
     RtpSession* pobjRtpSession = g_pobjRtpStack->createRtpSession();
-    if (pobjRtpSession == RTP_NULL)
+    if (pobjRtpSession == nullptr)
     {
         return eRTP_FALSE;
     }
@@ -304,7 +304,7 @@ GLOBAL eRtp_Bool IMS_RtpSvc_CreateSession(IN RtpDt_Char* szLocalIP, IN RtpDt_UIn
     *hRtpSession = reinterpret_cast<RtpDt_Void*>(pobjRtpSession);
 
     RtpImpl* pobjRtpImpl = new RtpImpl();
-    if (pobjRtpImpl == RTP_NULL)
+    if (pobjRtpImpl == nullptr)
     {
         return eRTP_FALSE;
     }
@@ -336,14 +336,14 @@ GLOBAL eRtp_Bool IMS_RtpSvc_SetPayload(IN RTPSESSIONID hRtpSession,
     }
     RtpPayloadInfo* pobjlPayloadInfo =
             new RtpPayloadInfo(payloadType, pstPayloadInfo[0].samplingRate, nNumOfPayloadParam);
-    if (pobjlPayloadInfo == RTP_NULL)
+    if (pobjlPayloadInfo == nullptr)
     {
         return eRTP_FALSE;
     }
 
     RtpSession* pobjRtpSession = reinterpret_cast<RtpSession*>(hRtpSession);
 
-    if (g_pobjRtpStack == RTP_NULL ||
+    if (g_pobjRtpStack == nullptr ||
             g_pobjRtpStack->isValidRtpSession(pobjRtpSession) == eRTP_FAILURE)
     {
         delete pobjlPayloadInfo;
@@ -363,7 +363,7 @@ GLOBAL eRtp_Bool IMS_RtpSvc_SetPayload(IN RTPSESSIONID hRtpSession,
 
 GLOBAL eRtp_Bool IMS_RtpSvc_SetRTCPInterval(IN RTPSESSIONID hRtpSession, IN RtpDt_UInt32 nInterval)
 {
-    if (g_pobjRtpStack == RTP_NULL ||
+    if (g_pobjRtpStack == nullptr ||
             g_pobjRtpStack->isValidRtpSession(reinterpret_cast<RtpSession*>(hRtpSession)) ==
                     eRTP_FAILURE)
         return eRTP_FALSE;
@@ -376,7 +376,7 @@ GLOBAL eRtp_Bool IMS_RtpSvc_DeleteSession(IN RTPSESSIONID hRtpSession)
 {
     RtpSession* pobjRtpSession = reinterpret_cast<RtpSession*>(hRtpSession);
 
-    if (g_pobjRtpStack == RTP_NULL ||
+    if (g_pobjRtpStack == nullptr ||
             g_pobjRtpStack->isValidRtpSession(pobjRtpSession) == eRTP_FAILURE)
         return eRTP_FALSE;
 
@@ -396,7 +396,7 @@ GLOBAL eRtp_Bool IMS_RtpSvc_SendRtpPacket(IN RtpServiceListener* pobjRtpServiceL
 {
     RtpSession* pobjRtpSession = reinterpret_cast<RtpSession*>(hRtpSession);
 
-    if (g_pobjRtpStack == RTP_NULL ||
+    if (g_pobjRtpStack == nullptr ||
             g_pobjRtpStack->isValidRtpSession(pobjRtpSession) == eRTP_FAILURE)
         return eRTP_FALSE;
 
@@ -406,7 +406,7 @@ GLOBAL eRtp_Bool IMS_RtpSvc_SendRtpPacket(IN RtpServiceListener* pobjRtpServiceL
     }
 
     RtpBuffer* pobjRtpPayload = new RtpBuffer();
-    if (pobjRtpPayload == RTP_NULL)
+    if (pobjRtpPayload == nullptr)
     {
         RTP_TRACE_WARNING(
                 "IMS_RtpSvc_SendRtpPacket pobjRtpPayload - Malloc failed", RTP_ZERO, RTP_ZERO);
@@ -414,7 +414,7 @@ GLOBAL eRtp_Bool IMS_RtpSvc_SendRtpPacket(IN RtpServiceListener* pobjRtpServiceL
     }
 
     RtpBuffer* pobjRtpBuf = new RtpBuffer();
-    if (pobjRtpBuf == RTP_NULL)
+    if (pobjRtpBuf == nullptr)
     {
         delete pobjRtpPayload;
         RTP_TRACE_MESSAGE(
@@ -438,7 +438,7 @@ GLOBAL eRtp_Bool IMS_RtpSvc_SendRtpPacket(IN RtpServiceListener* pobjRtpServiceL
             GetCVOXHdr(pstRtpParam), pobjRtpBuf);
 
     // 3. de-init and free the temp variable both in success and failure case
-    pobjRtpPayload->setBufferInfo(RTP_ZERO, RTP_NULL);
+    pobjRtpPayload->setBufferInfo(RTP_ZERO, nullptr);
     delete pobjRtpPayload;
 
     if (eRtpCreateStat != RTP_SUCCESS)
@@ -477,7 +477,7 @@ GLOBAL eRtp_Bool IMS_RtpSvc_ProcRtpPacket(IN RtpServiceListener* pvIRtpSession,
     tRtpSvc_IndicationFromStack stackInd = RTPSVC_RECEIVE_RTP_IND;
     RtpSession* pobjRtpSession = reinterpret_cast<RtpSession*>(hRtpSession);
 
-    if (g_pobjRtpStack == RTP_NULL ||
+    if (g_pobjRtpStack == nullptr ||
             g_pobjRtpStack->isValidRtpSession(pobjRtpSession) == eRTP_FAILURE)
     {
         return eRTP_FALSE;
@@ -489,7 +489,7 @@ GLOBAL eRtp_Bool IMS_RtpSvc_ProcRtpPacket(IN RtpServiceListener* pvIRtpSession,
     }
 
     RtpPacket* pobjRtpPkt = new RtpPacket();
-    if (pobjRtpPkt == RTP_NULL)
+    if (pobjRtpPkt == nullptr)
     {
         RTP_TRACE_WARNING(
                 "IMS_RtpSvc_ProcRtpPacket pobjRtpPkt - Malloc failed", RTP_ZERO, RTP_ZERO);
@@ -504,8 +504,8 @@ GLOBAL eRtp_Bool IMS_RtpSvc_ProcRtpPacket(IN RtpServiceListener* pvIRtpSession,
 
     eRTP_STATUS_CODE eStatus =
             pobjRtpSession->processRcvdRtpPkt(&objRmtAddr, uiPeerPort, &objRtpBuf, pobjRtpPkt);
-    objRtpBuf.setBufferInfo(RTP_ZERO, RTP_NULL);
-    objRmtAddr.setBufferInfo(RTP_ZERO, RTP_NULL);
+    objRtpBuf.setBufferInfo(RTP_ZERO, nullptr);
+    objRmtAddr.setBufferInfo(RTP_ZERO, nullptr);
     if (eStatus != RTP_SUCCESS)
     {
         if (eStatus == RTP_OWN_SSRC_COLLISION)
@@ -539,7 +539,7 @@ GLOBAL eRtp_Bool IMS_RtpSvc_SessionEnableRTP(IN RTPSESSIONID rtpSessionId)
 {
     RtpSession* pobjRtpSession = reinterpret_cast<RtpSession*>(rtpSessionId);
 
-    if (g_pobjRtpStack == RTP_NULL ||
+    if (g_pobjRtpStack == nullptr ||
             g_pobjRtpStack->isValidRtpSession(pobjRtpSession) == eRTP_FAILURE)
         return eRTP_FALSE;
 
@@ -553,7 +553,7 @@ GLOBAL eRtp_Bool IMS_RtpSvc_SessionDisableRTP(IN RTPSESSIONID rtpSessionId)
 {
     RtpSession* pobjRtpSession = reinterpret_cast<RtpSession*>(rtpSessionId);
 
-    if (g_pobjRtpStack == RTP_NULL ||
+    if (g_pobjRtpStack == nullptr ||
             g_pobjRtpStack->isValidRtpSession(pobjRtpSession) == eRTP_FAILURE)
         return eRTP_FALSE;
 
@@ -568,7 +568,7 @@ GLOBAL eRtp_Bool IMS_RtpSvc_SessionEnableRTCP(
 {
     RtpSession* pobjRtpSession = reinterpret_cast<RtpSession*>(hRtpSession);
 
-    if (g_pobjRtpStack == RTP_NULL ||
+    if (g_pobjRtpStack == nullptr ||
             g_pobjRtpStack->isValidRtpSession(pobjRtpSession) == eRTP_FAILURE)
         return eRTP_FALSE;
 
@@ -585,7 +585,7 @@ GLOBAL eRtp_Bool IMS_RtpSvc_SessionDisableRTCP(IN RTPSESSIONID hRtpSession)
     RtpSession* pobjRtpSession = reinterpret_cast<RtpSession*>(hRtpSession);
     eRTP_STATUS_CODE eRtcpStatus = RTP_SUCCESS;
 
-    if (g_pobjRtpStack == RTP_NULL ||
+    if (g_pobjRtpStack == nullptr ||
             g_pobjRtpStack->isValidRtpSession(pobjRtpSession) == eRTP_FAILURE)
         return eRTP_FALSE;
 
@@ -602,7 +602,7 @@ GLOBAL eRtp_Bool IMS_RtpSvc_SendRtcpByePacket(IN RTPSESSIONID hRtpSession)
 {
     RtpSession* pobjRtpSession = reinterpret_cast<RtpSession*>(hRtpSession);
 
-    if (g_pobjRtpStack == RTP_NULL ||
+    if (g_pobjRtpStack == nullptr ||
             g_pobjRtpStack->isValidRtpSession(pobjRtpSession) == eRTP_FAILURE)
         return eRTP_FALSE;
 
@@ -615,7 +615,7 @@ GLOBAL eRtp_Bool IMS_RtpSvc_SendRtcpRtpFbPacket(IN RTPSESSIONID hRtpSession,
         IN RtpDt_UInt32 uiMediaSsrc)
 {
     RtpSession* pobjRtpSession = reinterpret_cast<RtpSession*>(hRtpSession);
-    if (g_pobjRtpStack == RTP_NULL ||
+    if (g_pobjRtpStack == nullptr ||
             g_pobjRtpStack->isValidRtpSession(pobjRtpSession) == eRTP_FAILURE)
         return eRTP_FALSE;
 
@@ -629,7 +629,7 @@ GLOBAL eRtp_Bool IMS_RtpSvc_SendRtcpPayloadFbPacket(IN RTPSESSIONID hRtpSession,
         IN RtpDt_UInt32 uiMediaSsrc)
 {
     RtpSession* pobjRtpSession = reinterpret_cast<RtpSession*>(hRtpSession);
-    if (g_pobjRtpStack == RTP_NULL ||
+    if (g_pobjRtpStack == nullptr ||
             g_pobjRtpStack->isValidRtpSession(pobjRtpSession) == eRTP_FAILURE)
         return eRTP_FALSE;
 
@@ -646,11 +646,11 @@ GLOBAL eRtp_Bool IMS_RtpSvc_ProcRtcpPacket(IN RtpServiceListener* pobjRtpService
 
     RtpSession* pobjRtpSession = reinterpret_cast<RtpSession*>(hRtpSession);
 
-    if (g_pobjRtpStack == RTP_NULL ||
+    if (g_pobjRtpStack == nullptr ||
             g_pobjRtpStack->isValidRtpSession(pobjRtpSession) == eRTP_FAILURE)
         return eRTP_FALSE;
 
-    if (pMsg == RTP_NULL || uiMsgLength == RTP_ZERO || pcIpAddr == RTP_NULL)
+    if (pMsg == nullptr || uiMsgLength == RTP_ZERO || pcIpAddr == nullptr)
     {
         return eRTP_FALSE;
     }
@@ -669,10 +669,10 @@ GLOBAL eRtp_Bool IMS_RtpSvc_ProcRtcpPacket(IN RtpServiceListener* pobjRtpService
             pobjRtpSession->processRcvdRtcpPkt(&objRmtAddr, uiRtcpPort, &objRtcpBuf, &objRtcpPkt);
 
     // clean the data
-    objRtcpBuf.setBufferInfo(RTP_ZERO, RTP_NULL);
-    objRmtAddr.setBufferInfo(RTP_ZERO, RTP_NULL);
+    objRtcpBuf.setBufferInfo(RTP_ZERO, nullptr);
+    objRmtAddr.setBufferInfo(RTP_ZERO, nullptr);
     RtpBuffer objRtpPayload;
-    objRtpPayload.setBufferInfo(RTP_ZERO, RTP_NULL);
+    objRtpPayload.setBufferInfo(RTP_ZERO, nullptr);
 
     if (eProcRtcpSta != RTP_SUCCESS)
     {
@@ -719,7 +719,7 @@ GLOBAL eRtp_Bool IMS_RtpSvc_ProcRtcpPacket(IN RtpServiceListener* pobjRtpService
     for (auto& pobjFbPkt : pobjFbList)
     {
         // get Fb packet data
-        if (pobjFbPkt == RTP_NULL)
+        if (pobjFbPkt == nullptr)
         {
             return eRTP_FALSE;
         }
