@@ -171,8 +171,7 @@ void VideoJitterBuffer::Add(ImsMediaSubType subtype, uint8_t* pbBuffer, uint32_t
         uint32_t nTimestamp, bool bMark, uint32_t nSeqNum, ImsMediaSubType eDataType,
         uint32_t arrivalTime)
 {
-    DataEntry currEntry;
-    memset(&currEntry, 0, sizeof(DataEntry));
+    DataEntry currEntry = DataEntry();
 
     if (subtype == MEDIASUBTYPE_REFRESHED)
     {
@@ -944,7 +943,8 @@ void VideoJitterBuffer::ProcessTimer()
     mAccumulatedPacketSize = 0;
 
     /** calculate loss rate in every seconds */
-    double lossRate = mNumLossPacket * 100 / (mNumAddedPacket + mNumLossPacket);
+    double lossRate =
+            static_cast<double>(mNumLossPacket) * 100 / (mNumAddedPacket + mNumLossPacket);
 
     IMLOGD3("[ProcessTimer] rate[%lf], lossPackets[%d], addedPackets[%d]", lossRate, mNumLossPacket,
             mNumAddedPacket);

@@ -96,7 +96,7 @@ public:
     bool operator!=(const RtcpConfig& config) const;
     virtual status_t writeToParcel(Parcel* parcel) const;
     virtual status_t readFromParcel(const Parcel* in);
-    void setCanonicalName(String8 name);
+    void setCanonicalName(const String8& name);
     String8 getCanonicalName();
     void setTransmitPort(const int32_t port);
     int32_t getTransmitPort();

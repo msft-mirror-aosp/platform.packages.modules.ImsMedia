@@ -280,8 +280,7 @@ void BaseNode::OnDataFromFrontNode(ImsMediaSubType subtype, uint8_t* pData, uint
         uint32_t nTimestamp, bool bMark, uint32_t nSeqNum, ImsMediaSubType nDataType,
         uint32_t arrivalTime)
 {
-    DataEntry entry;
-    memset(&entry, 0, sizeof(DataEntry));
+    DataEntry entry = DataEntry();
     entry.pbBuffer = pData;
     entry.nBufferSize = nDataSize;
     entry.nTimestamp = nTimestamp;
