@@ -69,9 +69,9 @@ void ImsMediaAudioPlayer::SetSamplingRate(int32_t samplingRate)
     mSamplingRate = samplingRate;
 }
 
-void ImsMediaAudioPlayer::SetEvsBandwidth(kEvsBandwidth evsBandwidth)
+void ImsMediaAudioPlayer::SetEvsBandwidth(int32_t evsBandwidth)
 {
-    mEvsBandwidth = evsBandwidth;
+    mEvsBandwidth = (kEvsBandwidth)evsBandwidth;
 }
 
 void ImsMediaAudioPlayer::SetEvsPayloadHeaderMode(int32_t EvsPayloadHeaderMode)

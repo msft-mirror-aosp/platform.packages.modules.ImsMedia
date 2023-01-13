@@ -72,7 +72,7 @@ public:
      *
      * @param evsBandwidth kEvsBandwidth defined in ImsMediaDefine.h
      */
-    void SetEvsBandwidth(kEvsBandwidth evsBandwidth);
+    void SetEvsBandwidth(int32_t evsBandwidth);
 
     /**
      * @brief Sets the payload header mode of the EVS codec.
