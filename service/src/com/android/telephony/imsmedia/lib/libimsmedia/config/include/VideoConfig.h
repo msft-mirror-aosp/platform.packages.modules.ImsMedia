@@ -34,11 +34,11 @@ namespace imsmedia
 
 using namespace android;
 
-#define CVO_DEFINE_NONE           -1
-#define DEFAULT_FRAMERATE         15
-#define DEFAULT_BITRATE           384
-#define DEFAULT_RESOLUTION_WIDTH  480
-#define DEFAULT_RESOLUTION_HEIGHT 640
+#define CVO_DEFINE_NONE           (-1)
+#define DEFAULT_FRAMERATE         (15)
+#define DEFAULT_BITRATE           (384)
+#define DEFAULT_RESOLUTION_WIDTH  (480)
+#define DEFAULT_RESOLUTION_HEIGHT (640)
 
 /** Native representation of android.telephony.imsmedia.VideoConfig */
 
@@ -208,7 +208,7 @@ public:
     int32_t getResolutionWidth();
     void setResolutionHeight(const int32_t height);
     int32_t getResolutionHeight();
-    void setPauseImagePath(String8 path);
+    void setPauseImagePath(const String8& path);
     String8 getPauseImagePath();
     void setDeviceOrientationDegree(const int32_t degree);
     int32_t getDeviceOrientationDegree();

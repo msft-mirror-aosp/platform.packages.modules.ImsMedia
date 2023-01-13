@@ -48,11 +48,14 @@ EvsParams::~EvsParams() {}
 
 EvsParams& EvsParams::operator=(const EvsParams& param)
 {
-    this->evsBandwidth = param.evsBandwidth;
-    this->evsMode = param.evsMode;
-    this->channelAwareMode = param.channelAwareMode;
-    this->useHeaderFullOnly = param.useHeaderFullOnly;
-    this->codecModeRequest = param.codecModeRequest;
+    if (this != &param)
+    {
+        this->evsBandwidth = param.evsBandwidth;
+        this->evsMode = param.evsMode;
+        this->channelAwareMode = param.channelAwareMode;
+        this->useHeaderFullOnly = param.useHeaderFullOnly;
+        this->codecModeRequest = param.codecModeRequest;
+    }
     return *this;
 }
 

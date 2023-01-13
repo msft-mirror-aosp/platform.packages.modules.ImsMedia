@@ -99,24 +99,27 @@ VideoConfig::~VideoConfig() {}
 
 VideoConfig& VideoConfig::operator=(const VideoConfig& config)
 {
-    RtpConfig::operator=(config);
-    videoMode = config.videoMode;
-    codecType = config.codecType;
-    framerate = config.framerate;
-    bitrate = config.bitrate;
-    maxMtuBytes = config.maxMtuBytes;
-    codecProfile = config.codecProfile;
-    codecLevel = config.codecLevel;
-    intraFrameIntervalSec = config.intraFrameIntervalSec;
-    packetizationMode = config.packetizationMode;
-    cameraId = config.cameraId;
-    cameraZoom = config.cameraZoom;
-    resolutionWidth = config.resolutionWidth;
-    resolutionHeight = config.resolutionHeight;
-    pauseImagePath = config.pauseImagePath;
-    deviceOrientationDegree = config.deviceOrientationDegree;
-    cvoValue = config.cvoValue;
-    rtcpFbTypes = config.rtcpFbTypes;
+    if (this != &config)
+    {
+        RtpConfig::operator=(config);
+        videoMode = config.videoMode;
+        codecType = config.codecType;
+        framerate = config.framerate;
+        bitrate = config.bitrate;
+        maxMtuBytes = config.maxMtuBytes;
+        codecProfile = config.codecProfile;
+        codecLevel = config.codecLevel;
+        intraFrameIntervalSec = config.intraFrameIntervalSec;
+        packetizationMode = config.packetizationMode;
+        cameraId = config.cameraId;
+        cameraZoom = config.cameraZoom;
+        resolutionWidth = config.resolutionWidth;
+        resolutionHeight = config.resolutionHeight;
+        pauseImagePath = config.pauseImagePath;
+        deviceOrientationDegree = config.deviceOrientationDegree;
+        cvoValue = config.cvoValue;
+        rtcpFbTypes = config.rtcpFbTypes;
+    }
     return *this;
 }
 
@@ -523,7 +526,7 @@ int32_t VideoConfig::getResolutionHeight()
     return resolutionHeight;
 }
 
-void VideoConfig::setPauseImagePath(android::String8 path)
+void VideoConfig::setPauseImagePath(const android::String8& path)
 {
     pauseImagePath = path;
 }

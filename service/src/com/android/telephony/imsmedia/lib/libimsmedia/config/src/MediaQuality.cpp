@@ -25,7 +25,7 @@ namespace telephony
 namespace imsmedia
 {
 
-#define DEFAULT_PARAM -1
+#define DEFAULT_PARAM (-1)
 
 MediaQuality::MediaQuality()
 {
@@ -81,27 +81,30 @@ MediaQuality::~MediaQuality() {}
 
 MediaQuality& MediaQuality::operator=(const MediaQuality& quality)
 {
-    mDownlinkCallQualityLevel = quality.mDownlinkCallQualityLevel;
-    mUplinkCallQualityLevel = quality.mUplinkCallQualityLevel;
-    mCallDuration = quality.mCallDuration;
-    mNumRtpPacketsTransmitted = quality.mNumRtpPacketsTransmitted;
-    mNumRtpPacketsReceived = quality.mNumRtpPacketsReceived;
-    mNumRtpPacketsTransmittedLost = quality.mNumRtpPacketsTransmittedLost;
-    mNumRtpPacketsNotReceived = quality.mNumRtpPacketsNotReceived;
-    mAverageRelativeJitter = quality.mAverageRelativeJitter;
-    mMaxRelativeJitter = quality.mMaxRelativeJitter;
-    mAverageRoundTripTime = quality.mAverageRoundTripTime;
-    mCodecType = quality.mCodecType;
-    mRtpInactivityDetected = quality.mRtpInactivityDetected;
-    mRxSilenceDetected = quality.mRxSilenceDetected;
-    mTxSilenceDetected = quality.mTxSilenceDetected;
-    mNumVoiceFrames = quality.mNumVoiceFrames;
-    mNumNoDataFrames = quality.mNumNoDataFrames;
-    mNumDroppedRtpPackets = quality.mNumDroppedRtpPackets;
-    mMinPlayoutDelayMillis = quality.mMinPlayoutDelayMillis;
-    mMaxPlayoutDelayMillis = quality.mMaxPlayoutDelayMillis;
-    mNumRtpSidPacketsReceived = quality.mNumRtpSidPacketsReceived;
-    mNumRtpDuplicatePackets = quality.mNumRtpDuplicatePackets;
+    if (this != &quality)
+    {
+        mDownlinkCallQualityLevel = quality.mDownlinkCallQualityLevel;
+        mUplinkCallQualityLevel = quality.mUplinkCallQualityLevel;
+        mCallDuration = quality.mCallDuration;
+        mNumRtpPacketsTransmitted = quality.mNumRtpPacketsTransmitted;
+        mNumRtpPacketsReceived = quality.mNumRtpPacketsReceived;
+        mNumRtpPacketsTransmittedLost = quality.mNumRtpPacketsTransmittedLost;
+        mNumRtpPacketsNotReceived = quality.mNumRtpPacketsNotReceived;
+        mAverageRelativeJitter = quality.mAverageRelativeJitter;
+        mMaxRelativeJitter = quality.mMaxRelativeJitter;
+        mAverageRoundTripTime = quality.mAverageRoundTripTime;
+        mCodecType = quality.mCodecType;
+        mRtpInactivityDetected = quality.mRtpInactivityDetected;
+        mRxSilenceDetected = quality.mRxSilenceDetected;
+        mTxSilenceDetected = quality.mTxSilenceDetected;
+        mNumVoiceFrames = quality.mNumVoiceFrames;
+        mNumNoDataFrames = quality.mNumNoDataFrames;
+        mNumDroppedRtpPackets = quality.mNumDroppedRtpPackets;
+        mMinPlayoutDelayMillis = quality.mMinPlayoutDelayMillis;
+        mMaxPlayoutDelayMillis = quality.mMaxPlayoutDelayMillis;
+        mNumRtpSidPacketsReceived = quality.mNumRtpSidPacketsReceived;
+        mNumRtpDuplicatePackets = quality.mNumRtpDuplicatePackets;
+    }
     return *this;
 }
 
