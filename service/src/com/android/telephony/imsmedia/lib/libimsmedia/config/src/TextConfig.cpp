@@ -62,11 +62,14 @@ TextConfig::~TextConfig() {}
 
 TextConfig& TextConfig::operator=(const TextConfig& config)
 {
-    this->mCodecType = config.mCodecType;
-    this->mBitrate = config.mBitrate;
-    this->mRedundantPayload = config.mRedundantPayload;
-    this->mRedundantLevel = config.mRedundantLevel;
-    this->mKeepRedundantLevel = config.mKeepRedundantLevel;
+    if (this != &config)
+    {
+        this->mCodecType = config.mCodecType;
+        this->mBitrate = config.mBitrate;
+        this->mRedundantPayload = config.mRedundantPayload;
+        this->mRedundantLevel = config.mRedundantLevel;
+        this->mKeepRedundantLevel = config.mKeepRedundantLevel;
+    }
     return *this;
 }
 

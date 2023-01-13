@@ -44,9 +44,12 @@ AmrParams::~AmrParams() {}
 
 AmrParams& AmrParams::operator=(const AmrParams& param)
 {
-    this->amrMode = param.amrMode;
-    this->octetAligned = param.octetAligned;
-    this->maxRedundancyMillis = param.maxRedundancyMillis;
+    if (this != &param)
+    {
+        this->amrMode = param.amrMode;
+        this->octetAligned = param.octetAligned;
+        this->maxRedundancyMillis = param.maxRedundancyMillis;
+    }
     return *this;
 }
 

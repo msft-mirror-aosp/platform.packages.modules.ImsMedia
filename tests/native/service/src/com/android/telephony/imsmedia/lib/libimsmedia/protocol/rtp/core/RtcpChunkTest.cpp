@@ -54,7 +54,6 @@ TEST_F(RtcpChunkTest, decodeChunkItem)
     chunkItem->ucLength = 18;
 
     RtpDt_UChar* pcBuffer = new RtpDt_UChar[chunkItem->ucLength];
-    ASSERT_TRUE(pcBuffer != nullptr);
 
     memcpy(pcBuffer, "sleepy@example.com", chunkItem->ucLength);
 
@@ -110,7 +109,6 @@ TEST_F(RtcpChunkTest, decodeMultichunkItem)
     chunkItem->ucLength = 18;
 
     RtpDt_UChar* pcBuffer = new RtpDt_UChar[chunkItem->ucLength];
-    ASSERT_TRUE(pcBuffer != nullptr);
 
     memcpy(pcBuffer, "sleepy@example.com", chunkItem->ucLength);
 
@@ -126,8 +124,6 @@ TEST_F(RtcpChunkTest, decodeMultichunkItem)
 
     chunkItemSec->ucType = 1;
     chunkItemSec->ucLength = 18;
-
-    ASSERT_TRUE(pcBuffer != nullptr);
 
     memcpy(pcBuffer, "google@example.com", chunkItemSec->ucLength);
 
@@ -175,7 +171,6 @@ TEST_F(RtcpChunkTest, decodeSdesChunkWithInvalidType)
     chunkItem->ucLength = 18;
 
     RtpDt_UChar* pcBuffer = new RtpDt_UChar[chunkItem->ucLength];
-    ASSERT_TRUE(pcBuffer != nullptr);
 
     memcpy(pcBuffer, "sleepy@example.com", chunkItem->ucLength);
 
@@ -191,8 +186,6 @@ TEST_F(RtcpChunkTest, decodeSdesChunkWithInvalidType)
 
     chunkItemSec->ucType = 2;
     chunkItemSec->ucLength = 18;
-
-    ASSERT_TRUE(pcBuffer != nullptr);
 
     memcpy(pcBuffer, "google@example.com", chunkItemSec->ucLength);
 
@@ -242,7 +235,6 @@ TEST_F(RtcpChunkTest, decodeSdesChunkWithInvalidLength)
     chunkItem->ucLength = 18;
 
     RtpDt_UChar* pcBuffer = new RtpDt_UChar[chunkItem->ucLength];
-    ASSERT_TRUE(pcBuffer != nullptr);
 
     memcpy(pcBuffer, "sleepy@example.com", chunkItem->ucLength);
 

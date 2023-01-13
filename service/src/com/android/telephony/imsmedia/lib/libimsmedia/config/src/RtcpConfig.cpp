@@ -30,10 +30,13 @@ RtcpConfig::~RtcpConfig() {}
 
 RtcpConfig& RtcpConfig::operator=(const RtcpConfig& config)
 {
-    this->canonicalName = String8(config.canonicalName.string());
-    this->transmitPort = config.transmitPort;
-    this->intervalSec = config.intervalSec;
-    this->rtcpXrBlockTypes = config.rtcpXrBlockTypes;
+    if (this != &config)
+    {
+        this->canonicalName = String8(config.canonicalName.string());
+        this->transmitPort = config.transmitPort;
+        this->intervalSec = config.intervalSec;
+        this->rtcpXrBlockTypes = config.rtcpXrBlockTypes;
+    }
     return *this;
 }
 
@@ -125,7 +128,7 @@ status_t RtcpConfig::readFromParcel(const Parcel* in)
     return NO_ERROR;
 }
 
-void RtcpConfig::setCanonicalName(String8 name)
+void RtcpConfig::setCanonicalName(const String8& name)
 {
     canonicalName = name;
 }

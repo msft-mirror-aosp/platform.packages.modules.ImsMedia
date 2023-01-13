@@ -75,16 +75,19 @@ AudioConfig::~AudioConfig() {}
 
 AudioConfig& AudioConfig::operator=(const AudioConfig& config)
 {
-    RtpConfig::operator=(config);
-    pTimeMillis = config.pTimeMillis;
-    maxPtimeMillis = config.maxPtimeMillis;
-    dtxEnabled = config.dtxEnabled;
-    codecType = config.codecType;
-    mDtmfTxPayloadTypeNumber = config.mDtmfTxPayloadTypeNumber;
-    mDtmfRxPayloadTypeNumber = config.mDtmfRxPayloadTypeNumber;
-    dtmfsamplingRateKHz = config.dtmfsamplingRateKHz;
-    amrParams = config.amrParams;
-    evsParams = config.evsParams;
+    if (this != &config)
+    {
+        RtpConfig::operator=(config);
+        pTimeMillis = config.pTimeMillis;
+        maxPtimeMillis = config.maxPtimeMillis;
+        dtxEnabled = config.dtxEnabled;
+        codecType = config.codecType;
+        mDtmfTxPayloadTypeNumber = config.mDtmfTxPayloadTypeNumber;
+        mDtmfRxPayloadTypeNumber = config.mDtmfRxPayloadTypeNumber;
+        dtmfsamplingRateKHz = config.dtmfsamplingRateKHz;
+        amrParams = config.amrParams;
+        evsParams = config.evsParams;
+    }
     return *this;
 }
 

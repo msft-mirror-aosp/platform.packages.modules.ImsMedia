@@ -70,7 +70,7 @@ public:
     int32_t getMediaDirection();
     void setAccessNetwork(const int32_t network);
     int32_t getAccessNetwork();
-    void setRemoteAddress(const String8 address);
+    void setRemoteAddress(const String8& address);
     String8 getRemoteAddress();
     void setRemotePort(const int32_t port);
     int32_t getRemotePort();

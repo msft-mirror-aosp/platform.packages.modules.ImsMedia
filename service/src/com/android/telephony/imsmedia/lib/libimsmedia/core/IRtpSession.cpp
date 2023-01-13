@@ -72,7 +72,7 @@ void IRtpSession::ReleaseInstance(IRtpSession* session)
 }
 
 IRtpSession::IRtpSession(
-        ImsMediaType mediatype, const RtpAddress localAddress, const RtpAddress peerAddress)
+        ImsMediaType mediatype, const RtpAddress& localAddress, const RtpAddress& peerAddress)
 {
     mMediaType = mediatype;
     mRtpSessionId = 0;
@@ -133,9 +133,9 @@ bool IRtpSession::operator==(const IRtpSession& obj2)
 }
 
 bool IRtpSession::isSameInstance(
-        ImsMediaType mediatype, const RtpAddress local, const RtpAddress peer)
+        ImsMediaType mediatype, const RtpAddress& localAddress, const RtpAddress& peerAddress)
 {
-    if (mMediaType == mediatype && mLocalAddress == local && mPeerAddress == peer)
+    if (mMediaType == mediatype && mLocalAddress == localAddress && mPeerAddress == peerAddress)
     {
         return true;
     }
