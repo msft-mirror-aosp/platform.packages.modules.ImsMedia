@@ -77,7 +77,7 @@ public:
      *
      * @param evsBandwidth enum of the bandwidth defined as the kEvsBandwidth
      */
-    void SetEvsBandwidth(kEvsBandwidth evsBandwidth);
+    void SetEvsBandwidth(int32_t evsBandwidth);
 
     /**
      * @brief Sets the audio sampling rate in Hz units

@@ -55,8 +55,7 @@ ImsMediaResult IAudioSourceNode::Start()
 
         if (mCodecType == kAudioCodecEvs)
         {
-            mAudioSource->SetEvsBandwidth(
-                    (kEvsBandwidth)ImsMediaAudioUtil::FindMaxEvsBandwidthFromRange(mEvsBandwidth));
+            mAudioSource->SetEvsBandwidth((int32_t)mEvsBandwidth);
             mAudioSource->SetEvsChAwOffset(mEvsChAwOffset);
             mRunningCodecMode = ImsMediaAudioUtil::GetMaximumEvsMode(mCodecMode);
             mAudioSource->SetEvsBitRate(
@@ -118,7 +117,8 @@ void IAudioSourceNode::SetConfig(void* config)
     else if (mCodecType == kAudioCodecEvs)
     {
         mCodecMode = pConfig->getEvsParams().getEvsMode();
-        mEvsBandwidth = (kEvsBandwidth)pConfig->getEvsParams().getEvsBandwidth();
+        mEvsBandwidth = ImsMediaAudioUtil::FindMaxEvsBandwidthFromRange(
+                pConfig->getEvsParams().getEvsBandwidth());
         mEvsChAwOffset = pConfig->getEvsParams().getChannelAwareMode();
     }
 
@@ -145,7 +145,9 @@ bool IAudioSourceNode::IsSameConfig(void* config)
         else if (mCodecType == kAudioCodecEvs)
         {
             return (mCodecMode == pConfig->getEvsParams().getEvsMode() &&
-                    mEvsBandwidth == (kEvsBandwidth)pConfig->getEvsParams().getEvsBandwidth() &&
+                    mEvsBandwidth ==
+                            ImsMediaAudioUtil::FindMaxEvsBandwidthFromRange(
+                                    pConfig->getEvsParams().getEvsBandwidth()) &&
                     mEvsChAwOffset == pConfig->getEvsParams().getChannelAwareMode() &&
                     mSamplingRate == pConfig->getSamplingRateKHz());
         }
