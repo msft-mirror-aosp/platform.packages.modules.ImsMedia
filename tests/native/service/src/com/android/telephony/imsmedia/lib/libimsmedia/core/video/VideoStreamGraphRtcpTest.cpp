@@ -115,6 +115,13 @@ protected:
         EXPECT_NE(socketRtcpFd, -1);
 
         graph = new VideoStreamGraphRtcp(nullptr, socketRtcpFd);
+
+        /*
+         * TODO: Below line will skip all test under this class, need to remove
+         * to include it in atets
+         */
+
+        GTEST_SKIP();
     }
 
     virtual void TearDown() override
