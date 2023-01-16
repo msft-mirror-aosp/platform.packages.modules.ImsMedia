@@ -41,6 +41,8 @@ public:
 
     DataEntry(const DataEntry& entry)
     {
+        pbBuffer = nullptr;
+
         if (entry.nBufferSize > 0 && entry.pbBuffer != nullptr)
         {
             pbBuffer = new uint8_t[entry.nBufferSize];
