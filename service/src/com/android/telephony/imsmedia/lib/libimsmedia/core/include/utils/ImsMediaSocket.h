@@ -132,8 +132,8 @@ private:
     ISocketListener* mListener;
     kIpVersion mLocalIPVersion;
     kIpVersion mPeerIPVersion;
-    char mLocalIP[MAX_IP_LEN];
-    char mPeerIP[MAX_IP_LEN];
+    char mLocalIP[MAX_IP_LEN]{};
+    char mPeerIP[MAX_IP_LEN]{};
     uint32_t mLocalPort;
     uint32_t mPeerPort;
     bool mRemoteIpFiltering;
