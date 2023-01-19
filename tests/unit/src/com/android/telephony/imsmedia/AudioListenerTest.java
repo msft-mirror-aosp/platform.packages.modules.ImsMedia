@@ -28,6 +28,7 @@ import android.telephony.CallQuality;
 import android.telephony.imsmedia.AudioConfig;
 import android.telephony.imsmedia.IImsAudioSessionCallback;
 import android.telephony.imsmedia.ImsMediaSession;
+import android.telephony.imsmedia.MediaQualityStatus;
 import android.testing.TestableLooper;
 
 import org.junit.After;
@@ -167,30 +168,15 @@ public class AudioListenerTest {
     }
 
     @Test
-    public void testEventMediaInactivityInd() throws RemoteException {
-        mAudioListener.onMessage(createParcel(AudioSession.EVENT_MEDIA_INACTIVITY_IND,
-                ImsMediaSession.RESULT_INVALID_PARAM, mAudioConfig));
+    public void testEventMediaQualityStatusInd() throws RemoteException {
+        Parcel parcel = Parcel.obtain();
+        final MediaQualityStatus status = MediaQualityStatusTest.createMediaQualityStatus();
+        parcel.writeInt(AudioSession.EVENT_MEDIA_QUALITY_STATUS_IND);
+        status.writeToParcel(parcel, 0);
+        parcel.setDataPosition(0);
+        mAudioListener.onMessage(parcel);
         processAllMessages();
-        verify(mMockIImsAudioSessionCallback,
-                times(1)).notifyMediaInactivity(eq(ImsMediaSession.RESULT_INVALID_PARAM));
-    }
-
-    @Test
-    public void testEventPacketLossInd() throws RemoteException {
-        mAudioListener.onMessage(createParcel(AudioSession.EVENT_PACKET_LOSS_IND,
-                ImsMediaSession.RESULT_NO_MEMORY, mAudioConfig));
-        processAllMessages();
-        verify(mMockIImsAudioSessionCallback,
-                times(1)).notifyPacketLoss(eq(ImsMediaSession.RESULT_NO_MEMORY));
-    }
-
-    @Test
-    public void testEventJitterInd() throws RemoteException {
-        mAudioListener.onMessage(createParcel(AudioSession.EVENT_JITTER_IND,
-                ImsMediaSession.RESULT_INVALID_PARAM, mAudioConfig));
-        processAllMessages();
-        verify(mMockIImsAudioSessionCallback,
-                times(1)).notifyJitter(eq(ImsMediaSession.RESULT_INVALID_PARAM));
+        verify(mMockIImsAudioSessionCallback, times(1)).notifyMediaQualityStatus(eq(status));
     }
 
     @Test

@@ -24,6 +24,7 @@ import android.hardware.radio.ims.media.RtpHeaderExtension;
 import android.os.Parcel;
 import android.os.RemoteException;
 import android.telephony.imsmedia.AudioConfig;
+import android.telephony.imsmedia.MediaQualityStatus;
 import android.util.Log;
 
 import com.android.telephony.imsmedia.AudioSession;
@@ -137,31 +138,14 @@ class AudioListenerProxy implements JNIImsMediaListener {
                     Log.e(TAG, "Failed to notify rtp header extension: " + e);
                 }
                 break;
-            case AudioSession.EVENT_MEDIA_INACTIVITY_IND:
-                final int pktType = parcel.readInt();
-
+            case AudioSession.EVENT_MEDIA_QUALITY_STATUS_IND:
+                final MediaQualityStatus status =
+                        MediaQualityStatus.CREATOR.createFromParcel(parcel);
                 try {
-                    mMediaSessionListener.notifyMediaInactivity(pktType);
+                    mMediaSessionListener.notifyMediaQualityStatus(
+                            Utils.convertToHalMediaQualityStatus(status));
                 } catch(RemoteException e) {
-                    Log.e(TAG, "Failed to notify media inactivity: " + e);
-                }
-                break;
-            case AudioSession.EVENT_PACKET_LOSS_IND:
-                final int pktLossInd = parcel.readInt();
-
-                try {
-                    mMediaSessionListener.notifyPacketLoss(pktLossInd);
-                } catch(RemoteException e) {
-                    Log.e(TAG, "Failed to notify packet loss: " + e);
-                }
-                break;
-            case AudioSession.EVENT_JITTER_IND:
-                final int jitter = parcel.readInt();
-
-                try {
-                    mMediaSessionListener.notifyJitter(jitter);
-                } catch(RemoteException e) {
-                    Log.e(TAG, "Failed to notify jitter indication: " + e);
+                    Log.e(TAG, "Failed to notify media quality status: " + e);
                 }
                 break;
             case AudioSession.EVENT_TRIGGER_ANBR_QUERY_IND:

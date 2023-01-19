@@ -20,6 +20,7 @@ import android.os.Handler;
 import android.os.Parcel;
 import android.telephony.CallQuality;
 import android.telephony.imsmedia.AudioConfig;
+import android.telephony.imsmedia.MediaQualityStatus;
 import android.util.Log;
 
 /**
@@ -92,10 +93,12 @@ public class AudioListener implements JNIImsMediaListener {
             case AudioSession.EVENT_RTP_HEADER_EXTENSION_IND:
                 Utils.sendMessage(mHandler, event);
                 break;
-            case AudioSession.EVENT_MEDIA_INACTIVITY_IND:
-            case AudioSession.EVENT_PACKET_LOSS_IND:
-            case AudioSession.EVENT_JITTER_IND:
-                Utils.sendMessage(mHandler, event, parcel.readInt(), Utils.UNUSED);
+            case AudioSession.EVENT_MEDIA_QUALITY_STATUS_IND:
+            {
+                final MediaQualityStatus status =
+                        MediaQualityStatus.CREATOR.createFromParcel(parcel);
+                Utils.sendMessage(mHandler, event, status);
+            }
                 break;
             case AudioSession.EVENT_TRIGGER_ANBR_QUERY_IND:
                 final AudioConfig configAnbr = AudioConfig.CREATOR.createFromParcel(parcel);

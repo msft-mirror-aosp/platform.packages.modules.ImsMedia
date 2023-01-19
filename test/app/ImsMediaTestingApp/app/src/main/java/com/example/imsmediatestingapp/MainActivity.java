@@ -27,6 +27,7 @@ import android.telephony.imsmedia.ImsMediaManager;
 import android.telephony.imsmedia.ImsMediaSession;
 import android.telephony.imsmedia.ImsTextSession;
 import android.telephony.imsmedia.ImsVideoSession;
+import android.telephony.imsmedia.MediaQualityStatus;
 import android.telephony.imsmedia.MediaQualityThreshold;
 import android.telephony.imsmedia.RtcpConfig;
 import android.telephony.imsmedia.RtpConfig;
@@ -110,12 +111,13 @@ public class MainActivity extends AppCompatActivity {
     private static final int CAMERA_ID = 0;
     private static final int CAMERA_ZOOM = 10;
 
-    private static final int RTP_TIMEOUT = 20;
-    private static final int RTCP_TIMEOUT = 20;
-    private static final int PACKET_LOSS_PERIOD = 5000;
-    private static final int PACKET_LOSS_RATE = 1;
-    private static final int JITTER_PERIOD = 5000;
-    private static final int JITTER_THRESHOLD = 5;
+    private static final int[] RTP_TIMEOUT = { 10000, 20000 };
+    private static final int RTCP_TIMEOUT = 15000;
+    private static final int RTP_HYSTERESIS_TIME = 3000;
+    private static final int RTP_PACKET_LOSS_DURATION = 3000;
+    private static final int[] PACKET_LOSS_RATE = { 1, 3 };
+    private static final int[] JITTER_THRESHOLD = { 100, 200 };
+    private static final boolean NOTIFY_STATUS = false;
 
     private Set<Integer> mSelectedCodecTypes = new HashSet<>();
     private Set<Integer> mSelectedAmrModes = new HashSet<>();
@@ -615,6 +617,10 @@ public class MainActivity extends AppCompatActivity {
 
         updateUI(ConnectionStatus.OFFLINE);
         updateAdditionalMedia();
+
+        mAudioSession = null;
+        mVideoSession = null;
+        mTextSession = null;
     }
 
     @Override
@@ -720,8 +726,8 @@ public class MainActivity extends AppCompatActivity {
             mIsOpenSessionSent = true;
 
             MediaQualityThreshold threshold = createMediaQualityThreshold(RTP_TIMEOUT,
-                    RTCP_TIMEOUT, PACKET_LOSS_PERIOD, PACKET_LOSS_RATE, JITTER_PERIOD,
-                    JITTER_THRESHOLD);
+                    RTCP_TIMEOUT, RTP_HYSTERESIS_TIME, RTP_PACKET_LOSS_DURATION, PACKET_LOSS_RATE,
+                    JITTER_THRESHOLD, NOTIFY_STATUS);
             mAudioSession.setMediaQualityThreshold(threshold);
             mAudioSession.modifySession(mAudioConfig);
 
@@ -756,8 +762,13 @@ public class MainActivity extends AppCompatActivity {
         }
 
         @Override
+        public void notifyMediaQualityStatus(final MediaQualityStatus status) {
+            Log.d(TAG, "notifyMediaQualityStatus, status=" + status);
+        }
+
+        @Override
         public void onCallQualityChanged(CallQuality callQuality) {
-            Log.d(TAG, "onCallQualityChanged");
+            Log.d(TAG, "onCallQualityChanged, callQuality=" + callQuality);
         }
     }
 
@@ -1458,16 +1469,18 @@ public class MainActivity extends AppCompatActivity {
         return config;
     }
 
-    private MediaQualityThreshold createMediaQualityThreshold(int rtpInactivityTimerMillis,
-            int rtcpInactivityTimerMillis, int packetLossPeriodMillis, int packetLossThreshold,
-            int jitterPeriodMillis, int jitterThresholdMillis) {
+    private MediaQualityThreshold createMediaQualityThreshold(int[] rtpInactivityTimerMillis,
+            int rtcpInactivityTimerMillis, int rtpHysteresisTimeInMillis,
+            int rtpPacketLossDurationMillis, int[] rtpPacketLossRate, int[] rtpJitterMillis,
+            boolean notifyCurrentStatus) {
         return new MediaQualityThreshold.Builder()
                 .setRtpInactivityTimerMillis(rtpInactivityTimerMillis)
                 .setRtcpInactivityTimerMillis(rtcpInactivityTimerMillis)
-                .setPacketLossPeriodMillis(packetLossPeriodMillis)
-                .setPacketLossThreshold(packetLossThreshold)
-                .setJitterPeriodMillis(jitterPeriodMillis)
-                .setJitterThresholdMillis(jitterThresholdMillis)
+                .setRtpHysteresisTimeInMillis(rtpHysteresisTimeInMillis)
+                .setRtpPacketLossDurationMillis(rtpPacketLossDurationMillis)
+                .setRtpPacketLossRate(rtpPacketLossRate)
+                .setRtpJitterMillis(rtpJitterMillis)
+                .setNotifyCurrentStatus(notifyCurrentStatus)
                 .build();
     }
 
