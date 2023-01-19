@@ -25,144 +25,207 @@ namespace android
 class RtcpByePacketTest : public ::testing::Test
 {
 public:
-    RtcpByePacket* testRtcpByePacket;
+    RtcpByePacket* rtcpByePacket;
+    RtcpHeader rtcpHeader;
 
 protected:
     virtual void SetUp() override
     {
-        testRtcpByePacket = new RtcpByePacket();
-        ASSERT_TRUE(testRtcpByePacket != nullptr);
+        rtcpByePacket = new RtcpByePacket();
+        ASSERT_TRUE(rtcpByePacket != nullptr);
     }
 
     virtual void TearDown() override
     {
-        if (testRtcpByePacket)
+        if (rtcpByePacket != nullptr)
         {
-            delete testRtcpByePacket;
-            testRtcpByePacket = nullptr;
+            delete rtcpByePacket;
+            rtcpByePacket = nullptr;
         }
     }
 };
 
-/** Successful Test scenario with multiple SSRC */
-TEST_F(RtcpByePacketTest, decodeByePacketMultipleSSRCTest)
+TEST_F(RtcpByePacketTest, decodeByePacketWithSingleSsrc)
 {
-    std::unique_ptr<RtpDt_UChar[]> pucByeBuf(new RtpDt_UChar[25]);
-    ASSERT_TRUE(pucByeBuf != nullptr);
+    /*
+     * Real-time Transport Control Protocol (Goodbye)
+     * 10.. .... = Version: RFC 1889 Version (2)
+     * ..0. .... = Padding: False
+     * ...0 0011 = Reception report count: 3
+     * Packet type: Goodbye (203)
+     * Length: 2 (12 bytes)
+     * Identifier : 0xb1c8cb01
+     * SSRC : 0xb1c8cb02
+     */
 
-    /* pucByeBuf injected with multiple ssrc number */
-    memcpy(pucByeBuf.get(),
-            (RtpDt_UChar[]){0x82, 0xCB, 0x00, 0x08, 0x19, 0x6D, 0x27, 0xC5, 0xE2, 0xA5, 0x19, 0x01,
-                    0x08, 0x74, 0x65, 0x61, 0x72, 0x64, 0x6F, 0x77, 0x6E},
-            22);
+    uint8_t inputBuffer[] = {0xb1, 0xc8, 0xcb, 0x02};
+    std::unique_ptr<RtpDt_UChar[]> byePacket(new RtpDt_UChar[sizeof(inputBuffer)]);
+    memcpy(byePacket.get(), inputBuffer, sizeof(inputBuffer));
 
-    EXPECT_TRUE(testRtcpByePacket->decodeByePacket(pucByeBuf.get(), 22));
+    rtcpHeader.setReceptionReportCount(2);
+    rtcpByePacket->setRtcpHdrInfo(rtcpHeader);
+
+    EXPECT_TRUE(rtcpByePacket->decodeByePacket(byePacket.get(), sizeof(inputBuffer)));
+
+    std::list<RtpDt_UInt32*> ssrcList = rtcpByePacket->getSsrcList();
+    EXPECT_EQ(ssrcList.size(), 1);
+    EXPECT_EQ(*ssrcList.front(), reinterpret_cast<RtpDt_UInt32>(0xb1c8cb02));
 }
 
-/** Successful Test scenario single SSRC without Optional reason and length */
-TEST_F(RtcpByePacketTest, decodeByePacketSingleSSRCTest)
+TEST_F(RtcpByePacketTest, decodeByePacketWithMultipleSsrc)
 {
-    std::unique_ptr<RtpDt_UChar[]> pucByeBuf(new RtpDt_UChar[13]);
-    ASSERT_TRUE(pucByeBuf != nullptr);
+    /*
+     * Real-time Transport Control Protocol (Goodbye)
+     * 10.. .... = Version: RFC 1889 Version (2)
+     * ..0. .... = Padding: False
+     * ...0 0011 = Reception report count: 3
+     * Packet type: Goodbye (203)
+     * Length: 3 (16 bytes)
+     * Identifier : 0xb1c8cb01
+     * SSRC : 0xb1c8cb02
+     * SSRC : 0xd2bd4e3e
+     */
 
-    /* pucByeBuf contains session RTCP Header, Optional reason and length excluded */
-    memcpy(pucByeBuf.get(),
-            (RtpDt_UChar[]){0x82, 0xCB, 0x00, 0x08, 0x19, 0x6D, 0x27, 0xC5, 0xE2, 0xA5, 0x19, 0x01},
-            12);
+    uint8_t inputBuffer[] = {0xb1, 0xc8, 0xcb, 0x02, 0xd2, 0xbd, 0x4e, 0x3e};
+    std::unique_ptr<RtpDt_UChar[]> byePacket(new RtpDt_UChar[sizeof(inputBuffer)]);
+    memcpy(byePacket.get(), inputBuffer, sizeof(inputBuffer));
 
-    EXPECT_TRUE(testRtcpByePacket->decodeByePacket(pucByeBuf.get(), 12));
+    rtcpHeader.setReceptionReportCount(3);
+    rtcpByePacket->setRtcpHdrInfo(rtcpHeader);
+
+    EXPECT_TRUE(rtcpByePacket->decodeByePacket(byePacket.get(), sizeof(inputBuffer)));
+
+    std::list<RtpDt_UInt32*> ssrcList = rtcpByePacket->getSsrcList();
+    EXPECT_EQ(ssrcList.size(), 2);
+    EXPECT_EQ(*ssrcList.front(), reinterpret_cast<RtpDt_UInt32>(0xb1c8cb02));
+    ssrcList.pop_front();
+    EXPECT_EQ(*ssrcList.front(), reinterpret_cast<RtpDt_UInt32>(0xd2bd4e3e));
 }
 
-/** Successful Test scenario with multiple SSRC with optional data included. */
-TEST_F(RtcpByePacketTest, decodeByePacketMultipleSSRCOptionalDataTest)
+TEST_F(RtcpByePacketTest, decodeByePacketWithMultipleSsrcAndReason)
 {
-    std::unique_ptr<RtpDt_UChar[]> pucByeBuf(new RtpDt_UChar[28]);
-    ASSERT_TRUE(pucByeBuf != nullptr);
+    /*
+     * Real-time Transport Control Protocol (Goodbye)
+     * 10.. .... = Version: RFC 1889 Version (2)
+     * ..1. .... = Padding: True
+     * ...0 0011 = Reception report count: 3
+     * Packet type: Goodbye (203)
+     * Length: 8 (36 bytes)
+     * Identifier : 0xb1c8cb01
+     * SSRC : 0xb1c8cb02
+     * SSRC : 0xd2bd4e3e
+     * Length: 17
+     * Reason for leaving: RTP loop detected
+     * padding: 0x0002
+     */
 
-    /* pucByeBuf contains RTCP header, 2 SSRC and optional Length and Reason. */
-    memcpy(pucByeBuf.get(),
-            (RtpDt_UChar[]){0x83, 0xCB, 0x00, 0x08, 0x19, 0x6D, 0x27, 0xC5, 0xE2, 0xA5, 0x19, 0x01,
-                    0x07, 0xFF, 0xF4, 0xAA, 0x08, 0x74, 0x65, 0x61, 0x72, 0x64, 0x6F, 0x77, 0x6E},
-            26);
+    uint8_t inputBuffer[] = {0xb1, 0xc8, 0xcb, 0x02, 0xd2, 0xbd, 0x4e, 0x3e, 0x11, 0x52, 0x54, 0x50,
+            0x20, 0x6C, 0x6F, 0x6F, 0x70, 0x20, 0x64, 0x65, 0x74, 0x65, 0x63, 0x74, 0x65, 0x64,
+            0x00, 0x02};
+    std::unique_ptr<RtpDt_UChar[]> byePacket(new RtpDt_UChar[sizeof(inputBuffer)]);
+    memcpy(byePacket.get(), inputBuffer, sizeof(inputBuffer));
 
-    EXPECT_TRUE(testRtcpByePacket->decodeByePacket(pucByeBuf.get(), 26));
+    rtcpHeader.setReceptionReportCount(3);
+    rtcpByePacket->setRtcpHdrInfo(rtcpHeader);
+
+    EXPECT_TRUE(rtcpByePacket->decodeByePacket(byePacket.get(), sizeof(inputBuffer)));
+
+    std::list<RtpDt_UInt32*> ssrcList = rtcpByePacket->getSsrcList();
+    EXPECT_EQ(ssrcList.size(), 2);
+    EXPECT_EQ(*ssrcList.front(), reinterpret_cast<RtpDt_UInt32>(0xb1c8cb02));
+    ssrcList.pop_front();
+    EXPECT_EQ(*ssrcList.front(), reinterpret_cast<RtpDt_UInt32>(0xd2bd4e3e));
+
+    RtpBuffer* reasonBuf = rtcpByePacket->getReason();
+    const char* reason = "RTP loop detected";
+    EXPECT_EQ(reasonBuf->getLength(), strlen(reason));
+    EXPECT_EQ(memcmp(reasonBuf->getBuffer(), reason, strlen(reason)), 0);
 }
 
-/** Unexpected more length of Optional reason test. */
-TEST_F(RtcpByePacketTest, decodeByePacketReasonLengthOverflowTest)
+TEST_F(RtcpByePacketTest, formByePacketWithSsrc)
 {
-    std::unique_ptr<RtpDt_UChar[]> pucByeBuf(new RtpDt_UChar[28]);
-    ASSERT_TRUE(pucByeBuf != nullptr);
+    /*
+     * Real-time Transport Control Protocol (Goodbye)
+     * 10.. .... = Version: RFC 1889 Version (2)
+     * ..0. .... = Padding: False
+     * ...0 0011 = Reception report count: 3
+     * Packet type: Goodbye (203)
+     * Length: 3 (16 bytes)
+     * Identifier : 0xb1c8cb01
+     * SSRC : 0xb1c8cb02
+     * SSRC : 0xd2bd4e3e
+     */
 
-    /* pucByeBuf injected with unexpected Optiona length value, how ever
-     * optional message having less length */
-    memcpy(pucByeBuf.get(),
-            (RtpDt_UChar[]){0x83, 0xCB, 0x00, 0x08, 0x19, 0x6D, 0x27, 0xC5, 0xE2, 0xA5, 0x19, 0x01,
-                    0x07, 0xFF, 0xF4, 0xAA, 0x0C, 0x74, 0x65, 0x61, 0x72, 0x64, 0x6F, 0x77, 0x6E},
-            26);
-
-    EXPECT_TRUE(testRtcpByePacket->decodeByePacket(pucByeBuf.get(), 26));
-}
-
-/** Unexpected less length of Optional reason test. */
-TEST_F(RtcpByePacketTest, decodeByePacketReasonLengthUnderflowTest)
-{
-    std::unique_ptr<RtpDt_UChar[]> pucByeBuf(new RtpDt_UChar[28]);
-    ASSERT_TRUE(pucByeBuf != nullptr);
-
-    /* pucByeBuf injected with unexpected Optiona length value, how ever
-     * optional message having more length */
-    memcpy(pucByeBuf.get(),
-            (RtpDt_UChar[]){0x83, 0xCB, 0x00, 0x08, 0x19, 0x6D, 0x27, 0xC5, 0xE2, 0xA5, 0x19, 0x01,
-                    0x07, 0xFF, 0xF4, 0xAA, 0x04, 0x74, 0x65, 0x61, 0x72, 0x64, 0x6F, 0x77, 0x6E},
-            26);
-
-    EXPECT_TRUE(testRtcpByePacket->decodeByePacket(pucByeBuf.get(), 26));
-}
-/** Forming RtcpBye packet without Optional Bye reason */
-TEST_F(RtcpByePacketTest, formByePacketSuccessTest)
-{
-    std::unique_ptr<RtpBuffer> testBuf(new RtpBuffer());
-    ASSERT_TRUE(testBuf != nullptr);
-
+    std::unique_ptr<RtpBuffer> byePacketBuffer(new RtpBuffer());
     std::unique_ptr<RtpDt_UChar[]> pcBuff(new RtpDt_UChar[RTP_DEF_MTU_SIZE]);
 
-    ASSERT_TRUE(pcBuff != nullptr);
+    byePacketBuffer->setBufferInfo(RTP_DEF_MTU_SIZE, pcBuff.release());
+    byePacketBuffer->setLength(RTP_ZERO);
 
-    testBuf->setBufferInfo(RTP_DEF_MTU_SIZE, pcBuff.release());
-    testBuf->setLength(RTP_ZERO);
+    rtcpHeader.setReceptionReportCount(3);
+    rtcpByePacket->setRtcpHdrInfo(rtcpHeader);
 
-    EXPECT_EQ(RTP_ZERO, testBuf->getLength());
+    uint8_t pExpectedBuffer[] = {0xb1, 0xc8, 0xcb, 0x02, 0xd2, 0xbd, 0x4e, 0x3e};
+    std::unique_ptr<RtpDt_UChar[]> byePacket(new RtpDt_UChar[sizeof(pExpectedBuffer)]);
+    memcpy(byePacket.get(), pExpectedBuffer, sizeof(pExpectedBuffer));
 
-    EXPECT_TRUE(testRtcpByePacket->formByePacket(testBuf.get()));
+    EXPECT_TRUE(rtcpByePacket->decodeByePacket(byePacket.get(), sizeof(pExpectedBuffer)));
+
+    EXPECT_TRUE(rtcpByePacket->formByePacket(byePacketBuffer.get()));
+    // Compare formed Rtcp Bye packet with expected Rtcp Bye packet
+    EXPECT_EQ(memcmp((byePacketBuffer->getBuffer() + RTCP_FIXED_HDR_LEN), pExpectedBuffer,
+                      sizeof(pExpectedBuffer)),
+            0);
 }
 
-/** Forming RtcpBye packet with Optional Bye reason */
-TEST_F(RtcpByePacketTest, formByePacketSuccessTestWithByeReason)
+TEST_F(RtcpByePacketTest, formByePacketWithSsrcAndReason)
 {
-    std::unique_ptr<RtpBuffer> testBuf(new RtpBuffer());
-    ASSERT_TRUE(testBuf != nullptr);
+    /*
+     * Real-time Transport Control Protocol (Goodbye)
+     * 10.. .... = Version: RFC 1889 Version (2)
+     * ..1. .... = Padding: True
+     * ...0 0011 = Reception report count: 3
+     * Packet type: Goodbye (203)
+     * Length: 6 (28 bytes)
+     * Identifier : 0xb1c8cb01
+     * SSRC : 0xb1c8cb02
+     * SSRC : 0xd2bd4e3e
+     * Length: 8
+     * Reason for leaving: teardown
+     * padding: 0x000003
+     */
 
+    std::unique_ptr<RtpBuffer> byePacketBuffer(new RtpBuffer());
     std::unique_ptr<RtpDt_UChar[]> pcBuff(new RtpDt_UChar[RTP_DEF_MTU_SIZE]);
 
-    ASSERT_TRUE(pcBuff != nullptr);
+    byePacketBuffer->setBufferInfo(RTP_DEF_MTU_SIZE, pcBuff.release());
+    byePacketBuffer->setLength(RTP_ZERO);
 
-    testBuf->setBufferInfo(RTP_DEF_MTU_SIZE, pcBuff.release());
-    testBuf->setLength(RTP_ZERO);
+    rtcpHeader.setReceptionReportCount(3);
+    rtcpByePacket->setRtcpHdrInfo(rtcpHeader);
 
-    EXPECT_EQ(RTP_ZERO, testBuf->getLength());
+    uint8_t pExpectedBuffer[] = {0xb1, 0xc8, 0xcb, 0x02, 0xd2, 0xbd, 0x4e, 0x3e, 0x08, 0x74, 0x65,
+            0x61, 0x72, 0x64, 0x6F, 0x77, 0x6E, 0x00, 0x00, 0x03};
+    std::unique_ptr<RtpDt_UChar[]> byePacket(new RtpDt_UChar[sizeof(pExpectedBuffer)]);
+    memcpy(byePacket.get(), pExpectedBuffer, sizeof(pExpectedBuffer));
 
-    std::unique_ptr<RtpBuffer> testReasonBuf(new RtpBuffer());
+    EXPECT_TRUE(rtcpByePacket->decodeByePacket(byePacket.get(), sizeof(pExpectedBuffer)));
 
-    std::unique_ptr<RtpDt_UChar[]> byeReasonBuf(new RtpDt_UChar[10]);
-    memcpy(byeReasonBuf.get(),
-            (RtpDt_UChar[]){0x08, 0x74, 0x65, 0x61, 0x72, 0x64, 0x6F, 0x77, 0x6E}, 9);
+    EXPECT_TRUE(rtcpByePacket->formByePacket(byePacketBuffer.get()));
+    // Compare formed Rtcp Bye packet with expected Rtcp Bye packet
+    EXPECT_EQ(memcmp((byePacketBuffer->getBuffer() + RTCP_FIXED_HDR_LEN), pExpectedBuffer,
+                      (sizeof(pExpectedBuffer) - 3)),
+            0);
+}
 
-    testReasonBuf->setBufferInfo(9, byeReasonBuf.release());
+TEST_F(RtcpByePacketTest, CheckGetSets)
+{
+    rtcpByePacket->setRtcpHdrInfo(rtcpHeader);
+    EXPECT_EQ(rtcpHeader, *(rtcpByePacket->getRtcpHdrInfo()));
 
-    testRtcpByePacket->setReason(testReasonBuf.release());
-
-    EXPECT_TRUE(testRtcpByePacket->formByePacket(testBuf.get()));
+    RtpBuffer* reasonBuf = new RtpBuffer();
+    rtcpByePacket->setReason(reasonBuf);
+    EXPECT_EQ(reasonBuf, rtcpByePacket->getReason());
 }
 
 }  // namespace android
