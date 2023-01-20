@@ -108,9 +108,12 @@ void StreamScheduler::Stop()
 {
     IMLOGD1("[Stop] [%p] enter", this);
 
-    StopThread();
-    Awake();
-    mConditionExit.wait_timeout(STOP_WAIT_TIMEOUT);
+    if (!IsThreadStopped())
+    {
+        StopThread();
+        Awake();
+        mConditionExit.wait_timeout(STOP_WAIT_TIMEOUT);
+    }
 
     IMLOGD1("[Stop] [%p] exit", this);
 }
