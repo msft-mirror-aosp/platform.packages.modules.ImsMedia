@@ -2282,11 +2282,6 @@ eRTP_STATUS_CODE RtpSession::populateRtcpXrPacket(IN_OUT RtcpPacket* pobjRtcpPkt
     }
     pobjRtcpXrPacket->setReportBlk(pobjPayload);
 
-    // set RTTD
-    pobjRtcpXrPacket->setRTTD(m_lastRTTDelay);
-    // set RTTD offset
-    pobjRtcpXrPacket->setRttdOffset(m_stRtcpXr.nRttdOffset);
-
     // set the RTCP packet
     pobjRtcpPkt->setXrPacket(pobjRtcpXrPacket);
 
@@ -2300,7 +2295,7 @@ eRTP_STATUS_CODE RtpSession::populateRtcpXrPacket(IN_OUT RtcpPacket* pobjRtcpPkt
 }
 
 eRTP_STATUS_CODE RtpSession::sendRtcpXrPacket(
-        IN RtpDt_UChar* m_pBlockBuffer, IN RtpDt_UInt16 nblockLength, IN RtpDt_UInt16 nRttdOffset)
+        IN RtpDt_UChar* m_pBlockBuffer, IN RtpDt_UInt16 nblockLength)
 {
     // set timestamp
     m_stRtcpXr.m_pBlockBuffer = new RtpDt_UChar[nblockLength];
@@ -2312,8 +2307,6 @@ eRTP_STATUS_CODE RtpSession::sendRtcpXrPacket(
     memcpy(m_stRtcpXr.m_pBlockBuffer, m_pBlockBuffer, nblockLength);
 
     m_stRtcpXr.nlength = nblockLength;
-    m_stRtcpXr.nRttdOffset = nRttdOffset;
-
     m_bisXr = eRTP_TRUE;
 
     return RTP_SUCCESS;

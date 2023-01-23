@@ -35,12 +35,6 @@ private:
     // RTCP Xr header information
     RtcpHeader m_objRtcpHdr;  // making use of RTCP header
 
-    // round trip time delay
-    RtpDt_UInt32 m_uiRTTD;
-
-    // RTTD offset
-    RtpDt_UInt16 m_uiRttdOffset;
-
     // Extended report block Information
     RtpBuffer* m_reportBlk;
 
@@ -58,20 +52,6 @@ public:
      * set method for m_objRtcpHdr
      */
     RtpDt_Void setRtcpHdrInfo(RtcpHeader& header);
-
-    /**
-     * set RTTD method
-     */
-    RtpDt_Void setRTTD(RtpDt_UInt32 rttd);
-
-    /**
-     * get RTTD method
-     */
-    RtpDt_UInt32 getRTTD();
-
-    RtpDt_Void setRttdOffset(RtpDt_UInt16 rttdoffset);
-
-    RtpDt_UInt16 getRttdOffset();
 
     /**
      * get method for report block for the RTCP XR packet
