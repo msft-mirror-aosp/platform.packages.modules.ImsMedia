@@ -353,10 +353,10 @@ public class AudioSessionTest {
     @Test
     public void testDtmfReceived() {
         // Receive onDtmfReceived
-        Utils.sendMessage(handler, AudioSession.EVENT_DTMF_RECEIVED_IND, DTMF_DIGIT);
+        Utils.sendMessage(handler, AudioSession.EVENT_DTMF_RECEIVED_IND, DTMF_DIGIT, DTMF_DURATION);
         processAllMessages();
         try {
-            verify(callback, times(1)).onDtmfReceived(eq(DTMF_DIGIT));
+            verify(callback, times(1)).onDtmfReceived(eq(DTMF_DIGIT), eq(DTMF_DURATION));
         }  catch (RemoteException e) {
             fail("Failed to notify onDtmfReceived: " + e);
         }

@@ -216,12 +216,12 @@ public class AudioSessionCallback extends ImsMediaManager.SessionCallback {
         }
 
         @Override
-        public void onDtmfReceived(final char dtmfDigit) {
+        public void onDtmfReceived(final char dtmfDigit, final int durationMs) {
             if (mLocalCallback == null) return;
 
             final long callingIdentity = Binder.clearCallingIdentity();
             try {
-                mExecutor.execute(() -> mLocalCallback.onDtmfReceived(dtmfDigit));
+                mExecutor.execute(() -> mLocalCallback.onDtmfReceived(dtmfDigit, durationMs));
             } finally {
                 restoreCallingIdentity(callingIdentity);
             }
@@ -345,8 +345,9 @@ public class AudioSessionCallback extends ImsMediaManager.SessionCallback {
     * Notifies received DTMF digit to play the tone
     *
     * @param dtmfDigit single char having one of 12 values: 0-9, *, #
+    * @param durationMs The duration to play the tone in milliseconds unit
     */
-    public void onDtmfReceived(final char dtmfDigit) {
+    public void onDtmfReceived(final char dtmfDigit, final int durationMs) {
         // Base Implementation
     }
 }

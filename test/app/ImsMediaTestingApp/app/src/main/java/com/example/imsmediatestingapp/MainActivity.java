@@ -751,8 +751,8 @@ public class MainActivity extends AppCompatActivity {
         }
 
         @Override
-        public void onDtmfReceived(char dtmfDigit) {
-            Log.d(TAG, "onDtmfReceived");
+        public void onDtmfReceived(char dtmfDigit, int durationMs) {
+            Log.d(TAG, "onDtmfReceived digit: " + dtmfDigit + " duration: " + durationMs);
         }
 
         @Override

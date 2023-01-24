@@ -176,9 +176,10 @@ class AudioListenerProxy implements JNIImsMediaListener {
                 break;
             case AudioSession.EVENT_DTMF_RECEIVED_IND:
                 final char dtmfDigit = (char) parcel.readByte();
+                final int durationMs = parcel.readInt();
 
                 try {
-                    mMediaSessionListener.onDtmfReceived(dtmfDigit);
+                    mMediaSessionListener.onDtmfReceived(dtmfDigit, durationMs);
                 } catch (RemoteException e) {
                     Log.e(TAG, "Failed to DTMF received: " + e);
                 }

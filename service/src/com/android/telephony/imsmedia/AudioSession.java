@@ -309,7 +309,7 @@ public final class AudioSession extends IImsAudioSession.Stub implements IMediaS
                     handleTriggerAnbrQuery((AudioConfig) msg.obj);
                     break;
                 case EVENT_DTMF_RECEIVED_IND:
-                    handleDtmfReceived((char) msg.obj);
+                    handleDtmfReceived((char) msg.arg1, msg.arg2);
                     break;
                 case EVENT_CALL_QUALITY_CHANGE_IND:
                     handleCallQualityChangeInd((CallQuality) msg.obj);
@@ -542,9 +542,9 @@ public final class AudioSession extends IImsAudioSession.Stub implements IMediaS
         }
     }
 
-    private void handleDtmfReceived(char dtmfDigit) {
+    private void handleDtmfReceived(char dtmfDigit, int durationMs) {
         try {
-            mCallback.onDtmfReceived(dtmfDigit);
+            mCallback.onDtmfReceived(dtmfDigit, durationMs);
         }  catch (RemoteException e) {
             Log.e(TAG, "Failed to Dtmf received: " + e);
         }

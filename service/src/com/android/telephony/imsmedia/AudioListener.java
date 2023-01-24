@@ -103,7 +103,8 @@ public class AudioListener implements JNIImsMediaListener {
                 break;
             case AudioSession.EVENT_DTMF_RECEIVED_IND:
                 final char dtmfDigit = (char) parcel.readByte();
-                Utils.sendMessage(mHandler, event, dtmfDigit);
+                final int durationMs = parcel.readInt();
+                Utils.sendMessage(mHandler, event, dtmfDigit, durationMs);
                 break;
             case AudioSession.EVENT_CALL_QUALITY_CHANGE_IND:
                 Utils.sendMessage(mHandler, event, CallQuality.CREATOR.createFromParcel(parcel));

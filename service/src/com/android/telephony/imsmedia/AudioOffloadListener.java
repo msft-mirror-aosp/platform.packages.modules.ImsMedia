@@ -85,8 +85,8 @@ final class AudioOffloadListener extends IImsMediaSessionListener.Stub {
     }
 
     @Override
-    public void onDtmfReceived(char dtmfDigit) {
-        Utils.sendMessage(handler, AudioSession.EVENT_DTMF_RECEIVED_IND, dtmfDigit);
+    public void onDtmfReceived(char dtmfDigit, int durationMs) {
+        Utils.sendMessage(handler, AudioSession.EVENT_DTMF_RECEIVED_IND, dtmfDigit, durationMs);
     }
 
     @Override

@@ -42,6 +42,7 @@ import org.mockito.MockitoAnnotations;
 public class AudioListenerTest {
     private static final int SESSION_ID = 1;
     private static final char DTMF_DIGIT = '7';
+    private static final int DTMF_DURATION = 120;
     private AudioListener mAudioListener;
     @Mock
     private AudioService mAudioService;
@@ -206,11 +207,15 @@ public class AudioListenerTest {
 
     @Test
     public void testEventDtmfReceivedInd() throws RemoteException {
-        mAudioListener.onMessage(createParcel(AudioSession.EVENT_DTMF_RECEIVED_IND, DTMF_DIGIT,
-                mAudioConfig));
+        Parcel parcel = Parcel.obtain();
+        parcel.writeInt(AudioSession.EVENT_DTMF_RECEIVED_IND);
+        parcel.writeByte((byte) DTMF_DIGIT);
+        parcel.writeInt(DTMF_DURATION);
+        parcel.setDataPosition(0);
+        mAudioListener.onMessage(parcel);
         processAllMessages();
         verify(mMockIImsAudioSessionCallback,
-                times(1)).onDtmfReceived(eq(DTMF_DIGIT));
+                times(1)).onDtmfReceived(eq(DTMF_DIGIT), eq(DTMF_DURATION));
     }
 
     @Test
