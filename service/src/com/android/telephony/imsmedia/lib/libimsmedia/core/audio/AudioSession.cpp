@@ -628,8 +628,11 @@ void AudioSession::onEvent(int32_t type, uint64_t param1, uint64_t param2)
                     "AUDIO_RESPONSE_EVENT", kAudioJitterInd, mSessionId, param1);
             break;
         case kAudioTriggerAnbrQueryInd:
-        case kAudioDtmfReceivedInd:
             /** TODO: add implementation */
+            break;
+        case kAudioDtmfReceivedInd:
+            ImsMediaEventHandler::SendEvent(
+                    "AUDIO_RESPONSE_EVENT", kAudioDtmfReceivedInd, mSessionId, param1, param2);
             break;
         case kAudioCallQualityChangedInd:
             ImsMediaEventHandler::SendEvent(
