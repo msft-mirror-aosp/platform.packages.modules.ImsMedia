@@ -636,8 +636,9 @@ void AudioSession::onEvent(int32_t type, uint64_t param1, uint64_t param2)
                     "AUDIO_RESPONSE_EVENT", kAudioCallQualityChangedInd, mSessionId, param1);
             break;
         case kRequestAudioCmr:
+        case kRequestSendRtcpXrReport:
             ImsMediaEventHandler::SendEvent(
-                    "AUDIO_REQUEST_EVENT", kRequestAudioCmr, mSessionId, param1, param2);
+                    "AUDIO_REQUEST_EVENT", type, mSessionId, param1, param2);
             break;
         case kRequestRoundTripTimeDelayUpdate:
         case kCollectPacketInfo:
