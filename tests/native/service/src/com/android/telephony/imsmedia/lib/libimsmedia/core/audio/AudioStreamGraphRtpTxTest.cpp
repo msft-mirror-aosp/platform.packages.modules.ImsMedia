@@ -92,6 +92,7 @@ protected:
     AmrParams amr;
     EvsParams evs;
     int socketRtpFd;
+    MockRtpEncoderNode* mockRtpEncoder;
 
     virtual void SetUp() override
     {
@@ -134,6 +135,7 @@ protected:
         EXPECT_NE(socketRtpFd, -1);
 
         graph = new AudioStreamGraphRtpTx(nullptr, socketRtpFd);
+        mockRtpEncoder = new MockRtpEncoderNode();
     }
 
     virtual void TearDown() override
@@ -141,6 +143,11 @@ protected:
         if (graph != nullptr)
         {
             delete graph;
+        }
+
+        if (mockRtpEncoder != nullptr)
+        {
+            delete mockRtpEncoder;
         }
 
         if (socketRtpFd != -1)
@@ -204,27 +211,26 @@ TEST_F(AudioStreamGraphRtpTxTest, TestDtmf)
     config.setTxDtmfPayloadTypeNumber(kDtmfTxPayloadTypeNumber);
     config.setRxDtmfPayloadTypeNumber(kDtmfRxPayloadTypeNumber);
 
-    MockRtpEncoderNode* pRtpEncoder = new MockRtpEncoderNode();
-    pRtpEncoder->SetMediaType(IMS_MEDIA_AUDIO);
-    pRtpEncoder->SetConfig(&config);
-    EXPECT_EQ(graph->createDtmfGraph(&config, pRtpEncoder), true);
+    mockRtpEncoder->SetMediaType(IMS_MEDIA_AUDIO);
+    mockRtpEncoder->SetConfig(&config);
+    EXPECT_EQ(graph->createDtmfGraph(&config, mockRtpEncoder), true);
 
-    pRtpEncoder->SetState(kNodeStateRunning);
-    EXPECT_EQ(pRtpEncoder->GetState(), kNodeStateRunning);
+    mockRtpEncoder->SetState(kNodeStateRunning);
+    EXPECT_EQ(mockRtpEncoder->GetState(), kNodeStateRunning);
     EXPECT_EQ(graph->start(), RESULT_SUCCESS);
 
-    EXPECT_CALL(*pRtpEncoder, OnDataFromFrontNode(MEDIASUBTYPE_DTMFSTART, _, 0, 0, 0, 0, _, _))
+    EXPECT_CALL(*mockRtpEncoder, OnDataFromFrontNode(MEDIASUBTYPE_DTMFSTART, _, 0, 0, 0, 0, _, _))
             .Times(1)
             .WillOnce(Return());
-    EXPECT_CALL(*pRtpEncoder,
+    EXPECT_CALL(*mockRtpEncoder,
             OnDataFromFrontNode(MEDIASUBTYPE_DTMF_PAYLOAD, NotNull(), 4, _, true, _, _, _))
             .Times(1)
             .WillOnce(Return());
-    EXPECT_CALL(*pRtpEncoder,
+    EXPECT_CALL(*mockRtpEncoder,
             OnDataFromFrontNode(MEDIASUBTYPE_DTMF_PAYLOAD, NotNull(), 4, _, false, _, _, _))
             .Times(11)
             .WillRepeatedly(Return());
-    EXPECT_CALL(*pRtpEncoder, OnDataFromFrontNode(MEDIASUBTYPE_DTMFEND, _, 0, 0, 0, 0, _, _))
+    EXPECT_CALL(*mockRtpEncoder, OnDataFromFrontNode(MEDIASUBTYPE_DTMFEND, _, 0, 0, 0, 0, _, _))
             .Times(1)
             .WillOnce(Return());
 
@@ -234,7 +240,6 @@ TEST_F(AudioStreamGraphRtpTxTest, TestDtmf)
     condition.wait_timeout(300);
 
     EXPECT_EQ(graph->stop(), RESULT_SUCCESS);
-    pRtpEncoder->SetState(kNodeStateStopped);
-    EXPECT_EQ(pRtpEncoder->GetState(), kNodeStateStopped);
-    delete pRtpEncoder;
+    mockRtpEncoder->SetState(kNodeStateStopped);
+    EXPECT_EQ(mockRtpEncoder->GetState(), kNodeStateStopped);
 }
