@@ -17,8 +17,6 @@
 #include <RtcpXrPacket.h>
 #include <gtest/gtest.h>
 
-#define NTP2MSEC 65.555555
-
 TEST(RtcpXrPacketTest, TestGetSetMethods)
 {
     RtcpXrPacket objRtcpXrPacket;
@@ -30,12 +28,6 @@ TEST(RtcpXrPacketTest, TestGetSetMethods)
     RtcpHeader* pRet = objRtcpXrPacket.getRtcpHdrInfo();
     ASSERT_TRUE(pRet != nullptr);
     EXPECT_EQ(*pRet, objRtcpHeader);
-
-    objRtcpXrPacket.setRTTD(0xAAAAAAAA);
-    EXPECT_EQ(objRtcpXrPacket.getRTTD(), 0xAAAAAAAA);
-
-    objRtcpXrPacket.setRttdOffset(0xAAAA);
-    EXPECT_EQ(objRtcpXrPacket.getRttdOffset(), 0xAAAA);
 
     uint8_t testReport[] = {0xe6, 0x5f, 0xa5, 0x31, 0x53, 0x91, 0x24, 0xc2, 0x00, 0x04, 0x01};
 
@@ -64,7 +56,6 @@ TEST(RtcpXrPacketTest, TestFormXrPacket)
     RtpBuffer objRtcpPktBuf(64, nullptr);
     objRtcpPktBuf.setLength(0);
     RtcpXrPacket objRtcpXrPacket;
-    objRtcpXrPacket.setRttdOffset(2 * NTP2MSEC);
 
     RtcpHeader header;
     header.setVersion(2);

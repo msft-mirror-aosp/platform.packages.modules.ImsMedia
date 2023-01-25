@@ -736,13 +736,13 @@ GLOBAL eRtp_Bool IMS_RtpSvc_ProcRtcpPacket(IN RtpServiceListener* pobjRtpService
     return eRTP_TRUE;
 }
 
-GLOBAL eRtp_Bool IMS_RtpSvc_SendRtcpXrPacket(IN RTPSESSIONID hRtpSession,
-        IN RtpDt_UChar* m_pBlockBuffer, IN RtpDt_UInt16 nblockLength, IN RtpDt_UInt16 nRttdOffset)
+GLOBAL eRtp_Bool IMS_RtpSvc_SendRtcpXrPacket(
+        IN RTPSESSIONID hRtpSession, IN RtpDt_UChar* m_pBlockBuffer, IN RtpDt_UInt16 nblockLength)
 {
     RTP_TRACE_MESSAGE("IMS_RtpSvc_SendRtcpXrPacket", 0, 0);
 
     RtpSession* pobjRtpSession = reinterpret_cast<RtpSession*>(hRtpSession);
-    pobjRtpSession->sendRtcpXrPacket(m_pBlockBuffer, nblockLength, nRttdOffset);
+    pobjRtpSession->sendRtcpXrPacket(m_pBlockBuffer, nblockLength);
 
     return eRTP_TRUE;
 }
