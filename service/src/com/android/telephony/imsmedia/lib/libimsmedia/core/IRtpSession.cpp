@@ -520,7 +520,7 @@ void IRtpSession::SendRtcpXr(uint8_t* pPayload, uint32_t nSize)
 
     if (mRtpSessionId)
     {
-        IMS_RtpSvc_SendRtcpXrPacket(mRtpSessionId, pPayload, nSize, 0);
+        IMS_RtpSvc_SendRtcpXrPacket(mRtpSessionId, pPayload, nSize);
     }
 }
 
