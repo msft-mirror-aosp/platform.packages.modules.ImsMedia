@@ -18,10 +18,6 @@
 #include <RtpTrace.h>
 #include <RtpSession.h>
 
-#define NTP2MSEC 65.555555
-#define SET16BIT_ENDIAN(ptr, p_offset, value) \
-    (ptr)[(*(p_offset))++] = ((value) >> 8) & 0x00ff, (ptr)[(*(p_offset))++] = ((value)&0x00ff)
-
 RtcpXrPacket::RtcpXrPacket() :
         m_reportBlk(nullptr)
 {
@@ -44,26 +40,6 @@ RtcpHeader* RtcpXrPacket::getRtcpHdrInfo()
 RtpDt_Void RtcpXrPacket::setRtcpHdrInfo(RtcpHeader& header)
 {
     m_objRtcpHdr = header;
-}
-
-RtpDt_Void RtcpXrPacket::setRTTD(RtpDt_UInt32 rttd)
-{
-    m_uiRTTD = rttd;
-}
-
-RtpDt_Void RtcpXrPacket::setRttdOffset(RtpDt_UInt16 rttdoffset)
-{
-    m_uiRttdOffset = rttdoffset;
-}
-
-RtpDt_UInt32 RtcpXrPacket::getRTTD()
-{
-    return m_uiRTTD;
-}
-
-RtpDt_UInt16 RtcpXrPacket::getRttdOffset()
-{
-    return m_uiRttdOffset;
 }
 
 RtpBuffer* RtcpXrPacket::getReportBlk()
@@ -102,13 +78,9 @@ eRTP_STATUS_CODE RtcpXrPacket::formRtcpXrPacket(OUT RtpBuffer* pobjRtcpPktBuf)
     uiCurPos = uiCurPos + RTCP_FIXED_HDR_LEN;
     pucBuffer = pucBuffer + uiCurPos;
 
-    RtpDt_UInt16 uiRttdOffset = getRttdOffset();
-    RtpDt_UInt32 msecRTTD = getRTTD() / NTP2MSEC;
-
     // set the report block buffer
     RtpBuffer* pReportBlk = this->getReportBlk();
     memcpy(pucBuffer, pReportBlk->getBuffer(), pReportBlk->getLength());
-    SET16BIT_ENDIAN(pucBuffer, &uiRttdOffset, msecRTTD);
 
     uiCurPos = uiCurPos + pReportBlk->getLength();
 
