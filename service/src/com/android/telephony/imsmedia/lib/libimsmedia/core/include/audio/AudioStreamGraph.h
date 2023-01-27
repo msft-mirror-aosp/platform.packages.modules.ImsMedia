@@ -50,9 +50,6 @@ public:
     }
 
 protected:
-    virtual ImsMediaResult create(RtpConfig* config) = 0;
-    virtual ImsMediaResult update(RtpConfig* config) = 0;
-
     AudioConfig* mConfig;
 };
 

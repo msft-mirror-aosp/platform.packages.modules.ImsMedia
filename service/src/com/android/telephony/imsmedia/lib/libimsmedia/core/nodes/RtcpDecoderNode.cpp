@@ -137,6 +137,11 @@ void RtcpDecoderNode::OnRtcpInd(tRtpSvc_IndicationFromStack type, void* data)
             tNotifyReceiveRtcpSrInd* payload = reinterpret_cast<tNotifyReceiveRtcpSrInd*>(data);
             IMLOGD_PACKET2(IM_PACKET_LOG_RTCP, "[OnRtcpInd] RtcpSr - fractionLost[%d], jitter[%d]",
                     payload->stRecvRpt.fractionLost, payload->stRecvRpt.jitter);
+
+            if (mMediaType == IMS_MEDIA_AUDIO)
+            {
+                mCallback->SendEvent(kCollectPacketInfo, kStreamRtcp);
+            }
         }
         break;
         case RTPSVC_RECEIVE_RTCP_RR_IND:
@@ -144,6 +149,11 @@ void RtcpDecoderNode::OnRtcpInd(tRtpSvc_IndicationFromStack type, void* data)
             tNotifyReceiveRtcpRrInd* payload = reinterpret_cast<tNotifyReceiveRtcpRrInd*>(data);
             IMLOGD_PACKET2(IM_PACKET_LOG_RTCP, "[OnRtcpInd] RtcpRr - fractionLost[%d], jitter[%d]",
                     payload->stRecvRpt.fractionLost, payload->stRecvRpt.jitter);
+
+            if (mMediaType == IMS_MEDIA_AUDIO)
+            {
+                mCallback->SendEvent(kCollectPacketInfo, kStreamRtcp);
+            }
         }
         break;
         case RTPSVC_RECEIVE_RTCP_FB_IND:

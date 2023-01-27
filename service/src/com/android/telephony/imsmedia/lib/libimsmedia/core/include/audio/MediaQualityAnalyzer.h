@@ -17,15 +17,96 @@
 #ifndef MEDIA_QUALITY_ANALYZER_H_INCLUDED
 #define MEDIA_QUALITY_ANALYZER_H_INCLUDED
 
-#include <MediaQuality.h>
+#include <CallQuality.h>
 #include <ImsMediaDefine.h>
 #include <IImsMediaThread.h>
 #include <ImsMediaCondition.h>
 #include <RtcpXrEncoder.h>
 #include <BaseSessionCallback.h>
 #include <AudioConfig.h>
+#include <MediaQualityThreshold.h>
+#include <MediaQualityStatus.h>
 #include <list>
+#include <vector>
 #include <mutex>
+#include <algorithm>
+
+class HysteresisTimeChecker
+{
+public:
+    HysteresisTimeChecker(int32_t time = 0)
+    {
+        hysteresisTime = time;
+        countHysteresisTime = hysteresisTime;
+        notifiedDirection = 1;
+        firstNotified = false;
+        previousValue = 0;
+    }
+
+    void initialize(int32_t time)
+    {
+        hysteresisTime = time;
+        countHysteresisTime = hysteresisTime;
+        notifiedDirection = 1;
+        firstNotified = false;
+        previousValue = 0;
+    }
+
+    ~HysteresisTimeChecker() {}
+
+    bool checkNotifiable(std::vector<int32_t> thresholds, int32_t currentValue)
+    {
+        if (thresholds.empty())
+        {
+            return false;
+        }
+
+        bool notifiable = false;
+
+        // cross the threshold case
+        auto iterCrossed = find_if(thresholds.begin(), thresholds.end(),
+                [=](int32_t thres)
+                {
+                    return ((currentValue >= thres && previousValue < thres) ||
+                            (currentValue < thres && previousValue >= thres));
+                });
+
+        if (iterCrossed != thresholds.end())
+        {
+            uint32_t currentDirection = (currentValue - previousValue) > 0 ? 1 : 0;
+
+            if (countHysteresisTime >= hysteresisTime || currentDirection == notifiedDirection)
+            {
+                if (!firstNotified)
+                {
+                    firstNotified = true;
+                }
+
+                previousValue = currentValue;
+                countHysteresisTime = 0;
+                notifiedDirection = currentDirection;
+                notifiable = true;
+            }
+
+            countHysteresisTime++;
+        }
+        else
+        {
+            if (firstNotified)
+            {
+                countHysteresisTime = 1;
+            }
+        }
+
+        return notifiable;
+    }
+
+    int32_t hysteresisTime;
+    int32_t countHysteresisTime;
+    int32_t previousValue;
+    uint32_t notifiedDirection;
+    bool firstNotified;
+};
 
 class MediaQualityAnalyzer : public IImsMediaThread
 {
@@ -45,22 +126,9 @@ public:
     void setConfig(AudioConfig* config);
 
     /**
-     * @brief Set the jitter notification threshold. If the receiving packet jitter exceed
-     * the threshold, notification will be send
-     *
-     * @param duration The monitoring duration in sec unit for jitter
-     * @param threshold The threshold of jitter in milliseconds unit
+     * @brief Set the MediaQualityThreshold
      */
-    void setJitterThreshold(const int32_t duration, const int32_t threshold);
-
-    /**
-     * @brief Set the packet loss notification threshold. If the receiving packet loss rate exceed
-     * the threshold, notification will be send
-     *
-     * @param duration The monitoring duration in sec unit for loss rate
-     * @param threshold The threshold of pakcet loss rate in percentage unit
-     */
-    void setPacketLossThreshold(const int32_t duration, const int32_t threshold);
+    void setMediaQualityThreshold(const MediaQualityThreshold& threshold);
 
     /**
      * @brief Check the audio config has different codec values
@@ -125,9 +193,9 @@ public:
     bool getRtcpXrReportBlock(const uint32_t nReportBlocks, uint8_t* data, uint32_t& size);
 
     /**
-     * @brief Get the MediaQuality member instance
+     * @brief Get the CallQuality member instance
      */
-    MediaQuality getMediaQuality();
+    CallQuality getCallQuality();
 
     /**
      * @brief Get number of rx packets in the list
@@ -160,6 +228,8 @@ protected:
      * @param timeCount The count increased every second
      */
     void processData(const int32_t timeCount);
+    void processMediaQuality();
+    void notifyMediaQualityStatus();
     void AddEvent(uint32_t event, uint64_t paramA, uint64_t paramB);
     void processEvent(uint32_t event, uint64_t paramA, uint64_t paramB);
     virtual void* run();
@@ -174,7 +244,7 @@ protected:
     /** The list of the packets received ordered by arrival time */
     std::list<RtpPacket*> mListRxPacket;
     /** The list of the lost packets object */
-    std::list<LostPktEntry*> mListLostPacket;
+    std::list<LostPacket*> mListLostPacket;
     /** The list of the packets sent */
     std::list<RtpPacket*> mListTxPacket;
     /** The ssrc of the receiving Rtp stream to identify */
@@ -187,8 +257,8 @@ protected:
     int32_t mBeginSeq;
     /** The end of the rx rtp packet sequence number for Rtcp-Xr report */
     int32_t mEndSeq;
-    /** The media quality structure to report */
-    MediaQuality mMediaQuality;
+    /** The call quality structure to report */
+    CallQuality mCallQuality;
     /** The sum of the relative jitter of rx packet for call quality */
     int64_t mCallQualitySumRelativeJitter;
     /** The sum of the round trip delay of the session for call quality */
@@ -203,21 +273,37 @@ protected:
     uint32_t mCallQualityNumRxPacket;
     /** The number of lost rx packet for call quality calculation */
     uint32_t mCallQualityNumLostPacket;
-    /** The jitter threshold to check */
-    int32_t mJitterThreshold;
-    /** The monitoring time to check jitter threshold in sec unit */
-    int32_t mJitterDuration;
-    /** The packet loss rate threshold in percentage unit */
-    int32_t mPacketLossThreshold;
-    /** The monitoring time of packet loss rate in sec unit */
+
+    // MediaQualityThreshold parameters
+    std::vector<int32_t> mBaseRtpInactivityTimes;
+    std::vector<int32_t> mCurrentRtpInactivityTimes;
+    int32_t mRtcpInactivityTime;
+    int32_t mRtpHysteresisTime;
     int32_t mPacketLossDuration;
+    std::vector<int32_t> mPacketLossThreshold;
+    std::vector<int32_t> mJitterThreshold;
+    bool mNotifyStatus;
+
+    // Counter for inactivity check
+    int32_t mCountRtpInactivity;
+    int32_t mCountRtcpInactivity;
+
+    /** The MediaQualityStatus structure to report */
+    MediaQualityStatus mQualityStatus;
+
     /** The number of received packet to check packet loss notification */
     uint32_t mNumRxPacket;
     /** The number of lost packet to check packet loss notification */
     uint32_t mNumLostPacket;
     /** The cumulated jitter value when any rx packet received */
     double mJitterRxPacket;
+    /** The number of rtcp packet received */
+    uint32_t mNumRtcpPacketReceived;
 
+    HysteresisTimeChecker mPacketLossChecker;
+    HysteresisTimeChecker mJitterChecker;
+
+    // event parameters
     std::list<uint32_t> mListevent;
     std::list<uint64_t> mListParamA;
     std::list<uint64_t> mListParamB;

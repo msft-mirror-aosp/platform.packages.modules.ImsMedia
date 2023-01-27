@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#ifndef BASE_SESSION_LISTENER_H
-#define BASE_SESSION_LISTENER_H
+#ifndef BASE_STREAM_GRAPH_H
+#define BASE_STREAM_GRAPH_H
 
 #include <ImsMediaDefine.h>
 #include <StreamScheduler.h>

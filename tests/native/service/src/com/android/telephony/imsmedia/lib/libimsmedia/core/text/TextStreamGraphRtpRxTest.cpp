@@ -45,6 +45,9 @@ const int8_t kRedundantPayload = 102;
 const int8_t kRedundantLevel = 3;
 const bool kKeepRedundantLevel = true;
 
+// inactivity timer
+const std::vector<int32_t> kRtpInactivityTimerMillis = {10000};
+
 class TextStreamGraphRtpRxTest : public ::testing::Test
 {
 public:
@@ -68,7 +71,7 @@ protected:
         rtcp.setTransmitPort(kTransmitPort);
         rtcp.setIntervalSec(kIntervalSec);
         rtcp.setRtcpXrBlockTypes(kRtcpXrBlockTypes);
-        threshold.setRtpInactivityTimerMillis(10000);
+        threshold.setRtpInactivityTimerMillis(kRtpInactivityTimerMillis);
         config.setMediaDirection(kMediaDirection);
         config.setRemoteAddress(kRemoteAddress);
         config.setRemotePort(kRemotePort);

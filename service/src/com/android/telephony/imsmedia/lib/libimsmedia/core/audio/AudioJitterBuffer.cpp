@@ -202,7 +202,7 @@ void AudioJitterBuffer::Add(ImsMediaSubType subtype, uint8_t* pbBuffer, uint32_t
     packet->ssrc = mSsrc;
     packet->seqNum = nSeqNum;
     packet->jitter = jitter;
-    packet->delay = ImsMediaTimer::GetTimeInMilliSeconds();
+    packet->arrival = ImsMediaTimer::GetTimeInMilliSeconds();
     mCallback->SendEvent(kCollectPacketInfo, kStreamRtpRx, reinterpret_cast<uint64_t>(packet));
 
     if (nBufferSize == 0)

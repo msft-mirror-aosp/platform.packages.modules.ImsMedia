@@ -27,22 +27,24 @@ namespace imsmedia
 
 MediaQualityThreshold::MediaQualityThreshold()
 {
-    mRtpInactivityTimerMillis = 0;
+    mRtpInactivityTimerMillis.clear();
     mRtcpInactivityTimerMillis = 0;
+    mRtpHysteresisTimeInMillis = 0;
     mRtpPacketLossDurationMillis = 0;
-    mRtpPacketLossRate = 0;
-    mJitterDurationMillis = 0;
-    mRtpJitterMillis = 0;
+    mRtpPacketLossRate.clear();
+    mRtpJitterMillis.clear();
+    mNotifyCurrentStatus = false;
 }
 
 MediaQualityThreshold::MediaQualityThreshold(const MediaQualityThreshold& threshold)
 {
     mRtpInactivityTimerMillis = threshold.mRtpInactivityTimerMillis;
     mRtcpInactivityTimerMillis = threshold.mRtcpInactivityTimerMillis;
+    mRtpHysteresisTimeInMillis = threshold.mRtpHysteresisTimeInMillis;
     mRtpPacketLossDurationMillis = threshold.mRtpPacketLossDurationMillis;
     mRtpPacketLossRate = threshold.mRtpPacketLossRate;
-    mJitterDurationMillis = threshold.mJitterDurationMillis;
     mRtpJitterMillis = threshold.mRtpJitterMillis;
+    mNotifyCurrentStatus = threshold.mNotifyCurrentStatus;
 }
 
 MediaQualityThreshold::~MediaQualityThreshold() {}
@@ -53,10 +55,11 @@ MediaQualityThreshold& MediaQualityThreshold::operator=(const MediaQualityThresh
     {
         mRtpInactivityTimerMillis = threshold.mRtpInactivityTimerMillis;
         mRtcpInactivityTimerMillis = threshold.mRtcpInactivityTimerMillis;
+        mRtpHysteresisTimeInMillis = threshold.mRtpHysteresisTimeInMillis;
         mRtpPacketLossDurationMillis = threshold.mRtpPacketLossDurationMillis;
         mRtpPacketLossRate = threshold.mRtpPacketLossRate;
-        mJitterDurationMillis = threshold.mJitterDurationMillis;
         mRtpJitterMillis = threshold.mRtpJitterMillis;
+        mNotifyCurrentStatus = threshold.mNotifyCurrentStatus;
     }
     return *this;
 }
@@ -65,112 +68,97 @@ bool MediaQualityThreshold::operator==(const MediaQualityThreshold& threshold) c
 {
     return (mRtpInactivityTimerMillis == threshold.mRtpInactivityTimerMillis &&
             mRtcpInactivityTimerMillis == threshold.mRtcpInactivityTimerMillis &&
+            mRtpHysteresisTimeInMillis == threshold.mRtpHysteresisTimeInMillis &&
             mRtpPacketLossDurationMillis == threshold.mRtpPacketLossDurationMillis &&
             mRtpPacketLossRate == threshold.mRtpPacketLossRate &&
-            mJitterDurationMillis == threshold.mJitterDurationMillis &&
-            mRtpJitterMillis == threshold.mRtpJitterMillis);
+            mRtpJitterMillis == threshold.mRtpJitterMillis &&
+            mNotifyCurrentStatus == threshold.mNotifyCurrentStatus);
 }
 
 bool MediaQualityThreshold::operator!=(const MediaQualityThreshold& threshold) const
 {
     return (mRtpInactivityTimerMillis != threshold.mRtpInactivityTimerMillis ||
             mRtcpInactivityTimerMillis != threshold.mRtcpInactivityTimerMillis ||
+            mRtpHysteresisTimeInMillis != threshold.mRtpHysteresisTimeInMillis ||
             mRtpPacketLossDurationMillis != threshold.mRtpPacketLossDurationMillis ||
             mRtpPacketLossRate != threshold.mRtpPacketLossRate ||
-            mJitterDurationMillis != threshold.mJitterDurationMillis ||
-            mRtpJitterMillis != threshold.mRtpJitterMillis);
+            mRtpJitterMillis != threshold.mRtpJitterMillis ||
+            mNotifyCurrentStatus != threshold.mNotifyCurrentStatus);
 }
 
 status_t MediaQualityThreshold::writeToParcel(Parcel* out) const
 {
-    status_t err;
-    err = out->writeInt32(mRtpInactivityTimerMillis);
-    if (err != NO_ERROR)
+    out->writeInt32(mRtpInactivityTimerMillis.size());
+
+    for (auto& i : mRtpInactivityTimerMillis)
     {
-        return err;
+        out->writeInt32(i);
     }
 
-    err = out->writeInt32(mRtcpInactivityTimerMillis);
-    if (err != NO_ERROR)
+    out->writeInt32(mRtcpInactivityTimerMillis);
+    out->writeInt32(mRtpHysteresisTimeInMillis);
+    out->writeInt32(mRtpPacketLossDurationMillis);
+    out->writeInt32(mRtpPacketLossRate.size());
+
+    for (auto& i : mRtpPacketLossRate)
     {
-        return err;
+        out->writeInt32(i);
     }
 
-    err = out->writeInt32(mRtpPacketLossDurationMillis);
-    if (err != NO_ERROR)
+    out->writeInt32(mRtpJitterMillis.size());
+
+    for (auto& i : mRtpJitterMillis)
     {
-        return err;
+        out->writeInt32(i);
     }
 
-    err = out->writeInt32(mRtpPacketLossRate);
-    if (err != NO_ERROR)
-    {
-        return err;
-    }
-
-    err = out->writeInt32(mJitterDurationMillis);
-    if (err != NO_ERROR)
-    {
-        return err;
-    }
-
-    err = out->writeInt32(mRtpJitterMillis);
-    if (err != NO_ERROR)
-    {
-        return err;
-    }
-
+    out->writeInt32(mNotifyCurrentStatus ? 1 : 0);
     return NO_ERROR;
 }
 
 status_t MediaQualityThreshold::readFromParcel(const Parcel* in)
 {
-    status_t err;
-    err = in->readInt32(&mRtpInactivityTimerMillis);
-    if (err != NO_ERROR)
+    int32_t arrayLength = 0;
+    in->readInt32(&arrayLength);
+    mRtpInactivityTimerMillis.resize(arrayLength);
+
+    for (int32_t i = 0; i < arrayLength; i++)
     {
-        return err;
+        in->readInt32(&mRtpInactivityTimerMillis[i]);
     }
 
-    err = in->readInt32(&mRtcpInactivityTimerMillis);
-    if (err != NO_ERROR)
+    in->readInt32(&mRtcpInactivityTimerMillis);
+    in->readInt32(&mRtpHysteresisTimeInMillis);
+    in->readInt32(&mRtpPacketLossDurationMillis);
+    in->readInt32(&arrayLength);
+    mRtpPacketLossRate.resize(arrayLength);
+
+    for (int32_t i = 0; i < arrayLength; i++)
     {
-        return err;
+        in->readInt32(&mRtpPacketLossRate[i]);
     }
 
-    err = in->readInt32(&mRtpPacketLossDurationMillis);
-    if (err != NO_ERROR)
+    in->readInt32(&arrayLength);
+    mRtpJitterMillis.resize(arrayLength);
+
+    for (int32_t i = 0; i < arrayLength; i++)
     {
-        return err;
+        in->readInt32(&mRtpJitterMillis[i]);
     }
 
-    err = in->readInt32(&mRtpPacketLossRate);
-    if (err != NO_ERROR)
-    {
-        return err;
-    }
-
-    err = in->readInt32(&mJitterDurationMillis);
-    if (err != NO_ERROR)
-    {
-        return err;
-    }
-
-    err = in->readInt32(&mRtpJitterMillis);
-    if (err != NO_ERROR)
-    {
-        return err;
-    }
+    int32_t value;
+    in->readInt32(&value);
+    value == 1 ? mNotifyCurrentStatus = true : mNotifyCurrentStatus = false;
 
     return NO_ERROR;
 }
 
-void MediaQualityThreshold::setRtpInactivityTimerMillis(int32_t time)
+void MediaQualityThreshold::setRtpInactivityTimerMillis(std::vector<int32_t> time)
 {
     mRtpInactivityTimerMillis = time;
 }
 
-int32_t MediaQualityThreshold::getRtpInactivityTimerMillis()
+std::vector<int32_t> MediaQualityThreshold::getRtpInactivityTimerMillis() const
 {
     return mRtpInactivityTimerMillis;
 }
@@ -180,9 +168,19 @@ void MediaQualityThreshold::setRtcpInactivityTimerMillis(int32_t time)
     mRtcpInactivityTimerMillis = time;
 }
 
-int32_t MediaQualityThreshold::getRtcpInactivityTimerMillis()
+int32_t MediaQualityThreshold::getRtcpInactivityTimerMillis() const
 {
     return mRtcpInactivityTimerMillis;
+}
+
+void MediaQualityThreshold::setRtpHysteresisTimeInMillis(int32_t time)
+{
+    mRtpHysteresisTimeInMillis = time;
+}
+
+int32_t MediaQualityThreshold::getRtpHysteresisTimeInMillis() const
+{
+    return mRtpHysteresisTimeInMillis;
 }
 
 void MediaQualityThreshold::setRtpPacketLossDurationMillis(int32_t time)
@@ -190,39 +188,39 @@ void MediaQualityThreshold::setRtpPacketLossDurationMillis(int32_t time)
     mRtpPacketLossDurationMillis = time;
 }
 
-int32_t MediaQualityThreshold::getRtpPacketLossDurationMillis()
+int32_t MediaQualityThreshold::getRtpPacketLossDurationMillis() const
 {
     return mRtpPacketLossDurationMillis;
 }
 
-void MediaQualityThreshold::setRtpPacketLossRate(int32_t rate)
+void MediaQualityThreshold::setRtpPacketLossRate(std::vector<int32_t> rate)
 {
     mRtpPacketLossRate = rate;
 }
 
-int32_t MediaQualityThreshold::getRtpPacketLossRate()
+std::vector<int32_t> MediaQualityThreshold::getRtpPacketLossRate() const
 {
     return mRtpPacketLossRate;
 }
 
-void MediaQualityThreshold::setJitterDurationMillis(int32_t rate)
-{
-    mJitterDurationMillis = rate;
-}
-
-int32_t MediaQualityThreshold::getJitterDurationMillis()
-{
-    return mJitterDurationMillis;
-}
-
-void MediaQualityThreshold::setRtpJitterMillis(int32_t jitter)
+void MediaQualityThreshold::setRtpJitterMillis(std::vector<int32_t> jitter)
 {
     mRtpJitterMillis = jitter;
 }
 
-int32_t MediaQualityThreshold::getRtpJitterMillis()
+std::vector<int32_t> MediaQualityThreshold::getRtpJitterMillis() const
 {
     return mRtpJitterMillis;
+}
+
+void MediaQualityThreshold::setNotifyCurrentStatus(bool status)
+{
+    mNotifyCurrentStatus = status;
+}
+
+bool MediaQualityThreshold::getNotifyCurrentStatus() const
+{
+    return mNotifyCurrentStatus;
 }
 
 }  // namespace imsmedia

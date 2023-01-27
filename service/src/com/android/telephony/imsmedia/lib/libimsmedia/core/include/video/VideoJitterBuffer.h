@@ -90,7 +90,7 @@ private:
     void CheckPacketLoss(uint16_t seqNum, uint16_t nLastRecvPkt);
     bool UpdateLostPacketList(uint16_t mLossRateThreshold, uint16_t* countSecondNack,
             uint16_t* nPLIPkt, bool* bPLIPkt);
-    bool UpdateNackStatus(LostPktEntry* pTempEntry, uint16_t mLossRateThreshold,
+    bool UpdateNackStatus(LostPacket* pTempEntry, uint16_t mLossRateThreshold,
             uint16_t* countSecondNack, uint16_t* nPLIPkt, bool* bPLIPkt);
     void RequestSendNack(
             uint16_t nLossGap, uint16_t PID, uint16_t countSecondNack, bool bNACK = true);
@@ -113,7 +113,7 @@ private:
     uint32_t mLastAddedTimestamp;
     uint32_t mLastAddedSeqNum;
     uint32_t mResponseWaitTime;
-    std::list<LostPktEntry*> mLostPktList;
+    std::list<LostPacket*> mLostPktList;
     uint32_t mIDRCheckCnt;
     uint32_t mFirTimeStamp;
     uint32_t mMaxBitrate;
