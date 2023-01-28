@@ -84,7 +84,6 @@ public:
     {
         mFakeCallback = nullptr;
         mNode = nullptr;
-        memset(mTempBuffer, 0, sizeof(mTempBuffer));
     }
     virtual ~TextRendererNodeTest() {}
 
@@ -93,7 +92,6 @@ protected:
     RtcpConfig mRtcp;
     TextRendererCallback* mFakeCallback;
     TextRendererNode* mNode;
-    char mTempBuffer[MAX_RTT_LEN];
 
     virtual void SetUp() override
     {
@@ -142,17 +140,17 @@ TEST_F(TextRendererNodeTest, receiveNormalRttString)
 
     String8 testString = String8("hello");
 
-    memset(mTempBuffer, 0, sizeof(mTempBuffer));
-    memcpy(mTempBuffer, kBomString, 3);
+    std::unique_ptr<char> tempBuffer1(new char[strlen(kBomString)]);
+    memcpy(tempBuffer1.get(), kBomString, strlen(kBomString));
 
     mNode->OnDataFromFrontNode(
-            MEDIASUBTYPE_UNDEFINED, reinterpret_cast<uint8_t*>(mTempBuffer), 3, 0, true, 0);
+            MEDIASUBTYPE_UNDEFINED, reinterpret_cast<uint8_t*>(tempBuffer1.get()), 3, 0, true, 0);
 
-    memset(mTempBuffer, 0, sizeof(mTempBuffer));
-    memcpy(mTempBuffer, testString.string(), testString.length());
+    std::unique_ptr<char> tempBuffer2(new char[testString.length()]);
+    memcpy(tempBuffer2.get(), testString.string(), testString.length());
 
-    mNode->OnDataFromFrontNode(MEDIASUBTYPE_UNDEFINED, reinterpret_cast<uint8_t*>(mTempBuffer),
-            testString.length(), 1, false, 1);
+    mNode->OnDataFromFrontNode(MEDIASUBTYPE_UNDEFINED,
+            reinterpret_cast<uint8_t*>(tempBuffer2.get()), testString.length(), 1, false, 1);
 
     mNode->ProcessData();
     EXPECT_EQ(mFakeCallback->getReceivedText(), testString);
@@ -176,11 +174,11 @@ TEST_F(TextRendererNodeTest, receiveChunkRttString)
     for (iter = listStrings.begin(); iter != listStrings.end(); iter++, index++)
     {
         String8 text = *iter;
-        memset(mTempBuffer, 0, sizeof(mTempBuffer));
-        memcpy(mTempBuffer, text.string(), text.length());
+        std::unique_ptr<char> tempBuffer(new char[text.length()]);
+        memcpy(tempBuffer.get(), text.string(), text.length());
 
-        mNode->OnDataFromFrontNode(MEDIASUBTYPE_UNDEFINED, reinterpret_cast<uint8_t*>(mTempBuffer),
-                text.length(), index, false, index);
+        mNode->OnDataFromFrontNode(MEDIASUBTYPE_UNDEFINED,
+                reinterpret_cast<uint8_t*>(tempBuffer.get()), text.length(), index, false, index);
         mNode->ProcessData();
 
         if (index > 0)  // except BOM
@@ -200,10 +198,10 @@ TEST_F(TextRendererNodeTest, receiveRttBomAppended)
     String8 testString2 = String8("hello");
     testString1.append(testString2);
 
-    memset(mTempBuffer, 0, sizeof(mTempBuffer));
-    memcpy(mTempBuffer, testString1.string(), testString1.length());
+    std::unique_ptr<char> tempBuffer(new char[testString1.length()]);
+    memcpy(tempBuffer.get(), testString1.string(), testString1.length());
 
-    mNode->OnDataFromFrontNode(MEDIASUBTYPE_UNDEFINED, reinterpret_cast<uint8_t*>(mTempBuffer),
+    mNode->OnDataFromFrontNode(MEDIASUBTYPE_UNDEFINED, reinterpret_cast<uint8_t*>(tempBuffer.get()),
             testString1.length(), 1, true, 1);
     mNode->ProcessData();
 
@@ -219,25 +217,25 @@ TEST_F(TextRendererNodeTest, receiveRttStringSeqOutOfOrder)
     String8 testString1 = String8("hello");
     String8 testString2 = String8("world");
 
-    memset(mTempBuffer, 0, sizeof(mTempBuffer));
-    memcpy(mTempBuffer, testString1.string(), testString1.length());
+    std::unique_ptr<char> tempBuffer1(new char[testString1.length()]);
+    memcpy(tempBuffer1.get(), testString1.string(), testString1.length());
 
-    mNode->OnDataFromFrontNode(MEDIASUBTYPE_UNDEFINED, reinterpret_cast<uint8_t*>(mTempBuffer),
-            testString1.length(), 1, false, 1);
+    mNode->OnDataFromFrontNode(MEDIASUBTYPE_UNDEFINED,
+            reinterpret_cast<uint8_t*>(tempBuffer1.get()), testString1.length(), 1, false, 1);
 
-    memset(mTempBuffer, 0, sizeof(mTempBuffer));
-    memcpy(mTempBuffer, testString2.string(), testString2.length());
+    std::unique_ptr<char> tempBuffer2(new char[testString2.length()]);
+    memcpy(tempBuffer2.get(), testString2.string(), testString2.length());
 
-    mNode->OnDataFromFrontNode(MEDIASUBTYPE_UNDEFINED, reinterpret_cast<uint8_t*>(mTempBuffer),
-            testString2.length(), 0, false, 0);
+    mNode->OnDataFromFrontNode(MEDIASUBTYPE_UNDEFINED,
+            reinterpret_cast<uint8_t*>(tempBuffer2.get()), testString2.length(), 0, false, 0);
 
     mNode->ProcessData();
     // Check last frame sequence
     EXPECT_EQ(mFakeCallback->getReceivedText(), testString1);
 
     // Check ignore already played sequence
-    mNode->OnDataFromFrontNode(MEDIASUBTYPE_UNDEFINED, reinterpret_cast<uint8_t*>(mTempBuffer),
-            testString2.length(), 1, false, 1);
+    mNode->OnDataFromFrontNode(MEDIASUBTYPE_UNDEFINED,
+            reinterpret_cast<uint8_t*>(tempBuffer2.get()), testString2.length(), 1, false, 1);
 
     mNode->ProcessData();
     EXPECT_EQ(mFakeCallback->getReceivedText(), testString1);
@@ -255,19 +253,19 @@ TEST_F(TextRendererNodeTest, receiveRttWithSeqRoundingWithLoss)
     const uint32_t numLost = 3;
     const uint32_t seq2 = numLost;
 
-    memset(mTempBuffer, 0, sizeof(mTempBuffer));
-    memcpy(mTempBuffer, testString1.string(), testString1.length());
+    std::unique_ptr<char> tempBuffer1(new char[testString1.length()]);
+    memcpy(tempBuffer1.get(), testString1.string(), testString1.length());
 
-    mNode->OnDataFromFrontNode(MEDIASUBTYPE_UNDEFINED, reinterpret_cast<uint8_t*>(mTempBuffer),
-            testString1.length(), seq1, true, seq1);
+    mNode->OnDataFromFrontNode(MEDIASUBTYPE_UNDEFINED,
+            reinterpret_cast<uint8_t*>(tempBuffer1.get()), testString1.length(), seq1, true, seq1);
     mNode->ProcessData();
     EXPECT_EQ(mFakeCallback->getReceivedText(), testString1);
 
-    memset(mTempBuffer, 0, sizeof(mTempBuffer));
-    memcpy(mTempBuffer, testString2.string(), testString2.length());
+    std::unique_ptr<char> tempBuffer2(new char[testString2.length()]);
+    memcpy(tempBuffer2.get(), testString2.string(), testString2.length());
 
-    mNode->OnDataFromFrontNode(MEDIASUBTYPE_UNDEFINED, reinterpret_cast<uint8_t*>(mTempBuffer),
-            testString2.length(), seq2, true, seq2);
+    mNode->OnDataFromFrontNode(MEDIASUBTYPE_UNDEFINED,
+            reinterpret_cast<uint8_t*>(tempBuffer2.get()), testString2.length(), seq2, true, seq2);
     mNode->ProcessData();
 
     ImsMediaCondition condition;
@@ -300,10 +298,10 @@ TEST_F(TextRendererNodeTest, receiveOversizeRtt)
         testString2.append(testString1);
     }
 
-    memset(mTempBuffer, 0, sizeof(mTempBuffer));
-    memcpy(mTempBuffer, testString2.string(), testString2.length());
+    std::unique_ptr<char> tempBuffer(new char[testString2.length()]);
+    memcpy(tempBuffer.get(), testString2.string(), testString2.length());
 
-    mNode->OnDataFromFrontNode(MEDIASUBTYPE_UNDEFINED, reinterpret_cast<uint8_t*>(mTempBuffer),
+    mNode->OnDataFromFrontNode(MEDIASUBTYPE_UNDEFINED, reinterpret_cast<uint8_t*>(tempBuffer.get()),
             testString2.length(), 0, true, 0);
 
     mNode->ProcessData();
