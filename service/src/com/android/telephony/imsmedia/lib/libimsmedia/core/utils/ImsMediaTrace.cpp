@@ -173,38 +173,12 @@ void ImsMediaTrace::IMLOGD_BINARY(const char* msg, const char* s, int length)
     }
 }
 
-char* IM_Strrchr(char* pszSrc, char cChar)
-{
-    char* pszDest = nullptr;
-    do
-    {
-        if (*pszSrc == cChar)
-        {
-            pszDest = reinterpret_cast<char*>(pszSrc);
-        }
-
-        if (*pszSrc == 0)
-        {
-            break;
-        }
-        pszSrc++;
-    } while (1);
-    return (pszDest);
-}
-
 char* ImsMediaTrace::IM_StripFileName(char* pcFileName)
 {
     char* pcTemp = nullptr;
-    pcTemp = IM_Strrchr(pcFileName, '/');
+    pcTemp = strrchr(pcFileName, '/');
 
-    if (pcTemp)
-    {
-        pcTemp++;
-    }
-    else
-    {
-        pcTemp = pcFileName;
-    }
+    (pcTemp != nullptr) ? pcTemp++ : pcTemp = pcFileName;
 
     return pcTemp;
 }
