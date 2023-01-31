@@ -96,26 +96,6 @@ enum ImsMediaStreamType
     kStreamRtcp,
 };
 
-enum kImsMediaDtmfNotify
-{
-    kDtmfKey0 = 600,
-    kDtmfKey1,
-    kDtmfKey2,
-    kDtmfKey3,
-    kDtmfKey4,
-    kDtmfKey5,
-    kDtmfKey6,
-    kDtmfKey7,
-    kDtmfKey8,
-    kDtmfKey9,
-    kDtmfKeySTAR,
-    kDtmfKeyPOUND,
-    kDtmfKeyA,
-    kDtmfKeyB,
-    kDtmfKeyC,
-    kDtmfKeyD,
-};
-
 enum kImsMediaStreamType
 {
     kStreamModeRtpTx,
