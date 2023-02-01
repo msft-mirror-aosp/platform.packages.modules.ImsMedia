@@ -463,8 +463,13 @@ void AudioManager::ResponseHandler::processEvent(
             AudioManager::getInstance()->sendResponse(sessionId, parcel);
             break;
         case kAudioTriggerAnbrQueryInd:
-        case kAudioDtmfReceivedInd:
             /** TODO: add implementation */
+            break;
+        case kAudioDtmfReceivedInd:
+            parcel.writeInt32(event);
+            parcel.writeByte(static_cast<uint8_t>(paramA));
+            parcel.writeInt32(static_cast<int>(paramB));
+            AudioManager::getInstance()->sendResponse(sessionId, parcel);
             break;
         case kAudioCallQualityChangedInd:
         {

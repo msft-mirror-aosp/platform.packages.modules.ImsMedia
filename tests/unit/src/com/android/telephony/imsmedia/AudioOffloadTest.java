@@ -404,10 +404,10 @@ public class AudioOffloadTest {
     @Test
     public void testDtmfReceived() {
         // Receive DTMF Received
-        offloadListener.onDtmfReceived(DTMF_DIGIT);
+        offloadListener.onDtmfReceived(DTMF_DIGIT, DTMF_DURATION);
         processAllMessages();
         try {
-            verify(callback, times(1)).onDtmfReceived(eq(DTMF_DIGIT));
+            verify(callback, times(1)).onDtmfReceived(eq(DTMF_DIGIT), eq(DTMF_DURATION));
         } catch (RemoteException e) {
             fail("Failed to notify onDtmfReceived: " + e);
         }
