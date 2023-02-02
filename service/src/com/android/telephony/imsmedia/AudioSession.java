@@ -27,6 +27,7 @@ import android.telephony.ims.RtpHeaderExtension;
 import android.telephony.imsmedia.AudioConfig;
 import android.telephony.imsmedia.IImsAudioSession;
 import android.telephony.imsmedia.IImsAudioSessionCallback;
+import android.telephony.imsmedia.MediaQualityStatus;
 import android.telephony.imsmedia.MediaQualityThreshold;
 import android.util.Log;
 
@@ -64,13 +65,11 @@ public final class AudioSession extends IImsAudioSession.Stub implements IMediaS
     public static final int EVENT_CONFIRM_CONFIG_RESPONSE = 205;
     public static final int EVENT_FIRST_MEDIA_PACKET_IND = 206;
     public static final int EVENT_RTP_HEADER_EXTENSION_IND = 207;
-    public static final int EVENT_MEDIA_INACTIVITY_IND = 208;
-    public static final int EVENT_PACKET_LOSS_IND = 209;
-    public static final int EVENT_JITTER_IND = 210;
-    public static final int EVENT_TRIGGER_ANBR_QUERY_IND = 211;
-    public static final int EVENT_DTMF_RECEIVED_IND = 212;
-    public static final int EVENT_CALL_QUALITY_CHANGE_IND = 213;
-    public static final int EVENT_SESSION_CLOSED = 214;
+    public static final int EVENT_MEDIA_QUALITY_STATUS_IND = 208;
+    public static final int EVENT_TRIGGER_ANBR_QUERY_IND = 209;
+    public static final int EVENT_DTMF_RECEIVED_IND = 210;
+    public static final int EVENT_CALL_QUALITY_CHANGE_IND = 211;
+    public static final int EVENT_SESSION_CLOSED = 212;
 
     private static final int DTMF_DEFAULT_DURATION = 140;
 
@@ -296,20 +295,14 @@ public final class AudioSession extends IImsAudioSession.Stub implements IMediaS
                 case EVENT_RTP_HEADER_EXTENSION_IND:
                     handleRtpHeaderExtensionInd((List<RtpHeaderExtension>)msg.obj);
                     break;
-                case EVENT_MEDIA_INACTIVITY_IND:
-                    notifyMediaInactivityInd(msg.arg1);
-                    break;
-                case EVENT_PACKET_LOSS_IND:
-                    notifyPacketLossInd(msg.arg1);
-                    break;
-                case EVENT_JITTER_IND:
-                    notifyJitterInd(msg.arg1);
+                case EVENT_MEDIA_QUALITY_STATUS_IND:
+                    handleNotifyMediaQualityStatus((MediaQualityStatus) msg.obj);
                     break;
                 case EVENT_TRIGGER_ANBR_QUERY_IND:
                     handleTriggerAnbrQuery((AudioConfig) msg.obj);
                     break;
                 case EVENT_DTMF_RECEIVED_IND:
-                    handleDtmfReceived((char) msg.obj);
+                    handleDtmfReceived((char) msg.arg1, msg.arg2);
                     break;
                 case EVENT_CALL_QUALITY_CHANGE_IND:
                     handleCallQualityChangeInd((CallQuality) msg.obj);
@@ -509,29 +502,13 @@ public final class AudioSession extends IImsAudioSession.Stub implements IMediaS
         }
     }
 
-    private void notifyMediaInactivityInd(int packetType) {
+    private void handleNotifyMediaQualityStatus(MediaQualityStatus status) {
         try {
-            mCallback.notifyMediaInactivity(packetType);
+            mCallback.notifyMediaQualityStatus(status);
         }  catch (RemoteException e) {
-            Log.e(TAG, "Failed to notify media timeout: " + e);
+            Log.e(TAG, "Failed to notify media quality status: " + e);
         }
 
-    }
-
-    private void notifyPacketLossInd(int percentage) {
-        try {
-            mCallback.notifyPacketLoss(percentage);
-        }  catch (RemoteException e) {
-            Log.e(TAG, "Failed to notify packet loss: " + e);
-        }
-    }
-
-    private void notifyJitterInd(int jitter) {
-        try {
-            mCallback.notifyJitter(jitter);
-        }  catch (RemoteException e) {
-            Log.e(TAG, "Failed to notify jitter: " + e);
-        }
     }
 
     private void handleTriggerAnbrQuery(AudioConfig config) {
@@ -542,9 +519,9 @@ public final class AudioSession extends IImsAudioSession.Stub implements IMediaS
         }
     }
 
-    private void handleDtmfReceived(char dtmfDigit) {
+    private void handleDtmfReceived(char dtmfDigit, int durationMs) {
         try {
-            mCallback.onDtmfReceived(dtmfDigit);
+            mCallback.onDtmfReceived(dtmfDigit, durationMs);
         }  catch (RemoteException e) {
             Log.e(TAG, "Failed to Dtmf received: " + e);
         }

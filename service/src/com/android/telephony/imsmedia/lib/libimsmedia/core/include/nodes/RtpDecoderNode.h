@@ -68,6 +68,8 @@ public:
     void SetInactivityTimerSec(const uint32_t time);
 
 private:
+    void processDtmf(uint8_t* data);
+
     IRtpSession* mRtpSession;
     RtpAddress mLocalAddress;
     RtpAddress mPeerAddress;
@@ -84,6 +86,7 @@ private:
     int8_t mRedundantPayload;
     uint32_t mArrivalTime;
     ImsMediaSubType mSubtype;
+    bool mDtmfEndBit;
 #if (defined(DEBUG_JITTER_GEN_SIMULATION_LOSS) || defined(DEBUG_JITTER_GEN_SIMULATION_DUPLICATE))
     uint32_t mPacketCounter;
 #endif

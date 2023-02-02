@@ -57,6 +57,7 @@ RtpDecoderNode::RtpDecoderNode(BaseSessionCallback* callback) :
     mRedundantPayload = 0;
     mArrivalTime = 0;
     mSubtype = MEDIASUBTYPE_UNDEFINED;
+    mDtmfEndBit = false;
 #if defined(DEBUG_JITTER_GEN_SIMULATION_LOSS) || defined(DEBUG_JITTER_GEN_SIMULATION_DUPLICATE)
     mPacketCounter = 1;
 #endif
@@ -394,7 +395,8 @@ void RtpDecoderNode::OnMediaDataInd(unsigned char* data, uint32_t datasize, uint
             mMediaType, datasize, timestamp, mark, seq, payloadType, mSamplingRate, extension);
 
     if (mMediaType == IMS_MEDIA_AUDIO && mRtpPayloadRx != payloadType &&
-            mRtpPayloadTx != payloadType)
+            mRtpPayloadTx != payloadType && payloadType != mRtpRxDtmfPayload &&
+            payloadType != mRtpTxDtmfPayload)
     {
         IMLOGE1("[OnMediaDataInd] media[%d] invalid frame", mMediaType);
         return;
@@ -414,7 +416,13 @@ void RtpDecoderNode::OnMediaDataInd(unsigned char* data, uint32_t datasize, uint
         SendDataToRearNode(MEDIASUBTYPE_REFRESHED, nullptr, mReceivingSSRC, 0, 0, 0);
     }
 
-    /** TODO : add checking receiving dtmf by the payload type number */
+    if (mMediaType == IMS_MEDIA_AUDIO &&
+            (payloadType == mRtpRxDtmfPayload || payloadType == mRtpTxDtmfPayload) && datasize >= 4)
+    {
+        processDtmf(data);
+        return;
+    }
+
     if (extension && mMediaType == IMS_MEDIA_VIDEO && mCvoValue != CVO_DEFINE_NONE)
     {
         uint16_t nExtensionID;
@@ -523,4 +531,37 @@ void RtpDecoderNode::SetInactivityTimerSec(const uint32_t time)
     IMLOGD2("[SetInactivityTimerSec] media[%d], time[%d] reset", mMediaType, time);
     mInactivityTime = time;
     mNoRtpTime = 0;
+}
+
+void RtpDecoderNode::processDtmf(uint8_t* data)
+{
+    /** dtmf event payload format
+     *  0                   1                   2                   3
+     *  0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+     * +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+     * |     event     |E|R| volume    |          duration             |
+     * +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+     */
+
+    // check end bit and send event once per event
+    if (data[1] & 0x80)
+    {
+        if (mDtmfEndBit)
+        {
+            uint8_t digit = data[0];
+            int32_t duration = data[2];
+            mSamplingRate != 0 ? duration = ((duration << 8) | data[3]) / mSamplingRate
+                               : 0;  // convert milliseconds
+
+            IMLOGD2("[processDtmf] dtmf received, digit[%d], duration[%d]", digit, duration);
+
+            mCallback->SendEvent(kAudioDtmfReceivedInd, digit, duration);
+            mDtmfEndBit = false;
+        }
+    }
+    else
+    {
+        // mark true when the new event started
+        mDtmfEndBit = true;
+    }
 }

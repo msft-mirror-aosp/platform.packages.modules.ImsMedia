@@ -28,6 +28,7 @@ import android.telephony.CallQuality;
 import android.telephony.imsmedia.AudioConfig;
 import android.telephony.imsmedia.IImsAudioSessionCallback;
 import android.telephony.imsmedia.ImsMediaSession;
+import android.telephony.imsmedia.MediaQualityStatus;
 import android.testing.TestableLooper;
 
 import org.junit.After;
@@ -42,6 +43,7 @@ import org.mockito.MockitoAnnotations;
 public class AudioListenerTest {
     private static final int SESSION_ID = 1;
     private static final char DTMF_DIGIT = '7';
+    private static final int DTMF_DURATION = 120;
     private AudioListener mAudioListener;
     @Mock
     private AudioService mAudioService;
@@ -166,30 +168,15 @@ public class AudioListenerTest {
     }
 
     @Test
-    public void testEventMediaInactivityInd() throws RemoteException {
-        mAudioListener.onMessage(createParcel(AudioSession.EVENT_MEDIA_INACTIVITY_IND,
-                ImsMediaSession.RESULT_INVALID_PARAM, mAudioConfig));
+    public void testEventMediaQualityStatusInd() throws RemoteException {
+        Parcel parcel = Parcel.obtain();
+        final MediaQualityStatus status = MediaQualityStatusTest.createMediaQualityStatus();
+        parcel.writeInt(AudioSession.EVENT_MEDIA_QUALITY_STATUS_IND);
+        status.writeToParcel(parcel, 0);
+        parcel.setDataPosition(0);
+        mAudioListener.onMessage(parcel);
         processAllMessages();
-        verify(mMockIImsAudioSessionCallback,
-                times(1)).notifyMediaInactivity(eq(ImsMediaSession.RESULT_INVALID_PARAM));
-    }
-
-    @Test
-    public void testEventPacketLossInd() throws RemoteException {
-        mAudioListener.onMessage(createParcel(AudioSession.EVENT_PACKET_LOSS_IND,
-                ImsMediaSession.RESULT_NO_MEMORY, mAudioConfig));
-        processAllMessages();
-        verify(mMockIImsAudioSessionCallback,
-                times(1)).notifyPacketLoss(eq(ImsMediaSession.RESULT_NO_MEMORY));
-    }
-
-    @Test
-    public void testEventJitterInd() throws RemoteException {
-        mAudioListener.onMessage(createParcel(AudioSession.EVENT_JITTER_IND,
-                ImsMediaSession.RESULT_INVALID_PARAM, mAudioConfig));
-        processAllMessages();
-        verify(mMockIImsAudioSessionCallback,
-                times(1)).notifyJitter(eq(ImsMediaSession.RESULT_INVALID_PARAM));
+        verify(mMockIImsAudioSessionCallback, times(1)).notifyMediaQualityStatus(eq(status));
     }
 
     @Test
@@ -206,11 +193,15 @@ public class AudioListenerTest {
 
     @Test
     public void testEventDtmfReceivedInd() throws RemoteException {
-        mAudioListener.onMessage(createParcel(AudioSession.EVENT_DTMF_RECEIVED_IND, DTMF_DIGIT,
-                mAudioConfig));
+        Parcel parcel = Parcel.obtain();
+        parcel.writeInt(AudioSession.EVENT_DTMF_RECEIVED_IND);
+        parcel.writeByte((byte) DTMF_DIGIT);
+        parcel.writeInt(DTMF_DURATION);
+        parcel.setDataPosition(0);
+        mAudioListener.onMessage(parcel);
         processAllMessages();
         verify(mMockIImsAudioSessionCallback,
-                times(1)).onDtmfReceived(eq(DTMF_DIGIT));
+                times(1)).onDtmfReceived(eq(DTMF_DIGIT), eq(DTMF_DURATION));
     }
 
     @Test
