@@ -20,31 +20,34 @@ import static com.google.common.truth.Truth.assertThat;
 
 import android.os.Parcel;
 import android.telephony.imsmedia.MediaQualityThreshold;
-import androidx.test.filters.SmallTest;
+
 import androidx.test.runner.AndroidJUnit4;
 
-import org.junit.runner.RunWith;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+
+import java.util.Arrays;
 
 @RunWith(AndroidJUnit4.class)
 public class MediaQualityThresholdTest {
-    private static final int RTP_TIMEOUT = 20;
-    private static final int RTCP_TIMEOUT = 60;
-    private static final int PACKET_LOSS_PERIOD = 120;
-    private static final int PACKET_LOSS_RATE = 10;
-    private static final int JITTER_PERIOD = 160;
-    private static final int JITTER_THRESHOLD = 200;
+    private static final int[] RTP_TIMEOUT = { 10000, 20000 };
+    private static final int RTCP_TIMEOUT = 15000;
+    private static final int RTP_HYSTERESIS_TIME = 3000;
+    private static final int RTP_PACKET_LOSS_DURATION = 3000;
+    private static final int[] PACKET_LOSS_RATE = { 1, 3 };
+    private static final int[] JITTER_THRESHOLD = { 100, 200 };
+    private static final boolean NOTIFY_STATUS = false;
 
     @Test
     public void testConstructorAndGetters() {
         MediaQualityThreshold threshold = createMediaQualityThreshold();
-
-        assertThat(threshold.getRtpInactivityTimerMillis()).isEqualTo(RTP_TIMEOUT);
+        assertThat(Arrays.equals(threshold.getRtpInactivityTimerMillis(), RTP_TIMEOUT)).isTrue();
         assertThat(threshold.getRtcpInactivityTimerMillis()).isEqualTo(RTCP_TIMEOUT);
-        assertThat(threshold.getPacketLossPeriodMillis()).isEqualTo(PACKET_LOSS_PERIOD);
-        assertThat(threshold.getPacketLossThreshold()).isEqualTo(PACKET_LOSS_RATE);
-        assertThat(threshold.getJitterPeriodMillis()).isEqualTo(JITTER_PERIOD);
-        assertThat(threshold.getJitterThresholdMillis()).isEqualTo(JITTER_THRESHOLD);
+        assertThat(threshold.getRtpHysteresisTimeInMillis()).isEqualTo(RTP_HYSTERESIS_TIME);
+        assertThat(threshold.getRtpPacketLossDurationMillis()).isEqualTo(RTP_PACKET_LOSS_DURATION);
+        assertThat(Arrays.equals(threshold.getRtpPacketLossRate(), PACKET_LOSS_RATE)).isTrue();
+        assertThat(Arrays.equals(threshold.getRtpJitterMillis(), JITTER_THRESHOLD)).isTrue();
+        assertThat(threshold.getNotifyCurrentStatus()).isEqualTo(NOTIFY_STATUS);
     }
 
     @Test
@@ -74,10 +77,11 @@ public class MediaQualityThresholdTest {
         MediaQualityThreshold threshold2 = new MediaQualityThreshold.Builder()
                 .setRtpInactivityTimerMillis(RTP_TIMEOUT)
                 .setRtcpInactivityTimerMillis(RTCP_TIMEOUT)
-                .setPacketLossPeriodMillis(PACKET_LOSS_PERIOD)
-                .setPacketLossThreshold(PACKET_LOSS_RATE)
-                .setJitterPeriodMillis(JITTER_PERIOD)
-                .setJitterThresholdMillis(JITTER_THRESHOLD+1)
+                .setRtpHysteresisTimeInMillis(RTP_HYSTERESIS_TIME + 1)
+                .setRtpPacketLossDurationMillis(RTP_PACKET_LOSS_DURATION)
+                .setRtpPacketLossRate(PACKET_LOSS_RATE)
+                .setRtpJitterMillis(JITTER_THRESHOLD)
+                .setNotifyCurrentStatus(NOTIFY_STATUS)
                 .build();
 
         assertThat(threshold1).isNotEqualTo(threshold2);
@@ -85,32 +89,36 @@ public class MediaQualityThresholdTest {
         MediaQualityThreshold threshold3 = new MediaQualityThreshold.Builder()
                 .setRtpInactivityTimerMillis(RTP_TIMEOUT)
                 .setRtcpInactivityTimerMillis(RTCP_TIMEOUT)
-                .setPacketLossPeriodMillis(PACKET_LOSS_PERIOD)
-                .setPacketLossThreshold(PACKET_LOSS_RATE)
-                .setJitterPeriodMillis(JITTER_PERIOD+1)
-                .setJitterThresholdMillis(JITTER_THRESHOLD)
+                .setRtpHysteresisTimeInMillis(RTP_HYSTERESIS_TIME)
+                .setRtpPacketLossDurationMillis(RTP_PACKET_LOSS_DURATION + 100)
+                .setRtpPacketLossRate(PACKET_LOSS_RATE)
+                .setRtpJitterMillis(JITTER_THRESHOLD)
+                .setNotifyCurrentStatus(NOTIFY_STATUS)
                 .build();
 
         assertThat(threshold1).isNotEqualTo(threshold3);
 
         MediaQualityThreshold threshold4 = new MediaQualityThreshold.Builder()
                 .setRtpInactivityTimerMillis(RTP_TIMEOUT)
-                .setRtcpInactivityTimerMillis(RTCP_TIMEOUT+1)
-                .setPacketLossPeriodMillis(PACKET_LOSS_PERIOD)
-                .setPacketLossThreshold(PACKET_LOSS_RATE)
-                .setJitterPeriodMillis(JITTER_PERIOD)
-                .setJitterThresholdMillis(JITTER_THRESHOLD)
+                .setRtcpInactivityTimerMillis(RTCP_TIMEOUT + 1)
+                .setRtpHysteresisTimeInMillis(RTP_HYSTERESIS_TIME)
+                .setRtpPacketLossDurationMillis(RTP_PACKET_LOSS_DURATION)
+                .setRtpPacketLossRate(PACKET_LOSS_RATE)
+                .setRtpJitterMillis(JITTER_THRESHOLD)
+                .setNotifyCurrentStatus(NOTIFY_STATUS)
                 .build();
 
         assertThat(threshold1).isNotEqualTo(threshold4);
 
+        int[] testRtpTimeout = { 10, 25 };
         MediaQualityThreshold threshold5 = new MediaQualityThreshold.Builder()
-                .setRtpInactivityTimerMillis(RTP_TIMEOUT+1)
+                .setRtpInactivityTimerMillis(testRtpTimeout)
                 .setRtcpInactivityTimerMillis(RTCP_TIMEOUT)
-                .setPacketLossPeriodMillis(PACKET_LOSS_PERIOD)
-                .setPacketLossThreshold(PACKET_LOSS_RATE)
-                .setJitterPeriodMillis(JITTER_PERIOD)
-                .setJitterThresholdMillis(JITTER_THRESHOLD)
+                .setRtpHysteresisTimeInMillis(RTP_HYSTERESIS_TIME)
+                .setRtpPacketLossDurationMillis(RTP_PACKET_LOSS_DURATION)
+                .setRtpPacketLossRate(PACKET_LOSS_RATE)
+                .setRtpJitterMillis(JITTER_THRESHOLD)
+                .setNotifyCurrentStatus(NOTIFY_STATUS)
                 .build();
 
         assertThat(threshold1).isNotEqualTo(threshold5);
@@ -120,10 +128,11 @@ public class MediaQualityThresholdTest {
         return new MediaQualityThreshold.Builder()
                 .setRtpInactivityTimerMillis(RTP_TIMEOUT)
                 .setRtcpInactivityTimerMillis(RTCP_TIMEOUT)
-                .setPacketLossPeriodMillis(PACKET_LOSS_PERIOD)
-                .setPacketLossThreshold(PACKET_LOSS_RATE)
-                .setJitterPeriodMillis(JITTER_PERIOD)
-                .setJitterThresholdMillis(JITTER_THRESHOLD)
+                .setRtpHysteresisTimeInMillis(RTP_HYSTERESIS_TIME)
+                .setRtpPacketLossDurationMillis(RTP_PACKET_LOSS_DURATION)
+                .setRtpPacketLossRate(PACKET_LOSS_RATE)
+                .setRtpJitterMillis(JITTER_THRESHOLD)
+                .setNotifyCurrentStatus(NOTIFY_STATUS)
                 .build();
     }
 }

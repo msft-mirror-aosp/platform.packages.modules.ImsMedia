@@ -17,7 +17,6 @@
 package android.telephony.imsmedia;
 
 import android.annotation.IntDef;
-import android.hardware.radio.ims.media.MediaProtocolType;
 import android.hardware.radio.ims.media.RtpError;
 import android.os.IBinder;
 
@@ -51,9 +50,9 @@ public interface ImsMediaSession {
     }
 
     /** Real Time Protocol, see RFC 3550 */
-    int PACKET_TYPE_RTP = MediaProtocolType.RTP;
+    int PACKET_TYPE_RTP = 0;
     /** Real Time Control Protocol, see RFC 3550 */
-    int PACKET_TYPE_RTCP = MediaProtocolType.RTCP;
+    int PACKET_TYPE_RTCP = 1;
 
     /** @hide */
     @IntDef(value = {

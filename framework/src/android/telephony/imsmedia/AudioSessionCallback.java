@@ -156,36 +156,12 @@ public class AudioSessionCallback extends ImsMediaManager.SessionCallback {
         }
 
         @Override
-        public void notifyMediaInactivity(final int packetType) {
+        public void notifyMediaQualityStatus(final MediaQualityStatus status) {
             if (mLocalCallback == null) return;
 
             final long callingIdentity = Binder.clearCallingIdentity();
             try {
-                mExecutor.execute(() -> mLocalCallback.notifyMediaInactivity(packetType));
-            } finally {
-                restoreCallingIdentity(callingIdentity);
-            }
-        }
-
-        @Override
-        public void notifyPacketLoss(final int packetLossPercentage) {
-            if (mLocalCallback == null) return;
-
-            final long callingIdentity = Binder.clearCallingIdentity();
-            try {
-                mExecutor.execute(() -> mLocalCallback.notifyPacketLoss(packetLossPercentage));
-            } finally {
-                restoreCallingIdentity(callingIdentity);
-            }
-        }
-
-        @Override
-        public void notifyJitter(final int jitter) {
-            if (mLocalCallback == null) return;
-
-            final long callingIdentity = Binder.clearCallingIdentity();
-            try {
-                mExecutor.execute(() -> mLocalCallback.notifyJitter(jitter));
+                mExecutor.execute(() -> mLocalCallback.notifyMediaQualityStatus(status));
             } finally {
                 restoreCallingIdentity(callingIdentity);
             }
@@ -302,25 +278,13 @@ public class AudioSessionCallback extends ImsMediaManager.SessionCallback {
     }
 
     /**
-     * Notifies RTP packet loss observed as per thresholds set by
+     * Notifies media quality status observed as per thresholds set by
      * setMediaQualityThreshold() API
      *
-     * @param packetLossPercentage percentage of packet loss calculated
-     * over the duration
+     * @param packetType either RTP or RTCP
      */
-    public void notifyPacketLoss(final int packetLossPercentage) {
-        // Base Implementation
-    }
-
-    /**
-     * Notifies RTP jitter observed as per thresholds set by
-     * IImsMediaSession#setMediaQualityThreshold() API
-     *
-     * @param jitter jitter of the RTP packets in milliseconds
-     * calculated over the duration
-     */
-    public void notifyJitter(final int jitter) {
-        // Base Implementation
+    public void notifyMediaQualityStatus(final MediaQualityStatus status) {
+         // Base Implementation
     }
 
     /**

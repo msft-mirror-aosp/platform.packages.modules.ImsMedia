@@ -30,6 +30,7 @@ import android.telephony.ims.RtpHeaderExtension;
 import android.telephony.imsmedia.AmrParams;
 import android.telephony.imsmedia.AudioConfig;
 import android.telephony.imsmedia.EvsParams;
+import android.telephony.imsmedia.MediaQualityStatus;
 import android.telephony.imsmedia.MediaQualityThreshold;
 import android.telephony.imsmedia.RtcpConfig;
 import android.telephony.imsmedia.RtpConfig;
@@ -37,6 +38,7 @@ import android.telephony.imsmedia.RtpConfig;
 import com.android.telephony.imsmedia.ImsMediaController.OpenSessionCallback;
 
 import java.net.InetSocketAddress;
+import java.util.Arrays;
 
 /**
  * Class consists of utility methods and sub classes
@@ -214,6 +216,18 @@ public final class Utils {
         return rtpConfig;
     }
 
+    /** Converts {@link MediaQuailtyStatus} to HAL MediaQuailtyStatus */
+    public static android.hardware.radio.ims.media.MediaQualityStatus
+            convertToHalMediaQualityStatus(final MediaQualityStatus status) {
+        final android.hardware.radio.ims.media.MediaQualityStatus halStatus =
+                new android.hardware.radio.ims.media.MediaQualityStatus();
+        halStatus.rtpInactivityTimeMillis = status.getRtpInactivityTimeMillis();
+        halStatus.rtcpInactivityTimeMillis = status.getRtcpInactivityTimeMillis();
+        halStatus.rtpPacketLossRate = status.getRtpPacketLossRate();
+        halStatus.rtpJitterMillis = status.getRtpJitterMillis();
+        return halStatus;
+    }
+
     private static RtcpConfig buildRtcpConfig(
             final android.hardware.radio.ims.media.RtpConfig rtpConfig) {
         final RtcpConfig rtcpConfig;
@@ -352,12 +366,16 @@ public final class Utils {
             out =  null;
         } else {
             out = new android.hardware.radio.ims.media.MediaQualityThreshold();
-            out.rtpInactivityTimerMillis = in.getRtpInactivityTimerMillis();
+            out.rtpInactivityTimerMillis = Arrays.copyOf(in.getRtpInactivityTimerMillis(),
+                    in.getRtpInactivityTimerMillis().length);
             out.rtcpInactivityTimerMillis = in.getRtcpInactivityTimerMillis();
-            out.rtpPacketLossDurationMillis = in.getPacketLossPeriodMillis();
-            out.rtpPacketLossRate = in.getPacketLossThreshold();
-            out.jitterDurationMillis = in.getJitterPeriodMillis();
-            out.rtpJitterMillis = in.getJitterThresholdMillis();
+            out.rtpHysteresisTimeInMillis = in.getRtpHysteresisTimeInMillis();
+            out.rtpPacketLossDurationMillis = in.getRtpPacketLossDurationMillis();
+            out.rtpPacketLossRate = Arrays.copyOf(in.getRtpPacketLossRate(),
+                    in.getRtpPacketLossRate().length);
+            out.rtpJitterMillis = Arrays.copyOf(in.getRtpJitterMillis(),
+                    in.getRtpJitterMillis().length);
+            out.notifyCurrentStatus = in.getNotifyCurrentStatus();
         }
 
         return out;
@@ -369,10 +387,22 @@ public final class Utils {
         return (in == null) ? null : new MediaQualityThreshold.Builder()
                 .setRtpInactivityTimerMillis(in.rtpInactivityTimerMillis)
                 .setRtcpInactivityTimerMillis(in.rtcpInactivityTimerMillis)
-                .setPacketLossPeriodMillis(in.rtpPacketLossDurationMillis)
-                .setPacketLossThreshold(in.rtpPacketLossRate)
-                .setJitterPeriodMillis(in.jitterDurationMillis)
-                .setJitterThresholdMillis(in.rtpJitterMillis)
+                .setRtpHysteresisTimeInMillis(in.rtpHysteresisTimeInMillis)
+                .setRtpPacketLossDurationMillis(in.rtpPacketLossDurationMillis)
+                .setRtpPacketLossRate(in.rtpPacketLossRate)
+                .setRtpJitterMillis(in.rtpJitterMillis)
+                .setNotifyCurrentStatus(in.notifyCurrentStatus)
+                .build();
+    }
+
+    /** Converts HAL MediaQualityStatus to {@link MediaQualityStatus} */
+    public static MediaQualityStatus convertMediaQualityStatus(
+            final android.hardware.radio.ims.media.MediaQualityStatus in) {
+        return (in == null) ? null : new MediaQualityStatus.Builder()
+                .setRtpInactivityTimeMillis(in.rtpInactivityTimeMillis)
+                .setRtcpInactivityTimeMillis(in.rtcpInactivityTimeMillis)
+                .setRtpPacketLossRate(in.rtpPacketLossRate)
+                .setRtpJitterMillis(in.rtpJitterMillis)
                 .build();
     }
 
