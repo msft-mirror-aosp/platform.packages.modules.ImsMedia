@@ -51,6 +51,7 @@ MediaQualityAnalyzer::MediaQualityAnalyzer()
     mNotifyStatus = false;
     mCountRtpInactivity = 0;
     mCountRtcpInactivity = 0;
+    mNumRtcpPacketReceived = 0;
     reset();
 }
 
@@ -97,6 +98,7 @@ void MediaQualityAnalyzer::setMediaQualityThreshold(const MediaQualityThreshold&
 
     mCountRtpInactivity = 0;
     mCountRtcpInactivity = 0;
+    mNumRtcpPacketReceived = 0;
 
     // reset the status
     mQualityStatus = MediaQualityStatus();
@@ -142,12 +144,7 @@ void MediaQualityAnalyzer::stop()
 
 void MediaQualityAnalyzer::collectInfo(const int32_t streamType, RtpPacket* packet)
 {
-    if (packet == nullptr)
-    {
-        return;
-    }
-
-    if (streamType == kStreamRtpTx)
+    if (streamType == kStreamRtpTx && packet != nullptr)
     {
         mListTxPacket.push_back(packet);
 
@@ -161,7 +158,7 @@ void MediaQualityAnalyzer::collectInfo(const int32_t streamType, RtpPacket* pack
         mCallQuality.setNumRtpPacketsTransmitted(mCallQuality.getNumRtpPacketsTransmitted() + 1);
         IMLOGD_PACKET1(IM_PACKET_LOG_RTP, "[collectInfo] tx list size[%d]", mListTxPacket.size());
     }
-    else if (streamType == kStreamRtpRx)
+    else if (streamType == kStreamRtpRx && packet != nullptr)
     {
         if (mSSRC != DEFAULT_PARAM && mSSRC != packet->ssrc)
         {
@@ -224,6 +221,8 @@ void MediaQualityAnalyzer::collectInfo(const int32_t streamType, RtpPacket* pack
     else if (streamType == kStreamRtcp)
     {
         mNumRtcpPacketReceived++;
+        IMLOGD_PACKET1(
+                IM_PACKET_LOG_RTP, "[collectInfo] rtcp received[%d]", mNumRtcpPacketReceived);
     }
 }
 
@@ -484,12 +483,13 @@ void MediaQualityAnalyzer::processMediaQuality()
 
     if (!mCurrentRtpInactivityTimes.empty())
     {
-        std::vector<int32_t>::iterator rtpIter =
-                std::find_if(mCurrentRtpInactivityTimes.begin(), mCurrentRtpInactivityTimes.end(),
-                        [=](int32_t i)
-                        {
-                            return (mCountRtpInactivity >= i);  // check cross the threshold
-                        });
+        std::vector<int32_t>::iterator rtpIter = std::find_if(mCurrentRtpInactivityTimes.begin(),
+                mCurrentRtpInactivityTimes.end(),
+                [=](int32_t inactivityTime)
+                {
+                    return (inactivityTime != 0 &&
+                            mCountRtpInactivity >= inactivityTime);  // check cross the threshold
+                });
 
         if (rtpIter != mCurrentRtpInactivityTimes.end())  // found
         {
