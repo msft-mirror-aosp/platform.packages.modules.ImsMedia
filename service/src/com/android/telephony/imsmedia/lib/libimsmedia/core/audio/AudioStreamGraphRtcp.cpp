@@ -138,23 +138,6 @@ ImsMediaResult AudioStreamGraphRtcp::update(RtpConfig* config)
     return ret;
 }
 
-bool AudioStreamGraphRtcp::setMediaQualityThreshold(MediaQualityThreshold* threshold)
-{
-    if (threshold != nullptr)
-    {
-        BaseNode* node = findNode(kNodeIdRtcpDecoder);
-
-        if (node != nullptr)
-        {
-            RtcpDecoderNode* decoder = reinterpret_cast<RtcpDecoderNode*>(node);
-            decoder->SetInactivityTimerSec(threshold->getRtcpInactivityTimerMillis() / 1000);
-            return true;
-        }
-    }
-
-    return false;
-}
-
 bool AudioStreamGraphRtcp::OnEvent(int32_t type, uint64_t param1, uint64_t param2)
 {
     IMLOGI3("[onEvent] type[%d], param1[%d], param2[%d]", type, param1, param2);

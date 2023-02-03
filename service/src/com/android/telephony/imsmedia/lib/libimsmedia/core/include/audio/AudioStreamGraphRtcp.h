@@ -27,7 +27,6 @@ public:
     virtual ~AudioStreamGraphRtcp();
     virtual ImsMediaResult create(RtpConfig* config);
     virtual ImsMediaResult update(RtpConfig* config);
-    virtual bool setMediaQualityThreshold(MediaQualityThreshold* threshold);
     virtual bool OnEvent(int32_t type, uint64_t param1, uint64_t param2);
 };
 

@@ -615,17 +615,9 @@ void AudioSession::onEvent(int32_t type, uint64_t param1, uint64_t param2)
             ImsMediaEventHandler::SendEvent(
                     "AUDIO_RESPONSE_EVENT", kAudioRtpHeaderExtensionInd, 0, 0);
             break;
-        case kImsMediaEventMediaInactivity:
-            ImsMediaEventHandler::SendEvent(
-                    "AUDIO_RESPONSE_EVENT", kAudioMediaInactivityInd, mSessionId, param1, param2);
-            break;
-        case kImsMediaEventPacketLoss:
-            ImsMediaEventHandler::SendEvent(
-                    "AUDIO_RESPONSE_EVENT", kAudioPacketLossInd, mSessionId, param1);
-            break;
-        case kImsMediaEventNotifyJitter:
-            ImsMediaEventHandler::SendEvent(
-                    "AUDIO_RESPONSE_EVENT", kAudioJitterInd, mSessionId, param1);
+        case kImsMediaEventMediaQualityStatus:
+            ImsMediaEventHandler::SendEvent("AUDIO_RESPONSE_EVENT", kAudioMediaQualityStatusInd,
+                    mSessionId, param1, param2);
             break;
         case kAudioTriggerAnbrQueryInd:
             /** TODO: add implementation */
@@ -664,30 +656,9 @@ void AudioSession::setMediaQualityThreshold(const MediaQualityThreshold& thresho
     IMLOGI0("[setMediaQualityThreshold]");
     mThreshold = threshold;
 
-    for (auto& graph : mListGraphRtpRx)
-    {
-        if (graph != nullptr && graph->getState() == kStreamStateRunning)
-        {
-            graph->setMediaQualityThreshold(&mThreshold);
-        }
-    }
-
-    for (auto& graph : mListGraphRtcp)
-    {
-        if (graph != nullptr && graph->getState() == kStreamStateRunning)
-        {
-            graph->setMediaQualityThreshold(&mThreshold);
-        }
-    }
-
     if (mMediaQualityAnalyzer != nullptr)
     {
-        mMediaQualityAnalyzer->setJitterThreshold(
-                mThreshold.getJitterDurationMillis() / 1000,  // milliseconds to seconds
-                mThreshold.getRtpJitterMillis());
-        mMediaQualityAnalyzer->setPacketLossThreshold(
-                mThreshold.getRtpPacketLossDurationMillis() / 1000,  // milliseconds to seconds
-                mThreshold.getRtpPacketLossRate());
+        mMediaQualityAnalyzer->setMediaQualityThreshold(threshold);
     }
 }
 

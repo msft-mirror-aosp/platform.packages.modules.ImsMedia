@@ -199,7 +199,9 @@ bool TextStreamGraphRtpRx::setMediaQualityThreshold(MediaQualityThreshold* thres
         if (node != nullptr)
         {
             RtpDecoderNode* decoder = reinterpret_cast<RtpDecoderNode*>(node);
-            decoder->SetInactivityTimerSec(threshold->getRtpInactivityTimerMillis() / 1000);
+            decoder->SetInactivityTimerSec(threshold->getRtpInactivityTimerMillis().empty()
+                            ? 0
+                            : threshold->getRtpInactivityTimerMillis().front() / 1000);
             return true;
         }
     }

@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#ifndef IMS_MEDIA_QULITY_H
-#define IMS_MEDIA_QULITY_H
+#ifndef IMS_CALL_QULITY_H
+#define IMS_CALL_QULITY_H
 
 #include <binder/Parcel.h>
 #include <binder/Parcelable.h>
@@ -35,12 +35,12 @@ namespace imsmedia
  * @brief Implementation of CallQualty class in native
  *
  */
-class MediaQuality : public Parcelable
+class CallQuality : public Parcelable
 {
 public:
-    MediaQuality();
-    MediaQuality(const MediaQuality& quality);
-    virtual ~MediaQuality();
+    CallQuality();
+    CallQuality(const CallQuality& quality);
+    virtual ~CallQuality();
     enum
     {
         /** < 1% packet loss */
@@ -84,10 +84,10 @@ public:
         AUDIO_QUALITY_EVS_FB,
     };
 
-    MediaQuality& operator=(const MediaQuality& quality);
-    bool operator==(const MediaQuality& quality) const;
-    bool operator!=(const MediaQuality& quality) const;
-    virtual status_t writeToParcel(Parcel* parcel) const;
+    CallQuality& operator=(const CallQuality& quality);
+    bool operator==(const CallQuality& quality) const;
+    bool operator!=(const CallQuality& quality) const;
+    virtual status_t writeToParcel(Parcel* out) const;
     virtual status_t readFromParcel(const Parcel* in);
 
     int32_t getDownlinkCallQualityLevel();

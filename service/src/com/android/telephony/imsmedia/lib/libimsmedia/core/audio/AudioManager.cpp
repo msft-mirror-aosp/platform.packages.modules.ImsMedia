@@ -17,6 +17,7 @@
 #include <AudioManager.h>
 #include <ImsMediaTrace.h>
 #include <ImsMediaNetworkUtil.h>
+#include <MediaQualityStatus.h>
 
 using namespace android;
 
@@ -455,13 +456,18 @@ void AudioManager::ResponseHandler::processEvent(
         case kAudioRtpHeaderExtensionInd:
             // TODO : add implementation
             break;
-        case kAudioMediaInactivityInd:
-        case kAudioPacketLossInd:
-        case kAudioJitterInd:
+        case kAudioMediaQualityStatusInd:
+        {
             parcel.writeInt32(event);
-            parcel.writeInt32(static_cast<int>(paramA));
-            AudioManager::getInstance()->sendResponse(sessionId, parcel);
-            break;
+            MediaQualityStatus* status = reinterpret_cast<MediaQualityStatus*>(paramA);
+            if (status != nullptr)
+            {
+                status->writeToParcel(&parcel);
+                AudioManager::getInstance()->sendResponse(sessionId, parcel);
+                delete status;
+            }
+        }
+        break;
         case kAudioTriggerAnbrQueryInd:
             /** TODO: add implementation */
             break;
@@ -474,7 +480,7 @@ void AudioManager::ResponseHandler::processEvent(
         case kAudioCallQualityChangedInd:
         {
             parcel.writeInt32(event);
-            MediaQuality* quality = reinterpret_cast<MediaQuality*>(paramA);
+            CallQuality* quality = reinterpret_cast<CallQuality*>(paramA);
             if (quality != nullptr)
             {
                 quality->writeToParcel(&parcel);

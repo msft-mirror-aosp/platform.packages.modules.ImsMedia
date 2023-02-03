@@ -145,20 +145,3 @@ ImsMediaResult AudioStreamGraphRtpRx::update(RtpConfig* config)
 
     return ret;
 }
-
-bool AudioStreamGraphRtpRx::setMediaQualityThreshold(MediaQualityThreshold* threshold)
-{
-    if (threshold != nullptr)
-    {
-        BaseNode* node = findNode(kNodeIdRtpDecoder);
-
-        if (node != nullptr)
-        {
-            RtpDecoderNode* decoder = reinterpret_cast<RtpDecoderNode*>(node);
-            decoder->SetInactivityTimerSec(threshold->getRtpInactivityTimerMillis() / 1000);
-            return true;
-        }
-    }
-
-    return false;
-}

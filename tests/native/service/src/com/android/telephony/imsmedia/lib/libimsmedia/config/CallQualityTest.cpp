@@ -15,7 +15,7 @@
  */
 
 #include <AudioConfig.h>
-#include <MediaQuality.h>
+#include <CallQuality.h>
 #include <gtest/gtest.h>
 
 using namespace android::telephony::imsmedia;
@@ -42,12 +42,12 @@ const int64_t kMaxPlayoutDelayMillis = 180;
 const int32_t kNumRtpSidPacketsReceived = 10;
 const int32_t kNumRtpDuplicatePackets = 1;
 
-class MediaQualityTest : public ::testing::Test
+class CallQualityTest : public ::testing::Test
 {
 public:
-    MediaQuality quality1;
-    MediaQuality quality2;
-    MediaQuality quality3;
+    CallQuality quality1;
+    CallQuality quality2;
+    CallQuality quality3;
 
 protected:
     virtual void SetUp() override
@@ -78,26 +78,26 @@ protected:
     virtual void TearDown() override {}
 };
 
-TEST_F(MediaQualityTest, TestGetterSetter) {}
+TEST_F(CallQualityTest, TestGetterSetter) {}
 
-TEST_F(MediaQualityTest, TestParcel)
+TEST_F(CallQualityTest, TestParcel)
 {
     android::Parcel parcel;
     quality1.writeToParcel(&parcel);
     parcel.setDataPosition(0);
 
-    MediaQuality testQuality;
+    CallQuality testQuality;
     testQuality.readFromParcel(&parcel);
     EXPECT_EQ(testQuality, quality1);
 }
 
-TEST_F(MediaQualityTest, TestAssign)
+TEST_F(CallQualityTest, TestAssign)
 {
-    MediaQuality testQuality = quality1;
+    CallQuality testQuality = quality1;
     EXPECT_EQ(quality1, testQuality);
 }
 
-TEST_F(MediaQualityTest, TestEqual)
+TEST_F(CallQualityTest, TestEqual)
 {
     quality2.setDownlinkCallQualityLevel(kDownlinkCallQualityLevel);
     quality2.setUplinkCallQualityLevel(kUplinkCallQualityLevel);
@@ -123,7 +123,7 @@ TEST_F(MediaQualityTest, TestEqual)
     EXPECT_EQ(quality2, quality1);
 }
 
-TEST_F(MediaQualityTest, TestNotEqual)
+TEST_F(CallQualityTest, TestNotEqual)
 {
     quality2.setDownlinkCallQualityLevel(kDownlinkCallQualityLevel);
     quality2.setUplinkCallQualityLevel(kUplinkCallQualityLevel);
