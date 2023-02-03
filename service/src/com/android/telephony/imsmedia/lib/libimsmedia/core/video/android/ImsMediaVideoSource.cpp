@@ -334,7 +334,11 @@ void ImsMediaVideoSource::Stop()
 
     if (mCodec != nullptr)
     {
-        AMediaCodec_signalEndOfInputStream(mCodec);
+        if (mRecordingSurface != nullptr)
+        {
+            AMediaCodec_signalEndOfInputStream(mCodec);
+        }
+
         AMediaCodec_stop(mCodec);
 
         if (mRecordingSurface != nullptr)
@@ -511,21 +515,16 @@ void ImsMediaVideoSource::processOutputBuffer()
         timeInterval = 1000 / mFramerate;
     }
 
-    IMLOGD2("[processOutputBuffer] interval[%d] mCameraId[%d]", timeInterval, mCameraId);
+    IMLOGD2("[processOutputBuffer] interval[%d] CameraId[%d]", timeInterval, mCameraId);
 
     for (;;)
     {
-        uint32_t nCurrTime;
-        mMutex.lock();
-
-        if (mStopped)
+        if (IsStopped())
         {
             IMLOGD0("[processOutputBuffer] terminated");
-            mMutex.unlock();
             break;
         }
 
-        mMutex.unlock();
         if (mVideoMode == kVideoModePauseImage)
         {
             EncodePauseImage();
@@ -545,6 +544,11 @@ void ImsMediaVideoSource::processOutputBuffer()
                 size_t buffCapacity;
                 uint8_t* buf = AMediaCodec_getOutputBuffer(mCodec, index, &buffCapacity);
 
+                if (IsStopped())
+                {
+                    break;
+                }
+
                 if (buf != nullptr && buffCapacity > 0)
                 {
                     if (mListener != nullptr)
@@ -553,16 +557,13 @@ void ImsMediaVideoSource::processOutputBuffer()
                                 buf + info.offset, info.size, info.presentationTimeUs, info.flags);
                     }
                 }
-            }
 
-            if (!IsStopped())
-            {
                 AMediaCodec_releaseOutputBuffer(mCodec, index, false);
             }
         }
         else if (index == AMEDIACODEC_INFO_OUTPUT_BUFFERS_CHANGED)
         {
-            IMLOGD0("[processOutputBuffer] Encoder output buffer changed");
+            IMLOGI0("[processOutputBuffer] Encoder output buffer changed");
         }
         else if (index == AMEDIACODEC_INFO_OUTPUT_FORMAT_CHANGED)
         {
@@ -572,7 +573,7 @@ void ImsMediaVideoSource::processOutputBuffer()
             }
 
             mFormat = AMediaCodec_getOutputFormat(mCodec);
-            IMLOGD1("[processOutputBuffer] Encoder format changed, format[%s]",
+            IMLOGI1("[processOutputBuffer] Encoder format changed, format[%s]",
                     AMediaFormat_toString(mFormat));
         }
         else if (index == AMEDIACODEC_INFO_TRY_AGAIN_LATER)
@@ -581,11 +582,11 @@ void ImsMediaVideoSource::processOutputBuffer()
         }
         else
         {
-            IMLOGD1("[processOutputBuffer] unexpected index[%d]", index);
+            IMLOGI1("[processOutputBuffer] unexpected index[%d]", index);
         }
 
         nextTime += timeInterval;
-        nCurrTime = ImsMediaTimer::GetTimeInMilliSeconds();
+        uint32_t nCurrTime = ImsMediaTimer::GetTimeInMilliSeconds();
 
         if (nextTime > nCurrTime)
         {
