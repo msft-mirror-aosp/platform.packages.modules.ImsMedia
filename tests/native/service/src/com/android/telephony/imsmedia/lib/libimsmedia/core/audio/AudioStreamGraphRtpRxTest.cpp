@@ -74,7 +74,6 @@ protected:
     RtcpConfig rtcp;
     AmrParams amr;
     EvsParams evs;
-    MediaQualityThreshold threshold;
     int socketRtpFd;
 
     virtual void SetUp() override
@@ -93,8 +92,6 @@ protected:
         evs.setChannelAwareMode(kChannelAwareMode);
         evs.setUseHeaderFullOnly(kUseHeaderFullOnly);
         evs.setCodecModeRequest(kcodecModeRequest);
-
-        threshold.setRtpInactivityTimerMillis(10000);
 
         config.setMediaDirection(kMediaDirection);
         config.setRemoteAddress(kRemoteAddress);
@@ -142,28 +139,9 @@ TEST_F(AudioStreamGraphRtpRxTest, TestGraphError)
     EXPECT_EQ(graph->getState(), kStreamStateIdle);
 }
 
-TEST_F(AudioStreamGraphRtpRxTest, TestGraphSetMediaThresholdFail)
-{
-    EXPECT_EQ(graph->setMediaQualityThreshold(&threshold), false);
-}
-
-TEST_F(AudioStreamGraphRtpRxTest, TestGraphSetMediaThresholdSuccess)
-{
-    EXPECT_EQ(graph->create(&config), RESULT_SUCCESS);
-    EXPECT_EQ(graph->setMediaQualityThreshold(&threshold), true);
-    EXPECT_EQ(graph->start(), RESULT_SUCCESS);
-    EXPECT_EQ(graph->getState(), kStreamStateRunning);
-
-    // live update
-    EXPECT_EQ(graph->setMediaQualityThreshold(&threshold), true);
-    EXPECT_EQ(graph->stop(), RESULT_SUCCESS);
-    EXPECT_EQ(graph->getState(), kStreamStateCreated);
-}
-
 TEST_F(AudioStreamGraphRtpRxTest, TestRtpRxStreamDirectionUpdate)
 {
     EXPECT_EQ(graph->create(&config), RESULT_SUCCESS);
-    EXPECT_EQ(graph->setMediaQualityThreshold(&threshold), true);
     EXPECT_EQ(graph->start(), RESULT_SUCCESS);
     EXPECT_EQ(graph->getState(), kStreamStateRunning);
 

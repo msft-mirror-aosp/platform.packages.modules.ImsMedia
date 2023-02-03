@@ -62,24 +62,40 @@ const int32_t kEvsMode = 8;
 const int8_t kChannelAwareMode = 3;
 const bool kUseHeaderFullOnly = false;
 
+// MediaQualityThreshold
+const std::vector<int32_t> kRtpInactivityTimerMillis = {2000, 4000};
+const int32_t kRtcpInactivityTimerMillis = 2000;
+const int32_t kRtpHysteresisTimeInMillis = 2000;
+const int32_t kRtpPacketLossDurationMillis = 3000;
+const std::vector<int32_t> kRtpPacketLossRate = {3, 5};
+const std::vector<int32_t> kRtpJitterMillis = {10, 20};
+
 class FakeMediaQualityCallback : public BaseSessionCallback
 {
 public:
     FakeMediaQualityCallback() {}
     virtual ~FakeMediaQualityCallback() {}
 
-    virtual void SendEvent(int32_t type, uint64_t param1, uint64_t param2)
+    virtual void SendEvent(int32_t type, uint64_t param1, uint64_t /*param2*/)
     {
-        (void)param2;
-
         if (type == kAudioCallQualityChangedInd)
         {
-            MediaQuality* quality = reinterpret_cast<MediaQuality*>(param1);
+            CallQuality* quality = reinterpret_cast<CallQuality*>(param1);
 
             if (quality != nullptr)
             {
-                mMediaQuality = *quality;
+                mCallQuality = *quality;
                 delete quality;
+            }
+        }
+        else if (type == kImsMediaEventMediaQualityStatus)
+        {
+            MediaQualityStatus* status = reinterpret_cast<MediaQualityStatus*>(param1);
+
+            if (status != nullptr)
+            {
+                mStatus = *status;
+                delete status;
             }
         }
     }
@@ -91,10 +107,12 @@ public:
         (void)param2;
     }
 
-    MediaQuality getMediaQuality() { return mMediaQuality; }
+    CallQuality getCallQuality() { return mCallQuality; }
+    MediaQualityStatus getMediaQualityStatus() { return mStatus; }
 
 private:
-    MediaQuality mMediaQuality;
+    CallQuality mCallQuality;
+    MediaQualityStatus mStatus;
 };
 
 class MediaQualityAnalyzerTest : public ::testing::Test
@@ -171,10 +189,10 @@ TEST_F(MediaQualityAnalyzerTest, TestStartStop)
     EXPECT_CALL(mCallback, onEvent(kAudioCallQualityChangedInd, _, _)).Times(1);
     mAnalyzer->start();
 
-    MediaQuality quality = mAnalyzer->getMediaQuality();
+    CallQuality quality = mAnalyzer->getCallQuality();
     mAnalyzer->stop();
 
-    EXPECT_EQ(mFakeCallback.getMediaQuality(), quality);
+    EXPECT_EQ(mFakeCallback.getCallQuality(), quality);
 }
 
 TEST_F(MediaQualityAnalyzerTest, TestCollectTxPackets)
@@ -194,30 +212,90 @@ TEST_F(MediaQualityAnalyzerTest, TestCollectTxPackets)
     EXPECT_EQ(mAnalyzer->getTxPacketSize(), numPackets);
     EXPECT_EQ(mAnalyzer->getRxPacketSize(), 0);
     EXPECT_EQ(mAnalyzer->getLostPacketSize(), 0);
-    MediaQuality quality = mAnalyzer->getMediaQuality();
+    CallQuality quality = mAnalyzer->getCallQuality();
     mAnalyzer->stop();
 
     EXPECT_EQ(mAnalyzer->getTxPacketSize(), 0);
     EXPECT_EQ(mAnalyzer->getRxPacketSize(), 0);
     EXPECT_EQ(mAnalyzer->getLostPacketSize(), 0);
 
-    // Check MediaQuality value
-    MediaQuality quality2 = mFakeCallback.getMediaQuality();
+    // Check CallQuality value
+    CallQuality quality2 = mFakeCallback.getCallQuality();
     EXPECT_EQ(quality2, quality);
     EXPECT_EQ(quality2.getNumRtpPacketsTransmitted(), numPackets);
 }
 
-TEST_F(MediaQualityAnalyzerTest, TestRxInactivityInd)
+TEST_F(MediaQualityAnalyzerTest, TestRtpInactivity)
+{
+    EXPECT_CALL(mCallback, onEvent(kAudioCallQualityChangedInd, _, _)).Times(2);
+    EXPECT_CALL(mCallback, onEvent(kImsMediaEventMediaQualityStatus, _, _)).Times(3);
+    MediaQualityThreshold threshold;
+    threshold.setRtpInactivityTimerMillis(kRtpInactivityTimerMillis);
+    mAnalyzer->setMediaQualityThreshold(threshold);
+    mAnalyzer->start();
+    mCondition.wait_timeout(2100);  // 2.1 sec
+
+    // Check MediaQualityStatus value
+    MediaQualityStatus quality1 = mFakeCallback.getMediaQualityStatus();
+    EXPECT_EQ(quality1.getRtpInactivityTimeMillis(), 2000);
+
+    mCondition.wait_timeout(2100);  // 2.1 sec
+
+    // Check MediaQualityStatus value
+    MediaQualityStatus quality2 = mFakeCallback.getMediaQualityStatus();
+    EXPECT_EQ(quality2.getRtpInactivityTimeMillis(), 4000);
+
+    RtpPacket* packet = new RtpPacket();
+    packet->seqNum = 0;
+    mAnalyzer->SendEvent(kCollectPacketInfo, kStreamRtpRx, reinterpret_cast<uint64_t>(packet));
+
+    mCondition.wait_timeout(3100);  // 3.1 sec
+
+    MediaQualityStatus quality3 = mFakeCallback.getMediaQualityStatus();
+    EXPECT_EQ(quality3.getRtpInactivityTimeMillis(), 2000);
+    mAnalyzer->stop();
+}
+
+TEST_F(MediaQualityAnalyzerTest, TestRtcpInactivity)
+{
+    EXPECT_CALL(mCallback, onEvent(kAudioCallQualityChangedInd, _, _)).Times(2);
+    EXPECT_CALL(mCallback, onEvent(kImsMediaEventMediaQualityStatus, _, _)).Times(3);
+    MediaQualityThreshold threshold;
+    threshold.setRtcpInactivityTimerMillis(kRtcpInactivityTimerMillis);
+    mAnalyzer->setMediaQualityThreshold(threshold);
+    mAnalyzer->start();
+    mCondition.wait_timeout(2100);  // 2.1 sec
+
+    // Check MediaQualityStatus value
+    MediaQualityStatus quality1 = mFakeCallback.getMediaQualityStatus();
+    EXPECT_EQ(quality1.getRtcpInactivityTimeMillis(), 2000);
+
+    mCondition.wait_timeout(2100);  // 2.1 sec
+
+    // Check MediaQualityStatus value
+    MediaQualityStatus quality2 = mFakeCallback.getMediaQualityStatus();
+    EXPECT_EQ(quality2.getRtcpInactivityTimeMillis(), 2000);
+
+    mAnalyzer->SendEvent(kCollectPacketInfo, kStreamRtcp);
+
+    mCondition.wait_timeout(2100);  // 2.1 sec
+
+    MediaQualityStatus quality3 = mFakeCallback.getMediaQualityStatus();
+    EXPECT_EQ(quality3.getRtcpInactivityTimeMillis(), 2000);
+    mAnalyzer->stop();
+}
+
+TEST_F(MediaQualityAnalyzerTest, TestCallQualityInactivity)
 {
     EXPECT_CALL(mCallback, onEvent(kAudioCallQualityChangedInd, _, _)).Times(2);
     mAnalyzer->start();
-    mCondition.wait_timeout(5100);  // 5.1 sec
+    mCondition.wait_timeout(4100);  // 4.1 sec
 
-    MediaQuality quality = mAnalyzer->getMediaQuality();
+    CallQuality quality = mAnalyzer->getCallQuality();
     mAnalyzer->stop();
 
-    // Check MediaQuality value
-    MediaQuality quality2 = mFakeCallback.getMediaQuality();
+    // Check CallQuality value
+    CallQuality quality2 = mFakeCallback.getCallQuality();
     EXPECT_EQ(quality2, quality);
     EXPECT_TRUE(quality2.getRtpInactivityDetected());
 }
@@ -256,26 +334,28 @@ TEST_F(MediaQualityAnalyzerTest, TestCallQualityLevelChanged)
     EXPECT_EQ(mAnalyzer->getTxPacketSize(), 0);
     EXPECT_EQ(mAnalyzer->getRxPacketSize(), numPackets - 1);
     EXPECT_EQ(mAnalyzer->getLostPacketSize(), 1);
-    MediaQuality quality = mAnalyzer->getMediaQuality();
+    CallQuality quality = mAnalyzer->getCallQuality();
     mAnalyzer->stop();
 
     EXPECT_EQ(mAnalyzer->getTxPacketSize(), 0);
     EXPECT_EQ(mAnalyzer->getRxPacketSize(), 0);
     EXPECT_EQ(mAnalyzer->getLostPacketSize(), 0);
 
-    // Check MediaQuality value
-    MediaQuality quality2 = mFakeCallback.getMediaQuality();
+    // Check CallQuality value
+    CallQuality quality2 = mFakeCallback.getCallQuality();
     EXPECT_EQ(quality2, quality);
     EXPECT_EQ(quality2.getNumRtpPacketsReceived(), numPackets - 1);
-    EXPECT_EQ(quality2.getDownlinkCallQualityLevel(), MediaQuality::kCallQualityBad);
+    EXPECT_EQ(quality2.getDownlinkCallQualityLevel(), CallQuality::kCallQualityBad);
 }
 
 TEST_F(MediaQualityAnalyzerTest, TestJitterInd)
 {
-    EXPECT_CALL(mCallback, onEvent(kImsMediaEventNotifyJitter, _, _)).Times(1);
+    EXPECT_CALL(mCallback, onEvent(kImsMediaEventMediaQualityStatus, _, _)).Times(1);
     EXPECT_CALL(mCallback, onEvent(kAudioCallQualityChangedInd, _, _)).Times(1);
-    // set 10 milliseconds jitter threshold in 1 sec interval
-    mAnalyzer->setJitterThreshold(1, 10);
+    MediaQualityThreshold threshold;
+    threshold.setRtpHysteresisTimeInMillis(kRtpHysteresisTimeInMillis);
+    threshold.setRtpJitterMillis(kRtpJitterMillis);
+    mAnalyzer->setMediaQualityThreshold(threshold);
     mAnalyzer->start();
 
     const int32_t numPackets = 20;
@@ -297,17 +377,20 @@ TEST_F(MediaQualityAnalyzerTest, TestJitterInd)
     EXPECT_EQ(mAnalyzer->getRxPacketSize(), numPackets);
     EXPECT_EQ(mAnalyzer->getLostPacketSize(), 0);
 
-    MediaQuality quality = mAnalyzer->getMediaQuality();
+    CallQuality quality = mAnalyzer->getCallQuality();
     mAnalyzer->stop();
 
     EXPECT_EQ(mAnalyzer->getTxPacketSize(), 0);
     EXPECT_EQ(mAnalyzer->getRxPacketSize(), 0);
     EXPECT_EQ(mAnalyzer->getLostPacketSize(), 0);
 
-    MediaQuality quality2 = mFakeCallback.getMediaQuality();
+    CallQuality quality2 = mFakeCallback.getCallQuality();
     EXPECT_EQ(quality2, quality);
     EXPECT_EQ(quality2.getNumRtpPacketsReceived(), numPackets);
     EXPECT_EQ(quality2.getAverageRelativeJitter(), jitter);
+
+    MediaQualityStatus status = mFakeCallback.getMediaQualityStatus();
+    EXPECT_EQ(status.getRtpJitterMillis(), jitter);
 }
 
 TEST_F(MediaQualityAnalyzerTest, TestSsrcChange)
@@ -347,10 +430,13 @@ TEST_F(MediaQualityAnalyzerTest, TestSsrcChange)
 
 TEST_F(MediaQualityAnalyzerTest, TestPacketLossInd)
 {
-    EXPECT_CALL(mCallback, onEvent(kImsMediaEventPacketLoss, _, _)).Times(1);
+    EXPECT_CALL(mCallback, onEvent(kImsMediaEventMediaQualityStatus, _, _)).Times(1);
     EXPECT_CALL(mCallback, onEvent(kAudioCallQualityChangedInd, _, _)).Times(1);
-    // 1 percent packet loss threshold in 1 sec interval
-    mAnalyzer->setPacketLossThreshold(1, 1);
+    MediaQualityThreshold threshold;
+    threshold.setRtpHysteresisTimeInMillis(kRtpHysteresisTimeInMillis);
+    threshold.setRtpPacketLossDurationMillis(kRtpPacketLossDurationMillis);
+    threshold.setRtpPacketLossRate(kRtpPacketLossRate);
+    mAnalyzer->setMediaQualityThreshold(threshold);
     mAnalyzer->start();
 
     const int32_t numPackets = 10;
@@ -366,6 +452,7 @@ TEST_F(MediaQualityAnalyzerTest, TestPacketLossInd)
 
         packet->seqNum = i;
         packet->jitter = 10;
+        packet->arrival = ImsMediaTimer::GetTimeInMilliSeconds();
         mAnalyzer->SendEvent(kCollectPacketInfo, kStreamRtpRx, reinterpret_cast<uint64_t>(packet));
     }
 
@@ -378,14 +465,31 @@ TEST_F(MediaQualityAnalyzerTest, TestPacketLossInd)
     EXPECT_EQ(mAnalyzer->getRxPacketSize(), numPackets - 1);
     EXPECT_EQ(mAnalyzer->getLostPacketSize(), 1);
 
-    MediaQuality quality = mAnalyzer->getMediaQuality();
+    CallQuality quality = mAnalyzer->getCallQuality();
     mAnalyzer->stop();
 
     EXPECT_EQ(mAnalyzer->getTxPacketSize(), 0);
     EXPECT_EQ(mAnalyzer->getRxPacketSize(), 0);
     EXPECT_EQ(mAnalyzer->getLostPacketSize(), 0);
 
-    MediaQuality quality2 = mFakeCallback.getMediaQuality();
+    CallQuality quality2 = mFakeCallback.getCallQuality();
     EXPECT_EQ(quality2, quality);
     EXPECT_EQ(quality2.getNumRtpPacketsNotReceived(), 1);
+
+    MediaQualityStatus status = mFakeCallback.getMediaQualityStatus();
+    EXPECT_EQ(status.getRtpPacketLossRate(), 10);
+}
+
+TEST_F(MediaQualityAnalyzerTest, TestNotifyMediaQualityStatus)
+{
+    EXPECT_CALL(mCallback, onEvent(kImsMediaEventMediaQualityStatus, _, _)).Times(1);
+    EXPECT_CALL(mCallback, onEvent(kAudioCallQualityChangedInd, _, _)).Times(1);
+    MediaQualityThreshold threshold;
+    threshold.setNotifyCurrentStatus(true);
+    mAnalyzer->setMediaQualityThreshold(threshold);
+    mAnalyzer->start();
+
+    mCondition.wait_timeout(2100);  // 2.1 sec
+
+    mAnalyzer->stop();
 }

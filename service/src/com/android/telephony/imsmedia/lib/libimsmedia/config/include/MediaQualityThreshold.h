@@ -21,6 +21,7 @@
 #include <binder/Parcelable.h>
 #include <binder/Status.h>
 #include <stdint.h>
+#include <vector>
 
 namespace android
 {
@@ -43,35 +44,47 @@ public:
     bool operator!=(const MediaQualityThreshold& threshold) const;
     virtual status_t writeToParcel(Parcel* parcel) const;
     virtual status_t readFromParcel(const Parcel* in);
-    void setRtpInactivityTimerMillis(int32_t time);
-    int32_t getRtpInactivityTimerMillis();
+    void setRtpInactivityTimerMillis(std::vector<int32_t> times);
+    std::vector<int32_t> getRtpInactivityTimerMillis() const;
     void setRtcpInactivityTimerMillis(int32_t time);
-    int32_t getRtcpInactivityTimerMillis();
+    int32_t getRtcpInactivityTimerMillis() const;
+    void setRtpHysteresisTimeInMillis(int32_t time);
+    int32_t getRtpHysteresisTimeInMillis() const;
     void setRtpPacketLossDurationMillis(int32_t time);
-    int32_t getRtpPacketLossDurationMillis();
-    void setRtpPacketLossRate(int32_t rate);
-    int32_t getRtpPacketLossRate();
-    void setJitterDurationMillis(int32_t time);
-    int32_t getJitterDurationMillis();
-    void setRtpJitterMillis(int32_t time);
-    int32_t getRtpJitterMillis();
+    int32_t getRtpPacketLossDurationMillis() const;
+    void setRtpPacketLossRate(std::vector<int32_t> rates);
+    std::vector<int32_t> getRtpPacketLossRate() const;
+    void setRtpJitterMillis(std::vector<int32_t> jitters);
+    std::vector<int32_t> getRtpJitterMillis() const;
+    void setNotifyCurrentStatus(bool status);
+    bool getNotifyCurrentStatus() const;
 
 private:
-    /** Timer in milliseconds for monitoring RTP inactivity */
-    int32_t mRtpInactivityTimerMillis;
-    /** Timer in milliseconds for monitoring RTCP inactivity */
+    /** The timer in milliseconds for monitoring RTP inactivity */
+    std::vector<int32_t> mRtpInactivityTimerMillis;
+    /** The timer in milliseconds for monitoring RTCP inactivity */
     int32_t mRtcpInactivityTimerMillis;
-    /** Duration in milliseconds for monitoring the RTP packet loss rate */
+    /**
+     * Set the threshold hysteresis time for packet loss and jitter. This has a goal to prevent
+     * frequent ping-pong notification. So whenever a notifier needs to report the cross of
+     * threshold in opposite direction, this hysteresis timer should be respected.
+     */
+    int32_t mRtpHysteresisTimeInMillis;
+    /** Set the duration in milliseconds for monitoring the RTP packet loss rate */
     int32_t mRtpPacketLossDurationMillis;
     /**
      * Packet loss rate in percentage of (total number of packets lost) /
      * (total number of packets expected) during rtpPacketLossDurationMs
      */
-    int32_t mRtpPacketLossRate;
-    /** Duration in milliseconds for monitoring the jitter for RTP traffic */
-    int32_t mJitterDurationMillis;
+    std::vector<int32_t> mRtpPacketLossRate;
     /** RTP jitter threshold in milliseconds */
-    int32_t mRtpJitterMillis;
+    std::vector<int32_t> mRtpJitterMillis;
+    /**
+     * A flag indicating whether the client needs to be notify the current media quality status
+     * right after threshold is being set. True means the media stack should notify the client
+     * of the current status.
+     */
+    bool mNotifyCurrentStatus;
 };
 
 }  // namespace imsmedia

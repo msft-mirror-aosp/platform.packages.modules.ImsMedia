@@ -23,15 +23,16 @@
 #include <RtcpXrEncoder.h>
 #include <AudioConfig.h>
 #include <stdlib.h>
+#include <algorithm>
 
-#define DEFAULT_PARAM                (-1)
-#define DEFAULT_INACTIVITY_TIME      (5)
-#define CALL_QUALITY_MONITORING_TIME (5)
-#define MAX_NUM_PACKET_STORED        (500)
-#define DELETE_ALL                   (65536)
-#define TIMER_INTERVAL               (1000)   // 1 sec
-#define STOP_TIMEOUT                 (1000)   // 1 sec
-#define MESSAGE_PROCESSING_INTERVAL  (20000)  // 20 msec
+#define DEFAULT_PARAM                            (-1)
+#define DEFAULT_INACTIVITY_TIME_FOR_CALL_QUALITY (4)
+#define CALL_QUALITY_MONITORING_TIME             (5)
+#define MAX_NUM_PACKET_STORED                    (500)
+#define DELETE_ALL                               (65536)
+#define TIMER_INTERVAL                           (1000)   // 1 sec
+#define STOP_TIMEOUT                             (1000)   // 1 sec
+#define MESSAGE_PROCESSING_INTERVAL              (20000)  // 20 msec
 
 MediaQualityAnalyzer::MediaQualityAnalyzer()
 {
@@ -40,10 +41,16 @@ MediaQualityAnalyzer::MediaQualityAnalyzer()
     mCallback = nullptr;
     std::unique_ptr<RtcpXrEncoder> analyzer(new RtcpXrEncoder());
     mRtcpXrEncoder = std::move(analyzer);
-    mJitterThreshold = 0;
-    mJitterDuration = 0;
-    mPacketLossThreshold = 0;
+    mBaseRtpInactivityTimes.clear();
+    mCurrentRtpInactivityTimes.clear();
+    mRtcpInactivityTime = 0;
+    mRtpHysteresisTime = 0;
     mPacketLossDuration = 0;
+    mPacketLossThreshold.clear();
+    mJitterThreshold.clear();
+    mNotifyStatus = false;
+    mCountRtpInactivity = 0;
+    mCountRtcpInactivity = 0;
     reset();
 }
 
@@ -77,25 +84,25 @@ void MediaQualityAnalyzer::setCallback(BaseSessionCallback* callback)
     mCallback = callback;
 }
 
-void MediaQualityAnalyzer::setJitterThreshold(const int32_t duration, const int32_t threshold)
+void MediaQualityAnalyzer::setMediaQualityThreshold(const MediaQualityThreshold& threshold)
 {
-    IMLOGD2("[setJitterThreshold] duration[%d], threshold[%d]", duration, threshold);
-    mJitterThreshold = threshold;
-    mJitterDuration = duration;
+    mBaseRtpInactivityTimes = threshold.getRtpInactivityTimerMillis();
+    mCurrentRtpInactivityTimes = mBaseRtpInactivityTimes;
+    mRtcpInactivityTime = threshold.getRtcpInactivityTimerMillis();
+    mRtpHysteresisTime = threshold.getRtpHysteresisTimeInMillis();
+    mPacketLossDuration = threshold.getRtpPacketLossDurationMillis();
+    mPacketLossThreshold = threshold.getRtpPacketLossRate();
+    mJitterThreshold = threshold.getRtpJitterMillis();
+    mNotifyStatus = threshold.getNotifyCurrentStatus();
 
-    // reset the counter
-    mJitterRxPacket = 0;
-}
+    mCountRtpInactivity = 0;
+    mCountRtcpInactivity = 0;
 
-void MediaQualityAnalyzer::setPacketLossThreshold(const int32_t duration, const int32_t threshold)
-{
-    IMLOGD2("[setPacketLossThreshold] duration[%d], threshold[%d]", duration, threshold);
-    mPacketLossThreshold = threshold;
-    mPacketLossDuration = duration;
+    // reset the status
+    mQualityStatus = MediaQualityStatus();
 
-    // reset the counter
-    mNumRxPacket = 0;
-    mNumLostPacket = 0;
+    mPacketLossChecker.initialize(mRtpHysteresisTime);
+    mJitterChecker.initialize(mRtpHysteresisTime);
 }
 
 bool MediaQualityAnalyzer::isSameConfig(AudioConfig* config)
@@ -107,7 +114,7 @@ bool MediaQualityAnalyzer::isSameConfig(AudioConfig* config)
 void MediaQualityAnalyzer::start()
 {
     IMLOGD0("[start]");
-    mMediaQuality.setCodecType(convertAudioCodecType(
+    mCallQuality.setCodecType(convertAudioCodecType(
             mCodecType, ImsMediaAudioUtil::FindMaxEvsBandwidthFromRange(mCodecAttribute)));
 
     StartThread();
@@ -124,7 +131,8 @@ void MediaQualityAnalyzer::stop()
 
         if (mCallback != nullptr)
         {
-            MediaQuality* quality = new MediaQuality(mMediaQuality);
+            IMLOGD0("[notifyCallQuality]");
+            CallQuality* quality = new CallQuality(mCallQuality);
             mCallback->SendEvent(kAudioCallQualityChangedInd, reinterpret_cast<uint64_t>(quality));
         }
     }
@@ -150,7 +158,7 @@ void MediaQualityAnalyzer::collectInfo(const int32_t streamType, RtpPacket* pack
             delete pPacket;
         }
 
-        mMediaQuality.setNumRtpPacketsTransmitted(mMediaQuality.getNumRtpPacketsTransmitted() + 1);
+        mCallQuality.setNumRtpPacketsTransmitted(mCallQuality.getNumRtpPacketsTransmitted() + 1);
         IMLOGD_PACKET1(IM_PACKET_LOG_RTP, "[collectInfo] tx list size[%d]", mListTxPacket.size());
     }
     else if (streamType == kStreamRtpRx)
@@ -161,25 +169,25 @@ void MediaQualityAnalyzer::collectInfo(const int32_t streamType, RtpPacket* pack
         }
 
         // for call qualty report
-        mMediaQuality.setNumRtpPacketsReceived(mMediaQuality.getNumRtpPacketsReceived() + 1);
+        mCallQuality.setNumRtpPacketsReceived(mCallQuality.getNumRtpPacketsReceived() + 1);
         mCallQualitySumRelativeJitter += packet->jitter;
 
-        if (mMediaQuality.getMaxRelativeJitter() < packet->jitter)
+        if (mCallQuality.getMaxRelativeJitter() < packet->jitter)
         {
-            mMediaQuality.setMaxRelativeJitter(packet->jitter);
+            mCallQuality.setMaxRelativeJitter(packet->jitter);
         }
 
-        mMediaQuality.setAverageRelativeJitter(
-                mCallQualitySumRelativeJitter / mMediaQuality.getNumRtpPacketsReceived());
+        mCallQuality.setAverageRelativeJitter(
+                mCallQualitySumRelativeJitter / mCallQuality.getNumRtpPacketsReceived());
 
         switch (packet->rtpDataType)
         {
             case kRtpDataTypeNoData:
-                mMediaQuality.setNumNoDataFrames(mMediaQuality.getNumNoDataFrames() + 1);
+                mCallQuality.setNumNoDataFrames(mCallQuality.getNumNoDataFrames() + 1);
                 break;
             case kRtpDataTypeSid:
-                mMediaQuality.setNumRtpSidPacketsReceived(
-                        mMediaQuality.getNumRtpSidPacketsReceived() + 1);
+                mCallQuality.setNumRtpSidPacketsReceived(
+                        mCallQuality.getNumRtpSidPacketsReceived() + 1);
                 break;
             default:
             case kRtpDataTypeNormal:
@@ -215,7 +223,7 @@ void MediaQualityAnalyzer::collectInfo(const int32_t streamType, RtpPacket* pack
     }
     else if (streamType == kStreamRtcp)
     {
-        /** TODO: add implementation later */
+        mNumRtcpPacketReceived++;
     }
 }
 
@@ -233,13 +241,13 @@ void MediaQualityAnalyzer::collectOptionalInfo(
     {
         mSumRoundTripTime += value;
         mCountRoundTripTime++;
-        mMediaQuality.setAverageRoundTripTime(mSumRoundTripTime / mCountRoundTripTime);
+        mCallQuality.setAverageRoundTripTime(mSumRoundTripTime / mCountRoundTripTime);
 
         mRtcpXrEncoder->setRoundTripDelay(value);
     }
     else if (optionType == kReportPacketLossGap)
     {
-        LostPktEntry* entry = new LostPktEntry(seq, value);
+        LostPacket* entry = new LostPacket(seq, value, ImsMediaTimer::GetTimeInMilliSeconds());
         mListLostPacket.push_back(entry);
 
         for (int32_t i = 0; i < value; i++)
@@ -248,8 +256,8 @@ void MediaQualityAnalyzer::collectOptionalInfo(
             mRtcpXrEncoder->stackRxRtpStatus(kRtpStatusLost, 0);
 
             // for call quality report
-            mMediaQuality.setNumRtpPacketsNotReceived(
-                    mMediaQuality.getNumRtpPacketsNotReceived() + 1);
+            mCallQuality.setNumRtpPacketsNotReceived(
+                    mCallQuality.getNumRtpPacketsNotReceived() + 1);
             mCallQualityNumLostPacket++;
             // for loss checking
             mNumLostPacket++;
@@ -279,10 +287,10 @@ void MediaQualityAnalyzer::collectRxRtpStatus(
         if (packet->seqNum == seq)
         {
             packet->status = status;
-            packet->delay = time - packet->delay;
-            mRtcpXrEncoder->stackRxRtpStatus(packet->status, packet->delay);
+            uint32_t delay = time - packet->arrival;
+            mRtcpXrEncoder->stackRxRtpStatus(packet->status, delay);
             IMLOGD_PACKET3(IM_PACKET_LOG_RTP, "[collectRxRtpStatus] seq[%d], status[%d], delay[%u]",
-                    seq, packet->status, packet->delay);
+                    seq, packet->status, delay);
             found = true;
             break;
         }
@@ -297,16 +305,16 @@ void MediaQualityAnalyzer::collectRxRtpStatus(
     switch (status)
     {
         case kRtpStatusNormal:
-            mMediaQuality.setNumVoiceFrames(mMediaQuality.getNumVoiceFrames() + 1);
+            mCallQuality.setNumVoiceFrames(mCallQuality.getNumVoiceFrames() + 1);
             mCallQualityNumRxPacket++;
             break;
         case kRtpStatusLate:
         case kRtpStatusDiscarded:
-            mMediaQuality.setNumDroppedRtpPackets(mMediaQuality.getNumDroppedRtpPackets() + 1);
+            mCallQuality.setNumDroppedRtpPackets(mCallQuality.getNumDroppedRtpPackets() + 1);
             mCallQualityNumRxPacket++;
             break;
         case kRtpStatusDuplicated:
-            mMediaQuality.setNumRtpDuplicatePackets(mMediaQuality.getNumRtpDuplicatePackets() + 1);
+            mCallQuality.setNumRtpDuplicatePackets(mCallQuality.getNumRtpDuplicatePackets() + 1);
             mCallQualityNumRxPacket++;
             break;
         default:
@@ -342,20 +350,24 @@ void MediaQualityAnalyzer::processData(const int32_t timeCount)
 {
     IMLOGD_PACKET1(IM_PACKET_LOG_RTP, "[processData] count[%d]", timeCount);
 
-    if (timeCount == DEFAULT_INACTIVITY_TIME && mMediaQuality.getNumRtpPacketsReceived() == 0)
+    // call quality inactivity
+    if (timeCount == DEFAULT_INACTIVITY_TIME_FOR_CALL_QUALITY &&
+            mCallQuality.getNumRtpPacketsReceived() == 0)
     {
-        mMediaQuality.setRtpInactivityDetected(true);
+        mCallQuality.setRtpInactivityDetected(true);
 
         if (mCallback != nullptr)
         {
-            MediaQuality* mediaQuality = new MediaQuality(mMediaQuality);
+            IMLOGD0("[notifyCallQuality]");
+            CallQuality* callQuality = new CallQuality(mCallQuality);
             mCallback->SendEvent(
-                    kAudioCallQualityChangedInd, reinterpret_cast<uint64_t>(mediaQuality));
+                    kAudioCallQualityChangedInd, reinterpret_cast<uint64_t>(callQuality));
         }
     }
 
-    mMediaQuality.setCallDuration(mMediaQuality.getCallDuration() + TIMER_INTERVAL);
+    mCallQuality.setCallDuration(mCallQuality.getCallDuration() + TIMER_INTERVAL);
 
+    // call quality packet loss
     if (timeCount % CALL_QUALITY_MONITORING_TIME == 0)
     {
         double lossRate = 0;
@@ -369,15 +381,16 @@ void MediaQualityAnalyzer::processData(const int32_t timeCount)
         IMLOGD3("[processData] lost[%d], received[%d], quality[%d]", mCallQualityNumLostPacket,
                 mCallQualityNumRxPacket, quality);
 
-        if (mMediaQuality.getDownlinkCallQualityLevel() != quality)
+        if (mCallQuality.getDownlinkCallQualityLevel() != quality)
         {
-            mMediaQuality.setDownlinkCallQualityLevel(quality);
+            mCallQuality.setDownlinkCallQualityLevel(quality);
 
             if (mCallback != nullptr)
             {
-                MediaQuality* mediaQuality = new MediaQuality(mMediaQuality);
+                IMLOGD0("[notifyCallQuality]");
+                CallQuality* callQuality = new CallQuality(mCallQuality);
                 mCallback->SendEvent(
-                        kAudioCallQualityChangedInd, reinterpret_cast<uint64_t>(mediaQuality));
+                        kAudioCallQualityChangedInd, reinterpret_cast<uint64_t>(callQuality));
             }
         }
 
@@ -385,37 +398,141 @@ void MediaQualityAnalyzer::processData(const int32_t timeCount)
         mCallQualityNumRxPacket = 0;
     }
 
-    // check packet loss
-    if (mPacketLossDuration != 0 && (timeCount % mPacketLossDuration) == 0)
+    processMediaQuality();
+}
+
+void MediaQualityAnalyzer::processMediaQuality()
+{
+    // media quality rtp inactivity
+    if (!mCurrentRtpInactivityTimes.empty() && mNumRxPacket == 0)
     {
-        double lossRate = 0;
-
-        if (mNumLostPacket > 0)
-        {
-            lossRate = (double)mNumLostPacket / (mNumRxPacket + mNumLostPacket) * 100;
-        }
-
-        IMLOGD1("[processData] lossRate[%lf]", lossRate);
-
-        if (lossRate >= mPacketLossThreshold && mCallback != nullptr)
-        {
-            mCallback->SendEvent(kImsMediaEventPacketLoss, lossRate);
-        }
-
+        mCountRtpInactivity += 1000;
+    }
+    else
+    {
+        mCountRtpInactivity = 0;
         mNumRxPacket = 0;
-        mNumLostPacket = 0;
+        mCurrentRtpInactivityTimes = mBaseRtpInactivityTimes;
     }
 
-    // check average jitter
-    if (mJitterDuration != 0 && timeCount % mJitterDuration == 0)
+    // media quality rtcp inactivity
+    if (mRtcpInactivityTime != 0 && mNumRtcpPacketReceived == 0)
     {
-        IMLOGD1("[processData] Jitter[%lf]", mJitterRxPacket);
+        mCountRtcpInactivity += 1000;
+    }
+    else
+    {
+        mCountRtcpInactivity = 0;
+        mNumRtcpPacketReceived = 0;
+    }
 
-        if (mJitterRxPacket >= mJitterThreshold && mCallback != nullptr)
+    mQualityStatus.setRtpInactivityTimeMillis(mCountRtpInactivity);
+    mQualityStatus.setRtcpInactivityTimeMillis(mCountRtcpInactivity);
+    mQualityStatus.setRtpJitterMillis(mJitterRxPacket);
+
+    if (mPacketLossDuration != 0 && !mListLostPacket.empty())
+    {
+        // calculate loss in duration
+        int32_t numReceivedPacketsInDuration =
+                std::count_if(mListRxPacket.begin(), mListRxPacket.end(),
+                        [=](RtpPacket* packet)
+                        {
+                            return (ImsMediaTimer::GetTimeInMilliSeconds() - packet->arrival <=
+                                    mPacketLossDuration);
+                        });
+
+        int32_t numLostPacketsInDuration =
+                std::count_if(mListLostPacket.begin(), mListLostPacket.end(),
+                        [=](LostPacket* packet)
+                        {
+                            return (ImsMediaTimer::GetTimeInMilliSeconds() - packet->markedTime <=
+                                    mPacketLossDuration);
+                        });
+
+        if (numLostPacketsInDuration == 0 || numReceivedPacketsInDuration == 0)
         {
-            mCallback->SendEvent(kImsMediaEventNotifyJitter, mJitterRxPacket);
+            mQualityStatus.setRtpPacketLossRate(0);
+        }
+        else
+        {
+            int32_t lossRate = numLostPacketsInDuration * 100 /
+                    (numReceivedPacketsInDuration + numLostPacketsInDuration);
+
+            IMLOGD3("[processData] mediaQualtyStatus lossRate[%d], received[%d], lost[%d]",
+                    lossRate, numReceivedPacketsInDuration, numLostPacketsInDuration);
+            mQualityStatus.setRtpPacketLossRate(lossRate);
         }
     }
+    else
+    {
+        mQualityStatus.setRtpPacketLossRate(0);
+    }
+
+    IMLOGD_PACKET4(IM_PACKET_LOG_RTP,
+            "[processMediaQuality] rtpInactivity[%d], rtcpInactivity[%d], lossRate[%d], "
+            "jitter[%d]",
+            mQualityStatus.getRtpInactivityTimeMillis(),
+            mQualityStatus.getRtcpInactivityTimeMillis(), mQualityStatus.getRtpPacketLossRate(),
+            mQualityStatus.getRtpJitterMillis());
+
+    if (mNotifyStatus)
+    {
+        notifyMediaQualityStatus();
+        mNotifyStatus = false;
+        return;
+    }
+
+    if (!mCurrentRtpInactivityTimes.empty())
+    {
+        std::vector<int32_t>::iterator rtpIter =
+                std::find_if(mCurrentRtpInactivityTimes.begin(), mCurrentRtpInactivityTimes.end(),
+                        [=](int32_t i)
+                        {
+                            return (mCountRtpInactivity >= i);  // check cross the threshold
+                        });
+
+        if (rtpIter != mCurrentRtpInactivityTimes.end())  // found
+        {
+            mCurrentRtpInactivityTimes.erase(rtpIter);
+            notifyMediaQualityStatus();
+            return;
+        }
+    }
+
+    if (mRtcpInactivityTime != 0 && mCountRtcpInactivity >= mRtcpInactivityTime)
+    {
+        notifyMediaQualityStatus();
+        mCountRtcpInactivity = 0;  // reset
+        return;
+    }
+
+    // check jitter notification
+    if (!mJitterThreshold.empty())
+    {
+        if (mJitterChecker.checkNotifiable(mJitterThreshold, mQualityStatus.getRtpJitterMillis()))
+        {
+            notifyMediaQualityStatus();
+            return;
+        }
+    }
+
+    // check packet loss notification
+    if (!mPacketLossThreshold.empty())
+    {
+        if (mPacketLossChecker.checkNotifiable(
+                    mPacketLossThreshold, mQualityStatus.getRtpPacketLossRate()))
+        {
+            notifyMediaQualityStatus();
+            return;
+        }
+    }
+}
+
+void MediaQualityAnalyzer::notifyMediaQualityStatus()
+{
+    IMLOGD0("[notifyMediaQualityStatus]");
+    MediaQualityStatus* status = new MediaQualityStatus(mQualityStatus);
+    mCallback->SendEvent(kImsMediaEventMediaQualityStatus, reinterpret_cast<uint64_t>(status));
 }
 
 bool MediaQualityAnalyzer::getRtcpXrReportBlock(
@@ -442,9 +559,9 @@ bool MediaQualityAnalyzer::getRtcpXrReportBlock(
     return true;
 }
 
-MediaQuality MediaQualityAnalyzer::getMediaQuality()
+CallQuality MediaQualityAnalyzer::getCallQuality()
 {
-    return mMediaQuality;
+    return mCallQuality;
 }
 
 uint32_t MediaQualityAnalyzer::getRxPacketSize()
@@ -600,7 +717,7 @@ void MediaQualityAnalyzer::reset()
     mBeginSeq = -1;
     mEndSeq = -1;
 
-    mMediaQuality = MediaQuality();
+    mCallQuality = CallQuality();
     mCallQualitySumRelativeJitter = 0;
     mSumRoundTripTime = 0;
     mCountRoundTripTime = 0;
@@ -645,10 +762,10 @@ void MediaQualityAnalyzer::clearLostPacketList(const int32_t seq)
         return;
     }
 
-    for (std::list<LostPktEntry*>::iterator iter = mListLostPacket.begin();
+    for (std::list<LostPacket*>::iterator iter = mListLostPacket.begin();
             iter != mListLostPacket.end();)
     {
-        LostPktEntry* packet = *iter;
+        LostPacket* packet = *iter;
         // do not remove the lost packet entry seq is larger than target seq
         if (packet->seqNum > seq)
         {
@@ -665,23 +782,23 @@ uint32_t MediaQualityAnalyzer::getCallQuality(const double lossRate)
 {
     if (lossRate < 1.0f)
     {
-        return MediaQuality::kCallQualityExcellent;
+        return CallQuality::kCallQualityExcellent;
     }
     else if (lossRate < 3.0f)
     {
-        return MediaQuality::kCallQualityGood;
+        return CallQuality::kCallQualityGood;
     }
     else if (lossRate < 5.0f)
     {
-        return MediaQuality::kCallQualityFair;
+        return CallQuality::kCallQualityFair;
     }
     else if (lossRate < 8.0f)
     {
-        return MediaQuality::kCallQualityPoor;
+        return CallQuality::kCallQualityPoor;
     }
     else
     {
-        return MediaQuality::kCallQualityBad;
+        return CallQuality::kCallQualityBad;
     }
 }
 
@@ -690,11 +807,11 @@ int32_t MediaQualityAnalyzer::convertAudioCodecType(const int32_t codec, const i
     switch (codec)
     {
         default:
-            return MediaQuality::AUDIO_QUALITY_NONE;
+            return CallQuality::AUDIO_QUALITY_NONE;
         case AudioConfig::CODEC_AMR:
-            return MediaQuality::AUDIO_QUALITY_AMR;
+            return CallQuality::AUDIO_QUALITY_AMR;
         case AudioConfig::CODEC_AMR_WB:
-            return MediaQuality::AUDIO_QUALITY_AMR_WB;
+            return CallQuality::AUDIO_QUALITY_AMR_WB;
         case AudioConfig::CODEC_EVS:
         {
             switch (bandwidth)
@@ -703,16 +820,16 @@ int32_t MediaQualityAnalyzer::convertAudioCodecType(const int32_t codec, const i
                 case EvsParams::EVS_BAND_NONE:
                     break;
                 case EvsParams::EVS_NARROW_BAND:
-                    return MediaQuality::AUDIO_QUALITY_EVS_NB;
+                    return CallQuality::AUDIO_QUALITY_EVS_NB;
                 case EvsParams::EVS_WIDE_BAND:
-                    return MediaQuality::AUDIO_QUALITY_EVS_WB;
+                    return CallQuality::AUDIO_QUALITY_EVS_WB;
                 case EvsParams::EVS_SUPER_WIDE_BAND:
-                    return MediaQuality::AUDIO_QUALITY_EVS_SWB;
+                    return CallQuality::AUDIO_QUALITY_EVS_SWB;
                 case EvsParams::EVS_FULL_BAND:
-                    return MediaQuality::AUDIO_QUALITY_EVS_FB;
+                    return CallQuality::AUDIO_QUALITY_EVS_FB;
             }
         }
     }
 
-    return MediaQuality::AUDIO_QUALITY_NONE;
+    return CallQuality::AUDIO_QUALITY_NONE;
 }

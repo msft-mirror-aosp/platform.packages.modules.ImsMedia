@@ -50,9 +50,8 @@ enum kImsMediaEventType
     kImsMediaEventStateChanged,
     kImsMediaEventFirstPacketReceived,
     kImsMediaEventHeaderExtensionReceived,
+    kImsMediaEventMediaQualityStatus,
     kImsMediaEventMediaInactivity,
-    kImsMediaEventPacketLoss,
-    kImsMediaEventNotifyJitter,
     kImsMediaEventResolutionChanged,
     kImsMediaEventNotifyVideoDataUsage,
     kImsMediaEventNotifyRttReceived,
@@ -307,9 +306,7 @@ enum ImsMediaAudioMsgResponse
     kAudioConfirmConfigResponse,
     kAudioFirstMediaPacketInd,
     kAudioRtpHeaderExtensionInd,
-    kAudioMediaInactivityInd,
-    kAudioPacketLossInd,
-    kAudioJitterInd,
+    kAudioMediaQualityStatusInd,
     kAudioTriggerAnbrQueryInd,
     kAudioDtmfReceivedInd,
     kAudioCallQualityChangedInd,
@@ -489,6 +486,7 @@ enum kRtpOptionalType
     kReportPacketLossGap,
 };
 
+/** TODO: change the name to avoid confusion by similarity */
 struct RtpPacket
 {
 public:
@@ -497,7 +495,7 @@ public:
             seqNum(0),
             TTL(0),
             jitter(0),
-            delay(0),
+            arrival(0),
             rtpDataType(kRtpDataTypeNoData),
             status(kRtpStatusNotDefined)
     {
@@ -508,17 +506,9 @@ public:
         seqNum = p.seqNum;
         TTL = p.TTL;
         jitter = p.jitter;
+        arrival = p.arrival;
         rtpDataType = p.rtpDataType;
         status = p.status;
-    }
-    RtpPacket(const RtpPacket* p)
-    {
-        ssrc = p->ssrc;
-        seqNum = p->seqNum;
-        TTL = p->TTL;
-        jitter = p->jitter;
-        rtpDataType = p->rtpDataType;
-        status = p->status;
     }
 
     uint32_t ssrc;
@@ -526,8 +516,8 @@ public:
     uint32_t TTL;
     /** transit time difference */
     int32_t jitter;
-    /** delay from arrival to play */
-    int32_t delay;
+    /** arrival time */
+    int32_t arrival;
     kRtpDataType rtpDataType;
     kRtpPacketStatus status;
 };
@@ -536,18 +526,24 @@ public:
  * @brief It is lost packet data structure to store the start number of packet sequence and the
  * number of lost packets
  */
-struct LostPktEntry
+struct LostPacket
 {
 public:
-    LostPktEntry(uint16_t s = 0, uint32_t p1 = 0, uint32_t p2 = 0) :
+    LostPacket(uint16_t s = 0, uint32_t num = 0, uint32_t time = 0, uint32_t opt = 0) :
             seqNum(s),
-            param1(p1),
-            param2(p2)
+            numLoss(num),
+            markedTime(time),
+            option(opt)
     {
     }
+    /** The rtp sequence number of beginning of lost packet */
     uint16_t seqNum;
-    uint32_t param1;
-    uint32_t param2;
+    /** The number of lost packets */
+    uint32_t numLoss;
+    /** The time in milliseconds when determined to lost */
+    uint32_t markedTime;
+    /** optional parameter for nack */
+    uint32_t option;
 };
 
 struct tRtpHeaderExtensionInfo
