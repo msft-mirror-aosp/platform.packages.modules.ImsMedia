@@ -225,7 +225,19 @@ TEST_F(MediaQualityAnalyzerTest, TestCollectTxPackets)
     EXPECT_EQ(quality2.getNumRtpPacketsTransmitted(), numPackets);
 }
 
-TEST_F(MediaQualityAnalyzerTest, TestRtpInactivity)
+TEST_F(MediaQualityAnalyzerTest, TestRtpInactivityNotRunning)
+{
+    EXPECT_CALL(mCallback, onEvent(kAudioCallQualityChangedInd, _, _)).Times(1);
+    EXPECT_CALL(mCallback, onEvent(kImsMediaEventMediaQualityStatus, _, _)).Times(0);
+    MediaQualityThreshold threshold;
+    threshold.setRtpInactivityTimerMillis(std::vector<int32_t>{0});
+    mAnalyzer->setMediaQualityThreshold(threshold);
+    mAnalyzer->start();
+    mCondition.wait_timeout(2100);  // 2.1 sec
+    mAnalyzer->stop();
+}
+
+TEST_F(MediaQualityAnalyzerTest, TestRtpInactivityRunning)
 {
     EXPECT_CALL(mCallback, onEvent(kAudioCallQualityChangedInd, _, _)).Times(2);
     EXPECT_CALL(mCallback, onEvent(kImsMediaEventMediaQualityStatus, _, _)).Times(3);
@@ -278,7 +290,7 @@ TEST_F(MediaQualityAnalyzerTest, TestRtcpInactivity)
 
     mAnalyzer->SendEvent(kCollectPacketInfo, kStreamRtcp);
 
-    mCondition.wait_timeout(2100);  // 2.1 sec
+    mCondition.wait_timeout(3100);  // 3.1 sec
 
     MediaQualityStatus quality3 = mFakeCallback.getMediaQualityStatus();
     EXPECT_EQ(quality3.getRtcpInactivityTimeMillis(), 2000);
