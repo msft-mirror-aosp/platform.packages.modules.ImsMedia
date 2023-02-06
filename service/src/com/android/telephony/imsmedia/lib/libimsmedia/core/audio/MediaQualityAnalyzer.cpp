@@ -403,7 +403,7 @@ void MediaQualityAnalyzer::processData(const int32_t timeCount)
 void MediaQualityAnalyzer::processMediaQuality()
 {
     // media quality rtp inactivity
-    if (!mCurrentRtpInactivityTimes.empty() && mNumRxPacket == 0)
+    if (mNumRxPacket == 0)
     {
         mCountRtpInactivity += 1000;
     }
@@ -415,7 +415,7 @@ void MediaQualityAnalyzer::processMediaQuality()
     }
 
     // media quality rtcp inactivity
-    if (mRtcpInactivityTime != 0 && mNumRtcpPacketReceived == 0)
+    if (mNumRtcpPacketReceived == 0)
     {
         mCountRtcpInactivity += 1000;
     }
@@ -499,10 +499,10 @@ void MediaQualityAnalyzer::processMediaQuality()
         }
     }
 
-    if (mRtcpInactivityTime != 0 && mCountRtcpInactivity >= mRtcpInactivityTime)
+    if (mRtcpInactivityTime != 0 && mCountRtcpInactivity == mRtcpInactivityTime)
     {
         notifyMediaQualityStatus();
-        mCountRtcpInactivity = 0;  // reset
+        mCountRtcpInactivity = 0;
         return;
     }
 
