@@ -111,9 +111,8 @@ void TextJitterBuffer::Add(ImsMediaSubType subtype, uint8_t* buffer, uint32_t si
 }
 
 bool TextJitterBuffer::Get(ImsMediaSubType* subtype, uint8_t** data, uint32_t* dataSize,
-        uint32_t* timestamp, bool* mark, uint32_t* seqNum, uint32_t* checker)
+        uint32_t* timestamp, bool* mark, uint32_t* seqNum, uint32_t /*currentTime*/)
 {
-    (void)checker;
     std::lock_guard<std::mutex> guard(mMutex);
     DataEntry* pEntry;
 
