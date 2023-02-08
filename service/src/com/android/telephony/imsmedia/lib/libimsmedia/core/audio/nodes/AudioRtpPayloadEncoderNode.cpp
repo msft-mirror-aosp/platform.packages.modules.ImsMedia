@@ -280,9 +280,6 @@ void AudioRtpPayloadEncoderNode::EncodePayloadEvs(
     kRtpPyaloadHeaderMode eEVSPayloadFormat = kRtpPyaloadHeaderModeEvsHeaderFull;
     kEvsCodecMode kEvsCodecMode;
 
-    // Converting bits to bytes.
-    nDataSize /= 8;
-
     // 0111 1111 is no request.
     uint32_t nEVSBW = 0x07;
     uint32_t nEVSBR = 0x0f;
