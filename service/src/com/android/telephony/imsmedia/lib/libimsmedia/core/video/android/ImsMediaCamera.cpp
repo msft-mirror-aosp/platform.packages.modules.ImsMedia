@@ -725,12 +725,11 @@ void ImsMediaCamera::EnumerateCamera()
 
 bool ImsMediaCamera::GetSensorOrientation(const int cameraId, int32_t* facing, int32_t* angle)
 {
-    if (!mManager)
+    if (!mManager || facing == nullptr || angle == nullptr)
     {
         return false;
     }
 
-    camera_status_t status;
     ACameraMetadata* metadataObj;
     uint32_t idx = 0;
 
@@ -739,8 +738,8 @@ bool ImsMediaCamera::GetSensorOrientation(const int cameraId, int32_t* facing, i
     {
         if (idx == cameraId)
         {
-            status = ACameraManager_getCameraCharacteristics(
-                    mManager, gCameraIds[(it->second).mId].mId.c_str(), &metadataObj);
+            camera_status_t status = ACameraManager_getCameraCharacteristics(
+                    mManager, (it->second).mId.c_str(), &metadataObj);
             if (status == ACAMERA_OK)
             {
                 ACameraMetadata_const_entry face, orientation;
@@ -748,11 +747,10 @@ bool ImsMediaCamera::GetSensorOrientation(const int cameraId, int32_t* facing, i
                 mCameraFacing = static_cast<int32_t>(face.data.u8[0]);
                 ACameraMetadata_getConstEntry(
                         metadataObj, ACAMERA_SENSOR_ORIENTATION, &orientation);
-                ACameraMetadata_free(metadataObj);
                 mCameraOrientation = orientation.data.i32[0];
-
                 mCameraFacing == 0 ? * facing = kCameraFacingFront : * facing = kCameraFacingRear;
                 *angle = mCameraOrientation;
+                ACameraMetadata_free(metadataObj);
                 return true;
             }
         }
