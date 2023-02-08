@@ -196,7 +196,8 @@ bool RtcpXrEncoder::createRtcpXrReport(const uint32_t rtcpXrReport, std::list<Rt
 
     IMLOGD_PACKET2(IM_PACKET_LOG_RTCP, "[createRtcpXrReport] rtcpXrReport[%d], size[%d]",
             rtcpXrReport, size);
-    return true;
+
+    return (size > 0);
 }
 
 tLossReport* RtcpXrEncoder::createLossAnalysisReport(std::list<RtpPacket*>* packets,
