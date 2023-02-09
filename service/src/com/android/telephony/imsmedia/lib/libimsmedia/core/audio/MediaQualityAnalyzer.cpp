@@ -403,7 +403,7 @@ void MediaQualityAnalyzer::processData(const int32_t timeCount)
 void MediaQualityAnalyzer::processMediaQuality()
 {
     // media quality rtp inactivity
-    if (!mCurrentRtpInactivityTimes.empty() && mNumRxPacket == 0)
+    if (mNumRxPacket == 0)
     {
         mCountRtpInactivity += 1000;
     }
@@ -415,7 +415,7 @@ void MediaQualityAnalyzer::processMediaQuality()
     }
 
     // media quality rtcp inactivity
-    if (mRtcpInactivityTime != 0 && mNumRtcpPacketReceived == 0)
+    if (mNumRtcpPacketReceived == 0)
     {
         mCountRtcpInactivity += 1000;
     }
@@ -499,10 +499,10 @@ void MediaQualityAnalyzer::processMediaQuality()
         }
     }
 
-    if (mRtcpInactivityTime != 0 && mCountRtcpInactivity >= mRtcpInactivityTime)
+    if (mRtcpInactivityTime != 0 && mCountRtcpInactivity == mRtcpInactivityTime)
     {
         notifyMediaQualityStatus();
-        mCountRtcpInactivity = 0;  // reset
+        mCountRtcpInactivity = 0;
         return;
     }
 
@@ -545,10 +545,10 @@ bool MediaQualityAnalyzer::getRtcpXrReportBlock(
         return false;
     }
 
-    if (mRtcpXrEncoder->createRtcpXrReport(rtcpXrReport, &mListRxPacket, &mListLostPacket,
-                mBeginSeq, mEndSeq, data, size) == false)
+    if (!mRtcpXrEncoder->createRtcpXrReport(
+                rtcpXrReport, &mListRxPacket, &mListLostPacket, mBeginSeq, mEndSeq, data, size))
     {
-        IMLOGE0("[getRtcpXrReportBlock] error createRtcpXrReport");
+        IMLOGW0("[getRtcpXrReportBlock] fail to createRtcpXrReport");
         return false;
     }
 
@@ -629,7 +629,7 @@ void MediaQualityAnalyzer::processEvent(uint32_t event, uint64_t paramA, uint64_
         case kGetRtcpXrReportBlock:
         {
             uint32_t size = 0;
-            uint8_t* reportBlock = new uint8_t[MAX_BLOCK_LENGTH];
+            uint8_t* reportBlock = new uint8_t[MAX_BLOCK_LENGTH]{};
 
             if (getRtcpXrReportBlock(static_cast<int32_t>(paramA), reportBlock, size))
             {
