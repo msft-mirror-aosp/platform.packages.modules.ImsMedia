@@ -30,7 +30,6 @@ RtpEncoderNode::RtpEncoderNode(BaseSessionCallback* callback) :
     mDTMFMode = false;
     mMark = false;
     mPrevTimestamp = 0;
-    mDTMFTimestamp = 0;
     mSamplingRate = 0;
     mRtpPayloadTx = 0;
     mRtpPayloadRx = 0;
@@ -108,7 +107,6 @@ ImsMediaResult RtpEncoderNode::Start()
     mDTMFMode = false;
     mMark = true;
     mPrevTimestamp = 0;
-    mDTMFTimestamp = 0;
 #ifdef DEBUG_JITTER_GEN_SIMULATION_DELAY
     mNextTime = 0;
 #endif
@@ -156,7 +154,7 @@ void RtpEncoderNode::ProcessData()
     {
         if (mMediaType == IMS_MEDIA_AUDIO)
         {
-            if (!ProcessAudioData(subtype, data, size, timestamp))
+            if (!ProcessAudioData(subtype, data, size))
             {
                 return;
             }
@@ -350,8 +348,7 @@ void RtpEncoderNode::SetRtpHeaderExtension(tRtpHeaderExtensionInfo& tExtension)
     mRtpExtension = tExtension;
 }
 
-bool RtpEncoderNode::ProcessAudioData(
-        ImsMediaSubType subtype, uint8_t* data, uint32_t size, uint32_t timestamp)
+bool RtpEncoderNode::ProcessAudioData(ImsMediaSubType subtype, uint8_t* data, uint32_t size)
 {
     uint32_t currentTimestamp;
     uint32_t timeDiff;
@@ -373,30 +370,21 @@ bool RtpEncoderNode::ProcessAudioData(
     {
         if (mDTMFMode)
         {
-            IMLOGD_PACKET2(IM_PACKET_LOG_RTP, "[ProcessAudioData] DTMF - size[%d], TS[%d]", size,
-                    mDTMFTimestamp);
-            // the first dtmf event
-            if (timestamp == 0)
-            {
-                currentTimestamp = ImsMediaTimer::GetTimeInMilliSeconds();
-                mDTMFTimestamp = currentTimestamp;
-                timeDiff = ((currentTimestamp - mPrevTimestamp) + 10) / 20 * 20;
+            currentTimestamp = ImsMediaTimer::GetTimeInMilliSeconds();
+            timeDiff = currentTimestamp - mPrevTimestamp;
 
-                if (timeDiff == 0)
-                {
-                    timeDiff = 20;
-                }
-
-                mPrevTimestamp += timeDiff;
-            }
-            else
+            if (timeDiff < 20)
             {
-                timeDiff = 0;
+                return false;
             }
 
+            mPrevTimestamp = currentTimestamp;
             timestampDiff = timeDiff * mSamplingRate;
+
+            IMLOGD_PACKET2(IM_PACKET_LOG_RTP, "[ProcessAudioData] dtmf payload, size[%u], TS[%u]",
+                    size, currentTimestamp);
             mRtpSession->SendRtpPacket(
-                    mRtpTxDtmfPayload, data, size, mDTMFTimestamp, mMark, timestampDiff);
+                    mRtpTxDtmfPayload, data, size, currentTimestamp, mMark, timestampDiff);
 
             if (mMark)
             {
