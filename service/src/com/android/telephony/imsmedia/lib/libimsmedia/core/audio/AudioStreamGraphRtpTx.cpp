@@ -20,7 +20,6 @@
 #include <AudioConfig.h>
 #include <IAudioSourceNode.h>
 #include <DtmfEncoderNode.h>
-#include <DtmfSenderNode.h>
 #include <AudioRtpPayloadEncoderNode.h>
 #include <RtpEncoderNode.h>
 #include <SocketWriterNode.h>
@@ -175,16 +174,9 @@ bool AudioStreamGraphRtpTx::createDtmfGraph(RtpConfig* config, BaseNode* rtpEnco
     AddNode(pDtmfEncoderNode);
     mListDtmfNodes.push_back(pDtmfEncoderNode);
 
-    BaseNode* pDtmfSenderNode = new DtmfSenderNode(mCallback);
-    pDtmfSenderNode->SetMediaType(IMS_MEDIA_AUDIO);
-    pDtmfSenderNode->SetConfig(audioConfig);
-    pDtmfEncoderNode->ConnectRearNode(pDtmfSenderNode);
-    AddNode(pDtmfSenderNode);
-    mListDtmfNodes.push_back(pDtmfSenderNode);
-
     if (rtpEncoderNode != nullptr)
     {
-        pDtmfSenderNode->ConnectRearNode(rtpEncoderNode);
+        pDtmfEncoderNode->ConnectRearNode(rtpEncoderNode);
     }
 
     return true;

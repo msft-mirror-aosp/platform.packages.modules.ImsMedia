@@ -49,7 +49,6 @@ enum kBaseNodeId
     kNodeIdAudioSource,
     kNodeIdAudioPlayer,
     kNodeIdDtmfEncoder,
-    kNodeIdDtmfSender,
     kNodeIdAudioPayloadEncoder,
     kNodeIdAudioPayloadDecoder,
     // for Video

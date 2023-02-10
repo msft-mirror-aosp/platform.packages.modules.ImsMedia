@@ -58,8 +58,7 @@ public:
     void SetRtpHeaderExtension(tRtpHeaderExtensionInfo& tExtension);
 
 private:
-    bool ProcessAudioData(
-            ImsMediaSubType subtype, uint8_t* pData, uint32_t nDataSize, uint32_t timestamp);
+    bool ProcessAudioData(ImsMediaSubType subtype, uint8_t* pData, uint32_t nDataSize);
     void ProcessVideoData(ImsMediaSubType subtype, uint8_t* pData, uint32_t nDataSize,
             uint32_t timestamp, bool mark);
     void ProcessTextData(ImsMediaSubType subtype, uint8_t* pData, uint32_t nDataSize,
@@ -72,7 +71,6 @@ private:
     bool mDTMFMode;
     bool mMark;
     uint32_t mPrevTimestamp;
-    uint32_t mDTMFTimestamp;
     int8_t mSamplingRate;
     int8_t mRtpPayloadTx;
     int8_t mRtpPayloadRx;
