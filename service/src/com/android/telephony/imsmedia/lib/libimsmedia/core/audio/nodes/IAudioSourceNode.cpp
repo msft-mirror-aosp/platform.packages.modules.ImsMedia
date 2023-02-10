@@ -32,6 +32,7 @@ IAudioSourceNode::IAudioSourceNode(BaseSessionCallback* callback) :
     mCodecMode = 0;
     mRunningCodecMode = 0;
     mFirstFrame = false;
+    mMediaDirection = 0;
 }
 
 IAudioSourceNode::~IAudioSourceNode() {}
@@ -52,6 +53,7 @@ ImsMediaResult IAudioSourceNode::Start()
         mRunningCodecMode = ImsMediaAudioUtil::GetMaximumAmrMode(mCodecMode);
         mAudioSource->SetPtime(mPtime);
         mAudioSource->SetSamplingRate(mSamplingRate * 1000);
+        mAudioSource->SetMediaDirection(mMediaDirection);
 
         if (mCodecType == kAudioCodecEvs)
         {
@@ -122,6 +124,7 @@ void IAudioSourceNode::SetConfig(void* config)
         mEvsChAwOffset = pConfig->getEvsParams().getChannelAwareMode();
     }
 
+    mMediaDirection = pConfig->getMediaDirection();
     mSamplingRate = pConfig->getSamplingRateKHz();
     mPtime = pConfig->getPtimeMillis();
 }
@@ -140,7 +143,8 @@ bool IAudioSourceNode::IsSameConfig(void* config)
         if (mCodecType == kAudioCodecAmr || mCodecType == kAudioCodecAmrWb)
         {
             return (mCodecMode == pConfig->getAmrParams().getAmrMode() &&
-                    mSamplingRate == pConfig->getSamplingRateKHz());
+                    mSamplingRate == pConfig->getSamplingRateKHz() &&
+                    mMediaDirection == pConfig->getMediaDirection());
         }
         else if (mCodecType == kAudioCodecEvs)
         {
@@ -149,7 +153,8 @@ bool IAudioSourceNode::IsSameConfig(void* config)
                             ImsMediaAudioUtil::FindMaxEvsBandwidthFromRange(
                                     pConfig->getEvsParams().getEvsBandwidth()) &&
                     mEvsChAwOffset == pConfig->getEvsParams().getChannelAwareMode() &&
-                    mSamplingRate == pConfig->getSamplingRateKHz());
+                    mSamplingRate == pConfig->getSamplingRateKHz() &&
+                    mMediaDirection == pConfig->getMediaDirection());
         }
     }
 
