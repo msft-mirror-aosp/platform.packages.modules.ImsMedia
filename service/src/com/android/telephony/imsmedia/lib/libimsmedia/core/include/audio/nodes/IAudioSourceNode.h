@@ -66,6 +66,7 @@ public:
     kEvsBandwidth mEvsBandwidth;
     int8_t mSamplingRate;
     int8_t mEvsChAwOffset;
+    int32_t mMediaDirection;
 };
 
 #endif
