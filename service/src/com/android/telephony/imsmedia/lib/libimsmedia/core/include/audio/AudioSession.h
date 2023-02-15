@@ -95,6 +95,14 @@ public:
      */
     bool IsGraphAlreadyExist(RtpConfig* config);
 
+    /**
+     * @brief Get graph list size with repective stream type
+     *
+     * @param type The graph type to fetch
+     * @return uint32_t The size of list
+     */
+    uint32_t getGraphSize(ImsMediaStreamType type);
+
 private:
     std::list<AudioStreamGraphRtpTx*> mListGraphRtpTx;
     std::list<AudioStreamGraphRtpRx*> mListGraphRtpRx;

@@ -154,6 +154,23 @@ ImsMediaResult AudioStreamGraphRtpTx::update(RtpConfig* config)
     return ret;
 }
 
+ImsMediaResult AudioStreamGraphRtpTx::start()
+{
+    if (mConfig == nullptr)
+    {
+        return RESULT_NOT_READY;
+    }
+
+    if (mConfig->getMediaDirection() == RtpConfig::MEDIA_DIRECTION_SEND_ONLY ||
+            mConfig->getMediaDirection() == RtpConfig::MEDIA_DIRECTION_SEND_RECEIVE)
+    {
+        return BaseStreamGraph::start();
+    }
+
+    // not started
+    return RESULT_SUCCESS;
+}
+
 bool AudioStreamGraphRtpTx::createDtmfGraph(RtpConfig* config, BaseNode* rtpEncoderNode)
 {
     if (config == nullptr)
@@ -166,6 +183,11 @@ bool AudioStreamGraphRtpTx::createDtmfGraph(RtpConfig* config, BaseNode* rtpEnco
     if (audioConfig->getTxDtmfPayloadTypeNumber() == 0)
     {
         return false;
+    }
+
+    if (mConfig == nullptr)
+    {
+        mConfig = new AudioConfig(*audioConfig);
     }
 
     BaseNode* pDtmfEncoderNode = new DtmfEncoderNode(mCallback);
