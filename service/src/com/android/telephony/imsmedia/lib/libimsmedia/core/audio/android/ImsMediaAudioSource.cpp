@@ -49,6 +49,7 @@ ImsMediaAudioSource::ImsMediaAudioSource()
     mEvsBitRate = 0;
     mEvsChAwOffset = 0;
     mIsEvsInitialized = false;
+    mMediaDirection = 0;
 }
 
 ImsMediaAudioSource::~ImsMediaAudioSource() {}
@@ -96,6 +97,11 @@ void ImsMediaAudioSource::SetPtime(uint32_t time)
 void ImsMediaAudioSource::SetEvsBandwidth(int32_t evsBandwidth)
 {
     mEvsBandwidth = (kEvsBandwidth)evsBandwidth;
+}
+
+void ImsMediaAudioSource::SetMediaDirection(int32_t direction)
+{
+    mMediaDirection = direction;
 }
 
 bool ImsMediaAudioSource::Start()

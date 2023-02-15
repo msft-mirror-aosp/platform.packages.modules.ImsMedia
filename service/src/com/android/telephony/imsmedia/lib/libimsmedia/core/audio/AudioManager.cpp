@@ -97,7 +97,8 @@ ImsMediaResult AudioManager::modifySession(int sessionId, AudioConfig* config)
     IMLOGI1("[modifySession] sessionId[%d]", sessionId);
     if (session != mSessions.end())
     {
-        if ((session->second)->IsGraphAlreadyExist(config))
+        if ((session->second)->IsGraphAlreadyExist(config) ||
+                (session->second)->getGraphSize(kStreamRtpTx) == 0)
         {
             return (session->second)->startGraph(config);
         }

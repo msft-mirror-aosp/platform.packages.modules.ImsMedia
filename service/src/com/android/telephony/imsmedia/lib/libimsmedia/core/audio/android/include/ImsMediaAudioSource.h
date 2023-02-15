@@ -95,6 +95,13 @@ public:
     void SetEvsChAwOffset(int32_t offset);
 
     /**
+     * @brief Sets audio media direction of the RTP session
+     *
+     * @param direction can be NO_FLOW, SEND_ONLY, RECEIVE_ONLY, SEND_RECEIVE, INACTIVE
+     */
+    void SetMediaDirection(int32_t direction);
+
+    /**
      * @brief Starts aaudio and ndk audio codec to get the audio frame and encode the audio frames
      * with given configuration
      *
@@ -141,6 +148,7 @@ private:
     int32_t mEvsChAwOffset;
     ImsMediaCondition mConditionExit;
     bool mIsEvsInitialized;
+    int32_t mMediaDirection;
 };
 
 #endif
