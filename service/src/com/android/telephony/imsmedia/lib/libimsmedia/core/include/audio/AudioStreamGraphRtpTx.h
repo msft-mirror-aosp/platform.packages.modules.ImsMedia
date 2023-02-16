@@ -27,6 +27,7 @@ public:
     virtual ~AudioStreamGraphRtpTx();
     virtual ImsMediaResult create(RtpConfig* config);
     virtual ImsMediaResult update(RtpConfig* config);
+    virtual ImsMediaResult start();
 
     /**
      * @brief Create a graph for send dtmf digit to network

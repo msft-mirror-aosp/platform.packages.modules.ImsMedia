@@ -27,6 +27,7 @@ public:
     virtual ~AudioStreamGraphRtpRx();
     virtual ImsMediaResult create(RtpConfig* config);
     virtual ImsMediaResult update(RtpConfig* config);
+    virtual ImsMediaResult start();
 };
 
 #endif
