@@ -111,9 +111,8 @@ void BaseStreamGraph::AddNode(BaseNode* pNode, bool bReverse)
         mListNodeToStart.push_back(pNode);
     }
 
-    if (pNode->IsRunTime() == false)
+    if (!pNode->IsRunTime() || !pNode->IsRunTimeStart())
     {
-        IMLOGD1("[AddNode] Add to scheduler[%s]", pNode->GetNodeName());
         mScheduler->RegisterNode(pNode);
     }
 }
@@ -125,7 +124,9 @@ void BaseStreamGraph::RemoveNode(BaseNode* pNode)
         return;
     }
 
-    if (pNode->IsRunTime() == false)
+    IMLOGD1("[RemoveNode] node[%s]", pNode->GetNodeName());
+
+    if (!pNode->IsRunTime() || !pNode->IsRunTimeStart())
     {
         mScheduler->DeRegisterNode(pNode);
     }
