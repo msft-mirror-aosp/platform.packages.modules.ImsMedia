@@ -328,24 +328,91 @@ bool RtpEncoderNode::SetCvoExtension(const int64_t facing, const int64_t orienta
             }
         }
 
-        uint16_t extensionData;
+        int8_t extensionData[4];  // 32bit
         IMLOGD3("[SetCvoExtension] cvoValue[%d], facing[%d], orientation[%d]", mCvoValue, cameraId,
                 rotation);
 
-        extensionData = ((mCvoValue << 12) | (1 << 8)) | ((cameraId << 3) | rotation);
-        mRtpExtension.nDefinedByProfile = 0xBEDE;
-        mRtpExtension.nLength = 1;
-        mRtpExtension.nExtensionData = extensionData;
+        extensionData[0] = (mCvoValue << 4) | 1;  // local identifier and data length
+        extensionData[1] = (cameraId << 3) | rotation;
+        extensionData[2] = 0;  // padding
+        extensionData[3] = 0;  // padding
 
+        mListRtpExtension.push_back(RtpHeaderExtensionInfo(
+                RtpHeaderExtensionInfo::kBitPatternForOneByteHeader, 1, extensionData, 4));
         return true;
     }
 
     return false;
 }
 
-void RtpEncoderNode::SetRtpHeaderExtension(tRtpHeaderExtensionInfo& tExtension)
+void RtpEncoderNode::SetRtpHeaderExtension(std::list<RtpHeaderExtension>* listExtension)
 {
-    mRtpExtension = tExtension;
+    if (listExtension == nullptr || listExtension->empty())
+    {
+        return;
+    }
+
+    /**
+     * Check number of byte of the header. Based on RFC8285 4.2, one byte header has a local
+     * identifier in range of 1 to 14. Two byte header has is a range of 1 to 255.
+     */
+    bool useTwoByteHeader = false;
+    int32_t totalPayloadLength = 0;  // accumulate payload length except the header size
+
+    for (auto extension : *listExtension)
+    {
+        if (extension.getLocalIdentifier() > 15)
+        {
+            useTwoByteHeader = true;
+        }
+
+        totalPayloadLength += extension.getExtensionDataSize();
+    }
+
+    // accumulate header size
+    useTwoByteHeader ? totalPayloadLength += 2 * listExtension->size()
+                     : totalPayloadLength += listExtension->size();
+
+    // padding size
+    int32_t paddingSize = totalPayloadLength % IMS_MEDIA_WORD_SIZE == 0
+            ? 0
+            : IMS_MEDIA_WORD_SIZE - totalPayloadLength % IMS_MEDIA_WORD_SIZE;
+    totalPayloadLength += paddingSize;
+
+    int8_t* extensionData = new int8_t[totalPayloadLength];
+    int offset = 0;
+
+    for (auto extension : *listExtension)
+    {
+        if (useTwoByteHeader)
+        {
+            extensionData[offset++] = extension.getLocalIdentifier();
+            extensionData[offset++] = extension.getExtensionDataSize();
+        }
+        else
+        {
+            extensionData[offset++] =
+                    extension.getLocalIdentifier() << 4 | (extension.getExtensionDataSize() - 1);
+        }
+
+        memcpy(extensionData + offset, extension.getExtensionData(),
+                extension.getExtensionDataSize());
+        offset += extension.getExtensionDataSize();
+    }
+
+    // add padding
+    memset(extensionData + offset, 0, paddingSize);
+
+    IMLOGD3("[SetRtpHeaderExtension] twoByte[%d], size[%d], list size[%d]", useTwoByteHeader,
+            totalPayloadLength, listExtension->size());
+
+    int16_t defineByProfile = useTwoByteHeader
+            ? RtpHeaderExtensionInfo::kBitPatternForTwoByteHeader
+            : RtpHeaderExtensionInfo::kBitPatternForOneByteHeader;
+    mListRtpExtension.push_back(RtpHeaderExtensionInfo(
+            defineByProfile, totalPayloadLength / 4, extensionData, totalPayloadLength));
+
+    delete[] extensionData;
 }
 
 bool RtpEncoderNode::ProcessAudioData(ImsMediaSubType subtype, uint8_t* data, uint32_t size)
@@ -431,8 +498,18 @@ bool RtpEncoderNode::ProcessAudioData(ImsMediaSubType subtype, uint8_t* data, ui
             timestampDiff = timeDiff * mSamplingRate;
             IMLOGD_PACKET3(IM_PACKET_LOG_RTP, "[ProcessAudioData] PayloadTx[%d], Size[%d], TS[%d]",
                     mRtpPayloadTx, size, currentTimestamp);
-            mRtpSession->SendRtpPacket(
-                    mRtpPayloadTx, data, size, currentTimestamp, mMark, timestampDiff);
+
+            if (!mListRtpExtension.empty())
+            {
+                mRtpSession->SendRtpPacket(mRtpPayloadTx, data, size, currentTimestamp, mMark,
+                        timestampDiff, &mListRtpExtension.front());
+                mListRtpExtension.pop_front();
+            }
+            else
+            {
+                mRtpSession->SendRtpPacket(
+                        mRtpPayloadTx, data, size, currentTimestamp, mMark, timestampDiff);
+            }
 
             if (mMark)
             {
@@ -453,11 +530,11 @@ void RtpEncoderNode::ProcessVideoData(
     if (mCvoValue > 0 && mark && subtype == MEDIASUBTYPE_VIDEO_IDR_FRAME)
     {
         mRtpSession->SendRtpPacket(
-                mRtpPayloadTx, data, size, timestamp, mark, 0, true, &mRtpExtension);
+                mRtpPayloadTx, data, size, timestamp, mark, 0, &mListRtpExtension.front());
     }
     else
     {
-        mRtpSession->SendRtpPacket(mRtpPayloadTx, data, size, timestamp, mark, 0, false, nullptr);
+        mRtpSession->SendRtpPacket(mRtpPayloadTx, data, size, timestamp, mark, 0);
     }
 }
 
@@ -483,19 +560,16 @@ void RtpEncoderNode::ProcessTextData(
     {
         if (mRedundantLevel > 1 && mRedundantPayload > 0)
         {
-            mRtpSession->SendRtpPacket(
-                    mRedundantPayload, data, size, timestamp, mark, timeDiff, 0, nullptr);
+            mRtpSession->SendRtpPacket(mRedundantPayload, data, size, timestamp, mark, timeDiff);
         }
         else
         {
-            mRtpSession->SendRtpPacket(
-                    mRtpPayloadRx, data, size, timestamp, mark, timeDiff, 0, nullptr);
+            mRtpSession->SendRtpPacket(mRtpPayloadRx, data, size, timestamp, mark, timeDiff);
         }
     }
     else if (subtype == MEDIASUBTYPE_BITSTREAM_T140_RED)
     {
-        mRtpSession->SendRtpPacket(
-                mRtpPayloadTx, data, size, timestamp, mark, timeDiff, 0, nullptr);
+        mRtpSession->SendRtpPacket(mRtpPayloadTx, data, size, timestamp, mark, timeDiff);
     }
 
     mMark = false;

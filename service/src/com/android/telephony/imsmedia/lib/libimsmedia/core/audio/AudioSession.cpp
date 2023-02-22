@@ -478,8 +478,8 @@ void AudioSession::onEvent(int32_t type, uint64_t param1, uint64_t param2)
                     "AUDIO_RESPONSE_EVENT", kAudioFirstMediaPacketInd, mSessionId, param1, param2);
             break;
         case kImsMediaEventHeaderExtensionReceived:
-            ImsMediaEventHandler::SendEvent(
-                    "AUDIO_RESPONSE_EVENT", kAudioRtpHeaderExtensionInd, 0, 0);
+            ImsMediaEventHandler::SendEvent("AUDIO_RESPONSE_EVENT", kAudioRtpHeaderExtensionInd,
+                    mSessionId, param1, param2);
             break;
         case kImsMediaEventMediaQualityStatus:
             ImsMediaEventHandler::SendEvent("AUDIO_RESPONSE_EVENT", kAudioMediaQualityStatusInd,
@@ -578,10 +578,19 @@ uint32_t AudioSession::getGraphSize(ImsMediaStreamType type)
     return 0;
 }
 
+void AudioSession::sendRtpHeaderExtension(std::list<RtpHeaderExtension>* listExtension)
+{
+    for (auto& graph : mListGraphRtpTx)
+    {
+        if (graph != nullptr)
+        {
+            graph->sendRtpHeaderExtension(listExtension);
+        }
+    }
+}
+
 void AudioSession::SendInternalEvent(int32_t type, uint64_t param1, uint64_t param2)
 {
-    (void)param2;
-
     switch (type)
     {
         case kRequestAudioCmr:

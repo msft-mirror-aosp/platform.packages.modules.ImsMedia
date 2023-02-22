@@ -72,12 +72,13 @@ typedef struct
     eRtp_Bool bUseLastTimestamp;
     RtpDt_UInt32 diffFromLastRtpTimestamp;
 
-    // [CVO] for extension header
+    // Rtp extension header
     eRtp_Bool bXbit;
-    RtpDt_UInt16 nDefinedByProfile;
-    RtpDt_UInt16 nLength;
-    RtpDt_UInt16 nExtensionData;
-} tRtpSvc_SendRtpPacketParm;
+    RtpDt_UInt16 wDefinedByProfile;
+    RtpDt_UInt16 wExtLen;
+    RtpDt_Int8* pExtData;
+    RtpDt_Int32 nExtDataSize;
+} tRtpSvc_SendRtpPacketParam;
 
 /*
 typedef struct
@@ -94,6 +95,7 @@ typedef struct
     RtpDt_UInt32 dwTimestamp;
     RtpDt_UInt32 dwPayloadType;
     RtpDt_UInt16 dwSeqNum;
+    RtpDt_UInt32 dwSsrc;
 
     RtpDt_UInt16 wMsgHdrLen;
     RtpDt_UChar* pMsgHdr;
@@ -101,10 +103,11 @@ typedef struct
     RtpDt_UInt16 wMsgBodyLen;
     RtpDt_UChar* pMsgBody;
 
-    /* [CVO] for RTP Header Extension, seokhwan.chung@, 2013.05.22 */
-    RtpDt_UInt16 extensionData;
-    eRtp_Bool bExtension;
-
+    /* RTP Header extension */
+    RtpDt_UInt16 wDefinedByProfile;
+    RtpDt_UInt16 wExtLen;
+    RtpDt_UChar* pExtData;
+    RtpDt_UInt16 wExtDataSize;
 } tRtpSvcIndSt_ReceiveRtpInd;
 
 typedef struct

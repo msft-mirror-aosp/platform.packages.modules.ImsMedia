@@ -44,21 +44,29 @@ RtpDt_Void populateReceiveRtpIndInfo(
     pstRtpIndMsg->dwTimestamp = pobjRtpHeader->getRtpTimestamp();
     pstRtpIndMsg->dwPayloadType = pobjRtpHeader->getPayloadType();
     pstRtpIndMsg->dwSeqNum = pobjRtpHeader->getSequenceNumber();
+    pstRtpIndMsg->dwSsrc = pobjRtpHeader->getRtpSsrc();
 
     // Header length
     pstRtpIndMsg->wMsgHdrLen = RTP_FIXED_HDR_LEN;
     pstRtpIndMsg->wMsgHdrLen += RTP_WORD_SIZE * pobjRtpHeader->getCsrcCount();
+
     if (pobjRtpPkt->getExtHeader())
     {
         pstRtpIndMsg->wMsgHdrLen += pobjRtpPkt->getExtHeader()->getLength();
-        pstRtpIndMsg->bExtension = eRTP_TRUE;
-        RtpDt_UChar* pbuf = pobjRtpPkt->getExtHeader()->getBuffer();
-        pstRtpIndMsg->extensionData = ((((unsigned)*pbuf) << 8) & 0xff00) | ((pbuf[1] & 0x00ff));
+        RtpDt_UChar* pExtHdrBuffer = pobjRtpPkt->getExtHeader()->getBuffer();
+        RtpDt_Int32 uiByte4Data =
+                RtpOsUtil::Ntohl(*(reinterpret_cast<RtpDt_UInt32*>(pExtHdrBuffer)));
+        pstRtpIndMsg->wDefinedByProfile = uiByte4Data >> 16;
+        pstRtpIndMsg->wExtLen = uiByte4Data & 0x00FF;
+        pstRtpIndMsg->pExtData = pExtHdrBuffer + 4;
+        pstRtpIndMsg->wExtDataSize = pobjRtpPkt->getExtHeader()->getLength() - 4;
     }
     else
     {
-        pstRtpIndMsg->bExtension = eRTP_FALSE;
-        pstRtpIndMsg->extensionData = 0;
+        pstRtpIndMsg->wDefinedByProfile = 0;
+        pstRtpIndMsg->wExtLen = 0;
+        pstRtpIndMsg->pExtData = nullptr;
+        pstRtpIndMsg->wExtDataSize = 0;
     }
     // End Header length
     // play the payload
@@ -204,27 +212,33 @@ RtpDt_Void populateRtpProfile(OUT RtpStackProfile* pobjStackProfile)
     pobjStackProfile->setTermNumber(RTP_CONF_SSRC_SEED);
 }
 
-RtpBuffer* GetCVOXHdr(IN tRtpSvc_SendRtpPacketParm* pstRtpParam)
+RtpBuffer* SetRtpHeaderExtension(IN tRtpSvc_SendRtpPacketParam* pstRtpParam)
 {
     RtpBuffer* pobjXHdr = new RtpBuffer();
 
     // HDR extension
     if (pstRtpParam->bXbit)
     {
-        RtpDt_UChar* pBuf = new RtpDt_UChar[8];
-        pBuf[0] = (((unsigned)pstRtpParam->nDefinedByProfile) >> 8) & 0x00ff;
-        pBuf[1] = pstRtpParam->nDefinedByProfile & 0x00ff;
+        const RtpDt_Int32 headerSize = 4;
+        RtpDt_Int32 nBufferSize = headerSize + pstRtpParam->wExtLen * sizeof(int32_t);
+        RtpDt_UChar* pBuf = new RtpDt_UChar[nBufferSize];
 
-        pBuf[2] = (((unsigned)pstRtpParam->nLength) >> 8) & 0x00ff;
-        pBuf[3] = (pstRtpParam->nLength) & 0x00ff;
+        if (pstRtpParam->wExtLen * sizeof(int32_t) != pstRtpParam->nExtDataSize)
+        {
+            RTP_TRACE_WARNING("SetRtpHeaderExtension invalid data size len[%d], size[%d]",
+                    pstRtpParam->wExtLen, pstRtpParam->nExtDataSize);
+        }
 
-        pBuf[4] = (((unsigned)pstRtpParam->nExtensionData) >> 8) & 0x00ff;
-        pBuf[5] = (pstRtpParam->nExtensionData) & 0x00ff;
+        // define by profile
+        pBuf[0] = (((unsigned)pstRtpParam->wDefinedByProfile) >> 8) & 0x00ff;
+        pBuf[1] = pstRtpParam->wDefinedByProfile & 0x00ff;
 
-        pBuf[6] = 0;
-        pBuf[7] = 0;
+        // number of the extension data set
+        pBuf[2] = (((unsigned)pstRtpParam->wExtLen) >> 8) & 0x00ff;
+        pBuf[3] = (pstRtpParam->wExtLen) & 0x00ff;
 
-        pobjXHdr->setBufferInfo(8, pBuf);
+        memcpy(pBuf + 4, pstRtpParam->pExtData, pstRtpParam->nExtDataSize);
+        pobjXHdr->setBufferInfo(nBufferSize, pBuf);
     }
     else
     {
@@ -234,7 +248,7 @@ RtpBuffer* GetCVOXHdr(IN tRtpSvc_SendRtpPacketParm* pstRtpParam)
     return pobjXHdr;
 }
 
-RtpDt_UInt16 GetCVOXHdrLen(eRtp_Bool bEnableCVO)
+RtpDt_UInt16 GetRtpHeaderExtensionSize(eRtp_Bool bEnableCVO)
 {
     if (bEnableCVO)
         return RTP_CVO_XHDR_LEN;
@@ -351,7 +365,7 @@ GLOBAL eRtp_Bool IMS_RtpSvc_SetPayload(IN RTPSESSIONID hRtpSession,
     }
 
     eRTP_STATUS_CODE eInitSta =
-            pobjRtpSession->setPayload(pobjlPayloadInfo, GetCVOXHdrLen(bEnableXHdr));
+            pobjRtpSession->setPayload(pobjlPayloadInfo, GetRtpHeaderExtensionSize(bEnableXHdr));
     delete pobjlPayloadInfo;
     if (eInitSta != RTP_SUCCESS)
     {
@@ -392,7 +406,7 @@ GLOBAL eRtp_Bool IMS_RtpSvc_DeleteSession(IN RTPSESSIONID hRtpSession)
 
 GLOBAL eRtp_Bool IMS_RtpSvc_SendRtpPacket(IN RtpServiceListener* pobjRtpServiceListener,
         IN RTPSESSIONID hRtpSession, IN RtpDt_Char* pBuffer, IN RtpDt_UInt16 wBufferLength,
-        IN tRtpSvc_SendRtpPacketParm* pstRtpParam)
+        IN tRtpSvc_SendRtpPacketParam* pstRtpParam)
 {
     RtpSession* pobjRtpSession = reinterpret_cast<RtpSession*>(hRtpSession);
 
@@ -425,6 +439,7 @@ GLOBAL eRtp_Bool IMS_RtpSvc_SendRtpPacket(IN RtpServiceListener* pobjRtpServiceL
     // Create RTP packet
     //  1. Set Marker bit
     eRtp_Bool bMbit = eRTP_FALSE;
+
     if (pstRtpParam->bMbit == eRTP_TRUE)
     {
         bMbit = eRTP_TRUE;
@@ -435,7 +450,7 @@ GLOBAL eRtp_Bool IMS_RtpSvc_SendRtpPacket(IN RtpServiceListener* pobjRtpServiceL
     eRtp_Bool bUseLastTimestamp = pstRtpParam->bUseLastTimestamp ? eRTP_TRUE : eRTP_FALSE;
     eRTP_STATUS_CODE eRtpCreateStat = pobjRtpSession->createRtpPacket(pobjRtpPayload, bMbit,
             pstRtpParam->byPayLoadType, bUseLastTimestamp, pstRtpParam->diffFromLastRtpTimestamp,
-            GetCVOXHdr(pstRtpParam), pobjRtpBuf);
+            SetRtpHeaderExtension(pstRtpParam), pobjRtpBuf);
 
     // 3. de-init and free the temp variable both in success and failure case
     pobjRtpPayload->setBufferInfo(RTP_ZERO, nullptr);
@@ -498,6 +513,7 @@ GLOBAL eRtp_Bool IMS_RtpSvc_ProcRtpPacket(IN RtpServiceListener* pvIRtpSession,
 
     RtpBuffer objRtpBuf;
     objRtpBuf.setBufferInfo(uiMsgLength, pMsg);
+
     RtpDt_UInt32 uiTransLen = strlen(reinterpret_cast<const RtpDt_Char*>(pPeerIp));
     RtpBuffer objRmtAddr;
     objRmtAddr.setBufferInfo(uiTransLen + 1, reinterpret_cast<RtpDt_UChar*>(pPeerIp));
