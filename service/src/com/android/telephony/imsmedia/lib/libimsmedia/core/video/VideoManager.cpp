@@ -199,7 +199,7 @@ void VideoManager::sendMessage(const int sessionId, const android::Parcel& parce
                     "VIDEO_REQUEST_EVENT", nMsg, sessionId, reinterpret_cast<uint64_t>(config));
         }
         break;
-        case kVideoSendHeaderExtension:
+        case kVideoSendRtpHeaderExtension:
             // TO DO
             break;
         case kVideoSetMediaQualityThreshold:
@@ -321,7 +321,7 @@ void VideoManager::RequestHandler::processEvent(
                     "VIDEO_RESPONSE_EVENT", kVideoModifySessionResponse, sessionId, result, paramA);
         }
         break;
-        case kVideoSendHeaderExtension:
+        case kVideoSendRtpHeaderExtension:
             /** TODO: add implementation */
             break;
         case kVideoSetMediaQualityThreshold:

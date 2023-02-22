@@ -149,34 +149,24 @@ eRtp_Bool RtpPacket::decodePacket(IN RtpBuffer* pobjRtpPktBuf)
     // extension header
     if (m_objRtpHeader.getExtension())
     {
-        RTP_TRACE_MESSAGE("[XHdr] Extension Header detected", 0, 0);
         m_pobjExt = new RtpBuffer();
-        if (m_pobjExt == nullptr)
-        {
-            return eRTP_FAILURE;
-        }
 
         // Get XHdr type and length
         RtpDt_UInt32 uiByte4Data = RtpOsUtil::Ntohl(*(reinterpret_cast<RtpDt_UInt32*>(pcRtpBuf)));
-        pcRtpBuf = pcRtpBuf + RTP_WORD_SIZE;
-        uiRtpBufPos = uiRtpBufPos + RTP_WORD_SIZE;
-        RtpDt_UInt16 uXHdrLen = (RtpDt_UInt16)(uiByte4Data & RTP_HEX_16_BIT_MAX);
-        // RtpDt_UInt16 uXHdrType = (RtpDt_UInt16)(uiByte4Data >> RTP_SIXTEEN);
+        RtpDt_UInt16 uXHdrLen =
+                (RtpDt_UInt16)(uiByte4Data & RTP_HEX_16_BIT_MAX);  // add header size
 
-        uXHdrLen += RTP_WORD_SIZE - (uXHdrLen % RTP_WORD_SIZE);  // word align
+        uXHdrLen += 1;              // add a word for header type info
+        uXHdrLen *= RTP_WORD_SIZE;  // convert word to byte
+
         if ((uXHdrLen <= 0) || ((uiRtpBufPos + uXHdrLen) > uiRtpUtlBufLen))
         {
-            RTP_TRACE_ERROR("[XHdr]Invalid Header Extension.Xbit-1 but XHdr len <= 0 OR xhdr len "
-                            "> rtp buffer len",
-                    0, 0);
+            RTP_TRACE_ERROR("[decodePacket] Invalid Header Extension len[%d]", uXHdrLen, 0);
             return eRTP_FAILURE;
         }
 
         RtpDt_UChar* pRtpExtData = new RtpDt_UChar[uXHdrLen];
-        if (pRtpExtData == nullptr)
-        {
-            return eRTP_FAILURE;
-        }
+
         memcpy(pRtpExtData, pcRtpBuf, uXHdrLen);
         m_pobjExt->setBufferInfo(uXHdrLen, pRtpExtData);
 

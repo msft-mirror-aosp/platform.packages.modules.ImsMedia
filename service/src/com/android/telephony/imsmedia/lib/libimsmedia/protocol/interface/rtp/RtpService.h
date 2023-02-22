@@ -128,7 +128,7 @@ GLOBAL eRtp_Bool IMS_RtpSvc_DeleteSession(IN RTPSESSIONID hRtpSession);
  */
 GLOBAL eRtp_Bool IMS_RtpSvc_SendRtpPacket(IN RtpServiceListener* pobjRtpServiceListener,
         IN RTPSESSIONID hRtpSession, IN RtpDt_Char* pBuffer, IN RtpDt_UInt16 wBufferLength,
-        IN tRtpSvc_SendRtpPacketParm* pstRtpParam);
+        IN tRtpSvc_SendRtpPacketParam* pstRtpParam);
 
 /**
  * This API processes the received RTP packet. Processed information is sent using

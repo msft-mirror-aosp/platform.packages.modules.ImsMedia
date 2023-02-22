@@ -98,7 +98,6 @@ private:
     ImsMediaResult setPreviewSurfaceToSession(const int sessionId, ANativeWindow* surface);
     ImsMediaResult setDisplaySurfaceToSession(const int sessionId, ANativeWindow* surface);
     ImsMediaResult modifySession(const int sessionId, VideoConfig* config);
-    // void sendHeaderExtension(int sessionId, RtpHeaderExtension* data);
     void setMediaQualityThreshold(const int sessionId, MediaQualityThreshold* threshold);
 
     static VideoManager* manager;
