@@ -118,8 +118,9 @@ public class IImsMediaSessionImpl extends IImsMediaSession.Stub {
         Log.d(TAG, "sendHeaderExtension: " + data);
         Parcel parcel = Parcel.obtain();
         parcel.writeInt(AudioSession.CMD_SEND_RTP_HDR_EXTN);
-        if (data != null) {
-            parcel.writeList(data);
+        parcel.writeInt(data.size());
+        for (RtpHeaderExtension item : data) {
+            item.writeToParcel(parcel, 0);
         }
         connector.sendRequest(mSessionId, parcel);
     }

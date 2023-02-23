@@ -244,3 +244,13 @@ void AudioStreamGraphRtpTx::processCmr(const uint32_t cmr)
         (reinterpret_cast<IAudioSourceNode*>(node))->ProcessCmr(cmr);
     }
 }
+
+void AudioStreamGraphRtpTx::sendRtpHeaderExtension(std::list<RtpHeaderExtension>* listExtension)
+{
+    BaseNode* node = findNode(kNodeIdRtpEncoder);
+
+    if (node != nullptr)
+    {
+        (reinterpret_cast<RtpEncoderNode*>(node))->SetRtpHeaderExtension(listExtension);
+    }
+}

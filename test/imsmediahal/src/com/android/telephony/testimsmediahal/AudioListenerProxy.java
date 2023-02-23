@@ -129,11 +129,14 @@ class AudioListenerProxy implements JNIImsMediaListener {
                 }
                 break;
             case AudioSession.EVENT_RTP_HEADER_EXTENSION_IND:
-                final List<RtpHeaderExtension> rtpHeaderExt = new ArrayList<RtpHeaderExtension>();
-                parcel.readList(rtpHeaderExt, RtpHeaderExtension.class.getClassLoader());
+                final List<RtpHeaderExtension> extensions = new ArrayList<RtpHeaderExtension>();
+                final int listSize = parcel.readInt();
+                for (int i = 0; i < listSize; i++) {
+                    extensions.add(RtpHeaderExtension.CREATOR.createFromParcel(parcel));
+                }
 
                 try {
-                    mMediaSessionListener.onHeaderExtensionReceived(rtpHeaderExt);
+                    mMediaSessionListener.onHeaderExtensionReceived(extensions);
                 } catch(RemoteException e) {
                     Log.e(TAG, "Failed to notify rtp header extension: " + e);
                 }

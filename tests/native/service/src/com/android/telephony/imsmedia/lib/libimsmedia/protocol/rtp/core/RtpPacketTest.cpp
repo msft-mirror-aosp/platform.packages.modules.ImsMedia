@@ -90,7 +90,7 @@ TEST(RtpPacketTest, TestDecodePacket)
     RtpBuffer* pobjRtpExtHdr = rtpPacket.getExtHeader();
     ASSERT_TRUE(pobjRtpExtHdr != nullptr);
 
-    uint8_t pRtpExtHdr[] = {0x41, 0x78, 0x42, 0x00};
+    uint8_t pRtpExtHdr[] = {0xbe, 0xde, 0x00, 0x01, 0x41, 0x78, 0x42, 0x00};
 
     EXPECT_EQ(memcmp(pRtpExtHdr, pobjRtpExtHdr->getBuffer(), sizeof(pRtpExtHdr)), 0);
     EXPECT_EQ(pobjRtpExtHdr->getLength(), sizeof(pRtpExtHdr));

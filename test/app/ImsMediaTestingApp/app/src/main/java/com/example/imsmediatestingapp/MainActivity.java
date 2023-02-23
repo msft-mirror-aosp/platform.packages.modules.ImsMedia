@@ -17,6 +17,7 @@ import android.net.wifi.WifiManager;
 import android.os.Bundle;
 import android.telephony.AccessNetworkConstants.AccessNetworkType;
 import android.telephony.CallQuality;
+import android.telephony.ims.RtpHeaderExtension;
 import android.telephony.imsmedia.AmrParams;
 import android.telephony.imsmedia.AudioConfig;
 import android.telephony.imsmedia.AudioSessionCallback;
@@ -749,6 +750,12 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public void onFirstMediaPacketReceived(AudioConfig config) {
             Log.d(TAG, "onFirstMediaPacketReceived");
+        }
+
+        @Override
+        public void onHeaderExtensionReceived(final List<RtpHeaderExtension> extensions) {
+            Log.d(TAG, "onHeaderExtensionReceived, list size=" + extensions.size()
+                    + "list=" + extensions);
         }
 
         @Override
@@ -2625,6 +2632,22 @@ public class MainActivity extends AppCompatActivity {
             mImsMediaManager.generateVideoSprop(videoConfigList, mMediaUtilCallback.asBinder());
         } catch (Exception e) {
             Log.d(TAG, e.toString());
+        }
+    }
+
+    public void sendHeaderExtension(View btn) {
+        if (mAudioSession != null) {
+            List<RtpHeaderExtension> extensions = new ArrayList<>();
+            byte[] testBytes1 = new byte[1];
+            byte[] testBytes2 = new byte[1];
+            testBytes1[0] = 5;
+            testBytes2[0] = 10;
+            RtpHeaderExtension extension1 = new RtpHeaderExtension(1, testBytes1);
+            RtpHeaderExtension extension2 = new RtpHeaderExtension(2, testBytes2);
+            extensions.add(extension1);
+            extensions.add(extension2);
+            Log.d(TAG, "[sendHeaderExtension] extension size=" + extensions.size());
+            mAudioSession.sendHeaderExtension(extensions);
         }
     }
 }
