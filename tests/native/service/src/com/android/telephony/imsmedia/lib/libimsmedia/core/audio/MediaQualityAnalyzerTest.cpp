@@ -184,15 +184,50 @@ protected:
     }
 };
 
-TEST_F(MediaQualityAnalyzerTest, TestStartStop)
+TEST_F(MediaQualityAnalyzerTest, TestCodecType)
 {
-    EXPECT_CALL(mCallback, onEvent(kAudioCallQualityChangedInd, _, _)).Times(1);
+    EXPECT_CALL(mCallback, onEvent(kAudioCallQualityChangedInd, _, _)).Times(6);
     mAnalyzer->start();
-
-    CallQuality quality = mAnalyzer->getCallQuality();
     mAnalyzer->stop();
+    EXPECT_EQ(CallQuality::AUDIO_QUALITY_AMR_WB, mFakeCallback.getCallQuality().getCodecType());
 
-    EXPECT_EQ(mFakeCallback.getCallQuality(), quality);
+    mConfig.setCodecType(AudioConfig::CODEC_AMR);
+    mAnalyzer->setConfig(&mConfig);
+    mAnalyzer->start();
+    mAnalyzer->stop();
+    EXPECT_EQ(CallQuality::AUDIO_QUALITY_AMR, mFakeCallback.getCallQuality().getCodecType());
+
+    mConfig.setCodecType(AudioConfig::CODEC_EVS);
+    mEvsParam.setEvsBandwidth(EvsParams::EVS_NARROW_BAND);
+    mConfig.setEvsParams(mEvsParam);
+    mAnalyzer->setConfig(&mConfig);
+    mAnalyzer->start();
+    mAnalyzer->stop();
+    EXPECT_EQ(CallQuality::AUDIO_QUALITY_EVS_NB, mFakeCallback.getCallQuality().getCodecType());
+
+    mConfig.setCodecType(AudioConfig::CODEC_EVS);
+    mEvsParam.setEvsBandwidth(EvsParams::EVS_WIDE_BAND);
+    mConfig.setEvsParams(mEvsParam);
+    mAnalyzer->setConfig(&mConfig);
+    mAnalyzer->start();
+    mAnalyzer->stop();
+    EXPECT_EQ(CallQuality::AUDIO_QUALITY_EVS_WB, mFakeCallback.getCallQuality().getCodecType());
+
+    mConfig.setCodecType(AudioConfig::CODEC_EVS);
+    mEvsParam.setEvsBandwidth(EvsParams::EVS_SUPER_WIDE_BAND);
+    mConfig.setEvsParams(mEvsParam);
+    mAnalyzer->setConfig(&mConfig);
+    mAnalyzer->start();
+    mAnalyzer->stop();
+    EXPECT_EQ(CallQuality::AUDIO_QUALITY_EVS_SWB, mFakeCallback.getCallQuality().getCodecType());
+
+    mConfig.setCodecType(AudioConfig::CODEC_EVS);
+    mEvsParam.setEvsBandwidth(EvsParams::EVS_FULL_BAND);
+    mConfig.setEvsParams(mEvsParam);
+    mAnalyzer->setConfig(&mConfig);
+    mAnalyzer->start();
+    mAnalyzer->stop();
+    EXPECT_EQ(CallQuality::AUDIO_QUALITY_EVS_FB, mFakeCallback.getCallQuality().getCodecType());
 }
 
 TEST_F(MediaQualityAnalyzerTest, TestCollectTxPackets)
@@ -212,7 +247,6 @@ TEST_F(MediaQualityAnalyzerTest, TestCollectTxPackets)
     EXPECT_EQ(mAnalyzer->getTxPacketSize(), numPackets);
     EXPECT_EQ(mAnalyzer->getRxPacketSize(), 0);
     EXPECT_EQ(mAnalyzer->getLostPacketSize(), 0);
-    CallQuality quality = mAnalyzer->getCallQuality();
     mAnalyzer->stop();
 
     EXPECT_EQ(mAnalyzer->getTxPacketSize(), 0);
@@ -220,9 +254,7 @@ TEST_F(MediaQualityAnalyzerTest, TestCollectTxPackets)
     EXPECT_EQ(mAnalyzer->getLostPacketSize(), 0);
 
     // Check CallQuality value
-    CallQuality quality2 = mFakeCallback.getCallQuality();
-    EXPECT_EQ(quality2, quality);
-    EXPECT_EQ(quality2.getNumRtpPacketsTransmitted(), numPackets);
+    EXPECT_EQ(mFakeCallback.getCallQuality().getNumRtpPacketsTransmitted(), numPackets);
 }
 
 TEST_F(MediaQualityAnalyzerTest, TestRtpInactivityNotRunning)
@@ -302,14 +334,10 @@ TEST_F(MediaQualityAnalyzerTest, TestCallQualityInactivity)
     EXPECT_CALL(mCallback, onEvent(kAudioCallQualityChangedInd, _, _)).Times(2);
     mAnalyzer->start();
     mCondition.wait_timeout(4100);  // 4.1 sec
-
-    CallQuality quality = mAnalyzer->getCallQuality();
     mAnalyzer->stop();
 
     // Check CallQuality value
-    CallQuality quality2 = mFakeCallback.getCallQuality();
-    EXPECT_EQ(quality2, quality);
-    EXPECT_TRUE(quality2.getRtpInactivityDetected());
+    EXPECT_TRUE(mFakeCallback.getCallQuality().getRtpInactivityDetected());
 }
 
 TEST_F(MediaQualityAnalyzerTest, TestCallQualityLevelChanged)
@@ -346,7 +374,6 @@ TEST_F(MediaQualityAnalyzerTest, TestCallQualityLevelChanged)
     EXPECT_EQ(mAnalyzer->getTxPacketSize(), 0);
     EXPECT_EQ(mAnalyzer->getRxPacketSize(), numPackets - 1);
     EXPECT_EQ(mAnalyzer->getLostPacketSize(), 1);
-    CallQuality quality = mAnalyzer->getCallQuality();
     mAnalyzer->stop();
 
     EXPECT_EQ(mAnalyzer->getTxPacketSize(), 0);
@@ -354,10 +381,9 @@ TEST_F(MediaQualityAnalyzerTest, TestCallQualityLevelChanged)
     EXPECT_EQ(mAnalyzer->getLostPacketSize(), 0);
 
     // Check CallQuality value
-    CallQuality quality2 = mFakeCallback.getCallQuality();
-    EXPECT_EQ(quality2, quality);
-    EXPECT_EQ(quality2.getNumRtpPacketsReceived(), numPackets - 1);
-    EXPECT_EQ(quality2.getDownlinkCallQualityLevel(), CallQuality::kCallQualityBad);
+    EXPECT_EQ(mFakeCallback.getCallQuality().getNumRtpPacketsReceived(), numPackets - 1);
+    EXPECT_EQ(mFakeCallback.getCallQuality().getDownlinkCallQualityLevel(),
+            CallQuality::kCallQualityBad);
 }
 
 TEST_F(MediaQualityAnalyzerTest, TestJitterInd)
@@ -389,17 +415,14 @@ TEST_F(MediaQualityAnalyzerTest, TestJitterInd)
     EXPECT_EQ(mAnalyzer->getRxPacketSize(), numPackets);
     EXPECT_EQ(mAnalyzer->getLostPacketSize(), 0);
 
-    CallQuality quality = mAnalyzer->getCallQuality();
     mAnalyzer->stop();
 
     EXPECT_EQ(mAnalyzer->getTxPacketSize(), 0);
     EXPECT_EQ(mAnalyzer->getRxPacketSize(), 0);
     EXPECT_EQ(mAnalyzer->getLostPacketSize(), 0);
 
-    CallQuality quality2 = mFakeCallback.getCallQuality();
-    EXPECT_EQ(quality2, quality);
-    EXPECT_EQ(quality2.getNumRtpPacketsReceived(), numPackets);
-    EXPECT_EQ(quality2.getAverageRelativeJitter(), jitter);
+    EXPECT_EQ(mFakeCallback.getCallQuality().getNumRtpPacketsReceived(), numPackets);
+    EXPECT_EQ(mFakeCallback.getCallQuality().getAverageRelativeJitter(), jitter);
 
     MediaQualityStatus status = mFakeCallback.getMediaQualityStatus();
     EXPECT_EQ(status.getRtpJitterMillis(), jitter);
@@ -433,6 +456,7 @@ TEST_F(MediaQualityAnalyzerTest, TestSsrcChange)
     EXPECT_EQ(mAnalyzer->getTxPacketSize(), 0);
     EXPECT_EQ(mAnalyzer->getRxPacketSize(), numPackets);
     EXPECT_EQ(mAnalyzer->getLostPacketSize(), 0);
+
     mAnalyzer->stop();
 
     EXPECT_EQ(mAnalyzer->getTxPacketSize(), 0);
@@ -477,16 +501,13 @@ TEST_F(MediaQualityAnalyzerTest, TestPacketLossInd)
     EXPECT_EQ(mAnalyzer->getRxPacketSize(), numPackets - 1);
     EXPECT_EQ(mAnalyzer->getLostPacketSize(), 1);
 
-    CallQuality quality = mAnalyzer->getCallQuality();
     mAnalyzer->stop();
 
     EXPECT_EQ(mAnalyzer->getTxPacketSize(), 0);
     EXPECT_EQ(mAnalyzer->getRxPacketSize(), 0);
     EXPECT_EQ(mAnalyzer->getLostPacketSize(), 0);
 
-    CallQuality quality2 = mFakeCallback.getCallQuality();
-    EXPECT_EQ(quality2, quality);
-    EXPECT_EQ(quality2.getNumRtpPacketsNotReceived(), 1);
+    EXPECT_EQ(mFakeCallback.getCallQuality().getNumRtpPacketsNotReceived(), 1);
 
     MediaQualityStatus status = mFakeCallback.getMediaQualityStatus();
     EXPECT_EQ(status.getRtpPacketLossRate(), 10);
@@ -502,6 +523,5 @@ TEST_F(MediaQualityAnalyzerTest, TestNotifyMediaQualityStatus)
     mAnalyzer->start();
 
     mCondition.wait_timeout(2100);  // 2.1 sec
-
     mAnalyzer->stop();
 }
