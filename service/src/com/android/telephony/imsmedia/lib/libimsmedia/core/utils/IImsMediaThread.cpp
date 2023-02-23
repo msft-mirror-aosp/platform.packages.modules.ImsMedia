@@ -20,7 +20,7 @@
 
 IImsMediaThread::IImsMediaThread()
 {
-    mThreadStopped = false;
+    mThreadStopped = true;
 }
 
 IImsMediaThread::~IImsMediaThread() {}

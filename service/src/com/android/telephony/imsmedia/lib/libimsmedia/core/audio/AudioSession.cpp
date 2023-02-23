@@ -123,6 +123,16 @@ ImsMediaResult AudioSession::startGraph(RtpConfig* config)
         return RESULT_INVALID_PARAM;
     }
 
+    IMLOGI1("[startGraph] state[%d]", getState());
+
+    if (mMediaQualityAnalyzer != nullptr &&
+            !mMediaQualityAnalyzer->isSameConfig(reinterpret_cast<AudioConfig*>(config)))
+    {
+        mMediaQualityAnalyzer->stop();
+        mMediaQualityAnalyzer->setConfig(reinterpret_cast<AudioConfig*>(config));
+        mMediaQualityAnalyzer->start();
+    }
+
     ImsMediaResult ret = RESULT_NOT_READY;
     IMLOGD1("[startGraph] mListGraphRtpTx size[%d]", mListGraphRtpTx.size());
 
@@ -228,17 +238,6 @@ ImsMediaResult AudioSession::startGraph(RtpConfig* config)
                 return ret;
             }
         }
-    }
-
-    // TODO : check that the timing is correct
-    IMLOGI1("[startGraph] state[%d]", getState());
-
-    if (mMediaQualityAnalyzer != nullptr &&
-            !mMediaQualityAnalyzer->isSameConfig(reinterpret_cast<AudioConfig*>(config)))
-    {
-        mMediaQualityAnalyzer->stop();
-        mMediaQualityAnalyzer->setConfig(reinterpret_cast<AudioConfig*>(config));
-        mMediaQualityAnalyzer->start();
     }
 
     return ret;
