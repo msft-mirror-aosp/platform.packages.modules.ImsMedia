@@ -41,15 +41,7 @@ void StreamScheduler::RegisterNode(BaseNode* pNode)
 
     IMLOGD2("[RegisterNode] [%p], node[%s]", this, pNode->GetNodeName());
     std::lock_guard<std::mutex> guard(mMutex);
-
-    if (pNode->IsSourceNode())
-    {
-        mlistSourceNode.push_back(pNode);
-    }
-    else
-    {
-        mlistRegisteredNode.push_back(pNode);
-    }
+    mlistRegisteredNode.push_back(pNode);
 }
 
 void StreamScheduler::DeRegisterNode(BaseNode* pNode)
@@ -61,41 +53,22 @@ void StreamScheduler::DeRegisterNode(BaseNode* pNode)
 
     IMLOGD2("[DeRegisterNode] [%p], node[%s]", this, pNode->GetNodeName());
     std::lock_guard<std::mutex> guard(mMutex);
-
-    if (pNode->IsSourceNode())
-    {
-        mlistSourceNode.remove(pNode);
-    }
-    else
-    {
-        mlistRegisteredNode.remove(pNode);
-    }
+    mlistRegisteredNode.remove(pNode);
 }
 
 void StreamScheduler::Start()
 {
-    uint32_t nNumOfRegisteredNode = 0;
     IMLOGD1("[Start] [%p] enter", this);
-
-    for (auto& node : mlistSourceNode)
-    {
-        if (node != nullptr)
-        {
-            nNumOfRegisteredNode++;
-            IMLOGD2("[Start] [%p] registered source node [%s]", this, node->GetNodeName());
-        }
-    }
 
     for (auto& node : mlistRegisteredNode)
     {
         if (node != nullptr)
         {
-            nNumOfRegisteredNode++;
             IMLOGD2("[Start] [%p] registered node [%s]", this, node->GetNodeName());
         }
     }
 
-    if (nNumOfRegisteredNode > 0)
+    if (!mlistRegisteredNode.empty())
     {
         IMLOGD1("[Start] [%p] Start thread", this);
         StartThread();
@@ -123,7 +96,7 @@ void StreamScheduler::Awake()
     mConditionMain.signal();
 }
 
-BaseNode* StreamScheduler::DetermineProcessingNode(uint32_t* pnMaxDataInNode)
+BaseNode* StreamScheduler::DetermineProcessingNode()
 {
     if (IsThreadStopped())
     {
@@ -133,9 +106,9 @@ BaseNode* StreamScheduler::DetermineProcessingNode(uint32_t* pnMaxDataInNode)
     BaseNode* pRetNode = nullptr;
     uint32_t nMaxDataInNode = 0;
 
-    for (auto& node : mlistNodeToRun)
+    for (auto& node : mlistRegisteredNode)
     {
-        if (node != nullptr)
+        if (node != nullptr && !node->IsRunTime())
         {
             uint32_t nDataInNode = node->GetDataCount();
 
@@ -147,35 +120,14 @@ BaseNode* StreamScheduler::DetermineProcessingNode(uint32_t* pnMaxDataInNode)
         }
     }
 
-    *pnMaxDataInNode = nMaxDataInNode;
     return pRetNode;
 }
 
 void StreamScheduler::RunRegisteredNode()
 {
-    uint32_t nMaxDataInNode;
-
-    // run source nodes
-    for (auto& node : mlistSourceNode)
-    {
-        if (node != nullptr && node->GetState() == kNodeStateRunning)
-        {
-            node->ProcessData();
-        }
-    }
-
-    // run nodes
-    for (auto& node : mlistRegisteredNode)
-    {
-        if (node != nullptr)
-        {
-            mlistNodeToRun.push_back(node);
-        }
-    }
-
     for (;;)
     {
-        BaseNode* pNode = DetermineProcessingNode(&nMaxDataInNode);
+        BaseNode* pNode = DetermineProcessingNode();
 
         if (pNode == nullptr)
         {
@@ -191,16 +143,29 @@ void StreamScheduler::RunRegisteredNode()
         {
             break;
         }
-
-        mlistNodeToRun.remove(pNode);
     };
-
-    mlistNodeToRun.clear();
 }
 
 void* StreamScheduler::run()
 {
     IMLOGD1("[run] [%p] enter", this);
+
+    // start nodes
+    mMutex.lock();
+
+    for (auto& node : mlistRegisteredNode)
+    {
+        if (node != nullptr && !node->IsRunTimeStart())
+        {
+            if (node->GetState() == kNodeStateStopped && node->ProcessStart() != RESULT_SUCCESS)
+            {
+                // TODO: report error
+                IMLOGE0("[run] error");
+            }
+        }
+    }
+
+    mMutex.unlock();
 
     while (!IsThreadStopped())
     {
