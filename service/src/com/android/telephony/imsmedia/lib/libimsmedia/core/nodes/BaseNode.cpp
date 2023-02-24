@@ -104,6 +104,30 @@ kBaseNodeId BaseNode::GetNodeId()
     return kNodeIdUnknown;
 }
 
+ImsMediaResult BaseNode::Start()
+{
+    if (!IsRunTimeStart())
+    {
+        return RESULT_SUCCESS;
+    }
+    else
+    {
+        IMLOGW0("[Start] Error - base method");
+        return RESULT_NOT_SUPPORTED;
+    }
+}
+
+ImsMediaResult BaseNode::ProcessStart()
+{
+    IMLOGW0("[ProcessStart] Error - base method");
+    return RESULT_NOT_SUPPORTED;
+}
+
+bool BaseNode::IsRunTimeStart()
+{
+    return true;
+}
+
 void BaseNode::SetConfig(void* config)
 {
     (void)config;

@@ -1,4 +1,4 @@
-/*
+/**
  * Copyright (C) 2023 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -25,6 +25,7 @@ import static org.mockito.Mockito.verify;
 import android.os.Parcel;
 import android.os.RemoteException;
 import android.telephony.CallQuality;
+import android.telephony.ims.RtpHeaderExtension;
 import android.telephony.imsmedia.AudioConfig;
 import android.telephony.imsmedia.IImsAudioSessionCallback;
 import android.telephony.imsmedia.ImsMediaSession;
@@ -38,6 +39,9 @@ import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @RunWith(JUnit4.class)
 public class AudioListenerTest {
@@ -160,11 +164,21 @@ public class AudioListenerTest {
 
     @Test
     public void testEventRtpHeaderExtensionInd() throws RemoteException {
-        mAudioListener.onMessage(createParcel(AudioSession.EVENT_RTP_HEADER_EXTENSION_IND,
-                SESSION_ID, mAudioConfig));
+        List<RtpHeaderExtension> extensions = new ArrayList<>();
+        extensions.add(new RtpHeaderExtension(1, new byte[]{5}));
+        extensions.add(new RtpHeaderExtension(2, new byte[]{10}));
+        Parcel parcel = Parcel.obtain();
+        parcel.writeInt(AudioSession.EVENT_RTP_HEADER_EXTENSION_IND);
+        parcel.writeInt(extensions.size());
+        for (RtpHeaderExtension item : extensions) {
+            item.writeToParcel(parcel, 0);
+        }
+        parcel.setDataPosition(0);
+        mAudioListener.onMessage(parcel);
+        parcel.recycle();
         processAllMessages();
         verify(mMockIImsAudioSessionCallback,
-                times(1)).onHeaderExtensionReceived(any());
+                times(1)).onHeaderExtensionReceived(eq(extensions));
     }
 
     @Test

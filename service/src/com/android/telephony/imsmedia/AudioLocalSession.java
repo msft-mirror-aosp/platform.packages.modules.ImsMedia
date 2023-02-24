@@ -158,8 +158,14 @@ public class AudioLocalSession {
      * @param extensions List of RTP header extensions to be transmitted
      */
     public void sendHeaderExtension(final List<RtpHeaderExtension> extensions) {
-        Log.d(TAG, "sendHeaderExtension");
-        // TODO: add implementation
+        Log.d(TAG, "sendHeaderExtension, extension=" + extensions);
+        Parcel parcel = Parcel.obtain();
+        parcel.writeInt(AudioSession.CMD_SEND_RTP_HDR_EXTN);
+        parcel.writeInt(extensions.size());
+        for (RtpHeaderExtension item : extensions) {
+            item.writeToParcel(parcel, 0);
+        }
+        sendRequest(mSessionId, parcel);
     }
 
     /**

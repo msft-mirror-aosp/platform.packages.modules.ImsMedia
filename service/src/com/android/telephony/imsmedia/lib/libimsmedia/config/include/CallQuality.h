@@ -163,7 +163,7 @@ private:
     bool mRxSilenceDetected;
     /** True if only silence RTP packets are sent for 20 seconds immediately after the call is
      * connected. The silence packet can be detected by observing that the RTP timestamp is not
-     * contiguous with the end of the int32_terval covered by the previous packet even though the
+     * contiguous with the end of the interval covered by the previous packet even though the
      * RTP sequence number has been incremented only by one. Check RFC 3389. */
     bool mTxSilenceDetected;
     /** The number of voice frames sent by jitter buffer to audio. */
@@ -172,9 +172,9 @@ private:
     int32_t mNumNoDataFrames;
     /** The number of RTP Voice packets dropped by jitter buffer. */
     int32_t mNumDroppedRtpPackets;
-    /** The minimum playout delay in the reporting int32_terval in milliseconds. */
+    /** The minimum playout delay in the reporting interval in milliseconds. */
     int64_t mMinPlayoutDelayMillis;
-    /** The maximum Playout delay in the reporting int32_terval in milliseconds. */
+    /** The maximum Playout delay in the reporting interval in milliseconds. */
     int64_t mMaxPlayoutDelayMillis;
     /** The total number of RTP SID (Silence Insertion Descriptor) */
     int32_t mNumRtpSidPacketsReceived;

@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2022 The Android Open Source Project
+ * Copyright (C) 2023 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -89,8 +89,15 @@ public:
     {
         dtmfDigit = 0;
         dtmfDuration = 0;
+        listExtensions = nullptr;
     }
-    virtual ~FakeRtpDecoderCallback() {}
+    virtual ~FakeRtpDecoderCallback()
+    {
+        if (listExtensions != nullptr)
+        {
+            delete listExtensions;
+        }
+    }
     virtual void onEvent(int32_t type, uint64_t param1, uint64_t param2)
     {
         if (type == kAudioDtmfReceivedInd)
@@ -98,13 +105,24 @@ public:
             dtmfDigit = static_cast<uint8_t>(param1);
             dtmfDuration = static_cast<uint32_t>(param2);
         }
+        else if (type == kImsMediaEventHeaderExtensionReceived)
+        {
+            if (listExtensions != nullptr)
+            {
+                delete listExtensions;
+            }
+
+            listExtensions = reinterpret_cast<std::list<RtpHeaderExtension>*>(param1);
+        }
     }
     uint8_t GetDtmfDigit() { return dtmfDigit; }
     uint32_t GetDtmfDuration() { return dtmfDuration; }
+    std::list<RtpHeaderExtension>* GetListExtension() { return listExtensions; }
 
 private:
     uint8_t dtmfDigit;
     uint32_t dtmfDuration;
+    std::list<RtpHeaderExtension>* listExtensions;
 };
 
 class FakeRtpDecoderNode : public BaseNode
@@ -368,6 +386,46 @@ TEST_F(RtpDecoderNodeTest, testAudioDtmfDataProcess)
             0, MEDIASUBTYPE_UNDEFINED, 0);
     EXPECT_EQ(callback.GetDtmfDigit(), 0x01);
     EXPECT_EQ(callback.GetDtmfDuration(), 100);
+}
+
+TEST_F(RtpDecoderNodeTest, testAudioRtpExtension)
+{
+    setupAudioConfig();
+    EXPECT_EQ(encoder->Start(), RESULT_SUCCESS);
+    EXPECT_EQ(decoder->Start(), RESULT_SUCCESS);
+
+    // AMR mode 6 payload frame
+    uint8_t testFrame[] = {0x1c, 0x51, 0x06, 0x40, 0x32, 0xba, 0x8e, 0xc1, 0x25, 0x42, 0x2f, 0xc7,
+            0xaf, 0x6e, 0xe0, 0xbb, 0xb2, 0x91, 0x09, 0xa5, 0xa6, 0x08, 0x18, 0x6f, 0x08, 0x1c,
+            0x1c, 0x44, 0xd8, 0xe0, 0x48, 0x8c, 0x7c, 0xf8, 0x4c, 0x22, 0xd0};
+
+    const uint8_t testExtension1[] = {0xFF, 0xF2};
+    const uint8_t testExtension2[] = {0xFF, 0xF2};
+
+    std::list<RtpHeaderExtension> listExtension;
+
+    RtpHeaderExtension extension1;
+    extension1.setLocalIdentifier(1);
+    extension1.setExtensionData(testExtension1, 2);
+    listExtension.push_back(extension1);
+
+    RtpHeaderExtension extension2;
+    extension2.setLocalIdentifier(2);
+    extension2.setExtensionData(testExtension2, 2);
+    listExtension.push_back(extension2);
+
+    encoder->SetRtpHeaderExtension(&listExtension);
+    encoder->OnDataFromFrontNode(MEDIASUBTYPE_UNDEFINED, testFrame, sizeof(testFrame), 0, false, 0);
+    encoder->ProcessData();
+
+    std::list<RtpHeaderExtension>* receivedExtension = callback.GetListExtension();
+    ASSERT_TRUE(receivedExtension != nullptr);
+
+    for (auto& extension : *receivedExtension)
+    {
+        EXPECT_EQ(extension, listExtension.front());
+        listExtension.pop_front();
+    }
 }
 
 TEST_F(RtpDecoderNodeTest, startVideoAndUpdate)

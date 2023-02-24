@@ -32,7 +32,10 @@ BaseJitterBuffer::BaseJitterBuffer()
     mMaxSaveFrameNum = 0;
 }
 
-BaseJitterBuffer::~BaseJitterBuffer() {}
+BaseJitterBuffer::~BaseJitterBuffer()
+{
+    mDataQueue.Clear();
+}
 
 void BaseJitterBuffer::SetSessionCallback(BaseSessionCallback* callback)
 {
@@ -58,13 +61,12 @@ void BaseJitterBuffer::SetJitterBufferSize(uint32_t nInit, uint32_t nMin, uint32
 }
 
 void BaseJitterBuffer::SetJitterOptions(
-        uint32_t nReduceTH, uint32_t nStepSize, double zValue, bool bIgnoreSID, bool bImprovement)
+        uint32_t nReduceTH, uint32_t nStepSize, double zValue, bool bIgnoreSID)
 {
     (void)nReduceTH;
     (void)nStepSize;
     (void)zValue;
     (void)bIgnoreSID;
-    (void)bImprovement;
 }
 
 uint32_t BaseJitterBuffer::GetCount()

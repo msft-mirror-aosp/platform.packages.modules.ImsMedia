@@ -116,7 +116,15 @@ public:
      *
      * @return ImsMediaResult return RESULT_SUCCESS when it starts well without error
      */
-    virtual ImsMediaResult Start() = 0;
+    virtual ImsMediaResult Start();
+
+    /**
+     * @brief Starts to run node with the configuration already set by the SetConfig method in
+     * scheduler thread
+     *
+     * @return ImsMediaResult return RESULT_SUCCESS when it starts well without error
+     */
+    virtual ImsMediaResult ProcessStart();
 
     /**
      * @brief Stops the node operation
@@ -125,12 +133,14 @@ public:
     virtual void Stop() = 0;
 
     /**
-     * @brief Checks the node is running in main thread.
-     *
-     * @return true running in main thread
-     * @return false running by the created in StreamScheduler
+     * @brief Checks the node processes data in main thread.
      */
     virtual bool IsRunTime() = 0;
+
+    /**
+     * @brief Checks the node to start in main thread
+     */
+    virtual bool IsRunTimeStart();
 
     /**
      * @brief Checks the node is initial node of data source

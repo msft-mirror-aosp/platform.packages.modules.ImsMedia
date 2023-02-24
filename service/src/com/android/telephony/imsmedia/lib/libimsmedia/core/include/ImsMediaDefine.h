@@ -26,10 +26,7 @@
 #define USHORT_SEQ_ROUND_COMPARE(a, b)                                                      \
     ((((a) >= (b)) && (((b) >= SEQ_ROUND_QUARD) || (((a) <= 0xffff - SEQ_ROUND_QUARD)))) || \
             (((a) <= SEQ_ROUND_QUARD) && ((b) >= 0xffff - SEQ_ROUND_QUARD)))
-#define TS_ROUND_QUARD 3000
-#define USHORT_TS_ROUND_COMPARE(a, b)                                             \
-    (((a) >= (b) && (b) >= TS_ROUND_QUARD) || ((a) <= 0xffff - TS_ROUND_QUARD) || \
-            ((a) <= TS_ROUND_QUARD && (b) >= 0xffff - TS_ROUND_QUARD))
+#define IMS_MEDIA_WORD_SIZE 4
 
 using namespace android::telephony::imsmedia;
 
@@ -293,7 +290,7 @@ enum ImsMediaAudioMsgRequest
     kAudioDeleteConfig,
     kAudioConfirmConfig,
     kAudioSendDtmf,
-    kAudioSendHeaderExtension,
+    kAudioSendRtpHeaderExtension,
     kAudioSetMediaQualityThreshold,
 };
 
@@ -320,7 +317,7 @@ enum ImsMediaVideoMsgRequest
     kVideoModifySession,
     kVideoSetPreviewSurface,
     kVideoSetDisplaySurface,
-    kVideoSendHeaderExtension,
+    kVideoSendRtpHeaderExtension,
     kVideoSetMediaQualityThreshold,
     kVideoRequestDataUsage,
 };
@@ -550,27 +547,76 @@ public:
     uint32_t option;
 };
 
-struct tRtpHeaderExtensionInfo
+struct RtpHeaderExtensionInfo
 {
-    uint16_t nDefinedByProfile;
-    uint16_t nLength;
-    uint16_t nExtensionData;
-    tRtpHeaderExtensionInfo(uint16_t profile = 0, uint16_t length = 0, uint16_t data = 0)
+public:
+    enum
     {
-        nDefinedByProfile = profile;
-        nLength = length;
-        nExtensionData = data;
+        // RFC 8285#section-4.2, The bit pattern for one byte header
+        kBitPatternForOneByteHeader = 0xBEDE,
+        // RFC 8285#section-4.3, The bit pattern for two byte header
+        kBitPatternForTwoByteHeader = 0x1000,
+    };
+
+    uint16_t definedByProfile;
+    uint16_t length;  // length in word unit
+    int8_t* extensionData;
+    uint16_t extensionDataSize;
+
+    RtpHeaderExtensionInfo(
+            uint16_t profile = 0, uint16_t len = 0, int8_t* data = nullptr, uint16_t size = 0)
+    {
+        definedByProfile = profile;
+        length = len;
+        extensionData = nullptr;
+        extensionDataSize = 0;
+        setExtensionData(data, size);
     }
-    tRtpHeaderExtensionInfo& operator=(const tRtpHeaderExtensionInfo& extension)
+
+    RtpHeaderExtensionInfo(const RtpHeaderExtensionInfo& extension)
+    {
+        definedByProfile = extension.definedByProfile;
+        extensionData = nullptr;
+        length = extension.length;
+        setExtensionData(extension.extensionData, extension.extensionDataSize);
+    }
+
+    ~RtpHeaderExtensionInfo()
+    {
+        if (extensionData != nullptr)
+        {
+            delete[] extensionData;
+            extensionData = nullptr;
+        }
+    }
+
+    RtpHeaderExtensionInfo& operator=(const RtpHeaderExtensionInfo& extension)
     {
         if (this != &extension)
         {
-            nDefinedByProfile = extension.nDefinedByProfile;
-            nLength = extension.nLength;
-            nExtensionData = extension.nExtensionData;
+            definedByProfile = extension.definedByProfile;
+            length = extension.length;
+            setExtensionData(extension.extensionData, extension.extensionDataSize);
         }
 
         return *this;
+    }
+
+    void setExtensionData(int8_t* data, uint16_t dataSize)
+    {
+        if (extensionData != nullptr)
+        {
+            delete[] extensionData;
+            extensionData = nullptr;
+            extensionDataSize = 0;
+        }
+
+        if (data != nullptr)
+        {
+            extensionDataSize = dataSize;
+            extensionData = new int8_t[extensionDataSize];
+            memcpy(extensionData, data, extensionDataSize);
+        }
     }
 };
 

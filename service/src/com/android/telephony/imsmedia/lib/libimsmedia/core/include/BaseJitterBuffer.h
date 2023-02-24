@@ -41,8 +41,8 @@ public:
      */
     virtual void SetCodecType(uint32_t type);
     virtual void SetJitterBufferSize(uint32_t nInit, uint32_t nMin, uint32_t nMax);
-    virtual void SetJitterOptions(uint32_t nReduceTH, uint32_t nStepSize, double zValue,
-            bool bIgnoreSID, bool bImprovement);
+    virtual void SetJitterOptions(
+            uint32_t nReduceTH, uint32_t nStepSize, double zValue, bool bIgnoreSID);
     virtual uint32_t GetCount();
     virtual void Reset();
     virtual void Delete();
@@ -62,6 +62,7 @@ public:
      */
     virtual void Add(ImsMediaSubType subtype, uint8_t* data, uint32_t dataSize, uint32_t timestamp,
             bool mark, uint32_t seq,
+            /** TODO: remove deprecated argument dataType */
             ImsMediaSubType dataType = ImsMediaSubType::MEDIASUBTYPE_UNDEFINED,
             uint32_t arrivalTime = 0) = 0;
 
@@ -75,11 +76,10 @@ public:
      * @param timestamp The timestamp of data, it can be milliseconds unit or rtp timestamp unit
      * @param mark It is true when the data has marker bit set
      * @param seq The sequence number of data. it is 0 when there is no valid sequence number set
-     * @param pnChecker
+     * @param currentTime The current timestamp of this method invoked with milliseconds unit
      */
     virtual bool Get(ImsMediaSubType* psubtype, uint8_t** ppData, uint32_t* pnDataSize,
-            uint32_t* ptimestamp, bool* pmark, uint32_t* pnSeqNum,
-            uint32_t* pnChecker = nullptr) = 0;
+            uint32_t* ptimestamp, bool* pmark, uint32_t* pnSeqNum, uint32_t currentTime) = 0;
 
 protected:
     BaseSessionCallback* mCallback;

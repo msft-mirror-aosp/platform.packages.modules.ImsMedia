@@ -23,6 +23,7 @@
 #include <AudioSession.h>
 #include <AudioConfig.h>
 #include <MediaQualityThreshold.h>
+#include <RtpHeaderExtension.h>
 #include <unordered_map>
 
 using namespace std;
@@ -74,7 +75,7 @@ private:
     ImsMediaResult deleteConfig(int sessionId, AudioConfig* config);
     ImsMediaResult confirmConfig(int sessionId, AudioConfig* config);
     void sendDtmf(int sessionId, char dtmfDigit, int duration);
-    // void sendHeaderExtension(int sessionId, RtpHeaderExtension* data);
+    void sendRtpHeaderExtension(int sessionId, std::list<RtpHeaderExtension>* listExtension);
     void setMediaQualityThreshold(int sessionId, MediaQualityThreshold* threshold);
 
     static AudioManager* sManager;

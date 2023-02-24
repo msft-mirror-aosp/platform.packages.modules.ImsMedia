@@ -24,6 +24,7 @@
 #include <AudioStreamGraphRtcp.h>
 #include <RtpConfig.h>
 #include <MediaQualityAnalyzer.h>
+#include <RtpHeaderExtension.h>
 #include <list>
 
 class AudioSession : public BaseSession
@@ -102,6 +103,13 @@ public:
      * @return uint32_t The size of list
      */
     uint32_t getGraphSize(ImsMediaStreamType type);
+
+    /**
+     * @brief Send rtp header extension to the audio rtp
+     *
+     * @param listExtension The list of rtp header extension data
+     */
+    void sendRtpHeaderExtension(std::list<RtpHeaderExtension>* listExtension);
 
 private:
     std::list<AudioStreamGraphRtpTx*> mListGraphRtpTx;

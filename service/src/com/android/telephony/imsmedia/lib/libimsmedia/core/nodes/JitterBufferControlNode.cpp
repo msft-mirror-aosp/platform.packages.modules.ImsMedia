@@ -18,7 +18,7 @@
 #include <AudioJitterBuffer.h>
 #include <VideoJitterBuffer.h>
 #include <TextJitterBuffer.h>
-#include <ImsMediaTrace.h>
+#include <ImsMediaTimer.h>
 
 JitterBufferControlNode::JitterBufferControlNode(BaseSessionCallback* callback, ImsMediaType type) :
         BaseNode(callback),
@@ -50,8 +50,6 @@ JitterBufferControlNode::~JitterBufferControlNode()
 
 void JitterBufferControlNode::SetJitterBufferSize(uint32_t nInit, uint32_t nMin, uint32_t nMax)
 {
-    IMLOGD3("[SetJitterBufferSize] init[%d], min[%d], max[%d]", nInit, nMin, nMax);
-
     if (mJitterBuffer)
     {
         mJitterBuffer->SetJitterBufferSize(nInit, nMin, nMax);
@@ -59,21 +57,16 @@ void JitterBufferControlNode::SetJitterBufferSize(uint32_t nInit, uint32_t nMin,
 }
 
 void JitterBufferControlNode::SetJitterOptions(
-        uint32_t nReduceTH, uint32_t nStepSize, double zValue, bool bIgnoreSID, bool bImprovement)
+        uint32_t nReduceTH, uint32_t nStepSize, double zValue, bool bIgnoreSID)
 {
-    IMLOGD5("[SetJitterOptions] nReduceTH[%d], nStepSize[%d], zValue[%lf], bSID[%d], bImprove[%d]",
-            nReduceTH, nStepSize, zValue, bIgnoreSID, bImprovement);
-
     if (mJitterBuffer)
     {
-        mJitterBuffer->SetJitterOptions(nReduceTH, nStepSize, zValue, bIgnoreSID, bImprovement);
+        mJitterBuffer->SetJitterOptions(nReduceTH, nStepSize, zValue, bIgnoreSID);
     }
 }
 
 void JitterBufferControlNode::Reset()
 {
-    IMLOGD0("[Reset]");
-
     if (mJitterBuffer)
     {
         mJitterBuffer->Reset();
@@ -112,12 +105,20 @@ bool JitterBufferControlNode::GetData(ImsMediaSubType* pSubtype, uint8_t** ppDat
         uint32_t* pnDataSize, uint32_t* pnTimestamp, bool* pbMark, uint32_t* pnSeqNum,
         ImsMediaSubType* pnDataType, uint32_t* arrivalTime)
 {
-    (void)arrivalTime;
+    if (arrivalTime)
+    {
+        *arrivalTime = 0;
+    }
+
+    if (pnDataType)
+    {
+        *pnDataType = MEDIASUBTYPE_UNDEFINED;
+    }
 
     if (mJitterBuffer)
     {
         return mJitterBuffer->Get(pSubtype, ppData, pnDataSize, pnTimestamp, pbMark, pnSeqNum,
-                reinterpret_cast<uint32_t*>(pnDataType));
+                ImsMediaTimer::GetTimeInMilliSeconds());
     }
 
     return false;

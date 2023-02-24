@@ -252,8 +252,8 @@ protected:
     int32_t deviceOrientationDegree;
     /* The value to identify CVO RTP header extension features is enabled by the SDP negotiation.
      * When the flag is set, MediaStack sends CVO RTP extension byte in the RTP header when the
-     * sendHeaderExtension is invoked and the Video IDR frame is sent. if this value is -1,
-     * CVO is disabled, and non zero means CVO enabled with specified offset. Check RFC 5285 */
+     * Video IDR frame is sent. if this value is -1, CVO is disabled, and non zero means CVO enabled
+     * with specified offset. Check RFC 5285 */
     int32_t cvoValue;
     /* The RTPFB, PSFB configuration with RTCP Protocol */
     int32_t rtcpFbTypes;

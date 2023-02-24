@@ -55,9 +55,9 @@ class IRtpDecoderListener
 public:
     IRtpDecoderListener() {}
     virtual ~IRtpDecoderListener() {}
-    virtual void OnMediaDataInd(unsigned char* pData, uint32_t nDataSize, uint32_t nTimestamp,
-            bool bMark, uint16_t nSeqNum, uint32_t nPayloadType, uint32_t nSSRC, bool bExtension,
-            uint16_t nExtensionData) = 0;
+    virtual void OnMediaDataInd(unsigned char* data, uint32_t dataSize, uint32_t timestamp,
+            bool mark, uint16_t seqNum, uint32_t payloadType, uint32_t ssrc,
+            const RtpHeaderExtensionInfo& extensionInfo) = 0;
     virtual void OnNumReceivedPacket(uint32_t nNumRtpPacket) = 0;
 };
 
@@ -103,9 +103,8 @@ public:
     void StopRtp();
     void StartRtcp(bool bSendRtcpBye = false);
     void StopRtcp();
-    bool SendRtpPacket(uint32_t nPayloadType, uint8_t* pData, uint32_t nDataSize,
-            uint32_t timestamp, bool mark, uint32_t nTimeDiff, bool bExtension = false,
-            tRtpHeaderExtensionInfo* pExtensionInfo = nullptr);
+    bool SendRtpPacket(uint32_t payloadType, uint8_t* data, uint32_t dataSize, uint32_t timestamp,
+            bool mark, uint32_t nTimeDiff, RtpHeaderExtensionInfo* extensionInfo = nullptr);
     bool ProcRtpPacket(uint8_t* pData, uint32_t nDataSize);
     bool ProcRtcpPacket(uint8_t* pData, uint32_t nDataSize);
     void OnTimer();

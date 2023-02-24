@@ -19,9 +19,13 @@ package com.android.telephony.imsmedia;
 import android.os.Handler;
 import android.os.Parcel;
 import android.telephony.CallQuality;
+import android.telephony.ims.RtpHeaderExtension;
 import android.telephony.imsmedia.AudioConfig;
 import android.telephony.imsmedia.MediaQualityStatus;
 import android.util.Log;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Audio listener to process JNI messages from local AP based RTP stack
@@ -91,7 +95,14 @@ public class AudioListener implements JNIImsMediaListener {
             }
                 break;
             case AudioSession.EVENT_RTP_HEADER_EXTENSION_IND:
-                Utils.sendMessage(mHandler, event);
+            {
+                final List<RtpHeaderExtension> extensions = new ArrayList<RtpHeaderExtension>();
+                final int listSize = parcel.readInt();
+                for (int i = 0; i < listSize; i++) {
+                    extensions.add(RtpHeaderExtension.CREATOR.createFromParcel(parcel));
+                }
+                Utils.sendMessage(mHandler, event, extensions);
+            }
                 break;
             case AudioSession.EVENT_MEDIA_QUALITY_STATUS_IND:
             {
