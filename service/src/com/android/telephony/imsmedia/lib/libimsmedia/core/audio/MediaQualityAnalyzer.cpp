@@ -36,6 +36,7 @@
 
 MediaQualityAnalyzer::MediaQualityAnalyzer()
 {
+    mTimeStarted = 0;
     mCodecType = 0;
     mCodecAttribute = 0;
     mCallback = nullptr;
@@ -118,7 +119,7 @@ void MediaQualityAnalyzer::start()
     IMLOGD0("[start]");
     mCallQuality.setCodecType(convertAudioCodecType(
             mCodecType, ImsMediaAudioUtil::FindMaxEvsBandwidthFromRange(mCodecAttribute)));
-
+    mTimeStarted = ImsMediaTimer::GetTimeInMilliSeconds();
     StartThread();
 }
 
@@ -130,13 +131,7 @@ void MediaQualityAnalyzer::stop()
     {
         StopThread();
         mConditionExit.wait_timeout(STOP_TIMEOUT);
-
-        if (mCallback != nullptr)
-        {
-            IMLOGD0("[notifyCallQuality]");
-            CallQuality* quality = new CallQuality(mCallQuality);
-            mCallback->SendEvent(kAudioCallQualityChangedInd, reinterpret_cast<uint64_t>(quality));
-        }
+        notifyCallQuality();
     }
 
     reset();
@@ -290,6 +285,20 @@ void MediaQualityAnalyzer::collectRxRtpStatus(
             mRtcpXrEncoder->stackRxRtpStatus(packet->status, delay);
             IMLOGD_PACKET3(IM_PACKET_LOG_RTP, "[collectRxRtpStatus] seq[%d], status[%d], delay[%u]",
                     seq, packet->status, delay);
+
+            // set the max playout delay
+            if (delay > mCallQuality.getMaxPlayoutDelayMillis())
+            {
+                mCallQuality.setMaxPlayoutDelayMillis(delay);
+            }
+
+            // set the min playout delay
+            if (delay < mCallQuality.getMinPlayoutDelayMillis() ||
+                    mCallQuality.getMinPlayoutDelayMillis() == 0)
+            {
+                mCallQuality.setMinPlayoutDelayMillis(delay);
+            }
+
             found = true;
             break;
         }
@@ -354,17 +363,8 @@ void MediaQualityAnalyzer::processData(const int32_t timeCount)
             mCallQuality.getNumRtpPacketsReceived() == 0)
     {
         mCallQuality.setRtpInactivityDetected(true);
-
-        if (mCallback != nullptr)
-        {
-            IMLOGD0("[notifyCallQuality]");
-            CallQuality* callQuality = new CallQuality(mCallQuality);
-            mCallback->SendEvent(
-                    kAudioCallQualityChangedInd, reinterpret_cast<uint64_t>(callQuality));
-        }
+        notifyCallQuality();
     }
-
-    mCallQuality.setCallDuration(mCallQuality.getCallDuration() + TIMER_INTERVAL);
 
     // call quality packet loss
     if (timeCount % CALL_QUALITY_MONITORING_TIME == 0)
@@ -383,14 +383,7 @@ void MediaQualityAnalyzer::processData(const int32_t timeCount)
         if (mCallQuality.getDownlinkCallQualityLevel() != quality)
         {
             mCallQuality.setDownlinkCallQualityLevel(quality);
-
-            if (mCallback != nullptr)
-            {
-                IMLOGD0("[notifyCallQuality]");
-                CallQuality* callQuality = new CallQuality(mCallQuality);
-                mCallback->SendEvent(
-                        kAudioCallQualityChangedInd, reinterpret_cast<uint64_t>(callQuality));
-            }
+            notifyCallQuality();
         }
 
         mCallQualityNumLostPacket = 0;
@@ -525,6 +518,22 @@ void MediaQualityAnalyzer::processMediaQuality()
             notifyMediaQualityStatus();
             return;
         }
+    }
+}
+
+void MediaQualityAnalyzer::notifyCallQuality()
+{
+    if (mCallback != nullptr)
+    {
+        mCallQuality.setCallDuration(ImsMediaTimer::GetTimeInMilliSeconds() - mTimeStarted);
+
+        IMLOGD1("[notifyCallQuality] duration[%d]", mCallQuality.getCallDuration());
+        CallQuality* callQuality = new CallQuality(mCallQuality);
+        mCallback->SendEvent(kAudioCallQualityChangedInd, reinterpret_cast<uint64_t>(callQuality));
+
+        // reset the items to keep in reporting interval
+        mCallQuality.setMinPlayoutDelayMillis(0);
+        mCallQuality.setMaxPlayoutDelayMillis(0);
     }
 }
 

@@ -44,9 +44,9 @@ kBaseNodeId IAudioPlayerNode::GetNodeId()
     return kNodeIdAudioPlayer;
 }
 
-ImsMediaResult IAudioPlayerNode::Start()
+ImsMediaResult IAudioPlayerNode::ProcessStart()
 {
-    IMLOGD2("[Start] codec[%d], mode[%d]", mCodecType, mMode);
+    IMLOGD2("[ProcessStart] codec[%d], mode[%d]", mCodecType, mMode);
     if (mJitterBuffer)
     {
         mJitterBuffer->SetCodecType(mCodecType);
@@ -101,6 +101,11 @@ bool IAudioPlayerNode::IsRunTime()
     return true;
 }
 
+bool IAudioPlayerNode::IsRunTimeStart()
+{
+    return false;
+}
+
 bool IAudioPlayerNode::IsSourceNode()
 {
     return false;
@@ -137,9 +142,9 @@ void IAudioPlayerNode::SetConfig(void* config)
 
     mSamplingRate = mConfig->getSamplingRateKHz();
     SetJitterBufferSize(4, 4, 9);
-    SetJitterOptions(80, 1, (double)25 / 10,
-            false, /** TODO: when enable DTX, set this true on condition*/
-            true);
+    SetJitterOptions(
+            80, 1, (double)25 / 10, false /** TODO: when enable DTX, set this true on condition*/
+    );
 }
 
 bool IAudioPlayerNode::IsSameConfig(void* config)

@@ -44,8 +44,8 @@ public:
     virtual void Add(ImsMediaSubType subtype, uint8_t* pbBuffer, uint32_t nBufferSize,
             uint32_t nTimeStamp, bool mark, uint32_t nSeqNum, ImsMediaSubType nDataType,
             uint32_t arrivalTime);
-    virtual bool Get(ImsMediaSubType* pImsMediaSubType, uint8_t** ppData, uint32_t* pnDataSize,
-            uint32_t* pnTimeStamp, bool* pmark, uint32_t* pnSeqNum, uint32_t* pnChecker = nullptr);
+    virtual bool Get(ImsMediaSubType* psubtype, uint8_t** ppData, uint32_t* pnDataSize,
+            uint32_t* ptimestamp, bool* pmark, uint32_t* pnSeqNum, uint32_t currentTime);
 
     /**
      * @brief Set the video codec type
