@@ -229,6 +229,7 @@ protected:
      */
     void processData(const int32_t timeCount);
     void processMediaQuality();
+    void notifyCallQuality();
     void notifyMediaQualityStatus();
     void AddEvent(uint32_t event, uint64_t paramA, uint64_t paramB);
     void processEvent(uint32_t event, uint64_t paramA, uint64_t paramB);
@@ -247,6 +248,8 @@ protected:
     std::list<LostPacket*> mListLostPacket;
     /** The list of the packets sent */
     std::list<RtpPacket*> mListTxPacket;
+    /** The time of call started in milliseconds unit*/
+    int32_t mTimeStarted;
     /** The ssrc of the receiving Rtp stream to identify */
     int32_t mSSRC;
     /** The codec type of the audio session retrieved from the AudioConfig.h */

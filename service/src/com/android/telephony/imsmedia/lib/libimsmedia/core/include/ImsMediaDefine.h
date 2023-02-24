@@ -26,10 +26,6 @@
 #define USHORT_SEQ_ROUND_COMPARE(a, b)                                                      \
     ((((a) >= (b)) && (((b) >= SEQ_ROUND_QUARD) || (((a) <= 0xffff - SEQ_ROUND_QUARD)))) || \
             (((a) <= SEQ_ROUND_QUARD) && ((b) >= 0xffff - SEQ_ROUND_QUARD)))
-#define TS_ROUND_QUARD 3000
-#define USHORT_TS_ROUND_COMPARE(a, b)                                             \
-    (((a) >= (b) && (b) >= TS_ROUND_QUARD) || ((a) <= 0xffff - TS_ROUND_QUARD) || \
-            ((a) <= TS_ROUND_QUARD && (b) >= 0xffff - TS_ROUND_QUARD))
 #define IMS_MEDIA_WORD_SIZE 4
 
 using namespace android::telephony::imsmedia;

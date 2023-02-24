@@ -306,10 +306,8 @@ void VideoJitterBuffer::Add(ImsMediaSubType subtype, uint8_t* pbBuffer, uint32_t
 }
 
 bool VideoJitterBuffer::Get(ImsMediaSubType* subtype, uint8_t** ppData, uint32_t* pnDataSize,
-        uint32_t* pnTimestamp, bool* pbMark, uint32_t* pnSeqNum, uint32_t* pnChecker)
+        uint32_t* pnTimestamp, bool* pbMark, uint32_t* pnSeqNum, uint32_t currentTime)
 {
-    (void)pnChecker;
-
     DataEntry* pEntry = nullptr;
     bool bValidPacket = false;
     std::lock_guard<std::mutex> guard(mMutex);
@@ -511,7 +509,7 @@ bool VideoJitterBuffer::Get(ImsMediaSubType* subtype, uint8_t** ppData, uint32_t
                 "[Get] bValid[%u], LastPlayedTS[%u], Seq[%u], LastPlayedSeq[%u]", pEntry->bValid,
                 mLastPlayedTimestamp, pEntry->nSeqNum, mLastPlayedSeqNum);
 
-        uint32_t nCurrTime = ImsMediaTimer::GetTimeInMilliSeconds();
+        uint32_t nCurrTime = currentTime;
 
         if (mLastPlayedTimestamp == 0 || mLastPlayedTime == 0 ||
                 pEntry->nTimestamp == mLastPlayedTimestamp)

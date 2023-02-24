@@ -42,9 +42,9 @@ kBaseNodeId IAudioSourceNode::GetNodeId()
     return kNodeIdAudioSource;
 }
 
-ImsMediaResult IAudioSourceNode::Start()
+ImsMediaResult IAudioSourceNode::ProcessStart()
 {
-    IMLOGD2("[Start] codec[%d], mode[%d]", mCodecType, mCodecMode);
+    IMLOGD2("[ProcessStart] codec[%d], mode[%d]", mCodecType, mCodecMode);
 
     if (mAudioSource)
     {
@@ -95,6 +95,11 @@ void IAudioSourceNode::Stop()
 bool IAudioSourceNode::IsRunTime()
 {
     return true;
+}
+
+bool IAudioSourceNode::IsRunTimeStart()
+{
+    return false;
 }
 
 bool IAudioSourceNode::IsSourceNode()
