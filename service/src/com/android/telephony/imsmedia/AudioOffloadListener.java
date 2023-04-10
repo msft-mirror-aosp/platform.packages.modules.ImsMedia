@@ -18,6 +18,7 @@ package com.android.telephony.imsmedia;
 
 import android.hardware.radio.ims.media.CallQuality;
 import android.hardware.radio.ims.media.IImsMediaSessionListener;
+import android.hardware.radio.ims.media.MediaQualityStatus;
 import android.hardware.radio.ims.media.RtpConfig;
 import android.hardware.radio.ims.media.RtpHeaderExtension;
 import android.os.Handler;
@@ -62,20 +63,9 @@ final class AudioOffloadListener extends IImsMediaSessionListener.Stub {
     }
 
     @Override
-    public void notifyMediaInactivity(int packetType) {
-        Utils.sendMessage(handler, AudioSession.EVENT_MEDIA_INACTIVITY_IND,
-                packetType, Utils.UNUSED);
-    }
-
-    @Override
-    public void notifyPacketLoss(int packetLossPercentage) {
-        Utils.sendMessage(handler, AudioSession.EVENT_PACKET_LOSS_IND,
-                packetLossPercentage, Utils.UNUSED);
-    }
-
-    @Override
-    public void notifyJitter(int jitter) {
-        Utils.sendMessage(handler, AudioSession.EVENT_JITTER_IND, jitter, Utils.UNUSED);
+    public void notifyMediaQualityStatus(MediaQualityStatus status) {
+        Utils.sendMessage(handler, AudioSession.EVENT_MEDIA_QUALITY_STATUS_IND,
+                Utils.convertMediaQualityStatus(status));
     }
 
     @Override
@@ -85,8 +75,8 @@ final class AudioOffloadListener extends IImsMediaSessionListener.Stub {
     }
 
     @Override
-    public void onDtmfReceived(char dtmfDigit) {
-        Utils.sendMessage(handler, AudioSession.EVENT_DTMF_RECEIVED_IND, dtmfDigit);
+    public void onDtmfReceived(char dtmfDigit, int durationMs) {
+        Utils.sendMessage(handler, AudioSession.EVENT_DTMF_RECEIVED_IND, dtmfDigit, durationMs);
     }
 
     @Override

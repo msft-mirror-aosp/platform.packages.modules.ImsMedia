@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#include <MediaQuality.h>
+#include <CallQuality.h>
 
 namespace android
 {
@@ -27,7 +27,7 @@ namespace imsmedia
 
 #define DEFAULT_PARAM (-1)
 
-MediaQuality::MediaQuality()
+CallQuality::CallQuality()
 {
     mDownlinkCallQualityLevel = 0;
     mUplinkCallQualityLevel = 0;
@@ -52,7 +52,7 @@ MediaQuality::MediaQuality()
     mNumRtpDuplicatePackets = 0;
 }
 
-MediaQuality::MediaQuality(const MediaQuality& quality)
+CallQuality::CallQuality(const CallQuality& quality)
 {
     mDownlinkCallQualityLevel = quality.mDownlinkCallQualityLevel;
     mUplinkCallQualityLevel = quality.mUplinkCallQualityLevel;
@@ -77,9 +77,9 @@ MediaQuality::MediaQuality(const MediaQuality& quality)
     mNumRtpDuplicatePackets = quality.mNumRtpDuplicatePackets;
 }
 
-MediaQuality::~MediaQuality() {}
+CallQuality::~CallQuality() {}
 
-MediaQuality& MediaQuality::operator=(const MediaQuality& quality)
+CallQuality& CallQuality::operator=(const CallQuality& quality)
 {
     if (this != &quality)
     {
@@ -108,7 +108,7 @@ MediaQuality& MediaQuality::operator=(const MediaQuality& quality)
     return *this;
 }
 
-bool MediaQuality::operator==(const MediaQuality& quality) const
+bool CallQuality::operator==(const CallQuality& quality) const
 {
     return (mDownlinkCallQualityLevel == quality.mDownlinkCallQualityLevel &&
             mUplinkCallQualityLevel == quality.mUplinkCallQualityLevel &&
@@ -133,7 +133,7 @@ bool MediaQuality::operator==(const MediaQuality& quality) const
             mNumRtpDuplicatePackets == quality.mNumRtpDuplicatePackets);
 }
 
-bool MediaQuality::operator!=(const MediaQuality& quality) const
+bool CallQuality::operator!=(const CallQuality& quality) const
 {
     return (mDownlinkCallQualityLevel != quality.mDownlinkCallQualityLevel ||
             mUplinkCallQualityLevel != quality.mUplinkCallQualityLevel ||
@@ -158,70 +158,70 @@ bool MediaQuality::operator!=(const MediaQuality& quality) const
             mNumRtpDuplicatePackets != quality.mNumRtpDuplicatePackets);
 }
 
-status_t MediaQuality::writeToParcel(Parcel* parcel) const
+status_t CallQuality::writeToParcel(Parcel* out) const
 {
     status_t err;
-    err = parcel->writeInt32(mDownlinkCallQualityLevel);
+    err = out->writeInt32(mDownlinkCallQualityLevel);
     if (err != NO_ERROR)
     {
         return err;
     }
 
-    err = parcel->writeInt32(mUplinkCallQualityLevel);
+    err = out->writeInt32(mUplinkCallQualityLevel);
     if (err != NO_ERROR)
     {
         return err;
     }
 
-    err = parcel->writeInt32(mCallDuration);
+    err = out->writeInt32(mCallDuration);
     if (err != NO_ERROR)
     {
         return err;
     }
 
-    err = parcel->writeInt32(mNumRtpPacketsTransmitted);
+    err = out->writeInt32(mNumRtpPacketsTransmitted);
     if (err != NO_ERROR)
     {
         return err;
     }
 
-    err = parcel->writeInt32(mNumRtpPacketsReceived);
+    err = out->writeInt32(mNumRtpPacketsReceived);
     if (err != NO_ERROR)
     {
         return err;
     }
 
-    err = parcel->writeInt32(mNumRtpPacketsTransmittedLost);
+    err = out->writeInt32(mNumRtpPacketsTransmittedLost);
     if (err != NO_ERROR)
     {
         return err;
     }
 
-    err = parcel->writeInt32(mNumRtpPacketsNotReceived);
+    err = out->writeInt32(mNumRtpPacketsNotReceived);
     if (err != NO_ERROR)
     {
         return err;
     }
 
-    err = parcel->writeInt32(mAverageRelativeJitter);
+    err = out->writeInt32(mAverageRelativeJitter);
     if (err != NO_ERROR)
     {
         return err;
     }
 
-    err = parcel->writeInt32(mMaxRelativeJitter);
+    err = out->writeInt32(mMaxRelativeJitter);
     if (err != NO_ERROR)
     {
         return err;
     }
 
-    err = parcel->writeInt32(mAverageRoundTripTime);
+    err = out->writeInt32(mAverageRoundTripTime);
     if (err != NO_ERROR)
     {
         return err;
     }
 
-    err = parcel->writeInt32(mCodecType);
+    err = out->writeInt32(mCodecType);
     if (err != NO_ERROR)
     {
         return err;
@@ -229,63 +229,63 @@ status_t MediaQuality::writeToParcel(Parcel* parcel) const
 
     int32_t value = 0;
     mRtpInactivityDetected ? value = 1 : value = 0;
-    err = parcel->writeInt32(value);
+    err = out->writeInt32(value);
     if (err != NO_ERROR)
     {
         return err;
     }
 
     mRxSilenceDetected ? value = 1 : value = 0;
-    err = parcel->writeInt32(value);
+    err = out->writeInt32(value);
     if (err != NO_ERROR)
     {
         return err;
     }
 
     mTxSilenceDetected ? value = 1 : value = 0;
-    err = parcel->writeInt32(value);
+    err = out->writeInt32(value);
     if (err != NO_ERROR)
     {
         return err;
     }
 
-    err = parcel->writeInt32(mNumVoiceFrames);
+    err = out->writeInt32(mNumVoiceFrames);
     if (err != NO_ERROR)
     {
         return err;
     }
 
-    err = parcel->writeInt32(mNumNoDataFrames);
+    err = out->writeInt32(mNumNoDataFrames);
     if (err != NO_ERROR)
     {
         return err;
     }
 
-    err = parcel->writeInt32(mNumDroppedRtpPackets);
+    err = out->writeInt32(mNumDroppedRtpPackets);
     if (err != NO_ERROR)
     {
         return err;
     }
 
-    err = parcel->writeInt64(mMinPlayoutDelayMillis);
+    err = out->writeInt64(mMinPlayoutDelayMillis);
     if (err != NO_ERROR)
     {
         return err;
     }
 
-    err = parcel->writeInt64(mMaxPlayoutDelayMillis);
+    err = out->writeInt64(mMaxPlayoutDelayMillis);
     if (err != NO_ERROR)
     {
         return err;
     }
 
-    err = parcel->writeInt32(mNumRtpSidPacketsReceived);
+    err = out->writeInt32(mNumRtpSidPacketsReceived);
     if (err != NO_ERROR)
     {
         return err;
     }
 
-    err = parcel->writeInt32(mNumRtpDuplicatePackets);
+    err = out->writeInt32(mNumRtpDuplicatePackets);
     if (err != NO_ERROR)
     {
         return err;
@@ -294,7 +294,7 @@ status_t MediaQuality::writeToParcel(Parcel* parcel) const
     return NO_ERROR;
 }
 
-status_t MediaQuality::readFromParcel(const Parcel* in)
+status_t CallQuality::readFromParcel(const Parcel* in)
 {
     status_t err;
     err = in->readInt32(&mDownlinkCallQualityLevel);
@@ -433,212 +433,212 @@ status_t MediaQuality::readFromParcel(const Parcel* in)
     return NO_ERROR;
 }
 
-int MediaQuality::getDownlinkCallQualityLevel()
+int CallQuality::getDownlinkCallQualityLevel()
 {
     return mDownlinkCallQualityLevel;
 }
 
-void MediaQuality::setDownlinkCallQualityLevel(const int level)
+void CallQuality::setDownlinkCallQualityLevel(const int level)
 {
     mDownlinkCallQualityLevel = level;
 }
 
-int MediaQuality::getUplinkCallQualityLevel()
+int CallQuality::getUplinkCallQualityLevel()
 {
     return mUplinkCallQualityLevel;
 }
 
-void MediaQuality::setUplinkCallQualityLevel(const int level)
+void CallQuality::setUplinkCallQualityLevel(const int level)
 {
     mUplinkCallQualityLevel = level;
 }
 
-int MediaQuality::getCallDuration()
+int CallQuality::getCallDuration()
 {
     return mCallDuration;
 }
 
-void MediaQuality::setCallDuration(const int duration)
+void CallQuality::setCallDuration(const int duration)
 {
     mCallDuration = duration;
 }
 
-int MediaQuality::getNumRtpPacketsTransmitted()
+int CallQuality::getNumRtpPacketsTransmitted()
 {
     return mNumRtpPacketsTransmitted;
 }
 
-void MediaQuality::setNumRtpPacketsTransmitted(const int num)
+void CallQuality::setNumRtpPacketsTransmitted(const int num)
 {
     mNumRtpPacketsTransmitted = num;
 }
 
-int MediaQuality::getNumRtpPacketsReceived()
+int CallQuality::getNumRtpPacketsReceived()
 {
     return mNumRtpPacketsReceived;
 }
 
-void MediaQuality::setNumRtpPacketsReceived(const int num)
+void CallQuality::setNumRtpPacketsReceived(const int num)
 {
     mNumRtpPacketsReceived = num;
 }
 
-int MediaQuality::getNumRtpPacketsTransmittedLost()
+int CallQuality::getNumRtpPacketsTransmittedLost()
 {
     return mNumRtpPacketsTransmittedLost;
 }
 
-void MediaQuality::setNumRtpPacketsTransmittedLost(const int num)
+void CallQuality::setNumRtpPacketsTransmittedLost(const int num)
 {
     mNumRtpPacketsTransmittedLost = num;
 }
 
-int MediaQuality::getNumRtpPacketsNotReceived()
+int CallQuality::getNumRtpPacketsNotReceived()
 {
     return mNumRtpPacketsNotReceived;
 }
 
-void MediaQuality::setNumRtpPacketsNotReceived(const int num)
+void CallQuality::setNumRtpPacketsNotReceived(const int num)
 {
     mNumRtpPacketsNotReceived = num;
 }
 
-int MediaQuality::getAverageRelativeJitter()
+int CallQuality::getAverageRelativeJitter()
 {
     return mAverageRelativeJitter;
 }
 
-void MediaQuality::setAverageRelativeJitter(const int jitter)
+void CallQuality::setAverageRelativeJitter(const int jitter)
 {
     mAverageRelativeJitter = jitter;
 }
 
-int MediaQuality::getMaxRelativeJitter()
+int CallQuality::getMaxRelativeJitter()
 {
     return mMaxRelativeJitter;
 }
 
-void MediaQuality::setMaxRelativeJitter(const int jitter)
+void CallQuality::setMaxRelativeJitter(const int jitter)
 {
     mMaxRelativeJitter = jitter;
 }
 
-int MediaQuality::getAverageRoundTripTime()
+int CallQuality::getAverageRoundTripTime()
 {
     return mAverageRoundTripTime;
 }
 
-void MediaQuality::setAverageRoundTripTime(const int time)
+void CallQuality::setAverageRoundTripTime(const int time)
 {
     mAverageRoundTripTime = time;
 }
 
-int MediaQuality::getCodecType()
+int CallQuality::getCodecType()
 {
     return mCodecType;
 }
 
-void MediaQuality::setCodecType(const int type)
+void CallQuality::setCodecType(const int type)
 {
     mCodecType = type;
 }
 
-bool MediaQuality::getRtpInactivityDetected()
+bool CallQuality::getRtpInactivityDetected()
 {
     return mRtpInactivityDetected;
 }
 
-void MediaQuality::setRtpInactivityDetected(const bool detected)
+void CallQuality::setRtpInactivityDetected(const bool detected)
 {
     mRtpInactivityDetected = detected;
 }
 
-bool MediaQuality::getRxSilenceDetected()
+bool CallQuality::getRxSilenceDetected()
 {
     return mRxSilenceDetected;
 }
 
-void MediaQuality::setRxSilenceDetected(const bool detected)
+void CallQuality::setRxSilenceDetected(const bool detected)
 {
     mRxSilenceDetected = detected;
 }
 
-bool MediaQuality::getTxSilenceDetected()
+bool CallQuality::getTxSilenceDetected()
 {
     return mTxSilenceDetected;
 }
 
-void MediaQuality::setTxSilenceDetected(const bool detected)
+void CallQuality::setTxSilenceDetected(const bool detected)
 {
     mTxSilenceDetected = detected;
 }
 
-int MediaQuality::getNumVoiceFrames()
+int CallQuality::getNumVoiceFrames()
 {
     return mNumVoiceFrames;
 }
 
-void MediaQuality::setNumVoiceFrames(const int num)
+void CallQuality::setNumVoiceFrames(const int num)
 {
     mNumVoiceFrames = num;
 }
 
-int MediaQuality::getNumNoDataFrames()
+int CallQuality::getNumNoDataFrames()
 {
     return mNumNoDataFrames;
 }
 
-void MediaQuality::setNumNoDataFrames(const int num)
+void CallQuality::setNumNoDataFrames(const int num)
 {
     mNumNoDataFrames = num;
 }
 
-int MediaQuality::getNumDroppedRtpPackets()
+int CallQuality::getNumDroppedRtpPackets()
 {
     return mNumDroppedRtpPackets;
 }
 
-void MediaQuality::setNumDroppedRtpPackets(const int num)
+void CallQuality::setNumDroppedRtpPackets(const int num)
 {
     mNumDroppedRtpPackets = num;
 }
 
-int64_t MediaQuality::getMinPlayoutDelayMillis()
+int64_t CallQuality::getMinPlayoutDelayMillis()
 {
     return mMinPlayoutDelayMillis;
 }
 
-void MediaQuality::setMinPlayoutDelayMillis(const int64_t delay)
+void CallQuality::setMinPlayoutDelayMillis(const int64_t delay)
 {
     mMinPlayoutDelayMillis = delay;
 }
 
-int64_t MediaQuality::getMaxPlayoutDelayMillis()
+int64_t CallQuality::getMaxPlayoutDelayMillis()
 {
     return mMaxPlayoutDelayMillis;
 }
 
-void MediaQuality::setMaxPlayoutDelayMillis(const int64_t delay)
+void CallQuality::setMaxPlayoutDelayMillis(const int64_t delay)
 {
     mMaxPlayoutDelayMillis = delay;
 }
 
-int MediaQuality::getNumRtpSidPacketsReceived()
+int CallQuality::getNumRtpSidPacketsReceived()
 {
     return mNumRtpSidPacketsReceived;
 }
 
-void MediaQuality::setNumRtpSidPacketsReceived(const int num)
+void CallQuality::setNumRtpSidPacketsReceived(const int num)
 {
     mNumRtpSidPacketsReceived = num;
 }
 
-int MediaQuality::getNumRtpDuplicatePackets()
+int CallQuality::getNumRtpDuplicatePackets()
 {
     return mNumRtpDuplicatePackets;
 }
 
-void MediaQuality::setNumRtpDuplicatePackets(const int num)
+void CallQuality::setNumRtpDuplicatePackets(const int num)
 {
     mNumRtpDuplicatePackets = num;
 }

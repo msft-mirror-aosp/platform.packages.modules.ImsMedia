@@ -492,7 +492,7 @@ TEST_F(RtcpPacketTest, TestDecodeByePacket)
             0x00, 0x03};
 
     RtcpConfigInfo rtcpConfigInfo;
-    RtpBuffer rtpBuffer(28, bufPacket);
+    RtpBuffer rtpBuffer(sizeof(bufPacket), bufPacket);
     eRTP_STATUS_CODE res = rtcpPacket.decodeRtcpPacket(&rtpBuffer, 0, &rtcpConfigInfo);
     EXPECT_EQ(res, RTP_SUCCESS);
 
@@ -518,10 +518,9 @@ TEST_F(RtcpPacketTest, TestDecodeByePacket)
     RtpBuffer* reason = pByePacket->getReason();
     ASSERT_TRUE(reason != nullptr);
 
-    EXPECT_EQ(reason->getLength(), 8);
-    EXPECT_EQ(strcmp(reinterpret_cast<char*>(reason->getBuffer()),
-                      reinterpret_cast<const char*>("teardown")),
-            0);
+    const char* leaveReason = "teardown";
+    EXPECT_EQ(reason->getLength(), strlen(leaveReason));
+    EXPECT_EQ(memcmp(reason->getBuffer(), leaveReason, strlen(leaveReason)), 0);
 }
 
 /**

@@ -20,7 +20,6 @@
 #include <AudioConfig.h>
 #include <IAudioSourceNode.h>
 #include <DtmfEncoderNode.h>
-#include <DtmfSenderNode.h>
 #include <AudioRtpPayloadEncoderNode.h>
 #include <RtpEncoderNode.h>
 #include <SocketWriterNode.h>
@@ -96,7 +95,7 @@ ImsMediaResult AudioStreamGraphRtpTx::update(RtpConfig* config)
 
     if (*reinterpret_cast<AudioConfig*>(mConfig) == *pConfig)
     {
-        IMLOGD0("[update] no update");
+        IMLOGI0("[update] no update");
         return RESULT_SUCCESS;
     }
 
@@ -155,6 +154,23 @@ ImsMediaResult AudioStreamGraphRtpTx::update(RtpConfig* config)
     return ret;
 }
 
+ImsMediaResult AudioStreamGraphRtpTx::start()
+{
+    if (mConfig == nullptr)
+    {
+        return RESULT_NOT_READY;
+    }
+
+    if (mConfig->getMediaDirection() == RtpConfig::MEDIA_DIRECTION_SEND_ONLY ||
+            mConfig->getMediaDirection() == RtpConfig::MEDIA_DIRECTION_SEND_RECEIVE)
+    {
+        return BaseStreamGraph::start();
+    }
+
+    // not started
+    return RESULT_SUCCESS;
+}
+
 bool AudioStreamGraphRtpTx::createDtmfGraph(RtpConfig* config, BaseNode* rtpEncoderNode)
 {
     if (config == nullptr)
@@ -169,22 +185,20 @@ bool AudioStreamGraphRtpTx::createDtmfGraph(RtpConfig* config, BaseNode* rtpEnco
         return false;
     }
 
+    if (mConfig == nullptr)
+    {
+        mConfig = new AudioConfig(*audioConfig);
+    }
+
     BaseNode* pDtmfEncoderNode = new DtmfEncoderNode(mCallback);
     pDtmfEncoderNode->SetMediaType(IMS_MEDIA_AUDIO);
     pDtmfEncoderNode->SetConfig(audioConfig);
     AddNode(pDtmfEncoderNode);
     mListDtmfNodes.push_back(pDtmfEncoderNode);
 
-    BaseNode* pDtmfSenderNode = new DtmfSenderNode(mCallback);
-    pDtmfSenderNode->SetMediaType(IMS_MEDIA_AUDIO);
-    pDtmfSenderNode->SetConfig(audioConfig);
-    pDtmfEncoderNode->ConnectRearNode(pDtmfSenderNode);
-    AddNode(pDtmfSenderNode);
-    mListDtmfNodes.push_back(pDtmfSenderNode);
-
     if (rtpEncoderNode != nullptr)
     {
-        pDtmfSenderNode->ConnectRearNode(rtpEncoderNode);
+        pDtmfEncoderNode->ConnectRearNode(rtpEncoderNode);
     }
 
     return true;
@@ -228,5 +242,15 @@ void AudioStreamGraphRtpTx::processCmr(const uint32_t cmr)
     if (node != nullptr)
     {
         (reinterpret_cast<IAudioSourceNode*>(node))->ProcessCmr(cmr);
+    }
+}
+
+void AudioStreamGraphRtpTx::sendRtpHeaderExtension(std::list<RtpHeaderExtension>* listExtension)
+{
+    BaseNode* node = findNode(kNodeIdRtpEncoder);
+
+    if (node != nullptr)
+    {
+        (reinterpret_cast<RtpEncoderNode*>(node))->SetRtpHeaderExtension(listExtension);
     }
 }

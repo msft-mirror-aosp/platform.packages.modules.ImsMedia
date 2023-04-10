@@ -37,11 +37,8 @@ public:
     virtual void* run();
 
 private:
-    BaseNode* DetermineProcessingNode(uint32_t* pnMaxDataInNode);
     void RunRegisteredNode();
-    std::list<BaseNode*> mlistSourceNode;
     std::list<BaseNode*> mlistRegisteredNode;
-    std::list<BaseNode*> mlistNodeToRun;
     ImsMediaCondition mConditionMain;
     ImsMediaCondition mConditionExit;
     std::mutex mMutex;

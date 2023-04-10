@@ -32,7 +32,10 @@ BaseJitterBuffer::BaseJitterBuffer()
     mMaxSaveFrameNum = 0;
 }
 
-BaseJitterBuffer::~BaseJitterBuffer() {}
+BaseJitterBuffer::~BaseJitterBuffer()
+{
+    mDataQueue.Clear();
+}
 
 void BaseJitterBuffer::SetSessionCallback(BaseSessionCallback* callback)
 {
@@ -41,7 +44,13 @@ void BaseJitterBuffer::SetSessionCallback(BaseSessionCallback* callback)
 
 void BaseJitterBuffer::SetSsrc(uint32_t ssrc)
 {
-    IMLOGD1("[SetSsrc] ssrc[%x]", ssrc);
+    IMLOGI1("[SetSsrc] ssrc[%x]", ssrc);
+
+    if (mSsrc != 0 && ssrc != mSsrc)
+    {
+        Reset();
+    }
+
     mSsrc = ssrc;
 }
 
@@ -58,13 +67,12 @@ void BaseJitterBuffer::SetJitterBufferSize(uint32_t nInit, uint32_t nMin, uint32
 }
 
 void BaseJitterBuffer::SetJitterOptions(
-        uint32_t nReduceTH, uint32_t nStepSize, double zValue, bool bIgnoreSID, bool bImprovement)
+        uint32_t nReduceTH, uint32_t nStepSize, double zValue, bool bIgnoreSID)
 {
     (void)nReduceTH;
     (void)nStepSize;
     (void)zValue;
     (void)bIgnoreSID;
-    (void)bImprovement;
 }
 
 uint32_t BaseJitterBuffer::GetCount()
@@ -74,6 +82,7 @@ uint32_t BaseJitterBuffer::GetCount()
 
 void BaseJitterBuffer::Reset()
 {
+    mFirstFrameReceived = false;
     mNewInputData = false;
     mLastPlayedSeqNum = 0;
     mLastPlayedTimestamp = 0;

@@ -28,9 +28,9 @@ import static org.mockito.Mockito.verify;
 
 import android.hardware.radio.ims.media.IImsMedia;
 import android.hardware.radio.ims.media.IImsMediaSession;
-import android.hardware.radio.ims.media.MediaProtocolType;
 import android.hardware.radio.ims.media.RtpConfig;
 import android.hardware.radio.ims.media.RtpError;
+import android.os.Looper;
 import android.os.ParcelFileDescriptor;
 import android.os.RemoteException;
 import android.telephony.CallQuality;
@@ -38,7 +38,9 @@ import android.telephony.ims.RtpHeaderExtension;
 import android.telephony.imsmedia.AudioConfig;
 import android.telephony.imsmedia.IImsAudioSessionCallback;
 import android.telephony.imsmedia.ImsMediaSession;
+import android.telephony.imsmedia.MediaQualityStatus;
 import android.telephony.imsmedia.MediaQualityThreshold;
+import android.testing.AndroidTestingRunner;
 import android.testing.TestableLooper;
 
 import com.android.telephony.imsmedia.AudioSession;
@@ -49,7 +51,6 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.junit.runners.JUnit4;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
@@ -60,22 +61,20 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-@RunWith(JUnit4.class)
-public class AudioOffloadTest {
+@RunWith(AndroidTestingRunner.class)
+@TestableLooper.RunWithLooper
+public class AudioOffloadTest extends ImsMediaTest {
     private static final int SESSION_ID = 1;
     private static final int DTMF_DURATION = 120;
     private static final int NO_RESOURCES = ImsMediaSession.RESULT_NO_RESOURCES;
     private static final int NO_MEMORY = ImsMediaSession.RESULT_NO_MEMORY;
     private static final int SUCCESS = ImsMediaSession.RESULT_SUCCESS;
-    private static final int RTP = ImsMediaSession.PACKET_TYPE_RTP;
-    private static final int RTCP = ImsMediaSession.PACKET_TYPE_RTCP;
     private static final int PACKET_LOSS = 15;
     private static final int JITTER = 200;
     private static final char DTMF_DIGIT = '7';
     private AudioSession audioSession;
     private AudioOffloadListener offloadListener;
     private AudioSession.AudioSessionHandler handler;
-    private TestableLooper looper;
     @Mock
     private IImsAudioSessionCallback callback;
     @Mock
@@ -90,24 +89,19 @@ public class AudioOffloadTest {
         MockitoAnnotations.initMocks(this);
         offloadService = spy(AudioOffloadService.getInstance());
         doReturn(imsMedia).when(offloadService).getIImsMedia();
-        audioSession = new AudioSession(SESSION_ID, callback, null, null, offloadService);
+        audioSession = new AudioSession(SESSION_ID, callback, null, null, offloadService,
+                Looper.myLooper());
         handler = audioSession.getAudioSessionHandler();
         audioSession.setAudioOffload(true);
         offloadListener = audioSession.getOffloadListener();
         audioSession.onOpenSessionSuccess(imsMediaSession);
-        try {
-            looper = new TestableLooper(handler.getLooper());
-        } catch (Exception e) {
-            throw new AssertionError("Unable to create TestableLooper", e);
-        }
+        mTestClass = AudioOffloadTest.this;
+        super.setUp();
     }
 
     @After
     public void tearDown() throws Exception {
-        if (looper != null) {
-            looper.destroy();
-            looper = null;
-        }
+        super.tearDown();
     }
 
     @Test
@@ -288,47 +282,18 @@ public class AudioOffloadTest {
     }
 
     @Test
-    public void testMediaInactivityInd() {
-        // Receive Inactivity - RTP
-        offloadListener.notifyMediaInactivity(MediaProtocolType.RTP);
+    public void testMediaQualityStatusInd() {
+        // Receive MediaQualityStatus
+        final MediaQualityStatus outputStatus =
+                MediaQualityStatusTest.createMediaQualityStatus();
+        final android.hardware.radio.ims.media.MediaQualityStatus inputStatus =
+                Utils.convertToHalMediaQualityStatus(outputStatus);
+        offloadListener.notifyMediaQualityStatus(inputStatus);
         processAllMessages();
         try {
-            verify(callback, times(1)).notifyMediaInactivity(eq(RTP));
+            verify(callback, times(1)).notifyMediaQualityStatus(eq(outputStatus));
         } catch (RemoteException e) {
-            fail("Failed to notify notifyMediaInactivity: " + e);
-        }
-
-        // Receive Inactivity - RTCP
-        offloadListener.notifyMediaInactivity(MediaProtocolType.RTCP);
-        processAllMessages();
-        try {
-            verify(callback, times(1)).notifyMediaInactivity(eq(RTCP));
-        } catch (RemoteException e) {
-            fail("Failed to notify notifyMediaInactivity: " + e);
-        }
-    }
-
-    @Test
-    public void testPacketLossInd() {
-        // Receive Packet Loss
-        offloadListener.notifyPacketLoss(PACKET_LOSS);
-        processAllMessages();
-        try {
-            verify(callback, times(1)).notifyPacketLoss(eq(PACKET_LOSS));
-        } catch (RemoteException e) {
-            fail("Failed to notify notifyPacketLoss: " + e);
-        }
-    }
-
-    @Test
-    public void testJitterInd() {
-        // Receive Jitter Indication
-        offloadListener.notifyJitter(JITTER);
-        processAllMessages();
-        try {
-            verify(callback, times(1)).notifyJitter(eq(JITTER));
-        } catch (RemoteException e) {
-            fail("Failed to notify notifyJitter: " + e);
+            fail("Failed to notify media quality status: " + e);
         }
     }
 
@@ -404,10 +369,10 @@ public class AudioOffloadTest {
     @Test
     public void testDtmfReceived() {
         // Receive DTMF Received
-        offloadListener.onDtmfReceived(DTMF_DIGIT);
+        offloadListener.onDtmfReceived(DTMF_DIGIT, DTMF_DURATION);
         processAllMessages();
         try {
-            verify(callback, times(1)).onDtmfReceived(eq(DTMF_DIGIT));
+            verify(callback, times(1)).onDtmfReceived(eq(DTMF_DIGIT), eq(DTMF_DURATION));
         } catch (RemoteException e) {
             fail("Failed to notify onDtmfReceived: " + e);
         }
@@ -426,12 +391,6 @@ public class AudioOffloadTest {
             verify(callback, times(1)).onCallQualityChanged(eq(outputCallQuality));
         } catch (RemoteException e) {
             fail("Failed to notify onCallQualityChanged: " + e);
-        }
-    }
-
-    private void processAllMessages() {
-        while (!looper.getLooper().getQueue().isIdle()) {
-            looper.processAllMessages();
         }
     }
 }

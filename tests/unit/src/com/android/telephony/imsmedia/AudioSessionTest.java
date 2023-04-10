@@ -21,6 +21,7 @@ import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
+import android.os.Looper;
 import android.os.Parcel;
 import android.os.ParcelFileDescriptor;
 import android.os.RemoteException;
@@ -29,7 +30,9 @@ import android.telephony.ims.RtpHeaderExtension;
 import android.telephony.imsmedia.AudioConfig;
 import android.telephony.imsmedia.IImsAudioSessionCallback;
 import android.telephony.imsmedia.ImsMediaSession;
+import android.telephony.imsmedia.MediaQualityStatus;
 import android.telephony.imsmedia.MediaQualityThreshold;
+import android.testing.AndroidTestingRunner;
 import android.testing.TestableLooper;
 
 import com.android.telephony.imsmedia.AudioService;
@@ -41,7 +44,6 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.junit.runners.JUnit4;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
@@ -49,15 +51,14 @@ import java.net.DatagramSocket;
 import java.net.SocketException;
 import java.util.ArrayList;
 
-@RunWith(JUnit4.class)
-public class AudioSessionTest {
+@RunWith(AndroidTestingRunner.class)
+@TestableLooper.RunWithLooper
+public class AudioSessionTest extends ImsMediaTest {
     private static final int SESSION_ID = 1;
     private static final int DTMF_DURATION = 140;
     private static final int UNUSED = -1;
     private static final int SUCCESS = ImsMediaSession.RESULT_SUCCESS;
     private static final int NO_RESOURCES = ImsMediaSession.RESULT_NO_RESOURCES;
-    private static final int RTP = ImsMediaSession.PACKET_TYPE_RTP;
-    private static final int RTCP = ImsMediaSession.PACKET_TYPE_RTCP;
     private static final int PACKET_LOSS = 15;
     private static final int JITTER = 200;
     private static final char DTMF_DIGIT = '7';
@@ -70,28 +71,21 @@ public class AudioSessionTest {
     private AudioLocalSession audioLocalSession;
     @Mock
     private IImsAudioSessionCallback callback;
-    private TestableLooper looper;
 
     @Before
     public void setUp() {
         MockitoAnnotations.initMocks(this);
         audioSession = new AudioSession(SESSION_ID, callback,
-                audioService, audioLocalSession, null);
+                audioService, audioLocalSession, null, Looper.myLooper());
         audioListener = audioSession.getAudioListener();
         handler = audioSession.getAudioSessionHandler();
-        try {
-            looper = new TestableLooper(handler.getLooper());
-        } catch (Exception e) {
-            throw new AssertionError("Unable to create TestableLooper", e);
-        }
+        mTestClass = AudioSessionTest.this;
+        super.setUp();
     }
 
     @After
     public void tearDown() throws Exception {
-        if (looper != null) {
-            looper.destroy();
-            looper = null;
-        }
+        super.tearDown();
     }
 
     private Parcel createParcel(int message, int result, AudioConfig config) {
@@ -254,59 +248,6 @@ public class AudioSessionTest {
     }
 
     @Test
-    public void testMediaInactivityInd() {
-        // Receive Inactivity - RTP
-        Parcel parcel = Parcel.obtain();
-        parcel.writeInt(AudioSession.EVENT_MEDIA_INACTIVITY_IND);
-        parcel.writeInt(RTP);
-        parcel.setDataPosition(0);
-        audioListener.onMessage(parcel);
-        processAllMessages();
-        try {
-            verify(callback, times(1)).notifyMediaInactivity(eq(RTP));
-        }  catch(RemoteException e) {
-            fail("Failed to notify notifyMediaInactivity: " + e);
-        }
-
-        // Receive Inactivity - RTCP
-        Parcel parcel2 = Parcel.obtain();
-        parcel2.writeInt(AudioSession.EVENT_MEDIA_INACTIVITY_IND);
-        parcel2.writeInt(RTCP);
-        parcel2.setDataPosition(0);
-        audioListener.onMessage(parcel2);
-        processAllMessages();
-        try {
-            verify(callback, times(1)).notifyMediaInactivity(eq(RTCP));
-        }  catch(RemoteException e) {
-            fail("Failed to notify notifyMediaInactivity: " + e);
-        }
-    }
-
-    @Test
-    public void testPacketLossInd() {
-        // Receive Packet Loss
-        Utils.sendMessage(handler, AudioSession.EVENT_PACKET_LOSS_IND, PACKET_LOSS, UNUSED);
-        processAllMessages();
-        try {
-            verify(callback, times(1)).notifyPacketLoss(eq(PACKET_LOSS));
-        }  catch(RemoteException e) {
-            fail("Failed to notify notifyPacketLoss: " + e);
-        }
-    }
-
-    @Test
-    public void testJitterInd() {
-        // Receive Jitter Indication
-        Utils.sendMessage(handler, AudioSession.EVENT_JITTER_IND, JITTER, UNUSED);
-        processAllMessages();
-        try {
-            verify(callback, times(1)).notifyJitter(eq(JITTER));
-        }  catch(RemoteException e) {
-            fail("Failed to notify notifyJitter: " + e);
-        }
-    }
-
-    @Test
     public void testFirstMediaPacketReceivedInd() {
         // Receive First MediaPacket Received Indication
         AudioConfig config = AudioConfigTest.createAudioConfig();
@@ -338,6 +279,19 @@ public class AudioSessionTest {
     }
 
     @Test
+    public void testNotifyMediaQualityStatus() {
+        // Receive MediaQualityStatus
+        MediaQualityStatus status = MediaQualityStatusTest.createMediaQualityStatus();
+        Utils.sendMessage(handler, AudioSession.EVENT_MEDIA_QUALITY_STATUS_IND, status);
+        processAllMessages();
+        try {
+            verify(callback, times(1)).notifyMediaQualityStatus(eq(status));
+        } catch (RemoteException e) {
+            fail("Failed to notify notifyMediaInactivity: " + e);
+        }
+    }
+
+    @Test
     public void testTriggerAnbrQuery() {
         // Receive triggerAnbrQuery for ANBR
         AudioConfig config = AudioConfigTest.createAudioConfig();
@@ -353,10 +307,10 @@ public class AudioSessionTest {
     @Test
     public void testDtmfReceived() {
         // Receive onDtmfReceived
-        Utils.sendMessage(handler, AudioSession.EVENT_DTMF_RECEIVED_IND, DTMF_DIGIT);
+        Utils.sendMessage(handler, AudioSession.EVENT_DTMF_RECEIVED_IND, DTMF_DIGIT, DTMF_DURATION);
         processAllMessages();
         try {
-            verify(callback, times(1)).onDtmfReceived(eq(DTMF_DIGIT));
+            verify(callback, times(1)).onDtmfReceived(eq(DTMF_DIGIT), eq(DTMF_DURATION));
         }  catch (RemoteException e) {
             fail("Failed to notify onDtmfReceived: " + e);
         }
@@ -405,12 +359,6 @@ public class AudioSessionTest {
             verify(callback, times(1)).onSessionClosed();
         } catch (RemoteException e) {
             fail("Failed to notify onSessionClosed: " + e);
-        }
-    }
-
-    private void processAllMessages() {
-        while (!looper.getLooper().getQueue().isIdle()) {
-            looper.processAllMessages();
         }
     }
 }

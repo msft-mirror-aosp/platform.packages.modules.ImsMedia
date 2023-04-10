@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-#ifndef IMS_MEDIA_QULITY_H
-#define IMS_MEDIA_QULITY_H
+#ifndef IMS_CALL_QULITY_H
+#define IMS_CALL_QULITY_H
 
 #include <binder/Parcel.h>
 #include <binder/Parcelable.h>
@@ -35,12 +35,12 @@ namespace imsmedia
  * @brief Implementation of CallQualty class in native
  *
  */
-class MediaQuality : public Parcelable
+class CallQuality : public Parcelable
 {
 public:
-    MediaQuality();
-    MediaQuality(const MediaQuality& quality);
-    virtual ~MediaQuality();
+    CallQuality();
+    CallQuality(const CallQuality& quality);
+    virtual ~CallQuality();
     enum
     {
         /** < 1% packet loss */
@@ -84,10 +84,10 @@ public:
         AUDIO_QUALITY_EVS_FB,
     };
 
-    MediaQuality& operator=(const MediaQuality& quality);
-    bool operator==(const MediaQuality& quality) const;
-    bool operator!=(const MediaQuality& quality) const;
-    virtual status_t writeToParcel(Parcel* parcel) const;
+    CallQuality& operator=(const CallQuality& quality);
+    bool operator==(const CallQuality& quality) const;
+    bool operator!=(const CallQuality& quality) const;
+    virtual status_t writeToParcel(Parcel* out) const;
     virtual status_t readFromParcel(const Parcel* in);
 
     int32_t getDownlinkCallQualityLevel();
@@ -163,7 +163,7 @@ private:
     bool mRxSilenceDetected;
     /** True if only silence RTP packets are sent for 20 seconds immediately after the call is
      * connected. The silence packet can be detected by observing that the RTP timestamp is not
-     * contiguous with the end of the int32_terval covered by the previous packet even though the
+     * contiguous with the end of the interval covered by the previous packet even though the
      * RTP sequence number has been incremented only by one. Check RFC 3389. */
     bool mTxSilenceDetected;
     /** The number of voice frames sent by jitter buffer to audio. */
@@ -172,9 +172,9 @@ private:
     int32_t mNumNoDataFrames;
     /** The number of RTP Voice packets dropped by jitter buffer. */
     int32_t mNumDroppedRtpPackets;
-    /** The minimum playout delay in the reporting int32_terval in milliseconds. */
+    /** The minimum playout delay in the reporting interval in milliseconds. */
     int64_t mMinPlayoutDelayMillis;
-    /** The maximum Playout delay in the reporting int32_terval in milliseconds. */
+    /** The maximum Playout delay in the reporting interval in milliseconds. */
     int64_t mMaxPlayoutDelayMillis;
     /** The total number of RTP SID (Silence Insertion Descriptor) */
     int32_t mNumRtpSidPacketsReceived;

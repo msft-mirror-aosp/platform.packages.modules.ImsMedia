@@ -34,9 +34,10 @@ public:
     IAudioPlayerNode(BaseSessionCallback* callback = nullptr);
     virtual ~IAudioPlayerNode();
     virtual kBaseNodeId GetNodeId();
-    virtual ImsMediaResult Start();
+    virtual ImsMediaResult ProcessStart();
     virtual void Stop();
     virtual bool IsRunTime();
+    virtual bool IsRunTimeStart();
     virtual bool IsSourceNode();
     virtual void SetConfig(void* config);
     virtual bool IsSameConfig(void* config);
@@ -48,11 +49,12 @@ private:
     int32_t mCodecType;
     uint32_t mMode;
     ImsMediaCondition mCondition;
-    bool mFirstFrame;
     int8_t mEvsChannelAwOffset;
     kEvsBandwidth mEvsBandwidth;
     int8_t mSamplingRate;
     int32_t mEvsPayloadHeaderMode;
+    bool mIsDtxEnabled;
+    bool mIsOctetAligned;
 };
 
 #endif

@@ -29,6 +29,8 @@ IAudioPlayerNode::IAudioPlayerNode(BaseSessionCallback* callback) :
     std::unique_ptr<ImsMediaAudioPlayer> track(new ImsMediaAudioPlayer());
     mAudioPlayer = std::move(track);
     mConfig = nullptr;
+    mIsOctetAligned = false;
+    mIsDtxEnabled = false;
 }
 
 IAudioPlayerNode::~IAudioPlayerNode()
@@ -44,9 +46,9 @@ kBaseNodeId IAudioPlayerNode::GetNodeId()
     return kNodeIdAudioPlayer;
 }
 
-ImsMediaResult IAudioPlayerNode::Start()
+ImsMediaResult IAudioPlayerNode::ProcessStart()
 {
-    IMLOGD2("[Start] codec[%d], mode[%d]", mCodecType, mMode);
+    IMLOGD2("[ProcessStart] codec[%d], mode[%d]", mCodecType, mMode);
     if (mJitterBuffer)
     {
         mJitterBuffer->SetCodecType(mCodecType);
@@ -59,6 +61,8 @@ ImsMediaResult IAudioPlayerNode::Start()
     {
         mAudioPlayer->SetCodec(mCodecType);
         mAudioPlayer->SetSamplingRate(mSamplingRate * 1000);
+        mAudioPlayer->SetDtxEnabled(mIsDtxEnabled);
+        mAudioPlayer->SetOctetAligned(mIsOctetAligned);
 
         if (mCodecType == kAudioCodecEvs)
         {
@@ -76,7 +80,6 @@ ImsMediaResult IAudioPlayerNode::Start()
         IMLOGE0("[IAudioPlayer] Not able to start AudioPlayer");
     }
 
-    mFirstFrame = false;
     mNodeState = kNodeStateRunning;
     StartThread();
     return RESULT_SUCCESS;
@@ -99,6 +102,11 @@ void IAudioPlayerNode::Stop()
 bool IAudioPlayerNode::IsRunTime()
 {
     return true;
+}
+
+bool IAudioPlayerNode::IsRunTimeStart()
+{
+    return false;
 }
 
 bool IAudioPlayerNode::IsSourceNode()
@@ -125,6 +133,7 @@ void IAudioPlayerNode::SetConfig(void* config)
     if (mCodecType == kAudioCodecAmr || mCodecType == kAudioCodecAmrWb)
     {
         mMode = mConfig->getAmrParams().getAmrMode();
+        mIsOctetAligned = mConfig->getAmrParams().getOctetAligned();
     }
     else if (mCodecType == kAudioCodecEvs)
     {
@@ -136,10 +145,11 @@ void IAudioPlayerNode::SetConfig(void* config)
     }
 
     mSamplingRate = mConfig->getSamplingRateKHz();
+    mIsDtxEnabled = mConfig->getDtxEnabled();
     SetJitterBufferSize(4, 4, 9);
-    SetJitterOptions(80, 1, (double)25 / 10,
-            false, /** TODO: when enable DTX, set this true on condition*/
-            true);
+    SetJitterOptions(
+            80, 1, (double)25 / 10, false /** TODO: when enable DTX, set this true on condition*/
+    );
 }
 
 bool IAudioPlayerNode::IsSameConfig(void* config)
@@ -156,7 +166,9 @@ bool IAudioPlayerNode::IsSameConfig(void* config)
         if (mCodecType == kAudioCodecAmr || mCodecType == kAudioCodecAmrWb)
         {
             return (mMode == pConfig->getAmrParams().getAmrMode() &&
-                    mSamplingRate == pConfig->getSamplingRateKHz());
+                    mSamplingRate == pConfig->getSamplingRateKHz() &&
+                    mIsDtxEnabled == pConfig->getDtxEnabled() &&
+                    mIsOctetAligned == pConfig->getAmrParams().getOctetAligned());
         }
         else if (mCodecType == kAudioCodecEvs)
         {
@@ -166,7 +178,8 @@ bool IAudioPlayerNode::IsSameConfig(void* config)
                                     pConfig->getEvsParams().getEvsBandwidth()) &&
                     mEvsChannelAwOffset == pConfig->getEvsParams().getChannelAwareMode() &&
                     mSamplingRate == pConfig->getSamplingRateKHz() &&
-                    mEvsPayloadHeaderMode == pConfig->getEvsParams().getUseHeaderFullOnly());
+                    mEvsPayloadHeaderMode == pConfig->getEvsParams().getUseHeaderFullOnly() &&
+                    mIsDtxEnabled == pConfig->getDtxEnabled());
         }
     }
 
@@ -184,6 +197,7 @@ void* IAudioPlayerNode::run()
     bool bMark = false;
     uint32_t nSeqNum = 0;
     uint64_t nNextTime = ImsMediaTimer::GetTimeInMicroSeconds();
+    bool isFirstFrameReceived = false;
 
     while (true)
     {
@@ -196,23 +210,27 @@ void* IAudioPlayerNode::run()
 
         if (GetData(&subtype, &pData, &nDataSize, &nTimestamp, &bMark, &nSeqNum, &datatype) == true)
         {
+            IMLOGD_PACKET2(IM_PACKET_LOG_AUDIO, "[run] write buffer size[%d], TS[%u]", nDataSize,
+                    nTimestamp);
             if (nDataSize != 0)
             {
-                IMLOGD_PACKET2(IM_PACKET_LOG_AUDIO, "[run] write buffer size[%d], TS[%u]",
-                        nDataSize, nTimestamp);
                 if (mAudioPlayer->onDataFrame(pData, nDataSize))
                 {
                     // send buffering complete message to client
-                    if (mFirstFrame == false)
+                    if (isFirstFrameReceived == false)
                     {
                         mCallback->SendEvent(kImsMediaEventFirstPacketReceived,
                                 reinterpret_cast<uint64_t>(new AudioConfig(*mConfig)));
-                        mFirstFrame = true;
+                        isFirstFrameReceived = true;
                     }
                 }
             }
-
             DeleteData();
+        }
+        else if (isFirstFrameReceived)
+        {
+            IMLOGE0("[run] GetData returned 0 bytes");
+            mAudioPlayer->onDataFrame(nullptr, 0);
         }
 
         nNextTime += 20000;

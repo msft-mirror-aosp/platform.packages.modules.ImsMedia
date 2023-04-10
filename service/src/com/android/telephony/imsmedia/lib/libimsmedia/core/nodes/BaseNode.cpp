@@ -30,7 +30,6 @@ static std::vector<NODE_ID_PAIR> vectorNodeId{
         std::make_pair(kNodeIdAudioSource, "AudioSource"),
         std::make_pair(kNodeIdAudioPlayer, "AudioPlayer"),
         std::make_pair(kNodeIdDtmfEncoder, "DtmfEncoder"),
-        std::make_pair(kNodeIdDtmfSender, "DtmfSender"),
         std::make_pair(kNodeIdAudioPayloadEncoder, "AudioPayloadEncoder"),
         std::make_pair(kNodeIdAudioPayloadDecoder, "AudioPayloadDecoder"),
         std::make_pair(kNodeIdVideoSource, "VideoSource"),
@@ -103,6 +102,30 @@ void BaseNode::ClearDataQueue()
 kBaseNodeId BaseNode::GetNodeId()
 {
     return kNodeIdUnknown;
+}
+
+ImsMediaResult BaseNode::Start()
+{
+    if (!IsRunTimeStart())
+    {
+        return RESULT_SUCCESS;
+    }
+    else
+    {
+        IMLOGW0("[Start] Error - base method");
+        return RESULT_NOT_SUPPORTED;
+    }
+}
+
+ImsMediaResult BaseNode::ProcessStart()
+{
+    IMLOGW0("[ProcessStart] Error - base method");
+    return RESULT_NOT_SUPPORTED;
+}
+
+bool BaseNode::IsRunTimeStart()
+{
+    return true;
 }
 
 void BaseNode::SetConfig(void* config)
@@ -243,6 +266,21 @@ bool BaseNode::GetData(ImsMediaSubType* psubtype, uint8_t** ppData, uint32_t* pn
             *arrivalTime = 0;
         return false;
     }
+}
+
+void BaseNode::AddData(uint8_t* data, uint32_t size, uint32_t timestamp, bool mark, uint32_t seq,
+        ImsMediaSubType subtype, ImsMediaSubType dataType, uint32_t arrivalTime, int32_t index)
+{
+    DataEntry entry = DataEntry();
+    entry.pbBuffer = data;
+    entry.nBufferSize = size;
+    entry.nTimestamp = timestamp;
+    entry.bMark = mark;
+    entry.nSeqNum = seq;
+    entry.eDataType = dataType;
+    entry.subtype = subtype;
+    entry.arrivalTime = arrivalTime;
+    index == -1 ? mDataQueue.Add(&entry) : mDataQueue.InsertAt(index, &entry);
 }
 
 void BaseNode::DeleteData()

@@ -261,10 +261,6 @@ void VideoSession::onEvent(int32_t type, uint64_t param1, uint64_t param2)
             ImsMediaEventHandler::SendEvent(
                     "VIDEO_RESPONSE_EVENT", kVideoMediaInactivityInd, mSessionId, param1, param2);
             break;
-        case kImsMediaEventPacketLoss:
-            ImsMediaEventHandler::SendEvent(
-                    "VIDEO_RESPONSE_EVENT", kVideoPacketLossInd, mSessionId, param1, param2);
-            break;
         case kImsMediaEventNotifyVideoDataUsage:
             ImsMediaEventHandler::SendEvent(
                     "VIDEO_RESPONSE_EVENT", kVideoDataUsageInd, mSessionId, param1, param2);

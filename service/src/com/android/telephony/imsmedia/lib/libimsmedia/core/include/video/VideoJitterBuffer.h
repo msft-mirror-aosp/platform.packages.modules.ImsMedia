@@ -44,8 +44,8 @@ public:
     virtual void Add(ImsMediaSubType subtype, uint8_t* pbBuffer, uint32_t nBufferSize,
             uint32_t nTimeStamp, bool mark, uint32_t nSeqNum, ImsMediaSubType nDataType,
             uint32_t arrivalTime);
-    virtual bool Get(ImsMediaSubType* pImsMediaSubType, uint8_t** ppData, uint32_t* pnDataSize,
-            uint32_t* pnTimeStamp, bool* pmark, uint32_t* pnSeqNum, uint32_t* pnChecker = nullptr);
+    virtual bool Get(ImsMediaSubType* psubtype, uint8_t** ppData, uint32_t* pnDataSize,
+            uint32_t* ptimestamp, bool* pmark, uint32_t* pnSeqNum, uint32_t currentTime);
 
     /**
      * @brief Set the video codec type
@@ -90,7 +90,7 @@ private:
     void CheckPacketLoss(uint16_t seqNum, uint16_t nLastRecvPkt);
     bool UpdateLostPacketList(uint16_t mLossRateThreshold, uint16_t* countSecondNack,
             uint16_t* nPLIPkt, bool* bPLIPkt);
-    bool UpdateNackStatus(LostPktEntry* pTempEntry, uint16_t mLossRateThreshold,
+    bool UpdateNackStatus(LostPacket* pTempEntry, uint16_t mLossRateThreshold,
             uint16_t* countSecondNack, uint16_t* nPLIPkt, bool* bPLIPkt);
     void RequestSendNack(
             uint16_t nLossGap, uint16_t PID, uint16_t countSecondNack, bool bNACK = true);
@@ -113,7 +113,7 @@ private:
     uint32_t mLastAddedTimestamp;
     uint32_t mLastAddedSeqNum;
     uint32_t mResponseWaitTime;
-    std::list<LostPktEntry*> mLostPktList;
+    std::list<LostPacket*> mLostPktList;
     uint32_t mIDRCheckCnt;
     uint32_t mFirTimeStamp;
     uint32_t mMaxBitrate;

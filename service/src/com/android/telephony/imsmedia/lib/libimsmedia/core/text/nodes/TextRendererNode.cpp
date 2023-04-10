@@ -114,20 +114,6 @@ void TextRendererNode::ProcessData()
                 "[ProcessData] size[%u], TS[%u], mark[%u], seq[%u], last seq[%u]", size, timestamp,
                 mark, seq, mLastPlayedSeq);
 
-        // ignore empty t.140
-        if (size == 0)
-        {
-            mLastPlayedSeq = (uint16_t)seq;
-            DeleteData();
-            break;
-        }
-
-        if (data == nullptr)
-        {
-            IMLOGD0("[ProcessData] invalid data");
-            break;
-        }
-
         if (mFirstFrameReceived)
         {
             // detect lost packet
@@ -160,8 +146,7 @@ void TextRendererNode::ProcessData()
                             kImsMediaEventNotifyRttReceived, reinterpret_cast<uint64_t>(text), 0);
 
                     uint16_t lostSeq = mLastPlayedSeq + (uint16_t)nIndex;
-                    IMLOGD_PACKET2(IM_PACKET_LOG_TEXT, "[ProcessData] LostSeq[%u], text[%s]",
-                            lostSeq, text->string());
+                    IMLOGD_PACKET1(IM_PACKET_LOG_TEXT, "[ProcessData] LostSeq[%u]", lostSeq);
                 }
             }
 

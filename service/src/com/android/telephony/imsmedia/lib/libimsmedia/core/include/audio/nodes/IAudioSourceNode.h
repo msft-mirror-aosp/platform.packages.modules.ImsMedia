@@ -30,9 +30,10 @@ public:
     IAudioSourceNode(BaseSessionCallback* callback = nullptr);
     virtual ~IAudioSourceNode();
     virtual kBaseNodeId GetNodeId();
-    virtual ImsMediaResult Start();
+    virtual ImsMediaResult ProcessStart();
     virtual void Stop();
     virtual bool IsRunTime();
+    virtual bool IsRunTimeStart();
     virtual bool IsSourceNode();
     virtual void SetConfig(void* config);
     virtual bool IsSameConfig(void* config);
@@ -66,6 +67,9 @@ public:
     kEvsBandwidth mEvsBandwidth;
     int8_t mSamplingRate;
     int8_t mEvsChAwOffset;
+    int32_t mMediaDirection;
+    bool mIsDtxEnabled;
+    bool mIsOctetAligned;
 };
 
 #endif

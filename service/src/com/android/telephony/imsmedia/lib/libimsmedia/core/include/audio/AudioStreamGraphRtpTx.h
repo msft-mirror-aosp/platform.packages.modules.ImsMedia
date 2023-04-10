@@ -19,6 +19,7 @@
 
 #include <ImsMediaDefine.h>
 #include <AudioStreamGraph.h>
+#include <RtpHeaderExtension.h>
 
 class AudioStreamGraphRtpTx : public AudioStreamGraph
 {
@@ -27,13 +28,14 @@ public:
     virtual ~AudioStreamGraphRtpTx();
     virtual ImsMediaResult create(RtpConfig* config);
     virtual ImsMediaResult update(RtpConfig* config);
+    virtual ImsMediaResult start();
 
     /**
      * @brief Create a graph for send dtmf digit to network
      *
      * @param config AudioConfig for setting the parameters for nodes
      * @param rtpEncoderNode The RtpEncoderNode instance to connect as a rear node after the
-     * DtmfSenderNode, if it is null, no dtmf packet will be delivered to RtpEncoderNode.
+     * DtmfEncoderNode, if it is null, no dtmf packet will be delivered to RtpEncoderNode.
      * @return true Returns when the graph created without error
      * @return false Returns when the given parameters are invalid.
      */
@@ -55,6 +57,13 @@ public:
      * @param cmr The codec mode request value to change
      */
     void processCmr(const uint32_t cmr);
+
+    /**
+     * @brief Send rtp header extension to the audio rtp
+     *
+     * @param listExtension The list of rtp header extension data
+     */
+    void sendRtpHeaderExtension(std::list<RtpHeaderExtension>* listExtension);
 
 private:
     std::list<BaseNode*> mListDtmfNodes;

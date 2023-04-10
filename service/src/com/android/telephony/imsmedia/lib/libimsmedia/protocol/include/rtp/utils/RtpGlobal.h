@@ -162,7 +162,6 @@ typedef struct
 {
     RtpDt_UChar* m_pBlockBuffer;
     RtpDt_UInt16 nlength;
-    RtpDt_UInt16 nRttdOffset;
 } tRTCP_XR_DATA;
 
 // RTP parser

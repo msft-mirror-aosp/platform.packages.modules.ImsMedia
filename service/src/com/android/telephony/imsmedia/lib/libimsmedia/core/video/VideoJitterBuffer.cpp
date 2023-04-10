@@ -106,7 +106,7 @@ void VideoJitterBuffer::InitLostPktList()
 
     while (!mLostPktList.empty())
     {
-        LostPktEntry* entry = mLostPktList.front();
+        LostPacket* entry = mLostPktList.front();
 
         if (entry != nullptr)
         {
@@ -306,10 +306,8 @@ void VideoJitterBuffer::Add(ImsMediaSubType subtype, uint8_t* pbBuffer, uint32_t
 }
 
 bool VideoJitterBuffer::Get(ImsMediaSubType* subtype, uint8_t** ppData, uint32_t* pnDataSize,
-        uint32_t* pnTimestamp, bool* pbMark, uint32_t* pnSeqNum, uint32_t* pnChecker)
+        uint32_t* pnTimestamp, bool* pbMark, uint32_t* pnSeqNum, uint32_t currentTime)
 {
-    (void)pnChecker;
-
     DataEntry* pEntry = nullptr;
     bool bValidPacket = false;
     std::lock_guard<std::mutex> guard(mMutex);
@@ -511,7 +509,7 @@ bool VideoJitterBuffer::Get(ImsMediaSubType* subtype, uint8_t** ppData, uint32_t
                 "[Get] bValid[%u], LastPlayedTS[%u], Seq[%u], LastPlayedSeq[%u]", pEntry->bValid,
                 mLastPlayedTimestamp, pEntry->nSeqNum, mLastPlayedSeqNum);
 
-        uint32_t nCurrTime = ImsMediaTimer::GetTimeInMilliSeconds();
+        uint32_t nCurrTime = currentTime;
 
         if (mLastPlayedTimestamp == 0 || mLastPlayedTime == 0 ||
                 pEntry->nTimestamp == mLastPlayedTimestamp)
@@ -687,8 +685,8 @@ bool VideoJitterBuffer::CheckHeader(uint8_t* pbBuffer)
 
 void VideoJitterBuffer::RemovePacketFromLostList(uint16_t seqNum, bool bRemoveOldPacket)
 {
-    LostPktEntry* pEntry = nullptr;
-    std::list<LostPktEntry*>::iterator it = mLostPktList.begin();
+    LostPacket* pEntry = nullptr;
+    std::list<LostPacket*>::iterator it = mLostPktList.begin();
 
     while (it != mLostPktList.end())
     {
@@ -799,9 +797,9 @@ void VideoJitterBuffer::CheckPacketLoss(uint16_t seqNum, uint16_t nLastRecvPkt)
 bool VideoJitterBuffer::UpdateLostPacketList(
         uint16_t lostSeq, uint16_t* countSecondNack, uint16_t* nPLIPkt, bool* bPLIPkt)
 {
-    LostPktEntry* foundLostPacket = nullptr;
+    LostPacket* foundLostPacket = nullptr;
     auto result = std::find_if(mLostPktList.begin(), mLostPktList.end(),
-            [lostSeq, &foundLostPacket](LostPktEntry* entry)
+            [lostSeq, &foundLostPacket](LostPacket* entry)
             {
                 foundLostPacket = entry;
                 return (entry->seqNum == lostSeq);
@@ -815,33 +813,33 @@ bool VideoJitterBuffer::UpdateLostPacketList(
     IMLOGD_PACKET2(IM_PACKET_LOG_JITTER, "[UpdateLostPacketList] add lost seq[%u], queue size[%d]",
             lostSeq, mLostPktList.size());
 
-    LostPktEntry* entry =
-            new LostPktEntry(lostSeq, ImsMediaTimer::GetTimeInMilliSeconds(), kRequestSendNackNone);
+    LostPacket* entry =
+            new LostPacket(lostSeq, ImsMediaTimer::GetTimeInMilliSeconds(), kRequestSendNackNone);
     mLostPktList.push_back(entry);
     mNumLossPacket++;
     return false;
 }
 
-bool VideoJitterBuffer::UpdateNackStatus(LostPktEntry* pEntry, uint16_t lostSeq,
+bool VideoJitterBuffer::UpdateNackStatus(LostPacket* pEntry, uint16_t lostSeq,
         uint16_t* countSecondNack, uint16_t* nPLIPkt, bool* bPLIPkt)
 {
     /**
      * Send initial NACK if there is error in decoding frame due to packet loss
      */
-    if (pEntry->param2 == kRequestSendNackNone)
+    if (pEntry->option == kRequestSendNackNone)
     {
-        if ((ImsMediaTimer::GetTimeInMilliSeconds() - pEntry->param1) < mFrameInterval)
+        if ((ImsMediaTimer::GetTimeInMilliSeconds() - pEntry->markedTime) < mFrameInterval)
         {
             return false;
         }
 
-        pEntry->param1 = ImsMediaTimer::GetTimeInMilliSeconds();
-        pEntry->param2 = kRequestInitialNack;
+        pEntry->markedTime = ImsMediaTimer::GetTimeInMilliSeconds();
+        pEntry->option = kRequestInitialNack;
         IMLOGD_PACKET1(IM_PACKET_LOG_JITTER, "[UpdateNackStatus] initial NACK, seq[%u]", lostSeq);
         return true;
     }
 
-    if ((ImsMediaTimer::GetTimeInMilliSeconds() - pEntry->param1) < mResponseWaitTime)
+    if ((ImsMediaTimer::GetTimeInMilliSeconds() - pEntry->markedTime) < mResponseWaitTime)
     {
         return false;
     }
@@ -849,29 +847,29 @@ bool VideoJitterBuffer::UpdateNackStatus(LostPktEntry* pEntry, uint16_t lostSeq,
     /**
      * Send Second NACK if there is first packet still not arrived within RWT duration
      */
-    if (pEntry->param2 == kRequestInitialNack)
+    if (pEntry->option == kRequestInitialNack)
     {
         (*countSecondNack)++;
-        pEntry->param1 = ImsMediaTimer::GetTimeInMilliSeconds();
-        pEntry->param2 = kRequestSecondNack;
+        pEntry->markedTime = ImsMediaTimer::GetTimeInMilliSeconds();
+        pEntry->option = kRequestSecondNack;
         IMLOGD_PACKET1(IM_PACKET_LOG_JITTER, "[UpdateNackStatus] second NACK, seq[%u]", lostSeq);
         return true;
     }
-    else if (pEntry->param2 == kRequestSecondNack)
+    else if (pEntry->option == kRequestSecondNack)
     {
         /**
          * Send PLI if the recovery picture does not arrived within two RWT duration
          */
         *nPLIPkt = lostSeq;
         *bPLIPkt = true;
-        pEntry->param1 = ImsMediaTimer::GetTimeInMilliSeconds();
-        pEntry->param2 = kRequestPli;
+        pEntry->markedTime = ImsMediaTimer::GetTimeInMilliSeconds();
+        pEntry->option = kRequestPli;
         IMLOGD_PACKET1(IM_PACKET_LOG_JITTER, "[UpdateNackStatus] request PLI seq[%u]", lostSeq);
     }
-    else if (pEntry->param2 == kRequestPli)
+    else if (pEntry->option == kRequestPli)
     {
         *nPLIPkt = lostSeq;
-        pEntry->param1 = ImsMediaTimer::GetTimeInMilliSeconds();
+        pEntry->markedTime = ImsMediaTimer::GetTimeInMilliSeconds();
     }
 
     return false;

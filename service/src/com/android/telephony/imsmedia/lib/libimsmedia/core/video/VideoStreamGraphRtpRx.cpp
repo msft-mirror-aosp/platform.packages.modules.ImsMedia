@@ -90,7 +90,7 @@ ImsMediaResult VideoStreamGraphRtpRx::update(RtpConfig* config)
 
     if (*reinterpret_cast<VideoConfig*>(mConfig) == *pConfig)
     {
-        IMLOGD0("[update] no update");
+        IMLOGI0("[update] no update");
         return RESULT_SUCCESS;
     }
 
@@ -213,7 +213,9 @@ bool VideoStreamGraphRtpRx::setMediaQualityThreshold(MediaQualityThreshold* thre
         if (node != nullptr)
         {
             RtpDecoderNode* decoder = reinterpret_cast<RtpDecoderNode*>(node);
-            decoder->SetInactivityTimerSec(threshold->getRtpInactivityTimerMillis() / 1000);
+            decoder->SetInactivityTimerSec(threshold->getRtpInactivityTimerMillis().empty()
+                            ? 0
+                            : threshold->getRtpInactivityTimerMillis().front() / 1000);
             return true;
         }
 
@@ -222,8 +224,10 @@ bool VideoStreamGraphRtpRx::setMediaQualityThreshold(MediaQualityThreshold* thre
         if (node != nullptr)
         {
             IVideoRendererNode* decoder = reinterpret_cast<IVideoRendererNode*>(node);
-            decoder->SetPacketLossParam(
-                    threshold->getRtpPacketLossDurationMillis(), threshold->getRtpPacketLossRate());
+            decoder->SetPacketLossParam(threshold->getRtpPacketLossDurationMillis(),
+                    threshold->getRtpPacketLossRate().empty()
+                            ? 0
+                            : threshold->getRtpPacketLossRate().front());
             return true;
         }
     }

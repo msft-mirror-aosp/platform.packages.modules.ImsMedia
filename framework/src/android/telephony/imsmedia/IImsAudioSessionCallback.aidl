@@ -20,6 +20,7 @@ import android.telephony.CallQuality;
 import android.telephony.imsmedia.AudioConfig;
 import android.telephony.ims.RtpHeaderExtension;
 import android.telephony.imsmedia.IImsAudioSession;
+import android.telephony.imsmedia.MediaQualityStatus;
 
 /**
  * See ImsAudioSessionCallback for more information.
@@ -35,10 +36,8 @@ oneway interface IImsAudioSessionCallback {
     void onConfirmConfigResponse(in AudioConfig config, int result);
     void onFirstMediaPacketReceived(in AudioConfig config);
     void onHeaderExtensionReceived(in List<RtpHeaderExtension> extensions);
-    void notifyMediaInactivity(int packetType);
-    void notifyPacketLoss(int packetLossPercentage);
-    void notifyJitter(int jitter);
+    void notifyMediaQualityStatus(in MediaQualityStatus status);
     void onCallQualityChanged(in CallQuality callQuality);
     void triggerAnbrQuery(in AudioConfig config);
-    void onDtmfReceived(in char dtmfDigit);
+    void onDtmfReceived(in char dtmfDigit, int durationMs);
 }

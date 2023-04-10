@@ -18,6 +18,10 @@
 #include <ImsMediaTrace.h>
 #include <ImsMediaVideoUtil.h>
 
+#ifdef DEBUG_BITRATE_CHANGE_SIMULATION
+static int32_t gTestBitrate = 384000;
+#endif
+
 RtcpDecoderNode::RtcpDecoderNode(BaseSessionCallback* callback) :
         BaseNode(callback)
 {
@@ -137,6 +141,18 @@ void RtcpDecoderNode::OnRtcpInd(tRtpSvc_IndicationFromStack type, void* data)
             tNotifyReceiveRtcpSrInd* payload = reinterpret_cast<tNotifyReceiveRtcpSrInd*>(data);
             IMLOGD_PACKET2(IM_PACKET_LOG_RTCP, "[OnRtcpInd] RtcpSr - fractionLost[%d], jitter[%d]",
                     payload->stRecvRpt.fractionLost, payload->stRecvRpt.jitter);
+
+            if (mMediaType == IMS_MEDIA_AUDIO)
+            {
+                mCallback->SendEvent(kCollectPacketInfo, kStreamRtcp);
+            }
+#ifdef DEBUG_BITRATE_CHANGE_SIMULATION
+            else if (mMediaType == IMS_MEDIA_VIDEO)
+            {
+                gTestBitrate *= 0.8;
+                mCallback->SendEvent(kRequestVideoBitrateChange, gTestBitrate);
+            }
+#endif
         }
         break;
         case RTPSVC_RECEIVE_RTCP_RR_IND:
@@ -144,6 +160,18 @@ void RtcpDecoderNode::OnRtcpInd(tRtpSvc_IndicationFromStack type, void* data)
             tNotifyReceiveRtcpRrInd* payload = reinterpret_cast<tNotifyReceiveRtcpRrInd*>(data);
             IMLOGD_PACKET2(IM_PACKET_LOG_RTCP, "[OnRtcpInd] RtcpRr - fractionLost[%d], jitter[%d]",
                     payload->stRecvRpt.fractionLost, payload->stRecvRpt.jitter);
+
+            if (mMediaType == IMS_MEDIA_AUDIO)
+            {
+                mCallback->SendEvent(kCollectPacketInfo, kStreamRtcp);
+            }
+#ifdef DEBUG_BITRATE_CHANGE_SIMULATION
+            else if (mMediaType == IMS_MEDIA_VIDEO)
+            {
+                gTestBitrate *= 0.8;
+                mCallback->SendEvent(kRequestVideoBitrateChange, gTestBitrate);
+            }
+#endif
         }
         break;
         case RTPSVC_RECEIVE_RTCP_FB_IND:
@@ -264,7 +292,7 @@ void RtcpDecoderNode::ReceiveTmmbr(const tRtpSvcIndSt_ReceiveRtcpFeedbackInd* pa
     ImsMediaVideoUtil::ConvertBitrateToPower(bitrate, exp, mantissa);
 
     InternalRequestEventParam* pParam = new InternalRequestEventParam(
-            kRtpFbTmmbr, TmmbrParams(receivedSsrc, exp, mantissa, receivedOverhead));
+            kRtpFbTmmbn, TmmbrParams(receivedSsrc, exp, mantissa, receivedOverhead));
     mCallback->SendEvent(kRequestVideoSendTmmbn, reinterpret_cast<uint64_t>(pParam));
 }
 

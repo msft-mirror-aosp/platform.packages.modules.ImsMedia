@@ -17,6 +17,7 @@ import android.net.wifi.WifiManager;
 import android.os.Bundle;
 import android.telephony.AccessNetworkConstants.AccessNetworkType;
 import android.telephony.CallQuality;
+import android.telephony.ims.RtpHeaderExtension;
 import android.telephony.imsmedia.AmrParams;
 import android.telephony.imsmedia.AudioConfig;
 import android.telephony.imsmedia.AudioSessionCallback;
@@ -27,6 +28,7 @@ import android.telephony.imsmedia.ImsMediaManager;
 import android.telephony.imsmedia.ImsMediaSession;
 import android.telephony.imsmedia.ImsTextSession;
 import android.telephony.imsmedia.ImsVideoSession;
+import android.telephony.imsmedia.MediaQualityStatus;
 import android.telephony.imsmedia.MediaQualityThreshold;
 import android.telephony.imsmedia.RtcpConfig;
 import android.telephony.imsmedia.RtpConfig;
@@ -100,8 +102,8 @@ public class MainActivity extends AppCompatActivity {
     private static final int DTMF_SAMPLING_RATE_KHZ = 16;
     private static final int DTMF_DURATION = 140;
     private static final int IDR_INTERVAL = 1;
-    private static final int RESOLUTION_WIDTH = 640;
-    private static final int RESOLUTION_HEIGHT = 480;
+    private static final int RESOLUTION_WIDTH = 480;
+    private static final int RESOLUTION_HEIGHT = 640;
     private static final String IMAGE = "data/user_de/0/com.android.telephony.imsmedia/test.jpg";
     private static final float DISABLED_ALPHA = 0.3f;
     private static final float ENABLED_ALPHA = 1.0f;
@@ -110,12 +112,13 @@ public class MainActivity extends AppCompatActivity {
     private static final int CAMERA_ID = 0;
     private static final int CAMERA_ZOOM = 10;
 
-    private static final int RTP_TIMEOUT = 20;
-    private static final int RTCP_TIMEOUT = 20;
-    private static final int PACKET_LOSS_PERIOD = 5000;
-    private static final int PACKET_LOSS_RATE = 1;
-    private static final int JITTER_PERIOD = 5000;
-    private static final int JITTER_THRESHOLD = 5;
+    private static final int[] RTP_TIMEOUT = { 10000, 20000 };
+    private static final int RTCP_TIMEOUT = 15000;
+    private static final int RTP_HYSTERESIS_TIME = 3000;
+    private static final int RTP_PACKET_LOSS_DURATION = 3000;
+    private static final int[] PACKET_LOSS_RATE = { 1, 3 };
+    private static final int[] JITTER_THRESHOLD = { 100, 200 };
+    private static final boolean NOTIFY_STATUS = false;
 
     private Set<Integer> mSelectedCodecTypes = new HashSet<>();
     private Set<Integer> mSelectedAmrModes = new HashSet<>();
@@ -131,6 +134,7 @@ public class MainActivity extends AppCompatActivity {
     private int mSelectedCameraZoom = CAMERA_ZOOM;
     private int mSelectedDeviceOrientationDegree = 0;
     private int mSelectedCvoValue = -1;
+    private String mSelectedVideoResolution = "VGA_PR";
     private Set<Integer> mSelectedRtcpFbTypes = new HashSet<>();
 
     // The order of these values determines the priority in which they would be
@@ -566,6 +570,34 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    public String[] mVideoResolutionStrings = new String[] {
+        "HD_PR", "HD_LS", "VGA_PR", "VGA_LS", "QVGA_PR", "QVGA_LS", "SIF_PR", "SIF_LS", "CIF_PR",
+        "CIF_LS", "QCIF_PR", "QCIF_LS",
+    };
+
+    public int[][] mVideoResolution = {
+        {720, 1280}, {1280, 720}, {480, 640}, {640, 480}, {240, 320}, {320, 240}, {240, 352},
+        {352, 240}, {288, 352}, {352, 288}, {176, 144}, {144, 176},
+    };
+
+    public int getResolutionWidth(String resolution) {
+        for (int i = 0; i < mVideoResolutionStrings.length; i++) {
+            if (mVideoResolutionStrings[i].equals(resolution)) {
+                return mVideoResolution[i][0];
+            }
+        }
+        return RESOLUTION_WIDTH;
+    }
+
+    public int getResolutionHeight(String resolution) {
+        for (int i = 0; i < mVideoResolutionStrings.length; i++) {
+            if (mVideoResolutionStrings[i].equals(resolution)) {
+                return mVideoResolution[i][1];
+            }
+        }
+        return RESOLUTION_HEIGHT;
+    }
+
     /**
      * Enum of the different states the application can be in. Mainly used to decide
      * how
@@ -615,6 +647,10 @@ public class MainActivity extends AppCompatActivity {
 
         updateUI(ConnectionStatus.OFFLINE);
         updateAdditionalMedia();
+
+        mAudioSession = null;
+        mVideoSession = null;
+        mTextSession = null;
     }
 
     @Override
@@ -720,8 +756,8 @@ public class MainActivity extends AppCompatActivity {
             mIsOpenSessionSent = true;
 
             MediaQualityThreshold threshold = createMediaQualityThreshold(RTP_TIMEOUT,
-                    RTCP_TIMEOUT, PACKET_LOSS_PERIOD, PACKET_LOSS_RATE, JITTER_PERIOD,
-                    JITTER_THRESHOLD);
+                    RTCP_TIMEOUT, RTP_HYSTERESIS_TIME, RTP_PACKET_LOSS_DURATION, PACKET_LOSS_RATE,
+                    JITTER_THRESHOLD, NOTIFY_STATUS);
             mAudioSession.setMediaQualityThreshold(threshold);
             mAudioSession.modifySession(mAudioConfig);
 
@@ -746,18 +782,29 @@ public class MainActivity extends AppCompatActivity {
         }
 
         @Override
+        public void onHeaderExtensionReceived(final List<RtpHeaderExtension> extensions) {
+            Log.d(TAG, "onHeaderExtensionReceived, list size=" + extensions.size()
+                    + "list=" + extensions);
+        }
+
+        @Override
         public void triggerAnbrQuery(AudioConfig config) {
             Log.d(TAG, "triggerAnbrQuery");
         }
 
         @Override
-        public void onDtmfReceived(char dtmfDigit) {
-            Log.d(TAG, "onDtmfReceived");
+        public void onDtmfReceived(char dtmfDigit, int durationMs) {
+            Log.d(TAG, "onDtmfReceived digit: " + dtmfDigit + " duration: " + durationMs);
+        }
+
+        @Override
+        public void notifyMediaQualityStatus(final MediaQualityStatus status) {
+            Log.d(TAG, "notifyMediaQualityStatus, status=" + status);
         }
 
         @Override
         public void onCallQualityChanged(CallQuality callQuality) {
-            Log.d(TAG, "onCallQualityChanged");
+            Log.d(TAG, "onCallQualityChanged, callQuality=" + callQuality);
         }
     }
 
@@ -1407,7 +1454,7 @@ public class MainActivity extends AppCompatActivity {
     private VideoConfig createVideoConfig(InetSocketAddress remoteRtpAddress,
             RtcpConfig rtcpConfig, int codecType, int videoMode, int framerate, int bitrate,
             int profile, int level, int cameraId, int cameraZoom, int deviceOrientation, int cvo,
-            int rtcpFbTypes) {
+            int rtcpFbTypes, int width, int height) {
         VideoConfig config = new VideoConfig.Builder()
                 .setMediaDirection(RtpConfig.MEDIA_DIRECTION_SEND_RECEIVE)
                 .setAccessNetwork(AccessNetworkType.EUTRAN)
@@ -1428,8 +1475,8 @@ public class MainActivity extends AppCompatActivity {
                 .setPacketizationMode(VideoConfig.MODE_NON_INTERLEAVED)
                 .setCameraId(cameraId)
                 .setCameraZoom(cameraZoom)
-                .setResolutionWidth(RESOLUTION_WIDTH)
-                .setResolutionHeight(RESOLUTION_HEIGHT)
+                .setResolutionWidth(width)
+                .setResolutionHeight(height)
                 .setPauseImagePath(IMAGE)
                 .setDeviceOrientationDegree(deviceOrientation)
                 .setCvoValue(cvo)
@@ -1458,16 +1505,18 @@ public class MainActivity extends AppCompatActivity {
         return config;
     }
 
-    private MediaQualityThreshold createMediaQualityThreshold(int rtpInactivityTimerMillis,
-            int rtcpInactivityTimerMillis, int packetLossPeriodMillis, int packetLossThreshold,
-            int jitterPeriodMillis, int jitterThresholdMillis) {
+    private MediaQualityThreshold createMediaQualityThreshold(int[] rtpInactivityTimerMillis,
+            int rtcpInactivityTimerMillis, int rtpHysteresisTimeInMillis,
+            int rtpPacketLossDurationMillis, int[] rtpPacketLossRate, int[] rtpJitterMillis,
+            boolean notifyCurrentStatus) {
         return new MediaQualityThreshold.Builder()
                 .setRtpInactivityTimerMillis(rtpInactivityTimerMillis)
                 .setRtcpInactivityTimerMillis(rtcpInactivityTimerMillis)
-                .setPacketLossPeriodMillis(packetLossPeriodMillis)
-                .setPacketLossThreshold(packetLossThreshold)
-                .setJitterPeriodMillis(jitterPeriodMillis)
-                .setJitterThresholdMillis(jitterThresholdMillis)
+                .setRtpHysteresisTimeInMillis(rtpHysteresisTimeInMillis)
+                .setRtpPacketLossDurationMillis(rtpPacketLossDurationMillis)
+                .setRtpPacketLossRate(rtpPacketLossRate)
+                .setRtpJitterMillis(rtpJitterMillis)
+                .setNotifyCurrentStatus(notifyCurrentStatus)
                 .build();
     }
 
@@ -1621,7 +1670,7 @@ public class MainActivity extends AppCompatActivity {
      */
     private VideoConfig createVideoConfig(int codecType, int videoMode, int framerate, int bitrate,
             int profile, int level, int cameraId, int cameraZoom, int deviceOrientation, int cvo,
-            int rtcpFbTypes) {
+            int rtcpFbTypes, int width, int height) {
         VideoConfig videoConfig = null;
 
         switch (codecType) {
@@ -1629,7 +1678,8 @@ public class MainActivity extends AppCompatActivity {
             case VideoConfig.VIDEO_CODEC_HEVC:
                 videoConfig = createVideoConfig(getRemoteVideoSocketAddress(),
                         getRemoteVideoRtcpConfig(), codecType, videoMode, framerate, bitrate,
-                        profile, level, cameraId, cameraZoom, deviceOrientation, cvo, rtcpFbTypes);
+                        profile, level, cameraId, cameraZoom, deviceOrientation, cvo, rtcpFbTypes,
+                        width, height);
                 break;
         }
 
@@ -1745,27 +1795,37 @@ public class MainActivity extends AppCompatActivity {
         PopupMenu mediaDirectionMenu = new PopupMenu(this, findViewById(R.id.mediaDirectionButton));
         mediaDirectionMenu.getMenuInflater()
                 .inflate(R.menu.media_direction_menu, mediaDirectionMenu.getMenu());
+        int[] direction = { 0 };
         mediaDirectionMenu.setOnMenuItemClickListener(item -> {
             switch (item.getItemId()) {
                 case R.id.noFlowDirectionMenuItem:
-                    mAudioConfig.setMediaDirection(AudioConfig.MEDIA_DIRECTION_NO_FLOW);
+                    direction[0] = RtpConfig.MEDIA_DIRECTION_NO_FLOW;
                     break;
                 case R.id.sendReceiveDirectionMenuItem:
-                    mAudioConfig.setMediaDirection(AudioConfig.MEDIA_DIRECTION_SEND_RECEIVE);
+                    direction[0] = RtpConfig.MEDIA_DIRECTION_SEND_RECEIVE;
                     break;
                 case R.id.receiveOnlyDirectionMenuItem:
-                    mAudioConfig.setMediaDirection(AudioConfig.MEDIA_DIRECTION_RECEIVE_ONLY);
+                    direction[0] = RtpConfig.MEDIA_DIRECTION_RECEIVE_ONLY;
                     break;
                 case R.id.sendOnlyDirectionMenuItem:
-                    mAudioConfig.setMediaDirection(AudioConfig.MEDIA_DIRECTION_SEND_ONLY);
+                    direction[0] = RtpConfig.MEDIA_DIRECTION_SEND_ONLY;
                     break;
                 case R.id.inactiveDirectionMenuItem:
-                    mAudioConfig.setMediaDirection(AudioConfig.MEDIA_DIRECTION_INACTIVE);
+                    direction[0] = RtpConfig.MEDIA_DIRECTION_INACTIVE;
                     break;
                 default:
                     return false;
             }
+            mAudioConfig.setMediaDirection(direction[0]);
             mAudioSession.modifySession(mAudioConfig);
+            if (mIsVideoSessionOpened) {
+                mVideoConfig.setMediaDirection(direction[0]);
+                mVideoSession.modifySession(mVideoConfig);
+            }
+            if (mIsTextSessionOpened) {
+                mTextConfig.setMediaDirection(direction[0]);
+                mTextSession.modifySession(mTextConfig);
+            }
             return true;
         });
         mediaDirectionMenu.show();
@@ -1814,7 +1874,9 @@ public class MainActivity extends AppCompatActivity {
                         mSelectedFramerate, mSelectedBitrate, mSelectedCodecProfile,
                         mSelectedCodecLevel, mSelectedCameraId, mSelectedCameraZoom,
                         mSelectedDeviceOrientationDegree,
-                        mSelectedCvoValue, rtcpfbTypes);
+                        mSelectedCvoValue, rtcpfbTypes,
+                        getResolutionWidth(mSelectedVideoResolution),
+                        getResolutionHeight(mSelectedVideoResolution));
                 Log.d(TAG, "VideoConfig: " + mVideoConfig.toString());
 
                 RtpVideoSessionCallback sessionVideoCallback = new RtpVideoSessionCallback();
@@ -1876,6 +1938,7 @@ public class MainActivity extends AppCompatActivity {
         Spinner videoBitrateSpinner = findViewById(R.id.spinnerVideoBitrates);
         Spinner videoDeviceOrientationSpinner = findViewById(R.id.spinnerVideoDeviceOrientations);
         Spinner videoCvoValueSpinner = findViewById(R.id.spinnerVideoCvoValues);
+        Spinner videoResolutionSpinner = (Spinner) findViewById(R.id.spinnerVideoResolution);
 
         mSelectedVideoCodec =
                 ((VideoCodecEnum) videoCodecSpinner.getSelectedItem()).getValue();
@@ -1899,6 +1962,7 @@ public class MainActivity extends AppCompatActivity {
                 .getValue();
         mSelectedCvoValue = ((VideoCvoValueEnum) videoCvoValueSpinner.getSelectedItem())
                 .getValue();
+        mSelectedVideoResolution = (String) videoResolutionSpinner.getSelectedItem();
         Toast.makeText(getApplicationContext(), R.string.save_button_action_toast,
                 Toast.LENGTH_SHORT).show();
     }
@@ -2054,7 +2118,7 @@ public class MainActivity extends AppCompatActivity {
         setupCodecSelectionOnClickListeners();
     }
 
-    private int getSpinnerIndex(Spinner spinner, int value) {
+    private int getSpinnerIndex(Spinner spinner, Object value) {
         int index = 0;
         for (int i = 0; i < spinner.getCount(); i++) {
             if (spinner.getItemAtPosition(i).equals(value)) {
@@ -2077,8 +2141,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     /**
-     * Gets the saved user selections for the audio codec settings and updates the
-     * UI's lists to
+     * Gets the saved user selections for the audio codec settings and updates the UI's lists to
      * match.
      */
     private void setupAudioCodecSelectionLists() {
@@ -2206,6 +2269,15 @@ public class MainActivity extends AppCompatActivity {
         videoCvoValueSpinner.setAdapter(videoCvoValueAdaptor);
         videoCvoValueSpinner.setSelection(getSpinnerIndex(videoCvoValueSpinner,
                 mSelectedCvoValue));
+
+        Spinner videoResolutionSpinner = (Spinner) findViewById(R.id.spinnerVideoResolution);
+        ArrayAdapter<String> videoResolutionAdapter = new ArrayAdapter<String>(this,
+                android.R.layout.simple_spinner_item, mVideoResolutionStrings);
+        videoResolutionAdapter.setDropDownViewResource(
+                android.R.layout.simple_spinner_dropdown_item);
+        videoResolutionSpinner.setAdapter(videoResolutionAdapter);
+        videoResolutionSpinner.setSelection(getSpinnerIndex(videoResolutionSpinner,
+                mSelectedVideoResolution));
     }
 
     /**
@@ -2601,8 +2673,8 @@ public class MainActivity extends AppCompatActivity {
                 .setFramerate(10)
                 .setIntraFrameIntervalSec(1)
                 .setPacketizationMode(VideoConfig.MODE_NON_INTERLEAVED)
-                .setResolutionWidth(480)
-                .setResolutionHeight(640)
+                .setResolutionWidth(RESOLUTION_WIDTH)
+                .setResolutionHeight(RESOLUTION_HEIGHT)
                 .setVideoMode(VideoConfig.VIDEO_MODE_RECORDING)
                 .setMaxMtuBytes(1500);
 
@@ -2612,6 +2684,22 @@ public class MainActivity extends AppCompatActivity {
             mImsMediaManager.generateVideoSprop(videoConfigList, mMediaUtilCallback.asBinder());
         } catch (Exception e) {
             Log.d(TAG, e.toString());
+        }
+    }
+
+    public void sendHeaderExtension(View btn) {
+        if (mAudioSession != null) {
+            List<RtpHeaderExtension> extensions = new ArrayList<>();
+            byte[] testBytes1 = new byte[1];
+            byte[] testBytes2 = new byte[1];
+            testBytes1[0] = 5;
+            testBytes2[0] = 10;
+            RtpHeaderExtension extension1 = new RtpHeaderExtension(1, testBytes1);
+            RtpHeaderExtension extension2 = new RtpHeaderExtension(2, testBytes2);
+            extensions.add(extension1);
+            extensions.add(extension2);
+            Log.d(TAG, "[sendHeaderExtension] extension size=" + extensions.size());
+            mAudioSession.sendHeaderExtension(extensions);
         }
     }
 }

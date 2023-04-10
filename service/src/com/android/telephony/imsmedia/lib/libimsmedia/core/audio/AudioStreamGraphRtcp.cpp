@@ -92,7 +92,7 @@ ImsMediaResult AudioStreamGraphRtcp::update(RtpConfig* config)
 
     if (*reinterpret_cast<AudioConfig*>(mConfig) == *pConfig)
     {
-        IMLOGD0("[update] no update");
+        IMLOGI0("[update] no update");
         return RESULT_SUCCESS;
     }
 
@@ -104,7 +104,7 @@ ImsMediaResult AudioStreamGraphRtcp::update(RtpConfig* config)
 
     if (mConfig->getMediaDirection() == RtpConfig::MEDIA_DIRECTION_NO_FLOW)
     {
-        IMLOGD0("[update] pause RTCP");
+        IMLOGI0("[update] pause RTCP");
         return stop();
     }
 
@@ -138,21 +138,20 @@ ImsMediaResult AudioStreamGraphRtcp::update(RtpConfig* config)
     return ret;
 }
 
-bool AudioStreamGraphRtcp::setMediaQualityThreshold(MediaQualityThreshold* threshold)
+ImsMediaResult AudioStreamGraphRtcp::start()
 {
-    if (threshold != nullptr)
+    if (mConfig == nullptr)
     {
-        BaseNode* node = findNode(kNodeIdRtcpDecoder);
-
-        if (node != nullptr)
-        {
-            RtcpDecoderNode* decoder = reinterpret_cast<RtcpDecoderNode*>(node);
-            decoder->SetInactivityTimerSec(threshold->getRtcpInactivityTimerMillis() / 1000);
-            return true;
-        }
+        return RESULT_NOT_READY;
     }
 
-    return false;
+    if (mConfig->getMediaDirection() != RtpConfig::MEDIA_DIRECTION_NO_FLOW)
+    {
+        return BaseStreamGraph::start();
+    }
+
+    // not started
+    return RESULT_SUCCESS;
 }
 
 bool AudioStreamGraphRtcp::OnEvent(int32_t type, uint64_t param1, uint64_t param2)

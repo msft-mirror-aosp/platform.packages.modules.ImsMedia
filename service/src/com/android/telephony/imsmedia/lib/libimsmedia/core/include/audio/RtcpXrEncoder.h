@@ -198,12 +198,12 @@ public:
      * @return false The bitmask of the report block types are zero or data buffer is null
      */
     bool createRtcpXrReport(const uint32_t nRtcpXrReport, std::list<RtpPacket*>* packets,
-            std::list<LostPktEntry*>* lostPackets, uint16_t beginSeq, uint16_t endSeq,
-            uint8_t* data, uint32_t& size);
+            std::list<LostPacket*>* lostPackets, uint16_t beginSeq, uint16_t endSeq, uint8_t* data,
+            uint32_t& size);
 
 private:
     tLossReport* createLossAnalysisReport(std::list<RtpPacket*>* packets,
-            std::list<LostPktEntry*>* lostPackets, uint16_t beginSeq, uint16_t endSeq);
+            std::list<LostPacket*>* lostPackets, uint16_t beginSeq, uint16_t endSeq);
     tJitterReport* createJitterAnalysisReport(
             std::list<RtpPacket*>* packets, uint16_t beginSeq, uint16_t endSeq);
     tTTLReport* createTTLAnalysisReport(

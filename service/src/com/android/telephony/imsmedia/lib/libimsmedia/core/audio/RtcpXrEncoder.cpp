@@ -137,7 +137,7 @@ void RtcpXrEncoder::setJitterBufferStatus(const uint32_t current, const uint32_t
 }
 
 bool RtcpXrEncoder::createRtcpXrReport(const uint32_t rtcpXrReport, std::list<RtpPacket*>* packets,
-        std::list<LostPktEntry*>* lostPackets, uint16_t beginSeq, uint16_t endSeq, uint8_t* data,
+        std::list<LostPacket*>* lostPackets, uint16_t beginSeq, uint16_t endSeq, uint8_t* data,
         uint32_t& size)
 {
     size = 0;
@@ -196,11 +196,12 @@ bool RtcpXrEncoder::createRtcpXrReport(const uint32_t rtcpXrReport, std::list<Rt
 
     IMLOGD_PACKET2(IM_PACKET_LOG_RTCP, "[createRtcpXrReport] rtcpXrReport[%d], size[%d]",
             rtcpXrReport, size);
-    return true;
+
+    return (size > 0);
 }
 
 tLossReport* RtcpXrEncoder::createLossAnalysisReport(std::list<RtpPacket*>* packets,
-        std::list<LostPktEntry*>* lostPackets, uint16_t beginSeq, uint16_t endSeq)
+        std::list<LostPacket*>* lostPackets, uint16_t beginSeq, uint16_t endSeq)
 {
     tLossReport* report = new tLossReport();
     report->beginSeq = beginSeq;
@@ -220,7 +221,7 @@ tLossReport* RtcpXrEncoder::createLossAnalysisReport(std::list<RtpPacket*>* pack
     {
         if (packet->seqNum >= beginSeq && packet->seqNum <= endSeq)
         {
-            for (int32_t i = 0; i < packet->param1; i++)
+            for (int32_t i = 0; i < packet->numLoss; i++)
             {
                 if (packet->seqNum + i > endSeq)
                 {

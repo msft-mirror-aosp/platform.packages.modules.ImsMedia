@@ -18,9 +18,7 @@
 #include <ImsMediaTrace.h>
 #include <ImsMediaEventHandler.h>
 #include <ImsMediaAudioUtil.h>
-
 #include <AudioConfig.h>
-
 #include <string>
 
 AudioSession::AudioSession()
@@ -34,6 +32,8 @@ AudioSession::AudioSession()
 AudioSession::~AudioSession()
 {
     IMLOGD0("[~AudioSession]");
+
+    mMediaQualityAnalyzer->stop();
 
     while (mListGraphRtpTx.size() > 0)
     {
@@ -73,8 +73,6 @@ AudioSession::~AudioSession()
         mListGraphRtcp.pop_front();
         delete graph;
     }
-
-    mMediaQualityAnalyzer->stop();
 }
 
 SessionState AudioSession::getState()
@@ -85,7 +83,8 @@ SessionState AudioSession::getState()
     {
         if (graph != nullptr && graph->getState() == kStreamStateRunning)
         {
-            return kSessionStateActive;
+            state = kSessionStateSending;
+            break;
         }
     }
 
@@ -93,7 +92,7 @@ SessionState AudioSession::getState()
     {
         if (graph != nullptr && graph->getState() == kStreamStateRunning)
         {
-            return kSessionStateActive;
+            return state == kSessionStateSending ? kSessionStateActive : kSessionStateReceiving;
         }
     }
 
@@ -101,7 +100,7 @@ SessionState AudioSession::getState()
     {
         if (graph != nullptr && graph->getState() == kStreamStateRunning)
         {
-            return kSessionStateSuspended;
+            return state == kSessionStateSending ? kSessionStateSending : kSessionStateSuspended;
         }
     }
 
@@ -124,19 +123,26 @@ ImsMediaResult AudioSession::startGraph(RtpConfig* config)
         return RESULT_INVALID_PARAM;
     }
 
+    IMLOGI1("[startGraph] state[%d]", getState());
+
+    if (mMediaQualityAnalyzer != nullptr)
+    {
+        mMediaQualityAnalyzer->setConfig(reinterpret_cast<AudioConfig*>(config));
+        mMediaQualityAnalyzer->start();
+    }
+
     ImsMediaResult ret = RESULT_NOT_READY;
     IMLOGD1("[startGraph] mListGraphRtpTx size[%d]", mListGraphRtpTx.size());
 
-    if (mListGraphRtpTx.size() != 0)
-    {
-        for (auto& graph : mListGraphRtpTx)
-        {
-            if (graph != nullptr && graph->isSameGraph(config))
+    AudioStreamGraphRtpTx* graphTx = AudioStreamGraph::findGraph(mListGraphRtpTx,
+            [&config](AudioStreamGraphRtpTx* graph)
             {
-                ret = graph->update(config);
-                break;
-            }
-        }
+                return graph != nullptr && graph->isSameGraph(config);
+            });
+
+    if (graphTx != nullptr)
+    {
+        ret = graphTx->update(config);
 
         if (ret != RESULT_SUCCESS)
         {
@@ -147,13 +153,11 @@ ImsMediaResult AudioSession::startGraph(RtpConfig* config)
     else
     {
         mListGraphRtpTx.push_back(new AudioStreamGraphRtpTx(this, mRtpFd));
-        ret = mListGraphRtpTx.back()->create(config);
 
-        if (ret == RESULT_SUCCESS &&
-                (pConfig->getMediaDirection() == RtpConfig::MEDIA_DIRECTION_SEND_ONLY ||
-                        pConfig->getMediaDirection() == RtpConfig::MEDIA_DIRECTION_SEND_RECEIVE))
+        if (mListGraphRtpTx.back()->create(config) == RESULT_SUCCESS)
         {
             ret = mListGraphRtpTx.back()->start();
+
             if (ret != RESULT_SUCCESS)
             {
                 IMLOGE1("[startGraph] start error[%d]", ret);
@@ -162,19 +166,18 @@ ImsMediaResult AudioSession::startGraph(RtpConfig* config)
         }
     }
 
-    IMLOGD1("[startGraph] mListGraphRtpRx size[%d]", mListGraphRtpRx.size());
+    IMLOGD1("[startGraph] ListGraphRtpRx size[%d]", mListGraphRtpRx.size());
 
-    if (mListGraphRtpRx.size() != 0)
-    {
-        for (auto& graph : mListGraphRtpRx)
-        {
-            if (graph != nullptr && graph->isSameGraph(config))
+    AudioStreamGraphRtpRx* graphRx = AudioStreamGraph::findGraph(mListGraphRtpRx,
+            [&config](AudioStreamGraphRtpRx* graph)
             {
-                graph->setMediaQualityThreshold(&mThreshold);
-                ret = graph->update(config);
-                break;
-            }
-        }
+                return graph != nullptr && graph->isSameGraph(config);
+            });
+
+    if (graphRx != nullptr)
+    {
+        graphRx->setMediaQualityThreshold(&mThreshold);
+        ret = graphRx->update(config);
 
         if (ret != RESULT_SUCCESS)
         {
@@ -185,11 +188,8 @@ ImsMediaResult AudioSession::startGraph(RtpConfig* config)
     else
     {
         mListGraphRtpRx.push_back(new AudioStreamGraphRtpRx(this, mRtpFd));
-        ret = mListGraphRtpRx.back()->create(config);
 
-        if (ret == RESULT_SUCCESS &&
-                (pConfig->getMediaDirection() == RtpConfig::MEDIA_DIRECTION_RECEIVE_ONLY ||
-                        pConfig->getMediaDirection() == RtpConfig::MEDIA_DIRECTION_SEND_RECEIVE))
+        if (mListGraphRtpRx.back()->create(config) == RESULT_SUCCESS)
         {
             mListGraphRtpRx.back()->setMediaQualityThreshold(&mThreshold);
             ret = mListGraphRtpRx.back()->start();
@@ -204,17 +204,16 @@ ImsMediaResult AudioSession::startGraph(RtpConfig* config)
 
     IMLOGD1("[startGraph] mListGraphRtcp size[%d]", mListGraphRtcp.size());
 
-    if (mListGraphRtcp.size() != 0)
-    {
-        for (auto& graph : mListGraphRtcp)
-        {
-            if (graph != nullptr && graph->isSameGraph(config))
+    AudioStreamGraphRtcp* graphRtcp = AudioStreamGraph::findGraph(mListGraphRtcp,
+            [&config](AudioStreamGraphRtcp* graph)
             {
-                graph->setMediaQualityThreshold(&mThreshold);
-                ret = graph->update(config);
-                break;
-            }
-        }
+                return graph != nullptr && graph->isSameGraph(config);
+            });
+
+    if (graphRtcp != nullptr)
+    {
+        graphRtcp->setMediaQualityThreshold(&mThreshold);
+        ret = graphRtcp->update(config);
 
         if (ret != RESULT_SUCCESS)
         {
@@ -225,29 +224,18 @@ ImsMediaResult AudioSession::startGraph(RtpConfig* config)
     else
     {
         mListGraphRtcp.push_back(new AudioStreamGraphRtcp(this, mRtcpFd));
-        ret = mListGraphRtcp.back()->create(config);
 
-        if (ret == RESULT_SUCCESS)
+        if (mListGraphRtcp.back()->create(config) == RESULT_SUCCESS)
         {
             mListGraphRtcp.back()->setMediaQualityThreshold(&mThreshold);
             ret = mListGraphRtcp.back()->start();
+
             if (ret != RESULT_SUCCESS)
             {
                 IMLOGE1("[startGraph] start error[%d]", ret);
                 return ret;
             }
         }
-    }
-
-    // TODO : check that the timing is correct
-    IMLOGI1("[startGraph] state[%d]", getState());
-
-    if (mMediaQualityAnalyzer != nullptr &&
-            !mMediaQualityAnalyzer->isSameConfig(reinterpret_cast<AudioConfig*>(config)))
-    {
-        mMediaQualityAnalyzer->stop();
-        mMediaQualityAnalyzer->setConfig(reinterpret_cast<AudioConfig*>(config));
-        mMediaQualityAnalyzer->start();
     }
 
     return ret;
@@ -262,97 +250,43 @@ ImsMediaResult AudioSession::addGraph(RtpConfig* config, bool enableRtcp)
         return RESULT_INVALID_PARAM;
     }
 
-    for (auto& graph : mListGraphRtpTx)
+    if (IsGraphAlreadyExist(config) || mListGraphRtpTx.empty())
     {
-        if (graph != nullptr && graph->isSameGraph(config))
+        return startGraph(config);
+    }
+
+    if (enableRtcp)  // update current graph to inactive mode
+    {
+        for (auto& graph : mListGraphRtpTx)
         {
-            IMLOGW0("[addGraph] same config is exist");
-            return startGraph(config);
+            if (graph != nullptr)
+            {
+                graph->stop();
+            }
         }
-    }
 
-    for (auto& graph : mListGraphRtpTx)
-    {
-        if (graph != nullptr)
+        for (auto& graph : mListGraphRtpRx)
         {
-            graph->stop();
+            if (graph != nullptr)
+            {
+                graph->stop();
+            }
         }
-    }
 
-    for (auto& graph : mListGraphRtpRx)
-    {
-        if (graph != nullptr)
+        for (auto& graph : mListGraphRtcp)
         {
-            graph->stop();
+            if (graph != nullptr && graph->getState() != kStreamStateRunning)
+            {
+                graph->start();
+            }
         }
-    }
 
-    for (auto& graph : mListGraphRtcp)
+        return startGraph(config);
+    }
+    else
     {
-        if (graph != nullptr && graph->getState() != kStreamStateRunning)
-        {
-            enableRtcp ? graph->start() : graph->stop();
-        }
+        return confirmGraph(config);
     }
-
-    ImsMediaResult ret = RESULT_NOT_READY;
-
-    mListGraphRtpTx.push_back(new AudioStreamGraphRtpTx(this, mRtpFd));
-    ret = mListGraphRtpTx.back()->create(config);
-
-    if (ret == RESULT_SUCCESS)
-    {
-        ret = mListGraphRtpTx.back()->start();
-        if (ret != RESULT_SUCCESS)
-        {
-            IMLOGE1("[addGraph] start error[%d]", ret);
-            return ret;
-        }
-    }
-
-    IMLOGD1("[addGraph] mListGraphTx size[%d]", mListGraphRtpTx.size());
-
-    mListGraphRtpRx.push_back(new AudioStreamGraphRtpRx(this, mRtpFd));
-    ret = mListGraphRtpRx.back()->create(config);
-
-    if (ret == RESULT_SUCCESS)
-    {
-        mListGraphRtpRx.back()->setMediaQualityThreshold(&mThreshold);
-        ret = mListGraphRtpRx.back()->start();
-        if (ret != RESULT_SUCCESS)
-        {
-            IMLOGE1("[addGraph] start error[%d]", ret);
-            return ret;
-        }
-    }
-
-    IMLOGD1("[addGraph] mListGraphRx size[%d]", mListGraphRtpRx.size());
-
-    mListGraphRtcp.push_back(new AudioStreamGraphRtcp(this, mRtcpFd));
-    ret = mListGraphRtcp.back()->create(config);
-
-    if (ret == RESULT_SUCCESS)
-    {
-        mListGraphRtcp.back()->setMediaQualityThreshold(&mThreshold);
-        ret = mListGraphRtcp.back()->start();
-        if (ret != RESULT_SUCCESS)
-        {
-            IMLOGE1("[addGraph] start error[%d]", ret);
-            return ret;
-        }
-    }
-
-    IMLOGD1("[addGraph] mListGraphRtcp size[%d]", mListGraphRtcp.size());
-
-    if (mMediaQualityAnalyzer != nullptr &&
-            !mMediaQualityAnalyzer->isSameConfig(reinterpret_cast<AudioConfig*>(config)))
-    {
-        mMediaQualityAnalyzer->stop();
-        mMediaQualityAnalyzer->setConfig(reinterpret_cast<AudioConfig*>(config));
-        mMediaQualityAnalyzer->start();
-    }
-
-    return RESULT_SUCCESS;
 }
 
 ImsMediaResult AudioSession::confirmGraph(RtpConfig* config)
@@ -362,99 +296,44 @@ ImsMediaResult AudioSession::confirmGraph(RtpConfig* config)
         return RESULT_INVALID_PARAM;
     }
 
-    ImsMediaResult ret = RESULT_NOT_READY;
-
-    /** Stop unmatched running instances of StreamGraph. */
-    for (auto& graph : mListGraphRtpTx)
+    if (mListGraphRtpTx.empty() || mListGraphRtpRx.empty() || mListGraphRtcp.empty())
     {
-        if (graph != nullptr && !graph->isSameGraph(config))
-        {
-            graph->stop();
-        }
+        return startGraph(config);
     }
 
-    for (auto& graph : mListGraphRtpRx)
-    {
-        if (graph != nullptr && !graph->isSameGraph(config))
-        {
-            graph->stop();
-        }
-    }
-
-    for (auto& graph : mListGraphRtcp)
-    {
-        if (graph != nullptr && !graph->isSameGraph(config))
-        {
-            graph->stop();
-        }
-    }
-
-    bool bFound = false;
+    /** Stop and delete unmatched running instances of StreamGraph. */
     for (std::list<AudioStreamGraphRtpTx*>::iterator iter = mListGraphRtpTx.begin();
             iter != mListGraphRtpTx.end();)
     {
         AudioStreamGraphRtpTx* graph = *iter;
 
-        if (graph == nullptr)
+        if (graph != nullptr && !graph->isSameGraph(config))
         {
-            continue;
-        }
-
-        if (!graph->isSameGraph(config))
-        {
+            graph->stop();
             iter = mListGraphRtpTx.erase(iter);
             delete graph;
         }
         else
         {
-            if (graph->getState() != kStreamStateRunning)
-            {
-                ret = graph->start();
-                if (ret != RESULT_SUCCESS)
-                {
-                    IMLOGE1("[confirmGraph] start tx error[%d]", ret);
-                    return ret;
-                }
-            }
             iter++;
-            bFound = true;
         }
     }
 
     IMLOGD1("[confirmGraph] mListGraphTx size[%d]", mListGraphRtpTx.size());
-
-    if (bFound == false)
-    {
-        IMLOGE0("[confirmGraph] no graph to confirm");
-        return RESULT_INVALID_PARAM;
-    }
 
     for (std::list<AudioStreamGraphRtpRx*>::iterator iter = mListGraphRtpRx.begin();
             iter != mListGraphRtpRx.end();)
     {
         AudioStreamGraphRtpRx* graph = *iter;
 
-        if (graph == nullptr)
+        if (graph != nullptr && !graph->isSameGraph(config))
         {
-            continue;
-        }
-
-        if (!graph->isSameGraph(config))
-        {
+            graph->stop();
             iter = mListGraphRtpRx.erase(iter);
             delete graph;
         }
         else
         {
-            if (graph->getState() != kStreamStateRunning)
-            {
-                ret = graph->start();
-                if (ret != RESULT_SUCCESS)
-                {
-                    IMLOGE1("[confirmGraph] start rx error[%d]", ret);
-                    return ret;
-                }
-            }
             iter++;
         }
     }
@@ -466,35 +345,21 @@ ImsMediaResult AudioSession::confirmGraph(RtpConfig* config)
     {
         AudioStreamGraphRtcp* graph = *iter;
 
-        if (graph == nullptr)
+        if (graph != nullptr && !graph->isSameGraph(config))
         {
-            continue;
-        }
-
-        if (!graph->isSameGraph(config))
-        {
+            graph->stop();
             iter = mListGraphRtcp.erase(iter);
             delete graph;
         }
         else
         {
-            if (graph->getState() != kStreamStateRunning)
-            {
-                ret = graph->start();
-                if (ret != RESULT_SUCCESS)
-                {
-                    IMLOGE1("[confirmGraph] start rtcp error[%d]", ret);
-                    return ret;
-                }
-            }
-
             iter++;
         }
     }
 
     IMLOGD1("[confirmGraph] mListGraphRtcp size[%d]", mListGraphRtcp.size());
 
-    return RESULT_SUCCESS;
+    return startGraph(config);
 }
 
 ImsMediaResult AudioSession::deleteGraph(RtpConfig* config)
@@ -514,11 +379,7 @@ ImsMediaResult AudioSession::deleteGraph(RtpConfig* config)
 
         if (graph->isSameGraph(config))
         {
-            if (graph->getState() == kStreamStateRunning)
-            {
-                graph->stop();
-            }
-
+            graph->stop();
             iter = mListGraphRtpTx.erase(iter);
             delete graph;
             bFound = true;
@@ -553,6 +414,7 @@ ImsMediaResult AudioSession::deleteGraph(RtpConfig* config)
             {
                 graph->stop();
             }
+
             iter = mListGraphRtpRx.erase(iter);
             delete graph;
             break;
@@ -581,6 +443,7 @@ ImsMediaResult AudioSession::deleteGraph(RtpConfig* config)
             {
                 graph->stop();
             }
+
             iter = mListGraphRtcp.erase(iter);
             delete graph;
             break;
@@ -612,32 +475,28 @@ void AudioSession::onEvent(int32_t type, uint64_t param1, uint64_t param2)
                     "AUDIO_RESPONSE_EVENT", kAudioFirstMediaPacketInd, mSessionId, param1, param2);
             break;
         case kImsMediaEventHeaderExtensionReceived:
-            ImsMediaEventHandler::SendEvent(
-                    "AUDIO_RESPONSE_EVENT", kAudioRtpHeaderExtensionInd, 0, 0);
+            ImsMediaEventHandler::SendEvent("AUDIO_RESPONSE_EVENT", kAudioRtpHeaderExtensionInd,
+                    mSessionId, param1, param2);
             break;
-        case kImsMediaEventMediaInactivity:
-            ImsMediaEventHandler::SendEvent(
-                    "AUDIO_RESPONSE_EVENT", kAudioMediaInactivityInd, mSessionId, param1, param2);
-            break;
-        case kImsMediaEventPacketLoss:
-            ImsMediaEventHandler::SendEvent(
-                    "AUDIO_RESPONSE_EVENT", kAudioPacketLossInd, mSessionId, param1);
-            break;
-        case kImsMediaEventNotifyJitter:
-            ImsMediaEventHandler::SendEvent(
-                    "AUDIO_RESPONSE_EVENT", kAudioJitterInd, mSessionId, param1);
+        case kImsMediaEventMediaQualityStatus:
+            ImsMediaEventHandler::SendEvent("AUDIO_RESPONSE_EVENT", kAudioMediaQualityStatusInd,
+                    mSessionId, param1, param2);
             break;
         case kAudioTriggerAnbrQueryInd:
-        case kAudioDtmfReceivedInd:
             /** TODO: add implementation */
+            break;
+        case kAudioDtmfReceivedInd:
+            ImsMediaEventHandler::SendEvent(
+                    "AUDIO_RESPONSE_EVENT", kAudioDtmfReceivedInd, mSessionId, param1, param2);
             break;
         case kAudioCallQualityChangedInd:
             ImsMediaEventHandler::SendEvent(
                     "AUDIO_RESPONSE_EVENT", kAudioCallQualityChangedInd, mSessionId, param1);
             break;
         case kRequestAudioCmr:
+        case kRequestSendRtcpXrReport:
             ImsMediaEventHandler::SendEvent(
-                    "AUDIO_REQUEST_EVENT", kRequestAudioCmr, mSessionId, param1, param2);
+                    "AUDIO_REQUEST_EVENT", type, mSessionId, param1, param2);
             break;
         case kRequestRoundTripTimeDelayUpdate:
         case kCollectPacketInfo:
@@ -660,35 +519,19 @@ void AudioSession::setMediaQualityThreshold(const MediaQualityThreshold& thresho
     IMLOGI0("[setMediaQualityThreshold]");
     mThreshold = threshold;
 
-    for (auto& graph : mListGraphRtpRx)
-    {
-        if (graph != nullptr && graph->getState() == kStreamStateRunning)
-        {
-            graph->setMediaQualityThreshold(&mThreshold);
-        }
-    }
-
-    for (auto& graph : mListGraphRtcp)
-    {
-        if (graph != nullptr && graph->getState() == kStreamStateRunning)
-        {
-            graph->setMediaQualityThreshold(&mThreshold);
-        }
-    }
-
     if (mMediaQualityAnalyzer != nullptr)
     {
-        mMediaQualityAnalyzer->setJitterThreshold(
-                mThreshold.getJitterDurationMillis() / 1000,  // milliseconds to seconds
-                mThreshold.getRtpJitterMillis());
-        mMediaQualityAnalyzer->setPacketLossThreshold(
-                mThreshold.getRtpPacketLossDurationMillis() / 1000,  // milliseconds to seconds
-                mThreshold.getRtpPacketLossRate());
+        mMediaQualityAnalyzer->setMediaQualityThreshold(threshold);
     }
 }
 
 void AudioSession::sendDtmf(char digit, int duration)
 {
+    if (mListGraphRtpTx.empty())
+    {
+        return;
+    }
+
     for (std::list<AudioStreamGraphRtpTx*>::iterator iter = mListGraphRtpTx.begin();
             iter != mListGraphRtpTx.end(); iter++)
     {
@@ -717,10 +560,34 @@ bool AudioSession::IsGraphAlreadyExist(RtpConfig* config)
     return false;
 }
 
+uint32_t AudioSession::getGraphSize(ImsMediaStreamType type)
+{
+    switch (type)
+    {
+        case kStreamRtpTx:
+            return mListGraphRtpTx.size();
+        case kStreamRtpRx:
+            return mListGraphRtpRx.size();
+        case kStreamRtcp:
+            return mListGraphRtcp.size();
+    }
+
+    return 0;
+}
+
+void AudioSession::sendRtpHeaderExtension(std::list<RtpHeaderExtension>* listExtension)
+{
+    for (auto& graph : mListGraphRtpTx)
+    {
+        if (graph != nullptr)
+        {
+            graph->sendRtpHeaderExtension(listExtension);
+        }
+    }
+}
+
 void AudioSession::SendInternalEvent(int32_t type, uint64_t param1, uint64_t param2)
 {
-    (void)param2;
-
     switch (type)
     {
         case kRequestAudioCmr:

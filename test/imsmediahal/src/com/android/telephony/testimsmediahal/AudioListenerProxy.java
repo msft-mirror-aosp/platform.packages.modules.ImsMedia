@@ -24,6 +24,7 @@ import android.hardware.radio.ims.media.RtpHeaderExtension;
 import android.os.Parcel;
 import android.os.RemoteException;
 import android.telephony.imsmedia.AudioConfig;
+import android.telephony.imsmedia.MediaQualityStatus;
 import android.util.Log;
 
 import com.android.telephony.imsmedia.AudioSession;
@@ -128,40 +129,26 @@ class AudioListenerProxy implements JNIImsMediaListener {
                 }
                 break;
             case AudioSession.EVENT_RTP_HEADER_EXTENSION_IND:
-                final List<RtpHeaderExtension> rtpHeaderExt = new ArrayList<RtpHeaderExtension>();
-                parcel.readList(rtpHeaderExt, RtpHeaderExtension.class.getClassLoader());
+                final List<RtpHeaderExtension> extensions = new ArrayList<RtpHeaderExtension>();
+                final int listSize = parcel.readInt();
+                for (int i = 0; i < listSize; i++) {
+                    extensions.add(RtpHeaderExtension.CREATOR.createFromParcel(parcel));
+                }
 
                 try {
-                    mMediaSessionListener.onHeaderExtensionReceived(rtpHeaderExt);
+                    mMediaSessionListener.onHeaderExtensionReceived(extensions);
                 } catch(RemoteException e) {
                     Log.e(TAG, "Failed to notify rtp header extension: " + e);
                 }
                 break;
-            case AudioSession.EVENT_MEDIA_INACTIVITY_IND:
-                final int pktType = parcel.readInt();
-
+            case AudioSession.EVENT_MEDIA_QUALITY_STATUS_IND:
+                final MediaQualityStatus status =
+                        MediaQualityStatus.CREATOR.createFromParcel(parcel);
                 try {
-                    mMediaSessionListener.notifyMediaInactivity(pktType);
+                    mMediaSessionListener.notifyMediaQualityStatus(
+                            Utils.convertToHalMediaQualityStatus(status));
                 } catch(RemoteException e) {
-                    Log.e(TAG, "Failed to notify media inactivity: " + e);
-                }
-                break;
-            case AudioSession.EVENT_PACKET_LOSS_IND:
-                final int pktLossInd = parcel.readInt();
-
-                try {
-                    mMediaSessionListener.notifyPacketLoss(pktLossInd);
-                } catch(RemoteException e) {
-                    Log.e(TAG, "Failed to notify packet loss: " + e);
-                }
-                break;
-            case AudioSession.EVENT_JITTER_IND:
-                final int jitter = parcel.readInt();
-
-                try {
-                    mMediaSessionListener.notifyJitter(jitter);
-                } catch(RemoteException e) {
-                    Log.e(TAG, "Failed to notify jitter indication: " + e);
+                    Log.e(TAG, "Failed to notify media quality status: " + e);
                 }
                 break;
             case AudioSession.EVENT_TRIGGER_ANBR_QUERY_IND:
@@ -176,9 +163,10 @@ class AudioListenerProxy implements JNIImsMediaListener {
                 break;
             case AudioSession.EVENT_DTMF_RECEIVED_IND:
                 final char dtmfDigit = (char) parcel.readByte();
+                final int durationMs = parcel.readInt();
 
                 try {
-                    mMediaSessionListener.onDtmfReceived(dtmfDigit);
+                    mMediaSessionListener.onDtmfReceived(dtmfDigit, durationMs);
                 } catch (RemoteException e) {
                     Log.e(TAG, "Failed to DTMF received: " + e);
                 }

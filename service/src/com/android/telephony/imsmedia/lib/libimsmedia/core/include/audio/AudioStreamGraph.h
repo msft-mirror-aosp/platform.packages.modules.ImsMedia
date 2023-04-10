@@ -20,6 +20,7 @@
 #include <ImsMediaDefine.h>
 #include <BaseStreamGraph.h>
 #include <AudioConfig.h>
+#include <algorithm>  // std::find_if
 
 class AudioStreamGraph : public BaseStreamGraph
 {
@@ -49,10 +50,14 @@ public:
                 mConfig->getRemotePort() == config->getRemotePort());
     }
 
-protected:
-    virtual ImsMediaResult create(RtpConfig* config) = 0;
-    virtual ImsMediaResult update(RtpConfig* config) = 0;
+    template <class T1, class T2>
+    static T1* findGraph(std::list<T1*> list, T2 func)
+    {
+        typename std::list<T1*>::iterator iter = std::find_if(list.begin(), list.end(), func);
+        return iter == list.end() ? nullptr : *iter;
+    }
 
+protected:
     AudioConfig* mConfig;
 };
 

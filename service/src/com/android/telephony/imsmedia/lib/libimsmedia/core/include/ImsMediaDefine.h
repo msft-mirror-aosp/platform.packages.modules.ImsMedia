@@ -26,10 +26,7 @@
 #define USHORT_SEQ_ROUND_COMPARE(a, b)                                                      \
     ((((a) >= (b)) && (((b) >= SEQ_ROUND_QUARD) || (((a) <= 0xffff - SEQ_ROUND_QUARD)))) || \
             (((a) <= SEQ_ROUND_QUARD) && ((b) >= 0xffff - SEQ_ROUND_QUARD)))
-#define TS_ROUND_QUARD 3000
-#define USHORT_TS_ROUND_COMPARE(a, b)                                             \
-    (((a) >= (b) && (b) >= TS_ROUND_QUARD) || ((a) <= 0xffff - TS_ROUND_QUARD) || \
-            ((a) <= TS_ROUND_QUARD && (b) >= 0xffff - TS_ROUND_QUARD))
+#define IMS_MEDIA_WORD_SIZE 4
 
 using namespace android::telephony::imsmedia;
 
@@ -50,9 +47,8 @@ enum kImsMediaEventType
     kImsMediaEventStateChanged,
     kImsMediaEventFirstPacketReceived,
     kImsMediaEventHeaderExtensionReceived,
+    kImsMediaEventMediaQualityStatus,
     kImsMediaEventMediaInactivity,
-    kImsMediaEventPacketLoss,
-    kImsMediaEventNotifyJitter,
     kImsMediaEventResolutionChanged,
     kImsMediaEventNotifyVideoDataUsage,
     kImsMediaEventNotifyRttReceived,
@@ -94,26 +90,6 @@ enum ImsMediaStreamType
     kStreamRtpTx,
     kStreamRtpRx,
     kStreamRtcp,
-};
-
-enum kImsMediaDtmfNotify
-{
-    kDtmfKey0 = 600,
-    kDtmfKey1,
-    kDtmfKey2,
-    kDtmfKey3,
-    kDtmfKey4,
-    kDtmfKey5,
-    kDtmfKey6,
-    kDtmfKey7,
-    kDtmfKey8,
-    kDtmfKey9,
-    kDtmfKeySTAR,
-    kDtmfKeyPOUND,
-    kDtmfKeyA,
-    kDtmfKeyB,
-    kDtmfKeyC,
-    kDtmfKeyD,
 };
 
 enum kImsMediaStreamType
@@ -314,7 +290,7 @@ enum ImsMediaAudioMsgRequest
     kAudioDeleteConfig,
     kAudioConfirmConfig,
     kAudioSendDtmf,
-    kAudioSendHeaderExtension,
+    kAudioSendRtpHeaderExtension,
     kAudioSetMediaQualityThreshold,
 };
 
@@ -327,9 +303,7 @@ enum ImsMediaAudioMsgResponse
     kAudioConfirmConfigResponse,
     kAudioFirstMediaPacketInd,
     kAudioRtpHeaderExtensionInd,
-    kAudioMediaInactivityInd,
-    kAudioPacketLossInd,
-    kAudioJitterInd,
+    kAudioMediaQualityStatusInd,
     kAudioTriggerAnbrQueryInd,
     kAudioDtmfReceivedInd,
     kAudioCallQualityChangedInd,
@@ -343,7 +317,7 @@ enum ImsMediaVideoMsgRequest
     kVideoModifySession,
     kVideoSetPreviewSurface,
     kVideoSetDisplaySurface,
-    kVideoSendHeaderExtension,
+    kVideoSendRtpHeaderExtension,
     kVideoSetMediaQualityThreshold,
     kVideoRequestDataUsage,
 };
@@ -386,7 +360,6 @@ enum ImsMediaTextMsgResponse
 #define RTT_MAX_CHAR_PER_SEC                       (30)  // ATIS_GTT : 30 characters per second
 #define RTT_MAX_UNICODE_UTF8                       (4)
 #define MAX_RTT_LEN                                (RTT_MAX_CHAR_PER_SEC * RTT_MAX_UNICODE_UTF8)
-#define T140_MAX_CHUNK                             (1)
 #define PAYLOADENCODER_TEXT_MAX_REDUNDANT_INTERVAL (16383)
 
 struct EventParamOpenSession
@@ -470,7 +443,11 @@ enum SessionState
 {
     /** The state that the session is created but graph is not created */
     kSessionStateOpened,
-    /** The state that the session is created and the Rtp StreamGraphs are running */
+    /** The state that the session is created and the TX rtp StreamGraphs are running */
+    kSessionStateSending,
+    /** The state that the session is created and the RX rtp StreamGraphs are running */
+    kSessionStateReceiving,
+    /** The state that the session is created and the both TX and Rx rtp StreamGraphs are running */
     kSessionStateActive,
     /** The state that the session is created and the Rtp StreamGraphs is not running */
     kSessionStateSuspended,
@@ -509,6 +486,7 @@ enum kRtpOptionalType
     kReportPacketLossGap,
 };
 
+/** TODO: change the name to avoid confusion by similarity */
 struct RtpPacket
 {
 public:
@@ -517,7 +495,7 @@ public:
             seqNum(0),
             TTL(0),
             jitter(0),
-            delay(0),
+            arrival(0),
             rtpDataType(kRtpDataTypeNoData),
             status(kRtpStatusNotDefined)
     {
@@ -528,17 +506,9 @@ public:
         seqNum = p.seqNum;
         TTL = p.TTL;
         jitter = p.jitter;
+        arrival = p.arrival;
         rtpDataType = p.rtpDataType;
         status = p.status;
-    }
-    RtpPacket(const RtpPacket* p)
-    {
-        ssrc = p->ssrc;
-        seqNum = p->seqNum;
-        TTL = p->TTL;
-        jitter = p->jitter;
-        rtpDataType = p->rtpDataType;
-        status = p->status;
     }
 
     uint32_t ssrc;
@@ -546,8 +516,8 @@ public:
     uint32_t TTL;
     /** transit time difference */
     int32_t jitter;
-    /** delay from arrival to play */
-    int32_t delay;
+    /** arrival time */
+    int32_t arrival;
     kRtpDataType rtpDataType;
     kRtpPacketStatus status;
 };
@@ -556,41 +526,96 @@ public:
  * @brief It is lost packet data structure to store the start number of packet sequence and the
  * number of lost packets
  */
-struct LostPktEntry
+struct LostPacket
 {
 public:
-    LostPktEntry(uint16_t s = 0, uint32_t p1 = 0, uint32_t p2 = 0) :
+    LostPacket(uint16_t s = 0, uint32_t num = 0, uint32_t time = 0, uint32_t opt = 0) :
             seqNum(s),
-            param1(p1),
-            param2(p2)
+            numLoss(num),
+            markedTime(time),
+            option(opt)
     {
     }
+    /** The rtp sequence number of beginning of lost packet */
     uint16_t seqNum;
-    uint32_t param1;
-    uint32_t param2;
+    /** The number of lost packets */
+    uint32_t numLoss;
+    /** The time in milliseconds when determined to lost */
+    uint32_t markedTime;
+    /** optional parameter for nack */
+    uint32_t option;
 };
 
-struct tRtpHeaderExtensionInfo
+struct RtpHeaderExtensionInfo
 {
-    uint16_t nDefinedByProfile;
-    uint16_t nLength;
-    uint16_t nExtensionData;
-    tRtpHeaderExtensionInfo(uint16_t profile = 0, uint16_t length = 0, uint16_t data = 0)
+public:
+    enum
     {
-        nDefinedByProfile = profile;
-        nLength = length;
-        nExtensionData = data;
+        // RFC 8285#section-4.2, The bit pattern for one byte header
+        kBitPatternForOneByteHeader = 0xBEDE,
+        // RFC 8285#section-4.3, The bit pattern for two byte header
+        kBitPatternForTwoByteHeader = 0x1000,
+    };
+
+    uint16_t definedByProfile;
+    uint16_t length;  // length in word unit
+    int8_t* extensionData;
+    uint16_t extensionDataSize;
+
+    RtpHeaderExtensionInfo(
+            uint16_t profile = 0, uint16_t len = 0, int8_t* data = nullptr, uint16_t size = 0)
+    {
+        definedByProfile = profile;
+        length = len;
+        extensionData = nullptr;
+        extensionDataSize = 0;
+        setExtensionData(data, size);
     }
-    tRtpHeaderExtensionInfo& operator=(const tRtpHeaderExtensionInfo& extension)
+
+    RtpHeaderExtensionInfo(const RtpHeaderExtensionInfo& extension)
+    {
+        definedByProfile = extension.definedByProfile;
+        extensionData = nullptr;
+        length = extension.length;
+        setExtensionData(extension.extensionData, extension.extensionDataSize);
+    }
+
+    ~RtpHeaderExtensionInfo()
+    {
+        if (extensionData != nullptr)
+        {
+            delete[] extensionData;
+            extensionData = nullptr;
+        }
+    }
+
+    RtpHeaderExtensionInfo& operator=(const RtpHeaderExtensionInfo& extension)
     {
         if (this != &extension)
         {
-            nDefinedByProfile = extension.nDefinedByProfile;
-            nLength = extension.nLength;
-            nExtensionData = extension.nExtensionData;
+            definedByProfile = extension.definedByProfile;
+            length = extension.length;
+            setExtensionData(extension.extensionData, extension.extensionDataSize);
         }
 
         return *this;
+    }
+
+    void setExtensionData(int8_t* data, uint16_t dataSize)
+    {
+        if (extensionData != nullptr)
+        {
+            delete[] extensionData;
+            extensionData = nullptr;
+            extensionDataSize = 0;
+        }
+
+        if (data != nullptr)
+        {
+            extensionDataSize = dataSize;
+            extensionData = new int8_t[extensionDataSize];
+            memcpy(extensionData, data, extensionDataSize);
+        }
     }
 };
 

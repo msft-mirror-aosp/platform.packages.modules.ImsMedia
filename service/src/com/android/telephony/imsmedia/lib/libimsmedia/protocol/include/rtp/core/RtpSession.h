@@ -544,8 +544,7 @@ public:
      */
     eRtp_Bool isRtpEnabled();
 
-    eRTP_STATUS_CODE sendRtcpXrPacket(IN RtpDt_UChar* m_pBlockBuffer, IN RtpDt_UInt16 nblockLength,
-            IN RtpDt_UInt16 nRttdOffset);
+    eRTP_STATUS_CODE sendRtcpXrPacket(IN RtpDt_UChar* m_pBlockBuffer, IN RtpDt_UInt16 nblockLength);
 
     RtpDt_UInt32 getRTTD();
 };

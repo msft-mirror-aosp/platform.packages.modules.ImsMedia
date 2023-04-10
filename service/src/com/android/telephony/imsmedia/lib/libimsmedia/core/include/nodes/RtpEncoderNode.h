@@ -19,6 +19,7 @@
 
 #include <BaseNode.h>
 #include <IRtpSession.h>
+#include <RtpHeaderExtension.h>
 #include <mutex>
 
 class RtpEncoderNode : public BaseNode, public IRtpEncoderListener
@@ -49,17 +50,21 @@ public:
 
     /**
      * @brief Set the camera facing and device orientation parameter for cvo extension in rtp header
+     *
+     * @param facing The facing of camera define in kCameraFacing in ImsMediaVideoUtil.h
+     * @param orientation The orientation value to send in degree unit
+     * @return true Return true when the extension data set properly
+     * @return false Return false when the cvo configuration is disabled
      */
     bool SetCvoExtension(const int64_t facing, const int64_t orientation);
 
     /**
-     * @brief Set the rtp header extension parameter
+     * @brief Convert list of the RtpHeaderExtension to Rtp header extension payload
      */
-    void SetRtpHeaderExtension(tRtpHeaderExtensionInfo& tExtension);
+    void SetRtpHeaderExtension(std::list<RtpHeaderExtension>* listExtension);
 
 private:
-    bool ProcessAudioData(
-            ImsMediaSubType subtype, uint8_t* pData, uint32_t nDataSize, uint32_t timestamp);
+    bool ProcessAudioData(ImsMediaSubType subtype, uint8_t* pData, uint32_t nDataSize);
     void ProcessVideoData(ImsMediaSubType subtype, uint8_t* pData, uint32_t nDataSize,
             uint32_t timestamp, bool mark);
     void ProcessTextData(ImsMediaSubType subtype, uint8_t* pData, uint32_t nDataSize,
@@ -72,7 +77,6 @@ private:
     bool mDTMFMode;
     bool mMark;
     uint32_t mPrevTimestamp;
-    uint32_t mDTMFTimestamp;
     int8_t mSamplingRate;
     int8_t mRtpPayloadTx;
     int8_t mRtpPayloadRx;
@@ -82,7 +86,7 @@ private:
     int32_t mCvoValue;
     int8_t mRedundantPayload;
     int8_t mRedundantLevel;
-    tRtpHeaderExtensionInfo mRtpExtension;
+    std::list<RtpHeaderExtensionInfo> mListRtpExtension;
 };
 
 #endif

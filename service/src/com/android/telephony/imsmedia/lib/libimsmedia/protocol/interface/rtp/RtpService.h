@@ -128,7 +128,7 @@ GLOBAL eRtp_Bool IMS_RtpSvc_DeleteSession(IN RTPSESSIONID hRtpSession);
  */
 GLOBAL eRtp_Bool IMS_RtpSvc_SendRtpPacket(IN RtpServiceListener* pobjRtpServiceListener,
         IN RTPSESSIONID hRtpSession, IN RtpDt_Char* pBuffer, IN RtpDt_UInt16 wBufferLength,
-        IN tRtpSvc_SendRtpPacketParm* pstRtpParam);
+        IN tRtpSvc_SendRtpPacketParam* pstRtpParam);
 
 /**
  * This API processes the received RTP packet. Processed information is sent using
@@ -237,10 +237,9 @@ GLOBAL eRtp_Bool IMS_RtpSvc_ProcRtcpPacket(IN RtpServiceListener* pobjRtpService
  * @param m_hRtpSession     RTP session handle
  * @param m_pBlockBuffer    XR Block buffer
  * @param nblockLength      Buffer length in bytes
- * @param nRttdOffset       RTTD offset info
  */
-GLOBAL eRtp_Bool IMS_RtpSvc_SendRtcpXrPacket(IN RTPSESSIONID hRtpSession,
-        IN RtpDt_UChar* m_pBlockBuffer, IN RtpDt_UInt16 nblockLength, IN RtpDt_UInt16 nRttdOffset);
+GLOBAL eRtp_Bool IMS_RtpSvc_SendRtcpXrPacket(
+        IN RTPSESSIONID hRtpSession, IN RtpDt_UChar* m_pBlockBuffer, IN RtpDt_UInt16 nblockLength);
 
 #endif /* __RTP_SERVICE_H_ */
 
