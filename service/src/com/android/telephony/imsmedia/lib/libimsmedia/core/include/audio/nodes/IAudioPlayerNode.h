@@ -49,11 +49,12 @@ private:
     int32_t mCodecType;
     uint32_t mMode;
     ImsMediaCondition mCondition;
-    bool mFirstFrame;
     int8_t mEvsChannelAwOffset;
     kEvsBandwidth mEvsBandwidth;
     int8_t mSamplingRate;
     int32_t mEvsPayloadHeaderMode;
+    bool mIsDtxEnabled;
+    bool mIsOctetAligned;
 };
 
 #endif

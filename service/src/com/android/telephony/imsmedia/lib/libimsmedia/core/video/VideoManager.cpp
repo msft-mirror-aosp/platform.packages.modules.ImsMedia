@@ -21,9 +21,18 @@
 using namespace android;
 VideoManager* VideoManager::manager;
 
-VideoManager::VideoManager() {}
+VideoManager::VideoManager()
+{
+    mRequestHandler.Init("VIDEO_REQUEST_EVENT");
+    mResponseHandler.Init("VIDEO_RESPONSE_EVENT");
+}
 
-VideoManager::~VideoManager() {}
+VideoManager::~VideoManager()
+{
+    mRequestHandler.Deinit();
+    mResponseHandler.Deinit();
+    manager = nullptr;
+}
 
 VideoManager* VideoManager::getInstance()
 {
@@ -245,13 +254,6 @@ void VideoManager::SendInternalEvent(
     }
 }
 
-VideoManager::RequestHandler::RequestHandler() :
-        ImsMediaEventHandler("VIDEO_REQUEST_EVENT")
-{
-}
-
-VideoManager::RequestHandler::~RequestHandler() {}
-
 void VideoManager::RequestHandler::processEvent(
         uint32_t event, uint64_t sessionId, uint64_t paramA, uint64_t paramB)
 {
@@ -351,13 +353,6 @@ void VideoManager::RequestHandler::processEvent(
     }
 }
 
-VideoManager::ResponseHandler::ResponseHandler() :
-        ImsMediaEventHandler("VIDEO_RESPONSE_EVENT")
-{
-}
-
-VideoManager::ResponseHandler::~ResponseHandler() {}
-
 void VideoManager::ResponseHandler::processEvent(
         uint32_t event, uint64_t sessionId, uint64_t paramA, uint64_t paramB)
 {
@@ -407,12 +402,7 @@ void VideoManager::ResponseHandler::processEvent(
             // TODO : add implementation
             break;
         case kVideoMediaInactivityInd:
-            parcel.writeInt32(event);
-            parcel.writeInt32(static_cast<int>(paramA));  // type
-            parcel.writeInt32(static_cast<int>(paramB));  // duration
-            VideoManager::getInstance()->sendResponse(sessionId, parcel);
-            break;
-        case kVideoPacketLossInd:
+        case kVideoBitrateInd:
             parcel.writeInt32(event);
             parcel.writeInt32(static_cast<int>(paramA));
             VideoManager::getInstance()->sendResponse(sessionId, parcel);

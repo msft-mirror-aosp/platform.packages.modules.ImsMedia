@@ -40,10 +40,19 @@ ImsMediaAudioPlayer::ImsMediaAudioPlayer()
 {
     mAudioStream = nullptr;
     mCodec = nullptr;
+    mFormat = nullptr;
+    mCodecType = 0;
+    mCodecMode = 0;
     mSamplingRate = DEFAULT_SAMPLING_RATE;
+    mEvsChAwOffset = 0;
+    mEvsBandwidth = kEvsBandwidthNone;
+    memset(mBuffer, 0, sizeof(mBuffer));
+    mEvsBitRate = 0;
     mEvsCodecHeaderMode = kRtpPyaloadHeaderModeEvsHeaderFull;
-    mFirstFrame = false;
+    mIsFirstFrame = false;
     mIsEvsInitialized = false;
+    mIsOctetAligned = false;
+    mIsDtxEnabled = false;
 }
 
 ImsMediaAudioPlayer::~ImsMediaAudioPlayer() {}
@@ -83,6 +92,16 @@ void ImsMediaAudioPlayer::SetCodecMode(uint32_t mode)
 {
     IMLOGD1("[SetCodecMode] mode[%d]", mode);
     mCodecMode = mode;
+}
+
+void ImsMediaAudioPlayer::SetDtxEnabled(bool isDtxEnabled)
+{
+    mIsDtxEnabled = isDtxEnabled;
+}
+
+void ImsMediaAudioPlayer::SetOctetAligned(bool isOctetAligned)
+{
+    mIsOctetAligned = isOctetAligned;
 }
 
 bool ImsMediaAudioPlayer::Start()
@@ -368,10 +387,10 @@ bool ImsMediaAudioPlayer::decodeEvs(uint8_t* buffer, uint32_t size)
         mIsEvsInitialized = true;
     }
 
-    if (!mFirstFrame)
+    if (!mIsFirstFrame)
     {
         IMLOGD0("[decodeEvs] First frame has been decoded");
-        mFirstFrame = true;
+        mIsFirstFrame = true;
     }
 
     AAudioStream_write(mAudioStream, output, (decodeSize / 2), 0);

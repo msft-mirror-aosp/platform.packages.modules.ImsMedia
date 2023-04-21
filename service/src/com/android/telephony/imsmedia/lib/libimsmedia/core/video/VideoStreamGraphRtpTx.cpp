@@ -106,7 +106,7 @@ ImsMediaResult VideoStreamGraphRtpTx::update(RtpConfig* config)
 
     if (*reinterpret_cast<VideoConfig*>(mConfig) == *pConfig)
     {
-        IMLOGD0("[update] no update");
+        IMLOGI0("[update] no update");
         return RESULT_SUCCESS;
     }
 
@@ -232,6 +232,23 @@ ImsMediaResult VideoStreamGraphRtpTx::start()
     setState(kStreamStateRunning);
     mVideoMode = mConfig->getVideoMode();
     return RESULT_SUCCESS;
+}
+
+bool VideoStreamGraphRtpTx::setMediaQualityThreshold(MediaQualityThreshold* threshold)
+{
+    if (threshold != nullptr)
+    {
+        BaseNode* node = findNode(kNodeIdVideoSource);
+
+        if (node != nullptr)
+        {
+            IVideoSourceNode* source = reinterpret_cast<IVideoSourceNode*>(node);
+            source->SetBitrateThreshold(threshold->getVideoBitrateBps());
+            return true;
+        }
+    }
+
+    return false;
 }
 
 void VideoStreamGraphRtpTx::setSurface(ANativeWindow* surface)

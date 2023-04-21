@@ -52,6 +52,7 @@ enum kImsMediaEventType
     kImsMediaEventResolutionChanged,
     kImsMediaEventNotifyVideoDataUsage,
     kImsMediaEventNotifyRttReceived,
+    kImsMediaEventNotifyVideoLowestBitrate,
 };
 
 // Internal Request Event
@@ -331,7 +332,7 @@ enum ImsMediaVideoMsgResponse
     kVideoPeerDimensionChanged,
     kVideoRtpHeaderExtensionInd,
     kVideoMediaInactivityInd,
-    kVideoPacketLossInd,
+    kVideoBitrateInd,
     kVideoDataUsageInd,
     kVideoSessionClosed,
 };
@@ -360,7 +361,6 @@ enum ImsMediaTextMsgResponse
 #define RTT_MAX_CHAR_PER_SEC                       (30)  // ATIS_GTT : 30 characters per second
 #define RTT_MAX_UNICODE_UTF8                       (4)
 #define MAX_RTT_LEN                                (RTT_MAX_CHAR_PER_SEC * RTT_MAX_UNICODE_UTF8)
-#define T140_MAX_CHUNK                             (1)
 #define PAYLOADENCODER_TEXT_MAX_REDUNDANT_INTERVAL (16383)
 
 struct EventParamOpenSession

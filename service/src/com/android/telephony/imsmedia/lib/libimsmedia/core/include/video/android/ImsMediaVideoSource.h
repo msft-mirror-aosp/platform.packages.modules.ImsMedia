@@ -137,7 +137,7 @@ public:
      *
      * @param bitrate The bitrate in bps units
      */
-    void changeBitrate(const uint32_t bitrate);
+    bool changeBitrate(const uint32_t bitrate);
 
     /**
      * @brief Request a new IDR frame to the codec output streaming
@@ -153,11 +153,10 @@ private:
     ANativeWindow* mWindow;
     AMediaCodec* mCodec;
     AMediaFormat* mFormat;
-    ANativeWindow* mRecordingSurface;
     ANativeWindow* mImageReaderSurface;
     AImageReader* mImageReader;
     std::mutex mMutex;
-    std::mutex mImageReaderMutex;
+    ImsMediaCondition mConditionExit;
     IVideoSourceCallback* mListener;
     ImsMediaPauseImageSource mPauseImageSource;
     int32_t mCodecType;
@@ -168,6 +167,7 @@ private:
     uint32_t mCameraZoom;
     uint32_t mWidth;
     uint32_t mHeight;
+    int32_t mCodecStride;
     uint32_t mFramerate;
     uint32_t mBitrate;
     uint32_t mIntraInterval;

@@ -45,6 +45,8 @@ IVideoSourceNode::IVideoSourceNode(BaseSessionCallback* callback) :
     mImagePath = "";
     mDeviceOrientation = 0;
     mWindow = nullptr;
+    mMinBitrateThreshold = 0;
+    mBitrateNotified = false;
 }
 
 IVideoSourceNode::~IVideoSourceNode() {}
@@ -57,7 +59,6 @@ kBaseNodeId IVideoSourceNode::GetNodeId()
 ImsMediaResult IVideoSourceNode::Start()
 {
     IMLOGD3("[Start] codec[%d], mode[%d], cameraId[%d]", mCodecType, mVideoMode, mCameraId);
-    std::lock_guard<std::mutex> guard(mMutex);
 
     if (mVideoSource)
     {
@@ -84,12 +85,13 @@ ImsMediaResult IVideoSourceNode::Start()
 
         mVideoSource->SetSurface(mWindow);
 
-        if (mVideoSource->Start() == false)
+        if (!mVideoSource->Start())
         {
             return RESULT_NOT_READY;
         }
 
         mVideoSource->SetDeviceOrientation(mDeviceOrientation);
+        mBitrateNotified = false;
     }
 
     mNodeState = kNodeStateRunning;
@@ -99,7 +101,6 @@ ImsMediaResult IVideoSourceNode::Start()
 void IVideoSourceNode::Stop()
 {
     IMLOGD0("[Stop]");
-    std::lock_guard<std::mutex> guard(mMutex);
 
     if (mVideoSource)
     {
@@ -263,9 +264,9 @@ void IVideoSourceNode::UpdateSurface(ANativeWindow* window)
     mWindow = window;
 }
 
-void IVideoSourceNode::OnUplinkEvent(uint8_t* data, uint32_t size, int64_t timestamp, uint32_t flag)
+void IVideoSourceNode::OnUplinkEvent(
+        uint8_t* data, uint32_t size, int64_t timestamp, uint32_t /*flag*/)
 {
-    (void)flag;
     IMLOGD_PACKET2(
             IM_PACKET_LOG_VIDEO, "[OnUplinkEvent] size[%zu], timestamp[%ld]", size, timestamp);
     std::lock_guard<std::mutex> guard(mMutex);
@@ -275,6 +276,12 @@ void IVideoSourceNode::OnUplinkEvent(uint8_t* data, uint32_t size, int64_t times
         OnDataFromFrontNode(
                 MEDIASUBTYPE_UNDEFINED, data, size, timestamp, true, MEDIASUBTYPE_UNDEFINED);
     }
+}
+
+void IVideoSourceNode::SetBitrateThreshold(int32_t bitrate)
+{
+    IMLOGD1("[SetBitrateThreshold] bitrate[%d]", bitrate);
+    mMinBitrateThreshold = bitrate;
 }
 
 void IVideoSourceNode::OnEvent(int32_t type, int32_t param1, int32_t param2)
@@ -298,7 +305,15 @@ void IVideoSourceNode::OnEvent(int32_t type, int32_t param1, int32_t param2)
         case kRequestVideoBitrateChange:
             if (mVideoSource != nullptr)
             {
-                mVideoSource->changeBitrate(param1);
+                if (mVideoSource->changeBitrate(param1))
+                {
+                    if (mMinBitrateThreshold != 0 && param1 <= mMinBitrateThreshold &&
+                            mCallback != nullptr && !mBitrateNotified)
+                    {
+                        mCallback->SendEvent(kImsMediaEventNotifyVideoLowestBitrate, param1);
+                        mBitrateNotified = true;
+                    }
+                }
             }
             break;
         case kRequestVideoIdrFrame:
